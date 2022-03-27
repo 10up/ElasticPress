@@ -55,6 +55,28 @@ class Widget extends WP_Widget {
 			return;
 		}
 
+		switch ( $instance['type'] ) {
+			case 'meta':
+				$this->render_widget_meta( $args, $instance );
+				break;
+			default:
+				$this->render_widget_taxonomy( $args, $instance );
+				break;
+		}
+	}
+
+	/**
+	 * Render widget content when type is taxonomy.
+	 *
+	 * @since 4.1.0
+	 * @param array $args     Widget args
+	 * @param array $instance Instance settings
+	 */
+	protected function render_widget_taxonomy( $args, $instance ) {
+		global $wp_query;
+
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
 		$taxonomy = $instance['facet'];
 
 		if ( ! is_search() ) {
@@ -314,6 +336,72 @@ class Widget extends WP_Widget {
 	}
 
 	/**
+	 * Render widget content when type is meta.
+	 *
+	 * @since 4.1.0
+	 * @param array $args     Widget args
+	 * @param array $instance Instance settings
+	 */
+	protected function render_widget_meta( $args, $instance ) {
+		global $wpdb;
+
+		echo wp_kses_post( $args['before_widget'] );
+
+		if ( ! empty( $instance['title'] ) ) {
+			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
+		}
+
+		$meta_values = $wpdb->get_col(
+			$wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s", $instance['facet_meta'] )
+		);
+
+		/**
+		 * Filter facet search threshold
+		 *
+		 * @hook ep_facet_search_threshold
+		 * @param  {int} $search_threshold Search threshold
+		 * @param  {string} $taxonomy Current taxonomy
+		 * @return  {int} New threshold
+		 */
+		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $instance );
+		?>
+
+		<div class="terms <?php if ( count( $meta_values ) > $search_threshold ) : ?>searchable<?php endif; ?>">
+			<?php if ( count( $meta_values ) > $search_threshold ) : ?>
+				<input class="facet-search" type="search" placeholder="<?php esc_attr_e( 'Search', 'elasticpress' ); ?>">
+				<?php
+			endif;
+			ob_start();
+			?>
+
+			<div class="inner">
+				<?php foreach ( $meta_values as $meta_value ) : ?>
+					<div class="term" data-term-name="<?php echo esc_attr( $meta_value ); ?>" data-term-slug="<?php echo esc_attr( $meta_value ); ?>">
+						<a aria-label="<?php echo esc_attr( $meta_value ); ?>" href="#" rel="nofollow">
+							<div class="ep-checkbox %3$s" role="presentation"></div>
+							<?php echo esc_html( $meta_value ); ?>
+						</a>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<?php $facet_html = ob_get_clean(); ?>
+
+			<?php
+			// phpcs:disable
+			echo $facet_html // add filters
+			// phpcs:enable
+			?>
+		</div>
+		<?php
+
+		// Enqueue Script & Styles
+		wp_enqueue_script( 'elasticpress-facets' );
+		wp_enqueue_style( 'elasticpress-facets' );
+
+		echo wp_kses_post( $args['after_widget'] );
+	}
+
+	/**
 	 * Get the markup for an individual facet item.
 	 *
 	 * @param WP_Term $term     Term object.
@@ -494,10 +582,12 @@ class Widget extends WP_Widget {
 			$not_set = esc_html__( 'all', 'elasticpress' );
 		}
 
-		$title   = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
-		$facet   = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
-		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
-		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
+		$title      = ( ! empty( $instance['title'] ) ) ? $instance['title'] : '';
+		$type       = ( ! empty( $instance['type'] ) ) ? $instance['type'] : 'taxonomy';
+		$facet      = ( ! empty( $instance['facet'] ) ) ? $instance['facet'] : '';
+		$facet_meta = ( ! empty( $instance['facet_meta'] ) ) ? $instance['facet_meta'] : '';
+		$orderby    = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
+		$order      = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
 		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
 		/**
@@ -529,6 +619,20 @@ class Widget extends WP_Widget {
 			</p>
 
 			<p>
+				<label><?php esc_html_e( 'Type:', 'elasticpress' ); ?></label><br>
+
+				<label>
+					<input type="radio" value="<?php echo esc_attr( 'taxonomy' ); ?>" <?php checked( $type, 'taxonomy' ); ?> name="<?php echo esc_attr( $this->get_field_name( 'type' ) ); ?>">
+					<?php esc_html_e( 'Taxonomy', 'elasticpress' ); ?>
+				</label><br>
+
+				<label>
+					<input type="radio" value="<?php echo esc_attr( 'meta' ); ?>" <?php checked( $type, 'meta' ); ?> name="<?php echo esc_attr( $this->get_field_name( 'type' ) ); ?>">
+					<?php esc_html_e( 'Meta Field', 'elasticpress' ); ?>
+				</label>
+			</p>
+
+			<p>
 				<label for="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>">
 					<?php esc_html_e( 'Taxonomy:', 'elasticpress' ); ?>
 				</label><br>
@@ -538,6 +642,14 @@ class Widget extends WP_Widget {
 						<option <?php selected( $facet, $taxonomy_object->name ); ?> value="<?php echo esc_attr( $taxonomy_object->name ); ?>"><?php echo esc_html( $taxonomy_object->labels->name ); ?></option>
 					<?php endforeach; ?>
 				</select>
+			</p>
+
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'facet_meta' ) ); ?>">
+					<?php esc_html_e( 'Meta Field:', 'elasticpress' ); ?>
+				</label><br>
+
+				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'facet_meta' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet_meta' ) ); ?>" type="text" value="<?php echo esc_attr( $facet_meta ); ?>" />
 			</p>
 
 			<p>
@@ -585,10 +697,13 @@ class Widget extends WP_Widget {
 	public function update( $new_instance, $old_instance ) {
 		$instance = [];
 
-		$instance['title']   = sanitize_text_field( $new_instance['title'] );
-		$instance['facet']   = sanitize_text_field( $new_instance['facet'] );
-		$instance['orderby'] = sanitize_text_field( $new_instance['orderby'] );
-		$instance['order']   = sanitize_text_field( $new_instance['order'] );
+		$instance['title']      = sanitize_text_field( $new_instance['title'] );
+		$instance['type']       = sanitize_text_field( $new_instance['type'] );
+		$instance['type']       = sanitize_text_field( $new_instance['type'] );
+		$instance['facet']      = sanitize_text_field( $new_instance['facet'] );
+		$instance['facet_meta'] = sanitize_text_field( $new_instance['facet_meta'] );
+		$instance['orderby']    = sanitize_text_field( $new_instance['orderby'] );
+		$instance['order']      = sanitize_text_field( $new_instance['order'] );
 
 		return $instance;
 	}

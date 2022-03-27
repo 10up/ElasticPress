@@ -250,98 +250,8 @@ class Facets extends Feature {
 			return;
 		}
 
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
-
-		/**
-		 * Filter taxonomies made available for faceting
-		 *
-		 * @hook ep_facet_include_taxonomies
-		 * @param  {array} $taxonomies Taxonomies
-		 * @return  {array} New taxonomies
-		 */
-		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
-
-		if ( empty( $taxonomies ) ) {
-			return;
-		}
-
-		$query->set( 'ep_integrate', true );
-		$query->set( 'ep_facet', true );
-
-		$facets = [];
-
-		/**
-		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
-		 * Values available out-of-the-box are:
-		 *  - slug (default)
-		 *  - term_id
-		 *  - name
-		 *  - parent
-		 *  - term_taxonomy_id
-		 *  - term_order
-		 *  - facet (retrieves a JSON representation of the term object)
-		 *
-		 * @since 3.6.0
-		 * @hook ep_facet_use_field
-		 * @param  {string} $field The term field to use
-		 * @return  {string} The chosen term field
-		 */
-		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
-
-		foreach ( $taxonomies as $slug => $taxonomy ) {
-			$facets[ $slug ] = array(
-				'terms' => array(
-					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
-					'field' => 'terms.' . $slug . '.' . $facet_field,
-				),
-			);
-		}
-
-		$aggs = array(
-			'name'       => 'terms',
-			'use-filter' => true,
-			'aggs'       => $facets,
-		);
-
-		$query->set( 'aggs', $aggs );
-
-		$selected_filters = $this->get_selected();
-
-		$settings = $this->get_settings();
-
-		$settings = wp_parse_args(
-			$settings,
-			array(
-				'match_type' => 'all',
-			)
-		);
-
-		$tax_query = $query->get( 'tax_query', [] );
-
-		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
-		$attribute_taxonomies = [];
-		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
-			$all_attr_taxonomies = wc_get_attribute_taxonomies();
-
-			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
-				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
-			}
-		}
-
-		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
-			$tax_query[] = [
-				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
-				'field'    => 'slug',
-				'terms'    => array_keys( $filter['terms'] ),
-				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
-			];
-		}
-
-		if ( ! empty( $selected_filters['taxonomies'] ) && 'any' === $settings['match_type'] ) {
-			$tax_query['relation'] = 'or';
-		}
-
-		$query->set( 'tax_query', $tax_query );
+		$this->set_taxonomy_facet_query( $query );
+		$this->set_meta_facet_query( $query );
 	}
 
 	/**
@@ -392,13 +302,19 @@ class Facets extends Feature {
 	public function get_selected() {
 		$filters = array(
 			'taxonomies' => [],
+			'meta'       => [],
 		);
 
-		$allowed_args = $this->get_allowed_query_args();
-		$filter_name  = $this->get_filter_name();
+		$allowed_args     = $this->get_allowed_query_args();
+		$filter_name      = $this->get_filter_name();
+		$meta_filter_name = $filter_name . 'meta_';
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, $filter_name ) ) {
+			if ( 0 === strpos( $key, $meta_filter_name ) ) {
+				$meta_key = str_replace( $meta_filter_name, '', $key );
+
+				$filters['meta'][ $meta_key ] = array_values( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ) );
+			} elseif ( 0 === strpos( $key, $filter_name ) ) {
 				$taxonomy = str_replace( $filter_name, '', $key );
 
 				$filters['taxonomies'][ $taxonomy ] = array(
@@ -525,5 +441,198 @@ class Facets extends Feature {
 		 * @return  {string} New facet filter name
 		 */
 		return apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
+	}
+
+	/**
+	 * Set the taxonomy related parameters in the WP_Query.
+	 *
+	 * @param WP_Query $query The WP_Query being executed.
+	 */
+	protected function set_taxonomy_facet_query( $query ) {
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+
+		if ( empty( $taxonomies ) ) {
+			return;
+		}
+
+		$query->set( 'ep_integrate', true );
+		$query->set( 'ep_facet', true );
+
+		$facets = [];
+
+		/**
+		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+		 * Values available out-of-the-box are:
+		 *  - slug (default)
+		 *  - term_id
+		 *  - name
+		 *  - parent
+		 *  - term_taxonomy_id
+		 *  - term_order
+		 *  - facet (retrieves a JSON representation of the term object)
+		 *
+		 * @since 3.6.0
+		 * @hook ep_facet_use_field
+		 * @param  {string} $field The term field to use
+		 * @return  {string} The chosen term field
+		 */
+		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
+
+		foreach ( $taxonomies as $slug => $taxonomy ) {
+			$facets[ $slug ] = array(
+				'terms' => array(
+					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
+					'field' => 'terms.' . $slug . '.' . $facet_field,
+				),
+			);
+		}
+
+		$aggs   = $query->get( 'aggs', [] );
+		$aggs[] = array(
+			'name'       => 'terms',
+			'use-filter' => true,
+			'aggs'       => $facets,
+		);
+
+		$query->set( 'aggs', $aggs );
+
+		$selected_filters = $this->get_selected();
+
+		$settings = $this->get_settings();
+
+		$settings = wp_parse_args(
+			$settings,
+			array(
+				'match_type' => 'all',
+			)
+		);
+
+		$tax_query = $query->get( 'tax_query', [] );
+
+		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
+			$tax_query[] = [
+				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
+				'field'    => 'slug',
+				'terms'    => array_keys( $filter['terms'] ),
+				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
+			];
+		}
+
+		if ( ! empty( $selected_filters['taxonomies'] ) && 'any' === $settings['match_type'] ) {
+			$tax_query['relation'] = 'or';
+		}
+
+		$query->set( 'tax_query', $tax_query );
+	}
+
+	/**
+	 * Set the meta fields related parameters in the WP_Query.
+	 *
+	 * @param WP_Query $query The WP_Query being executed.
+	 */
+	protected function set_meta_facet_query( $query ) {
+		global $wp_registered_widgets;
+
+		$sidebars_widgets = wp_get_sidebars_widgets();
+
+		$meta_fields      = [];
+		$widgets_settings = [];
+
+		foreach ( $sidebars_widgets as $sidebar_widgets ) {
+			foreach ( $sidebar_widgets as $widget ) {
+				if ( false === strpos( $widget, 'ep-facet' ) ) {
+					continue;
+				}
+
+				if ( ! isset( $wp_registered_widgets[ $widget ] ) ) {
+					continue;
+				}
+
+				if ( ! isset( $wp_registered_widgets[ $widget ]['callback'][0] ) ) {
+					continue;
+				}
+
+				$widgets_settings = $wp_registered_widgets[ $widget ]['callback'][0]->get_settings();
+				break;
+			}
+		}
+
+		foreach ( $widgets_settings as $widget_settings ) {
+			if ( ! empty( $widget_settings['type'] ) && 'meta' === $widget_settings['type'] ) {
+				$meta_fields[] = $widget_settings['facet_meta'];
+			}
+		}
+
+		/**
+		 * Filter meta fields made available for faceting
+		 *
+		 * @hook ep_facet_include_meta_fields
+		 * @since 4.1.0
+		 * @param  {array} $meta_fields Meta field keys
+		 * @return {array} New meta field keysaxonomies
+		 */
+		$meta_fields = apply_filters( 'ep_facet_include_meta_fields', $meta_fields );
+
+		if ( empty( $meta_fields ) ) {
+			return;
+		}
+
+		$query->set( 'ep_integrate', true );
+		$query->set( 'ep_facet', true );
+
+		$facets = [];
+
+		foreach ( $meta_fields as $meta_key ) {
+			$facets[ $meta_key ] = array(
+				'terms' => array(
+					'size'  => 10000, // add filter
+					'field' => 'meta.' . $meta_key . '.value.raw', // add filter
+				),
+			);
+		}
+
+		$aggs   = $query->get( 'aggs', [] );
+		$aggs[] = array(
+			'name'       => 'meta',
+			'use-filter' => true,
+			'aggs'       => $facets,
+		);
+
+		$query->set( 'aggs', $aggs );
+
+		$selected_filters = $this->get_selected();
+
+		$settings = $this->get_settings();
+
+		$settings = wp_parse_args(
+			$settings,
+			array(
+				'match_type' => 'all',
+			)
+		);
+
+		$meta_query = $query->get( 'meta_query', [] );
+
+		foreach ( $selected_filters['meta'] as $key => $value ) {
+			$meta_query[] = [
+				'key'   => $key,
+				'value' => $value,
+			];
+		}
+
+		if ( ! empty( $selected_filters['meta'] ) && 'any' === $settings['match_type'] ) {
+			$meta_query['relation'] = 'or';
+		}
+
+		$query->set( 'meta_query', $meta_query );
 	}
 }
