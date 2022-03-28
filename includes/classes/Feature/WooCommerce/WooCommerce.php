@@ -392,7 +392,7 @@ class WooCommerce extends Feature {
 			// Search query
 			if ( 'shop_order' === $post_type ) {
 				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
-				if ( is_int( $s ) ) {
+				if ( ctype_digit( $s ) ) {
 					$default_search_fields[] = 'ID';
 				}
 				$search_fields = $query->get( 'search_fields', $default_search_fields );

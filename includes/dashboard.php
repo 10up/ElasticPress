@@ -436,12 +436,7 @@ function action_wp_ajax_ep_save_feature() {
  */
 function action_admin_enqueue_dashboard_scripts() {
 	if ( isset( get_current_screen()->id ) && strpos( get_current_screen()->id, 'sites-network' ) !== false ) {
-		wp_enqueue_style(
-			'ep_admin_sites_styles',
-			EP_URL . 'dist/css/sites-admin-styles.min.css',
-			Utils\get_asset_info( 'sites-admin-styles', 'dependencies' ),
-			Utils\get_asset_info( 'sites-admin-styles', 'version' )
-		);
+		wp_enqueue_style( 'wp-components' );
 
 		wp_enqueue_script(
 			'ep_admin_sites_scripts',
@@ -825,16 +820,12 @@ function add_blogs_column( $column_name, $blog_id ) {
 	}
 	if ( 'elasticpress' === $column_name ) {
 		$is_indexable = get_blog_option( $blog_id, 'ep_indexable', 'yes' );
-		$checked      = ( 'yes' === $is_indexable ) ? 'checked' : '';
-		echo '<label class="switch"><input type="checkbox" ' . esc_attr( $checked ) . ' class="index-toggle" data-blogId="' . esc_attr( $blog_id ) . '"><span class="slider round"></span></label>';
-		echo '<span class="switch-label" id="switch-label-' . esc_attr( $blog_id ) . '">';
-		if ( 'yes' === $is_indexable ) {
-			esc_html_e( 'On', 'elasticpress' );
-		} else {
-			esc_html_e( 'Off', 'elasticpress' );
-		}
 
-		echo '</span>';
+		printf(
+			'<input %1$s class="index-toggle" data-blog-id="%2$s" disabled type="checkbox">',
+			checked( $is_indexable, 'yes', false ),
+			esc_attr( $blog_id )
+		);
 	}
 
 	return $column_name;
@@ -844,8 +835,8 @@ function add_blogs_column( $column_name, $blog_id ) {
  * AJAX callback to update ep_indexable site option.
  */
 function action_wp_ajax_ep_site_admin() {
-	$blog_id = ( ! empty( $_GET['blog_id'] ) ) ? absint( wp_unslash( $_GET['blog_id'] ) ) : - 1;
-	$checked = ( ! empty( $_GET['checked'] ) ) ? sanitize_text_field( wp_unslash( $_GET['checked'] ) ) : 'no';
+	$blog_id = ( ! empty( $_POST['blog_id'] ) ) ? absint( wp_unslash( $_POST['blog_id'] ) ) : - 1;
+	$checked = ( ! empty( $_POST['checked'] ) ) ? sanitize_text_field( wp_unslash( $_POST['checked'] ) ) : 'no';
 
 	if ( - 1 === $blog_id || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
 		return wp_send_json_error();

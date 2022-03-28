@@ -374,10 +374,29 @@ class InstantResults extends Feature {
 			]
 		);
 
+		/**
+		 * The ID of the current user when generating the Instant Results
+		 * search template.
+		 *
+		 * By default Instant Results sets the current user as anomnymous when
+		 * generating the search template, so that any filters applied to
+		 * queries for logged-in or specific users are not applied to the
+		 * template. This filter supports setting a specific user as the
+		 * current user while the template is generated.
+		 *
+		 * @hook ep_search_template_user_id
+		 * @param  {int} $user_id User ID to use.
+		 * @return {int} New user ID to use.
+		 * @since 4.1.0
+		 */
+		$template_user_id = apply_filters( 'ep_search_template_user_id', 0 );
+		$original_user_id = get_current_user_id();
+
+		wp_set_current_user( $template_user_id );
+
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
-		add_filter( 'ep_exclude_password_protected_from_search', '__return_true' );
 
 		$query = new \WP_Query(
 			array(
@@ -392,7 +411,8 @@ class InstantResults extends Feature {
 		remove_filter( 'ep_intercept_remote_request', '__return_true' );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
-		remove_filter( 'ep_exclude_password_protected_from_search', '__return_true' );
+
+		wp_set_current_user( $original_user_id );
 
 		return $this->search_template;
 	}
