@@ -6,10 +6,8 @@ describe('Facets Feature', () => {
 	 * @param {string} category The category slug.
 	 */
 	function createWidget(title, category) {
-		cy.intercept('/wp-json/wp/v2/widget-types/*').as('widgetTypes');
 		cy.intercept('/wp-json/wp/v2/widget-types/*/encode*').as('legacyWidgets');
 		cy.openWidgetsPage();
-		cy.wait('@widgetTypes');
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		cy.get('.block-editor-inserter__panel-content [class*="legacy-widget/ep-facet"]').click({
