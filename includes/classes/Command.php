@@ -418,9 +418,7 @@ class Command extends WP_CLI_Command {
 	public function get_indexes( $args, $assoc_args ) {
 		$index_names = $this->get_index_names();
 
-		$flag = ( ! empty( $assoc_args['pretty'] ) ) ? JSON_PRETTY_PRINT : null;
-
-		WP_CLI::line( wp_json_encode( $index_names, $flag ) );
+		$this->pretty_json_encode( $index_names, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -997,8 +995,10 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @subcommand get-indexing-status
 	 * @since 3.5.1, `--pretty` introduced in 4.1.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_indexing_status() {
+	public function get_indexing_status( $args, $assoc_args ) {
 		$indexing_status = Utils\get_indexing_status();
 
 		if ( empty( $indexing_status ) ) {
@@ -1010,9 +1010,7 @@ class Command extends WP_CLI_Command {
 			];
 		}
 
-		$flag = ( ! empty( $assoc_args['pretty'] ) ) ? JSON_PRETTY_PRINT : null;
-
-		WP_CLI::line( wp_json_encode( $indexing_status, $flag ) );
+		$this->pretty_json_encode( $indexing_status, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1039,9 +1037,7 @@ class Command extends WP_CLI_Command {
 			delete_site_option( 'ep_last_cli_index' );
 		}
 
-		$flag = ( ! empty( $assoc_args['pretty'] ) ) ? JSON_PRETTY_PRINT : null;
-
-		WP_CLI::line( wp_json_encode( $last_sync, $flag ) );
+		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
 	}
 
 
@@ -1464,13 +1460,28 @@ class Command extends WP_CLI_Command {
 	protected function print_json_response( $response, $pretty ) {
 		$response_body = wp_remote_retrieve_body( $response );
 
-		if ( $pretty ) {
-			$content_type = wp_remote_retrieve_header( $response, 'Content-Type' );
-			if ( preg_match( '/json/', $content_type ) ) {
-				// Re-encode the JSON to add space formatting
-				$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
-			}
+		$content_type = wp_remote_retrieve_header( $response, 'Content-Type' );
+
+		if ( ! $pretty || ! preg_match( '/json/', $content_type ) ) {
+			WP_CLI::line( $response_body );
+			return;
 		}
-		WP_CLI::line( $response_body );
+
+		// Re-encode the JSON to add space formatting
+		$response_body_obj = json_decode( $response_body );
+
+		$this->pretty_json_encode( $response_body_obj, JSON_PRETTY_PRINT );
+	}
+
+	/**
+	 * Output a JSON object. Conditionally format it before doing so.
+	 *
+	 * @since 4.1.0
+	 * @param array   $json_obj          The JSON object or array.
+	 * @param boolean $pretty_print_flag Whether it should or not be formatted.
+	 */
+	protected function pretty_json_encode( $json_obj, $pretty_print_flag ) {
+		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
+		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
 	}
 }
