@@ -37,7 +37,7 @@ class Post extends Indexable {
 	 * `id_range` pagination method during a sync.
 	 *
 	 * @var boolean
-	 * @since 4.0.2
+	 * @since 4.1.0
 	 */
 	public $support_indexing_advanced_pagination = true;
 
