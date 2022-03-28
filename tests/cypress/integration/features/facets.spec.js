@@ -54,14 +54,9 @@ describe('Facets Feature', () => {
 		// Check if the widget is visible.
 		cy.get('.widget_ep-facet').should('be.visible');
 		cy.contains('.widget-title', 'Facet (categories)').should('be.visible');
-
-		// Check if the widget search works. Additionally, checks a hyphenated slug category.
-		cy.get('.widget_ep-facet .facet-search').clearThenType('Parent C');
-		cy.contains('.widget_ep-facet .term', 'Parent Category').should('be.visible');
-		cy.contains('.widget_ep-facet .term', 'Child Category').should('not.be.visible');
 	});
 
-	it('Can use widgets independently', () => {
+	it('Can use widgets', () => {
 		// Create a second widget, so we can test both working together.
 		createWidget('Facet (Tags)', 'post_tag');
 
@@ -70,10 +65,43 @@ describe('Facets Feature', () => {
 		// We should have two widgets now, one of them the created above.
 		cy.get('.widget_ep-facet').should('have.length', 2);
 		cy.contains('.widget-title', 'Facet (Tags)').should('be.visible');
-	});
 
-	/**
-	 * @todo Can search in widgets independently.
-	 * @todo Can reset pagination if clicked.
-	 */
+		// Check if the widget search works. Additionally, checks a hyphenated slug category.
+		cy.get('.widget_ep-facet').first().as('firstWidget');
+		cy.get('@firstWidget').find('.facet-search').clearThenType('Parent C');
+		cy.get('@firstWidget').contains('.term', 'Parent Category').should('be.visible');
+		cy.get('@firstWidget').contains('.term', 'Child Category').should('not.be.visible');
+
+		// Searching in the first widget should not affect the second.
+		cy.get('.widget_ep-facet').last().as('lastWidget');
+		cy.get('@lastWidget').contains('.term', 'content').should('be.visible');
+
+		// Clear the search input and click in a term that was not visible before.
+		cy.get('@firstWidget').find('.facet-search').clear();
+		cy.get('@firstWidget').contains('.term', 'Classic').click();
+
+		// URL should have changed and selected term should be marked as checked.
+		cy.url().should('include', 'ep_filter_category=classic');
+		cy.get('@firstWidget')
+			.contains('.term', 'Classic')
+			.find('.ep-checkbox')
+			.should('have.class', 'checked');
+
+		// Visible articles should contain the selected category.
+		cy.get('article').each(($article) => {
+			cy.wrap($article).contains('.cat-links a', 'Classic').should('be.visible');
+		});
+
+		// Check pagination.
+		cy.get('.next.page-numbers').click();
+		cy.url().should('include', 'page/2/?ep_filter_category=classic');
+		cy.get('article').each(($article) => {
+			cy.wrap($article).contains('.cat-links a', 'Classic').should('be.visible');
+		});
+
+		// Check if pagination resets when clicking on a different term.
+		cy.get('@firstWidget').contains('.term', 'Post Formats').click();
+		cy.url().should('include', 'ep_filter_category=classic%2Cpost-formats');
+		cy.url().should('not.include', 'page');
+	});
 });
