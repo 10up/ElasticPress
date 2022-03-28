@@ -353,7 +353,7 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				$terms_map[ $term->term_id ] = $term;
 			}
 
-			if ( empty( $term->parent ) || ( ! empty( $term->parent ) && ! term_exists( $term->parent, $term->taxonomy ) ) ) {
+			if ( empty( $term->parent ) || ! term_exists( $term->parent, $term->taxonomy ) ) {
 				$term->level = 0;
 
 				if ( empty( $orderby ) ) {
