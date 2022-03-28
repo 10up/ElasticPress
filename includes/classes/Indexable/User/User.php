@@ -807,18 +807,6 @@ class User extends Indexable {
 	}
 
 	/**
-	 * Put mapping for users
-	 *
-	 * @since  3.0
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->generate_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
-
-	/**
 	 * Prepare a user document for indexing
 	 *
 	 * @param  int $user_id User id
