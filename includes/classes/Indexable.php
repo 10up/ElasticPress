@@ -55,6 +55,15 @@ abstract class Indexable {
 	public $query_integration;
 
 	/**
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
+	 *
+	 * @var boolean
+	 * @since 4.1.0
+	 */
+	public $support_indexing_advanced_pagination = false;
+
+	/**
 	 * Get number of bulk items to index per page
 	 *
 	 * @since  3.0
