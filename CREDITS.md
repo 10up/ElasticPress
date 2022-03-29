@@ -174,6 +174,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Daniel Kudwien (@sun)](https://github.com/sun),
 [Darshan Sawardekar (@dsawardekar)](https://github.com/dsawardekar),
 [Ayebare (@ayebare)](https://github.com/ayebare),
+[Michael Derringer (@derringer)](https://github.com/derringer),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
