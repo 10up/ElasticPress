@@ -1800,9 +1800,13 @@ class Post extends Indexable {
 		/**
 		 * Aggregations
 		 */
-		if ( isset( $args['aggs'] ) ) {
-			// An array of aggregations.
-			if ( isset( $args['aggs'][0] ) ) {
+		if ( ! empty( $args['aggs'] ) && is_array( $args['aggs'] ) ) {
+			// Check if the array indexes are all numeric.
+			$agg_keys          = array_keys( $args['aggs'] );
+			$agg_num_keys      = array_filter( $agg_keys, 'is_int' );
+			$has_only_num_keys = count( $agg_num_keys ) === count( $args['aggs'] );
+
+			if ( $has_only_num_keys ) {
 				foreach ( $args['aggs'] as $agg ) {
 					$formatted_args = $this->apply_aggregations( $formatted_args, $agg, $use_filters, $filter );
 				}
