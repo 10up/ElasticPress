@@ -1439,4 +1439,58 @@ class TestUser extends BaseTestCase {
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
+
+	/**
+	 * Test users that does not belong to any blog.
+	 *
+	 * @since 4.1.0
+	 */
+	public function testUserSearchLimitedToOneBlog() {
+		// This user does not belong to any blog.
+		Functions\create_and_sync_user(
+			[
+				'user_login'   => 'users-and-blogs-1',
+				'role'         => '',
+				'first_name'   => 'No Blog',
+				'last_name'    => 'User',
+				'user_email'   => 'no-blog@test.com',
+				'user_url'     => 'http://domain.test',
+			]
+		);
+		Functions\create_and_sync_user(
+			[
+				'user_login'   => 'users-and-blogs-2',
+				'role'         => 'contributor',
+				'first_name'   => 'Blog',
+				'last_name'    => 'User',
+				'user_email'   => 'blog@test.com',
+				'user_url'     => 'http://domain.test',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Here `blog_id` defaults to `get_current_blog_id()`.
+		$query = new \WP_User_Query( [
+			'search' => 'users-and-blogs'
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+		$this->assertEquals( 1, $query->total_users );
+		foreach ( $query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+		}
+
+		// Search accross all blogs.
+		$query = new \WP_User_Query( [
+			'search'  => 'users-and-blogs',
+			'blog_id' => 0,
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+		$this->assertEquals( 2, $query->total_users );
+		foreach ( $query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+		}
+	}
 }
