@@ -171,6 +171,10 @@ Thank you to all the people who have already contributed to this repository via 
 [@beazuadmin](https://github.com/beazuadmin),
 [Jonathan Netek](https://www.linkedin.com/in/jonathan-netek/),
 [Tom Burtless (@tomburtless)](https://github.com/tomburtless),
+[Daniel Kudwien (@sun)](https://github.com/sun),
+[Darshan Sawardekar (@dsawardekar)](https://github.com/dsawardekar),
+[Ayebare (@ayebare)](https://github.com/ayebare),
+[Michael Derringer (@derringer)](https://github.com/derringer),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
