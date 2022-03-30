@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 - `generate_mapping()` to post and comment indexables. Props [@rebeccahum](https://github.com/rebeccahum) via [#2637](https://github.com/10up/ElasticPress/pull/2637).
 - `get_related_query()` to the `RelatedPosts` class. Props [@ayebare](https://github.com/ayebare) via [#1653](https://github.com/10up/ElasticPress/pull/1653).
 - New `--pretty` flag to the WP-CLI commands that output a JSON. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2653](https://github.com/10up/ElasticPress/pull/2653).
+- Support for an array of aggregations in the `aggs` parameter of `WP_Query`. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2682](https://github.com/10up/ElasticPress/pull/2682).
 
 ### Changed
 - Refactored remaining admin scripts to remove jQuery as a dependency. Props [@JakePT](https://github.com/JakePT) via [#2664](https://github.com/10up/ElasticPress/pull/2664).
