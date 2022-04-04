@@ -51,6 +51,35 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 4.1.0 - 2022-04-05 =
+
+Added
+* Utility command to create zip packages: `npm run build:zip`. Props [@felipeelia](https://github.com/felipeelia).
+* E2e tests for the Synonyms feature. Props [@felipeelia](https://github.com/felipeelia).
+* `generate_mapping()` to post and comment indexables. Props [@rebeccahum](https://github.com/rebeccahum).
+* `get_related_query()` to the `RelatedPosts` class. Props [@ayebare](https://github.com/ayebare).
+* New `--pretty` flag to the WP-CLI commands that output a JSON. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+* Support for an array of aggregations in the `aggs` parameter of `WP_Query`. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+
+Changed
+* Refactored remaining admin scripts to remove jQuery as a dependency. Props [@JakePT](https://github.com/JakePT).
+* Generate Instant Results' search template as an anonymous user by default. Props [@JakePT](https://github.com/JakePT).
+
+Fixed
+* PHP warning Trying to access array offset on value of type int in `get_index_names()`. Props [@sun](https://github.com/sun).
+* Searches by WooCommerce Order ID. Props [@felipeelia](https://github.com/felipeelia).
+* Display and error message if syncing failed due to invalid JSON response from the server. Props [@dsawardekar](https://github.com/dsawardekar).
+* Better compatibility with PHP 8.1 by replacing the deprecated `FILTER_SANITIZE_STRING`. Props [@sjinks](https://github.com/sjinks).
+* `get_term_tree()` no longer infinite loops when parent ID is non-existent. Props [@rebeccahum](https://github.com/rebeccahum).
+* User search results include users who do not exist in the current site. Props [@tfrommen](https://github.com/tfrommen) and [@felipeelia](https://github.com/felipeelia).
+* Pagination while syncing Indexables other than Posts. Props [@felipeelia](https://github.com/felipeelia) and [@derringer](https://github.com/derringer).
+* Handle the output of an array of messages in sync processes. Props [@felipeelia](https://github.com/felipeelia).
+* Truthy values for the `'enabled'` field's attribute while using the `ep_weighting_configuration_for_search` filter. Props [@felipeelia](https://github.com/felipeelia) and [@moritzlang](https://github.com/moritzlang).
+
+Security
+* Bumped `node-forge` from 1.2.1 to 1.3.0. Props [@dependabot](https://github.com/dependabot).
+* Bumped` @wordpress/env` from 4.2.2 to 4.4.0, and `minimist` from 1.2.5 to 1.2.6. Props [@felipeelia](https://github.com/felipeelia).
+
 = 4.0.1 - 2022-03-16 =
 
 **This is a security release affecting users running ElasticPress 4.0 with both the WooCommerce and Protected Content Features activated. Please update to the latest version of ElasticPress if the WooCommerce and Protected Content features are activated and you're using ElasticPress 4.0.**

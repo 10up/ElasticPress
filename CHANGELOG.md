@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.1.0] - 2022-04-05
+
 ### Added
 - Utility command to create zip packages: `npm run build:zip`. Props [@felipeelia](https://github.com/felipeelia) via [#2669](https://github.com/10up/ElasticPress/pull/2669).
 - E2e tests for the Synonyms feature. Props [@felipeelia](https://github.com/felipeelia) via [#2655](https://github.com/10up/ElasticPress/pull/2655).
@@ -1342,6 +1344,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/10up/ElasticPress/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/10up/ElasticPress/compare/3.6.6...4.0.0
 [3.6.6]: https://github.com/10up/ElasticPress/compare/3.6.5...3.6.6
