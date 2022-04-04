@@ -46,7 +46,7 @@ $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 					<button type="button" class="button button-primary ep-sync-box__button ep-sync-box__button-sync">
 						<span class="dashicons dashicons-update-alt ep-sync-box__icon-button"></span> <?php echo esc_html__( 'Sync Now', 'elasticpress' ); ?>
 					</button>
-					<a class="ep-sync-box__learn-more-link" href="#">
+					<a class="ep-sync-box__learn-more-link" href="https://elasticpress.zendesk.com/hc/en-us/articles/5205632443533" target="_blank" rel="noreferrer noopener">
 						<?php echo esc_html__( 'Learn more', 'elasticpress' ); ?>
 					</a>
 
