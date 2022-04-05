@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.1.0] - 2022-04-05
+
 ### Added
 - Utility command to create zip packages: `npm run build:zip`. Props [@felipeelia](https://github.com/felipeelia) via [#2669](https://github.com/10up/ElasticPress/pull/2669).
 - E2e tests for the Synonyms feature. Props [@felipeelia](https://github.com/felipeelia) via [#2655](https://github.com/10up/ElasticPress/pull/2655).
@@ -26,6 +28,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Pagination while syncing Indexables other than Posts. Props [@felipeelia](https://github.com/felipeelia) and [@derringer](https://github.com/derringer) via [#2665](https://github.com/10up/ElasticPress/pull/2665).
 - Handle the output of an array of messages in sync processes. Props [@felipeelia](https://github.com/felipeelia) via [#2688](https://github.com/10up/ElasticPress/pull/2688).
 - Truthy values for the `'enabled'` field's attribute while using the `ep_weighting_configuration_for_search` filter. Props [@felipeelia](https://github.com/felipeelia) and [@moritzlang](https://github.com/moritzlang) via [#2673](https://github.com/10up/ElasticPress/pull/2673).
+- "Learn More" link on the Sync Page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle) via [#2699](https://github.com/10up/ElasticPress/pull/2699).
+- Icons alignment in the WP Dashboard. Props [@jakemgold](https://github.com/jakemgold), [@felipeelia](https://github.com/felipeelia), [@brandwaffle](https://github.com/brandwaffle), and [@tlovett1](https://github.com/tlovett1) via [#2701](https://github.com/10up/ElasticPress/pull/2701).
 
 ## Security
 - Bumped `node-forge` from 1.2.1 to 1.3.0. Props [@dependabot](https://github.com/dependabot) via [#2678](https://github.com/10up/ElasticPress/pull/2678).
@@ -1342,6 +1346,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/10up/ElasticPress/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/10up/ElasticPress/compare/3.6.6...4.0.0
 [3.6.6]: https://github.com/10up/ElasticPress/compare/3.6.5...3.6.6
