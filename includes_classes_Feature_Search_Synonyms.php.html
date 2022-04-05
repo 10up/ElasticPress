@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: includes/classes/Feature/Search/Synonyms.php - 10up ElasticPress Hook Docs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+
+	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans:300,400|Playfair+Display:900&display=swap" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="styles-10up.css">
+</head>
+
+<body>
+
+<div id="main">
+
+	
+    <h1 class="page-title">Source: includes/classes/Feature/Search/Synonyms.php</h1>
+	
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>&lt;?php
+/**
+ * Synonyms Feature
+ *
+ * @package elasticpress
+ */
+
+namespace ElasticPress\Feature\Search;
+
+use ElasticPress\Feature;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Elasticsearch;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils as Utils;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Synonyms Feature
+ *
+ * @since 3.4
+ * @package ElasticPress\Feature\Synonyms
+ */
+class Synonyms {
+
+	/**
+	 * Internal name of the post type
+	 */
+	const POST_TYPE_NAME = 'ep-synonym';
+
+	/**
+	 * Indices that should receive the synonym filter.
+	 *
+	 * @var array
+	 */
+	public $affected_indices;
+
+	/**
+	 * Elasticsearch Synonym Filter Name
+	 *
+	 * @var string
+	 */
+	public $filter_name;
+
+	/**
+	 * Synonym post id.
+	 *
+	 * @var int
+	 */
+	protected $synonym_post_id;
+
+	/**
+	 * Initialize feature setting it's config
+	 *
+	 * @since  3.4
+	 */
+	public function __construct() {
+		$this->filter_name      = 'ep_synonyms_filter';
+		$this->affected_indices = [ 'post' ];
+	}
+
+	/**
+	 * Get search feature.
+	 *
+	 * @return Search
+	 */
+	public function get_search_feature() {
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+
+		/** Search Feature @var Feature\Search\Search $search */
+		return $features->get_registered_feature( 'search' );
+	}
+
+	/**
+	 * Returns requirements status of feature
+	 *
+	 * Requires the search feature to be activated
+	 *
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		$search = $this->get_search_feature();
+
+		if ( ! $search->is_active() ) {
+			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
+		}
+
+		return new FeatureRequirementsStatus( 0 );
+	}
+
+	/**
+	 * Setup Feature Functionality
+	 *
+	 * @return bool
+	 */
+	public function setup() {
+		if ( (bool) $this->requirements_status()->code ) {
+			return false;
+		}
+
+		// Register a post type to hold the synonyms post.
+		add_action( 'init', [ $this, 'register_post_type' ] );
+
+		// Setup the UI.
+		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'scripts' ] );
+
+		// Handle the update synonyms action.
+		$action = $this->get_action();
+		add_action( "admin_post_$action", [ $this, 'handle_update_synonyms' ] );
+
+		// Handle the admin notices.
+		add_action( 'admin_notices', [ $this, 'admin_notices' ] );
+
+		// Add the synonyms to the elasticsearch query.
+		add_filter( 'ep_config_mapping', [ $this, 'add_search_synonyms' ], 20, 2 );
+
+		return true;
+	}
+
+	/**
+	 * Enqueues scripts and styles.
+	 *
+	 * @return void
+	 */
+	public function scripts() {
+		if ( ! $this->is_synonym_page() ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'ep_synonyms_scripts',
+			EP_URL . 'dist/js/synonyms-script.min.js',
+			Utils\get_asset_info( 'synonyms-script', 'dependencies' ),
+			Utils\get_asset_info( 'synonyms-script', 'version' ),
+			true
+		);
+
+		wp_enqueue_style(
+			'ep_synonyms_styles',
+			EP_URL . 'dist/css/synonyms-styles.min.css',
+			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
+			Utils\get_asset_info( 'synonyms-styles', 'version' ),
+			'all'
+		);
+
+		wp_localize_script(
+			'ep_synonyms_scripts',
+			'epSynonyms',
+			array(
+				'i18n' => $this->get_localized_strings(),
+				'data' => $this->get_localized_data(),
+			)
+		);
+	}
+
+	/**
+	 * Adds the synonyms settings page to the admin menu.
+	 *
+	 * @return void
+	 */
+	public function admin_menu() {
+		add_submenu_page(
+			'elasticpress',
+			esc_html__( 'ElasticPress Synonyms', 'elasticpress' ),
+			esc_html__( 'Synonyms', 'elasticpress' ),
+			'manage_options',
+			'elasticpress-synonyms',
+			[ $this, 'admin_page' ]
+		);
+	}
+
+	/**
+	 * Renders the synonyms settings page.
+	 *
+	 * @return void
+	 */
+	public function admin_page() {
+		include EP_PATH . '/includes/partials/header.php';
+
+		?>
+		&lt;div class="wrap">
+			&lt;form action="&lt;?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
+				&lt;?php $this->form_hidden_fields(); ?>
+				&lt;div id="synonym-root">&lt;/div>
+			&lt;/form>
+		&lt;/div>
+		&lt;?php
+	}
+
+	/**
+	 * Admin notices.
+	 *
+	 * @return void
+	 */
+	public function admin_notices() {
+		if ( ! $this->is_synonym_page() ) {
+			return;
+		}
+
+		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_SPECIAL_CHARS );
+
+		if ( ! in_array( $update, [ 'success', 'error-update-post', 'error-update-index' ], true ) ) {
+			return;
+		}
+
+		$class   = ( 'success' === $update ? 'notice-success' : 'notice-error' ) . ' notice';
+		$message = '';
+
+		switch ( $update ) {
+			case 'success':
+				$message = __( 'Successfully updated synonym filter.', 'elasticpress' );
+				break;
+			case 'error-update-post':
+				$message = __( 'There was an error storing your synonyms.', 'elasticpress' );
+				break;
+			case 'error-update-index':
+				$message = __( 'There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index.', 'elasticpress' );
+				break;
+			default:
+				$message = __( 'There was an error updating the synonym list.', 'elasticpress' );
+		}
+
+		printf(
+			'&lt;div class="%1$s">&lt;p>%2$s&lt;/p>&lt;/div>',
+			esc_attr( $class ),
+			esc_html( $message )
+		);
+	}
+
+	/**
+	 * Registers a post type for our synonyms post storage.
+	 *
+	 * @return void
+	 */
+	public function register_post_type() {
+		$args = [
+			'description'        => esc_html__( 'Elasticsearch Synonyms', 'elasticpress' ),
+			'public'             => false,
+			'publicly_queryable' => false,
+			'show_ui'            => false,
+			'show_in_menu'       => false,
+			'query_var'          => true,
+			'capability_type'    => 'post',
+			'has_archive'        => false,
+			'hierarchical'       => false,
+			'menu_position'      => 100,
+			'supports'           => [ 'title' ],
+		];
+
+		register_post_type( self::POST_TYPE_NAME, $args );
+	}
+
+	/**
+	 * Get the post id of the post holding our synonyms.
+	 *
+	 * @return int The synonym post ID.
+	 */
+	public function get_synonym_post_id() {
+		if ( ! $this->synonym_post_id ) {
+			$query_synonym_post = new \WP_Query(
+				array(
+					'fields'         => 'ids',
+					'post_type'      => self::POST_TYPE_NAME,
+					'posts_per_page' => 1,
+					'orderby'        => 'modified',
+					'post_status'    => 'any',
+				)
+			);
+
+			$this->synonym_post_id = ( $query_synonym_post->post_count >= 1 ) ? $query_synonym_post->posts[0] : false;
+
+			if ( ! $this->synonym_post_id ) {
+				$this->synonym_post_id = $this->insert_default_synonym_post();
+			}
+		}
+
+		return $this->synonym_post_id;
+	}
+
+	/**
+	 * Get synonyms in their raw format.
+	 *
+	 * @return string
+	 */
+	public function get_synonyms_raw() {
+		$post = get_post( $this->get_synonym_post_id() );
+
+		if ( ! $post ) {
+			return '';
+		}
+
+		return $post->post_content;
+	}
+
+	/**
+	 * Get an array of user defined synonyms.
+	 *
+	 * @return array
+	 */
+	public function get_synonyms() {
+		$synonyms_raw = $this->get_synonyms_raw();
+		$synonyms     = array_values(
+			array_filter(
+				array_map( [ $this, 'validate_synonym' ], explode( PHP_EOL, $synonyms_raw ) )
+			)
+		);
+
+		/**
+		 * Filter array of synonyms to add to a custom synonym filter.
+		 *
+		 * @hook ep_synonyms
+		 * @return  {array} The new array of search synonyms.
+		 */
+		return apply_filters( 'ep_synonyms', $synonyms );
+	}
+
+	/**
+	 * Validate a synonym.
+	 *
+	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html#_solr_synonyms
+	 * @param  string $synonym The synonym.
+	 * @return string|boolean  String synonym if valid, boolean false if validation failed.
+	 */
+	public function validate_synonym( $synonym ) {
+		// Don't use empty lines.
+		if ( empty( trim( $synonym ) ) ) {
+			return false;
+		}
+
+		// Don't use lines that start with "#", those are comments.
+		if ( 0 === strpos( $synonym, '#' ) ) {
+			return false;
+		}
+
+		// Don't use lines that start with "//" though not in Solr spec.
+		if ( 0 === strpos( $synonym, '//' ) ) {
+			return false;
+		}
+
+		return sanitize_text_field( $synonym, true );
+	}
+
+	/**
+	 * Add search synonyms.
+	 *
+	 * @param array  $mapping Elasticsearch mapping.
+	 * @param string $index  Index name.
+	 * @return array
+	 */
+	public function add_search_synonyms( $mapping, $index ) {
+		$synonyms    = $this->get_synonyms();
+		$indices     = $this->get_affected_indices();
+		$filter_name = $this->get_synonym_filter_name();
+
+		// Ensure we should affect this mapping.
+		if ( ! in_array( $index, $indices, true ) ) {
+			return $mapping;
+		}
+
+		// Ensure we have synonyms to add.
+		if ( ! is_array( $synonyms ) || empty( $synonyms ) ) {
+			return $mapping;
+		}
+
+		// Ensure we have filters and that it is an array.
+		if ( ! isset( $mapping['settings']['analysis']['filter'] )
+			|| ! is_array( $mapping['settings']['analysis']['filter'] )
+		) {
+			return $mapping;
+		}
+
+		// Ensure we have analyzers and that it is an array.
+		if ( ! isset( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
+			|| ! is_array( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
+		) {
+			return $mapping;
+		}
+
+		// Create a custom synonym filter for EP.
+		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
+
+		// Tell the analyzer to use our newly created filter.
+		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_values(
+			array_merge(
+				[ $filter_name ],
+				$mapping['settings']['analysis']['analyzer']['default']['filter']
+			)
+		);
+
+		return $mapping;
+	}
+
+	/**
+	 * Handles updating the synonym list.
+	 *
+	 * @return void
+	 */
+	public function handle_update_synonyms() {
+		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
+		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
+		$post_id = false;
+
+		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
+			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_CALLBACK, [ 'options' => 'wp_strip_all_tags' ] );
+			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_SPECIAL_CHARS );
+			$content  = trim( sanitize_textarea_field( $synonyms ) );
+
+			// Content can't be empty.
+			if ( empty( $content ) ) {
+				$lines   = $this->example_synonym_list( true );
+				$content = implode( PHP_EOL, [ $lines[0], $lines[2], $lines[3] ] );
+			}
+
+			$post_id = $this->update_synonym_post( $content );
+
+			// Update Elasticsearch
+			$update = $this->update_synonyms();
+
+			// Save editor mode.
+			if ( in_array( $mode, [ 'advanced', 'simple' ], true ) ) {
+				$this->save_editor_mode( $mode );
+			}
+		}
+
+		$result = 'success';
+
+		if ( ! $post_id || is_wp_error( $post_id ) ) {
+			$result = 'error-update-post';
+		}
+
+		if ( ! $update ) {
+			$result = 'error-update-index';
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'ep_synonym_update' => $result,
+				],
+				esc_url_raw( $referer )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Update synonyms.
+	 *
+	 * @return boolean
+	 */
+	public function update_synonyms() {
+		return array_reduce(
+			$this->get_affected_indices(),
+			function( $success, $index ) {
+				$filter  = $this->get_synonym_filter();
+				$mapping = Elasticsearch::factory()->get_mapping( $index );
+				$filters = $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default']['filter'];
+
+				/*
+				 * Due to limitations in Elasticsearch, we can't remove the filter and analyzer
+				 * once set on the index settings and synonyms array can't be empty.  So we set a
+				 * fallback synonyms array here if the user supplied synonym array is empty.
+				 */
+				if ( empty( $filter['synonyms'] ) ) {
+					$filter['synonyms'] = [ 'odd,unusual' ];
+				}
+
+				// Construct the synonym filter.
+				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
+
+				// Add the analyzer.
+				$setting['index']['analysis']['analyzer']['default']['filter'] = array_values(
+					array_unique(
+						array_merge(
+							[ $this->get_synonym_filter_name() ],
+							$filters
+						)
+					)
+				);
+
+				// Put it to Elasticsearch.
+				$update = Elasticsearch::factory()->update_index_settings( $index, $setting, true );
+				return $success ? $update : false;
+			},
+			true
+		);
+	}
+
+	/**
+	 * Get affected indices.
+	 *
+	 * @return array
+	 */
+	public function get_affected_indices() {
+		/**
+		 * Filter the indices that use the synonym filter.
+		 *
+		 * @return array Array of index names.
+		 */
+		$indices = apply_filters( 'ep_synonyms_affected_indices', $this->affected_indices );
+
+		return array_filter(
+			array_map(
+				function( $index ) {
+					$indexable = Indexables::factory()->get( $index );
+					return $indexable ? $indexable->get_index_name() : false;
+				},
+				$indices
+			)
+		);
+	}
+
+	/**
+	 * Get synonym filter name.
+	 *
+	 * @return string
+	 */
+	public function get_synonym_filter_name() {
+		/**
+		 * Filter name of the synonym filter set in elasticsearch.
+		 *
+		 * @hook ep_synonyms_filter_name
+		 * @return  {string} The name of the synonyms filter.
+		 */
+		return apply_filters( 'ep_synonyms_filter_name', $this->filter_name );
+	}
+
+	/**
+	 * Get synonym filter.
+	 *
+	 * @return array
+	 */
+	public function get_synonym_filter() {
+		/**
+		 * Filter the synonym filter set in elasticsearch.
+		 *
+		 * @hook ep_synonyms_filter
+		 * @return  {array} The synonym search filter.
+		 */
+		return apply_filters(
+			'ep_synonyms_filter',
+			[
+				'type'     => 'synonym_graph',
+				'lenient'  => true,
+				'synonyms' => $this->get_synonyms(),
+			]
+		);
+	}
+
+	/**
+	 * Get form action for admin page.
+	 *
+	 * @access protected
+	 * @return string The admin post form action url.
+	 */
+	public function get_form_action() {
+		return esc_url_raw( admin_url( 'admin-post.php' ) );
+	}
+
+	/**
+	 * Render admin page form hidden fields.
+	 *
+	 * @return void
+	 */
+	public function form_hidden_fields() {
+		wp_nonce_field( $this->get_nonce_action(), $this->get_nonce_field() );
+		?>
+		&lt;input type="hidden" name="action" value="&lt;?php echo esc_attr( $this->get_action() ); ?>" />
+		&lt;?php
+	}
+
+	/**
+	 * Get nonce action for admin page form.
+	 *
+	 * @return string
+	 */
+	public function get_nonce_action() {
+		return $this->get_action();
+	}
+
+	/**
+	 * Get nonce field for admin page form.
+	 *
+	 * @return string
+	 */
+	public function get_nonce_field() {
+		return 'ep_synonyms_nonce';
+	}
+
+	/**
+	 * Get synonym field name for admin page form.
+	 *
+	 * @return string
+	 */
+	public function get_synonym_field() {
+		return 'ep_synonyms';
+	}
+
+	/**
+	 * Get the action slug for admin page form.
+	 *
+	 * @return string
+	 */
+	public function get_action() {
+		return 'ep_synonyms_update';
+	}
+
+	/**
+	 * Is this our synonym page.
+	 *
+	 * @return boolean
+	 */
+	public function is_synonym_page() {
+		if ( ! function_exists( '\get_current_screen' ) ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+		return ( 'elasticpress_page_elasticpress-synonyms' === $screen->base );
+	}
+
+	/**
+	 * An example synonym that we initialize new synonyms lists with.
+	 *
+	 * @param  bool $as_array Optional. Return an array of synonym lines. Default false.
+	 * @return string
+	 */
+	public function example_synonym_list( $as_array = false ) {
+		$lines = [
+			__( '# Defined sets ( equivalent synonyms).', 'elasticpress' ),
+			'sneakers, tennis shoes, trainers, runners',
+			'',
+			__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),
+			'shoes => sneaker, sandal, boots, high heels',
+		];
+
+		return $as_array ? $lines : implode( PHP_EOL, $lines );
+	}
+
+	/**
+	 * Gets localized strings for use on the front end.
+	 *
+	 * @return array
+	 */
+	public function get_localized_strings() {
+		return array(
+			'pageHeading'                  => __( 'Manage Synonyms', 'elasticpress' ),
+			'pageDescription'              => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
+			'pageToggleAdvanceText'        => __( 'Switch to Advanced Text Editor', 'elasticpress' ),
+			'pageToggleSimpleText'         => __( 'Switch to Visual Editor', 'elasticpress' ),
+
+			'setsTitle'                    => __( 'Sets', 'elasticpress' ),
+			'setsDescription'              => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
+			'setsInputHeading'             => __( 'Comma separated list of terms', 'elasticpress' ),
+			'setsAddButtonText'            => __( 'Add Set', 'elasticpress' ),
+			'setsErrorMessage'             => __( 'This set must contain at least 2 terms.', 'elasticpress' ),
+
+			'alternativesTitle'            => __( 'Alternatives', 'elasticpress' ),
+			'alternativesDescription'      => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
+			'alternativesPrimaryHeading'   => __( 'Primary term', 'elasticpress' ),
+			'alternativesInputHeading'     => __( 'Comma separated list of alternatives', 'elasticpress' ),
+			'alternativesAddButtonText'    => __( 'Add Alternative', 'elasticpress' ),
+			'alternativesErrorMessage'     => __( 'You must enter both a primary term and at least one alternative term.', 'elasticpress' ),
+
+			'solrTitle'                    => __( 'Advanced Synonym Editor', 'elasticpress' ),
+			'solrDescription'              => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
+			'solrInputHeading'             => __( 'SolrSynonym Text', 'elasticpress' ),
+			'solrAlternativesErrorMessage' => __( 'Alternatives must have both a primary term and at least one alternative term.', 'elasticpress' ),
+			'solrSetsErrorMessage'         => __( 'Sets must contain at least 2 terms.', 'elasticpress' ),
+
+			'removeItemText'               => __( 'Remove', 'elasticpress' ),
+			'submitText'                   => __( 'Update Synonyms', 'elasticpress' ),
+
+			'synonymsTextareaInputName'    => $this->get_synonym_field(),
+		);
+	}
+
+	/**
+	 * Get data to export to the frontend with localization strings.
+	 *
+	 * @return array
+	 */
+	public function get_localized_data() {
+		$data     = array(
+			'sets'         => array(),
+			'alternatives' => array(),
+			'initialMode'  => $this->synonyms_editor_mode(),
+		);
+		$synonyms = $this->get_synonyms();
+
+		foreach ( $synonyms as $line ) {
+			$synonym = array();
+			if ( strpos( $line, '=>' ) ) {
+				$tokens = explode( '=>', $line );
+				array_push( $synonym, self::prepare_localized_token( $tokens[0], true ) );
+				array_push(
+					$synonym,
+					...array_map(
+						array( __CLASS__, 'prepare_localized_token' ),
+						explode( ',', $tokens[1] )
+					)
+				);
+				array_push( $data['alternatives'], $synonym );
+			} else {
+				array_push(
+					$synonym,
+					...array_map(
+						array( __CLASS__, 'prepare_localized_token' ),
+						explode( ',', $line )
+					)
+				);
+				array_push( $data['sets'], $synonym );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Saves the editor mode.
+	 *
+	 * @param  string $mode The mode, one of "advanced" or "simple".
+	 * @return void
+	 */
+	public function save_editor_mode( $mode ) {
+		$search   = $this->get_search_feature();
+		$settings = $search->get_settings();
+
+		if ( isset( $settings['synonyms_editor_mode'] ) &amp;&amp; $settings['synonyms_editor_mode'] === $mode ) {
+			return;
+		}
+
+		$settings['synonyms_editor_mode'] = $mode;
+		$features                         = Features::factory();
+		$features->update_feature( $search->slug, $settings, false );
+	}
+
+	/**
+	 * Get the stored editor mode. Default simple.
+	 *
+	 * @return boolean
+	 */
+	public function synonyms_editor_mode() {
+		$search   = $this->get_search_feature();
+		$settings = $search->get_settings();
+		$settings = wp_parse_args( is_array( $settings ) ? $settings : [], $search->default_settings );
+		$mode     = $settings['synonyms_editor_mode'];
+
+		/**
+		 * Filter the default synonyms editor mode.
+		 *
+		 * @hook ep_synonyms_editor_mode
+		 * @return  {string} One of 'simple' or 'advanced'.
+		 */
+		$filtered = apply_filters( 'ep_synonyms_editor_mode', $mode );
+
+		return in_array( $filtered, [ 'simple', 'advanced' ], true ) ? $filtered : 'simple';
+	}
+
+	/**
+	 * Prepare localized token.
+	 *
+	 * @param string  $token    The synonym token to prepare.
+	 * @param boolean $primary Whether this string is the primary term of an alternative.
+	 * @return array
+	 */
+	public static function prepare_localized_token( $token, $primary = false ) {
+		return array(
+			'label'   => trim( sanitize_text_field( $token ) ),
+			'value'   => trim( sanitize_text_field( $token ) ),
+			'primary' => $primary,
+		);
+	}
+
+	/**
+	 * Insert default synonym post
+	 *
+	 * @return int|WP_Error
+	 */
+	private function insert_default_synonym_post() {
+		return wp_insert_post(
+			[
+				'post_content' => $this->example_synonym_list(),
+				'post_type'    => self::POST_TYPE_NAME,
+			],
+			true
+		);
+	}
+
+	/**
+	 * Update synonym post
+	 *
+	 * @param string $content The content post.
+	 * @return int|WP_Error
+	 */
+	private function update_synonym_post( $content ) {
+		$synonym_post_id = $this->get_synonym_post_id();
+
+		if ( ! $synonym_post_id ) {
+			return $synonym_post_id;
+		}
+
+		return wp_insert_post(
+			[
+				'ID'           => $synonym_post_id,
+				'post_content' => $content,
+				'post_type'    => self::POST_TYPE_NAME,
+			],
+			true
+		);
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+    <footer>
+		<a href="https://elasticpress.io/">ElasticPress.io</a> &bull;
+		<a href="https://github.com/10up/elasticpress/">ElasticPress on GitHub</a>
+	</footer>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_index_prefix.html">ep_admin_index_prefix</a></li><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_formatted_args_query.html">ep_comment_formatted_args_query</a></li><li><a href="ep_comment_fuzziness_arg.html">ep_comment_fuzziness_arg</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_match_boost.html">ep_comment_match_boost</a></li><li><a href="ep_comment_match_phrase_boost.html">ep_comment_match_phrase_boost</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_cross_fields_boost.html">ep_match_cross_fields_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_formatted_args_query.html">ep_term_formatted_args_query</a></li><li><a href="ep_term_fuzziness_arg.html">ep_term_fuzziness_arg</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_match_boost.html">ep_term_match_boost</a></li><li><a href="ep_term_match_phrase_boost.html">ep_term_match_phrase_boost</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_fuzziness_arg.html">ep_user_fuzziness_arg</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_match_boost.html">ep_user_match_boost</a></li><li><a href="ep_user_match_phrase_boost.html">ep_user_match_phrase_boost</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

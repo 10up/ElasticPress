@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: includes/classes/Indexable/Post/QueryIntegration.php - 10up ElasticPress Hook Docs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+
+	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans:300,400|Playfair+Display:900&display=swap" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="styles-10up.css">
+</head>
+
+<body>
+
+<div id="main">
+
+	
+    <h1 class="page-title">Source: includes/classes/Indexable/Post/QueryIntegration.php</h1>
+	
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>&lt;?php
+/**
+ * Integrate with WP_Query
+ *
+ * @since  1.0
+ * @package elasticpress
+ */
+
+namespace ElasticPress\Indexable\Post;
+
+use ElasticPress\Indexables as Indexables;
+use \WP_Query as WP_Query;
+use ElasticPress\Utils as Utils;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
+	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
+}
+
+/**
+ * Query integration class
+ */
+class QueryIntegration {
+
+	/**
+	 * Is set only when we switch_to_blog in MS context
+	 *
+	 * @var  boolean
+	 */
+	private $switched = false;
+
+	/**
+	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
+	 *
+	 * @param string $indexable_slug Indexable slug. Optional.
+	 *
+	 * @since 0.9
+	 * @since 3.6.0 Added $indexable_slug
+	 */
+	public function __construct( $indexable_slug = 'post' ) {
+		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
+		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
+			return;
+		}
+
+		// Add header
+		add_action( 'pre_get_posts', array( $this, 'add_es_header' ), 5 );
+
+		// Query ES for posts
+		add_filter( 'posts_pre_query', array( $this, 'get_es_posts' ), 10, 2 );
+
+		// Properly restore blog if necessary
+		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10, 1 );
+
+		// Properly switch to blog if necessary
+		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
+
+		// Sets the correct value for found_posts
+		add_filter( 'found_posts', array( $this, 'found_posts' ), 10, 2 );
+	}
+
+	/**
+	 * Set the found_posts variable on WP_Query.
+	 *
+	 * @param int      $found_posts Number of found posts
+	 * @param WP_Query $query Query object
+	 * @since 2.8.2
+	 * @return int
+	 */
+	public function found_posts( $found_posts, $query ) {
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
+		if ( ( isset( $query->elasticsearch_success ) &amp;&amp; false === $query->elasticsearch_success ) || ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) ) {
+			return $found_posts;
+		}
+
+		return $query->num_posts;
+	}
+
+	/**
+	 * Disables cache_results, adds header.
+	 *
+	 * @param WP_Query $query WP_Query instance
+	 * @since 0.9
+	 */
+	public function add_es_header( $query ) {
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+			return;
+		}
+
+		/**
+		 * `cache_results` defaults to false but can be enabled.
+		 *
+		 * @since 1.5
+		 */
+		$query->set( 'cache_results', false );
+		if ( ! empty( $query->query['cache_results'] ) ) {
+			$query->set( 'cache_results', true );
+		}
+
+		if ( ! headers_sent() ) {
+			/**
+			 * Manually setting a header as $wp_query isn't yet initialized when we
+			 * call: add_filter('wp_headers', 'filter_wp_headers');
+			 */
+			// @codeCoverageIgnoreStart
+			header( 'X-ElasticPress-Query: true' );
+			// @codeCoverageIgnoreEnd
+		}
+	}
+
+	/**
+	 * Gets the blog ID that the class is currently switched to.
+	 *
+	 * @return int
+	 */
+	public function get_switched() {
+		return $this->switched;
+	}
+
+	/**
+	 * Switch to the correct site if the post site id is different than the actual one.
+	 *
+	 * Note: This function can bring a performance penalty in multisites with a high number of sites.
+	 *
+	 * @param WP_Post  $post Post object
+	 * @param WP_Query $query WP_Query instance. If null, the global query will be used.
+	 * @since 0.9
+	 * @since 3.6.2 `$query` parameter added.
+	 */
+	public function maybe_switch_to_blog( $post, $query = null ) {
+		global $wp_query;
+		if ( ! $query ) {
+			$query = $wp_query;
+		}
+
+		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		if ( ! empty( $post->site_id ) &amp;&amp; get_current_blog_id() !== $post->site_id ) {
+			if ( $this->switched ) {
+				restore_current_blog();
+
+				$this->switched = false;
+			}
+
+			switch_to_blog( $post->site_id );
+
+			$this->switched = $post->site_id;
+
+			remove_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
+			setup_postdata( $post );
+			add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
+
+			if ( $this->switched &amp;&amp; ! $query->in_the_loop ) {
+				restore_current_blog();
+
+				$this->switched = false;
+			}
+		}
+
+	}
+
+	/**
+	 * Make sure the correct blog is restored
+	 *
+	 * @param  WP_Query $query WP_Query instance
+	 * @since 0.9
+	 */
+	public function maybe_restore_blog( $query ) {
+		if ( ! is_multisite() ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		if ( $this->switched ) {
+			restore_current_blog();
+
+			$this->switched = false;
+		}
+	}
+
+	/**
+	 * Get posts from Elasticsearch
+	 *
+	 * @param array    $posts Array of posts
+	 * @param WP_Query $query WP_Query instance
+	 * @since 3.0
+	 * @return string
+	 */
+	public function get_es_posts( $posts, $query ) {
+		global $wpdb;
+
+		/**
+		 * Filter to skip WP Query integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {WP_Query} $query WP Query to evaluate
+		 * @return  {bool} New skip value
+		 */
+		if ( ! Indexables::factory()->get( 'post' )->elasticpress_enabled( $query ) || apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+			return $posts;
+		}
+
+		$query_vars = $query->query_vars;
+
+		/**
+		 * Filter post type query variables before WP Query
+		 *
+		 * @since  2.1
+		 * @hook ep_query_post_type
+		 * @param  {string|array} $post_types Post types
+		 * @param  {WP_Query} $query WP Query object
+		 * @return  {string|array} New post types
+		 */
+		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
+
+		if ( 'any' === $query_vars['post_type'] ) {
+			unset( $query_vars['post_type'] );
+		}
+
+		/**
+		 * If not search and not set default to post. If not set and is search, use searchable post types
+		 */
+		if ( empty( $query_vars['post_type'] ) ) {
+			if ( empty( $query_vars['s'] ) ) {
+				$query_vars['post_type'] = 'post';
+			} else {
+				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
+			}
+		}
+
+		/**
+		 * No post types so bail
+		 */
+		if ( empty( $query_vars['post_type'] ) ) {
+			return [];
+		}
+
+		/**
+		 * Filter cached posts pre-post query
+		 *
+		 * @hook ep_wp_query_cached_posts
+		 * @param  {array} $posts Array of posts
+		 * @param  {WP_Query} $query WP Query object
+		 * @return  {array} New cached posts
+		 */
+		$new_posts = apply_filters( 'ep_wp_query_cached_posts', [], $query );
+
+		$ep_query = null;
+
+		if ( count( $new_posts ) &lt; 1 ) {
+
+			$scope = 'current';
+			if ( ! empty( $query_vars['sites'] ) ) {
+				$scope = $query_vars['sites'];
+			}
+
+			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars, $query );
+
+			/**
+			 * Filter post query scope
+			 *
+			 * @hook ep_search_scope
+			 * @param  {string} $scope Current scope
+			 * @return  {string} New scope
+			 * @since  2.1
+			 */
+			$scope = apply_filters( 'ep_search_scope', $scope );
+
+			if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+				// @codeCoverageIgnoreStart
+				$scope = 'current';
+				// @codeCoverageIgnoreEnd
+			}
+
+			$index = null;
+
+			if ( 'all' === $scope ) {
+				$index = Indexables::factory()->get( 'post' )->get_network_alias();
+			} elseif ( is_numeric( $scope ) ) {
+				$index = Indexables::factory()->get( 'post' )->get_index_name( (int) $scope );
+			} elseif ( is_array( $scope ) ) {
+				$index = [];
+
+				foreach ( $scope as $site_id ) {
+					$index[] = Indexables::factory()->get( 'post' )->get_index_name( $site_id );
+				}
+
+				$index = implode( ',', $index );
+			}
+
+			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index, $query );
+
+			/**
+			 * ES failed. Go back to MySQL.
+			 */
+			if ( false === $ep_query ) {
+				$query->elasticsearch_success = false;
+				return null;
+			}
+
+			$found_documents              = is_array( $ep_query['found_documents'] ) ? $ep_query['found_documents']['value'] : $ep_query['found_documents']; // 7.0+ have this as an array rather than int
+			$query->found_posts           = $found_documents;
+			$query->num_posts             = $query->found_posts;
+			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
+			$query->elasticsearch_success = true;
+
+			// Determine how we should format the results from ES based on the fields parameter.
+			$fields = $query->get( 'fields', '' );
+
+			switch ( $fields ) {
+				case 'ids':
+					$new_posts = $this->format_hits_as_ids( $ep_query['documents'], $new_posts );
+					break;
+
+				case 'id=>parent':
+					$new_posts = $this->format_hits_as_id_parents( $ep_query['documents'], $new_posts );
+					break;
+
+				default:
+					$new_posts = $this->format_hits_as_posts( $ep_query['documents'], $new_posts );
+					break;
+			}
+
+			/**
+			 * Fires after non cached post query
+			 *
+			 * @hook ep_wp_query_non_cached_search
+			 * @param {array} $new_posts Array of posts from query
+			 * @param  {array} $ep_query Raw Elasticsearch query
+			 * @param  {WP_Query} $query WordPress query
+			 */
+			do_action( 'ep_wp_query_non_cached_search', $new_posts, $ep_query, $query );
+		}
+
+		/**
+		 * Fires before returning posts from query
+		 *
+		 * @hook ep_wp_query
+		 * @param {array} $new_posts Array of posts from query
+		 * @param  {array} $ep_query Raw Elasticsearch query
+		 * @param  {WP_Query} $query WordPress query
+		 */
+		do_action( 'ep_wp_query', $new_posts, $ep_query, $query );
+
+		/**
+		 * Fires before returning posts from query
+		 *
+		 * Pre-3.0 backwards compat
+		 *
+		 * @hook ep_wp_query_search
+		 * @param {array} $new_posts Array of posts from query
+		 * @param  {array} $ep_query Raw Elasticsearch query
+		 * @param  {WP_Query} $query WordPress query
+		 */
+		do_action( 'ep_wp_query_search', $new_posts, $ep_query, $query );
+
+		return $new_posts;
+	}
+
+	/**
+	 * Format the ES hits/results as post objects.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts The posts that should be formatted.
+	 * @param array $new_posts Array of posts from cache.
+	 *
+	 * @return array
+	 */
+	protected function format_hits_as_posts( $posts, $new_posts ) {
+		foreach ( $posts as $post_array ) {
+			$post = new \stdClass();
+
+			$post->ID      = $post_array['post_id'];
+			$post->site_id = get_current_blog_id();
+
+			if ( ! empty( $post_array['site_id'] ) ) {
+				$post->site_id = $post_array['site_id'];
+			}
+			/**
+			 * Filter post object properties set after query
+			 *
+			 * @hook ep_search_post_return_args
+			 * @param  {array} $properties Post properties
+			 * @return  {array} New properties
+			 */
+			$post_return_args = apply_filters(
+				'ep_search_post_return_args',
+				array(
+					'post_type',
+					'post_author',
+					'post_name',
+					'post_status',
+					'post_title',
+					'post_parent',
+					'post_content',
+					'post_excerpt',
+					'post_date',
+					'post_date_gmt',
+					'post_modified',
+					'post_modified_gmt',
+					'post_mime_type',
+					'comment_count',
+					'comment_status',
+					'ping_status',
+					'menu_order',
+					'permalink',
+					'terms',
+					'post_meta',
+					'meta',
+				)
+			);
+
+			foreach ( $post_return_args as $key ) {
+				if ( 'post_author' === $key ) {
+					$post->$key = $post_array[ $key ]['id'];
+				} elseif ( isset( $post_array[ $key ] ) ) {
+					$post->$key = $post_array[ $key ];
+				}
+			}
+
+			/**
+			 * Replace post attributes with highlighted versions if available.
+			 *
+			 * $post_array['highlight'] is set from $hit['highlight'] in Elasticsearch.php
+			 * when going through the returned results, and that is defined by
+			 * the Highlighting Feature on setup, calling ep_formatted_args to
+			 * define the highlight array of fields.
+			 */
+			if ( isset( $post_array['highlight'] ) ) {
+				foreach ( $post_array['highlight'] as $key => $val ) {
+					// e.g. $post->post_content
+					if ( isset( $post->$key ) ) {
+						/**
+						 * e.g. replaces post content value with the highlighted value
+						 * $post->post_content = implode( ' ', $post_array['highlight']['post_content'] );
+						 *
+						 * Depending on how highlight.fields.&lt;field>.number_of_fragments is set in the query,
+						 * Elasticsearch can return an array with N entries, with N being the number
+						 * of matches found.
+						 */
+						$post->$key = implode( ' ', $val );
+					}
+				}
+			}
+
+			$post->elasticsearch = true; // Super useful for debugging
+
+			if ( $post ) {
+				$new_posts[] = $post;
+			}
+		}
+
+		return $new_posts;
+	}
+
+	/**
+	 * Format the ES hits/results as an array of ids.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts The posts that should be formatted.
+	 * @param array $new_posts Array of posts from cache.
+	 *
+	 * @return array
+	 */
+	protected function format_hits_as_ids( $posts, $new_posts ) {
+		foreach ( $posts as $post_array ) {
+			$new_posts[] = $post_array['post_id'];
+		}
+
+		return $new_posts;
+	}
+
+	/**
+	 * Format the ES hits/results as objects containing id and parent id.
+	 *
+	 * @since 2.4.0
+	 *
+	 * @param array $posts The posts that should be formatted.
+	 * @param array $new_posts Array of posts from cache.
+	 *
+	 * @return array
+	 */
+	protected function format_hits_as_id_parents( $posts, $new_posts ) {
+		foreach ( $posts as $post_array ) {
+			$post                = new \stdClass();
+			$post->ID            = $post_array['post_id'];
+			$post->post_parent   = $post_array['post_parent'];
+			$post->elasticsearch = true; // Super useful for debugging
+			$new_posts[]         = $post;
+		}
+		return $new_posts;
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+    <footer>
+		<a href="https://elasticpress.io/">ElasticPress.io</a> &bull;
+		<a href="https://github.com/10up/elasticpress/">ElasticPress on GitHub</a>
+	</footer>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_index_prefix.html">ep_admin_index_prefix</a></li><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_formatted_args_query.html">ep_comment_formatted_args_query</a></li><li><a href="ep_comment_fuzziness_arg.html">ep_comment_fuzziness_arg</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_match_boost.html">ep_comment_match_boost</a></li><li><a href="ep_comment_match_phrase_boost.html">ep_comment_match_phrase_boost</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_cross_fields_boost.html">ep_match_cross_fields_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_formatted_args_query.html">ep_term_formatted_args_query</a></li><li><a href="ep_term_fuzziness_arg.html">ep_term_fuzziness_arg</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_match_boost.html">ep_term_match_boost</a></li><li><a href="ep_term_match_phrase_boost.html">ep_term_match_phrase_boost</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_fuzziness_arg.html">ep_user_fuzziness_arg</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_match_boost.html">ep_user_match_boost</a></li><li><a href="ep_user_match_phrase_boost.html">ep_user_match_phrase_boost</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

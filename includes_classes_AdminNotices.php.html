@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: includes/classes/AdminNotices.php - 10up ElasticPress Hook Docs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+
+	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans:300,400|Playfair+Display:900&display=swap" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="styles-10up.css">
+</head>
+
+<body>
+
+<div id="main">
+
+	
+    <h1 class="page-title">Source: includes/classes/AdminNotices.php</h1>
+	
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>&lt;?php
+/**
+ * ElasticPress admin notice handler
+ *
+ * phpcs:disable WordPress.WP.I18n.MissingTranslatorsComment
+ *
+ * @since  3.0
+ * @package elasticpress
+ */
+
+namespace ElasticPress;
+
+use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Screen;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Stats;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Admin notices class
+ */
+class AdminNotices {
+
+	/**
+	 * Notice keys
+	 *
+	 * @since  3.0
+	 * @var array
+	 */
+	protected $notice_keys = [
+		'host_error',
+		'es_below_compat',
+		'es_above_compat',
+		'need_setup',
+		'no_sync',
+		'upgrade_sync',
+		'auto_activate_sync',
+		'using_autosuggest_defaults',
+		'maybe_wrong_mapping',
+		'yellow_health',
+	];
+
+	/**
+	 * Notices that should be shown on a screen
+	 *
+	 * @var array
+	 * @since  3.0
+	 */
+	protected $notices = [];
+
+	/**
+	 * Process all notifications and prepare ones that should be displayed
+	 *
+	 * @since 3.0
+	 */
+	public function process_notices() {
+		$this->notices = [];
+
+		foreach ( $this->notice_keys as $notice ) {
+			$output = call_user_func( [ $this, 'process_' . $notice . '_notice' ] );
+
+			if ( ! empty( $output ) ) {
+				$this->notices[ $notice ] = $output;
+			}
+		}
+	}
+
+	/**
+	 * Autosuggest defaults are being used. Feature must be active.
+	 *
+	 * Type: notice
+	 * Dismiss: Everywhere
+	 * Show: Settings and dashboard only
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_using_autosuggest_defaults_notice() {
+		$feature = Features::factory()->get_registered_feature( 'autosuggest' );
+		if ( ! $feature instanceof Feature ) {
+			return false;
+		}
+
+		if ( ! $feature->is_active() ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_using_autosuggest_defaults_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_using_autosuggest_defaults_notice', false );
+		}
+
+		if ( $dismiss ) {
+			return false;
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'dashboard', 'settings' ], true ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$url = admin_url( 'network/admin.php?page=elasticpress&amp;do_sync' );
+		} else {
+			$url = admin_url( 'admin.php?page=elasticpress&amp;do_sync' );
+		}
+
+		return [
+			'html'    => sprintf( esc_html__( 'Autosuggest feature is enabled. If documents feature is enabled, your media will also become searchable in the frontend.', 'elasticpress' ) ),
+			'type'    => 'info',
+			'dismiss' => true,
+		];
+	}
+
+	/**
+	 * An EP feature was auto-activated that requires a sync.
+	 *
+	 * Type: warning
+	 * Dismiss: Everywhere except ep dash and settings
+	 * Show: All screens except install. Dont show during sync ever
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_auto_activate_sync_notice() {
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
+		} else {
+			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
+		}
+
+		// need_upgrade_sync takes priority over this notice
+		if ( $need_upgrade_sync ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
+		} else {
+			$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
+		}
+
+		if ( ! $auto_activate_sync ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_auto_activate_sync_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_auto_activate_sync_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
+		if ( $dismiss &amp;&amp; ! in_array( $screen, [ 'dashboard', 'settings' ], true ) ) {
+			return false;
+		}
+
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync&amp;do_sync' );
+		} else {
+			$url = admin_url( 'admin.php?page=elasticpress-sync&amp;do_sync' );
+		}
+
+		$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
+
+		if ( defined( 'EP_DASHBOARD_SYNC' ) &amp;&amp; ! EP_DASHBOARD_SYNC ) {
+			$html = sprintf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) );
+		} else {
+			$html = sprintf( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to &lt;a href="%2$s">run a sync&lt;/a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) );
+		}
+
+		return [
+			'html'    => $html,
+			'type'    => 'warning',
+			'dismiss' => ! in_array( $screen, [ 'dashboard', 'settings' ], true ),
+		];
+	}
+
+	/**
+	 * EP was upgraded to or past a version that requires a sync.
+	 *
+	 * Type: warning
+	 * Dismiss: Everywhere except ep dash and settings
+	 * Show: All screens except install. Dont show during sync ever
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_upgrade_sync_notice() {
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
+		} else {
+			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
+		}
+
+		if ( ! $need_upgrade_sync ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_upgrade_sync_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_upgrade_sync_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
+		if ( $dismiss &amp;&amp; ! in_array( $screen, [ 'dashboard', 'settings' ], true ) ) {
+			return false;
+		}
+
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync&amp;do_sync' );
+		} else {
+			$url = admin_url( 'admin.php?page=elasticpress-sync&amp;do_sync' );
+		}
+
+		if ( defined( 'EP_DASHBOARD_SYNC' ) &amp;&amp; ! EP_DASHBOARD_SYNC ) {
+			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you delete all data and start a fresh sync using WP-CLI.', 'elasticpress' );
+		} else {
+			$html = sprintf( __( 'The new version of ElasticPress requires that you &lt;a href="%s">delete all data and start a fresh sync&lt;/a>.', 'elasticpress' ), esc_url( $url ) );
+		}
+
+		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the full sync has been performed.', 'elasticpress' );
+
+		return [
+			'html'    => '&lt;span class="dashicons dashicons-warning">&lt;/span> ' . $html . ' ' . $notice,
+			'type'    => 'error',
+			'dismiss' => ! in_array( $screen, [ 'dashboard', 'settings' ], true ),
+		];
+	}
+
+	/**
+	 * EP has no never had a sync. We assume the user is on step 3 of the install.
+	 *
+	 * Type: notice
+	 * Dismiss: Everywhere except ep dash and settings
+	 * Show: All screens except install. Dont show during sync ever
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_no_sync_notice() {
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( ! empty( $last_sync ) ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_no_sync_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_no_sync_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
+		if ( $dismiss &amp;&amp; ! in_array( $screen, [ 'dashboard', 'settings' ], true ) ) {
+			return false;
+		}
+
+		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$url = admin_url( 'network/admin.php?page=elasticpress-sync' );
+		} else {
+			$url = admin_url( 'admin.php?page=elasticpress-sync' );
+		}
+
+		if ( defined( 'EP_DASHBOARD_SYNC' ) &amp;&amp; ! EP_DASHBOARD_SYNC ) {
+			$html = esc_html__( 'Dashboard sync is disabled, but ElasticPress is almost ready to go. Trigger a sync from WP-CLI.', 'elasticpress' );
+		} else {
+			$html = sprintf( __( 'ElasticPress is almost ready to go. You just need to &lt;a href="%s">sync your content&lt;/a>.', 'elasticpress' ), esc_url( $url ) );
+		}
+
+		return [
+			'html'    => $html,
+			'type'    => 'info',
+			'dismiss' => ! in_array( $screen, [ 'dashboard', 'settings' ], true ),
+		];
+	}
+
+	/**
+	 * EP has no host set. We assume the user needs to run an install.
+	 *
+	 * Type: notice
+	 * Dismiss: Anywhere except EP dashboard
+	 * Show: All screens except settings and install
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_need_setup_notice() {
+		$host = Utils\get_host();
+
+		if ( ! empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_need_setup_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_need_setup_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( in_array( $screen, [ 'settings', 'install' ], true ) ) {
+			return false;
+		}
+
+		if ( $dismiss &amp;&amp; 'dashboard' !== $screen ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$url = admin_url( 'network/admin.php?page=elasticpress-settings' );
+		} else {
+			$url = admin_url( 'admin.php?page=elasticpress-settings' );
+		}
+
+		return [
+			'html'    => sprintf( __( 'ElasticPress is almost ready to go. You just need to &lt;a href="%s">enter your settings&lt;/a>.', 'elasticpress' ), esc_url( $url ) ),
+			'type'    => 'info',
+			'dismiss' => 'dashboard' !== $screen,
+		];
+	}
+
+	/**
+	 * Below ES compat error.
+	 *
+	 * Type: error
+	 * Dismiss: Anywhere
+	 * Show: All screens
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_es_below_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+
+		if ( false === $es_version ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_es_below_compat_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_es_below_compat_notice', false );
+		}
+
+		if ( $dismiss ) {
+			return false;
+		}
+
+		// First reduce version to major version i.e. 7.10 not 7.10.1.
+		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
+
+		// pad a version to have at least two parts (7 -> 7.0)
+		$parts = explode( '.', $major_es_version );
+
+		if ( 1 === count( $parts ) ) {
+			$parts[] = 0;
+		}
+
+		$major_es_version = implode( '.', $parts );
+
+		if ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
+			return [
+				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ),
+				'type'    => 'error',
+				'dismiss' => true,
+			];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Above ES compat error.
+	 *
+	 * Type: error
+	 * Dismiss: Anywhere
+	 * Show: All screens
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_es_above_compat_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+
+		if ( false === $es_version ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_es_above_compat_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_es_above_compat_notice', false );
+		}
+
+		if ( $dismiss ) {
+			return false;
+		}
+
+		// First reduce version to major version i.e. 7.10 not 7.10.1.
+		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
+
+		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
+			return [
+				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
+				'type'    => 'warning',
+				'dismiss' => true,
+			];
+		}
+	}
+
+	/**
+	 * Host error notification. Shows when EP can't reach ES host.
+	 *
+	 * Type: error
+	 * Dismiss: Only on non-EP screens
+	 * Show: All screens except install
+	 *
+	 * @since  3.0
+	 * @return array|bool
+	 */
+	protected function process_host_error_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
+
+		if ( false !== $es_version ) {
+			return false;
+		}
+
+		// Only dismissable on non-EP screens
+		if ( ! in_array( $screen, [ 'settings', 'dashboard' ], true ) ) {
+			if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+				$dismiss = get_site_option( 'ep_hide_host_error_notice', false );
+			} else {
+				$dismiss = get_option( 'ep_hide_host_error_notice', false );
+			}
+
+			if ( $dismiss ) {
+				return false;
+			}
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$url            = admin_url( 'network/admin.php?page=elasticpress-settings' );
+			$response_code  = get_site_transient( 'ep_es_info_response_code' );
+			$response_error = get_site_transient( 'ep_es_info_response_error' );
+		} else {
+			$url            = admin_url( 'admin.php?page=elasticpress-settings' );
+			$response_code  = get_transient( 'ep_es_info_response_code' );
+			$response_error = get_transient( 'ep_es_info_response_error' );
+		}
+
+		$html = sprintf( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can &lt;a href="%1$s">try your host again&lt;/a>, or you may need to &lt;a href="%2$s">change your settings&lt;/a>.', 'elasticpress' ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) );
+
+		if ( defined( 'WP_DEBUG' ) &amp;&amp; WP_DEBUG ) {
+			if ( ! empty( $response_code ) ) {
+				$html .= '&lt;span class="notice-error-es-response-code"> ' . sprintf( __( 'Response Code: %s', 'elasticpress' ), esc_html( $response_code ) ) . '&lt;/span>';
+			}
+
+			if ( ! empty( $response_error ) ) {
+				$html .= '&lt;span class="notice-error-es-response-error"> ' . sprintf( __( 'Response error: %s', 'elasticpress' ), esc_html( $response_error ) ) . '&lt;/span>';
+			}
+		}
+
+		return [
+			'html'    => $html,
+			'type'    => 'error',
+			'dismiss' => ( ! in_array( Screen::factory()->get_current_screen(), [ 'settings', 'dashboard' ], true ) ) ? true : false,
+		];
+	}
+
+	/**
+	 * Determine if the wrong mapping might be installed
+	 *
+	 * Type: error
+	 * Dismiss: Always dismissable per es_version as custom mapping could exist
+	 * Show: All screens
+	 *
+	 * @since   3.6.2
+	 * @return array|bool
+	 */
+	protected function process_maybe_wrong_mapping_notice() {
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( 'install' === $screen ) {
+			return false;
+		}
+
+		// we might have this dismissed
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
+		}
+
+		// we need a host
+		$host = Utils\get_host();
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		// we also need a version
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version( false );
+
+		if ( false === $es_version || $dismiss === $es_version ) {
+			return false;
+		}
+
+		// we also likely need a sync to have a mapping
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$mapping_file_wanted  = $post_indexable->get_mapping_name();
+		$mapping_file_current = $post_indexable->determine_mapping_version();
+		if ( is_wp_error( $mapping_file_current ) ) {
+			return false;
+		}
+
+		if ( ! $mapping_file_current || $mapping_file_wanted !== $mapping_file_current ) {
+			$html = sprintf(
+				/* translators: 1. &lt;em>; 2. &lt;/em> */
+				esc_html__( 'It seems the mapping data in your index does not match the Elasticsearch version used. We recommend to reindex your content using the sync button on the top of the screen or through wp-cli by adding the %1$s--setup%2$s flag', 'elasticpress' ),
+				'&lt;em>',
+				'&lt;/em>'
+			);
+
+			if ( defined( 'WP_DEBUG' ) &amp;&amp; WP_DEBUG ) {
+				$html .= '&lt;span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s. Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '&lt;/span>';
+			}
+
+			return [
+				'html'    => $html,
+				'type'    => 'error',
+				'dismiss' => true,
+			];
+
+		}
+
+	}
+
+	/**
+	 * Single node notification. Shows when index health is yellow.
+	 *
+	 * Type: warning
+	 * Dismiss: Anywhere
+	 * Show: All screens except install
+	 *
+	 * @since  3.2
+	 * @return array|bool
+	 */
+	protected function process_yellow_health_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$last_sync = get_site_option( 'ep_last_sync', false );
+		} else {
+			$last_sync = get_option( 'ep_last_sync', false );
+		}
+
+		if ( empty( $last_sync ) ) {
+			return false;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
+		} else {
+			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
+		}
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'dashboard', 'settings' ], true ) || $dismiss ) {
+			return false;
+		}
+
+		$nodes = Stats::factory()->get_nodes();
+
+		if ( false !== $nodes &amp;&amp; $nodes &lt; 2 &amp;&amp; $nodes > 0 ) {
+			if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+				$url = network_admin_url( 'admin.php?page=elasticpress-health' );
+			} else {
+				$url = admin_url( 'admin.php?page=elasticpress-health' );
+			}
+
+			return [
+				'html'    => sprintf( __( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the &lt;a href="%1$s">Index Health&lt;/a> page where you can check the health of all of your indices.', 'elasticpress' ), $url ),
+				'type'    => 'warning',
+				'dismiss' => true,
+			];
+		}
+	}
+
+	/**
+	 * Get notices that should be displayed
+	 *
+	 * @since  3.0
+	 * @return array
+	 */
+	public function get_notices() {
+		/**
+		 * Filter admin notices
+		 *
+		 * @hook ep_admin_notices
+		 * @param  {array} $notices Admin notices
+		 * @return {array} New notices
+		 */
+		return apply_filters( 'ep_admin_notices', $this->notices );
+	}
+
+	/**
+	 * Dismiss a notice given a notice key.
+	 *
+	 * @param  string $notice Notice key
+	 * @since  3.0
+	 */
+	public function dismiss_notice( $notice ) {
+		$value = true;
+		// allow version dependent dismissal
+		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
+			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
+		}
+		if ( defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
+			update_site_option( 'ep_hide_' . $notice . '_notice', $value );
+		} else {
+			update_option( 'ep_hide_' . $notice . '_notice', $value );
+		}
+	}
+
+	/**
+	 * Return singleton instance of class
+	 *
+	 * @return object
+	 * @since 0.1.0
+	 */
+	public static function factory() {
+		static $instance = false;
+
+		if ( ! $instance ) {
+			$instance = new self();
+		}
+
+		return $instance;
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+    <footer>
+		<a href="https://elasticpress.io/">ElasticPress.io</a> &bull;
+		<a href="https://github.com/10up/elasticpress/">ElasticPress on GitHub</a>
+	</footer>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_index_prefix.html">ep_admin_index_prefix</a></li><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_formatted_args_query.html">ep_comment_formatted_args_query</a></li><li><a href="ep_comment_fuzziness_arg.html">ep_comment_fuzziness_arg</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_match_boost.html">ep_comment_match_boost</a></li><li><a href="ep_comment_match_phrase_boost.html">ep_comment_match_phrase_boost</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_cross_fields_boost.html">ep_match_cross_fields_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_formatted_args_query.html">ep_term_formatted_args_query</a></li><li><a href="ep_term_fuzziness_arg.html">ep_term_fuzziness_arg</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_match_boost.html">ep_term_match_boost</a></li><li><a href="ep_term_match_phrase_boost.html">ep_term_match_phrase_boost</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_fuzziness_arg.html">ep_user_fuzziness_arg</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_match_boost.html">ep_user_match_boost</a></li><li><a href="ep_user_match_phrase_boost.html">ep_user_match_phrase_boost</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

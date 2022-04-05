@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: includes/classes/Indexable/Post/SyncManager.php - 10up ElasticPress Hook Docs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+
+	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans:300,400|Playfair+Display:900&display=swap" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="styles-10up.css">
+</head>
+
+<body>
+
+<div id="main">
+
+	
+    <h1 class="page-title">Source: includes/classes/Indexable/Post/SyncManager.php</h1>
+	
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>&lt;?php
+/**
+ * Manage syncing of content between WP and Elasticsearch for posts
+ *
+ * @since  1.0
+ * @package elasticpress
+ */
+
+namespace ElasticPress\Indexable\Post;
+
+use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Indexables as Indexables;
+use ElasticPress\SyncManager as SyncManagerAbstract;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
+	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
+}
+
+/**
+ * Sync manager class
+ */
+class SyncManager extends SyncManagerAbstract {
+
+	/**
+	 * Indexable slug
+	 *
+	 * @since  3.0
+	 * @var    string
+	 */
+	public $indexable_slug = 'post';
+
+	/**
+	 * Delete all post meta from other posts associated with a deleted post. Useful for attachments.
+	 *
+	 * @var bool
+	 */
+	public $delete_all_meta = false;
+
+	/**
+	 * Setup actions and filters
+	 *
+	 * @since 0.1.2
+	 */
+	public function setup() {
+		if ( ! Elasticsearch::factory()->get_elasticsearch_version() ) {
+			return;
+		}
+
+		if ( ! $this->can_index_site() ) {
+			return;
+		}
+
+		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		// Called just because we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
+		add_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
+		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
+		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
+		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
+		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
+		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
+
+		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+	}
+
+	/**
+	 * Un-setup actions and filters (for multisite).
+	 *
+	 * @since 4.0
+	 */
+	public function tear_down() {
+		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
+		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ) );
+		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ) );
+		remove_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ) );
+		remove_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ) );
+		remove_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
+		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+	}
+
+	/**
+	 * Whether to delete all meta from other posts that is associated with the deleted post.
+	 *
+	 * @param bool   $check       Whether to allow metadata deletion of the given type.
+	 * @param int    $object_id    ID of the object metadata is for.
+	 * @param string $meta_key    Metadata key.
+	 * @param mixed  $meta_value  Metadata value. Must be serializable if non-scalar.
+	 * @param bool   $delete_all  Whether to delete the matching metadata entries
+	 *                             for all objects, ignoring the specified $object_id
+	 * @return bool
+	 */
+	public function maybe_delete_meta_for_all( $check, $object_id, $meta_key, $meta_value, $delete_all ) {
+		$this->delete_all_meta = $delete_all;
+		return $check;
+	}
+
+	/**
+	 * Filter to allow cron and WP CLI processes to index/delete documents
+	 *
+	 * @param  boolean $bypass The current filtered value
+	 * @return boolean Boolean indicating if permission checking should be bypased or not
+	 * @since  3.6.0
+	 */
+	public function filter_bypass_permission_checks_for_machines( $bypass ) {
+		// Allow index/delete during cron
+		if ( defined( 'DOING_CRON' ) &amp;&amp; DOING_CRON ) {
+			return true;
+		}
+
+		// Allow index/delete during WP CLI commands
+		if ( defined( 'WP_CLI' ) &amp;&amp; WP_CLI ) {
+			return true;
+		}
+
+		return $bypass;
+	}
+
+	/**
+	 * When whitelisted meta is updated, queue the post for reindex
+	 *
+	 * @param  int|array $meta_id Meta id.
+	 * @param  int       $object_id Object id.
+	 * @param  string    $meta_key Meta key.
+	 * @param  string    $meta_value Meta value.
+	 * @since  2.0
+	 */
+	public function action_queue_meta_sync( $meta_id, $object_id, $meta_key, $meta_value ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		if ( defined( 'DOING_AUTOSAVE' ) &amp;&amp; DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		$post = get_post( $object_id );
+
+		/**
+		 * Filter to allow skipping a sync triggered by meta changes
+		 *
+		 * @hook ep_skip_post_meta_sync
+		 * @param {bool} $skip True means kill sync for post
+		 * @param {WP_Post} $post The post that's attempting to be synced
+		 * @param {int} $meta_id ID of the meta that triggered the sync
+		 * @param {string} $meta_key The key of the meta that triggered the sync
+		 * @param {string} $meta_value The value of the meta that triggered the sync
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_post_meta_sync', false, $post, $meta_id, $meta_key, $meta_value ) ) {
+			return;
+		}
+
+		if ( empty( $object_id ) &amp;&amp; $this->delete_all_meta ) {
+			add_filter( 'ep_is_integrated_request', '__return_true' );
+
+			$query = new \WP_Query(
+				[
+					'ep_integrate' => true,
+					'meta_key'     => $meta_key,
+					'meta_value'   => $meta_value,
+					'fields'       => 'ids',
+				]
+			);
+
+			remove_filter( 'ep_is_integrated_request', '__return_true' );
+
+			if ( $query->have_posts() &amp;&amp; $query->elasticsearch_success ) {
+				$posts_to_be_synced = array_filter(
+					$query->posts,
+					function( $object_id ) {
+						return ! apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id );
+					}
+				);
+				if ( ! empty( $posts_to_be_synced ) ) {
+					$indexable->bulk_index( $posts_to_be_synced );
+				}
+			}
+		} else {
+			$indexable_post_statuses = $indexable->get_indexable_post_status();
+			$post_type               = get_post_type( $object_id );
+
+			$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
+			if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+				return;
+			}
+
+			if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+				$indexable_post_types = $indexable->get_indexable_post_types();
+
+				if ( in_array( $post_type, $indexable_post_types, true ) ) {
+					/**
+					 * Filter to kill post sync
+					 *
+					 * @hook ep_post_sync_kill
+					 * @param {bool} $skip True meanas kill sync for post
+					 * @param  {int} $object_id ID of post
+					 * @param  {int} $object_id ID of post
+					 * @return {boolean} New value
+					 */
+					if ( apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id ) ) {
+						return;
+					}
+
+					$this->add_to_queue( $object_id );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Delete ES post when WP post is deleted
+	 *
+	 * @param int $post_id Post id.
+	 * @since 0.1.0
+	 */
+	public function action_delete_post( $post_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		/**
+		 * Filter whether to skip the permissions check on deleting a post
+		 *
+		 * @hook ep_sync_delete_permissions_bypass
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
+		if ( ! current_user_can( 'edit_post', $post_id ) &amp;&amp; ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $post_id ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$post_type = get_post_type( $post_id );
+
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( ! in_array( $post_type, $indexable_post_types, true ) ) {
+			// If not an indexable post type, skip delete.
+			return;
+		}
+
+		Indexables::factory()->get( $this->indexable_slug )->delete( $post_id, false );
+
+		/**
+		 * Make sure to remove this post from the sync queue in case an shutdown happens
+		 * before a redirect when a redirect has already been triggered.
+		 */
+		if ( isset( $this->sync_queue[ $post_id ] ) ) {
+			unset( $this->sync_queue[ $post_id ] );
+		}
+	}
+
+	/**
+	 * Sync ES index with what happened to the post being saved
+	 *
+	 * @param int $post_id Post id.
+	 * @since 0.1.0
+	 */
+	public function action_sync_on_update( $post_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$post_type = get_post_type( $post_id );
+
+		if ( defined( 'DOING_AUTOSAVE' ) &amp;&amp; DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		/**
+		 * Filter whether to skip the permissions check on updating a post
+		 *
+		 * @hook ep_sync_insert_permissions_bypass
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $post_id ID of post
+		 * @return {boolean} New value
+		 */
+		if ( ! current_user_can( 'edit_post', $post_id ) &amp;&amp; ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $post_id ) ) {
+			return;
+		}
+
+		$post = get_post( $post_id );
+
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+
+		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index.
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+			$this->action_delete_post( $post_id );
+		} else {
+			$indexable_post_types = $indexable->get_indexable_post_types();
+
+			if ( in_array( $post_type, $indexable_post_types, true ) ) {
+				/**
+				 * Fire before post is queued for syncing
+				 *
+				 * @hook ep_sync_on_transition
+				 * @param  {int} $post_id ID of post
+				 */
+				do_action( 'ep_sync_on_transition', $post_id );
+
+				/**
+				 * Filter to kill post sync
+				 *
+				 * @hook ep_post_sync_kill
+				 * @param {bool} $skip True means kill sync for post
+				 * @param  {int} $object_id ID of post
+				 * @param  {int} $object_id ID of post
+				 * @return {boolean} New value
+				 */
+				if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+					return;
+				}
+
+				$this->add_to_queue( $post_id );
+			}
+		}
+	}
+
+	/**
+	 * When a post's terms are changed, re-index.
+	 *
+	 * This catches term deletions via wp_delete_term(), because that function internally loops over all attached objects
+	 * and updates their terms. It will also end up firing whenever set_object_terms is called, but the queue will de-duplicate
+	 * multiple instances per post. This won't happen for taxonomies that has a default term (like Uncategorized for categories),
+	 * hence why we also have `action_deleted_term_relationships`.
+	 *
+	 * @see set_object_terms
+	 * @param int    $post_id    Post ID.
+	 * @param array  $terms      An array of object terms.
+	 * @param array  $tt_ids     An array of term taxonomy IDs.
+	 * @param string $taxonomy   Taxonomy slug.
+	 * @param bool   $append     Whether to append new terms to the old terms.
+	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
+	 * @since  4.0.0
+	 */
+	public function action_set_object_terms( $post_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) &amp;&amp; DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		/**
+		 * Filter to allow skipping this action in case of custom handling
+		 *
+		 * @hook ep_skip_action_set_object_terms
+		 * @param {bool}   $skip       True means kill sync for post
+		 * @param {int}    $post_id    ID of post
+		 * @param {array}  $terms      An array of object terms.
+		 * @param {array}  $tt_ids     An array of term taxonomy IDs.
+		 * @param {string} $taxonomy   Taxonomy slug.
+		 * @param {bool}   $append     Whether to append new terms to the old terms.
+		 * @param {array}  $old_tt_ids Old array of term taxonomy IDs.
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_action_set_object_terms', false, $post_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids ) ) {
+			return;
+		}
+
+		if ( ! $this->should_reindex_post( $post_id, $taxonomy ) ) {
+			return;
+		}
+
+		/**
+		 * Fire before post is queued for syncing
+		 *
+		 * @since 4.0.0
+		 * @hook ep_sync_on_set_object_terms
+		 * @param {int}    $post_id    ID of post
+		 * @param {array}  $terms      An array of object terms.
+		 * @param {array}  $tt_ids     An array of term taxonomy IDs.
+		 * @param {string} $taxonomy   Taxonomy slug.
+		 * @param {bool}   $append     Whether to append new terms to the old terms.
+		 * @param {array}  $old_tt_ids Old array of term taxonomy IDs.
+		 */
+		do_action( 'ep_sync_on_set_object_terms', $post_id, $terms, $tt_ids, $taxonomy, $append, $old_tt_ids );
+
+		$this->add_to_queue( $post_id );
+	}
+
+	/**
+	 * When a term is updated, re-index all posts attached to that term
+	 *
+	 * @param  int    $term_id    Term id.
+	 * @param  int    $tt_id Term Taxonomy id.
+	 * @param  string $taxonomy   Taxonomy name.
+	 * @since  4.0.0
+	 */
+	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
+		global $wpdb;
+
+		if ( defined( 'DOING_AUTOSAVE' ) &amp;&amp; DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		// Find ID of all attached posts (query lifted from wp_delete_term())
+		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
+
+		if ( ! count( $object_ids ) ) {
+			return;
+		}
+
+		/**
+		 * Filter to allow skipping this action in case of custom handling
+		 *
+		 * @hook ep_skip_action_edited_term
+		 * @param {bool}   $skip       Current value of whether to skip running action_edited_term or not
+		 * @param {int}    $term_id    Term id.
+		 * @param {int}    $tt_id      Term Taxonomy id.
+		 * @param {string} $taxonomy   Taxonomy name.
+		 * @param {array}  $object_ids IDs of the objects attached to the term id.
+		 * @return {bool}  New value of whether to skip running action_edited_term or not
+		 */
+		if ( apply_filters( 'ep_skip_action_edited_term', false, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Add all of them to the queue
+		foreach ( $object_ids as $post_id ) {
+			if ( ! $this->should_reindex_post( $post_id, $taxonomy ) ) {
+				continue;
+			}
+
+			/**
+			 * Fire before post is queued for syncing
+			 *
+			 * @hook ep_sync_on_edited_term
+			 * @param  {int} $post_id ID of post
+			 * @param  {int} $term_id ID of the term that was edited
+			 * @param  {int} $tt_id Taxonomy Term ID of the term that was edited
+			 * @param  {int} $taxonomy Taxonomy of the term that was edited
+			 */
+			do_action( 'ep_sync_on_edited_term', $post_id, $term_id, $tt_id, $taxonomy );
+
+			$this->add_to_queue( $post_id );
+		}
+	}
+
+	/**
+	 * When a term relationship is deleted, re-index all posts attached to that term
+	 *
+	 * @param int    $post_id  Post ID.
+	 * @param array  $tt_ids   An array of term taxonomy IDs.
+	 * @param string $taxonomy Taxonomy slug.
+	 * @since  4.0.0
+	 */
+	public function action_deleted_term_relationships( $post_id, $tt_ids, $taxonomy ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) &amp;&amp; DOING_AUTOSAVE ) {
+			// Bypass saving if doing autosave
+			return;
+		}
+
+		/**
+		 * Filter to allow skipping this action in case of custom handling
+		 *
+		 * @hook ep_skip_action_deleted_term_relationships
+		 * @param {bool}   $skip       Current value of whether to skip running action_edited_term or not
+		 * @param {int}    $post_id  Post ID.
+		 * @param {array}  $tt_ids   An array of term taxonomy IDs.
+		 * @param {string} $taxonomy Taxonomy slug.
+		 * @return {bool}  New value of whether to skip running action_deleted_term_relationships or not
+		 */
+		if ( apply_filters( 'ep_skip_action_deleted_term_relationships', false, $post_id, $tt_ids, $taxonomy ) ) {
+			return;
+		}
+
+		if ( ! $this->should_reindex_post( $post_id, $taxonomy ) ) {
+			return;
+		}
+
+		/**
+		 * Fire before post is queued for syncing
+		 *
+		 * @hook ep_sync_on_deleted_term_relationships
+		 * @since 4.0.0
+		 * @param  {int}    $post_id ID of post
+		 * @param  {array}  $tt_ids   An array of term taxonomy IDs.
+		 * @param  {string} $taxonomy Taxonomy of the term that was edited
+		 */
+		do_action( 'ep_sync_on_deleted_term_relationships', $post_id, $tt_ids, $taxonomy );
+
+		$this->add_to_queue( $post_id );
+	}
+
+	/**
+	 * Create mapping and network alias when a new blog is created.
+	 *
+	 * @param WP_Site $blog New site object.
+	 */
+	public function action_create_blog_index( $blog ) {
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			// @codeCoverageIgnoreStart
+			return;
+			// @codeCoverageIgnoreEnd
+		}
+
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$non_global_indexable_objects = Indexables::factory()->get_all( false );
+
+		switch_to_blog( $blog->blog_id );
+
+		foreach ( $non_global_indexable_objects as $indexable ) {
+			$indexable->delete_index();
+			$indexable->put_mapping();
+
+			$index_name = $indexable->get_index_name( $blog->blog_id );
+			$indexable->create_network_alias( [ $index_name ] );
+		}
+
+		restore_current_blog();
+	}
+
+	/**
+	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
+	 *
+	 * @param int    $post_id  The post ID.
+	 * @param string $taxonomy The taxonomy slug.
+	 * @return boolean
+	 */
+	protected function should_reindex_post( $post_id, $taxonomy ) {
+		/**
+		 * Filter to kill post sync
+		 *
+		 * @hook ep_post_sync_kill
+		 * @param {bool} $skip True meanas kill sync for post
+		 * @param  {int} $object_id ID of post
+		 * @param  {int} $object_id ID of post
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+			return false;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! is_object( $post ) ) {
+			return false;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Check post status
+		$indexable_post_statuses = $indexable->get_indexable_post_status();
+		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
+			return false;
+		}
+
+		// Only re-index if the taxonomy is indexed for this post
+		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
+		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
+		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
+			return false;
+		}
+
+		// Check post type
+		$indexable_post_types = $indexable->get_indexable_post_types();
+		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			return false;
+		}
+
+		return true;
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+    <footer>
+		<a href="https://elasticpress.io/">ElasticPress.io</a> &bull;
+		<a href="https://github.com/10up/elasticpress/">ElasticPress on GitHub</a>
+	</footer>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_index_prefix.html">ep_admin_index_prefix</a></li><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_formatted_args_query.html">ep_comment_formatted_args_query</a></li><li><a href="ep_comment_fuzziness_arg.html">ep_comment_fuzziness_arg</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_match_boost.html">ep_comment_match_boost</a></li><li><a href="ep_comment_match_phrase_boost.html">ep_comment_match_phrase_boost</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_cross_fields_boost.html">ep_match_cross_fields_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_formatted_args_query.html">ep_term_formatted_args_query</a></li><li><a href="ep_term_fuzziness_arg.html">ep_term_fuzziness_arg</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_match_boost.html">ep_term_match_boost</a></li><li><a href="ep_term_match_phrase_boost.html">ep_term_match_phrase_boost</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_fuzziness_arg.html">ep_user_fuzziness_arg</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_match_boost.html">ep_user_match_boost</a></li><li><a href="ep_user_match_phrase_boost.html">ep_user_match_phrase_boost</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: includes/classes/Indexable.php - 10up ElasticPress Hook Docs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+
+	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans:300,400|Playfair+Display:900&display=swap" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="styles-10up.css">
+</head>
+
+<body>
+
+<div id="main">
+
+	
+    <h1 class="page-title">Source: includes/classes/Indexable.php</h1>
+	
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>&lt;?php
+/**
+ * Indexable abstract class.
+ *
+ * An indexable is a type of "data" in WP e.g. post type, term, user, etc.
+ *
+ * @since  3.0
+ * @package elasticpress
+ */
+
+namespace ElasticPress;
+
+use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\SyncManager as SyncManager;
+use ElasticPress\QueryIntegration as QueryIntegration;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * An indexable is essentially a document type that can be indexed
+ * and queried against
+ *
+ * @since  3.0
+ */
+abstract class Indexable {
+
+	/**
+	 * Declaring an Indexable global means it won't have an index for each blog in
+	 * the network. Instead it will just have one index. There will also be no
+	 * network alias.
+	 *
+	 * @var boolean
+	 * @since  3.0
+	 */
+	public $global = false;
+
+	/**
+	 * Instance of SyncManager. This should handle automated syncing of indexable
+	 * objects.
+	 *
+	 * @var SyncManager
+	 * @since  3.0
+	 */
+	public $sync_manager;
+
+	/**
+	 * Instance of QueryIntegration. This should handle integrating with a default
+	 * WP query.
+	 *
+	 * @var QueryIntegration
+	 * @since  3.0
+	 */
+	public $query_integration;
+
+	/**
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
+	 *
+	 * @var boolean
+	 * @since 4.1.0
+	 */
+	public $support_indexing_advanced_pagination = false;
+
+	/**
+	 * Get number of bulk items to index per page
+	 *
+	 * @since  3.0
+	 * @return int
+	 */
+	public function get_bulk_items_per_page() {
+		/**
+		 * Filter bulk items to sync per batch
+		 *
+		 * @hook ep_bulk_items_per_page
+		 * @param  {int} $number Number of items per batch
+		 * @param  {Indexable} $indexable Current indexable
+		 * @return  {int} New number of items
+		 * @since  3.0
+		 */
+		return apply_filters( 'ep_bulk_items_per_page', 350, $this );
+	}
+
+	/**
+	 * Get the name of the index. Each indexable needs a unique index name
+	 *
+	 * @param  int $blog_id `null` means current blog.
+	 * @since  3.0
+	 * @return string
+	 */
+	public function get_index_name( $blog_id = null ) {
+		if ( $this->global ) {
+			$site_url = network_site_url();
+
+			if ( ! empty( $site_url ) ) {
+				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->slug;
+			} else {
+				$index_name = false;
+			}
+		} else {
+			if ( ! $blog_id ) {
+				$blog_id = get_current_blog_id();
+			}
+
+			$site_url = get_site_url( $blog_id );
+
+			if ( ! empty( $site_url ) ) {
+				$index_name = preg_replace( '#https?://(www\.)?#i', '', $site_url );
+				$index_name = preg_replace( '#[^\w]#', '', $index_name ) . '-' . $this->slug . '-' . $blog_id;
+			} else {
+				$index_name = false;
+			}
+		}
+
+		$prefix = Utils\get_index_prefix();
+
+		if ( ! empty( $prefix ) ) {
+			$index_name = $prefix . '-' . $index_name;
+		}
+
+		$index_name = strtolower( $index_name );
+
+		/**
+		 * Filter index name
+		 *
+		 * @hook ep_index_name
+		 * @param  {string} $index_name Name of index
+		 * @param  {int} $blog_id Blog ID
+		 * @param  {Indexable} $indexable Current indexable
+		 * @return  {string} Index name
+		 * @since  3.0
+		 */
+		return apply_filters( 'ep_index_name', $index_name, $blog_id, $this );
+	}
+
+	/**
+	 * Get unique indexable network alias
+	 *
+	 * @since  3.0
+	 * @return string
+	 */
+	public function get_network_alias() {
+		$url  = network_site_url();
+		$slug = preg_replace( '#https?://(www\.)?#i', '', $url );
+		$slug = preg_replace( '#[^\w]#', '', $slug );
+
+		$alias = $slug . '-' . $this->slug . '-global';
+
+		$prefix = Utils\get_index_prefix();
+
+		if ( ! empty( $prefix ) ) {
+			$alias = $prefix . '-' . $alias;
+		}
+
+		/**
+		 * Filter global/network Elasticsearch alias
+		 *
+		 * @hook ep_global_alias
+		 * @param  {string} $number Current alias
+		 * @return  {string} New alias
+		 */
+		return apply_filters( 'ep_global_alias', $alias );
+	}
+
+	/**
+	 * Delete unique indexable network alias
+	 *
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function delete_network_alias() {
+		return Elasticsearch::factory()->delete_network_alias( $this->get_network_alias() );
+	}
+
+	/**
+	 * Create unique indexable network alias
+	 *
+	 * @param  array $indexes Array of indexes.
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function create_network_alias( $indexes ) {
+		return Elasticsearch::factory()->create_network_alias( $indexes, $this->get_network_alias() );
+	}
+
+	/**
+	 * Delete an object within the indexable
+	 *
+	 * @param  int     $object_id Object to delete.
+	 * @param  boolean $blocking Whether to issue blocking HTTP request or not.
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function delete( $object_id, $blocking = true ) {
+		/**
+		 * Fires before object deletion
+		 *
+		 * @hook ep_delete_{indexable_slug}
+		 * @param {int} $object_id ID of object being deleted
+		 * @param {string} $indexable_slug The slug of the indexable type that is being deleted
+		 */
+		do_action( 'ep_delete_' . $this->slug, $object_id, $this->slug );
+
+		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
+	}
+
+	/**
+	 * Get an object within the indexable
+	 *
+	 * @param  int $object_id Object to get.
+	 * @since  3.0
+	 * @return boolean|array
+	 */
+	public function get( $object_id ) {
+		return Elasticsearch::factory()->get_document( $this->get_index_name(), $this->slug, $object_id );
+	}
+
+	/**
+	 * Get objects within the indexable
+	 *
+	 * @param  int $object_ids Array of object ids to get.
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function multi_get( $object_ids ) {
+		return Elasticsearch::factory()->get_documents( $this->get_index_name(), $this->slug, $object_ids );
+	}
+
+	/**
+	 * Delete an index within the indexable
+	 *
+	 * @param  int $blog_id `null` means current blog.
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function delete_index( $blog_id = null ) {
+		return Elasticsearch::factory()->delete_index( $this->get_index_name( $blog_id ) );
+	}
+
+	/**
+	 * Index an object within the indexable. This calls prepare_document
+	 *
+	 * @param  int     $object_id Object to index.
+	 * @param  boolean $blocking Blocking HTTP request or not.
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function index( $object_id, $blocking = false ) {
+		$document = $this->prepare_document( $object_id );
+
+		if ( false === $document ) {
+			return false;
+		}
+
+		/**
+		 * Conditionally kill indexing on a specific object
+		 *
+		 * @hook ep_{indexable_slug}_index_kill
+		 * @param  {bool} $kill True to not index
+		 * @param {int} $object_id Id of object to index
+		 * @since  3.0
+		 * @return {bool}  New kill value
+		 */
+		if ( apply_filters( 'ep_' . $this->slug . '_index_kill', false, $object_id ) ) {
+			return false;
+		}
+
+		/**
+		 * Filter document before index
+		 *
+		 * @hook ep_pre_index_{indexable_slug}
+		 * @param  {array} $document Document to index
+		 * @return {array} New document
+		 * @since  3.0
+		 */
+		$document = apply_filters( 'ep_pre_index_' . $this->slug, $document );
+
+		$return = Elasticsearch::factory()->index_document( $this->get_index_name(), $this->slug, $document, $blocking );
+
+		/**
+		 * Fires after document is indexed
+		 *
+		 * @hook ep_after_index_{indexable_slug}
+		 * @param  {array} $document Document to index
+		 * @param  {array|boolean} $return ES response on success, false on failure
+		 * @since  3.0
+		 */
+		do_action( 'ep_after_index_' . $this->slug, $document, $return );
+
+		return $return;
+	}
+
+	/**
+	 * Determine if indexable index exists
+	 *
+	 * @param  int $blog_id Blog to check index for.
+	 * @since  3.0
+	 * @return boolean
+	 */
+	public function index_exists( $blog_id = null ) {
+		return Elasticsearch::factory()->index_exists( $this->get_index_name( $blog_id ) );
+	}
+
+	/**
+	 * Bulk index objects. This calls prepare_document on each object
+	 *
+	 * @param  array $object_ids Array of object IDs.
+	 * @since  3.0
+	 * @return WP_Error|array
+	 */
+	public function bulk_index( $object_ids ) {
+		$body = '';
+
+		foreach ( $object_ids as $object_id ) {
+			$action_args = array(
+				'index' => array(
+					'_id' => absint( $object_id ),
+				),
+			);
+
+			$document = $this->prepare_document( $object_id );
+
+			/**
+			 * Conditionally kill indexing on a specific object
+			 *
+			 * @hook ep_bulk_index_action_args
+			 * @param  {array} $action_args Bulk action arguments
+			 * @param {array} $document Document to index
+			 * @since  3.0
+			 * @return {array}  New action args
+			 */
+			$body .= wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
+			$body .= addcslashes( wp_json_encode( $document ), "\n" );
+
+			$body .= "\n\n";
+		}
+
+		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+
+		/**
+		 * Perform actions after a bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index
+		 * @param {array} $object_ids List of object ids attempted to be indexed
+		 * @param {string} $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index', $object_ids, $this->slug, $result );
+
+		return $result;
+	}
+
+	/**
+	 * Bulk index objects but with a dynamic size of queue.
+	 *
+	 * @since  4.0.0
+	 * @param  array $object_ids Array of object IDs.
+	 * @return array[WP_Error|array] The return of each request made.
+	 */
+	public function bulk_index_dynamically( $object_ids ) {
+		$documents = [];
+
+		foreach ( $object_ids as $object_id ) {
+			$action_args = array(
+				'index' => array(
+					'_id' => absint( $object_id ),
+				),
+			);
+
+			$document = $this->prepare_document( $object_id );
+
+			/**
+			 * Conditionally kill indexing on a specific object
+			 *
+			 * @hook ep_bulk_index_action_args
+			 * @param  {array} $action_args Bulk action arguments
+			 * @param {array} $document Document to index
+			 * @since  3.0
+			 * @return {array}  New action args
+			 */
+			$document_str  = wp_json_encode( apply_filters( 'ep_bulk_index_action_args', $action_args, $document ) ) . "\n";
+			$document_str .= addcslashes( wp_json_encode( $document ), "\n" );
+			$document_str .= "\n\n";
+
+			$documents[] = $document_str;
+		}
+
+		$results = $this->send_bulk_index_request( $documents );
+
+		/**
+		 * Perform actions after a dynamic bulk indexing is completed
+		 *
+		 * @hook ep_after_bulk_index_dynamically
+		 * @since 4.0.0
+		 * @param {array}      $object_ids List of object ids attempted to be indexed
+		 * @param {string}     $slug Current indexable slug
+		 * @param {array|bool} $result Result of the Elasticsearch query. False on error.
+		 */
+		do_action( 'ep_after_bulk_index_dynamically', $object_ids, $this->slug, $results );
+
+		return $results;
+	}
+
+	/**
+	 * Bulk index documents through several requests with dynamic size.
+	 *
+	 * @param array $documents The documents to be sent to Elasticsearch (already formatted.)
+	 * @return array[WP_Error|array]
+	 */
+	protected function send_bulk_index_request( $documents ) {
+		static $min_buffer_size, $max_buffer_size, $current_buffer_size, $incremental_step;
+
+		if ( ! $min_buffer_size ) {
+			/**
+			 * Filter the minimum buffer size for dynamic bulk index requests.
+			 *
+			 * @hook ep_dynamic_bulk_min_buffer_size
+			 * @since 4.0.0
+			 * @param {int} $min_buffer_size Min buffer size for dynamic bulk index (in bytes.)
+			 * @return {int} New size.
+			 */
+			$min_buffer_size = apply_filters( 'ep_dynamic_bulk_min_buffer_size', MB_IN_BYTES / 2 );
+		}
+
+		if ( ! $max_buffer_size ) {
+			/**
+			 * Filter the max buffer size for dynamic bulk index requests.
+			 *
+			 * @hook ep_dynamic_bulk_max_buffer_size
+			 * @since 4.0.0
+			 * @param {int} $max_buffer_size Max buffer size for dynamic bulk index (in bytes.)
+			 * @return {int} New size.
+			 */
+			$max_buffer_size = apply_filters( 'ep_dynamic_bulk_max_buffer_size', 150 * MB_IN_BYTES );
+		}
+
+		if ( ! $incremental_step ) {
+			/**
+			 * Filter the number of bytes the current buffer size should be incremented in case of success.
+			 *
+			 * @hook ep_dynamic_bulk_incremental_step
+			 * @since 4.0.0
+			 * @param {int} $incremental_step Number of bytes to add to the current buffer size.
+			 * @return {int} New incremental step.
+			 */
+			$incremental_step = apply_filters( 'ep_dynamic_bulk_incremental_step', MB_IN_BYTES / 2 );
+		}
+
+		/**
+		 * Perform actions before a new batch of documents is processed.
+		 *
+		 * @hook ep_before_send_dynamic_bulk_requests
+		 * @since 4.0.0
+		 * @param {array} $documents Array of documents to be sent to Elasticsearch.
+		 */
+		do_action( 'ep_before_send_dynamic_bulk_requests', $documents );
+
+		if ( ! $current_buffer_size ) {
+			$current_buffer_size = $min_buffer_size;
+		}
+
+		$results = [];
+
+		$body = [];
+
+		$requests = 0;
+
+		/*
+		 * This script will use two main arrays: $body and $documents, being $body the
+		 * documents to be sent in the next request and $documents the list of docs to be indexed.
+		 * The do-while loop will stop if all documents are sent or if a request fails even sending
+		 * a buffer as small as possible.
+		 */
+		do {
+			$next_document = array_shift( $documents );
+
+			// If the next document alone takes the entire current buffer size,
+			// let's add it back to the pipe and send what we have first
+			if ( mb_strlen( $next_document ) > $current_buffer_size &amp;&amp; count( $body ) > 0 ) {
+				array_unshift( $documents, $next_document );
+			} else {
+				if ( mb_strlen( $next_document ) > $max_buffer_size ) {
+					/**
+					 * Perform actions when a post is bigger than the max buffer size.
+					 *
+					 * @hook ep_dynamic_bulk_post_too_big
+					 * @since 4.0.0
+					 * @param {string} $document JSON string of the post detected as too big.
+					 */
+					do_action( 'ep_dynamic_bulk_post_too_big', $next_document );
+					$results[] = new \WP_Error( 'ep_too_big_request_skipped', 'Indexable too big. Request not sent.' );
+					continue;
+				}
+				$body[] = $next_document;
+				if ( mb_strlen( implode( '', $body ) ) &lt; $current_buffer_size &amp;&amp; ! empty( $documents ) ) {
+					continue;
+				}
+				if ( mb_strlen( implode( '', $body ) ) > $max_buffer_size ) {
+					// The last document added to body made it too big, so let's give it back.
+					array_unshift( $documents, array_pop( $body ) );
+				}
+			}
+
+			// Try the request.
+			timer_start();
+			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
+			$request_time = timer_stop();
+			$requests++;
+
+			/**
+			 * Perform actions before a new batch of documents is processed.
+			 *
+			 * @hook ep_after_send_dynamic_bulk_request
+			 * @since 4.0.0
+			 * @param {WP_Error|array} $result              Result of the request.
+			 * @param {array}          $body                Array of documents sent to Elasticsearch.
+			 * @param {array}          $documents           Array of documents to be sent to Elasticsearch.
+			 * @param {int}            $min_buffer_size     Min buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $max_buffer_size     Max buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $current_buffer_size Current buffer size for dynamic bulk index (in bytes.)
+			 * @param {int}            $request_time        Total time of the request.
+			 */
+			do_action( 'ep_after_send_dynamic_bulk_request', $result, $body, $documents, $min_buffer_size, $max_buffer_size, $current_buffer_size, $request_time );
+
+			// It failed, possibly adjust the buffer size and try again.
+			if ( is_wp_error( $result ) ) {
+				// Too many requests, wait and try again.
+				if ( 429 === $result->get_error_code() ) {
+					sleep( 2 );
+				}
+
+				// If the error is not a "Request too big" then we really fail this batch of documents.
+				if ( 413 !== $result->get_error_code() ) {
+					$results[] = $result;
+					continue;
+				}
+
+				if ( count( $body ) === 1 ) {
+					$max_buffer_size = min( $max_buffer_size, mb_strlen( implode( '', $body ) ) );
+					$results[]       = $result;
+					$body            = [];
+					continue;
+				}
+
+				// As the buffer is as small as possible, return the error.
+				if ( mb_strlen( implode( '', $body ) ) === $min_buffer_size ) {
+					$results[] = $result;
+					continue;
+				}
+
+				// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
+				array_unshift( $documents, array_pop( $body ) );
+
+				$max_buffer_size = count( $body ) ?
+					max( $min_buffer_size, mb_strlen( implode( '', $body ) ) ) :
+					$min_buffer_size;
+
+				$current_buffer_size = $max_buffer_size;
+				continue;
+			}
+
+			// Things worked so we can try to bump the buffer size.
+			if ( $current_buffer_size &lt; $max_buffer_size &amp;&amp; mb_strlen( implode( '', $body ) ) > $current_buffer_size ) {
+				$current_buffer_size = min( ( $current_buffer_size + $incremental_step ), $max_buffer_size );
+			}
+
+			$results[] = $result;
+
+			$body = [];
+		} while ( ! empty( $documents ) );
+
+		/**
+		 * Perform actions after a batch of documents was processed.
+		 *
+		 * @hook ep_after_send_dynamic_bulk_requests
+		 * @since 4.0.0
+		 * @param {array} $results  Array of results sent.
+		 * @param {int}   $requests Number of all requests sent.
+		 */
+		do_action( 'ep_after_send_dynamic_bulk_requests', $results, $requests );
+
+		return $results;
+	}
+
+	/**
+	 * Query Elasticsearch for documents
+	 *
+	 * @param  array  $formatted_args Formatted es query arguments.
+	 * @param  array  $query_args WP_Query args.
+	 * @param  string $index Index(es) to query. Comma separate for multiple. Defaults to current.
+	 * @param  mixed  $query_object Could be WP_Query, WP_User_Query, etc.
+	 * @since  3.0
+	 * @return array
+	 */
+	public function query_es( $formatted_args, $query_args, $index = null, $query_object = null ) {
+		if ( null === $index ) {
+			$index = $this->get_index_name();
+		}
+
+		return Elasticsearch::factory()->query( $index, $this->slug, $formatted_args, $query_args, $query_object );
+	}
+
+	/**
+	 * Check to see if we should allow elasticpress to override this query
+	 *
+	 * @param \WP_Query|\WP_User_Query|\WP_Term_Query $query WP_Query or WP_User_Query or WP_Term_Query instance
+	 * @return bool
+	 * @since 3.0
+	 */
+	public function elasticpress_enabled( $query ) {
+		$enabled = false;
+
+		if ( ! empty( $query->query_vars['ep_integrate'] ) ) {
+			$enabled = true;
+		}
+
+		/**
+		 * Determine if ElasticPress should integrate with a query
+		 *
+		 * @hook ep_elasticpress_enabled
+		 * @param  {bool} $enabled Whether to integrate with Elasticsearch or not
+		 * @param {WP_Query} $query WP_Query to evaluate
+		 * @return {bool}  Enabled value
+		 */
+		$enabled = apply_filters( 'ep_elasticpress_enabled', $enabled, $query );
+
+		if ( isset( $query->query_vars['ep_integrate'] ) &amp;&amp; ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			$enabled = false;
+		}
+
+		return $enabled;
+	}
+
+	/**
+	 * Prepare meta type values to send to ES
+	 *
+	 * @param array $meta Array of meta.
+	 * @since  3.0
+	 * @return array
+	 */
+	public function prepare_meta_types( $meta ) {
+
+		$prepared_meta = [];
+
+		foreach ( $meta as $meta_key => $meta_values ) {
+			if ( ! is_array( $meta_values ) ) {
+				$meta_values = array( $meta_values );
+			}
+
+			$prepared_meta[ $meta_key ] = array_map( array( $this, 'prepare_meta_value_types' ), $meta_values );
+		}
+
+		return $prepared_meta;
+
+	}
+
+	/**
+	 * Prepare meta types for meta value
+	 *
+	 * @param mixed $meta_value Meta value to prepare.
+	 * @since  3.0
+	 * @return array
+	 */
+	public function prepare_meta_value_types( $meta_value ) {
+
+		$max_java_int_value = PHP_INT_MAX;
+
+		$meta_types = [];
+
+		if ( is_array( $meta_value ) || is_object( $meta_value ) ) {
+			$meta_value = serialize( $meta_value ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+		}
+
+		$meta_types['value'] = $meta_value;
+		$meta_types['raw']   = $meta_value;
+
+		if ( is_numeric( $meta_value ) ) {
+			$long = intval( $meta_value );
+
+			if ( $max_java_int_value &lt; $long ) {
+				$long = $max_java_int_value;
+			}
+
+			$double = floatval( $meta_value );
+
+			if ( ! is_finite( $double ) ) {
+				$double = 0;
+			}
+
+			$meta_types['long']   = $long;
+			$meta_types['double'] = $double;
+		}
+
+		$meta_types['boolean'] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
+
+		$meta_types = $this->prepare_date_meta_values( $meta_types, $meta_value );
+
+		return $meta_types;
+	}
+
+	/**
+	 * Checks if a meta_value is a valid date and prepare extra meta-data.
+	 *
+	 * @param array  $meta_types Array of currently prepared data
+	 * @param string $meta_value Meta value to prepare.
+	 *
+	 * @return array
+	 */
+	public function prepare_date_meta_values( $meta_types, $meta_value ) {
+
+		if ( empty( $meta_value ) || ! is_string( $meta_value ) ) {
+			return $meta_types;
+		}
+
+		$meta_types['date']     = '1970-01-01';
+		$meta_types['datetime'] = '1970-01-01 00:00:01';
+		$meta_types['time']     = '00:00:01';
+
+		// is this is a recognizable date format?
+		$new_date = date_create( $meta_value, \wp_timezone() );
+		if ( $new_date ) {
+			$timestamp = $new_date->getTimestamp();
+
+			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
+			// issues when integrating into stricter systems. This is by design:
+			// https://bugs.php.net/bug.php?id=60288
+			if ( false !== $timestamp &amp;&amp; '0000' !== $new_date->format( 'Y' ) ) {
+				$meta_types['date']     = $new_date->format( 'Y-m-d' );
+				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
+				$meta_types['time']     = $new_date->format( 'H:i:s' );
+			}
+		}
+
+		return $meta_types;
+	}
+
+	/**
+	 * Build Elasticsearch filter query for WP meta_query
+	 *
+	 * @since 2.2
+	 * @param array $meta_queries Array of queries
+	 * @return array
+	 */
+	public function build_meta_query( $meta_queries ) {
+		$meta_filter = [];
+
+		$outer_relation = 'must';
+		if ( ! empty( $meta_queries['relation'] ) &amp;&amp; 'or' === strtolower( $meta_queries['relation'] ) ) {
+			$outer_relation = 'should';
+		}
+
+		$meta_query_type_mapping = [
+			'numeric'  => 'long',
+			'binary'   => 'raw',
+			'char'     => 'raw',
+			'date'     => 'date',
+			'datetime' => 'datetime',
+			'decimal'  => 'double',
+			'signed'   => 'long',
+			'time'     => 'time',
+			'unsigned' => 'long',
+		];
+
+		foreach ( $meta_queries as $single_meta_query ) {
+
+			/**
+			 * There is a strange case where meta_query looks like this:
+			 * array(
+			 *  "something" => array(
+			 *   array(
+			 *      'key' => ...
+			 *      ...
+			 *   )
+			 *  )
+			 * )
+			 *
+			 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
+			 *
+			 * @since  2.1
+			 */
+			if ( is_array( $single_meta_query ) &amp;&amp; empty( $single_meta_query['key'] ) ) {
+				reset( $single_meta_query );
+				$first_key = key( $single_meta_query );
+
+				if ( is_array( $single_meta_query[ $first_key ] ) ) {
+					$single_meta_query = $single_meta_query[ $first_key ];
+				}
+			}
+
+			if ( ! empty( $single_meta_query['key'] ) ) {
+
+				$terms_obj = false;
+
+				$compare = '=';
+				if ( ! empty( $single_meta_query['compare'] ) ) {
+					$compare = strtolower( $single_meta_query['compare'] );
+				}
+
+				$type = null;
+				if ( ! empty( $single_meta_query['type'] ) ) {
+					$type = strtolower( $single_meta_query['type'] );
+				}
+
+				// Comparisons need to look at different paths
+				if ( in_array( $compare, array( 'exists', 'not exists' ), true ) ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'];
+				} elseif ( in_array( $compare, array( '=', '!=' ), true ) &amp;&amp; ! $type ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+				} elseif ( in_array( $compare, array( 'like', 'not like' ), true ) ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.value';
+				} elseif ( $type &amp;&amp; isset( $meta_query_type_mapping[ $type ] ) ) {
+					// Map specific meta field types to different Elasticsearch core types
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.' . $meta_query_type_mapping[ $type ];
+				} elseif ( in_array( $compare, array( '>=', '&lt;=', '>', '&lt;', 'between', 'not between' ), true ) ) {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.double';
+				} else {
+					$meta_key_path = 'meta.' . $single_meta_query['key'] . '.raw';
+				}
+
+				switch ( $compare ) {
+					case 'not in':
+					case '!=':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'terms' => array(
+												$meta_key_path => (array) $single_meta_query['value'],
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case 'exists':
+						$terms_obj = array(
+							'exists' => array(
+								'field' => $meta_key_path,
+							),
+						);
+
+						break;
+					case 'not exists':
+						$terms_obj = array(
+							'bool' => array(
+								'must_not' => array(
+									array(
+										'exists' => array(
+											'field' => $meta_key_path,
+										),
+									),
+								),
+							),
+						);
+
+						break;
+					case '>=':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'gte' => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case 'between':
+						if ( isset( $single_meta_query['value'] ) &amp;&amp; is_array( $single_meta_query['value'] ) &amp;&amp; 2 === count( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'gte' => $single_meta_query['value'][0],
+												),
+											),
+										),
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'lte' => $single_meta_query['value'][1],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case 'not between':
+						if ( isset( $single_meta_query['value'] ) &amp;&amp; is_array( $single_meta_query['value'] ) &amp;&amp; 2 === count( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'should' => array(
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'lte' => $single_meta_query['value'][0],
+												),
+											),
+										),
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'gte' => $single_meta_query['value'][1],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case '&lt;=':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'lte' => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case '>':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'gt' => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case '&lt;':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must' => array(
+										array(
+											'range' => array(
+												$meta_key_path => array(
+													'lt' => $single_meta_query['value'],
+												),
+											),
+										),
+									),
+								),
+							);
+						}
+
+						break;
+					case 'like':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'match_phrase' => array(
+									$meta_key_path => $single_meta_query['value'],
+								),
+							);
+						}
+						break;
+					case 'not like':
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'bool' => array(
+									'must_not' => array(
+										array(
+											'match_phrase' => array(
+												$meta_key_path => $single_meta_query['value'],
+											),
+										),
+									),
+								),
+							);
+						}
+						break;
+					case '=':
+					default:
+						if ( isset( $single_meta_query['value'] ) ) {
+							$terms_obj = array(
+								'terms' => array(
+									$meta_key_path => (array) $single_meta_query['value'],
+								),
+							);
+						}
+
+						break;
+				}
+
+				// Add the meta query filter
+				if ( false !== $terms_obj ) {
+					$meta_filter[] = $terms_obj;
+				}
+			} elseif ( is_array( $single_meta_query ) &amp;&amp; isset( $single_meta_query[0] ) &amp;&amp; is_array( $single_meta_query[0] ) ) {
+				/**
+				 * Handle multidimensional array. Something like:
+				 *
+				 * 'meta_query' => array(
+				 *      'relation' => 'AND',
+				 *      array(
+				 *          'key' => 'meta_key_1',
+				 *          'value' => '1',
+				 *      ),
+				 *      array(
+				 *          'relation' => 'OR',
+				 *          array(
+				 *              'key' => 'meta_key_2',
+				 *              'value' => '2',
+				 *          ),
+				 *          array(
+				 *              'key' => 'meta_key_3',
+				 *              'value' => '4',
+				 *          ),
+				 *      ),
+				 *  ),
+				 */
+				$inner_relation = 'must';
+				if ( ! empty( $single_meta_query['relation'] ) &amp;&amp; 'or' === strtolower( $single_meta_query['relation'] ) ) {
+					$inner_relation = 'should';
+				}
+
+				$meta_filter[] = array(
+					'bool' => array(
+						$inner_relation => $this->build_meta_query( $single_meta_query ),
+					),
+				);
+			}
+		}
+
+		if ( ! empty( $meta_filter ) ) {
+			return [
+				'bool' => [
+					$outer_relation => $meta_filter,
+				],
+			];
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Get the indexable mapping.
+	 *
+	 * @since  3.6.0
+	 * @return boolean|array
+	 */
+	public function get_mapping() {
+		return Elasticsearch::factory()->get_mapping( $this->get_index_name() );
+	}
+
+	/**
+	 * Compare the mapping generated by the plugin and the mapping stored in Elasticsearch.
+	 *
+	 * @todo properly implement the check.
+	 *
+	 * @since  3.6.0
+	 * @return bool|WP_Error
+	 */
+	public function compare_mappings() {
+		if ( ! method_exists( $this, 'generate_mapping' ) ) {
+			return new \WP_Error( 'ep_generate_mapping_not_implemented' );
+		}
+
+		$new_mapping    = $this->generate_mapping();
+		$stored_mapping = $this->get_mapping();
+
+		return ( (string) $new_mapping['settings']['index.number_of_shards'] === $stored_mapping[ $this->get_index_name() ]['settings']['index']['number_of_shards'] );
+	}
+
+	/**
+	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * the index was deleted, a new mapping was sent and content is being reindexed.
+	 *
+	 * @param int|null $blog_id Blog ID
+	 * @return boolean
+	 */
+	public function is_full_reindexing( $blog_id = null ) {
+		if ( $this->global ) {
+			$blog_id = null;
+		} elseif ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		return \ElasticPress\IndexHelper::factory()->is_full_reindexing( $this->slug, $blog_id );
+	}
+
+	/**
+	 * Send mapping to Elasticsearch
+	 *
+	 * @return boolean
+	 */
+	public function put_mapping() {
+		$mapping = $this->generate_mapping();
+
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+	}
+
+	/**
+	 * Must implement a method that given an object ID, returns a formatted Elasticsearch
+	 * document
+	 *
+	 * @param  int $object_id Object to prepare.
+	 * @return array
+	 */
+	abstract public function prepare_document( $object_id );
+
+	/**
+	 * Must implement a method that queries MySQL for objects and returns them
+	 * in a standardized format. This is necessary so we can genericize the index
+	 * process across indexables.
+	 *
+	 * @param  array $args Array to query DB against.
+	 * @return boolean
+	 */
+	abstract public function query_db( $args );
+
+	/**
+	 * Shim function for backwards-compatibility on custom Indexables.
+	 *
+	 * @since 4.1.0
+	 * @return array
+	 */
+	public function generate_mapping() {
+		_doing_it_wrong( __METHOD__, 'The Indexable class should not call generate_mapping() directly.', 'ElasticPress 4.0' );
+
+		return [];
+	}
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+
+    <footer>
+		<a href="https://elasticpress.io/">ElasticPress.io</a> &bull;
+		<a href="https://github.com/10up/elasticpress/">ElasticPress on GitHub</a>
+	</footer>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_index_prefix.html">ep_admin_index_prefix</a></li><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_formatted_args_query.html">ep_comment_formatted_args_query</a></li><li><a href="ep_comment_fuzziness_arg.html">ep_comment_fuzziness_arg</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_match_boost.html">ep_comment_match_boost</a></li><li><a href="ep_comment_match_phrase_boost.html">ep_comment_match_phrase_boost</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_cross_fields_boost.html">ep_match_cross_fields_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_formatted_args_query.html">ep_term_formatted_args_query</a></li><li><a href="ep_term_fuzziness_arg.html">ep_term_fuzziness_arg</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_match_boost.html">ep_term_match_boost</a></li><li><a href="ep_term_match_phrase_boost.html">ep_term_match_phrase_boost</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_fuzziness_arg.html">ep_user_fuzziness_arg</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_match_boost.html">ep_user_match_boost</a></li><li><a href="ep_user_match_phrase_boost.html">ep_user_match_phrase_boost</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
