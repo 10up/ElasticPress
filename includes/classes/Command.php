@@ -364,11 +364,14 @@ class Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--index-name]
+	 * [--index-name=<index_name>]
 	 * : The name of the index for which to return the mapping. If not passed, all mappings will be returned
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-mapping
-	 * @since      3.6.4
+	 * @since      3.6.4, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
@@ -379,16 +382,17 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$body = wp_remote_retrieve_body( $response );
-
-		WP_CLI::line( $body );
+		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-cluster-indexes
-	 * @since      3.2
+	 * @since      3.2, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
@@ -397,23 +401,24 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$body = wp_remote_retrieve_body( $response );
-
-		WP_CLI::line( $body );
+		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
 	 * Return all index names as a JSON object.
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-indexes
-	 * @since      3.2
+	 * @since      3.2, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indexes( $args, $assoc_args ) {
 		$index_names = $this->get_index_names();
 
-		WP_CLI::line( wp_json_encode( $index_names ) );
+		$this->pretty_json_encode( $index_names, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -423,7 +428,7 @@ class Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	protected function get_index_names() {
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
 
 		$all_indexables = Indexables::factory()->get_all();
 
@@ -985,9 +990,15 @@ class Command extends WP_CLI_Command {
 	 * items_indexed | integer | Total number of items indexed
 	 * total_items | integer | Total number of items indexed or -1 if not yet determined
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-indexing-status
+	 * @since 3.5.1, `--pretty` introduced in 4.1.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_indexing_status() {
+	public function get_indexing_status( $args, $assoc_args ) {
 		$indexing_status = Utils\get_indexing_status();
 
 		if ( empty( $indexing_status ) ) {
@@ -999,7 +1010,7 @@ class Command extends WP_CLI_Command {
 			];
 		}
 
-		WP_CLI::line( wp_json_encode( $indexing_status ) );
+		$this->pretty_json_encode( $indexing_status, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1010,8 +1021,11 @@ class Command extends WP_CLI_Command {
 	 * [--clear]
 	 * : Clear the `ep_last_cli_index` option.
 	 *
-	 * @subcommand get-last-cli-index
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
+	 * @subcommand get-last-cli-index
+	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
@@ -1023,8 +1037,7 @@ class Command extends WP_CLI_Command {
 			delete_site_option( 'ep_last_cli_index' );
 		}
 
-		WP_CLI::line( wp_json_encode( $last_sync ) );
-
+		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
 	}
 
 
@@ -1361,9 +1374,12 @@ class Command extends WP_CLI_Command {
 	 * [--debug-http-request]
 	 * : Enable debugging
 	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand request
 	 *
-	 * @since 3.6.6
+	 * @since 3.6.6, `--pretty` introduced in 4.1.0
 	 *
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -1431,13 +1447,41 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( $response->get_error_message() );
 		}
 
+		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
+	 * Print an HTTP response.
+	 *
+	 * @since 4.1.0
+	 * @param array   $response HTTP Response.
+	 * @param boolean $pretty   Whether the JSON response should be formatted or not.
+	 */
+	protected function print_json_response( $response, $pretty ) {
 		$response_body = wp_remote_retrieve_body( $response );
-		$content_type  = wp_remote_retrieve_header( $response, 'Content-Type' );
-		if ( preg_match( '/json/', $content_type ) ) {
-			// Re-encode the JSON to add space formatting
-			$response_body = wp_json_encode( json_decode( $response_body ), JSON_PRETTY_PRINT );
+
+		$content_type = wp_remote_retrieve_header( $response, 'Content-Type' );
+
+		if ( ! $pretty || ! preg_match( '/json/', $content_type ) ) {
+			WP_CLI::line( $response_body );
+			return;
 		}
 
-		WP_CLI::log( $response_body );
+		// Re-encode the JSON to add space formatting
+		$response_body_obj = json_decode( $response_body );
+
+		$this->pretty_json_encode( $response_body_obj, JSON_PRETTY_PRINT );
+	}
+
+	/**
+	 * Output a JSON object. Conditionally format it before doing so.
+	 *
+	 * @since 4.1.0
+	 * @param array   $json_obj          The JSON object or array.
+	 * @param boolean $pretty_print_flag Whether it should or not be formatted.
+	 */
+	protected function pretty_json_encode( $json_obj, $pretty_print_flag ) {
+		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
+		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
 	}
 }

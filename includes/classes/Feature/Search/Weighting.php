@@ -546,15 +546,17 @@ class Weighting {
 			$weights = $weight_config[ $post_type ];
 		}
 
-		$weights = array_diff_key( $weights, $ignore_keys );
+		$fields = array_diff_key( $weights, $ignore_keys );
 
-		$found_enabled = array_search( true, array_column( $weights, 'enabled' ), true );
-
-		if ( false !== $found_enabled ) {
-			return true;
+		$found_enabled = false;
+		foreach ( $fields as $field ) {
+			if ( filter_var( $field['enabled'], FILTER_VALIDATE_BOOLEAN ) ) {
+				$found_enabled = true;
+				break;
+			}
 		}
 
-		return false;
+		return $found_enabled;
 	}
 
 	/**

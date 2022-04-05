@@ -129,7 +129,25 @@ class User extends Indexable {
 		 * Support `role` query arg
 		 */
 		if ( ! empty( $blog_id ) ) {
-			if ( ! empty( $query_vars['role'] ) ) {
+			// If a blog id is set, we will apply at least one filter for roles.
+			$use_filters = true;
+
+			// If there are no specific roles named, make sure the user is a member of the site.
+			if ( empty( $query_vars['role'] ) && empty( $query_vars['role__in'] ) && empty( $query_vars['role__not_in'] ) ) {
+				$filter['bool']['must'][]     = array(
+					'exists' => array(
+						'field' => 'capabilities.' . $blog_id . '.roles',
+					),
+				);
+				/**
+				 * EP versions prior to 4.1.0 set non-existent roles as `0`.
+				 */
+				$filter['bool']['must_not'][] = array(
+					'term' => array(
+						'capabilities.' . $blog_id . '.roles' => 0,
+					),
+				);
+			} elseif ( ! empty( $query_vars['role'] ) ) {
 				$roles = (array) $query_vars['role'];
 
 				foreach ( $roles as $role ) {
@@ -141,8 +159,6 @@ class User extends Indexable {
 						),
 					);
 				}
-
-				$use_filters = true;
 			} else {
 				if ( ! empty( $query_vars['role__in'] ) ) {
 					$roles_in = (array) $query_vars['role__in'];
@@ -154,8 +170,6 @@ class User extends Indexable {
 							'capabilities.' . $blog_id . '.roles' => $roles_in,
 						),
 					);
-
-					$use_filters = true;
 				}
 
 				if ( ! empty( $query_vars['role__not_in'] ) ) {
@@ -170,8 +184,6 @@ class User extends Indexable {
 							),
 						);
 					}
-
-					$use_filters = true;
 				}
 			}
 		}
@@ -795,18 +807,6 @@ class User extends Indexable {
 	}
 
 	/**
-	 * Put mapping for users
-	 *
-	 * @since  3.0
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->generate_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
-
-	/**
 	 * Prepare a user document for indexing
 	 *
 	 * @param  int $user_id User id
@@ -876,7 +876,7 @@ class User extends Indexable {
 
 			if ( ! empty( $roles ) ) {
 				$prepared_roles[ (int) $site['blog_id'] ] = [
-					'roles' => array_keys( $roles ),
+					'roles' => array_keys( (array) $roles ),
 				];
 			}
 		}

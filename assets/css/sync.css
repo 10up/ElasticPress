@@ -167,6 +167,11 @@
 		margin-bottom: 0.5em;
 	}
 
+	& .ep-last-sync__icon-status {
+		margin-right: 5px;
+		vertical-align: text-bottom;
+	}
+
 	& .ep-last-sync__date {
 		background-color: var(--ep-admin-color-grey-01);
 		padding: 6px;
