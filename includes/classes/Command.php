@@ -1451,6 +1451,32 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Reset all ElasticPress settings stored in WP options and transients.
+	 *
+	 * This command will not delete any index or content stored in Elasticsearch but will force users to go through the installation process again.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--yes]
+	 * : Skip confirmation
+	 *
+	 * @subcommand settings-reset
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function settings_reset( $args, $assoc_args ) {
+		WP_CLI::confirm( esc_html__( 'Are you sure you want to delete all ElasticPress settings?', 'elasticpress' ), $assoc_args );
+
+		define( 'EP_MANUAL_SETTINGS_RESET', true );
+		include EP_PATH . '/uninstall.php';
+
+		WP_CLI::line( esc_html__( 'Settings deleted.', 'elasticpress' ) );
+	}
+
+	/**
 	 * Print an HTTP response.
 	 *
 	 * @since 4.1.0
