@@ -15,7 +15,7 @@ describe('Facets Feature', () => {
 		});
 		cy.wait('@legacyWidgets');
 		// eslint-disable-next-line cypress/no-unnecessary-waiting -- JS processing
-		cy.wait(100);
+		cy.wait(1000);
 
 		cy.get('.is-opened .widget-ep-facet')
 			.last()
@@ -43,6 +43,7 @@ describe('Facets Feature', () => {
 		cy.maybeEnableFeature('facets');
 
 		cy.wpCli('widget reset --all');
+		cy.wpCli('elasticpress index --setup --yes');
 
 		// Initial widget that will be used for all tests.
 		createWidget('Facet (categories)', 'category');
