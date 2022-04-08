@@ -80,8 +80,8 @@ h2.ep-list-features {
 .ep-header-menu .icons {
 	display: inline-block;
 	float: right;
-	height: 39px;
-	line-height: 39px;
+	height: 30px;
+	line-height: 34px;
 	padding-right: 3px;
 }
 
@@ -132,6 +132,10 @@ h2.ep-list-features {
 .ep-header-menu .icons .dashicons-update,
 .ep-header-menu .icons .dashicons-admin-generic {
 	display: inline;
+}
+
+.ep-header-menu .icons .dashicons-update {
+	top: 2px;
 }
 
 /**

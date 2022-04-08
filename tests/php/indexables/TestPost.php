@@ -5939,6 +5939,38 @@ class TestPost extends BaseTestCase {
 		);
 
 		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
+
+		// Multiple aggs.
+		$args = $post->format_args(
+			[
+				// Triggers $use_filter to be true.
+				'post_status' => 'publish',
+
+				'aggs' => [
+					[
+						'name' => 'taxonomies',
+						'use-filter' => true,
+						'aggs' => [
+							'terms' => [
+								'field' => 'terms.category.slug',
+							],
+						],
+					],
+					[
+						'aggs' => [
+							'terms' => [
+								'field' => 'terms.post_type',
+							],
+						],
+					]
+				],
+			],
+			new \WP_Query()
+		);
+
+		$this->assertSame( 'publish', $args['aggs']['taxonomies']['filter']['bool']['must'][1]['term']['post_status'] );
+		$this->assertSame( 'terms.category.slug', $args['aggs']['taxonomies']['aggs']['terms']['field'] );
+		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
 	}
 
 	/**

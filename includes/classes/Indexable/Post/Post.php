@@ -1809,24 +1809,19 @@ class Post extends Indexable {
 		/**
 		 * Aggregations
 		 */
-		if ( isset( $args['aggs'] ) && ! empty( $args['aggs']['aggs'] ) ) {
-			$agg_obj = $args['aggs'];
+		if ( ! empty( $args['aggs'] ) && is_array( $args['aggs'] ) ) {
+			// Check if the array indexes are all numeric.
+			$agg_keys          = array_keys( $args['aggs'] );
+			$agg_num_keys      = array_filter( $agg_keys, 'is_int' );
+			$has_only_num_keys = count( $agg_num_keys ) === count( $args['aggs'] );
 
-			// Add a name to the aggregation if it was passed through
-			if ( ! empty( $agg_obj['name'] ) ) {
-				$agg_name = $agg_obj['name'];
+			if ( $has_only_num_keys ) {
+				foreach ( $args['aggs'] as $agg ) {
+					$formatted_args = $this->apply_aggregations( $formatted_args, $agg, $use_filters, $filter );
+				}
 			} else {
-				$agg_name = 'aggregation_name';
-			}
-
-			// Add/use the filter if warranted
-			if ( isset( $agg_obj['use-filter'] ) && false !== $agg_obj['use-filter'] && $use_filters ) {
-
-				// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
-				$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
-				$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg_obj['aggs'];
-			} else {
-				$formatted_args['aggs'][ $agg_name ] = $agg_obj['aggs'];
+				// Single aggregation.
+				$formatted_args = $this->apply_aggregations( $formatted_args, $args['aggs'], $use_filters, $filter );
 			}
 		}
 
@@ -2232,5 +2227,36 @@ class Post extends Indexable {
 		}
 
 		return 'unknown';
+	}
+
+	/**
+	 * Given ES args, add aggregations to it.
+	 *
+	 * @since 4.1.0
+	 * @param array   $formatted_args Formatted Elasticsearch query.
+	 * @param array   $agg            Aggregation data.
+	 * @param boolean $use_filters    Whether filters should be used or not.
+	 * @param array   $filter         Filters defined so far.
+	 * @return array Formatted Elasticsearch query with the aggregation added.
+	 */
+	protected function apply_aggregations( $formatted_args, $agg, $use_filters, $filter ) {
+		if ( empty( $agg['aggs'] ) ) {
+			return $formatted_args;
+		}
+
+		// Add a name to the aggregation if it was passed through
+		$agg_name = ( ! empty( $agg['name'] ) ) ? $agg['name'] : 'aggregation_name';
+
+		// Add/use the filter if warranted
+		if ( isset( $agg['use-filter'] ) && false !== $agg['use-filter'] && $use_filters ) {
+
+			// If a filter is being used, use it on the aggregation as well to receive relevant information to the query
+			$formatted_args['aggs'][ $agg_name ]['filter'] = $filter;
+			$formatted_args['aggs'][ $agg_name ]['aggs']   = $agg['aggs'];
+		} else {
+			$formatted_args['aggs'][ $agg_name ] = $agg['aggs'];
+		}
+
+		return $formatted_args;
 	}
 }

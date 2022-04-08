@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.1.0] - 2022-04-05
+
+### Added
+- Utility command to create zip packages: `npm run build:zip`. Props [@felipeelia](https://github.com/felipeelia) via [#2669](https://github.com/10up/ElasticPress/pull/2669).
+- E2e tests for the Synonyms feature. Props [@felipeelia](https://github.com/felipeelia) via [#2655](https://github.com/10up/ElasticPress/pull/2655).
+- `generate_mapping()` to post and comment indexables. Props [@rebeccahum](https://github.com/rebeccahum) via [#2637](https://github.com/10up/ElasticPress/pull/2637).
+- `get_related_query()` to the `RelatedPosts` class. Props [@ayebare](https://github.com/ayebare) via [#1653](https://github.com/10up/ElasticPress/pull/1653).
+- New `--pretty` flag to the WP-CLI commands that output a JSON. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2653](https://github.com/10up/ElasticPress/pull/2653).
+- Support for an array of aggregations in the `aggs` parameter of `WP_Query`. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2682](https://github.com/10up/ElasticPress/pull/2682).
+
+### Changed
+- Refactored remaining admin scripts to remove jQuery as a dependency. Props [@JakePT](https://github.com/JakePT) via [#2664](https://github.com/10up/ElasticPress/pull/2664).
+- Generate Instant Results' search template as an anonymous user by default. Props [@JakePT](https://github.com/JakePT) via [#2672](https://github.com/10up/ElasticPress/pull/2672).
+
+### Fixed
+- PHP warning Trying to access array offset on value of type int in `get_index_names()`. Props [@sun](https://github.com/sun) via [#2580](https://github.com/10up/ElasticPress/pull/2580).
+- Searches by WooCommerce Order ID. Props [@felipeelia](https://github.com/felipeelia) via [#2666](https://github.com/10up/ElasticPress/pull/2666).
+- Display and error message if syncing failed due to invalid JSON response from the server. Props [@dsawardekar](https://github.com/dsawardekar) via [#2677](https://github.com/10up/ElasticPress/pull/2677).
+- Better compatibility with PHP 8.1 by replacing the deprecated `FILTER_SANITIZE_STRING`. Props [@sjinks](https://github.com/sjinks) via [#2529](https://github.com/10up/ElasticPress/pull/2529).
+- `get_term_tree()` no longer infinite loops when parent ID is non-existent. Props [@rebeccahum](https://github.com/rebeccahum) via [#2687](https://github.com/10up/ElasticPress/pull/2687).
+- User search results include users who do not exist in the current site. Props [@tfrommen](https://github.com/tfrommen) and [@felipeelia](https://github.com/felipeelia) via [#2670](https://github.com/10up/ElasticPress/pull/2670).
+- Pagination while syncing Indexables other than Posts. Props [@felipeelia](https://github.com/felipeelia) and [@derringer](https://github.com/derringer) via [#2665](https://github.com/10up/ElasticPress/pull/2665).
+- Handle the output of an array of messages in sync processes. Props [@felipeelia](https://github.com/felipeelia) via [#2688](https://github.com/10up/ElasticPress/pull/2688).
+- Truthy values for the `'enabled'` field's attribute while using the `ep_weighting_configuration_for_search` filter. Props [@felipeelia](https://github.com/felipeelia) and [@moritzlang](https://github.com/moritzlang) via [#2673](https://github.com/10up/ElasticPress/pull/2673).
+- "Learn More" link on the Sync Page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle) via [#2699](https://github.com/10up/ElasticPress/pull/2699).
+- Icons alignment in the WP Dashboard. Props [@jakemgold](https://github.com/jakemgold), [@felipeelia](https://github.com/felipeelia), [@brandwaffle](https://github.com/brandwaffle), and [@tlovett1](https://github.com/tlovett1) via [#2701](https://github.com/10up/ElasticPress/pull/2701).
+
+## Security
+- Bumped `node-forge` from 1.2.1 to 1.3.0. Props [@dependabot](https://github.com/dependabot) via [#2678](https://github.com/10up/ElasticPress/pull/2678).
+- Bumped` @wordpress/env` from 4.2.2 to 4.4.0, and `minimist` from 1.2.5 to 1.2.6. Props [@felipeelia](https://github.com/felipeelia) via [#2680](https://github.com/10up/ElasticPress/pull/2680).
+
 ## [4.0.1] - 2022-03-16
 **This is a security release affecting users running ElasticPress 4.0 with both the WooCommerce and Protected Content Features activated. Please update to the latest version of ElasticPress if the WooCommerce and Protected Content features are activated and you're using ElasticPress 4.0.**
 
@@ -1315,6 +1346,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/10up/ElasticPress/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/10up/ElasticPress/compare/3.6.6...4.0.0
 [3.6.6]: https://github.com/10up/ElasticPress/compare/3.6.5...3.6.6
