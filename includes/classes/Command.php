@@ -196,13 +196,13 @@ class Command extends WP_CLI_Command {
 	 * [--network-wide]
 	 * : Force mappings to be sent for every index in the network.
 	 *
-	 * [--indexables]
+	 * [--indexables=<indexables>]
 	 * : List of indexables
 	 *
-	 * [--ep-host]
+	 * [--ep-host=<host>]
 	 * : Custom Elasticsearch host
 	 *
-	 * [--ep-prefix]
+	 * [--ep-prefix=<prefix>]
 	 * : Custom ElasticPress prefix
 	 *
 	 * @subcommand put-mapping
@@ -460,7 +460,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--index-name]
+	 * [--index-name=<index_name>]
 	 * : The name of the index to be deleted. If not passed, all indexes will be deleted
 	 *
 	 * [--network-wide]
@@ -649,7 +649,7 @@ class Command extends WP_CLI_Command {
 	 * [--setup]
 	 * : Clear the index first and re-send the put mapping. Use `--yes` to skip the confirmation
 	 *
-	 * [--per-page]
+	 * [--per-page=<per_page_number>]
 	 * : Determine the amount of posts to be indexed per bulk index (or cycle)
 	 *
 	 * [--nobulk]
@@ -667,31 +667,31 @@ class Command extends WP_CLI_Command {
 	 * [--show-nobulk-errors]
 	 * : Display the error message returned from Elasticsearch when a post fails to index while not using the /_bulk endpoint
 	 *
-	 * [--offset]
+	 * [--offset=<offset_number>]
 	 * : Skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
 	 *
-	 * [--indexables]
+	 * [--indexables=<indexables>]
 	 * : Specify the Indexable(s) which will be indexed
 	 *
-	 * [--post-type]
+	 * [--post-type=<post_types>]
 	 * : Specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma
 	 *
-	 * [--include]
+	 * [--include=<IDs>]
 	 * : Choose which object IDs to include in the index
 	 *
-	 * [--post-ids]
+	 * [--post-ids=<IDs>]
 	 * : Choose which post_ids to include when indexing the Posts Indexable (deprecated)
 	 *
-	 * [--upper-limit-object-id]
+	 * [--upper-limit-object-id=<ID>]
 	 * : Upper limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 45
 	 *
-	 * [--lower-limit-object-id]
+	 * [--lower-limit-object-id=<ID>]
 	 * : Lower limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 30
 	 *
-	 * [--ep-host]
+	 * [--ep-host=<host>]
 	 * : Custom Elasticsearch host
 	 *
-	 * [--ep-prefix]
+	 * [--ep-prefix=<prefix>]
 	 * : Custom ElasticPress prefix
 	 *
 	 * [--yes]
