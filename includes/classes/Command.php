@@ -388,6 +388,8 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
+	 * ## OPTIONS
+	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
@@ -406,6 +408,8 @@ class Command extends WP_CLI_Command {
 
 	/**
 	 * Return all index names as a JSON object.
+	 *
+	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
@@ -989,6 +993,8 @@ class Command extends WP_CLI_Command {
 	 * method | string | 'cli', 'web' or 'none'
 	 * items_indexed | integer | Total number of items indexed
 	 * total_items | integer | Total number of items indexed or -1 if not yet determined
+	 *
+	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
