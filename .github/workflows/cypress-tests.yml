@@ -120,4 +120,4 @@ jobs:
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME} --network"
-        npm run env run tests-cli "wp elasticpress delete-index --network-wide --yes"
+        npm run env run tests-cli "wp elasticpress-tests delete-all-indices"
