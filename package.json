@@ -52,6 +52,7 @@
       "instant-results-admin-script.min": "./assets/js/instant-results/admin/index.js",
       "notice-script.min": "./assets/js/notice.js",
       "ordering-script.min": "./assets/js/ordering/index.js",
+      "facets-block-script.min": "./assets/js/blocks/facets/block.js",
       "related-posts-block-script.min": "./assets/js/blocks/related-posts/block.js",
       "settings-script.min": "./assets/js/settings.js",
       "sync-script.min": "./assets/js/sync.js",
@@ -67,6 +68,7 @@
       "highlighting-styles.min": "./assets/css/highlighting.css",
       "instant-results-styles.min": "./assets/css/instant-results.css",
       "ordering-styles.min": "./assets/css/ordering.css",
+      "facets-block-styles.min": "./assets/css/facets-block.css",
       "related-posts-block-styles.min": "./assets/css/related-posts-block.css",
       "sync-styles.min": "./assets/css/sync.css",
       "synonyms-styles.min": "./assets/css/synonyms.css"

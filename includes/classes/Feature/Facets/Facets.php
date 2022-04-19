@@ -24,6 +24,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Facets extends Feature {
 
 	/**
+	 * Block instance.
+	 *
+	 * @var Block
+	 */
+	public $block;
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -59,6 +66,9 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+
+		$this->block = new Block();
+		$this->block->setup();
 	}
 
 	/**
