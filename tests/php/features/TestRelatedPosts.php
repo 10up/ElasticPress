@@ -90,6 +90,12 @@ class TestRelatedPosts extends BaseTestCase {
 		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id );
 		$this->assertEquals( 2, count( $related ) );
 		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
+
+		// Make sure it will use the number of posts to be returned.
+		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, 1 );
+		$this->assertEquals( 1, count( $related ) );
+		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
+
 		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 	}
 
