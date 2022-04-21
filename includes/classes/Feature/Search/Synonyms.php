@@ -151,7 +151,7 @@ class Synonyms {
 	public function admin_menu() {
 		add_submenu_page(
 			'elasticpress',
-			esc_html__( 'ElasticPress Synonyms', 'elasticpress' ),
+			esc_html__( 'Search Synonyms', 'elasticpress' ), // VIP: Rename page title.
 			esc_html__( 'Synonyms', 'elasticpress' ),
 			'manage_options',
 			'elasticpress-synonyms',
@@ -606,10 +606,7 @@ class Synonyms {
 
 		$screen = get_current_screen();
 
-		// VIP: We disable the EP page menu, so the prefix will be different for the screen base
-		$base   = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'admin' : 'elasticpress' ) . '_page_elasticpress-synonyms';
-
-		return $base === $screen->base;
+		return ( 'enterprise-search_page_elasticpress-synonyms' === $screen->base ); // VIP: Since we renamed the menu to "Enterprise Search", it will have a different screen base slug.
 	}
 
 	/**

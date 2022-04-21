@@ -294,7 +294,7 @@ class SearchOrdering extends Feature {
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
-			'show_in_menu'         => $menu,
+			'show_in_menu'         => false, // VIP: Leave the "Custom Results" under the Search menu page.
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
 			'capability_type'      => 'post',

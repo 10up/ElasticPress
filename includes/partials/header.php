@@ -13,11 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'network/admin.php?page=' ) : admin_url( 'admin.php?page=' );
+$base_url = admin_url( 'admin.php?page=' ); // VIP: The network menu is disabled, go to the site menu.
 ?>
 
 <div class="ep-header-menu">
-	<a href="<?php echo esc_url( $base_url . 'elasticpress' ); ?>"><img width="150" src="<?php echo esc_url( plugins_url( '/images/logo.svg', dirname( __DIR__ ) ) ); ?>"></a>
+	<a href="<?php echo esc_url( $base_url . 'elasticpress' ); ?>"><img width="250" src="<?php echo esc_url( plugins_url( '/images/vip-logo.svg', dirname( __DIR__ ) ) ); ?>"></a> <!-- // VIP: Update header image -->
 
 	<div class="icons">
 		<span class="sync-status"></span>
@@ -29,7 +29,7 @@ $base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'networ
 				<a class="dashicons start-sync dashicons-update" title="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>"></a>
 			<?php endif; ?>
 		<?php endif; ?>
-		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic" title="<?php esc_attr_e( 'Settings', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Settings', 'elasticpress' ); ?>"></a>
+		<!-- // VIP: Remove Settings button. -->
 	</div>
 
 	<div class="progress-bar"></div>

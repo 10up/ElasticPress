@@ -312,7 +312,7 @@ class ProtectedContent extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( __( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.', 'elasticpress' ) ); // VIP: Remove EP.io reference since VIP is secure. ?></p>
 		<?php
 	}
 
@@ -351,9 +351,7 @@ class ProtectedContent extends Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
 
-		if ( ! Utils\is_epio() ) {
-			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
-		}
+		// VIP: Remove prompt for EP.io as secure instance.
 
 		return $status;
 	}
