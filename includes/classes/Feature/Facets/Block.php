@@ -7,6 +7,8 @@
 
 namespace ElasticPress\Feature\Facets;
 
+use ElasticPress\Features;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -28,6 +30,8 @@ class Block {
 	 * Register the block.
 	 */
 	public function register_block() {
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
 		wp_register_script(
 			'elasticpress-facets-block',
 			EP_URL . 'dist/js/facets-block-script.min.js',
@@ -55,13 +59,18 @@ class Block {
 			'elasticpress/facet',
 			[
 				'attributes'      => [
-					'number' => [
-						'type'    => 'number',
-						'default' => 5,
-					],
-					'align'  => [
+					'facet'   => [
 						'type' => 'string',
-						'enum' => [ 'left', 'center', 'right', 'wide', 'full' ],
+						'enum' => wp_list_pluck( $feature->get_facetable_taxonomies(), 'name' ),
+					],
+					'orderby' => [
+						'type'    => 'string',
+						'default' => 'count',
+						'enum'    => [ 'count', 'name' ],
+					],
+					'order'   => [
+						'type' => 'string',
+						'enum' => [ 'desc', 'asc' ],
 					],
 				],
 				'editor_script'   => 'elasticpress-facets-block',
@@ -74,8 +83,10 @@ class Block {
 
 	/**
 	 * Render the block.
+	 *
+	 * @param array $attributes Block attributes.
 	 */
-	public function render_block() {
+	public function render_block( $attributes ) {
 		$this->renderer->render( [], [] );
 	}
 }

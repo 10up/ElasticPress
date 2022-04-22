@@ -1,8 +1,8 @@
 const { __ } = wp.i18n;
 
-const { AlignmentToolbar, BlockControls, InspectorControls } = wp.editor;
+const { InspectorControls } = wp.editor;
 
-const { PanelBody, QueryControls } = wp.components;
+const { PanelBody, RadioControl, SelectControl } = wp.components;
 
 const { Fragment, Component } = wp.element;
 
@@ -28,30 +28,49 @@ class Edit extends Component {
 
 	render() {
 		const {
-			attributes: { alignment, number },
+			attributes: { facet, orderby, order },
 			setAttributes,
 			className,
 		} = this.props;
 
 		return (
 			<Fragment>
-				<BlockControls>
-					<AlignmentToolbar
-						value={alignment}
-						onChange={(newValue) => setAttributes({ alignment: newValue })}
-					/>
-				</BlockControls>
 				<InspectorControls>
-					<PanelBody title={__('Related Post Settings')}>
-						<QueryControls
-							numberOfItems={number}
-							onNumberOfItemsChange={(value) => setAttributes({ number: value })}
+					<PanelBody title={__('Facet Settings', 'elasticpress')}>
+						<SelectControl
+							label={__('Taxonomy', 'elasticpress')}
+							value={facet}
+							options={[
+								{ label: 'Big', value: '100%' },
+								{ label: 'Medium', value: '50%' },
+								{ label: 'Small', value: '25%' },
+							]}
+							onChange={(value) => setAttributes({ facet: value })}
+						/>
+						<RadioControl
+							label={__('Order By', 'elasticpress')}
+							help={__('The field used to order available options', 'elasticpress')}
+							selected={orderby}
+							options={[
+								{ label: __('Count', 'elasticpress'), value: 'count' },
+								{ label: __('Name', 'elasticpress'), value: 'name' },
+							]}
+							onChange={(value) => setAttributes({ orderby: value })}
+						/>
+						<RadioControl
+							label={__('Order', 'elasticpress')}
+							selected={order}
+							options={[
+								{ label: __('ASC', 'elasticpress'), value: 'asc' },
+								{ label: __('DESC', 'elasticpress'), value: 'desc' },
+							]}
+							onChange={(value) => setAttributes({ order: value })}
 						/>
 					</PanelBody>
 				</InspectorControls>
 
 				<div className={className}>
-					<p>test</p>
+					<p>Preview not available</p>
 				</div>
 			</Fragment>
 		);

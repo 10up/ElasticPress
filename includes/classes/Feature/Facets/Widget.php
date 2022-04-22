@@ -101,15 +101,7 @@ class Widget extends WP_Widget {
 		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
 		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
-		/**
-		 * Filter taxonomies made available for faceting
-		 *
-		 * @hook ep_facet_include_taxonomies
-		 * @param  {array} $taxonomies Taxonomies
-		 * @return  {array} New taxonomies
-		 */
-		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+		$taxonomies = $feature->get_facetable_taxonomies();
 
 		$orderby_options = [
 			'count' => __( 'Count', 'elasticpress' ),

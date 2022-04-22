@@ -536,4 +536,21 @@ class Facets extends Feature {
 		 */
 		return apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
 	}
+
+	/**
+	 * Get all taxonomies that could be selected for a facet.
+	 *
+	 * @return array
+	 */
+	public function get_facetable_taxonomies() {
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
+		return apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+	}
 }
