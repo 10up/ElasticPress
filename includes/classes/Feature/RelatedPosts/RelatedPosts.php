@@ -148,7 +148,7 @@ class RelatedPosts extends Feature {
 	 * @return array|bool
 	 */
 	public function find_related( $post_id, $return = 5 ) {
-		$query = $this->get_related_query( $post_id, $return = 5 );
+		$query = $this->get_related_query( $post_id, $return );
 
 		if ( ! $query->have_posts() ) {
 			return false;
