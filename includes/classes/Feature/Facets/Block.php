@@ -44,6 +44,12 @@ class Block {
 	 * @param array $attributes Block attributes.
 	 */
 	public function render_block( $attributes ) {
-		$this->renderer->render( [], [] );
+		ob_start();
+		?>
+		<div class="widget_ep-facet">
+			<?php $this->renderer->render( [], $attributes ); ?>
+		</div>
+		<?php
+		return ob_get_clean();
 	}
 }
