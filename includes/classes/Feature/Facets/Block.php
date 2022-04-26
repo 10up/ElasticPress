@@ -30,52 +30,9 @@ class Block {
 	 * Register the block.
 	 */
 	public function register_block() {
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
-		wp_register_script(
-			'elasticpress-facets-block',
-			EP_URL . 'dist/js/facets-block-script.min.js',
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/facets',
 			[
-				'wp-blocks',
-				'wp-element',
-				'wp-editor',
-				'wp-api-fetch',
-			],
-			EP_VERSION,
-			true
-		);
-
-		// The wp-edit-blocks style dependency is not needed on the front end of the site.
-		$style_dependencies = is_admin() ? [ 'wp-edit-blocks' ] : [];
-
-		wp_register_style(
-			'elasticpress-related-posts-block',
-			EP_URL . 'dist/css/facets-block-styles.min.css',
-			$style_dependencies,
-			EP_VERSION
-		);
-
-		register_block_type(
-			'elasticpress/facet',
-			[
-				'attributes'      => [
-					'facet'   => [
-						'type' => 'string',
-						'enum' => wp_list_pluck( $feature->get_facetable_taxonomies(), 'name' ),
-					],
-					'orderby' => [
-						'type'    => 'string',
-						'default' => 'count',
-						'enum'    => [ 'count', 'name' ],
-					],
-					'order'   => [
-						'type' => 'string',
-						'enum' => [ 'desc', 'asc' ],
-					],
-				],
-				'editor_script'   => 'elasticpress-facets-block',
-				'editor_style'    => 'elasticpress-facets-block',
-				'style'           => 'elasticpress-facets-block',
 				'render_callback' => [ $this, 'render_block' ],
 			]
 		);

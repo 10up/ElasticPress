@@ -66,6 +66,7 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 
 		$this->block = new Block();
 		$this->block->setup();
@@ -552,5 +553,22 @@ class Facets extends Feature {
 		 * @return  {array} New taxonomies
 		 */
 		return apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+	}
+
+	/**
+	 * Setup REST endpoints for the feature.
+	 *
+	 * @since 4.2.0
+	 */
+	public function setup_endpoint() {
+		register_rest_route(
+			'elasticpress/v1',
+			'facets/taxonomies',
+			[
+				'methods'             => 'GET',
+				'callback'            => [ $this, 'get_facetable_taxonomies' ],
+				'permission_callback' => '__return_true',
+			]
+		);
 	}
 }
