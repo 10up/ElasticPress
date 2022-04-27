@@ -785,24 +785,26 @@ class WooCommerce extends Feature {
 	 * @since  2.1
 	 */
 	public function setup() {
-		if ( function_exists( 'WC' ) ) {
-			add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
-			add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-			add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
-			add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
-			add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-			add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-			add_filter( 'ep_sync_taxonomies', [ $this, 'whitelist_taxonomies' ], 10, 2 );
-			add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
-			add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
-			add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
-			add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
-			add_action( 'parse_query', [ $this, 'search_order' ], 11 );
-			add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
-			add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
-			add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
-			add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
+		if ( ! function_exists( 'WC' ) ) {
+			return;
 		}
+		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
+		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
+		add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
+		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
+		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
+		add_filter( 'ep_sync_taxonomies', [ $this, 'whitelist_taxonomies' ], 10, 2 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
+		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
+		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
+		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
+		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
+		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 	}
 
 	/**
@@ -910,6 +912,26 @@ class WooCommerce extends Feature {
 		// phpcs:enable WordPress.Security.NonceVerification
 
 		return $args;
+	}
+
+	/**
+	 * Prevent order fields from being removed.
+	 *
+	 * When Protected Content is enabled, all posts with password have their content removed.
+	 * This can't happen for orders, as the order key is added in that field.
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2726
+	 *
+	 * @param bool  $skip      Whether the password protected content should have their content, and meta removed
+	 * @param array $post_args Post arguments
+	 * @return bool
+	 */
+	public function keep_order_fields( $skip, $post_args ) {
+		if ( 'shop_order' === $post_args['post_type'] ) {
+			return true;
+		}
+
+		return $skip;
 	}
 
 	/**
