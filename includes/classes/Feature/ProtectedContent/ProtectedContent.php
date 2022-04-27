@@ -247,11 +247,13 @@ class ProtectedContent extends Feature {
 		 * Filter to skip the password protected content clean up.
 		 *
 		 * @hook ep_pc_skip_post_content_cleanup
-		 * @since 4.0.0
-		 * @param  {bool} $skip Whether the password protected content should have their content, and meta removed.
+		 * @since 4.0.0, 4.2.0 added $post_args and $post_id
+		 * @param  {bool}  $skip      Whether the password protected content should have their content, and meta removed
+		 * @param  {array} $post_args Post arguments
+		 * @param  {int}   $post_id   Post ID
 		 * @return {bool}
 		 */
-		if ( apply_filters( 'ep_pc_skip_post_content_cleanup', false ) ) {
+		if ( apply_filters( 'ep_pc_skip_post_content_cleanup', false, $post_args, $post_id ) ) {
 			return $post_args;
 		}
 
