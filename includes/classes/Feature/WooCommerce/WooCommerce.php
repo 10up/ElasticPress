@@ -922,6 +922,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @see https://github.com/10up/ElasticPress/issues/2726
 	 *
+	 * @since 4.2.0
 	 * @param bool  $skip      Whether the password protected content should have their content, and meta removed
 	 * @param array $post_args Post arguments
 	 * @return bool
