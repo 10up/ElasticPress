@@ -212,8 +212,8 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'         => (string) $shop_order_id_1,
-			'post_type' => 'shop_order',
+			's'           => (string) $shop_order_id_1,
+			'post_type'   => 'shop_order',
 			'post_status' => 'any',
 		);
 
