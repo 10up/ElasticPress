@@ -39,7 +39,7 @@ $skip_install_url = add_query_arg(
 			<div class="ep-circle ep-circle--active ep-config-success">
 				<span class="dashicons dashicons-yes"></span>
 			</div>
-			<p><?php esc_html_e( 'That’s it! You’re ready to experience faster search and gain the ability to create powerful queries on your site!', 'elasticpres' ); ?></p>
+			<p><?php esc_html_e( 'That’s it! You’re ready to experience faster search and gain the ability to create powerful queries on your site!', 'elasticpress' ); ?></p>
 			<div class="setup-message">
 				<a class="setup-button" href="<?php echo esc_url( $dashboard_url ); ?>"><?php esc_html_e( 'Go to dashboard', 'elasticpress' ); ?></a>
 			</div>
