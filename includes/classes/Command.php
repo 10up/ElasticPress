@@ -1483,6 +1483,63 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Migrate content from an Elasticsearch server to another..
+	 *
+	 * ## OPTIONS
+	 *
+	 * --target=<target_host>
+	 * : The target host full URL
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function migrate( $args, $assoc_args ) {
+		$source_host = trailingslashit( Utils\get_host( true ) );
+		$target_host = esc_url_raw( trim( $assoc_args['target'] ) );
+
+		$set_target_as_host = function () use ( $target_host ) {
+			return $target_host;
+		};
+
+		WP_CLI::line( esc_html__( 'Switching context to target server.', 'elasticpress' ) );
+		add_filter( 'ep_host', $set_target_as_host );
+
+		// Check if server is available and then send the mapping.
+		$this->connect_check();
+		$this->put_mapping_helper( $args, [ 'network-wide' => true ] );
+
+		$index_names = $this->get_index_names();
+		foreach ( $index_names as $index ) {
+			WP_CLI::line(
+				sprintf(
+					/* translators: Index name */
+					esc_html__( 'Reindexing %s...', 'elasticpress' ),
+					esc_html( $index )
+				)
+			);
+			$request = Elasticsearch::factory()->reindex( $index, $source_host, $target_host );
+			if ( is_wp_error( $request ) ) {
+				WP_CLI::error(
+					sprintf(
+						/* translators: 1. Error message, 2. Error code */
+						esc_html__( '%1$s (Code %2$s)', 'elasticpress' ),
+						$request->get_error_message(),
+						$request->get_error_code()
+					)
+				);
+			}
+			// @todo Output details of successful reindexes.
+		}
+
+		update_site_option( 'ep_host', $target_host );
+		remove_filter( 'ep_host', $set_target_as_host );
+
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
 	 * Print an HTTP response.
 	 *
 	 * @since 4.1.0
