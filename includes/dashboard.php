@@ -193,10 +193,12 @@ function maybe_skip_install() {
 		return;
 	}
 
-	$features = \ElasticPress\Features::factory()->registered_features;
+	if ( ! empty( $_GET['ep-skip-features'] ) ) {
+		$features = \ElasticPress\Features::factory()->registered_features;
 
-	foreach ( $features as $slug => $feature ) {
-		\ElasticPress\Features::factory()->deactivate_feature( $slug );
+		foreach ( $features as $slug => $feature ) {
+			\ElasticPress\Features::factory()->deactivate_feature( $slug );
+		}
 	}
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -502,8 +504,9 @@ function action_admin_enqueue_dashboard_scripts() {
 		$data = array(
 			'skipUrl' => add_query_arg(
 				array(
-					'ep-skip-install' => 1,
-					'nonce'           => wp_create_nonce( 'ep-skip-install' ),
+					'ep-skip-install'  => 1,
+					'ep-skip-features' => 1,
+					'nonce'            => wp_create_nonce( 'ep-skip-install' ),
 				),
 				$skip_url,
 			),
