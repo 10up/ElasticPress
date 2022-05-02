@@ -595,15 +595,23 @@ class Facets extends Feature {
 
 		$taxonomies = [];
 		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
+			$terms_sample = get_terms(
+				[
+					'taxonomy' => $slug,
+					'number'   => 20,
+				]
+			);
+			if ( is_array( $terms_sample ) ) {
+				// This way we make sure it will be an array in the outputted JSON.
+				$terms_sample = array_values( $terms_sample );
+			} else {
+				$terms_sample = [];
+			}
+
 			$taxonomies[ $slug ] = [
 				'label'  => $taxonomy->label,
 				'plural' => $taxonomy->labels->name,
-				'terms'  => get_terms(
-					[
-						'taxonomy' => $slug,
-						'number'   => 20,
-					]
-				),
+				'terms'  => $terms_sample,
 			];
 		}
 
