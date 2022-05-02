@@ -566,9 +566,47 @@ class Facets extends Feature {
 			'facets/taxonomies',
 			[
 				'methods'             => 'GET',
-				'callback'            => [ $this, 'get_facetable_taxonomies' ],
-				'permission_callback' => '__return_true',
+				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
+				'callback'            => [ $this, 'get_rest_facetable_taxonomies' ],
 			]
 		);
+	}
+
+	/**
+	 * Check permissions of the /facets/taxonomies REST endpoint.
+	 *
+	 * @return WP_Error|true
+	 */
+	public function check_facets_taxonomies_rest_permission() {
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Return an array of taxonomies, their name, plural label, and a sample of terms.
+	 *
+	 * @return array
+	 */
+	public function get_rest_facetable_taxonomies() {
+		$taxonomies_raw = $this->get_facetable_taxonomies();
+
+		$taxonomies = [];
+		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
+			$taxonomies[ $slug ] = [
+				'label'  => $taxonomy->label,
+				'plural' => $taxonomy->labels->name,
+				'terms'  => get_terms(
+					[
+						'taxonomy' => $slug,
+						'number'   => 20,
+					]
+				),
+			];
+		}
+
+		return $taxonomies;
 	}
 }
