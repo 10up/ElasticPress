@@ -859,7 +859,7 @@ class SearchOrdering extends Feature {
 	 */
 	public function update_page_title( $admin_title, $title ) {
 		if ( $this->title === $title ) {
-			return __( 'ElasticPress Custom Search Results', 'elasticpress' );
+			return __( 'Custom Search Results', 'elasticpress' ); // VIP: Rename page title
 		}
 
 		return $admin_title;
