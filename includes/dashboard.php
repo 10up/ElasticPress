@@ -508,7 +508,7 @@ function action_admin_enqueue_dashboard_scripts() {
 					'ep-skip-features' => 1,
 					'nonce'            => wp_create_nonce( 'ep-skip-install' ),
 				),
-				$skip_url,
+				$skip_url
 			),
 			'syncUrl' => $sync_url,
 		);
