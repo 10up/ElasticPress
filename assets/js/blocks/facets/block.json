@@ -1,8 +1,7 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"title": "Facet",
-	"description": "ElasticPress Facet",
+	"title": "Facet (ElasticPress)",
 	"textdomain": "elasticpress",
 	"name": "elasticpress/facet",
 	"icon": "feedback",
@@ -26,5 +25,5 @@
 		"html": false
 	},
 	"editorScript": "file:/../../../../dist/js/facets-block-script.min.js",
-	"editorStyle": "file:/../../../../dist/css/facets-block-styles.min.css"
+	"style": "file:/../../../../dist/css/facets-styles.min.css"
 }

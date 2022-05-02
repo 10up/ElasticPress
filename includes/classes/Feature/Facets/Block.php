@@ -46,7 +46,7 @@ class Block {
 	public function render_block( $attributes ) {
 		ob_start();
 		?>
-		<div class="widget_ep-facet">
+		<div class="wp-block-elasticpress-facet">
 			<?php $this->renderer->render( [], $attributes ); ?>
 		</div>
 		<?php
