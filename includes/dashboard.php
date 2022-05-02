@@ -193,13 +193,22 @@ function maybe_skip_install() {
 		return;
 	}
 
+	$features = \ElasticPress\Features::factory()->registered_features;
+
+	foreach ( $features as $slug => $feature ) {
+		\ElasticPress\Features::factory()->deactivate_feature( $slug );
+	}
+
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$redirect_url = network_admin_url( 'admin.php?page=elasticpress' );
 		update_site_option( 'ep_skip_install', true );
 	} else {
+		$redirect_url = admin_url( 'admin.php?page=elasticpress' );
 		update_option( 'ep_skip_install', true );
 	}
 
-	wp_safe_redirect( admin_url( 'admin.php?page=elasticpress' ) );
+	wp_safe_redirect( $redirect_url );
+	exit;
 }
 
 /**
