@@ -197,26 +197,24 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id_1 = Functions\create_and_sync_post(
-			array(
-				'post_type' => 'shop_order',
-			)
-		);
+		$this->assertTrue( class_exists( '\WC_Order' ) );
 
-		Functions\create_and_sync_post(
-			array(
-				'post_type' => 'shop_order',
-			),
-			array(
-				'_billing_phone' => 'Phone number that matches an order ID: ' . $shop_order_id_1,
-			)
-		);
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_billing_phone( 'Phone number that matches an order ID: ' . $shop_order_id_1 );
+		$shop_order_2->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_2->get_id(), true );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'         => (string) $shop_order_id_1,
-			'post_type' => 'shop_order',
+			's'           => (string) $shop_order_id_1,
+			'post_type'   => 'shop_order',
+			'post_status' => 'any',
 		);
 
 		$query = new \WP_Query( $args );
