@@ -492,10 +492,21 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-				admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' ) :
+				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
 				admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 
+		$skip_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+				network_admin_url( 'admin.php?page=elasticpress' ) :
+				admin_url( 'admin.php?page=elasticpress' );
+
 		$data = array(
+			'skipUrl' => add_query_arg(
+				array(
+					'ep-skip-install' => 1,
+					'nonce'           => wp_create_nonce( 'ep-skip-install' ),
+				),
+				$skip_url,
+			),
 			'syncUrl' => $sync_url,
 		);
 
