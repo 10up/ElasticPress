@@ -176,6 +176,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Ayebare (@ayebare)](https://github.com/ayebare),
 [Michael Derringer (@derringer)](https://github.com/derringer),
 [Jake Goldman (@jakemgold)](https://github.com/jakemgold),
+[Renan Altendorf (@altendorfme)](https://github.com/altendorfme),
+[Burhan Nasir (@burhandodhy)](https://github.com/burhandodhy),
+[Eric Caron (@ecaron)](https://github.com/ecaron),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

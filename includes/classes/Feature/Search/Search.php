@@ -591,7 +591,16 @@ class Search extends Feature {
 			}
 		}
 
-		return $enabled;
+		/**
+		 * Filter whether to enable integration on search queries or not.
+		 *
+		 * @hook ep_integrate_search_queries
+		 * @since 4.2.0
+		 * @param {bool}     $enabled Original enabled value
+		 * @param {WP_Query} $query   WP_Query
+		 * @return {bool} New $enabled value
+		 */
+		return apply_filters( 'ep_integrate_search_queries', $enabled, $query );
 	}
 
 	/**
