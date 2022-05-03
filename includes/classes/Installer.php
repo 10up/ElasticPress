@@ -121,13 +121,19 @@ class Installer {
 			return;
 		}
 
-		if ( empty( $_POST['features'] ) || ! is_array( $_POST['features'] ) ) {
+		if ( ! isset( $_POST['features'] ) || ! is_array( $_POST['features'] ) ) {
 			return;
 		}
 
-		$features = array_map( 'sanitize_text_field', $_POST['features'] );
-		foreach ( $features as $feature ) {
-			\ElasticPress\Features::factory()->activate_feature( $feature );
+		$registered_features = \ElasticPress\Features::factory()->registered_features;
+		$activation_features = wp_list_filter( $registered_features, array( 'available_during_installation' => true ) );
+
+		foreach ( $activation_features as $slug => $feature ) {
+			if ( in_array( $slug, $_POST['features'], true ) ) {
+				\ElasticPress\Features::factory()->activate_feature( $slug );
+			} else {
+				\ElasticPress\Features::factory()->deactivate_feature( $slug );
+			}
 		}
 
 		$this->install_status = 4;
@@ -150,4 +156,3 @@ class Installer {
 		return $instance;
 	}
 }
-
