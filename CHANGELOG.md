@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+### Added
+- E2e tests for the Facets feature. Props [@felipeelia](https://github.com/felipeelia) via [#2667](https://github.com/10up/ElasticPress/pull/2667).
+- `$post_args` and `$post_id` to the `ep_pc_skip_post_content_cleanup` filter. Props [@felipeelia](https://github.com/felipeelia) and [@ecaron](https://github.com/ecaron) via [#2728](https://github.com/10up/ElasticPress/pull/2728).
+- New filter `ep_integrate_search_queries`. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#2735](https://github.com/10up/ElasticPress/pull/2735).
+
+### Changed
+- Facets widgets rendered by a separate class. Props [@felipeelia](https://github.com/felipeelia) via [#2712](https://github.com/10up/ElasticPress/pull/2712).
+- Deprecated `ElasticPress\Feature\Facets\Widget::get_facet_term_html()` in favor of `ElasticPress\Feature\Facets\Renderer::get_facet_term_html()`. Props [@felipeelia](https://github.com/felipeelia) via [#2712](https://github.com/10up/ElasticPress/pull/2712).
+
+### Fixed
+- WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia) via [#2711](https://github.com/10up/ElasticPress/pull/2711).
+- Full indices removal after e2e tests. Props [@felipeelia](https://github.com/felipeelia) and [@dustinrue](https://github.com/dustinrue) via [#2710](https://github.com/10up/ElasticPress/pull/2710).
+- Usage of the `$return` parameter in `Feature\RelatedPosts::find_related()`. Props [@felipeelia](https://github.com/felipeelia) and [@altendorfme](https://github.com/altendorfme) via [#2719](https://github.com/10up/ElasticPress/pull/2719).
+- Link to API Functions under the Related Posts feature -> Learn more. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2729](https://github.com/10up/ElasticPress/pull/2729).
+- Sync of WooCommerce Orders fields when WooCommerce and Protected Content features are enabled. Props [@felipeelia](https://github.com/felipeelia) and [@ecaron](https://github.com/ecaron) via [#2728](https://github.com/10up/ElasticPress/pull/2728).
+
+## Security
+- Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot) via [#2709](https://github.com/10up/ElasticPress/pull/2709).
+- Bumped `@wordpress/env` from 4.4.0 to 4.5.0. Props [@felipeelia](https://github.com/felipeelia) via [#2721](https://github.com/10up/ElasticPress/pull/2721).
+
 ## [4.1.0] - 2022-04-05
 
 ### Added
