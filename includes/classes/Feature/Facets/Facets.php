@@ -578,7 +578,7 @@ class Facets extends Feature {
 	 * @return WP_Error|true
 	 */
 	public function check_facets_taxonomies_rest_permission() {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
+		if ( ! is_user_logged_in() ) {
 			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
 		}
 
