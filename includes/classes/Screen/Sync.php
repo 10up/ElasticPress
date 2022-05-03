@@ -67,6 +67,7 @@ class Sync {
 		wp_send_json_success(
 			[
 				'is_finished' => true,
+				'totals'      => Utils\get_option( 'ep_last_index' ),
 			]
 		);
 	}
@@ -85,7 +86,7 @@ class Sync {
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
-			wp_send_json_success( $index_meta );
+			$this->action_wp_ajax_ep_index_status();
 			exit;
 		}
 
@@ -133,6 +134,7 @@ class Sync {
 		if ( 'sync' !== Screen::factory()->get_current_screen() ) {
 			return;
 		}
+
 		wp_enqueue_script(
 			'ep_sync_scripts',
 			EP_URL . 'dist/js/sync-script.min.js',
@@ -140,6 +142,8 @@ class Sync {
 			Utils\get_asset_info( 'sync-script', 'version' ),
 			true
 		);
+
+		wp_enqueue_style( 'wp-components' );
 
 		wp_enqueue_style(
 			'ep_sync_style',
@@ -170,7 +174,8 @@ class Sync {
 		$ep_last_index = Utils\get_option( 'ep_last_index' );
 
 		if ( ! empty( $ep_last_index ) ) {
-			$data['ep_last_sync_date'] = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
+			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
+			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) ? true : false;
 		}
 
 		/**
