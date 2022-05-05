@@ -1529,6 +1529,8 @@ class Command extends WP_CLI_Command {
 						$request->get_error_code()
 					)
 				);
+			} else {
+				WP_CLI::log( var_export( $request, true ) );
 			}
 			// @todo Output details of successful reindexes.
 		}
