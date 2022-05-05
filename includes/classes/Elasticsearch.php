@@ -1561,14 +1561,14 @@ class Elasticsearch {
 		$source   = "$scheme$user$pass$host$port$path$query$fragment";
 
 		$content = [
-			'source' => [
+			'max_docs' => 1000,
+			'source'   => [
 				'remote' => [
 					'host' => 'http://elasticsearch5:9200/', // @todo untrailingslashit( $source ),
 				],
 				'index'  => $index,
-
 			],
-			'dest'   => [
+			'dest'     => [
 				'index' => $index,
 			],
 		];
