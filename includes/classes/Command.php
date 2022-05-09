@@ -982,7 +982,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_after_clear_index' );
 
-		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
+		WP_CLI::log( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 
 	/**
