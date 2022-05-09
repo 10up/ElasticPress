@@ -1036,11 +1036,10 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_cli_index( $args, $assoc_args ) {
-
-		$last_sync = get_site_option( 'ep_last_cli_index', array() );
+		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
-			delete_site_option( 'ep_last_cli_index' );
+			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
 		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
