@@ -6,9 +6,7 @@
  * @package elasticpress
  */
 
-use ElasticPress\Utils as Utils;
-
-$ep_last_index          = Utils\get_option( 'ep_last_index' );
+$ep_last_index          = \ElasticPress\IndexHelper::factory()->get_last_index();
 $ep_last_sync_has_error = ! empty( $ep_last_index['failed'] );
 
 ?>
