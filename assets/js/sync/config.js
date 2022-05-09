@@ -2,21 +2,13 @@
  * Window dependencies.
  */
 const {
-	auto_start_index,
-	ajax_url,
-	index_meta = null,
-	is_epio,
-	ep_last_sync_date = null,
-	ep_last_sync_failed,
+	auto_start_index: autoIndex,
+	ajax_url: ajaxUrl,
+	index_meta: indexMeta = null,
+	is_epio: isEpio,
+	ep_last_sync_date: lastSyncDateTime = null,
+	ep_last_sync_failed: lastSyncFailed = false,
 	nonce,
 } = window.epDash;
 
-export {
-	auto_start_index,
-	ajax_url,
-	index_meta,
-	is_epio,
-	ep_last_sync_date,
-	ep_last_sync_failed,
-	nonce,
-};
+export { autoIndex, ajaxUrl, indexMeta, isEpio, lastSyncDateTime, lastSyncFailed, nonce };

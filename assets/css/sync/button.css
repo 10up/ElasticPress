@@ -1,0 +1,24 @@
+.ep-sync-button {
+	height: 4rem;
+	width: 100%;
+
+	&.components-button.has-icon.has-text {
+		justify-content: center;
+
+		& svg {
+			height: 2em;
+			margin: 0;
+			width: 2em;
+		}
+	}
+}
+
+.ep-sync-button--sync {
+	font-size: 1.5em;
+	font-weight: 700;
+}
+
+.ep-sync-button--resume,
+.ep-sync-button--stop {
+	flex-direction: column;
+}

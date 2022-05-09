@@ -1,4 +1,17 @@
 /**
+ * Clear sync parameter from the URL.
+ *
+ * @returns {void}
+ */
+export const clearSyncParam = () => {
+	window.history.replaceState(
+		{},
+		document.title,
+		document.location.pathname + document.location.search.replace(/&do_sync/, ''),
+	);
+};
+
+/**
  * Get the total number of items from index meta.
  *
  * @param {object} indexMeta Index meta.

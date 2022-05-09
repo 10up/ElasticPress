@@ -1,13 +1,13 @@
 /**
- * WordPress imports.
+ * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
 import { useCallback, useRef } from '@wordpress/element';
 
 /**
- * Local imports.
+ * Internal dependencies.
  */
-import { ajax_url, nonce } from './config';
+import { ajaxUrl, nonce } from './config';
 
 /**
  * Indexing hook.
@@ -23,25 +23,19 @@ export const useIndex = () => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
 
-	const cancelIndex = useCallback(
+	const sendRequest = useCallback(
 		/**
-		 * Send a request to cancel sync.
+		 * Send AJAX request.
 		 *
-		 * @returns {Promise} Fetch request promise.
+		 * Silently catches abort errors and clears the current request on
+		 * completion.
+		 *
+		 * @param {object} options Request options.
+		 * @throws {Error} Any non-abort errors.
+		 * @returns {Promise} Current request promise.
 		 */
-		async () => {
-			abort.current.abort();
-			abort.current = new AbortController();
-
-			const url = ajax_url;
-			const method = 'POST';
-			const body = new FormData();
-			const { signal } = abort.current;
-
-			body.append('action', 'ep_cancel_index');
-			body.append('nonce', nonce);
-
-			request.current = apiFetch({ url, method, body, signal })
+		(options) => {
+			request.current = apiFetch(options)
 				.catch((error) => {
 					if (error?.name !== 'AbortError' && !request.current) {
 						throw error;
@@ -54,6 +48,33 @@ export const useIndex = () => {
 			return request.current;
 		},
 		[],
+	);
+
+	const cancelIndex = useCallback(
+		/**
+		 * Send a request to cancel sync.
+		 *
+		 * @returns {Promise} Fetch request promise.
+		 */
+		async () => {
+			abort.current.abort();
+			abort.current = new AbortController();
+
+			const body = new FormData();
+
+			body.append('action', 'ep_cancel_index');
+			body.append('nonce', nonce);
+
+			const options = {
+				url: ajaxUrl,
+				method: 'POST',
+				body,
+				signal: abort.current.signal,
+			};
+
+			return sendRequest(options);
+		},
+		[sendRequest],
 	);
 
 	const index = useCallback(
@@ -67,28 +88,22 @@ export const useIndex = () => {
 			abort.current.abort();
 			abort.current = new AbortController();
 
-			const url = ajax_url;
-			const method = 'POST';
 			const body = new FormData();
-			const { signal } = abort.current;
 
 			body.append('action', 'ep_index');
 			body.append('put_mapping', putMapping ? 1 : 0);
 			body.append('nonce', nonce);
 
-			request.current = apiFetch({ url, method, body, signal })
-				.catch((error) => {
-					if (error?.name !== 'AbortError' && !request.current) {
-						throw error;
-					}
-				})
-				.finally(() => {
-					request.current = null;
-				});
+			const options = {
+				url: ajaxUrl,
+				method: 'POST',
+				body,
+				signal: abort.current.signal,
+			};
 
-			return request.current;
+			return sendRequest(options);
 		},
-		[],
+		[sendRequest],
 	);
 
 	const indexStatus = useCallback(
@@ -101,27 +116,21 @@ export const useIndex = () => {
 			abort.current.abort();
 			abort.current = new AbortController();
 
-			const url = ajax_url;
-			const method = 'POST';
 			const body = new FormData();
-			const { signal } = abort.current;
 
 			body.append('action', 'ep_cli_index');
 			body.append('nonce', nonce);
 
-			request.current = apiFetch({ url, method, body, signal })
-				.catch((error) => {
-					if (error?.name !== 'AbortError' && !request.current) {
-						throw error;
-					}
-				})
-				.finally(() => {
-					request.current = null;
-				});
+			const options = {
+				url: ajaxUrl,
+				method: 'POST',
+				body,
+				signal: abort.current.signal,
+			};
 
-			return request.current;
+			return sendRequest(options);
 		},
-		[],
+		[sendRequest],
 	);
 
 	return { cancelIndex, index, indexStatus };

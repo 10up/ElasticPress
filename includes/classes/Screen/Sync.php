@@ -144,6 +144,7 @@ class Sync {
 		);
 
 		wp_enqueue_style( 'wp-components' );
+		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_sync_style',

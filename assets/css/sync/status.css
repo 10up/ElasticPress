@@ -1,0 +1,16 @@
+.ep-sync-status {
+	align-items: center;
+	display: flex;
+
+	& svg {
+		fill: var(--ep-sync-color-error);
+		margin-right: 0.5em;
+	}
+}
+
+.ep-sync-status--success {
+
+	& svg {
+		fill: var(--ep-sync-color-success);
+	}
+}

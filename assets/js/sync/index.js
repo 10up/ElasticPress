@@ -1,22 +1,30 @@
 /**
+ * External dependencies.
+ */
+import { v4 as uuid } from 'uuid';
+
+/**
  * WordPress dependencies.
  */
-import { Panel, PanelBody } from '@wordpress/components';
+import { Button, Panel, PanelBody } from '@wordpress/components';
 import { render, useCallback, useEffect, useRef, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import { auto_start_index, is_epio, index_meta } from './config';
-import { initialState, SyncContext } from './context';
-import SyncButton from './components/sync-button';
+import { autoIndex, lastSyncDateTime, lastSyncFailed, isEpio, indexMeta } from './config';
+import { useIndex } from './hooks';
+import {
+	clearSyncParam,
+	getItemsProcessedFromIndexMeta,
+	getItemsTotalFromIndexMeta,
+} from './utilities';
+
 import SyncControls from './components/sync-controls';
-import SyncLog from './components/sync-log';
+import SyncLog from './components/sync-logs';
 import SyncProgress from './components/sync-progress';
 import SyncStatus from './components/sync-status';
-import { useIndex } from './hooks';
-import { getItemsProcessedFromIndexMeta, getItemsTotalFromIndexMeta } from './utilities';
 
 /**
  * App component.
@@ -24,10 +32,33 @@ import { getItemsProcessedFromIndexMeta, getItemsTotalFromIndexMeta } from './ut
  * @returns {WPElement} App component.
  */
 const App = () => {
-	const [log, setLog] = useState([]);
-	const [state, setState] = useState(initialState);
+	/**
+	 * Indexing methods.
+	 */
 	const { cancelIndex, index, indexStatus } = useIndex();
 
+	/**
+	 * Message log state.
+	 */
+	const [log, setLog] = useState([]);
+
+	/**
+	 * Sync state.
+	 */
+	const [state, setState] = useState({
+		isComplete: false,
+		isDeleting: false,
+		isSyncing: false,
+		itemsProcessed: 0,
+		itemsTotal: 100,
+		lastSyncDateTime,
+		lastSyncFailed,
+		syncStartDateTime: null,
+	});
+
+	/**
+	 * Current state reference.
+	 */
 	const stateRef = useRef(state);
 
 	/**
@@ -41,9 +72,6 @@ const App = () => {
 		setState((state) => ({ ...state, ...newState }));
 	};
 
-	/**
-	 * Log message callback.
-	 */
 	const logMessage = useCallback(
 		/**
 		 * Log a message.
@@ -58,18 +86,16 @@ const App = () => {
 			const messages = Array.isArray(message) ? message : [message];
 
 			for (const message of messages) {
-				setLog((log) => [...log, { message, status, isDeleting }]);
+				setLog((log) => [...log, { message, status, isDeleting, id: uuid() }]);
 			}
 		},
 		[],
 	);
 
-	/**
-	 * Complete sync callback.
-	 */
-	const completeSync = useCallback(
+	const syncCompleted = useCallback(
 		/**
-		 * Update sync status from totals.
+		 * Set sync state to completed, with success based on the number of
+		 * failures in the index totals.
 		 *
 		 * @param {object} indexTotals Index totals.
 		 * @returns {void}
@@ -86,12 +112,12 @@ const App = () => {
 		[],
 	);
 
-	/**
-	 * Interrupt sync callback.
-	 */
-	const interruptSync = useCallback(
+	const syncInterrupted = useCallback(
 		/**
-		 * Interrupt a sync.
+		 * Set sync state to interrupted.
+		 *
+		 * Logs an appropriate message based on the sync method and
+		 * Elasticsearch hosting.
 		 *
 		 * @returns {void}
 		 */
@@ -105,7 +131,7 @@ const App = () => {
 							'Your indexing process has been stopped by WP-CLI and your %s index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes.',
 							'elasticpress',
 						),
-						is_epio
+						isEpio
 							? __('ElasticPress.io', 'elasticpress')
 							: __('Elasticsearch', 'elasticpress'),
 				  )
@@ -117,15 +143,9 @@ const App = () => {
 		[logMessage],
 	);
 
-	/**
-	 * Update state from index meta callback.
-	 */
-	const updateStateFromIndexMeta = useCallback(
+	const syncInProgress = useCallback(
 		/**
-		 * Update sync status from index meta.
-		 *
-		 * Index meta is either present on the window object, if a sync is
-		 * already in progress, or returned in response to index requests.
+		 * Set state for a sync in progress from its index meta.
 		 *
 		 * @param {object} indexMeta Index meta.
 		 * @returns {void}
@@ -133,7 +153,9 @@ const App = () => {
 		(indexMeta) => {
 			updateState({
 				isCli: indexMeta.method === 'cli',
+				isComplete: false,
 				isDeleting: indexMeta.put_mapping,
+				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
 				syncStartDateTime: indexMeta.start_date_time,
@@ -142,10 +164,7 @@ const App = () => {
 		[],
 	);
 
-	/**
-	 * Update sync status callback.
-	 */
-	const handleSyncResponse = useCallback(
+	const updateSyncState = useCallback(
 		/**
 		 * Handle the response to a request to index.
 		 *
@@ -162,7 +181,7 @@ const App = () => {
 
 			return new Promise((resolve) => {
 				/**
-				 * Don't resolve if syncing has been stopped.
+				 * Don't continue if syncing has been stopped.
 				 */
 				if (!isSyncing) {
 					return;
@@ -176,46 +195,46 @@ const App = () => {
 				}
 
 				/**
-				 * If totals are present the index is complete.
+				 * If totals are available the index is complete.
 				 */
 				if (!Array.isArray(totals)) {
-					completeSync(totals);
+					syncCompleted(totals);
 					return;
 				}
 
 				/**
-				 * Update sync state from index meta.
+				 * Update sync progress from index meta.
 				 */
-				updateStateFromIndexMeta(indexMeta);
+				syncInProgress(indexMeta);
 
 				/**
-				 * Handle sync interruption.
+				 * Don't continue if the sync was interrupted externally.
 				 */
 				if (indexMeta.should_interrupt_sync) {
-					interruptSync();
+					syncInterrupted();
 					return;
 				}
 
 				/**
-				 * Don't resolve if syncing has been paused.
+				 * Don't continue if syncing has been paused.
 				 */
 				if (isPaused) {
-					logMessage(__('Sync paused.', 'elasticpress'), 'info');
+					logMessage(__('Sync paused', 'elasticpress'), 'info');
 					return;
 				}
 
+				/**
+				 * Syncing should continue.
+				 */
 				resolve(indexMeta.method);
 			});
 		},
-		[completeSync, interruptSync, logMessage, updateStateFromIndexMeta],
+		[syncCompleted, syncInProgress, syncInterrupted, logMessage],
 	);
 
-	/**
-	 * Get sync status callback.
-	 */
-	const syncStatus = useCallback(
+	const doIndexStatus = useCallback(
 		/**
-		 * Get the status of a sync.
+		 * Check the status of a sync.
 		 *
 		 * Used to get the status of an external sync already in progress, such
 		 * as a WP CLI index.
@@ -223,16 +242,12 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
-			updateState({ isComplete: false, isPaused: false, isSyncing: true });
-			indexStatus().then(handleSyncResponse).then(syncStatus);
+			indexStatus().then(updateSyncState).then(doIndexStatus);
 		},
-		[handleSyncResponse, indexStatus],
+		[indexStatus, updateSyncState],
 	);
 
-	/**
-	 * Sync callback.
-	 */
-	const sync = useCallback(
+	const doIndex = useCallback(
 		/**
 		 * Start or continues a sync.
 		 *
@@ -240,28 +255,78 @@ const App = () => {
 		 * @returns {void}
 		 */
 		(isDeleting) => {
-			updateState({
-				isCli: false,
-				isComplete: false,
-				isDeleting,
-				isSyncing: true,
-			});
-
 			index(isDeleting)
-				.then(handleSyncResponse)
-				.then((method) => {
+				.then(updateSyncState)
+				.then(
 					/**
 					 * If an existing sync has been found just check its status,
 					 * otherwise continue syncing.
+					 *
+					 * @param {string} method Sync method.
 					 */
-					if (method === 'cli') {
-						syncStatus();
-					} else {
-						sync(isDeleting);
-					}
-				});
+					(method) => {
+						if (method === 'cli') {
+							doIndexStatus();
+						} else {
+							doIndex(isDeleting);
+						}
+					},
+				);
 		},
-		[handleSyncResponse, index, syncStatus],
+		[doIndexStatus, index, updateSyncState],
+	);
+
+	const pauseSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isComplete: false, isPaused: true, isSyncing: true });
+		},
+		[],
+	);
+
+	const stopSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isComplete: false, isPaused: false, isSyncing: false });
+			cancelIndex();
+		},
+		[cancelIndex],
+	);
+
+	const resumeSync = useCallback(
+		/**
+		 * Resume syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isComplete: false, isPaused: false, isSyncing: true });
+			doIndex(stateRef.current.isDeleting);
+		},
+		[doIndex],
+	);
+
+	const startSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @param {boolean} isDeleting Whether to delete and sync.
+		 * @returns {void}
+		 */
+		(isDeleting) => {
+			updateState({ isComplete: false, isPaused: false, isSyncing: true });
+			updateState({ itemsProcessed: 0, itemsTotal: 100, syncStartDateTime: Date.now() });
+			doIndex(isDeleting);
+		},
+		[doIndex],
 	);
 
 	/**
@@ -270,25 +335,28 @@ const App = () => {
 	 * @returns {void}
 	 */
 	const onDelete = async () => {
-		updateState({ itemsProcessed: 0, itemsTotal: 100, syncStartDateTime: null });
-		sync(true);
+		startSync(true);
 		logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 	};
 
 	/**
-	 * Handle clicking play/pause button.
+	 * Handle clicking pause button.
+	 *
+	 * @returns {void}
 	 */
-	const onPlayPause = () => {
-		const { isDeleting, isPaused } = stateRef.current;
+	const onPause = () => {
+		pauseSync();
+		logMessage(__('Pausing sync…', 'elasticpress'), 'info');
+	};
 
-		if (isPaused) {
-			updateState({ isPaused: false });
-			sync(isDeleting);
-			logMessage(__('Resuming sync…', 'elasticpress'), 'info');
-		} else {
-			updateState({ isPaused: true });
-			logMessage(__('Pausing sync…', 'elasticpress'), 'info');
-		}
+	/**
+	 * Handle clicking play button.
+	 *
+	 * @returns {void}
+	 */
+	const onResume = () => {
+		resumeSync();
+		logMessage(__('Resuming sync…', 'elasticpress'), 'info');
 	};
 
 	/**
@@ -297,9 +365,8 @@ const App = () => {
 	 * @returns {void}
 	 */
 	const onStop = () => {
-		updateState({ isSyncing: false });
-		cancelIndex();
-		logMessage(__('Sync stopped.', 'elasticpress'), 'info');
+		stopSync();
+		logMessage(__('Sync stopped', 'elasticpress'), 'info');
 	};
 
 	/**
@@ -308,47 +375,47 @@ const App = () => {
 	 * @returns {void}
 	 */
 	const onSync = async () => {
-		updateState({ itemsProcessed: 0, itemsTotal: 100, syncStartDateTime: null });
-		sync(false);
+		startSync(false);
 		logMessage(__('Starting sync…', 'elasticpress'), 'info');
 	};
 
 	/**
-	 * Clear sync parameter from the URL to prevent a refresh triggering a new
-	 * sync.
+	 * Initialize.
 	 *
 	 * @returns {void}
 	 */
-	const clearSearchParam = () => {
-		window.history.replaceState(
-			{},
-			document.title,
-			document.location.pathname + document.location.search.replace(/&do_sync/, ''),
-		);
-	};
+	const init = () => {
+		/**
+		 * Clear sync parameter from the URL to prevent a refresh triggering a new
+		 * sync.
+		 */
+		clearSyncParam();
 
-	/**
-	 * Set initial state.
-	 *
-	 * @returns {void}
-	 */
-	const handleInit = () => {
-		clearSearchParam();
+		/**
+		 * If a sync is in progress, update state to reflect its progress.
+		 */
+		if (indexMeta) {
+			syncInProgress(indexMeta);
+			pauseSync();
 
-		if (index_meta) {
-			updateStateFromIndexMeta(index_meta);
-
-			if (index_meta.method === 'cli') {
-				syncStatus();
+			/**
+			 * If the sync is a CLI sync, start getting its status.
+			 */
+			if (indexMeta.method === 'cli') {
+				doIndexStatus();
+				logMessage(__('WP CLI sync in progress', 'elasticpress'), 'info');
 			} else {
-				updateState({ isComplete: false, isPaused: true, isSyncing: true });
+				logMessage(__('Sync paused', 'elasticpress'), 'info');
 			}
 
 			return;
 		}
 
-		if (auto_start_index) {
-			sync(true);
+		/**
+		 * Start an initial index.
+		 */
+		if (autoIndex) {
+			doIndex(true);
 			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 		}
 	};
@@ -356,79 +423,133 @@ const App = () => {
 	/**
 	 * Effects.
 	 */
-	useEffect(handleInit, [logMessage, sync, syncStatus, updateStateFromIndexMeta]);
+	useEffect(init, [doIndex, doIndexStatus, syncInProgress, logMessage, pauseSync]);
 
 	/**
 	 * Render.
 	 */
 	return (
-		<SyncContext.Provider value={state}>
-			<h1>{__('Sync Settings', 'elasticpress')}</h1>
-			<Panel>
-				<PanelBody>
-					<p>
-						{__(
-							'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
-							'elasticpress',
-						)}
-					</p>
+		<div id="sync">
+			<h1 className="ep-sync-heading">{__('Sync Settings', 'elasticpress')}</h1>
 
-					{state.lastSyncDateTime ? (
-						<>
-							<h3>{__('Last Sync', 'elasticpress')}</h3>
-							<SyncStatus />
-						</>
-					) : null}
+			<Panel className="ep-sync-panel">
+				<PanelBody className="ep-sync-panel__body">
+					<div className="ep-sync-panel__description">
+						<p className="ep-sync-panel__introduction">
+							{__(
+								'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
+								'elasticpress',
+							)}
+						</p>
 
-					{state.isSyncing && !state.isDeleting && !state.isCli ? (
-						<SyncControls onPlayPause={onPlayPause} onStop={onStop} />
-					) : (
-						<SyncButton onClick={onSync} />
-					)}
+						{state.lastSyncDateTime ? (
+							<>
+								<h3 className="ep-sync-heading">
+									{__('Last Sync', 'elasticpress')}
+								</h3>
+								<SyncStatus
+									dateTime={state.lastSyncDateTime}
+									isSuccess={!state.lastSyncFailed}
+								/>
+							</>
+						) : null}
+					</div>
+
+					<div className="ep-sync-panel__controls">
+						<SyncControls
+							disabled={(state.isSyncing && state.isDeleting) || state.isCli}
+							isPaused={state.isPaused}
+							isSyncing={state.isSyncing && !state.isDeleting && !state.isCli}
+							onPause={onPause}
+							onResume={onResume}
+							onStop={onStop}
+							onSync={onSync}
+							showSync
+						/>
+					</div>
 
 					{!state.isDeleting && (state.isSyncing || state.isComplete) ? (
-						<SyncProgress />
-					) : null}
-				</PanelBody>
-				{log.some((m) => !m.isDeleting) && (
-					<SyncLog messages={log.filter((m) => !m.isDeleting)} />
-				)}
-			</Panel>
-
-			<h2>{__('Delete All Data and Sync', 'elasticpress')}</h2>
-			<Panel>
-				<PanelBody>
-					<p>
-						{__(
-							'If you are still having issues with your search results, you may need to do a completely fresh sync.',
-							'elasticpress',
-						)}
-					</p>
-
-					<SyncButton isDelete onClick={onDelete} />
-
-					{state.isDeleting ? (
-						<>
-							{state.isSyncing && !state.isCli ? (
-								<SyncControls onPlayPause={onPlayPause} onStop={onStop} />
-							) : null}
-
-							{state.isSyncing || state.isComplete ? <SyncProgress /> : null}
-						</>
+						<div className="ep-sync-panel__row">
+							<SyncProgress
+								dateTime={state.syncStartDateTime}
+								isCli={state.isCli}
+								isComplete={state.isComplete}
+								isPaused={state.isPaused}
+								itemsProcessed={state.itemsProcessed}
+								itemsTotal={state.itemsTotal}
+							/>
+						</div>
 					) : null}
 
-					<p>
-						{__(
-							'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happenening, searches will use the default WordPress results',
-							'elasticpress',
-						)}
-					</p>
+					<div className="ep-sync-panel__row">
+						<SyncLog messages={log.filter((m) => !m.isDeleting)} />
+					</div>
 				</PanelBody>
-				{log.some((m) => m.isDeleting) && (
-					<SyncLog messages={log.filter((m) => m.isDeleting)} />
-				)}
 			</Panel>
-		</SyncContext.Provider>
+
+			<h2 className="ep-sync-heading">{__('Delete All Data and Sync', 'elasticpress')}</h2>
+
+			<Panel className="ep-sync-panel">
+				<PanelBody className="ep-sync-panel__body">
+					<div className="ep-sync-panel__description">
+						<p className="ep-sync-panel__introduction">
+							{__(
+								'If you are still having issues with your search results, you may need to do a completely fresh sync.',
+								'elasticpress',
+							)}
+						</p>
+
+						<p>
+							<Button
+								disabled={state.isSyncing}
+								isSecondary
+								isDestructive
+								onClick={onDelete}
+							>
+								{__('Delete all Data and Start a Fresh Sync', 'elasticpress')}
+							</Button>
+						</p>
+					</div>
+
+					<div className="ep-sync-panel__controls">
+						<SyncControls
+							disabled={(state.isSyncing && !state.isDeleting) || state.isCli}
+							isPaused={state.isPaused}
+							isSyncing={state.isSyncing && state.isDeleting && !state.isCli}
+							onPause={onPause}
+							onResume={onResume}
+							onStop={onStop}
+						/>
+					</div>
+
+					{state.isDeleting && (state.isSyncing || state.isComplete) ? (
+						<div className="ep-sync-panel__row">
+							<SyncProgress
+								dateTime={state.syncStartDateTime}
+								isCli={state.isCli}
+								isComplete={state.isComplete}
+								isPaused={state.isPaused}
+								itemsProcessed={state.itemsProcessed}
+								itemsTotal={state.itemsTotal}
+							/>
+						</div>
+					) : null}
+
+					<div className="ep-sync-panel__row">
+						<SyncLog messages={log.filter((m) => m.isDeleting)} />
+					</div>
+
+					<div className="ep-sync-panel__row">
+						<p>
+							{__(
+								'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happenening, searches will use the default WordPress results',
+								'elasticpress',
+							)}
+						</p>
+					</div>
+				</PanelBody>
+			</Panel>
+		</div>
 	);
 };
 
