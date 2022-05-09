@@ -1020,6 +1020,26 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Returns a JSON array with the results of the last index (if present) of an empty array.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-last-sync
+	 * @alias      get-last-index
+	 * @since 4.2.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_last_sync( $args, $assoc_args ) {
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+
+		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
 	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
 	 *
 	 * ## OPTIONS
