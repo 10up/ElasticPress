@@ -22,8 +22,93 @@ class Block {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 
 		$this->renderer = new Renderer();
+	}
+
+	/**
+	 * Setup REST endpoints for the feature.
+	 *
+	 * @since 4.2.0
+	 */
+	public function setup_endpoints() {
+		register_rest_route(
+			'elasticpress/v1',
+			'facets/taxonomies',
+			[
+				'methods'             => 'GET',
+				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
+				'callback'            => [ $this, 'get_rest_facetable_taxonomies' ],
+			]
+		);
+		register_rest_route(
+			'elasticpress/v1',
+			'facets/block-preview',
+			[
+				'methods'             => 'GET',
+				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
+				'callback'            => [ $this, 'render_block_preview' ],
+				'args'                => [
+					'facet'   => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'orderby' => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'order'   => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+
+			]
+		);
+	}
+
+	/**
+	 * Check permissions of the /facets/taxonomies REST endpoint.
+	 *
+	 * @return WP_Error|true
+	 */
+	public function check_facets_taxonomies_rest_permission() {
+		if ( ! is_user_logged_in() ) {
+			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Return an array of taxonomies, their name, plural label, and a sample of terms.
+	 *
+	 * @return array
+	 */
+	public function get_rest_facetable_taxonomies() {
+		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->get_facetable_taxonomies();
+
+		$taxonomies = [];
+		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
+			$terms_sample = get_terms(
+				[
+					'taxonomy' => $slug,
+					'number'   => 20,
+				]
+			);
+			if ( is_array( $terms_sample ) ) {
+				// This way we make sure it will be an array in the outputted JSON.
+				$terms_sample = array_values( $terms_sample );
+			} else {
+				$terms_sample = [];
+			}
+
+			$taxonomies[ $slug ] = [
+				'label'  => $taxonomy->label,
+				'plural' => $taxonomy->labels->name,
+				'terms'  => $terms_sample,
+			];
+		}
+
+		return $taxonomies;
 	}
 
 	/**
@@ -51,5 +136,42 @@ class Block {
 		</div>
 		<?php
 		return ob_get_clean();
+	}
+
+	/**
+	 * Outputs the block preview
+	 *
+	 * @since 4.2.0
+	 * @param \WP_REST_Request $request REST request
+	 * @return string
+	 */
+	public function render_block_preview( $request ) {
+		add_filter( 'ep_is_facetable', '__return_true' );
+
+		$search = Features::factory()->get_registered_feature( 'search' );
+
+		$query = new \WP_Query(
+			[
+				'post_type' => $search->get_searchable_post_types(),
+				'per_page'  => 1,
+			]
+		);
+
+		$attributes = [
+			'facet'   => $request->get_param( 'facet' ),
+			'orderby' => $request->get_param( 'orderby' ),
+			'order'   => $request->get_param( 'order' ),
+		];
+
+		ob_start();
+		$this->renderer->render( [], $attributes, $query );
+		$block_content = ob_get_clean();
+
+		if ( empty( $block_content ) ) {
+			return esc_html__( 'Preview not available', 'elasticpress' );
+		}
+
+		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
+		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
 	}
 }

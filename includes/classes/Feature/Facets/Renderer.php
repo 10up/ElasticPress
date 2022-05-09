@@ -22,21 +22,24 @@ class Renderer {
 	/**
 	 * Output the widget or block HTML.
 	 *
-	 * @param array $args Widget args
-	 * @param array $instance Instance settings
+	 * @param array    $args     Widget args
+	 * @param array    $instance Instance settings
+	 * @param WP_Query $query    (Optional) WP Query. Only used to build the block preview.
 	 */
-	public function render( $args, $instance ) {
+	public function render( $args, $instance, $query = null ) {
 		global $wp_query;
+
+		if ( ! $query ) {
+			$query = $wp_query;
+		}
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
-		if ( $wp_query->get( 'ep_facet', false ) ) {
-			if ( ! $feature->is_facetable( $wp_query ) ) {
-				return false;
-			}
+		if ( $query->get( 'ep_facet', false ) && ! $feature->is_facetable( $query ) ) {
+			return false;
 		}
 
-		$es_success = ( ! empty( $wp_query->elasticsearch_success ) ) ? true : false;
+		$es_success = ( ! empty( $query->elasticsearch_success ) ) ? true : false;
 
 		if ( ! $es_success ) {
 			return;

@@ -66,7 +66,6 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
-		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 
 		$this->block = new Block();
 		$this->block->setup();
@@ -553,68 +552,5 @@ class Facets extends Feature {
 		 * @return  {array} New taxonomies
 		 */
 		return apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
-	}
-
-	/**
-	 * Setup REST endpoints for the feature.
-	 *
-	 * @since 4.2.0
-	 */
-	public function setup_endpoint() {
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/taxonomies',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
-				'callback'            => [ $this, 'get_rest_facetable_taxonomies' ],
-			]
-		);
-	}
-
-	/**
-	 * Check permissions of the /facets/taxonomies REST endpoint.
-	 *
-	 * @return WP_Error|true
-	 */
-	public function check_facets_taxonomies_rest_permission() {
-		if ( ! is_user_logged_in() ) {
-			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Return an array of taxonomies, their name, plural label, and a sample of terms.
-	 *
-	 * @return array
-	 */
-	public function get_rest_facetable_taxonomies() {
-		$taxonomies_raw = $this->get_facetable_taxonomies();
-
-		$taxonomies = [];
-		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
-			$terms_sample = get_terms(
-				[
-					'taxonomy' => $slug,
-					'number'   => 20,
-				]
-			);
-			if ( is_array( $terms_sample ) ) {
-				// This way we make sure it will be an array in the outputted JSON.
-				$terms_sample = array_values( $terms_sample );
-			} else {
-				$terms_sample = [];
-			}
-
-			$taxonomies[ $slug ] = [
-				'label'  => $taxonomy->label,
-				'plural' => $taxonomy->labels->name,
-				'terms'  => $terms_sample,
-			];
-		}
-
-		return $taxonomies;
 	}
 }
