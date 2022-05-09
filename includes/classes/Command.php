@@ -1020,7 +1020,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last index (if present) of an empty array.
+	 * Returns a JSON array with the results of the last index (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
@@ -1040,7 +1040,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
+	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
