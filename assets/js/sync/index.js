@@ -107,7 +107,7 @@ const App = () => {
 		[],
 	);
 
-	const syncError = useCallback(
+	const syncFailed = useCallback(
 		/**
 		 * Handle an error in the sync request.
 		 *
@@ -266,9 +266,9 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
-			indexStatus().then(updateSyncState).then(doIndexStatus).catch(syncError);
+			indexStatus().then(updateSyncState).then(doIndexStatus).catch(syncFailed);
 		},
-		[indexStatus, syncError, updateSyncState],
+		[indexStatus, syncFailed, updateSyncState],
 	);
 
 	const doIndex = useCallback(
@@ -296,9 +296,9 @@ const App = () => {
 						}
 					},
 				)
-				.catch(syncError);
+				.catch(syncFailed);
 		},
-		[doIndexStatus, index, syncError, updateSyncState],
+		[doIndexStatus, index, syncFailed, updateSyncState],
 	);
 
 	const pauseSync = useCallback(
