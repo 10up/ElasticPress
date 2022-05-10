@@ -1,9 +1,10 @@
 /**
  * WordPress dependencies.
  */
-import { Button, Panel, PanelBody } from '@wordpress/components';
+import { Button, Icon, Panel, PanelBody } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { warning } from '@wordpress/icons';
 
 /**
  * Internal dependencies.
@@ -165,7 +166,8 @@ export default ({
 					</div>
 
 					<div className="ep-sync-panel__row">
-						<p>
+						<p className="ep-sync-warning">
+							<Icon icon={warning} />
 							{__(
 								'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happenening, searches will use the default WordPress results',
 								'elasticpress',
