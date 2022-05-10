@@ -11,9 +11,9 @@ import { WPElement } from '@wordpress/element';
  * @param {string} props.dateTime Date and time.
  * @returns {WPElement} Component.
  */
-export default ({ dateTime }) => {
+export default ({ dateTime, ...props }) => {
 	return (
-		<time dateTime={dateI18n('c', dateTime)} className="ep-sync-time">
+		<time dateTime={dateI18n('c', dateTime)} {...props}>
 			{dateI18n('D, F d, Y H:i', dateTime)}
 		</time>
 	);

@@ -33,7 +33,7 @@ export default ({ dateTime, isSuccess }) => {
 				{isSuccess
 					? __('Sync success on', 'elasticpress')
 					: __('Sync unsuccessful on', 'elasticpress')}{' '}
-				<DateTime dateTime={dateI18n('c', dateTime)} />
+				<DateTime dateTime={dateI18n('c', dateTime)} className="ep-sync-status__time" />
 			</span>
 		</p>
 	);

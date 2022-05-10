@@ -15,3 +15,9 @@
 		fill: var(--ep-sync-color-success);
 	}
 }
+
+.ep-sync-status__time {
+	background-color: var(--ep-sync-color-light-grey);
+	border-radius: 2px;
+	padding: 0.25em 0.5em;
+}
