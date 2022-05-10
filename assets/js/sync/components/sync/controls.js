@@ -49,16 +49,28 @@ export default ({ disabled, isPaused, isSyncing, onPause, onResume, onStop, onSy
 
 			{isSyncing ? (
 				<>
-					<div className="ep-sync-controls__resume">
-						<Button
-							className="ep-sync-button ep-sync-button--resume"
-							disabled={disabled}
-							icon={isPaused ? play : pause}
-							isPrimary
-							onClick={isPaused ? onResume : onPause}
-						>
-							{isPaused ? __('Resume', 'elasticpress') : __('Pause', 'elasticpress')}
-						</Button>
+					<div className="ep-sync-controls__pause-resume">
+						{isPaused ? (
+							<Button
+								className="ep-sync-button ep-sync-button--resume"
+								disabled={disabled}
+								icon={play}
+								isPrimary
+								onClick={onResume}
+							>
+								{__('Resume', 'elasticpress')}
+							</Button>
+						) : (
+							<Button
+								className="ep-sync-button ep-sync-button--pause"
+								disabled={disabled}
+								icon={pause}
+								isPrimary
+								onClick={onPause}
+							>
+								{__('Pause', 'elasticpress')}
+							</Button>
+						)}
 					</div>
 
 					<div className="ep-sync-controls__stop">

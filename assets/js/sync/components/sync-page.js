@@ -127,6 +127,7 @@ export default ({
 
 						<p>
 							<Button
+								className="ep-sync-button ep-sync-button--delete"
 								disabled={isSyncing}
 								isSecondary
 								isDestructive
