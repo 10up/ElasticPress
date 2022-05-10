@@ -129,6 +129,7 @@ class Block {
 	 * @param array $attributes Block attributes.
 	 */
 	public function render_block( $attributes ) {
+		$attributes = $this->parse_attributes( $attributes );
 		ob_start();
 		?>
 		<div class="wp-block-elasticpress-facet">
@@ -159,20 +160,20 @@ class Block {
 			]
 		);
 
-		$facet = $request->get_param( 'facet' );
-
-		$attributes = [
-			'facet'   => $facet,
-			'orderby' => $request->get_param( 'orderby' ),
-			'order'   => $request->get_param( 'order' ),
-		];
+		$attributes = $this->parse_attributes(
+			[
+				'facet'   => $request->get_param( 'facet' ),
+				'orderby' => $request->get_param( 'orderby' ),
+				'order'   => $request->get_param( 'order' ),
+			]
+		);
 
 		ob_start();
 		$this->renderer->render( [], $attributes );
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
-			$taxonomy = get_taxonomy( $facet );
+			$taxonomy = get_taxonomy( $attributes['facet'] );
 			if ( ! $taxonomy ) {
 				return esc_html__( 'Invalid taxonomy selected.', 'elasticpress' );
 			}
@@ -185,5 +186,30 @@ class Block {
 
 		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
 		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
+	}
+
+	/**
+	 * Utilitary method to set default attributes.
+	 *
+	 * @param array $attributes Attributes passed
+	 * @return array
+	 */
+	protected function parse_attributes( $attributes ) {
+		$attributes = wp_parse_args(
+			$attributes,
+			[
+				'facet'   => '',
+				'orderby' => 'count',
+				'order'   => 'desc',
+
+			]
+		);
+		if ( empty( $attributes['facet'] ) ) {
+			$taxonomies = Features::factory()->get_registered_feature( 'facets' )->get_facetable_taxonomies();
+			if ( ! empty( $taxonomies ) ) {
+				$attributes['facet'] = key( $taxonomies );
+			}
+		}
+		return $attributes;
 	}
 }
