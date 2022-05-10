@@ -71,7 +71,7 @@ const App = () => {
 		/**
 		 * Log a message.
 		 *
-		 * @param {array|string} message Message/s to log.
+		 * @param {Array|string} message Message/s to log.
 		 * @param {string} status Message status.
 		 * @returns {void}
 		 */
