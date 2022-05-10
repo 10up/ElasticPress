@@ -54,7 +54,7 @@ export default ({
 	syncStartDateTime,
 }) => {
 	return (
-		<div id="sync">
+		<>
 			<h1 className="ep-sync-heading">{__('Sync Settings', 'elasticpress')}</h1>
 
 			<Panel className="ep-sync-panel">
@@ -174,6 +174,6 @@ export default ({
 					</div>
 				</PanelBody>
 			</Panel>
-		</div>
+		</>
 	);
 };
