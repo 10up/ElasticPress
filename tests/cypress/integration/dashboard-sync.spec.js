@@ -127,7 +127,8 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('index.php');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync in progress');
+		cy.get('.ep-sync-button--resume').should('be.visible');
+		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync paused');
 
 		resumeAndWait();
 
