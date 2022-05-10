@@ -27,8 +27,8 @@ class Sync {
 	 * Initialize class
 	 */
 	public function setup() {
-		add_action( 'wp_ajax_ep_cli_index', [ $this, 'action_wp_ajax_ep_cli_index' ] );
 		add_action( 'wp_ajax_ep_index', [ $this, 'action_wp_ajax_ep_index' ] );
+		add_action( 'wp_ajax_ep_index_status', [ $this, 'action_wp_ajax_ep_index_status' ] );
 		add_action( 'wp_ajax_ep_cancel_index', [ $this, 'action_wp_ajax_ep_cancel_index' ] );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
@@ -39,7 +39,7 @@ class Sync {
 	 *
 	 * @since  3.6.0
 	 */
-	public function action_wp_ajax_ep_cli_index() {
+	public function action_wp_ajax_ep_index_status() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
 			wp_send_json_error( null, 403 );
 			exit;

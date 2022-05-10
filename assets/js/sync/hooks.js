@@ -112,7 +112,7 @@ export const useIndex = () => {
 
 			const body = new FormData();
 
-			body.append('action', 'ep_cli_index');
+			body.append('action', 'ep_index_status');
 			body.append('nonce', nonce);
 
 			const options = {
