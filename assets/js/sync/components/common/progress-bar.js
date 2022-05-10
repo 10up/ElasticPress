@@ -20,8 +20,7 @@ export default ({ isComplete, current, total }) => {
 			aria-valuemax={100}
 			aria-valuemin={0}
 			aria-valuenow={now}
-			className={`ep-sync-progress-bar ${isComplete ? `ep-sync-progress-bar--complete` : ``}
-			`}
+			className={`ep-sync-progress-bar ${isComplete ? `ep-sync-progress-bar--complete` : ``}`}
 			role="progressbar"
 		>
 			<div

@@ -8,7 +8,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import MessageLog from './common/message-log';
+import MessageLog from '../common/message-log';
 
 /**
  * Sync logs component.
@@ -23,7 +23,7 @@ export default ({ messages }) => {
 	/**
 	 * Messages with the error status.
 	 */
-	const errorMessages = messages.filter((m) => m.status === 'error');
+	const errorMessages = messages.filter((m) => m.status === 'error' || m.status === 'warning');
 
 	/**
 	 * Log tabs.

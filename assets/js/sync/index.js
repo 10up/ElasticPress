@@ -6,7 +6,6 @@ import { v4 as uuid } from 'uuid';
 /**
  * WordPress dependencies.
  */
-import { Button, Panel, PanelBody } from '@wordpress/components';
 import { render, useCallback, useEffect, useRef, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -20,11 +19,7 @@ import {
 	getItemsProcessedFromIndexMeta,
 	getItemsTotalFromIndexMeta,
 } from './utilities';
-
-import SyncControls from './components/sync-controls';
-import SyncLog from './components/sync-logs';
-import SyncProgress from './components/sync-progress';
-import SyncStatus from './components/sync-status';
+import SyncPage from './components/sync-page';
 
 /**
  * App component.
@@ -76,7 +71,7 @@ const App = () => {
 		/**
 		 * Log a message.
 		 *
-		 * @param {string} message Message/s to log.
+		 * @param {array|string} message Message/s to log.
 		 * @param {string} status Message status.
 		 * @returns {void}
 		 */
@@ -352,8 +347,8 @@ const App = () => {
 		 * @returns {void}
 		 */
 		(isDeleting) => {
-			updateState({ isComplete: false, isPaused: false, isSyncing: true });
-			updateState({ itemsProcessed: 0, itemsTotal: 100, syncStartDateTime: Date.now() });
+			updateState({ isComplete: false, isDeleting, isPaused: false, isSyncing: true });
+			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
 			doIndex(isDeleting);
 		},
 		[doIndex],
@@ -426,7 +421,6 @@ const App = () => {
 		 */
 		if (indexMeta) {
 			syncInProgress(indexMeta);
-			pauseSync();
 
 			/**
 			 * If the sync is a CLI sync, start getting its status.
@@ -435,6 +429,7 @@ const App = () => {
 				doIndexStatus();
 				logMessage(__('WP CLI sync in progress', 'elasticpress'), 'info');
 			} else {
+				pauseSync();
 				logMessage(__('Sync paused', 'elasticpress'), 'info');
 			}
 
@@ -445,7 +440,7 @@ const App = () => {
 		 * Start an initial index.
 		 */
 		if (autoIndex) {
-			doIndex(true);
+			startSync(true);
 			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 		}
 	};
@@ -453,133 +448,21 @@ const App = () => {
 	/**
 	 * Effects.
 	 */
-	useEffect(init, [doIndex, doIndexStatus, syncInProgress, logMessage, pauseSync]);
+	useEffect(init, [doIndexStatus, syncInProgress, logMessage, pauseSync, startSync]);
 
 	/**
 	 * Render.
 	 */
 	return (
-		<div id="sync">
-			<h1 className="ep-sync-heading">{__('Sync Settings', 'elasticpress')}</h1>
-
-			<Panel className="ep-sync-panel">
-				<PanelBody className="ep-sync-panel__body">
-					<div className="ep-sync-panel__description">
-						<p className="ep-sync-panel__introduction">
-							{__(
-								'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
-								'elasticpress',
-							)}
-						</p>
-
-						{state.lastSyncDateTime ? (
-							<>
-								<h3 className="ep-sync-heading">
-									{__('Last Sync', 'elasticpress')}
-								</h3>
-								<SyncStatus
-									dateTime={state.lastSyncDateTime}
-									isSuccess={!state.lastSyncFailed}
-								/>
-							</>
-						) : null}
-					</div>
-
-					<div className="ep-sync-panel__controls">
-						<SyncControls
-							disabled={(state.isSyncing && state.isDeleting) || state.isCli}
-							isPaused={state.isPaused}
-							isSyncing={state.isSyncing && !state.isDeleting && !state.isCli}
-							onPause={onPause}
-							onResume={onResume}
-							onStop={onStop}
-							onSync={onSync}
-							showSync
-						/>
-					</div>
-
-					{!state.isDeleting && (state.isSyncing || state.isComplete) ? (
-						<div className="ep-sync-panel__row">
-							<SyncProgress
-								dateTime={state.syncStartDateTime}
-								isCli={state.isCli}
-								isComplete={state.isComplete}
-								isPaused={state.isPaused}
-								itemsProcessed={state.itemsProcessed}
-								itemsTotal={state.itemsTotal}
-							/>
-						</div>
-					) : null}
-
-					<div className="ep-sync-panel__row">
-						<SyncLog messages={log.filter((m) => !m.isDeleting)} />
-					</div>
-				</PanelBody>
-			</Panel>
-
-			<h2 className="ep-sync-heading">{__('Delete All Data and Sync', 'elasticpress')}</h2>
-
-			<Panel className="ep-sync-panel">
-				<PanelBody className="ep-sync-panel__body">
-					<div className="ep-sync-panel__description">
-						<p className="ep-sync-panel__introduction">
-							{__(
-								'If you are still having issues with your search results, you may need to do a completely fresh sync.',
-								'elasticpress',
-							)}
-						</p>
-
-						<p>
-							<Button
-								disabled={state.isSyncing}
-								isSecondary
-								isDestructive
-								onClick={onDelete}
-							>
-								{__('Delete all Data and Start a Fresh Sync', 'elasticpress')}
-							</Button>
-						</p>
-					</div>
-
-					<div className="ep-sync-panel__controls">
-						<SyncControls
-							disabled={(state.isSyncing && !state.isDeleting) || state.isCli}
-							isPaused={state.isPaused}
-							isSyncing={state.isSyncing && state.isDeleting && !state.isCli}
-							onPause={onPause}
-							onResume={onResume}
-							onStop={onStop}
-						/>
-					</div>
-
-					{state.isDeleting && (state.isSyncing || state.isComplete) ? (
-						<div className="ep-sync-panel__row">
-							<SyncProgress
-								dateTime={state.syncStartDateTime}
-								isCli={state.isCli}
-								isComplete={state.isComplete}
-								isPaused={state.isPaused}
-								itemsProcessed={state.itemsProcessed}
-								itemsTotal={state.itemsTotal}
-							/>
-						</div>
-					) : null}
-
-					<div className="ep-sync-panel__row">
-						<SyncLog messages={log.filter((m) => m.isDeleting)} />
-					</div>
-
-					<div className="ep-sync-panel__row">
-						<p>
-							{__(
-								'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happenening, searches will use the default WordPress results',
-								'elasticpress',
-							)}
-						</p>
-					</div>
-				</PanelBody>
-			</Panel>
-		</div>
+		<SyncPage
+			log={log}
+			onDelete={onDelete}
+			onPause={onPause}
+			onResume={onResume}
+			onStop={onStop}
+			onSync={onSync}
+			{...state}
+		/>
 	);
 };
 

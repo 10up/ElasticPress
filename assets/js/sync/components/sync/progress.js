@@ -9,9 +9,9 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import DateTime from './common/date-time';
-import ProgressBar from './common/progress-bar';
-import sync from './icons/sync';
+import DateTime from '../common/date-time';
+import ProgressBar from '../common/progress-bar';
+import sync from '../icons/sync';
 
 /**
  * Sync button component.

@@ -9,9 +9,9 @@ import { update } from '@wordpress/icons';
 /**
  * Internal dependencies.
  */
-import pause from './icons/pause';
-import play from './icons/play';
-import stop from './icons/stop';
+import pause from '../icons/pause';
+import play from '../icons/play';
+import stop from '../icons/stop';
 
 /**
  * Sync button component.

@@ -9,9 +9,9 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import DateTime from './common/date-time';
-import thumbsDown from './icons/thumbs-down';
-import thumbsUp from './icons/thumbs-up';
+import DateTime from '../common/date-time';
+import thumbsDown from '../icons/thumbs-down';
+import thumbsUp from '../icons/thumbs-up';
 
 /**
  * Sync button component.
