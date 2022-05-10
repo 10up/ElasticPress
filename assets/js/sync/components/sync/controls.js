@@ -79,6 +79,7 @@ export default ({ disabled, isPaused, isSyncing, onPause, onResume, onStop, onSy
 				<div className="ep-sync-controls__learn-more">
 					<Button
 						href="https://elasticpress.zendesk.com/hc/en-us/articles/5205632443533"
+						target="_blank"
 						variant="link"
 					>
 						{__('Learn more', 'elasticpress')}
