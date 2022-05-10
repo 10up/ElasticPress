@@ -1,9 +1,11 @@
 import Edit from './Edit';
 
+const { __ } = wp.i18n;
+
 const { registerBlockType } = wp.blocks;
 
 registerBlockType('elasticpress/related-posts', {
-	title: 'Related Posts (ElasticPress)',
+	title: __('Related Posts (ElasticPress)', 'elasticpress'),
 	supports: {
 		align: true,
 	},
