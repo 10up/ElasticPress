@@ -28,7 +28,7 @@ export default ({ dateTime, isSuccess }) => {
 				isSuccess ? `ep-sync-status--success` : `ep-sync-status--error`
 			}`}
 		>
-			<Icon icon={isSuccess ? thumbsUp : thumbsDown} className="ep-sync-status__icon" />
+			<Icon icon={isSuccess ? thumbsUp : thumbsDown} />
 			<span className="ep-sync-status__label">
 				{isSuccess
 					? __('Sync success on', 'elasticpress')
