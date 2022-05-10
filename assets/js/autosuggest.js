@@ -481,7 +481,7 @@ function init() {
 				if (typeof currentIndex === 'undefined') {
 					break;
 				}
-				if (results[currentIndex]?.classList.contains('selected')) {
+				if (results[currentIndex].classList.contains('selected')) {
 					// navigate to the item defined in the span's data-url attribute
 					selectItem(input, results[currentIndex].querySelector('.autosuggest-link'));
 				}
