@@ -6,7 +6,6 @@
  * @package elasticpress
  */
 
-require_once __DIR__ . '/header.php';
 ?>
 
 <div id="ep-sync" class="wrap"></div>

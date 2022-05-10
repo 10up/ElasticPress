@@ -196,13 +196,13 @@ class Command extends WP_CLI_Command {
 	 * [--network-wide]
 	 * : Force mappings to be sent for every index in the network.
 	 *
-	 * [--indexables]
+	 * [--indexables=<indexables>]
 	 * : List of indexables
 	 *
-	 * [--ep-host]
+	 * [--ep-host=<host>]
 	 * : Custom Elasticsearch host
 	 *
-	 * [--ep-prefix]
+	 * [--ep-prefix=<prefix>]
 	 * : Custom ElasticPress prefix
 	 *
 	 * @subcommand put-mapping
@@ -388,6 +388,8 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
+	 * ## OPTIONS
+	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
@@ -406,6 +408,8 @@ class Command extends WP_CLI_Command {
 
 	/**
 	 * Return all index names as a JSON object.
+	 *
+	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
@@ -456,7 +460,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--index-name]
+	 * [--index-name=<index_name>]
 	 * : The name of the index to be deleted. If not passed, all indexes will be deleted
 	 *
 	 * [--network-wide]
@@ -645,7 +649,7 @@ class Command extends WP_CLI_Command {
 	 * [--setup]
 	 * : Clear the index first and re-send the put mapping. Use `--yes` to skip the confirmation
 	 *
-	 * [--per-page]
+	 * [--per-page=<per_page_number>]
 	 * : Determine the amount of posts to be indexed per bulk index (or cycle)
 	 *
 	 * [--nobulk]
@@ -663,31 +667,31 @@ class Command extends WP_CLI_Command {
 	 * [--show-nobulk-errors]
 	 * : Display the error message returned from Elasticsearch when a post fails to index while not using the /_bulk endpoint
 	 *
-	 * [--offset]
+	 * [--offset=<offset_number>]
 	 * : Skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
 	 *
-	 * [--indexables]
+	 * [--indexables=<indexables>]
 	 * : Specify the Indexable(s) which will be indexed
 	 *
-	 * [--post-type]
+	 * [--post-type=<post_types>]
 	 * : Specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma
 	 *
-	 * [--include]
+	 * [--include=<IDs>]
 	 * : Choose which object IDs to include in the index
 	 *
-	 * [--post-ids]
+	 * [--post-ids=<IDs>]
 	 * : Choose which post_ids to include when indexing the Posts Indexable (deprecated)
 	 *
-	 * [--upper-limit-object-id]
+	 * [--upper-limit-object-id=<ID>]
 	 * : Upper limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 45
 	 *
-	 * [--lower-limit-object-id]
+	 * [--lower-limit-object-id=<ID>]
 	 * : Lower limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 30
 	 *
-	 * [--ep-host]
+	 * [--ep-host=<host>]
 	 * : Custom Elasticsearch host
 	 *
-	 * [--ep-prefix]
+	 * [--ep-prefix=<prefix>]
 	 * : Custom ElasticPress prefix
 	 *
 	 * [--yes]
@@ -978,7 +982,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_after_clear_index' );
 
-		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
+		WP_CLI::log( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 
 	/**
@@ -989,6 +993,8 @@ class Command extends WP_CLI_Command {
 	 * method | string | 'cli', 'web' or 'none'
 	 * items_indexed | integer | Total number of items indexed
 	 * total_items | integer | Total number of items indexed or -1 if not yet determined
+	 *
+	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
@@ -1014,7 +1020,27 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
+	 * Returns a JSON array with the results of the last index (if present) or an empty array.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-last-sync
+	 * @alias      get-last-index
+	 * @since 4.2.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_last_sync( $args, $assoc_args ) {
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+
+		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
+	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
@@ -1030,11 +1056,10 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_cli_index( $args, $assoc_args ) {
-
-		$last_sync = get_site_option( 'ep_last_cli_index', array() );
+		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
-			delete_site_option( 'ep_last_cli_index' );
+			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
 		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
@@ -1448,6 +1473,32 @@ class Command extends WP_CLI_Command {
 		}
 
 		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
+	 * Reset all ElasticPress settings stored in WP options and transients.
+	 *
+	 * This command will not delete any index or content stored in Elasticsearch but will force users to go through the installation process again.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--yes]
+	 * : Skip confirmation
+	 *
+	 * @subcommand settings-reset
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function settings_reset( $args, $assoc_args ) {
+		WP_CLI::confirm( esc_html__( 'Are you sure you want to delete all ElasticPress settings?', 'elasticpress' ), $assoc_args );
+
+		define( 'EP_MANUAL_SETTINGS_RESET', true );
+		include EP_PATH . '/uninstall.php';
+
+		WP_CLI::line( esc_html__( 'Settings deleted.', 'elasticpress' ) );
 	}
 
 	/**

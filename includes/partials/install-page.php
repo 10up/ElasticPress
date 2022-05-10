@@ -22,10 +22,13 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 $skip_install_url = add_query_arg(
 	[
-		'ep-skip-install' => 1,
-		'nonce'           => wp_create_nonce( 'ep-skip-install' ),
+		'ep-skip-install'  => 1,
+		'ep-skip-features' => 1,
+		'nonce'            => wp_create_nonce( 'ep-skip-install' ),
 	]
 );
+
+$skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 ?>
 
 <?php require_once __DIR__ . '/header.php'; ?>
@@ -39,7 +42,7 @@ $skip_install_url = add_query_arg(
 			<div class="ep-circle ep-circle--active ep-config-success">
 				<span class="dashicons dashicons-yes"></span>
 			</div>
-			<p><?php esc_html_e( 'That’s it! You’re ready to experience faster search and gain the ability to create powerful queries on your site!', 'elasticpres' ); ?></p>
+			<p><?php esc_html_e( 'That’s it! You’re ready to experience faster search and gain the ability to create powerful queries on your site!', 'elasticpress' ); ?></p>
 			<div class="setup-message">
 				<a class="setup-button" href="<?php echo esc_url( $dashboard_url ); ?>"><?php esc_html_e( 'Go to dashboard', 'elasticpress' ); ?></a>
 			</div>
@@ -150,7 +153,7 @@ $skip_install_url = add_query_arg(
 					<?php if ( 4 === $install_status ) : ?>
 						<div class="setup-message">
 							<a class="setup-button" href="<?php echo esc_url( $sync_url ); ?>"><?php esc_html_e( 'Index Your Content', 'elasticpress' ); ?></a>
-							<p><a href="<?php echo esc_url( $skip_install_url ); ?>"><?php esc_html_e( 'Skip Install »', 'elasticpress' ); ?></a></p>
+							<p><a href="<?php echo esc_url( $skip_index_url ); ?>"><?php esc_html_e( 'Skip Install »', 'elasticpress' ); ?></a></p>
 						</div>
 					<?php endif; ?>
 				</div>

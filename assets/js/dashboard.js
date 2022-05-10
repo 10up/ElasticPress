@@ -13,7 +13,7 @@ import { __ } from '@wordpress/i18n';
  */
 const {
 	ajaxurl,
-	epDash: { syncUrl },
+	epDash: { skipUrl, syncUrl },
 } = window;
 
 /**
@@ -119,6 +119,45 @@ const onClick = (event) => {
 };
 
 /**
+ * Handle setup form submission.
+ *
+ * Asks for confirmation if the user doesn't select any features to activate.
+ * If the user wants to continue then skip installation.
+ *
+ * @param {Event} event Submit event.
+ * @returns {void}
+ */
+const onSubmitSetup = (event) => {
+	const features = new FormData(event.target).getAll('features[]');
+
+	/**
+	 * If any features are selected continue as normal...
+	 */
+	if (features.length > 0) {
+		return;
+	}
+
+	/**
+	 * ...otherwise stop submission and ask for confirmation.
+	 */
+	event.preventDefault();
+
+	const confirm = window.confirm(
+		__(
+			'It looks like you’re trying to use ElasticPress’s advanced features only. If you’d like to activate basic search, please select Cancel and activate the Post Search Feature. Otherwise, please click Ok to configure advanced features.',
+			'elasticpress',
+		),
+	);
+
+	/**
+	 * If the user wants to proceed, skip installation.
+	 */
+	if (confirm) {
+		window.location = skipUrl;
+	}
+};
+
+/**
  * Bind events.
  */
 const featuresEl = document.querySelector('.ep-features');
@@ -127,6 +166,12 @@ if (featuresEl) {
 	featuresEl.addEventListener('change', onToggle);
 	featuresEl.addEventListener('submit', onSubmit);
 	featuresEl.addEventListener('click', onClick);
+}
+
+const submitEl = document.querySelector('button.setup-button');
+
+if (submitEl) {
+	submitEl.form.addEventListener('submit', onSubmitSetup);
 }
 
 /**

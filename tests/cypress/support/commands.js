@@ -46,6 +46,17 @@ Cypress.Commands.add('visitAdminPage', (page = 'index.php') => {
 	}
 });
 
+Cypress.Commands.add('openWidgetsPage', () => {
+	cy.login();
+	cy.visitAdminPage('widgets.php');
+	cy.get('body').then(($body) => {
+		const $button = $body.find('.edit-widgets-welcome-guide .components-modal__header button');
+		if ($button.is(':visible')) {
+			$button.click();
+		}
+	});
+});
+
 Cypress.Commands.add('createTaxonomy', (name = 'Test taxonomy', taxonomy = 'category') => {
 	cy.visitAdminPage(`edit-tags.php?taxonomy=${taxonomy}`);
 	cy.get('#tag-name').click().type(`${name}{enter}`);
@@ -74,8 +85,8 @@ Cypress.Commands.add('openDocumentSettingsPanel', (name) => {
 		});
 });
 
-Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text) => {
-	cy.wrap(subject).clear().type(text);
+Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text, force = false) => {
+	cy.wrap(subject).clear().type(text, { force });
 });
 
 Cypress.Commands.add('wpCli', (command, ignoreFailures) => {

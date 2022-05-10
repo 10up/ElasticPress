@@ -13,6 +13,9 @@
     "node_modules/wp-hookdoc/plugin",
     "plugins/markdown"
   ],
+  "markdown": {
+    "idInHeadings": true
+  },
   "templates":  {
     "default": {
       "layoutFile": ".github/hookdoc-tmpl/layout.tmpl",

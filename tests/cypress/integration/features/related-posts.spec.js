@@ -1,26 +1,12 @@
 describe('Related Posts Feature', () => {
-	function openWidgetsPage() {
-		cy.visitAdminPage('widgets.php');
-		cy.get('body').then(($body) => {
-			const $button = $body.find(
-				'.edit-widgets-welcome-guide .components-modal__header button',
-			);
-			if ($button.is(':visible')) {
-				$button.click();
-			}
-		});
-	}
-
 	it('Can see the widget in the Dashboard', () => {
-		cy.login();
-
 		// Disable the feature.
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-related_posts .settings-button').click();
 		cy.get('.ep-feature-related_posts [name="settings[active]"][value="0"]').click();
 		cy.get('.ep-feature-related_posts .button-primary').click();
 
-		openWidgetsPage();
+		cy.openWidgetsPage();
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
@@ -33,7 +19,7 @@ describe('Related Posts Feature', () => {
 		cy.get('.ep-feature-related_posts [name="settings[active]"][value="1"]').click();
 		cy.get('.ep-feature-related_posts .button-primary').click();
 
-		openWidgetsPage();
+		cy.openWidgetsPage();
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
@@ -46,11 +32,9 @@ describe('Related Posts Feature', () => {
 	});
 
 	it('Can instantiate and use the widget', () => {
-		cy.login();
-
 		cy.maybeEnableFeature('related_posts');
 
-		openWidgetsPage();
+		cy.openWidgetsPage();
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		cy.get(

@@ -148,7 +148,7 @@ class RelatedPosts extends Feature {
 	 * @return array|bool
 	 */
 	public function find_related( $post_id, $return = 5 ) {
-		$query = $this->get_related_query( $post_id, $return = 5 );
+		$query = $this->get_related_query( $post_id, $return );
 
 		if ( ! $query->have_posts() ) {
 			return false;
@@ -356,7 +356,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://github.com/10up/ElasticPress/#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://10up.github.io/ElasticPress/tutorial-features.html#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 }

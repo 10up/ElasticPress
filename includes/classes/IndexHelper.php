@@ -65,6 +65,8 @@ class IndexHelper {
 	 * @param array $args Arguments.
 	 */
 	public function full_index( $args ) {
+		register_shutdown_function( [ $this, 'handle_index_error' ] );
+
 		$this->index_meta = Utils\get_indexing_status();
 		$this->args       = $args;
 
@@ -717,16 +719,11 @@ class IndexHelper {
 	}
 
 	/**
-	 * Make the necessary clean up after a sync item of the stack was completely done.
+	 * Update the sync info with the totals from the last sync item.
 	 *
-	 * @since 4.0.0
-	 * @return void
+	 * @since 4.2.0
 	 */
-	protected function index_cleanup() {
-		wp_reset_postdata();
-
-		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
-
+	protected function update_totals_from_current_sync_item() {
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
 		$this->index_meta['offset']             = 0;
@@ -739,6 +736,22 @@ class IndexHelper {
 			$this->index_meta['totals']['errors'],
 			$current_sync_item['errors']
 		);
+	}
+
+	/**
+	 * Make the necessary clean up after a sync item of the stack was completely done.
+	 *
+	 * @since 4.0.0
+	 * @return void
+	 */
+	protected function index_cleanup() {
+		wp_reset_postdata();
+
+		$this->update_totals_from_current_sync_item();
+
+		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+
+		$current_sync_item = $this->index_meta['current_sync_item'];
 
 		if ( $current_sync_item['failed'] ) {
 			if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -782,11 +795,11 @@ class IndexHelper {
 	}
 
 	/**
-	 * Make the necessary clean up after everything was sync'd.
+	 * Update last sync info.
 	 *
-	 * @since 4.0.0
+	 * @since 4.2.0
 	 */
-	protected function full_index_complete() {
+	protected function update_last_index() {
 		$start_time = $this->index_meta['start_time'];
 		$totals     = $this->index_meta['totals'];
 
@@ -799,6 +812,15 @@ class IndexHelper {
 		$totals['total_time']    = microtime( true ) - $start_time;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
+	}
+
+	/**
+	 * Make the necessary clean up after everything was sync'd.
+	 *
+	 * @since 4.0.0
+	 */
+	protected function full_index_complete() {
+		$this->update_last_index();
 
 		/**
 		 * Fires after executing a reindex
@@ -882,7 +904,7 @@ class IndexHelper {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
-			$totals = Utils\get_option( 'ep_last_index' );
+			$totals = $this->get_last_index();
 		}
 
 		$message = [
@@ -986,6 +1008,16 @@ class IndexHelper {
 	}
 
 	/**
+	 * Get the last index/sync meta information.
+	 *
+	 * @since 4.2.0
+	 * @return array
+	 */
+	public function get_last_index() {
+		return Utils\get_option( 'ep_last_index', [] );
+	}
+
+	/**
 	 * Check if an object should be indexed or skipped.
 	 *
 	 * We used to have two different filters for this (one for the dashboard, another for CLI),
@@ -1084,6 +1116,45 @@ class IndexHelper {
 	 */
 	public function get_index_meta() {
 		return Utils\get_option( 'ep_index_meta', [] );
+	}
+
+	/**
+	 * Handle fatal errors during syncs.
+	 *
+	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
+	 *
+	 * @since 4.2.0
+	 */
+	public function handle_index_error() {
+		$error = error_get_last();
+		if ( empty( $error['type'] ) || E_ERROR !== $error['type'] ) {
+			return;
+		}
+
+		$this->update_totals_from_current_sync_item();
+
+		$totals = $this->index_meta['totals'];
+
+		$this->index_meta['totals']['errors'][] = $error['message'];
+		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
+		$this->update_last_index();
+
+		/**
+		 * Fires after a sync failed due to a PHP fatal error.
+		 *
+		 * @since 4.2.0
+		 * @hook ep_after_sync_error
+		 * @param {array} $error The error
+		 */
+		do_action( 'ep_after_sync_error', $error );
+
+		$this->output_error(
+			sprintf(
+				/* translators: Error message */
+				esc_html__( 'Index failed: %s', 'elasticpress' ),
+				$error['message']
+			)
+		);
 	}
 
 	/**
