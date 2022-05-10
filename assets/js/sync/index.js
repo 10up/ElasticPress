@@ -116,7 +116,7 @@ const App = () => {
 		 */
 		(error) => {
 			/**
-			 * Any running requests are cancelled when a new request us made.
+			 * Any running requests are cancelled when a new request is made.
 			 * We can handle this silently.
 			 */
 			if (error.name === 'AbortError') {
