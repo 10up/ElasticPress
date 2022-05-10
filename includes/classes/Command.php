@@ -982,7 +982,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_after_clear_index' );
 
-		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
+		WP_CLI::log( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 
 	/**
@@ -1020,7 +1020,27 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
+	 * Returns a JSON array with the results of the last index (if present) or an empty array.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-last-sync
+	 * @alias      get-last-index
+	 * @since 4.2.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_last_sync( $args, $assoc_args ) {
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+
+		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
+	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
@@ -1036,11 +1056,10 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_cli_index( $args, $assoc_args ) {
-
-		$last_sync = get_site_option( 'ep_last_cli_index', array() );
+		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
-			delete_site_option( 'ep_last_cli_index' );
+			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
 		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
