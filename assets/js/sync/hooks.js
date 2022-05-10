@@ -35,15 +35,9 @@ export const useIndex = () => {
 		 * @returns {Promise} Current request promise.
 		 */
 		(options) => {
-			request.current = apiFetch(options)
-				.catch((error) => {
-					if (error?.name !== 'AbortError' && !request.current) {
-						throw error;
-					}
-				})
-				.finally(() => {
-					request.current = null;
-				});
+			request.current = apiFetch(options).finally(() => {
+				request.current = null;
+			});
 
 			return request.current;
 		},

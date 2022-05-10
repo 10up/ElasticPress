@@ -112,6 +112,35 @@ const App = () => {
 		[],
 	);
 
+	const syncError = useCallback(
+		/**
+		 * Handle an error in the sync request.
+		 *
+		 * @param {Error} error Request error.
+		 * @returns {void}
+		 */
+		(error) => {
+			/**
+			 * Any running requests are cancelled when a new request us made.
+			 * We can handle this silently.
+			 */
+			if (error.name === 'AbortError') {
+				return;
+			}
+
+			/**
+			 * Log any messages.
+			 */
+			if (error.message) {
+				logMessage(error.message, 'error');
+			}
+
+			logMessage(__('Sync failed', 'elasticpress'), 'error');
+			updateState({ isSyncing: false });
+		},
+		[logMessage],
+	);
+
 	const syncInterrupted = useCallback(
 		/**
 		 * Set sync state to interrupted.
@@ -242,9 +271,9 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
-			indexStatus().then(updateSyncState).then(doIndexStatus);
+			indexStatus().then(updateSyncState).then(doIndexStatus).catch(syncError);
 		},
-		[indexStatus, updateSyncState],
+		[indexStatus, syncError, updateSyncState],
 	);
 
 	const doIndex = useCallback(
@@ -271,9 +300,10 @@ const App = () => {
 							doIndex(isDeleting);
 						}
 					},
-				);
+				)
+				.catch(syncError);
 		},
-		[doIndexStatus, index, updateSyncState],
+		[doIndexStatus, index, syncError, updateSyncState],
 	);
 
 	const pauseSync = useCallback(

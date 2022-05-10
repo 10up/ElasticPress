@@ -43,7 +43,7 @@ class Sync {
 	 */
 	public function action_wp_ajax_ep_cli_index() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
-			wp_send_json_error();
+			wp_send_json_error(null, 403);
 			exit;
 		}
 
@@ -79,7 +79,7 @@ class Sync {
 	 */
 	public function action_wp_ajax_ep_index() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
-			wp_send_json_error();
+			wp_send_json_error(null, 403);
 			exit;
 		}
 
@@ -107,7 +107,7 @@ class Sync {
 	 */
 	public function action_wp_ajax_ep_cancel_index() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
-			wp_send_json_error();
+			wp_send_json_error(null, 403);
 			exit;
 		}
 
