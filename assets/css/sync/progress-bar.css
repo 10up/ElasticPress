@@ -1,7 +1,6 @@
 .ep-sync-progress-bar {
 	background: var(--ep-sync-color-light-grey);
 	display: flex;
-	line-height: 1.75;
 	overflow: hidden;
 	text-align: center;
 }
