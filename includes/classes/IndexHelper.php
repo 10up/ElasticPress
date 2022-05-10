@@ -729,8 +729,8 @@ class IndexHelper {
 
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
-		$this->index_meta['offset']            = 0;
-		$this->index_meta['current_sync_item'] = null;
+		$this->index_meta['offset']             = 0;
+		$this->index_meta['current_sync_item']  = null;
 		$this->index_meta['totals']['total']   += $current_sync_item['total'];
 		$this->index_meta['totals']['synced']  += $current_sync_item['synced'];
 		$this->index_meta['totals']['skipped'] += $current_sync_item['skipped'];
@@ -760,7 +760,6 @@ class IndexHelper {
 
 			$this->output( $message, 'warning' );
 		}
-
 
 		if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$message = sprintf(
