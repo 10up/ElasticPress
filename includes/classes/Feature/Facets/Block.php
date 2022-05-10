@@ -146,29 +146,41 @@ class Block {
 	 * @return string
 	 */
 	public function render_block_preview( $request ) {
+		global $wp_query;
+
 		add_filter( 'ep_is_facetable', '__return_true' );
 
 		$search = Features::factory()->get_registered_feature( 'search' );
 
-		$query = new \WP_Query(
+		$wp_query = new \WP_Query(
 			[
 				'post_type' => $search->get_searchable_post_types(),
 				'per_page'  => 1,
 			]
 		);
 
+		$facet = $request->get_param( 'facet' );
+
 		$attributes = [
-			'facet'   => $request->get_param( 'facet' ),
+			'facet'   => $facet,
 			'orderby' => $request->get_param( 'orderby' ),
 			'order'   => $request->get_param( 'order' ),
 		];
 
 		ob_start();
-		$this->renderer->render( [], $attributes, $query );
+		$this->renderer->render( [], $attributes );
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
-			return esc_html__( 'Preview not available', 'elasticpress' );
+			$taxonomy = get_taxonomy( $facet );
+			if ( ! $taxonomy ) {
+				return esc_html__( 'Invalid taxonomy selected.', 'elasticpress' );
+			}
+			return sprintf(
+				/* translators: Taxonomy name */
+				esc_html__( 'Term preview for %s not available', 'elasticpress' ),
+				esc_html( $taxonomy->labels->name )
+			);
 		}
 
 		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );

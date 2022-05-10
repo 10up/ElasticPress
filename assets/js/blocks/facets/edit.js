@@ -1,5 +1,11 @@
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, RadioControl, SelectControl } from '@wordpress/components';
+import {
+	PanelBody,
+	RadioControl,
+	SelectControl,
+	Spinner,
+	Placeholder,
+} from '@wordpress/components';
 import { Fragment, useEffect, useState, useCallback } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
@@ -8,6 +14,7 @@ const FacetBlockEdit = (props) => {
 	const { attributes, setAttributes } = props;
 	const [taxonomies, setTaxonomies] = useState({});
 	const [preview, setPreview] = useState('');
+	const [loading, setLoading] = useState(false);
 	const { facet, orderby, order } = attributes;
 
 	const blockProps = useBlockProps();
@@ -22,6 +29,7 @@ const FacetBlockEdit = (props) => {
 	useEffect(load, [load]);
 
 	useEffect(() => {
+		setLoading(true);
 		const params = new URLSearchParams({
 			facet,
 			orderby,
@@ -29,8 +37,10 @@ const FacetBlockEdit = (props) => {
 		});
 		apiFetch({
 			path: `/elasticpress/v1/facets/block-preview?${params}`,
-		}).then((preview) => setPreview(preview));
-	});
+		})
+			.then((preview) => setPreview(preview))
+			.finally(() => setLoading(false));
+	}, [facet, orderby, order]);
 
 	return (
 		<Fragment>
@@ -69,7 +79,15 @@ const FacetBlockEdit = (props) => {
 				</PanelBody>
 			</InspectorControls>
 
-			<div {...blockProps} dangerouslySetInnerHTML={{ __html: preview }} />
+			<div {...blockProps}>
+				{loading && (
+					<Placeholder>
+						<Spinner />
+					</Placeholder>
+				)}
+				{/* eslint-disable-next-line react/no-danger */}
+				{!loading && <div dangerouslySetInnerHTML={{ __html: preview }} />}
+			</div>
 		</Fragment>
 	);
 };
