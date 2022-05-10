@@ -18,7 +18,7 @@ export const clearSyncParam = () => {
  * @returns {number} Number of items.
  */
 export const getItemsTotalFromIndexMeta = (indexMeta) => {
-	let itemsTotal = indexMeta.totals.total;
+	let itemsTotal = 0;
 
 	if (indexMeta.current_sync_item) {
 		itemsTotal += indexMeta.current_sync_item.found_items;
@@ -28,6 +28,10 @@ export const getItemsTotalFromIndexMeta = (indexMeta) => {
 		(itemsTotal, sync) => itemsTotal + sync.found_items,
 		itemsTotal,
 	);
+
+	itemsTotal += indexMeta.totals.failed;
+	itemsTotal += indexMeta.totals.skipped;
+	itemsTotal += indexMeta.totals.synced;
 
 	return itemsTotal;
 };
@@ -39,11 +43,17 @@ export const getItemsTotalFromIndexMeta = (indexMeta) => {
  * @returns {number} Number of processed items.
  */
 export const getItemsProcessedFromIndexMeta = (indexMeta) => {
-	let itemsProcessed = indexMeta.totals.total;
+	let itemsProcessed = 0;
 
 	if (indexMeta.current_sync_item) {
-		itemsProcessed += indexMeta.current_sync_item.total;
+		itemsProcessed += indexMeta.current_sync_item.failed;
+		itemsProcessed += indexMeta.current_sync_item.skipped;
+		itemsProcessed += indexMeta.current_sync_item.synced;
 	}
+
+	itemsProcessed += indexMeta.totals.failed;
+	itemsProcessed += indexMeta.totals.skipped;
+	itemsProcessed += indexMeta.totals.synced;
 
 	return itemsProcessed;
 };
