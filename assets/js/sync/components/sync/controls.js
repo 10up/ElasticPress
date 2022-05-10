@@ -76,7 +76,6 @@ export default ({ disabled, isPaused, isSyncing, onPause, onResume, onStop, onSy
 					<div className="ep-sync-controls__stop">
 						<Button
 							className="ep-sync-button ep-sync-button--stop"
-							disabled={disabled}
 							icon={stop}
 							isSecondary
 							onClick={onStop}

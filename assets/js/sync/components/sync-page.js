@@ -83,9 +83,9 @@ export default ({
 
 					<div className="ep-sync-panel__controls">
 						<SyncControls
-							disabled={(isSyncing && isDeleting) || isCli}
+							disabled={(isSyncing && isDeleting) || (isSyncing && isCli)}
 							isPaused={isPaused}
-							isSyncing={isSyncing && !isDeleting && !isCli}
+							isSyncing={isSyncing && !isDeleting}
 							onPause={onPause}
 							onResume={onResume}
 							onStop={onStop}
@@ -140,9 +140,9 @@ export default ({
 
 					<div className="ep-sync-panel__controls">
 						<SyncControls
-							disabled={(isSyncing && !isDeleting) || isCli}
+							disabled={(isSyncing && !isDeleting) || (isSyncing && isCli)}
 							isPaused={isPaused}
-							isSyncing={isSyncing && isDeleting && !isCli}
+							isSyncing={isSyncing && isDeleting}
 							onPause={onPause}
 							onResume={onResume}
 							onStop={onStop}
