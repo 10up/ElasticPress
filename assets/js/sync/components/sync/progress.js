@@ -48,13 +48,9 @@ export default ({ isCli, isComplete, isPaused, itemsProcessed, itemsTotal, dateT
 				return __('WP CLI sync in progress', 'elasticpress');
 			}
 
-			if (dateTime) {
-				return __('Sync in progress', 'elasticpress');
-			}
-
-			return __('Starting sync', 'elasticpress');
+			return __('Sync in progress', 'elasticpress');
 		},
-		[isCli, isComplete, isPaused, dateTime],
+		[isCli, isComplete, isPaused],
 	);
 
 	return (

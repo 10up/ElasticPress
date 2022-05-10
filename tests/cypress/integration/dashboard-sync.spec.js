@@ -19,9 +19,9 @@ describe('Dashboard Sync', () => {
 
 	function resumeAndWait() {
 		cy.get('.ep-sync-button--resume').click();
-		cy.get('.ep-sync-progress', {
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 	}
 
 	before(() => {
@@ -38,9 +38,9 @@ describe('Dashboard Sync', () => {
 	it('Can index content and see indexes names in the Health Screen', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.get('.ep-sync-button--delete').click();
-		cy.get('.ep-sync-progress', {
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		canSeeIndexesNames();
 	});
@@ -56,9 +56,9 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.get('.ep-sync-button--delete').click();
-		cy.get('.ep-sync-progress', {
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -86,9 +86,9 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
 		cy.get('.ep-sync-button--delete').click();
-		cy.get('.ep-sync-progress', {
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -127,7 +127,7 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('index.php');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-progress').should('contain.text', 'Sync in progress');
+		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync in progress');
 
 		resumeAndWait();
 
