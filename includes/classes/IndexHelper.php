@@ -287,7 +287,7 @@ class IndexHelper {
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name, 2: Site ID */
-						esc_html__( 'Indexing %1$s on site %2$d...', 'elasticpress' ),
+						esc_html__( 'Indexing %1$s on site %2$d…', 'elasticpress' ),
 						esc_html( strtolower( $indexable->labels['plural'] ) ),
 						$this->index_meta['current_sync_item']['blog_id']
 					)
@@ -295,9 +295,9 @@ class IndexHelper {
 			} else {
 				$message_string = ( $indexable->global ) ?
 					/* translators: 1: Indexable name */
-					esc_html__( 'Indexing %1$s (globally)...', 'elasticpress' ) :
+					esc_html__( 'Indexing %1$s (globally)…', 'elasticpress' ) :
 					/* translators: 1: Indexable name */
-					esc_html__( 'Indexing %1$s...', 'elasticpress' );
+					esc_html__( 'Indexing %1$s…', 'elasticpress' );
 
 				$this->output_success(
 					sprintf(
@@ -410,7 +410,7 @@ class IndexHelper {
 				$this->output(
 					sprintf(
 						/* translators: 1. Number of objects skipped 2. Indexable type */
-						esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
+						esc_html__( 'Skipping %1$d %2$s…', 'elasticpress' ),
 						$this->index_meta['from'],
 						esc_html( strtolower( $indexable->labels['plural'] ) )
 					),
@@ -877,7 +877,7 @@ class IndexHelper {
 			$this->output_success(
 				sprintf(
 					/* translators: 1: Indexable name */
-					esc_html__( 'Network alias created for %1$s ...', 'elasticpress' ),
+					esc_html__( 'Network alias created for %1$s', 'elasticpress' ),
 					esc_html( strtolower( $indexable->labels['plural'] ) )
 				)
 			);
@@ -885,7 +885,7 @@ class IndexHelper {
 			$this->output_error(
 				sprintf(
 					/* translators: 1: Indexable name */
-					esc_html__( 'Network alias creation failed for %1$s ...', 'elasticpress' ),
+					esc_html__( 'Network alias creation failed for %1$s', 'elasticpress' ),
 					esc_html( strtolower( $indexable->labels['plural'] ) )
 				)
 			);
