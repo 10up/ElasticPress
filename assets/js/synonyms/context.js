@@ -1,4 +1,11 @@
-import React, { createContext, useReducer } from 'react';
+/**
+ * WordPress dependencies.
+ */
+import { createContext, useReducer, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { editorReducer, initialState } from './reducers/editorReducer';
 
 const State = createContext();
@@ -8,7 +15,7 @@ const Dispatch = createContext();
  * App Context.
  *
  * @param {object} props Props.
- * @returns {React.FC} AppContext component
+ * @returns {WPElement} AppContext component
  */
 const AppContext = (props) => {
 	const { children } = props;

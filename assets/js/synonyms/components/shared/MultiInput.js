@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
+/**
+ * External dependencies.
+ */
 import CreatableSelect from 'react-select/creatable';
+
+/**
+ * WordPress dependencies.
+ */
+import { useState, WPElement } from '@wordpress/element';
 
 /**
  * Synonyms editor component.
  *
  * @param {object} props Props.
- * @returns {React.FC} MultiInput component
+ * @returns {WPElement} MultiInput component
  */
 const MultiInput = (props) => {
 	const { tokens, setTokens } = props;
@@ -25,7 +32,7 @@ const MultiInput = (props) => {
 	/**
 	 * Handle key down.
 	 *
-	 * @param {React.SyntheticEvent} event Keydown event.
+	 * @param {Event} event Keydown event.
 	 */
 	const handleKeyDown = (event) => {
 		switch (event.key) {

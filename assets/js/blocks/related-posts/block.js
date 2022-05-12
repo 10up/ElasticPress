@@ -1,8 +1,13 @@
+/**
+ * WordPress dependencies.
+ */
+import { registerBlockType } from '@wordpress/blocks';
+import { __ } from '@wordpress/i18n';
+
+/**
+ * Internal dependencies.
+ */
 import Edit from './Edit';
-
-const { __ } = wp.i18n;
-
-const { registerBlockType } = wp.blocks;
 
 registerBlockType('elasticpress/related-posts', {
 	title: __('Related Posts (ElasticPress)', 'elasticpress'),

@@ -1,6 +1,13 @@
-import React, { useContext } from 'react';
-import MultiInput from './MultiInput';
+/**
+ * WordPress dependencies.
+ */
+import { useContext, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch } from '../../context';
+import MultiInput from './MultiInput';
 
 /**
  * Linked MultiInput
@@ -10,7 +17,7 @@ import { Dispatch } from '../../context';
  * @param {object[]} props.synonyms     Array of synonyms.
  * @param {string}   props.removeAction Name of action to dispatch on remove.
  * @param {string}   props.updateAction Name of action to dispatch on update.
- * @returns {React.FC} LinkedMultiInput component
+ * @returns {WPElement} LinkedMultiInput component
  */
 const LinkedMultiInput = ({ id, synonyms, removeAction, updateAction }) => {
 	const dispatch = useContext(Dispatch);
