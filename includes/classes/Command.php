@@ -261,7 +261,7 @@ class Command extends WP_CLI_Command {
 						continue;
 					}
 
-					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
 					$result = $indexable->put_mapping();
@@ -296,7 +296,7 @@ class Command extends WP_CLI_Command {
 					continue;
 				}
 
-				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
 				$result = $indexable->put_mapping();
@@ -332,7 +332,7 @@ class Command extends WP_CLI_Command {
 				continue;
 			}
 
-			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_index();
 			$result = $indexable->put_mapping();
@@ -507,7 +507,7 @@ class Command extends WP_CLI_Command {
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
 
-					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $indexable->delete_index();
 
@@ -522,7 +522,7 @@ class Command extends WP_CLI_Command {
 			}
 		} else {
 			foreach ( $non_global_indexable_objects as $indexable ) {
-				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 				$result = $indexable->delete_index();
 
@@ -535,7 +535,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		foreach ( $global_indexable_objects as $indexable ) {
-			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 			$result = $indexable->delete_index();
 
@@ -564,7 +564,7 @@ class Command extends WP_CLI_Command {
 		$indexables = Indexables::factory()->get_all( false );
 
 		foreach ( $indexables as $indexable ) {
-			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_network_alias();
 
@@ -1132,7 +1132,7 @@ class Command extends WP_CLI_Command {
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
 			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
 		} else {
-			WP_CLI::line( esc_html__( 'Stopping indexing...', 'elasticpress' ) );
+			WP_CLI::line( esc_html__( 'Stopping indexing…', 'elasticpress' ) );
 
 			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
 				set_transient( 'ep_wpcli_sync_interrupted', true, MINUTE_IN_SECONDS );

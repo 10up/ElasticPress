@@ -6,6 +6,7 @@
   "devDependencies": {
     "@wordpress/env": "^4.2.2",
     "10up-toolkit": "^3.0.0",
+    "classnames": "^2.3.1",
     "cypress": "^9.5.0",
     "cypress-file-upload": "^5.0.8",
     "eslint-plugin-cypress": "^2.12.1",
@@ -54,7 +55,7 @@
       "ordering-script.min": "./assets/js/ordering/index.js",
       "related-posts-block-script.min": "./assets/js/blocks/related-posts/block.js",
       "settings-script.min": "./assets/js/settings.js",
-      "sync-script.min": "./assets/js/sync.js",
+      "sync-script.min": "./assets/js/sync/index.js",
       "sites-admin-script.min": "./assets/js/sites-admin.js",
       "stats-script.min": "./assets/js/stats.js",
       "synonyms-script.min": "./assets/js/synonyms/index.js",
