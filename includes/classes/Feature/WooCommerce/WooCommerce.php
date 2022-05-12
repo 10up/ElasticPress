@@ -805,6 +805,8 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
+
+		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
 	}
 
 	/**
@@ -933,6 +935,27 @@ class WooCommerce extends Feature {
 		}
 
 		return $skip;
+	}
+
+	/**
+	 * Bypass default WooCommerce behavior in the Product Admin List View.
+	 *
+	 * @todo This is just a proof of concept. Should NOT be merged as is.
+	 *
+	 * @param array $query_vars Query vars for the main WP_Query.
+	 * @return array
+	 */
+	public function admin_product_list_request_query( $query_vars ) {
+		global $typenow, $wc_list_table;
+
+		if ( 'product' !== $typenow ) {
+			return $query_vars;
+		}
+
+		add_filter( 'ep_is_integrated_request', '__return_true' );
+		remove_filter( 'request', [ $wc_list_table, 'request_query' ] );
+
+		return $query_vars;
 	}
 
 	/**
