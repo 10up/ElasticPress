@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { Fragment, useContext, WPElement } from 'react';
+import { Fragment, useContext, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
