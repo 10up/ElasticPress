@@ -59,7 +59,7 @@ class Search extends Feature {
 
 		$this->requires_install_reindex = false;
 
-		$this->default_settings         = [
+		$this->default_settings = [
 			'decaying_enabled'     => '1',
 			'synonyms_editor_mode' => 'simple',
 			'highlight_enabled'    => '0',
