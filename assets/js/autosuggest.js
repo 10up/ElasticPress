@@ -478,7 +478,7 @@ function init() {
 				}
 				break;
 			case 13: // Enter
-				if (results[currentIndex].classList.contains('selected')) {
+				if (results[currentIndex]?.classList.contains('selected')) {
 					// navigate to the item defined in the span's data-url attribute
 					selectItem(input, results[currentIndex].querySelector('.autosuggest-link'));
 				}
