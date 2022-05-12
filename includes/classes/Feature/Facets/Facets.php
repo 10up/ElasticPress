@@ -26,6 +26,7 @@ class Facets extends Feature {
 	/**
 	 * Block instance.
 	 *
+	 * @since 4.2.0
 	 * @var Block
 	 */
 	public $block;
@@ -540,6 +541,7 @@ class Facets extends Feature {
 	/**
 	 * Get all taxonomies that could be selected for a facet.
 	 *
+	 * @since 4.2.0
 	 * @return array
 	 */
 	public function get_facetable_taxonomies() {

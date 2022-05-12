@@ -1,7 +1,8 @@
 <?php
 /**
- * Facets widget
+ * Facets block
  *
+ * @since 4.2.0
  * @package elasticpress
  */
 
@@ -29,8 +30,6 @@ class Block {
 
 	/**
 	 * Setup REST endpoints for the feature.
-	 *
-	 * @since 4.2.0
 	 */
 	public function setup_endpoints() {
 		register_rest_route(
@@ -142,7 +141,6 @@ class Block {
 	/**
 	 * Outputs the block preview
 	 *
-	 * @since 4.2.0
 	 * @param \WP_REST_Request $request REST request
 	 * @return string
 	 */
