@@ -81,7 +81,6 @@
     "focus-trap-react": "^8.8.2",
     "promise-polyfill": "^8.2.1",
     "react-beautiful-dnd": "^11.0.5",
-    "react-select": "^3.2.0",
     "react-slider": "^1.3.1",
     "uuid": "^8.3.2",
     "whatwg-fetch": "^3.6.2"
