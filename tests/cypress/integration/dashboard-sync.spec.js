@@ -18,10 +18,10 @@ describe('Dashboard Sync', () => {
 	}
 
 	function resumeAndWait() {
-		cy.get('.ep-delete-data-and-sync .resume-sync').click();
-		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+		cy.get('.ep-sync-button--resume').click();
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 	}
 
 	before(() => {
@@ -37,10 +37,10 @@ describe('Dashboard Sync', () => {
 
 	it('Can index content and see indexes names in the Health Screen', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-delete-data-and-sync__button-delete').click();
-		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		canSeeIndexesNames();
 	});
@@ -55,10 +55,10 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-delete-data-and-sync__button-delete').click();
-		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -85,10 +85,10 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
-		cy.get('.ep-delete-data-and-sync__button-delete').click();
-		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
@@ -120,17 +120,15 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.get('.ep-sync-button--delete').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-		cy.get('.ep-delete-data-and-sync .pause-sync').should('be.visible');
+		cy.get('.ep-sync-button--pause').should('be.visible');
 
 		cy.visitAdminPage('index.php');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info').should(
-			'contain.text',
-			'Sync in progress',
-		);
+		cy.get('.ep-sync-button--resume').should('be.visible');
+		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync paused');
 
 		resumeAndWait();
 
@@ -144,7 +142,7 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.get('.ep-sync-button--delete').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
@@ -164,12 +162,11 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-delete-data-and-sync__button-delete').click();
+		cy.get('.ep-sync-button--delete').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
-		cy.get('.ep-delete-data-and-sync .pause-sync').should('be.visible');
-		cy.get('.ep-delete-data-and-sync .pause-sync').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+		cy.get('.ep-sync-button--pause').should('be.visible');
+		cy.get('.ep-sync-button--pause').click();
 
 		cy.wpCli('wp elasticpress index', true)
 			.its('stderr')

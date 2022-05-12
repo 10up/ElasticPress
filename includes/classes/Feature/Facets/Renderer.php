@@ -22,7 +22,7 @@ class Renderer {
 	/**
 	 * Output the widget or block HTML.
 	 *
-	 * @param array $args Widget args
+	 * @param array $args     Widget args
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
@@ -30,10 +30,8 @@ class Renderer {
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
-		if ( $wp_query->get( 'ep_facet', false ) ) {
-			if ( ! $feature->is_facetable( $wp_query ) ) {
-				return false;
-			}
+		if ( $wp_query->get( 'ep_facet', false ) && ! $feature->is_facetable( $wp_query ) ) {
+			return false;
 		}
 
 		$es_success = ( ! empty( $wp_query->elasticsearch_success ) ) ? true : false;

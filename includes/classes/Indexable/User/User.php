@@ -134,7 +134,7 @@ class User extends Indexable {
 
 			// If there are no specific roles named, make sure the user is a member of the site.
 			if ( empty( $query_vars['role'] ) && empty( $query_vars['role__in'] ) && empty( $query_vars['role__not_in'] ) ) {
-				$filter['bool']['must'][]     = array(
+				$filter['bool']['must'][] = array(
 					'exists' => array(
 						'field' => 'capabilities.' . $blog_id . '.roles',
 					),
@@ -747,7 +747,7 @@ class User extends Indexable {
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
 		 */
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared  
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} {$orderby} LIMIT %d, %d", (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
