@@ -683,8 +683,6 @@ class IndexHelper {
 				}
 			}
 
-			$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $queued_items_ids );
-
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
 				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
@@ -702,6 +700,8 @@ class IndexHelper {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
 		}
+
+		$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $this->current_query['objects'] )->ID;
 
 		$this->output(
 			sprintf(
