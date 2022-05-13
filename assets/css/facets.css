@@ -1,62 +1,70 @@
-.widget_ep-facet input[type="search"] {
-	margin-bottom: 1rem;
-}
+.widget_ep-facet,
+.wp-block-elasticpress-facet {
 
-.widget_ep-facet .searchable .inner {
-	max-height: 20em;
-	overflow: scroll;
-}
+	& input[type="search"] {
+		margin-bottom: 1rem;
+	}
 
-.widget_ep-facet .term.hide {
-	display: none;
-}
+	& .searchable .inner {
+		max-height: 20em;
+		overflow: scroll;
+	}
 
-.widget_ep-facet .empty-term {
-	opacity: 0.5;
-	position: relative;
-}
+	& .term.hide {
+		display: none;
+	}
 
-.widget_ep-facet .empty-term::after {
-	bottom: 0;
-	content: " ";
-	display: block;
-	left: 0;
-	position: absolute;
-	right: 0;
-	top: 0;
-	width: 100%;
-	z-index: 2;
-}
+	& .empty-term {
+		opacity: 0.5;
+		position: relative;
+	}
 
-.widget_ep-facet .level-1 {
-	padding-left: 20px;
-}
+	& .empty-term::after {
+		bottom: 0;
+		content: " ";
+		display: block;
+		left: 0;
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 100%;
+		z-index: 2;
+	}
 
-.widget_ep-facet .level-2 {
-	padding-left: 40px;
-}
+	& .level-1 {
+		padding-left: 20px;
+	}
+	
+	& .level-2 {
+		padding-left: 40px;
+	}
+	
+	& .level-3 {
+		padding-left: 60px;
+	}
+	
+	& .level-4 {
+		padding-left: 80px;
+	}
+	
+	& .level-5 {
+		padding-left: 100px;
+	}
 
-.widget_ep-facet .level-3 {
-	padding-left: 60px;
-}
+	& input[disabled] {
+		cursor: pointer;
+		opacity: 1;
+	}
+	
+	& .term a {
+		align-items: center;
+		display: flex;
+		position: relative;
+	}
 
-.widget_ep-facet .level-4 {
-	padding-left: 80px;
-}
-
-.widget_ep-facet .level-5 {
-	padding-left: 100px;
-}
-
-.widget_ep-facet input[disabled] {
-	cursor: pointer;
-	opacity: 1;
-}
-
-.widget_ep-facet .term a {
-	align-items: center;
-	display: flex;
-	position: relative;
+	& .term a:hover .ep-checkbox {
+		background-color: #ccc;
+	}
 }
 
 .ep-checkbox {
@@ -86,8 +94,4 @@
 
 .ep-checkbox.checked::after {
 	display: block;
-}
-
-.widget_ep-facet .term a:hover .ep-checkbox {
-	background-color: #ccc;
 }
