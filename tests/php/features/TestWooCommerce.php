@@ -344,7 +344,7 @@ class TestWooCommerce extends BaseTestCase {
 
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 		add_action( 'pre_get_posts', [ $woocommerce_feature, 'translate_args_admin_products_list' ] );
-		
+
 		$search_fields_function = function() {
 			return [ 'post_title', 'post_content' ];
 		};
