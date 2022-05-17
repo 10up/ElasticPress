@@ -1,8 +1,18 @@
-// External
-import React, { Component } from 'react';
-import apiFetch from '@wordpress/api-fetch';
+/**
+ * External dependencies.
+ */
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+
+/**
+ * WordPress dependencies.
+ */
+import apiFetch from '@wordpress/api-fetch';
+import { Component, Fragment } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Internal dependencies.
+ */
 import { pluck, debounce } from '../utils/helpers';
 
 apiFetch.use(apiFetch.createRootURLMiddleware(window.epOrdering.restApiRoot));
@@ -369,7 +379,7 @@ export class Pointers extends Component {
 											  );
 
 									return (
-										<React.Fragment key={item.ID}>
+										<Fragment key={item.ID}>
 											{parseInt(window.epOrdering.postsPerPage, 10) ===
 												index && (
 												<Draggable
@@ -450,7 +460,7 @@ export class Pointers extends Component {
 													</div>
 												)}
 											</Draggable>
-										</React.Fragment>
+										</Fragment>
 									);
 								})}
 								{provided.placeholder}

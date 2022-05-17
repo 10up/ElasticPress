@@ -1,4 +1,11 @@
-import ReactDOM from 'react-dom';
+/**
+ * WordPress dependencies.
+ */
+import { render } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { AppContext } from './context';
 import SynonymsEditor from './components/SynonymsEditor';
 
@@ -11,7 +18,7 @@ const SELECTOR = '#synonym-root';
  */
 const getRoot = () => document.querySelector(SELECTOR) || false;
 
-ReactDOM.render(
+render(
 	<AppContext>
 		<SynonymsEditor />
 	</AppContext>,

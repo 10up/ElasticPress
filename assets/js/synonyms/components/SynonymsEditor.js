@@ -1,13 +1,20 @@
-import React, { useContext, useEffect } from 'react';
+/**
+ * WordPress dependencies.
+ */
+import { useContext, useEffect, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { State, Dispatch } from '../context';
-import SetsEditor from './editors/SetsEditor';
 import AlterativesEditor from './editors/AlternativesEditor';
+import SetsEditor from './editors/SetsEditor';
 import SolrEditor from './editors/SolrEditor';
 
 /**
  * Synonyms editor component.
  *
- * @returns {React.FC} Synonyms component
+ * @returns {WPElement} Synonyms component
  */
 const SynonymsEditor = () => {
 	const state = useContext(State);
