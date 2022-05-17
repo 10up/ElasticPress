@@ -24,6 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Facets extends Feature {
 
 	/**
+	 * Block instance.
+	 *
+	 * @since 4.2.0
+	 * @var Block
+	 */
+	public $block;
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -59,6 +67,9 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+
+		$this->block = new Block();
+		$this->block->setup();
 	}
 
 	/**
@@ -525,5 +536,23 @@ class Facets extends Feature {
 		 * @return  {string} New facet filter name
 		 */
 		return apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
+	}
+
+	/**
+	 * Get all taxonomies that could be selected for a facet.
+	 *
+	 * @since 4.2.0
+	 * @return array
+	 */
+	public function get_facetable_taxonomies() {
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
+		return apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 	}
 }

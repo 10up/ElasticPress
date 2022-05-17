@@ -1,13 +1,20 @@
-import React, { useContext, Fragment } from 'react';
-import LinkedMultiInput from '../shared/LinkedMultiInput';
+/**
+ * WordPress dependencies.
+ */
+import { Fragment, useContext, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch, State } from '../../context';
+import LinkedMultiInput from '../shared/LinkedMultiInput';
 
 /**
  * Synonyms editor component.
  *
  * @param {object}   props      Props
  * @param {object[]} props.sets Defined sets (equivalent synonyms).
- * @returns {React.FC} SetsEditor component
+ * @returns {WPElement} SetsEditor component
  */
 const SetsEditor = ({ sets }) => {
 	const dispatch = useContext(Dispatch);
@@ -17,7 +24,7 @@ const SetsEditor = ({ sets }) => {
 	/**
 	 * Handle click.
 	 *
-	 * @param {React.SyntheticEvent} e Event
+	 * @param {Event} e Event
 	 */
 	const handleClick = (e) => {
 		const [lastSet] = state.sets.slice(-1);

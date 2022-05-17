@@ -1,3 +1,13 @@
+:root {
+	--ep-synonyms-input-border-color: hsl(0, 0%, 80%);
+	--ep-synonyms-color-black: #1a1e24;
+	--ep-synonyms-color-error: #b52727;
+}
+
+html.wp-toolbar {
+	background: transparent;
+}
+
 #synonym-root {
 
 	& .page-title-action {
@@ -9,67 +19,96 @@
 	}
 
 	& h2 {
-		color: #23282d;
+		color: var(--ep-synonyms-color-black);
 	}
 }
 
-.synonym-alternatives-editor,
-.synonym-set-editor {
-	display: flex;
+.synonym-editor {
 
-	& > .postbox {
+	& .postbox {
 		width: 100%;
 
 		& > .hndle {
 			display: flex;
 		}
 	}
-
-	& .synonym-alternative-editor {
-		display: flex;
-	}
-
-	& .ep-synonyms__linked-multi-input {
-		flex: 1;
-		margin-bottom: 0.5em;
-	}
-
-	& .ep-synonyms__input {
-		border: 1px solid hsl(0, 0%, 80%);
-		margin-bottom: 0.5em;
-		margin-right: 1em;
-		width: 10em;
-	}
-
-	& .synonym-alternatives__primary-heading {
-		width: 11em;
-	}
-
-	& .synonym-alternatives__input-heading {
-		flex: 1;
-	}
-
-	& .ep-synonyms__linked-multi-input input:focus {
-		box-shadow: none;
-	}
-
-	&.invalid input {
-		border-color: #a00;
-	}
 }
 
 .synonym-alternative-editor,
 .synonym-set-editor {
-	margin-top: 0.625em;
+	align-items: flex-start;
+	display: flex;
+
+	& .components-form-token-field {
+		flex: 1;
+		margin-bottom: 0.5em;
+	}
+
+	& .components-form-token-field__label {
+		display: none;
+	}
+
+	& .components-form-token-field__input-container {
+		border-color: var(--ep-synonyms-input-border-color);
+		box-sizing: border-box;
+	}
+
+	& .components-form-token-field__token-text {
+		padding-bottom: 1px;
+		padding-top: 1px;
+
+		@media screen and (max-width: 782px) {
+			padding-bottom: 3px;
+			padding-top: 3px;
+		}
+	}
+
+	& input[type="text"].components-form-token-field__input {
+		margin-bottom: 2px;
+		margin-top: 2px;
+
+		@media screen and (max-width: 782px) {
+			min-height: 30px;
+		}
+	}
+
+	& .components-form-token-field__help {
+		margin-top: 0;
+	}
+}
+
+input[type="text"].ep-synonyms__input {
+	border: 1px solid var(--ep-synonyms-input-border-color);
+	margin-bottom: 0.5em;
+	margin-right: 1em;
+	min-height: 36px;
+	width: 10em;
+
+	@media screen and (max-width: 782px) {
+		min-height: 40px;
+	}
+}
+
+.synonym-alternatives__primary-heading {
+	width: 11em;
+}
+
+.synonym-alternatives__input-heading {
+	flex: 1;
 }
 
 button.synonym__remove {
 	background-color: transparent;
 	border: none;
-	color: #a00;
+	color: var(--ep-synonyms-color-error);
 	cursor: pointer;
-	margin: -8px 0 0 10px;
+	margin: 0 0 0 10px;
+	min-height: 36px;
 	padding: 0;
+
+	@media screen and (max-width: 782px) {
+		min-height: 40px;
+	}
 
 	& .dashicons-dismiss {
 		margin: -2px 2px 0 0;
@@ -84,7 +123,7 @@ button.synonym__remove {
 
 .synonym__validation,
 .synonym-solr-editor__validation p {
-	color: #a00;
+	color: var(--ep-synonyms-color-error);
 	font-style: italic;
 }
 

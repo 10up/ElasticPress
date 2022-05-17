@@ -1,4 +1,8 @@
 /* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
+
+/**
+ * Internal dependencies.
+ */
 import {
 	findAncestorByClass,
 	escapeDoubleQuotes,
@@ -6,9 +10,6 @@ import {
 	debounce,
 	domReady,
 } from './utils/helpers';
-import 'element-closest';
-import 'promise-polyfill/src/polyfill';
-import 'whatwg-fetch';
 
 const { epas } = window;
 
@@ -186,7 +187,8 @@ async function esSearch(query, searchTerm) {
 	}
 
 	try {
-		const response = await window.fetch(epas.endpointUrl, fetchConfig);
+		const response = await fetch(epas.endpointUrl, fetchConfig);
+
 		if (!response.ok) {
 			throw Error(response.statusText);
 		}
@@ -478,7 +480,7 @@ function init() {
 				}
 				break;
 			case 13: // Enter
-				if (results[currentIndex].classList.contains('selected')) {
+				if (results[currentIndex]?.classList.contains('selected')) {
 					// navigate to the item defined in the span's data-url attribute
 					selectItem(input, results[currentIndex].querySelector('.autosuggest-link'));
 				}

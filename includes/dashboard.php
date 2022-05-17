@@ -421,6 +421,8 @@ function action_wp_ajax_ep_cancel_index() {
  * @since  2.2
  */
 function action_wp_ajax_ep_save_feature() {
+	$_POST = wp_unslash( $_POST );
+
 	if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 		wp_send_json_error();
 		exit;

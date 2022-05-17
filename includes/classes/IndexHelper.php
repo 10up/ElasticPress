@@ -287,7 +287,7 @@ class IndexHelper {
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name, 2: Site ID */
-						esc_html__( 'Indexing %1$s on site %2$d...', 'elasticpress' ),
+						esc_html__( 'Indexing %1$s on site %2$d…', 'elasticpress' ),
 						esc_html( strtolower( $indexable->labels['plural'] ) ),
 						$this->index_meta['current_sync_item']['blog_id']
 					)
@@ -295,9 +295,9 @@ class IndexHelper {
 			} else {
 				$message_string = ( $indexable->global ) ?
 					/* translators: 1: Indexable name */
-					esc_html__( 'Indexing %1$s (globally)...', 'elasticpress' ) :
+					esc_html__( 'Indexing %1$s (globally)…', 'elasticpress' ) :
 					/* translators: 1: Indexable name */
-					esc_html__( 'Indexing %1$s...', 'elasticpress' );
+					esc_html__( 'Indexing %1$s…', 'elasticpress' );
 
 				$this->output_success(
 					sprintf(
@@ -410,7 +410,7 @@ class IndexHelper {
 				$this->output(
 					sprintf(
 						/* translators: 1. Number of objects skipped 2. Indexable type */
-						esc_html__( 'Skipping %1$d %2$s...', 'elasticpress' ),
+						esc_html__( 'Skipping %1$d %2$s…', 'elasticpress' ),
 						$this->index_meta['from'],
 						esc_html( strtolower( $indexable->labels['plural'] ) )
 					),
@@ -683,8 +683,6 @@ class IndexHelper {
 				}
 			}
 
-			$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $queued_items_ids );
-
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
 				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
@@ -702,6 +700,8 @@ class IndexHelper {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
 		}
+
+		$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $this->current_query['objects'] )->ID;
 
 		$this->output(
 			sprintf(
@@ -751,9 +751,9 @@ class IndexHelper {
 
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
-		if ( $current_sync_item['failed'] ) {
-			$this->index_meta['current_sync_item']['failed'] = 0;
+		$this->index_meta['current_sync_item'] = null;
 
+		if ( $current_sync_item['failed'] ) {
 			if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$message = sprintf(
 					/* translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects */
@@ -774,8 +774,7 @@ class IndexHelper {
 			$this->output( $message, 'warning' );
 		}
 
-		$this->index_meta['offset']            = 0;
-		$this->index_meta['current_sync_item'] = null;
+		$this->index_meta['offset'] = 0;
 
 		if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$message = sprintf(
@@ -878,7 +877,7 @@ class IndexHelper {
 			$this->output_success(
 				sprintf(
 					/* translators: 1: Indexable name */
-					esc_html__( 'Network alias created for %1$s ...', 'elasticpress' ),
+					esc_html__( 'Network alias created for %1$s', 'elasticpress' ),
 					esc_html( strtolower( $indexable->labels['plural'] ) )
 				)
 			);
@@ -886,7 +885,7 @@ class IndexHelper {
 			$this->output_error(
 				sprintf(
 					/* translators: 1: Indexable name */
-					esc_html__( 'Network alias creation failed for %1$s ...', 'elasticpress' ),
+					esc_html__( 'Network alias creation failed for %1$s', 'elasticpress' ),
 					esc_html( strtolower( $indexable->labels['plural'] ) )
 				)
 			);

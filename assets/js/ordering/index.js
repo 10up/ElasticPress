@@ -1,5 +1,11 @@
-import ReactDOM from 'react-dom';
+/**
+ * WordPress dependencies.
+ */
+import { render } from '@wordpress/element';
 
+/**
+ * Internal dependencies.
+ */
 import { Pointers } from './pointers';
 
-ReactDOM.render(<Pointers />, document.getElementById('ordering-app'));
+render(<Pointers />, document.getElementById('ordering-app'));

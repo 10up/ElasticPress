@@ -28,7 +28,7 @@ const handleFacetSearch = (event, facetTerms) => {
 /**
  * Filter facet choices to match the search field term
  */
-const facets = document.querySelectorAll('.widget_ep-facet');
+const facets = document.querySelectorAll('.widget_ep-facet, .wp-block-elasticpress-facet');
 
 facets.forEach((facet) => {
 	const facetSearchInput = facet.querySelector('.facet-search');
