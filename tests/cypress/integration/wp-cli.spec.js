@@ -1,6 +1,8 @@
 /* global indexNames */
 
 describe('WP-CLI Commands', () => {
+	let indexAllSitesNames = [];
+
 	function checkIfNotMissingIndexes(mode = 'singleSite') {
 		cy.login();
 
@@ -19,7 +21,7 @@ describe('WP-CLI Commands', () => {
 		cy.get('.metabox-holder')
 			.invoke('text')
 			.then((text) => {
-				indexNames.forEach((index) => {
+				(mode === 'singleSite' ? indexNames : indexAllSitesNames).forEach((index) => {
 					expect(text).to.contains(index);
 				});
 			});
@@ -196,6 +198,9 @@ describe('WP-CLI Commands', () => {
 	context('multisite parameters', () => {
 		before(() => {
 			cy.activatePlugin('elasticpress', 'wpCli', 'network');
+			cy.wpCli('elasticpress get-indexes').then((wpCliResponse) => {
+				indexAllSitesNames = JSON.parse(wpCliResponse.stdout);
+			});
 		});
 
 		after(() => {
@@ -203,10 +208,46 @@ describe('WP-CLI Commands', () => {
 		});
 
 		it('Can index all blogs in network if user specifies --network-wide argument', () => {
+			// eslint-disable-next-line jest/valid-expect-in-promise
 			cy.wpCli('wp elasticpress index --network-wide')
 				.its('stdout')
-				.should('contain', 'Indexing posts on site')
-				.should('contain', 'Number of posts indexed on site');
+				.then((output) => {
+					expect((output.match(/Indexing posts on site/g) || []).length).to.equal(2);
+					expect(
+						(output.match(/Number of posts indexed on site/g) || []).length,
+					).to.equal(2);
+					expect(output).to.contain('Network alias created');
+				});
+
+			checkIfNotMissingIndexes('network');
+		});
+
+		it('Can index only current site if user does not specify --network-wide argument', () => {
+			// eslint-disable-next-line jest/valid-expect-in-promise
+			cy.wpCli(`wp elasticpress index`)
+				.its('stdout')
+				.then((output) => {
+					expect((output.match(/Indexing posts on site/g) || []).length).to.equal(1);
+					expect(
+						(output.match(/Number of posts indexed on site/g) || []).length,
+					).to.equal(1);
+					expect(output).to.not.contain('Network alias created');
+				});
+
+			checkIfNotMissingIndexes('network');
+		});
+
+		it('Can index only site in the --url parameter if user does not specify --network-wide argument', () => {
+			// eslint-disable-next-line jest/valid-expect-in-promise
+			cy.wpCli(`wp elasticpress index --url=${Cypress.config('baseUrl')}/second-site`)
+				.its('stdout')
+				.then((output) => {
+					expect((output.match(/Indexing posts on site/g) || []).length).to.equal(1);
+					expect(
+						(output.match(/Number of posts indexed on site/g) || []).length,
+					).to.equal(1);
+					expect(output).to.not.contain('Network alias created');
+				});
 
 			checkIfNotMissingIndexes('network');
 		});
