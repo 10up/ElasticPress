@@ -56,6 +56,15 @@ class Command extends WP_CLI_Command {
 	protected $assoc_args = [];
 
 	/**
+	 * Internal timer.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @var float
+	 */
+	protected $time_start = null;
+
+	/**
 	 * Create Command
 	 *
 	 * @since  3.5.2
@@ -743,7 +752,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		timer_start();
+		$this->timer_start();
 
 		add_action( 'ep_sync_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 3 );
 		add_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
@@ -802,7 +811,7 @@ class Command extends WP_CLI_Command {
 		remove_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		remove_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
-		$index_time = timer_stop();
+		$sync_time_in_ms = $this->timer_stop();
 
 		/**
 		 * Fires after executing a CLI index
@@ -815,7 +824,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_after_index', $args, $assoc_args );
 
-		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
+		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $this->timer_format( $sync_time_in_ms ) ) );
 
 		$this->delete_transient();
 
@@ -1335,9 +1344,9 @@ class Command extends WP_CLI_Command {
 		if ( 'index_next_batch' === $context ) {
 			$counter++;
 			if ( ( $counter % 10 ) === 0 ) {
-				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
-				$time_elapsed      = timer_stop( 0, 2 );
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
+				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( $this->timer_stop() - $time_elapsed ) . ')' : '';
+				$time_elapsed      = $this->timer_stop( 2 );
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $this->timer_format( $time_elapsed ) . $time_elapsed_diff ) );
 
 				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
 				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
@@ -1499,6 +1508,42 @@ class Command extends WP_CLI_Command {
 		include EP_PATH . '/uninstall.php';
 
 		WP_CLI::line( esc_html__( 'Settings deleted.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Starts the timer.
+	 *
+	 * @since 4.2.0
+	 * @return true
+	 */
+	protected function timer_start() {
+		$this->time_start = microtime( true );
+		return true;
+	}
+
+	/**
+	 * Stops the timer.
+	 *
+	 * @since 4.2.0
+	 * @param int $precision The number of digits from the right of the decimal to display. Default 3.
+	 * @return float Time spent so far
+	 */
+	protected function timer_stop( $precision = 3 ) {
+		$diff = microtime( true ) - $this->time_start;
+		return number_format( $diff, $precision );
+	}
+
+	/**
+	 * Given a timestamp in microseconds, returns it in the given format.
+	 *
+	 * @since 4.2.0
+	 * @param float  $microtime Unix timestamp in ms
+	 * @param string $format    Desired format
+	 * @return string
+	 */
+	protected function timer_format( $microtime, $format = 'H:i:s.u' ) {
+		$microtime_date = \DateTime::createFromFormat( 'U.u', number_format( $microtime, 3, '.', '' ) );
+		return $microtime_date->format( $format );
 	}
 
 	/**
