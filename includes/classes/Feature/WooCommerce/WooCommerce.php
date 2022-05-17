@@ -518,7 +518,7 @@ class WooCommerce extends Feature {
 					$query->set( 'order', 'DESC' );
 					break;
 				case 'price':
-					$query->set( 'order', 'ASC' );
+					$query->set( 'order', $query->get( 'order', 'ASC' ) );
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
 					break;
 				case 'price-desc':
@@ -534,6 +534,9 @@ class WooCommerce extends Feature {
 					break;
 				case 'ID':
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'ID' ) );
+					break;
+				case 'sku':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_sku' ) );
 					break;
 				default:
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
@@ -565,6 +568,7 @@ class WooCommerce extends Feature {
 				'total_sales'        => 'meta.total_sales.double date',
 				'_wc_average_rating' => 'meta._wc_average_rating.double date',
 				'_price'             => 'meta._price.double date',
+				'_sku'               => 'meta._sku.value.sortable date',
 			)
 		);
 
@@ -806,9 +810,8 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
-
-		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
+		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
 	}
 
 	/**
@@ -940,27 +943,6 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * Bypass default WooCommerce behavior in the Product Admin List View.
-	 *
-	 * @todo This is just a proof of concept. Should NOT be merged as is.
-	 *
-	 * @param array $query_vars Query vars for the main WP_Query.
-	 * @return array
-	 */
-	public function admin_product_list_request_query( $query_vars ) {
-		global $typenow, $wc_list_table;
-
-		if ( 'product' !== $typenow ) {
-			return $query_vars;
-		}
-
-		add_filter( 'ep_is_integrated_request', '__return_true' );
-		remove_filter( 'request', [ $wc_list_table, 'request_query' ] );
-
-		return $query_vars;
-	}
-
-	/**
 	 * Add a new `_variations_skus` meta field to the product to be indexed in Elasticsearch.
 	 *
 	 * @since 4.2.0
@@ -994,6 +976,108 @@ class WooCommerce extends Feature {
 		);
 
 		return $post_meta;
+	}
+
+	/**
+	 * Integrate ElasticPress with the WooCommerce Admin Product List.
+	 *
+	 * WooCommerce uses its `WC_Admin_List_Table_Products` class to control that screen. This
+	 * function adds all necessary hooks to bypass the default behavior and integrate with ElasticPress.
+	 * By default, WC runs a SQL query to get the Product IDs that match the list criteria and passes
+	 * that list of IDs to the main WP_Query. This integration changes that process to a single query, run
+	 * by ElasticPress.
+	 *
+	 * @since 4.2.0
+	 * @param array $query_vars Query vars.
+	 * @return array
+	 */
+	public function admin_product_list_request_query( $query_vars ) {
+		global $typenow, $wc_list_table;
+
+		// Return if not in the correct screen.
+		if ( ! is_a( $wc_list_table, 'WC_Admin_List_Table_Products' ) || 'product' !== $typenow ) {
+			return $query_vars;
+		}
+
+		// Return if admin WP_Query integration is not turned on, i.e., Protect Content is not enabled.
+		if ( ! has_filter( 'ep_admin_wp_query_integration', '__return_true' ) ) {
+			return $query_vars;
+		}
+
+		/**
+		 * Filter to skip integration with WooCommerce Admin Product List.
+		 *
+		 * @hook ep_woocommerce_integrate_admin_products_list
+		 * @since 4.2.0
+		 * @param {bool}  $integrate  True to integrate, false to preserve original behavior. Defaults to true.
+		 * @param {array} $query_vars Query vars.
+		 * @return {bool} New integrate value
+		 */
+		if ( ! apply_filters( 'ep_woocommerce_integrate_admin_products_list', true, $query_vars ) ) {
+			return $query_vars;
+		}
+
+		add_action( 'pre_get_posts', [ $this, 'translate_args_admin_products_list' ], 12 );
+
+		// This short-circuits WooCommerce search for product IDs.
+		add_filter( 'woocommerce_product_pre_search_products', '__return_empty_array' );
+
+		return $query_vars;
+	}
+
+	/**
+	 * Apply the necessary changes to WP_Query in WooCommerce Admin Product List.
+	 *
+	 * @param WP_Query $query The WP Query being executed.
+	 */
+	public function translate_args_admin_products_list( $query ) {
+		// The `translate_args()` method sets it to `true` if we should integrate it.
+		if ( ! $query->get( 'ep_integrate', false ) ) {
+			return;
+		}
+
+		// WooCommerce unsets the search term right after using it to fetch product IDs. Here we add it back.
+		$search_term = ! empty( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( ! empty( $search_term ) ) {
+			$query->set( 's', sanitize_text_field( $search_term ) ); // phpcs:ignore WordPress.Security.NonceVerification
+
+			/**
+			 * Filter to skip integration with WooCommerce Admin Product List.
+			 *
+			 * @hook ep_woocommerce_admin_products_list_search_fields
+			 * @since 4.2.0
+			 * @param {bool}  $integrate  True to integrate, false to preserve original behavior. Defaults to true.
+			 * @param {array} $query_vars Query vars.
+			 * @return {bool} New integrate value
+			 */
+			$search_fields = apply_filters(
+				'ep_woocommerce_admin_products_list_search_fields',
+				[
+					'post_title',
+					'post_content',
+					'post_excerpt',
+					'meta' => [
+						'_sku',
+						'_variations_skus',
+					],
+				]
+			);
+
+			$query->set( 'search_fields', $search_fields );
+		}
+
+		// Sets the meta query for `product_type` if needed. Also removed from the WP_Query by WC in `WC_Admin_List_Table_Products::query_filters()`.
+		$product_type_query = $query->get( 'product_type', '' );
+		$product_type_url   = ! empty( $_GET['product_type'] ) ? sanitize_text_field( $_GET['product_type'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$allowed_prod_types = [ 'virtual', 'downloadable' ];
+		if ( empty( $product_type_query ) && ! empty( $product_type_url ) && in_array( $product_type_url, $allowed_prod_types, true ) ) {
+			$meta_query   = $query->get( 'meta_query', [] );
+			$meta_query[] = [
+				'key'   => "_{$product_type_url}",
+				'value' => 'yes',
+			];
+			$query->set( 'meta_query', $meta_query );
+		}
 	}
 
 	/**
