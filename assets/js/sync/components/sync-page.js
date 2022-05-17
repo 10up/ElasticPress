@@ -170,7 +170,7 @@ export default ({
 						<p className="ep-sync-warning">
 							<Icon icon={warning} />
 							{__(
-								'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happenening, searches will use the default WordPress results',
+								'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happening, searches will use the default WordPress results',
 								'elasticpress',
 							)}
 						</p>
