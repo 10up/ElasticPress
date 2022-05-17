@@ -1,11 +1,6 @@
 /* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
 
 /**
- * WordPress dependencies.
- */
-import apiFetch from '@wordpress/api-fetch';
-
-/**
  * Internal dependencies.
  */
 import {
@@ -173,13 +168,11 @@ function buildSearchQuery(searchText, placeholder, { query }) {
 async function esSearch(query, searchTerm) {
 	const fetchConfig = {
 		body: query,
-		credentials: 'omit',
+		method: 'POST',
+		mode: 'cors',
 		headers: {
 			'Content-Type': 'application/json; charset=utf-8',
 		},
-		method: 'POST',
-		mode: 'cors',
-		url: epas.endpointUrl,
 	};
 
 	if (epas?.http_headers && typeof epas.http_headers === 'object') {
@@ -194,7 +187,13 @@ async function esSearch(query, searchTerm) {
 	}
 
 	try {
-		const data = await apiFetch(fetchConfig);
+		const response = await fetch(epas.endpointUrl, fetchConfig);
+
+		if (!response.ok) {
+			throw Error(response.statusText);
+		}
+
+		const data = await response.json();
 
 		// allow for filtered data before returning it to
 		// be output on the front end
