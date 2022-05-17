@@ -511,8 +511,8 @@ class WooCommerce extends Feature {
 		 * Also make sure the orderby param affects only the main query
 		 */
 		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
-
-			switch ( $_GET['orderby'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$orderby = sanitize_text_field( $_GET['orderby'] ); // phpcs:ignore WordPress.Security.NonceVerification
+			switch ( $orderby ) { // phpcs:ignore WordPress.Security.NonceVerification
 				case 'popularity':
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 					$query->set( 'order', 'DESC' );
@@ -530,10 +530,9 @@ class WooCommerce extends Feature {
 					$query->set( 'order', 'DESC' );
 					break;
 				case 'date':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'date' ) );
-					break;
+				case 'title':
 				case 'ID':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'ID' ) );
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( $orderby ) );
 					break;
 				case 'sku':
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_sku' ) );
@@ -563,6 +562,7 @@ class WooCommerce extends Feature {
 			'orderby_meta_mapping',
 			array(
 				'ID'                 => 'ID',
+				'title'              => 'title date',
 				'menu_order'         => 'menu_order title date',
 				'menu_order title'   => 'menu_order title date',
 				'total_sales'        => 'meta.total_sales.double date',
