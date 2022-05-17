@@ -128,6 +128,7 @@ class WooCommerce extends Feature {
 					'_billing_first_name',
 					'_shipping_first_name',
 					'_shipping_last_name',
+					'_variations_skus',
 				)
 			)
 		);
@@ -805,6 +806,7 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
 		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
+		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 	}
 
 	/**
@@ -933,6 +935,42 @@ class WooCommerce extends Feature {
 		}
 
 		return $skip;
+	}
+
+	/**
+	 * Add a new `_variations_skus` meta field to the product to be indexed in Elasticsearch.
+	 *
+	 * @since 4.2.0
+	 * @param array   $post_meta Post meta
+	 * @param WP_Post $post      Post object
+	 * @return array
+	 */
+	public function add_variations_skus_meta( $post_meta, $post ) {
+		if ( 'product' !== $post->post_type ) {
+			return $post_meta;
+		}
+
+		$product        = wc_get_product( $post );
+		$variations_ids = $product->get_children();
+
+		$post_meta['_variations_skus'] = array_reduce(
+			$variations_ids,
+			function ( $variations_skus, $current_id ) {
+				$variation = wc_get_product( $current_id );
+				if ( ! $variation || ! $variation->exists() ) {
+					return $variations_skus;
+				}
+				$variation_sku = $variation->get_sku();
+				if ( ! $variation_sku ) {
+					return $variations_skus;
+				}
+				$variations_skus[] = $variation_sku;
+				return $variations_skus;
+			},
+			[]
+		);
+
+		return $post_meta;
 	}
 
 	/**
