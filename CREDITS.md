@@ -179,6 +179,10 @@ Thank you to all the people who have already contributed to this repository via 
 [Renan Altendorf (@altendorfme)](https://github.com/altendorfme),
 [Burhan Nasir (@burhandodhy)](https://github.com/burhandodhy),
 [Eric Caron (@ecaron)](https://github.com/ecaron),
+[@MarijnvSprundel](https://github.com/MarijnvSprundel),
+[Artem Russakovskii (@archon810)](https://github.com/archon810),
+[@juliecampbell](https://github.com/juliecampbell),
+[David Greenwald (@davidegreenwald)](https://github.com/davidegreenwald),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

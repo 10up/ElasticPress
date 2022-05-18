@@ -4,14 +4,28 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.2.0] - 2022-05-XX
+ElasticPress 4.2.0 fixes some bugs and introduces some new and exciting changes.
+
+The sync functionality had its JavaScript refactored. Timeouts, memory limits, and general errors are now properly handled and do not make the sync get stuck when performed via the WP-CLI `index` command. There is also a new `get-last-sync` WP-CLI command to check the errors and numbers from the last sync.
+
+Sites with WooCommerce and Protected Content features enabled will have their product lists in the admin leveraging ElasticPress more. Previously, WooCommerce was processing that screen with two different queries, and EP was used only in one of them. Now, it will be only one query, fully handled by ElasticPress. Users wanting to keep the previous behavior can do so by adding `add_filter( 'ep_woocommerce_integrate_admin_products_list', '__return_false' );` to their website's codebase.
+
 ### Added
 - E2e tests for the Facets feature. Props [@felipeelia](https://github.com/felipeelia) via [#2667](https://github.com/10up/ElasticPress/pull/2667).
 - `$post_args` and `$post_id` to the `ep_pc_skip_post_content_cleanup` filter. Props [@felipeelia](https://github.com/felipeelia) and [@ecaron](https://github.com/ecaron) via [#2728](https://github.com/10up/ElasticPress/pull/2728).
 - New filter `ep_integrate_search_queries`. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#2735](https://github.com/10up/ElasticPress/pull/2735).
+- New `get-last-sync` WP-CLI command. Props [@felipeelia](https://github.com/felipeelia) via [#2748](https://github.com/10up/ElasticPress/pull/2748).
+- Facet block (previously only available as a widget.) Props [@felipeelia](https://github.com/felipeelia) via [#2722](https://github.com/10up/ElasticPress/pull/2722).
+- New `_variations_skus` field to WooCommerce products. Props [@felipeelia](https://github.com/felipeelia), [@kallehauge](https://github.com/kallehauge), and [@lukaspawlik](https://github.com/lukaspawlik) via [#2763](https://github.com/10up/ElasticPress/pull/2763).
 
 ### Changed
 - Facets widgets rendered by a separate class. Props [@felipeelia](https://github.com/felipeelia) via [#2712](https://github.com/10up/ElasticPress/pull/2712).
 - Deprecated `ElasticPress\Feature\Facets\Widget::get_facet_term_html()` in favor of `ElasticPress\Feature\Facets\Renderer::get_facet_term_html()`. Props [@felipeelia](https://github.com/felipeelia) via [#2712](https://github.com/10up/ElasticPress/pull/2712).
+- Log errors and remove indexing status on failed syncs. Props [@felipeelia](https://github.com/felipeelia) via [#2748](https://github.com/10up/ElasticPress/pull/2748).
+- Refactored Sync page JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2738](https://github.com/10up/ElasticPress/pull/2738).
+- Updated admin scripts to use WordPress's version of React instead of including their own. Props [@JakePT](https://github.com/JakePT) via [#2756](https://github.com/10up/ElasticPress/pull/2756).
+- WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#2757](https://github.com/10up/ElasticPress/pull/2757).
 
 ### Fixed
 - WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia) via [#2711](https://github.com/10up/ElasticPress/pull/2711).
@@ -19,6 +33,16 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Usage of the `$return` parameter in `Feature\RelatedPosts::find_related()`. Props [@felipeelia](https://github.com/felipeelia) and [@altendorfme](https://github.com/altendorfme) via [#2719](https://github.com/10up/ElasticPress/pull/2719).
 - Link to API Functions under the Related Posts feature -> Learn more. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2729](https://github.com/10up/ElasticPress/pull/2729).
 - Sync of WooCommerce Orders fields when WooCommerce and Protected Content features are enabled. Props [@felipeelia](https://github.com/felipeelia) and [@ecaron](https://github.com/ecaron) via [#2728](https://github.com/10up/ElasticPress/pull/2728).
+- An issue where selecting no features during install would just cause the install page to reload without any feedback. Props [@JakePT](https://github.com/JakePT) via [#2734](https://github.com/10up/ElasticPress/pull/2734).
+- An issue where deselecting a feature during install would not stop that feature from being activated. Props [@JakePT](https://github.com/JakePT) via [#2734](https://github.com/10up/ElasticPress/pull/2734).
+- Add the missing text domain for the Related Posts block. Props [@burhandodhy](https://github.com/burhandodhy) via [#2751](https://github.com/10up/ElasticPress/pull/2751).
+- Console error when hitting enter on search inputs with autosuggest. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@MarijnvSprundel](https://github.com/MarijnvSprundel) via [#2754](https://github.com/10up/ElasticPress/pull/2754).
+- An issue where attribute selectors could not be used for the Autosuggest Selector. Props [@JakePT](https://github.com/JakePT) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2753](https://github.com/10up/ElasticPress/pull/2753).
+- "Time elapsed" and "Total time elapsed" in WP-CLI index command. Props [@felipeelia](https://github.com/felipeelia) and [@archon810](https://github.com/archon810) via [#2762](https://github.com/10up/ElasticPress/pull/2762).
+- Sync process with skipped objects. Props [@juliecampbell](https://github.com/juliecampbell) and [@felipeelia](https://github.com/felipeelia) via [#2761](https://github.com/10up/ElasticPress/pull/2761).
+- Typo in the sync page. Props [@JakePT](https://github.com/JakePT) and [@davidegreenwald](https://github.com/davidegreenwald) via [#2767](https://github.com/10up/ElasticPress/pull/2767).
+- WP-CLI index command without the `--network-wide` only syncs the main site. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger) via [#2771](https://github.com/10up/ElasticPress/pull/2771).
+- WP-CLI commands `get-mapping`, `get-indexes`, `status`, and `stats` only uses all sites' indices name when network activated. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger) via [#2771](https://github.com/10up/ElasticPress/pull/2771).
 
 ## Security
 - Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot) via [#2709](https://github.com/10up/ElasticPress/pull/2709).
@@ -1366,6 +1390,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.2.0]: https://github.com/10up/ElasticPress/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/10up/ElasticPress/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/10up/ElasticPress/compare/3.6.6...4.0.0
