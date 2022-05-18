@@ -1,8 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { createSlotFill } from '@wordpress/components';
-import { WPElement } from '@wordpress/element';
+import { createPortal, createRef, WPElement } from '@wordpress/element';
 import { closeSmall, Icon } from '@wordpress/icons';
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -12,9 +11,9 @@ import { __, sprintf } from '@wordpress/i18n';
 import SmallButton from '../common/small-button';
 
 /**
- * Create SlotFill.
+ * Create ref for portal.
  */
-const { Fill, Slot } = createSlotFill('ActiveContraints');
+const ref = createRef();
 
 /**
  * Active filter component.
@@ -25,21 +24,20 @@ const { Fill, Slot } = createSlotFill('ActiveContraints');
  * @returns {WPElement} Element.
  */
 export const ActiveContraint = ({ label, onClick }) => {
-	return (
-		<Fill>
-			<SmallButton
-				aria-label={sprintf(
-					/* translators: %s: Constraint label. */
-					__('Remove filter: %s', 'elasticpress'),
-					label,
-				)}
-				className="ep-search-icon-button"
-				onClick={onClick}
-			>
-				<Icon icon={closeSmall} />
-				{label}
-			</SmallButton>
-		</Fill>
+	return createPortal(
+		<SmallButton
+			aria-label={sprintf(
+				/* translators: %s: Constraint label. */
+				__('Remove filter: %s', 'elasticpress'),
+				label,
+			)}
+			className="ep-search-icon-button"
+			onClick={onClick}
+		>
+			<Icon icon={closeSmall} />
+			{label}
+		</SmallButton>,
+		ref.current,
 	);
 };
 
@@ -49,5 +47,5 @@ export const ActiveContraint = ({ label, onClick }) => {
  * @returns {WPElement} Element.
  */
 export default () => {
-	return <Slot>{(fills) => fills}</Slot>;
+	return <div className="ep-search-tokens" ref={ref} />;
 };
