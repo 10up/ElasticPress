@@ -133,8 +133,10 @@ class IndexHelper {
 		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true ) );
 		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true ) );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			if ( empty( $this->args['network_wide'] ) || ! is_numeric( $this->args['network_wide'] ) ) {
+		$is_network_wide = isset( $this->args['network_wide'] ) && ! is_null( $this->args['network_wide'] );
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && $is_network_wide ) {
+			if ( ! is_numeric( $this->args['network_wide'] ) ) {
 				$this->args['network_wide'] = 0;
 			}
 

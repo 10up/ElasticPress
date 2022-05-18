@@ -26,10 +26,10 @@ add_action( 'admin_footer', function() {
  * @return string
  */
 function get_docker_cid() {
-	$docker_cid = get_option( 'ep_tests_docker_cid', '' );
+	$docker_cid = get_site_option( 'ep_tests_docker_cid', '' );
 	if ( ! $docker_cid ) {
 		$docker_cid = exec( 'cat /etc/hostname' );
-		update_option( 'ep_tests_docker_cid', $docker_cid );
+		update_site_option( 'ep_tests_docker_cid', $docker_cid );
 	}
 	return $docker_cid;
 }
