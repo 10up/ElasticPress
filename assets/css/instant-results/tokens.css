@@ -1,0 +1,6 @@
+.ep-search-tokens {
+
+	@nest .ep-search-toolbar & {
+		display: contents;
+	}
+}

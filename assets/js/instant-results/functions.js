@@ -1,7 +1,7 @@
 /**
  * Internal deendencies.
  */
-import { currencyCode, facets } from './config';
+import { currencyCode, facets, locale } from './config';
 import { sanitizeArg, sanitizeParam } from './utilities';
 
 /**
@@ -26,6 +26,16 @@ export const clearFacetsFromArgs = (args) => {
 	});
 
 	return clearedArgs;
+};
+
+/**
+ * Format a date.
+ *
+ * @param {string} date Date string.
+ * @returns {string} Formatted number.
+ */
+export const formatDate = (date) => {
+	return new Date(date).toLocaleString(locale, { dateStyle: 'long' });
 };
 
 /**
