@@ -2,15 +2,13 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
-
+import { gmdateI18n } from '@wordpress/date';
 /**
  * Internal dependencies.
  */
 import { postTypeLabels, isWooCommerce } from '../../config';
 import StarRating from '../common/star-rating';
 import Image from '../common/image';
-
-const { gmdateI18n } = wp.date;
 
 /**
  * Search result.
