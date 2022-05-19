@@ -76,6 +76,7 @@ Changed
 * Refactored Sync page JavaScript. Props [@JakePT](https://github.com/JakePT).
 * Updated admin scripts to use WordPress's version of React instead of including their own. Props [@JakePT](https://github.com/JakePT).
 * WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
+* Removed Instant Results' dependency on `@wordpress/components` and `@wordpress/date`. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
 
 Fixed
 * WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia).
