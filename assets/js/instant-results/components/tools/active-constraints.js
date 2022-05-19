@@ -24,6 +24,10 @@ const ref = createRef();
  * @returns {WPElement} Element.
  */
 export const ActiveContraint = ({ label, onClick }) => {
+	if (!ref.current) {
+		return null;
+	}
+
 	return createPortal(
 		<SmallButton
 			aria-label={sprintf(
