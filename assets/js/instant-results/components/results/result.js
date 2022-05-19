@@ -2,11 +2,12 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
-import { gmdateI18n } from '@wordpress/date';
+
 /**
  * Internal dependencies.
  */
 import { postTypeLabels, isWooCommerce } from '../../config';
+import { formatDate } from '../../functions';
 import StarRating from '../common/star-rating';
 import Image from '../common/image';
 
@@ -22,7 +23,7 @@ export default ({ hit }) => {
 		highlight: { post_title: resultTitle, post_content_plain: resultContent = [] },
 		_source: {
 			meta: { _wc_average_rating: [{ value: resultRating = 0 } = {}] = [] },
-			post_date_gmt: resultDateGmt,
+			post_date: resultDate,
 			permalink: resultPermalink,
 			post_type: resultPostType,
 			price_html: priceHtml,
@@ -70,8 +71,7 @@ export default ({ hit }) => {
 
 			<footer className="ep-search-result__footer">
 				{isWooCommerce && resultRating > 0 && <StarRating rating={resultRating} />}
-
-				{resultPostType === 'post' && gmdateI18n('F j, Y', resultDateGmt)}
+				{resultPostType === 'post' && formatDate(resultDate)}
 			</footer>
 		</article>
 	);
