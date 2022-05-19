@@ -9,9 +9,9 @@ ElasticPress 4.2.0 fixes some bugs and introduces some new and exciting changes.
 
 The sync functionality had its JavaScript refactored. Timeouts, memory limits, and general errors are now properly handled and do not make the sync get stuck when performed via the WP-CLI `index` command. There is also a new `get-last-sync` WP-CLI command to check the errors and numbers from the last sync.
 
-Sites with WooCommerce and Protected Content features enabled will have their product lists in the admin leveraging ElasticPress more. Previously, WooCommerce was processing that screen with two different queries, and EP was used only in one of them. Now, it will be only one query, fully handled by ElasticPress. Users wanting to keep the previous behavior can do so by adding `add_filter( 'ep_woocommerce_integrate_admin_products_list', '__return_false' );` to their website's codebase.
+We've improved the admin search experience for sites using both WooCommerce and Protected Content. Previously, WooCommerce was processing that screen with two different queries, and EP was used only in one of them. Now, it will be only one query, fully handled by ElasticPress. Users wanting to keep the previous behavior can do so by adding `add_filter( 'ep_woocommerce_integrate_admin_products_list', '__return_false' );` to their website's codebase.
 
-Facets are now available through a WordPress block. If you are using the Full Site Editing feature, you can now add ElasticPress Facets to your theme with just a few clicks!
+Facets are now available through a WordPress block. If you are using the Full Site Editing feature, you can now add ElasticPress Facets to your theme with just a few clicks! This block has been introduced with a simplified user interface to enable compatibility with Full Site Editing and will continue to be iterated and improved in future versions of the plugin.
 
 ### Added
 - E2e tests for the Facets feature. Props [@felipeelia](https://github.com/felipeelia) via [#2667](https://github.com/10up/ElasticPress/pull/2667).
@@ -26,7 +26,7 @@ Facets are now available through a WordPress block. If you are using the Full Si
 - Deprecated `ElasticPress\Feature\Facets\Widget::get_facet_term_html()` in favor of `ElasticPress\Feature\Facets\Renderer::get_facet_term_html()`. Props [@felipeelia](https://github.com/felipeelia) via [#2712](https://github.com/10up/ElasticPress/pull/2712).
 - Log errors and remove indexing status on failed syncs. Props [@felipeelia](https://github.com/felipeelia) via [#2748](https://github.com/10up/ElasticPress/pull/2748).
 - Refactored Sync page JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2738](https://github.com/10up/ElasticPress/pull/2738).
-- Updated admin scripts to use WordPress's version of React instead of including their own. Props [@JakePT](https://github.com/JakePT) via [#2756](https://github.com/10up/ElasticPress/pull/2756).
+- Updated admin scripts to use WordPress's version of React. Props [@JakePT](https://github.com/JakePT) via [#2756](https://github.com/10up/ElasticPress/pull/2756).
 - WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#2757](https://github.com/10up/ElasticPress/pull/2757).
 - Removed Instant Results' dependency on `@wordpress/components` and `@wordpress/date`. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#2774](https://github.com/10up/ElasticPress/pull/2774).
 
@@ -36,7 +36,7 @@ Facets are now available through a WordPress block. If you are using the Full Si
 - Usage of the `$return` parameter in `Feature\RelatedPosts::find_related()`. Props [@felipeelia](https://github.com/felipeelia) and [@altendorfme](https://github.com/altendorfme) via [#2719](https://github.com/10up/ElasticPress/pull/2719).
 - Link to API Functions under the Related Posts feature -> Learn more. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2729](https://github.com/10up/ElasticPress/pull/2729).
 - Sync of WooCommerce Orders fields when WooCommerce and Protected Content features are enabled. Props [@felipeelia](https://github.com/felipeelia) and [@ecaron](https://github.com/ecaron) via [#2728](https://github.com/10up/ElasticPress/pull/2728).
-- An issue where selecting no features during install would just cause the install page to reload without any feedback. Props [@JakePT](https://github.com/JakePT) via [#2734](https://github.com/10up/ElasticPress/pull/2734).
+- An issue where selecting no features during install would just cause the install page to reload without any feedback. Props [@JakePT](https://github.com/JakePT) and [@tlovett1](https://github.com/tlovett1) via [#2734](https://github.com/10up/ElasticPress/pull/2734).
 - An issue where deselecting a feature during install would not stop that feature from being activated. Props [@JakePT](https://github.com/JakePT) via [#2734](https://github.com/10up/ElasticPress/pull/2734).
 - Add the missing text domain for the Related Posts block. Props [@burhandodhy](https://github.com/burhandodhy) via [#2751](https://github.com/10up/ElasticPress/pull/2751).
 - Console error when hitting enter on search inputs with autosuggest. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@MarijnvSprundel](https://github.com/MarijnvSprundel) via [#2754](https://github.com/10up/ElasticPress/pull/2754).
