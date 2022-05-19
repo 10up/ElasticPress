@@ -100,11 +100,25 @@ const App = () => {
 		}
 
 		const state = JSON.stringify({ ...args, isOpen });
-		const params = getUrlParamsFromArgs(args, argsSchema, paramPrefix).toString();
-		const url = isOpen ? `?${params}` : window.location.origin + window.location.pathname;
 
 		if (history.state) {
-			history.pushState(state, document.title, url);
+			const params = getUrlParamsFromArgs(args, argsSchema, paramPrefix);
+			const url = new URL(window.location.href);
+			const keys = Array.from(url.searchParams.keys());
+
+			for (const key of keys) {
+				if (key.startsWith(paramPrefix)) {
+					url.searchParams.delete(key);
+				}
+			}
+
+			if (isOpen) {
+				params.forEach((value, key) => {
+					url.searchParams.set(key, value);
+				});
+			}
+
+			history.pushState(state, document.title, url.toString());
 		} else {
 			history.replaceState(state, document.title, window.location.href);
 		}
