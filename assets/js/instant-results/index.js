@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies.
  */
-import { SlotFillProvider } from '@wordpress/components';
 import {
 	render,
 	useCallback,
@@ -225,16 +224,14 @@ const App = () => {
 
 	return (
 		<Context.Provider value={context}>
-			<SlotFillProvider>
-				<Modal
-					aria-label={__('Search results', 'elasticpress')}
-					isOpen={state.isOpen}
-					onClose={closeModal}
-					ref={modalRef}
-				>
-					<Layout />
-				</Modal>
-			</SlotFillProvider>
+			<Modal
+				aria-label={__('Search results', 'elasticpress')}
+				isOpen={state.isOpen}
+				onClose={closeModal}
+				ref={modalRef}
+			>
+				<Layout />
+			</Modal>
 		</Context.Provider>
 	);
 };

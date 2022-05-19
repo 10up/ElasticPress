@@ -279,6 +279,7 @@ class InstantResults extends Feature {
 				'facets'         => $this->get_facets_for_frontend(),
 				'highlightTag'   => $this->settings['highlight_tag'],
 				'isWooCommerce'  => $this->is_woocommerce,
+				'locale'         => str_replace( '_', '-', get_locale() ),
 				'matchType'      => $this->settings['match_type'],
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),

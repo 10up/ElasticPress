@@ -12,6 +12,7 @@
 @import "instant-results/sidebar.css";
 @import "instant-results/sidebar-toggle.css";
 @import "instant-results/sort.css";
+@import "instant-results/tokens.css";
 @import "instant-results/toolbar.css";
 
 :root {
