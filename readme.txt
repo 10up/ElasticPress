@@ -94,6 +94,7 @@ Fixed
 * Typo in the sync page. Props [@JakePT](https://github.com/JakePT) and [@davidegreenwald](https://github.com/davidegreenwald).
 * WP-CLI index command without the `--network-wide` only syncs the main site. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger).
 * WP-CLI commands `get-mapping`, `get-indexes`, `status`, and `stats` only uses all sites' indices name when network activated. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger).
+* A bug where URL search parameters could be cleared when using Instant Results. Props [@JakePT](https://github.com/JakePT) and [@yashumitsu](https://github.com/yashumitsu).
 
 Security
 * Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot).

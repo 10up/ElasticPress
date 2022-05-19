@@ -183,6 +183,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Artem Russakovskii (@archon810)](https://github.com/archon810),
 [@juliecampbell](https://github.com/juliecampbell),
 [David Greenwald (@davidegreenwald)](https://github.com/davidegreenwald),
+[Yakov Beschasnov (@yashumitsu)](https://github.com/yashumitsu),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

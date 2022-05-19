@@ -46,6 +46,7 @@ Facets are now available through a WordPress block. If you are using the Full Si
 - Typo in the sync page. Props [@JakePT](https://github.com/JakePT) and [@davidegreenwald](https://github.com/davidegreenwald) via [#2767](https://github.com/10up/ElasticPress/pull/2767).
 - WP-CLI index command without the `--network-wide` only syncs the main site. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger) via [#2771](https://github.com/10up/ElasticPress/pull/2771).
 - WP-CLI commands `get-mapping`, `get-indexes`, `status`, and `stats` only uses all sites' indices name when network activated. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger) via [#2771](https://github.com/10up/ElasticPress/pull/2771).
+- A bug where URL search parameters could be cleared when using Instant Results. Props [@JakePT](https://github.com/JakePT) and [@yashumitsu](https://github.com/yashumitsu) via [#2777](https://github.com/10up/ElasticPress/pull/2777).
 
 ## Security
 - Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot) via [#2709](https://github.com/10up/ElasticPress/pull/2709).
