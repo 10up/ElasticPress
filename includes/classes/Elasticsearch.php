@@ -1276,8 +1276,7 @@ class Elasticsearch {
 	 * @return array
 	 */
 	public function get_elasticsearch_info( $force = false ) {
-
-		if ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
+		if ( ! empty( Utils\get_host() ) && ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) ) {
 
 			// Get ES info from cache if available. If we are forcing, then skip cache check.
 			if ( $force ) {
