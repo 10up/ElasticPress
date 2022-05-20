@@ -28,6 +28,22 @@ class Renderer {
 	public function render( $args, $instance ) {
 		global $wp_query;
 
+		$args     = wp_parse_args(
+			$args,
+			[
+				'before_widget' => '',
+				'before_title'  => '',
+				'after_title'   => '',
+				'after_widget'  => '',
+			]
+		);
+		$instance = wp_parse_args(
+			$instance,
+			[
+				'title' => '',
+			]
+		);
+
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		if ( $wp_query->get( 'ep_facet', false ) && ! $feature->is_facetable( $wp_query ) ) {

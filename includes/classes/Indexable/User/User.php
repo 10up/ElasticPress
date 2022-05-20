@@ -612,7 +612,6 @@ class User extends Indexable {
 		 * include
 		 * login__in
 		 * nicename__in
-		 * user_registered registered
 		 * post_count
 		 */
 
@@ -621,6 +620,12 @@ class User extends Indexable {
 		}
 
 		$sort = [];
+
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
+
+		$unsupported_clauses = [ 'rand', 'include', 'login__in', 'nicename__in', 'post_count' ];
 
 		foreach ( $orderby as $key => $value ) {
 			if ( is_string( $key ) ) {
@@ -631,73 +636,72 @@ class User extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
-				if ( 'relevance' === $orderby_clause ) {
-					$sort[] = array(
-						'_score' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_login' === $orderby_clause || 'login' === $orderby_clause ) {
-					$sort[] = array(
-						'user_login.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'ID' === $orderby_clause ) {
-					$sort[] = array(
-						'ID' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'display_name' === $orderby_clause || 'name' === $orderby_clause ) {
-					$sort[] = array(
-						'display_name.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_nicename' === $orderby_clause || 'nicename' === $orderby_clause ) {
-					$sort[] = array(
-						'user_nicename.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_email' === $orderby_clause || 'email' === $orderby_clause ) {
-					$sort[] = array(
-						'user_email.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_url' === $orderby_clause || 'url' === $orderby_clause ) {
-					$sort[] = array(
-						'user_url.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'meta_value' === $orderby_clause ) {
-					if ( ! empty( $query_vars['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.raw' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} elseif ( 'meta_value_num' === $orderby_clause ) {
-					if ( ! empty( $query_vars['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.long' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} else {
-					$sort[] = array(
-						$orderby_clause => array(
-							'order' => $order,
-						),
-					);
-				}
+			if ( empty( $orderby_clause ) || in_array( $orderby_clause, $unsupported_clauses, true ) ) {
+				continue;
 			}
+
+			switch ( $orderby_clause ) {
+				case 'relevance':
+					$orderby_field = '_score';
+					break;
+
+				case 'user_login':
+				case 'login':
+					$orderby_field = 'user_login.raw';
+					break;
+
+				case 'ID':
+				case 'id':
+					$orderby_field = 'ID';
+					break;
+
+				case 'display_name':
+				case 'name':
+					$orderby_field = 'display_name.sortable';
+					break;
+
+				case 'nicename':
+				case 'user_nicename':
+					$orderby_field = 'user_nicename.raw';
+					break;
+
+				case 'user_email':
+				case 'email':
+					$orderby_field = 'user_email.raw';
+					break;
+
+				case 'user_url':
+				case 'url':
+					$orderby_field = 'user_url.raw';
+					break;
+
+				case 'user_registered':
+				case 'registered':
+					$orderby_field = 'user_registered';
+					break;
+
+				case 'meta_value':
+					if ( ! empty( $query_vars['meta_key'] ) ) {
+						$orderby_field = 'meta.' . $query_vars['meta_key'] . '.raw';
+					}
+					break;
+
+				case 'meta_value_num':
+					if ( ! empty( $query_vars['meta_key'] ) ) {
+						$orderby_field = 'meta.' . $query_vars['meta_key'] . '.long';
+					}
+					break;
+
+				default:
+					$orderby_field = $orderby_clause;
+					break;
+			}
+
+			$sort[] = array(
+				$orderby_field => array(
+					'order' => $order,
+				),
+			);
 		}
 
 		return $sort;
