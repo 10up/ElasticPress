@@ -68,6 +68,8 @@ Added
 * New `get-last-sync` WP-CLI command. Props [@felipeelia](https://github.com/felipeelia).
 * Facet block (previously only available as a widget.) Props [@felipeelia](https://github.com/felipeelia).
 * New `_variations_skus` field to WooCommerce products. Props [@felipeelia](https://github.com/felipeelia), [@kallehauge](https://github.com/kallehauge), and [@lukaspawlik](https://github.com/lukaspawlik).
+* Support for ordering Users by `user_registered` and lowercase `id`. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+
 
 Changed
 * Facets widgets rendered by a separate class. Props [@felipeelia](https://github.com/felipeelia).
@@ -77,6 +79,7 @@ Changed
 * Updated admin scripts to use WordPress's version of React. Props [@JakePT](https://github.com/JakePT).
 * WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
 * Removed Instant Results' dependency on `@wordpress/components` and `@wordpress/date`. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
+* (Protected Content) Password-protected posts are only hidden on searches. Props [@felipeelia](https://github.com/felipeelia, [@JakePT](https://github.com/JakePT), and [@burhandodhy](https://github.com/burhandodhy).
 
 Fixed
 * WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia).
@@ -95,6 +98,8 @@ Fixed
 * WP-CLI index command without the `--network-wide` only syncs the main site. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger).
 * WP-CLI commands `get-mapping`, `get-indexes`, `status`, and `stats` only uses all sites' indices name when network activated. Props [@felipeelia](https://github.com/felipeelia) and [@colegeissinger](https://github.com/colegeissinger).
 * A bug where URL search parameters could be cleared when using Instant Results. Props [@JakePT](https://github.com/JakePT) and [@yashumitsu](https://github.com/yashumitsu).
+* Undefined index notice in Facets renderer. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Prevent an unnecessary call when the ES server is not set yet. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
 
 Security
 * Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot).
