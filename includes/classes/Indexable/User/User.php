@@ -625,6 +625,8 @@ class User extends Indexable {
 			return $sort;
 		}
 
+		$unsupported_clauses = [ 'rand', 'include', 'login__in', 'nicename__in', 'post_count' ];
+
 		foreach ( $orderby as $key => $value ) {
 			if ( is_string( $key ) ) {
 				$orderby_clause = $key;
@@ -634,7 +636,7 @@ class User extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( empty( $orderby_clause ) && 'rand' === $orderby_clause ) {
+			if ( empty( $orderby_clause ) || in_array( $orderby_clause, $unsupported_clauses, true ) ) {
 				continue;
 			}
 
