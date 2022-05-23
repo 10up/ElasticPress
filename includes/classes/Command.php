@@ -1135,7 +1135,9 @@ class Command extends WP_CLI_Command {
 			$last_processed_object_id = $query['objects'][ $last_object_array_key ]->ID;
 
 			if ( ! $no_bulk ) {
-				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ), (int) ( $synced + count( $failed_objects ) ), (int) $query['total_objects'], (int) $last_processed_object_id ) );
+				$done_count = (int) ( $synced + count( $failed_objects ) );
+				$total 	    = (int) $query['total_objects'];
+				WP_CLI::log( sprintf( esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ), $done_count, $total, (int) $last_processed_object_id ) );
 
 				$loop_counter++;
 				if ( ( $loop_counter % 10 ) === 0 ) {
@@ -1150,6 +1152,11 @@ class Command extends WP_CLI_Command {
 					$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
 					$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
 					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+
+					$remaining     = $total - $done_count;
+					$estimate_time = round( ( $remaining / $done_count ) * $time_elapsed);
+					WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Estimate: ', 'elasticpress' ) . '%N' . $this->seconds_to_hr( $estimate_time ) ) );
+
 					remove_filter( 'number_format_i18n', [ __CLASS__, 'skip_number_format_i18n' ] );
 				}
 			}
