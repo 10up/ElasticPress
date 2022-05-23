@@ -31,7 +31,7 @@ Facets are now available through a WordPress block. If you are using the Full Si
 - Updated admin scripts to use WordPress's version of React. Props [@JakePT](https://github.com/JakePT) via [#2756](https://github.com/10up/ElasticPress/pull/2756).
 - WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#2757](https://github.com/10up/ElasticPress/pull/2757).
 - Removed Instant Results' dependency on `@wordpress/components` and `@wordpress/date`. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#2774](https://github.com/10up/ElasticPress/pull/2774).
-- (Protected Content) Password-protected posts are only hidden on searches. Props [@felipeelia](https://github.com/felipeelia, [@JakePT](https://github.com/JakePT), and [@burhandodhy](https://github.com/burhandodhy) via [#2780](https://github.com/10up/ElasticPress/pull/2780).
+- (Protected Content) Password-protected posts are only hidden on searches. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@burhandodhy](https://github.com/burhandodhy) via [#2780](https://github.com/10up/ElasticPress/pull/2780).
 
 ### Fixed
 - WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia) via [#2711](https://github.com/10up/ElasticPress/pull/2711).

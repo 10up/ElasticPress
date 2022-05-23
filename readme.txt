@@ -81,7 +81,7 @@ Changed
 * Updated admin scripts to use WordPress's version of React. Props [@JakePT](https://github.com/JakePT).
 * WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
 * Removed Instant Results' dependency on `@wordpress/components` and `@wordpress/date`. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
-* (Protected Content) Password-protected posts are only hidden on searches. Props [@felipeelia](https://github.com/felipeelia, [@JakePT](https://github.com/JakePT), and [@burhandodhy](https://github.com/burhandodhy).
+* (Protected Content) Password-protected posts are only hidden on searches. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@burhandodhy](https://github.com/burhandodhy).
 
 Fixed
 * WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia).
