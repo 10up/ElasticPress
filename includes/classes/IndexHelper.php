@@ -729,14 +729,26 @@ class IndexHelper {
 	protected function update_totals_from_current_sync_item() {
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
+		$errors = array_merge(
+			$this->index_meta['totals']['errors'],
+			$current_sync_item['errors']
+		);
+
+		/**
+		 * Filter the number of errors of a sync that should be stored.
+		 *
+		 * @since  4.2.0
+		 * @hook ep_sync_number_of_errors_stored
+		 * @param  {int} $number Number of errors to be logged.
+		 * @return {int} New value
+		 */
+		$logged_errors = (int) apply_filters( 'ep_sync_number_of_errors_stored', 50 );
+
 		$this->index_meta['totals']['total']   += $current_sync_item['total'];
 		$this->index_meta['totals']['synced']  += $current_sync_item['synced'];
 		$this->index_meta['totals']['skipped'] += $current_sync_item['skipped'];
 		$this->index_meta['totals']['failed']  += $current_sync_item['failed'];
-		$this->index_meta['totals']['errors']   = array_merge(
-			$this->index_meta['totals']['errors'],
-			$current_sync_item['errors']
-		);
+		$this->index_meta['totals']['errors']   = array_slice( $errors, $logged_errors * -1 );
 	}
 
 	/**
