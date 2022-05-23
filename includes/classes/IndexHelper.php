@@ -66,6 +66,7 @@ class IndexHelper {
 	 */
 	public function full_index( $args ) {
 		register_shutdown_function( [ $this, 'handle_index_error' ] );
+		add_filter( 'wp_php_error_message', [ $this, 'wp_handle_index_error' ], 10, 2 );
 
 		$this->index_meta = Utils\get_indexing_status();
 		$this->args       = $args;
@@ -1125,7 +1126,7 @@ class IndexHelper {
 	/**
 	 * Handle fatal errors during syncs.
 	 *
-	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
+	 * Added by register_shutdown_function. It will not be called if `WP_DISABLE_FATAL_ERROR_HANDLER` is false (default.)
 	 *
 	 * @since 4.2.0
 	 */
@@ -1135,6 +1136,31 @@ class IndexHelper {
 			return;
 		}
 
+		$this->on_error_update_and_clean( $error );
+	}
+
+	/**
+	 * Handle fatal errors during syncs.
+	 *
+	 * Added via the `wp_php_error_message` filter. It will be called only if `WP_DISABLE_FATAL_ERROR_HANDLER` is false (default.)
+	 *
+	 * @since 4.2.0
+	 * @param bool  $message HTML error message to display.
+	 * @param array $error   Error information retrieved from error_get_last().
+	 * @return bool
+	 */
+	public function wp_handle_index_error( $message, $error ) {
+		$this->on_error_update_and_clean( $error );
+		return $message;
+	}
+
+	/**
+	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
+	 *
+	 * @since 4.2.0
+	 * @param array $error Error information retrieved from error_get_last().
+	 */
+	protected function on_error_update_and_clean( $error ) {
 		$this->update_totals_from_current_sync_item();
 
 		$totals = $this->index_meta['totals'];
