@@ -107,6 +107,9 @@ class QueryIntegration {
 					$user->elasticsearch = true; // Super useful for debugging.
 
 					foreach ( $fields as $field ) {
+						if ( 'id' === $field ) {
+							$field = 'ID';
+						}
 						$user->$field = $document[ $field ];
 					}
 
