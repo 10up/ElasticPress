@@ -37,7 +37,7 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
 
