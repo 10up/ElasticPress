@@ -226,8 +226,13 @@ class User extends Indexable {
 		 * Support `fields` query var.
 		 */
 		if ( isset( $query_vars['fields'] ) && 'all' !== $query_vars['fields'] && 'all_with_meta' !== $query_vars['fields'] ) {
+			$fields      = (array) $query_vars['fields'];
+			$id_position = array_search( 'id', $fields, true );
+			if ( false !== $id_position ) {
+				$fields[ $id_position ] = 'ID';
+			}
 			$formatted_args['_source'] = [
-				'includes' => (array) $query_vars['fields'],
+				'includes' => $fields,
 			];
 		}
 
