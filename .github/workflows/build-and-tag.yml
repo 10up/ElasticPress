@@ -1,0 +1,39 @@
+name: Build and Tag
+on:
+  push:
+    branches:
+      - 'trunk'
+
+jobs:
+  wordpress:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: install node v16
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16
+
+    - name: Build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Setup
+      run: 'echo "VERSION=$(grep -Po ''\"version\": \"[0-9\\.]+\"'' package.json | grep -Po ''[0-9\\.]+'')" >> $GITHUB_ENV'
+
+    - name: Tag
+      run: |
+        echo "Releasing version $VERSION ..."
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout -b "release-$VERSION"
+        git add -f dist/*
+        git commit -m "Release $VERSION"
+        git tag "$VERSION"
+        git push --tags
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
