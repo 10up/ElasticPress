@@ -71,8 +71,6 @@ Added
 * Support for ordering Users by `user_registered` and lowercase `id`. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
 * New filter `ep_sync_number_of_errors_stored`. Props [@felipeelia](https://github.com/felipeelia), [@tott](https://github.com/tott) and [@JakePT](https://github.com/JakePT).
 
-
-
 Changed
 * Facets widgets rendered by a separate class. Props [@felipeelia](https://github.com/felipeelia).
 * Deprecated `ElasticPress\Feature\Facets\Widget::get_facet_term_html()` in favor of `ElasticPress\Feature\Facets\Renderer::get_facet_term_html()`. Props [@felipeelia](https://github.com/felipeelia).
@@ -82,6 +80,7 @@ Changed
 * WooCommerce products list in the Dashboard now properly leverages ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
 * Removed Instant Results' dependency on `@wordpress/components` and `@wordpress/date`. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
 * (Protected Content) Password-protected posts are only hidden on searches. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@burhandodhy](https://github.com/burhandodhy).
+* The plugin is now available via Composer without any additional steps required. Props [@felipeelia](https://github.com/felipeelia), [@jeffpaul](https://github.com/jeffpaul), and [@johnbillion](https://github.com/johnbillion).
 
 Fixed
 * WP-CLI parameters documentation. Props [@felipeelia](https://github.com/felipeelia).
@@ -102,6 +101,7 @@ Fixed
 * A bug where URL search parameters could be cleared when using Instant Results. Props [@JakePT](https://github.com/JakePT) and [@yashumitsu](https://github.com/yashumitsu).
 * Undefined index notice in Facets renderer. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
 * Prevent an unnecessary call when the ES server is not set yet. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* An incompatibility with the way WP 6.0 handles WP_User_Query using fields. Props [@felipeelia](https://github.com/felipeelia).
 
 Security
 * Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot).
