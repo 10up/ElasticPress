@@ -30,9 +30,13 @@ ElasticPress understands data in real time, so it can instantly deliver engaging
 
 Available API functions:
 
-* `ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, $return = 5 )`
+* `\ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, $return = 5 )`
 
   Get related posts for a given `$post_id`. Use this in a theme or plugin to get related content.
+
+* `\ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->get_related_query( $post_id, $return = 5 )`
+
+  Get a `WP_Query` object with the related posts for a given `$post_id`.
 
 ## Protected Content
 

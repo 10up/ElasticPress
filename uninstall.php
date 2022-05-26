@@ -14,6 +14,57 @@
 class EP_Uninstaller {
 
 	/**
+	 * List of option keys that need to be deleted when uninstalling the plugin.
+	 *
+	 * @var array
+	 */
+	protected $options = [
+		'ep_host',
+		'ep_index_meta',
+		'ep_feature_settings',
+		'ep_version',
+		'ep_intro_shown',
+		'ep_last_sync',
+		'ep_need_upgrade_sync',
+		'ep_feature_requirement_statuses',
+		'ep_feature_auto_activated_sync',
+		'ep_hide_intro_shown_notice',
+		'ep_skip_install',
+		'ep_last_cli_index',
+		'ep_credentials',
+		'ep_prefix',
+		'ep_language',
+		'ep_bulk_setting',
+		'ep_last_index',
+
+		// Admin notices options
+		'ep_hide_host_error_notice',
+		'ep_hide_es_below_compat_notice',
+		'ep_hide_es_above_compat_notice',
+		'ep_hide_need_setup_notice',
+		'ep_hide_no_sync_notice',
+		'ep_hide_upgrade_sync_notice',
+		'ep_hide_auto_activate_sync_notice',
+		'ep_hide_using_autosuggest_defaults_notice',
+		'ep_hide_yellow_health_notice',
+	];
+
+	/**
+	 * List of transient keys that need to be deleted when uninstalling the plugin.
+	 *
+	 * @var array
+	 */
+	protected $transients = [
+		'ep_es_info_response_code',
+		'ep_es_info_response_error',
+		'logging_ep_es_info',
+		'ep_wpcli_sync_interrupted',
+		'ep_wpcli_sync',
+		'ep_es_info',
+		'ep_autosuggest_query_request_cache',
+	];
+
+	/**
 	 * Initialize uninstaller
 	 *
 	 * Perform some checks to make sure plugin can/should be uninstalled
@@ -28,168 +79,99 @@ class EP_Uninstaller {
 			$this->exit_uninstaller();
 		}
 
-		// Not uninstalling.
-		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			$this->exit_uninstaller();
-		}
+		// EP_MANUAL_SETTINGS_RESET is used by the `settings-reset` WP-CLI command.
+		if ( ! defined( 'EP_MANUAL_SETTINGS_RESET' ) || ! EP_MANUAL_SETTINGS_RESET ) {
+			// Not uninstalling.
+			if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) || ! WP_UNINSTALL_PLUGIN ) {
+				$this->exit_uninstaller();
+			}
 
-		// Not uninstalling.
-		if ( ! WP_UNINSTALL_PLUGIN ) {
-			$this->exit_uninstaller();
-		}
-
-		// Not uninstalling this plugin.
-		if ( dirname( WP_UNINSTALL_PLUGIN ) !== dirname( plugin_basename( __FILE__ ) ) ) {
-			$this->exit_uninstaller();
+			// Not uninstalling this plugin.
+			if ( dirname( WP_UNINSTALL_PLUGIN ) !== dirname( plugin_basename( __FILE__ ) ) ) {
+				$this->exit_uninstaller();
+			}
 		}
 
 		// Uninstall ElasticPress.
-		self::clean_options();
+		$this->clean_options_and_transients();
 	}
 
 	/**
-	 * Cleanup options
+	 * Delete all the options in a single site context.
+	 */
+	protected function delete_options() {
+		foreach ( $this->options as $option ) {
+			delete_option( $option );
+		}
+	}
+
+	/**
+	 * Delete all the transients in a single site context.
+	 */
+	protected function delete_transients() {
+		foreach ( $this->transients as $transient ) {
+			delete_transient( $transient );
+		}
+	}
+
+	/**
+	 * Delete all transients of the Related Posts feature.
+	 */
+	protected function delete_related_posts_transients() {
+		global $wpdb;
+
+		$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
+
+		foreach ( $related_posts_transients as $related_posts_transient ) {
+			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
+			delete_site_transient( $related_posts_transient );
+			delete_transient( $related_posts_transient );
+		}
+	}
+
+	/**
+	 * Cleanup options and transients
 	 *
 	 * Deletes ElasticPress options and transients.
 	 *
-	 * @since 1.7
-	 * @return void
+	 * @since 4.2.0
 	 */
-	protected static function clean_options() {
-		global $wpdb;
-
-		// Delete ep_related_posts_* transients
+	protected function clean_options_and_transients() {
 		if ( is_multisite() ) {
+			foreach ( $this->options as $option ) {
+				delete_site_option( $option );
+			}
+			foreach ( $this->transients as $transient ) {
+				delete_site_transient( $transient );
+			}
+
 			$sites = get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site->blog_id );
 
-				// Delete options.
-				delete_option( 'ep_host' );
-				delete_site_option( 'ep_index_meta' );
-				delete_option( 'ep_index_meta' );
-				delete_site_option( 'ep_feature_settings' );
-				delete_option( 'ep_feature_settings' );
-				delete_site_option( 'ep_version' );
-				delete_option( 'ep_version' );
-				delete_option( 'ep_intro_shown' );
-				delete_site_option( 'ep_intro_shown' );
-				delete_option( 'ep_last_sync' );
-				delete_site_option( 'ep_last_sync' );
-				delete_option( 'ep_need_upgrade_sync' );
-				delete_site_option( 'ep_need_upgrade_sync' );
-				delete_option( 'ep_feature_requirement_statuses' );
-				delete_site_option( 'ep_feature_requirement_statuses' );
-				delete_option( 'ep_feature_auto_activated_sync' );
-				delete_site_option( 'ep_feature_auto_activated_sync' );
-				delete_option( 'ep_hide_intro_shown_notice' );
-				delete_site_option( 'ep_hide_intro_shown_notice' );
-				delete_option( 'ep_skip_install' );
-				delete_site_option( 'ep_skip_install' );
-				delete_option( 'ep_last_cli_index' );
-				delete_site_option( 'ep_last_cli_index' );
-				delete_option( 'ep_credentials' );
-				delete_site_option( 'ep_credentials' );
-				delete_option( 'ep_prefix' );
-				delete_site_option( 'ep_prefix' );
-				delete_option( 'ep_language' );
-				delete_site_option( 'ep_language' );
-				delete_option( 'ep_bulk_setting' );
-				delete_site_option( 'ep_bulk_setting' );
-
-				// Delete admin notices options
-				delete_site_option( 'ep_hide_host_error_notice' );
-				delete_option( 'ep_hide_host_error_notice' );
-				delete_site_option( 'ep_hide_es_below_compat_notice' );
-				delete_option( 'ep_hide_es_below_compat_notice' );
-				delete_site_option( 'ep_hide_es_above_compat_notice' );
-				delete_option( 'ep_hide_es_above_compat_notice' );
-				delete_site_option( 'ep_hide_need_setup_notice' );
-				delete_option( 'ep_hide_need_setup_notice' );
-				delete_site_option( 'ep_hide_no_sync_notice' );
-				delete_option( 'ep_hide_no_sync_notice' );
-				delete_site_option( 'ep_hide_upgrade_sync_notice' );
-				delete_option( 'ep_hide_upgrade_sync_notice' );
-				delete_site_option( 'ep_hide_auto_activate_sync_notice' );
-				delete_option( 'ep_hide_auto_activate_sync_notice' );
-				delete_site_option( 'ep_hide_using_autosuggest_defaults_notice' );
-				delete_option( 'ep_hide_using_autosuggest_defaults_notice' );
-				delete_site_option( 'ep_hide_yellow_health_notice' );
-				delete_option( 'ep_hide_yellow_health_notice' );
-
-				// Delete transients
-				delete_site_transient( 'ep_es_info_response_code' );
-				delete_transient( 'ep_es_info_response_code' );
-				delete_site_transient( 'ep_es_info_response_error' );
-				delete_transient( 'ep_es_info_response_error' );
-				delete_site_transient( 'logging_ep_es_info' );
-				delete_transient( 'logging_ep_es_info' );
-				delete_site_transient( 'ep_wpcli_sync_interrupted' );
-				delete_transient( 'ep_wpcli_sync_interrupted' );
-				delete_site_transient( 'ep_wpcli_sync' );
-				delete_transient( 'ep_wpcli_sync' );
-				delete_site_transient( 'ep_es_info' );
-				delete_transient( 'ep_es_info' );
-				delete_site_transient( 'ep_autosuggest_query_request_cache' );
-				delete_transient( 'ep_autosuggest_query_request_cache' );
-
-				$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
-
-				foreach ( $related_posts_transients as $related_posts_transient ) {
-					$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
-					delete_site_transient( $related_posts_transient );
-					delete_transient( $related_posts_transient );
-				}
+				$this->delete_options();
+				$this->delete_transients();
+				$this->delete_related_posts_transients();
 
 				restore_current_blog();
 			}
 		} else {
-			// Delete options.
-			delete_option( 'ep_host' );
-			delete_option( 'ep_index_meta' );
-			delete_option( 'ep_feature_settings' );
-			delete_option( 'ep_version' );
-			delete_option( 'ep_intro_shown' );
-			delete_option( 'ep_last_sync' );
-			delete_option( 'ep_need_upgrade_sync' );
-			delete_option( 'ep_feature_requirement_statuses' );
-			delete_option( 'ep_feature_auto_activated_sync' );
-			delete_option( 'ep_hide_intro_shown_notice' );
-			delete_option( 'ep_skip_install' );
-			delete_option( 'ep_last_cli_index' );
-			delete_option( 'ep_credentials' );
-			delete_option( 'ep_prefix' );
-			delete_option( 'ep_language' );
-			delete_option( 'ep_bulk_setting' );
-
-			// Delete admin notices options
-			delete_option( 'ep_hide_host_error_notice' );
-			delete_option( 'ep_hide_es_below_compat_notice' );
-			delete_option( 'ep_hide_es_above_compat_notice' );
-			delete_option( 'ep_hide_need_setup_notice' );
-			delete_option( 'ep_hide_no_sync_notice' );
-			delete_option( 'ep_hide_upgrade_sync_notice' );
-			delete_option( 'ep_hide_auto_activate_sync_notice' );
-			delete_option( 'ep_hide_using_autosuggest_defaults_notice' );
-			delete_option( 'ep_hide_yellow_health_notice' );
-
-			// Delete transients
-			delete_transient( 'ep_es_info_response_code' );
-			delete_transient( 'ep_es_info_response_error' );
-			delete_transient( 'logging_ep_es_info' );
-			delete_transient( 'ep_wpcli_sync_interrupted' );
-			delete_transient( 'ep_wpcli_sync' );
-			delete_transient( 'ep_es_info' );
-			delete_transient( 'ep_autosuggest_query_request_cache' );
-
-			$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
-
-			foreach ( $related_posts_transients as $related_posts_transient ) {
-				$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
-				delete_transient( $related_posts_transient );
-			}
+			$this->delete_options();
+			$this->delete_transients();
+			$this->delete_related_posts_transients();
 		}
+	}
+
+	/**
+	 * Cleanup options (deprecated, kept for documenting reasons.)
+	 *
+	 * @since 1.7
+	 * @return void
+	 * @see clean_options_and_transients
+	 */
+	protected static function clean_options() {
+		_deprecated_function( __FUNCTION__, '4.2.0', '\EP_Uninstaller->clean_options_and_transients()' );
 	}
 
 	/**
@@ -201,10 +183,8 @@ class EP_Uninstaller {
 	 * @return void
 	 */
 	protected function exit_uninstaller() {
-
 		status_header( 404 );
 		exit;
-
 	}
 }
 

@@ -61,7 +61,13 @@ fi
 
 npm run env run tests-cli "wp core multisite-convert"
 
-# Not sure why, wp-env makes it http://localhost:8889/:8889
+SITES_COUNT=$(npm --silent run env run tests-cli "wp site list --format=count")
+if [ $SITES_COUNT -eq 1 ]; then
+	npm run env run tests-cli "wp site create --slug=second-site --title='Second Site'"
+	npm --silent run env run tests-cli "wp search-replace localhost/ localhost:8889/ --all-tables"
+fi
+
+# Not sure why, wp-env makes it http://localhost:8889/:8889 (not related to the command above)
 npm run env run tests-cli "option set home 'http://localhost:8889'"
 npm run env run tests-cli "option set siteurl 'http://localhost:8889'"
 

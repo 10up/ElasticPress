@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Prepare npm cache
       uses: actions/cache@v2
@@ -34,7 +34,7 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -74,7 +74,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Prepare npm cache
       uses: actions/cache@v2
@@ -85,7 +85,7 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -120,4 +120,4 @@ jobs:
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME} --network"
-        npm run env run tests-cli "wp elasticpress delete-index --network-wide --yes"
+        npm run env run tests-cli "wp elasticpress-tests delete-all-indices"

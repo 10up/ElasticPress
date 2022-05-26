@@ -1,12 +1,11 @@
-const { __ } = wp.i18n;
-
-const { AlignmentToolbar, BlockControls, InspectorControls } = wp.editor;
-
-const { PanelBody, Placeholder, Spinner, QueryControls } = wp.components;
-
-const { Fragment, Component, RawHTML } = wp.element;
-
-const { addQueryArgs } = wp.url;
+/**
+ * WordPress dependencies.
+ */
+import { AlignmentToolbar, BlockControls, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
+import { Fragment, Component, RawHTML } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import { addQueryArgs } from '@wordpress/url';
 
 /**
  * Edit component
@@ -66,7 +65,7 @@ class Edit extends Component {
 					/>
 				</BlockControls>
 				<InspectorControls>
-					<PanelBody title={__('Related Post Settings')}>
+					<PanelBody title={__('Related Post Settings', 'elasticpress')}>
 						<QueryControls
 							numberOfItems={number}
 							onNumberOfItemsChange={(value) => setAttributes({ number: value })}
@@ -76,8 +75,12 @@ class Edit extends Component {
 
 				<div className={className}>
 					{displayPosts === false || displayPosts.length === 0 ? (
-						<Placeholder icon="admin-post" label={__('Related Posts')}>
-							{posts === false ? <Spinner /> : __('No related posts yet.')}
+						<Placeholder icon="admin-post" label={__('Related Posts', 'elasticpress')}>
+							{posts === false ? (
+								<Spinner />
+							) : (
+								__('No related posts yet.', 'elasticpress')
+							)}
 						</Placeholder>
 					) : (
 						<ul style={{ textAlign: alignment }}>

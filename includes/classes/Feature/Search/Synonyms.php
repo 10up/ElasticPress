@@ -140,6 +140,8 @@ class Synonyms {
 			true
 		);
 
+		wp_enqueue_style( 'wp-edit-post' );
+
 		wp_enqueue_style(
 			'ep_synonyms_styles',
 			EP_URL . 'dist/css/synonyms-styles.min.css',

@@ -193,13 +193,24 @@ function maybe_skip_install() {
 		return;
 	}
 
+	if ( ! empty( $_GET['ep-skip-features'] ) ) {
+		$features = \ElasticPress\Features::factory()->registered_features;
+
+		foreach ( $features as $slug => $feature ) {
+			\ElasticPress\Features::factory()->deactivate_feature( $slug );
+		}
+	}
+
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		$redirect_url = network_admin_url( 'admin.php?page=elasticpress' );
 		update_site_option( 'ep_skip_install', true );
 	} else {
+		$redirect_url = admin_url( 'admin.php?page=elasticpress' );
 		update_option( 'ep_skip_install', true );
 	}
 
-	wp_safe_redirect( admin_url( 'admin.php?page=elasticpress' ) );
+	wp_safe_redirect( $redirect_url );
+	exit;
 }
 
 /**
@@ -410,6 +421,8 @@ function action_wp_ajax_ep_cancel_index() {
  * @since  2.2
  */
 function action_wp_ajax_ep_save_feature() {
+	$_POST = wp_unslash( $_POST );
+
 	if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 		wp_send_json_error();
 		exit;
@@ -483,10 +496,22 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-				admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' ) :
+				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
 				admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 
+		$skip_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+				network_admin_url( 'admin.php?page=elasticpress' ) :
+				admin_url( 'admin.php?page=elasticpress' );
+
 		$data = array(
+			'skipUrl' => add_query_arg(
+				array(
+					'ep-skip-install'  => 1,
+					'ep-skip-features' => 1,
+					'nonce'            => wp_create_nonce( 'ep-skip-install' ),
+				),
+				$skip_url
+			),
 			'syncUrl' => $sync_url,
 		);
 

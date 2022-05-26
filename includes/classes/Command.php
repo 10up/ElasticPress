@@ -56,6 +56,15 @@ class Command extends WP_CLI_Command {
 	protected $assoc_args = [];
 
 	/**
+	 * Internal timer.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @var float
+	 */
+	protected $time_start = null;
+
+	/**
 	 * Create Command
 	 *
 	 * @since  3.5.2
@@ -196,13 +205,13 @@ class Command extends WP_CLI_Command {
 	 * [--network-wide]
 	 * : Force mappings to be sent for every index in the network.
 	 *
-	 * [--indexables]
+	 * [--indexables=<indexables>]
 	 * : List of indexables
 	 *
-	 * [--ep-host]
+	 * [--ep-host=<host>]
 	 * : Custom Elasticsearch host
 	 *
-	 * [--ep-prefix]
+	 * [--ep-prefix=<prefix>]
 	 * : Custom ElasticPress prefix
 	 *
 	 * @subcommand put-mapping
@@ -261,7 +270,7 @@ class Command extends WP_CLI_Command {
 						continue;
 					}
 
-					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
 					$result = $indexable->put_mapping();
@@ -296,7 +305,7 @@ class Command extends WP_CLI_Command {
 					continue;
 				}
 
-				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
 				$result = $indexable->put_mapping();
@@ -332,7 +341,7 @@ class Command extends WP_CLI_Command {
 				continue;
 			}
 
-			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_index();
 			$result = $indexable->put_mapping();
@@ -388,6 +397,8 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Return all indexes from the cluster as a JSON object.
 	 *
+	 * ## OPTIONS
+	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
@@ -406,6 +417,8 @@ class Command extends WP_CLI_Command {
 
 	/**
 	 * Return all index names as a JSON object.
+	 *
+	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
@@ -428,7 +441,7 @@ class Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	protected function get_index_names() {
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
+		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
 
 		$all_indexables = Indexables::factory()->get_all();
 
@@ -456,7 +469,7 @@ class Command extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--index-name]
+	 * [--index-name=<index_name>]
 	 * : The name of the index to be deleted. If not passed, all indexes will be deleted
 	 *
 	 * [--network-wide]
@@ -503,7 +516,7 @@ class Command extends WP_CLI_Command {
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
 
-					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
+					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $indexable->delete_index();
 
@@ -518,7 +531,7 @@ class Command extends WP_CLI_Command {
 			}
 		} else {
 			foreach ( $non_global_indexable_objects as $indexable ) {
-				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 				$result = $indexable->delete_index();
 
@@ -531,7 +544,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		foreach ( $global_indexable_objects as $indexable ) {
-			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
+			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 			$result = $indexable->delete_index();
 
@@ -560,7 +573,7 @@ class Command extends WP_CLI_Command {
 		$indexables = Indexables::factory()->get_all( false );
 
 		foreach ( $indexables as $indexable ) {
-			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias...', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
+			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_network_alias();
 
@@ -645,7 +658,7 @@ class Command extends WP_CLI_Command {
 	 * [--setup]
 	 * : Clear the index first and re-send the put mapping. Use `--yes` to skip the confirmation
 	 *
-	 * [--per-page]
+	 * [--per-page=<per_page_number>]
 	 * : Determine the amount of posts to be indexed per bulk index (or cycle)
 	 *
 	 * [--nobulk]
@@ -663,31 +676,31 @@ class Command extends WP_CLI_Command {
 	 * [--show-nobulk-errors]
 	 * : Display the error message returned from Elasticsearch when a post fails to index while not using the /_bulk endpoint
 	 *
-	 * [--offset]
+	 * [--offset=<offset_number>]
 	 * : Skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
 	 *
-	 * [--indexables]
+	 * [--indexables=<indexables>]
 	 * : Specify the Indexable(s) which will be indexed
 	 *
-	 * [--post-type]
+	 * [--post-type=<post_types>]
 	 * : Specify which post types will be indexed (by default: all indexable post types are indexed). For example, `--post-type="my_custom_post_type"` would limit indexing to only posts from the post type "my_custom_post_type". Accepts multiple post types separated by comma
 	 *
-	 * [--include]
+	 * [--include=<IDs>]
 	 * : Choose which object IDs to include in the index
 	 *
-	 * [--post-ids]
+	 * [--post-ids=<IDs>]
 	 * : Choose which post_ids to include when indexing the Posts Indexable (deprecated)
 	 *
-	 * [--upper-limit-object-id]
+	 * [--upper-limit-object-id=<ID>]
 	 * : Upper limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 45
 	 *
-	 * [--lower-limit-object-id]
+	 * [--lower-limit-object-id=<ID>]
 	 * : Lower limit of a range of IDs to be indexed. If indexing IDs from 30 to 45, this should be 30
 	 *
-	 * [--ep-host]
+	 * [--ep-host=<host>]
 	 * : Custom Elasticsearch host
 	 *
-	 * [--ep-prefix]
+	 * [--ep-prefix=<prefix>]
 	 * : Custom ElasticPress prefix
 	 *
 	 * [--yes]
@@ -739,7 +752,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		timer_start();
+		$this->timer_start();
 
 		add_action( 'ep_sync_put_mapping', [ $this, 'stop_on_failed_mapping' ], 10, 3 );
 		add_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
@@ -798,7 +811,7 @@ class Command extends WP_CLI_Command {
 		remove_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		remove_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
-		$index_time = timer_stop();
+		$sync_time_in_ms = $this->timer_stop();
 
 		/**
 		 * Fires after executing a CLI index
@@ -811,7 +824,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_after_index', $args, $assoc_args );
 
-		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $index_time ) );
+		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . $this->timer_format( $sync_time_in_ms ) ) );
 
 		$this->delete_transient();
 
@@ -978,7 +991,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_after_clear_index' );
 
-		WP_CLI::success( esc_html__( 'Index cleared.', 'elasticpress' ) );
+		WP_CLI::log( esc_html__( 'Index cleared.', 'elasticpress' ) );
 	}
 
 	/**
@@ -989,6 +1002,8 @@ class Command extends WP_CLI_Command {
 	 * method | string | 'cli', 'web' or 'none'
 	 * items_indexed | integer | Total number of items indexed
 	 * total_items | integer | Total number of items indexed or -1 if not yet determined
+	 *
+	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
@@ -1014,7 +1029,27 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) of an empty array.
+	 * Returns a JSON array with the results of the last index (if present) or an empty array.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-last-sync
+	 * @alias      get-last-index
+	 * @since 4.2.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_last_sync( $args, $assoc_args ) {
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+
+		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
+	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
@@ -1030,11 +1065,10 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_cli_index( $args, $assoc_args ) {
-
-		$last_sync = get_site_option( 'ep_last_cli_index', array() );
+		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
-			delete_site_option( 'ep_last_cli_index' );
+			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
 		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
@@ -1107,7 +1141,7 @@ class Command extends WP_CLI_Command {
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
 			WP_CLI::warning( esc_html__( 'There is no indexing operation running.', 'elasticpress' ) );
 		} else {
-			WP_CLI::line( esc_html__( 'Stopping indexing...', 'elasticpress' ) );
+			WP_CLI::line( esc_html__( 'Stopping indexing…', 'elasticpress' ) );
 
 			if ( isset( $indexing_status['method'] ) && 'cli' === $indexing_status['method'] ) {
 				set_transient( 'ep_wpcli_sync_interrupted', true, MINUTE_IN_SECONDS );
@@ -1310,9 +1344,9 @@ class Command extends WP_CLI_Command {
 		if ( 'index_next_batch' === $context ) {
 			$counter++;
 			if ( ( $counter % 10 ) === 0 ) {
-				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( timer_stop( 0, 2 ) - $time_elapsed ) . ')' : '';
-				$time_elapsed      = timer_stop( 0, 2 );
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $time_elapsed . $time_elapsed_diff ) );
+				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( $this->timer_stop() - $time_elapsed ) . ')' : '';
+				$time_elapsed      = $this->timer_stop( 2 );
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . $this->timer_format( $time_elapsed ) . $time_elapsed_diff ) );
 
 				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
 				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
@@ -1448,6 +1482,68 @@ class Command extends WP_CLI_Command {
 		}
 
 		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+	}
+
+	/**
+	 * Reset all ElasticPress settings stored in WP options and transients.
+	 *
+	 * This command will not delete any index or content stored in Elasticsearch but will force users to go through the installation process again.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--yes]
+	 * : Skip confirmation
+	 *
+	 * @subcommand settings-reset
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function settings_reset( $args, $assoc_args ) {
+		WP_CLI::confirm( esc_html__( 'Are you sure you want to delete all ElasticPress settings?', 'elasticpress' ), $assoc_args );
+
+		define( 'EP_MANUAL_SETTINGS_RESET', true );
+		include EP_PATH . '/uninstall.php';
+
+		WP_CLI::line( esc_html__( 'Settings deleted.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Starts the timer.
+	 *
+	 * @since 4.2.0
+	 * @return true
+	 */
+	protected function timer_start() {
+		$this->time_start = microtime( true );
+		return true;
+	}
+
+	/**
+	 * Stops the timer.
+	 *
+	 * @since 4.2.0
+	 * @param int $precision The number of digits from the right of the decimal to display. Default 3.
+	 * @return float Time spent so far
+	 */
+	protected function timer_stop( $precision = 3 ) {
+		$diff = microtime( true ) - $this->time_start;
+		return number_format( $diff, $precision );
+	}
+
+	/**
+	 * Given a timestamp in microseconds, returns it in the given format.
+	 *
+	 * @since 4.2.0
+	 * @param float  $microtime Unix timestamp in ms
+	 * @param string $format    Desired format
+	 * @return string
+	 */
+	protected function timer_format( $microtime, $format = 'H:i:s.u' ) {
+		$microtime_date = \DateTime::createFromFormat( 'U.u', number_format( $microtime, 3, '.', '' ) );
+		return $microtime_date->format( $format );
 	}
 
 	/**

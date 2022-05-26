@@ -42,7 +42,7 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.get('.synonym-sets-editor').within(() => {
 			cy.get('.synonym__remove').click();
 			cy.contains('.button', 'Add Set').click();
-			cy.get('.ep-synonyms__linked-multi-input').type(`${word1}{enter}${word2}{enter}`);
+			cy.get('.components-form-token-field__input').type(`${word1}{enter}${word2}{enter}`);
 		});
 		cy.get('#synonym-root .button-primary').click();
 
@@ -66,7 +66,7 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 			cy.get('.synonym__remove').click();
 			cy.contains('.button', 'Add Alternative').click();
 			cy.get('.ep-synonyms__input').type(word1);
-			cy.get('.ep-synonyms__linked-multi-input').type(`${word2}{enter}`);
+			cy.get('.components-form-token-field__input').type(`${word2}{enter}`);
 		});
 		cy.get('#synonym-root .button-primary').click();
 
@@ -115,15 +115,17 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.contains('.notice-success', 'Successfully updated synonym filter.').should('exist');
 
 		cy.contains('.page-title-action', 'Switch to Visual Editor').click();
-		cy.contains('.synonym-set-editor div', 'list').should('exist');
-		cy.contains('.synonym-set-editor div', 'of').should('exist');
-		cy.contains('.synonym-set-editor div', 'words').should('exist');
-
+		cy.contains('.synonym-set-editor .components-form-token-field span', 'list').should(
+			'exist',
+		);
+		cy.contains('.synonym-set-editor .components-form-token-field span', 'of').should('exist');
+		cy.contains('.synonym-set-editor .components-form-token-field span', 'words').should(
+			'exist',
+		);
 		cy.get('.synonym-alternative-editor input[value="foo"]').should('exist');
-		cy.contains(
-			'.synonym-alternative-editor .ep-synonyms__linked-multi-input div',
-			'bar',
-		).should('exist');
+		cy.contains('.synonym-alternative-editor .components-form-token-field span', 'bar').should(
+			'exist',
+		);
 	});
 	it('Can preserve synonyms if a sync is performed', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');

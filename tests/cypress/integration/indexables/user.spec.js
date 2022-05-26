@@ -44,9 +44,9 @@ describe('User Indexable', () => {
 			return true;
 		});
 
-		cy.get('.ep-delete-data-and-sync .ep-sync-box__progress-info', {
+		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync completed');
+		}).should('contain.text', 'Sync complete');
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'users');
 	});

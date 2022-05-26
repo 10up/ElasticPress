@@ -1,12 +1,19 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import LinkedMultiInput from '../shared/LinkedMultiInput';
+/**
+ * WordPress dependencies.
+ */
+import { useContext, useEffect, useMemo, useRef, useState, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch } from '../../context';
+import LinkedMultiInput from '../shared/LinkedMultiInput';
 
 /**
  * Alternative Editor
  *
  * @param {object} props Props.
- * @returns {React.FC} AlternativeEditor component
+ * @returns {WPElement} AlternativeEditor component
  */
 const AlternativeEditor = (props) => {
 	const { id, synonyms, removeAction, updateAction } = props;
@@ -32,7 +39,7 @@ const AlternativeEditor = (props) => {
 	/**
 	 * Handle key down.
 	 *
-	 * @param {React.SyntheticEvent} event Keydown event.
+	 * @param {Event} event Keydown event.
 	 */
 	const handleKeyDown = (event) => {
 		switch (event.key) {
@@ -54,7 +61,7 @@ const AlternativeEditor = (props) => {
 		primaryRef.current.focus();
 	}, [primaryRef]);
 
-	const memoizedSynonyms = React.useMemo(() => {
+	const memoizedSynonyms = useMemo(() => {
 		return synonyms.filter((item) => !item.primary);
 	}, [synonyms]);
 
