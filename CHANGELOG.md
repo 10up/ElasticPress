@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-## [4.2.0] - 2022-05-XX
+## [4.2.0] - 2022-05-26
 ElasticPress 4.2.0 fixes some bugs and introduces some new and exciting changes.
 
 The sync functionality had its JavaScript refactored. Timeouts, memory limits, and general errors are now properly handled and do not make the sync get stuck when performed via the WP-CLI `index` command. There is also a new `get-last-sync` WP-CLI command to check the errors and numbers from the last sync.

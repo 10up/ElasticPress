@@ -51,7 +51,7 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
-= 4.2.0 - 2022-05-XX =
+= 4.2.0 - 2022-05-26 =
 
 ElasticPress 4.2.0 fixes some bugs and introduces some new and exciting changes.
 
