@@ -160,6 +160,19 @@ describe('WP-CLI Commands', () => {
 		cy.wpCli('wp elasticpress activate-feature search')
 			.its('stdout')
 			.should('contain', 'Feature activated');
+
+		cy.wpCli('wp elasticpress activate-feature invalid', true)
+			.its('stderr')
+			.should('contain', 'No feature with that slug is registered');
+
+		cy.wpCli('wp elasticpress activate-feature woocommerce', true)
+			.its('stderr')
+			.should('contain', 'Feature requirements are not met');
+
+		cy.wpCli('wp elasticpress activate-feature protected_content', true)
+			.its('stderr')
+			.should('contain', 'This feature requires a re-index')
+			.should('contain', 'Feature is usable but there are warnings');
 	});
 
 	it('Can list all the active features if user runs wp elasticpress list-features command', () => {
