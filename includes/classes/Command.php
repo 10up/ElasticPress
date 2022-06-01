@@ -1530,7 +1530,7 @@ class Command extends WP_CLI_Command {
 	 */
 	protected function timer_stop( $precision = 3 ) {
 		$diff = microtime( true ) - $this->time_start;
-		return number_format( $diff, $precision );
+		return (float) number_format( (float) $diff, $precision );
 	}
 
 	/**
@@ -1542,7 +1542,7 @@ class Command extends WP_CLI_Command {
 	 * @return string
 	 */
 	protected function timer_format( $microtime, $format = 'H:i:s.u' ) {
-		$microtime_date = \DateTime::createFromFormat( 'U.u', number_format( $microtime, 3, '.', '' ) );
+		$microtime_date = \DateTime::createFromFormat( 'U.u', number_format( (float) $microtime, 3, '.', '' ) );
 		return $microtime_date->format( $format );
 	}
 
