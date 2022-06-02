@@ -13,7 +13,11 @@ export default {
 			blocks: ['core/legacy-widget'],
 			isMatch: ({ idBase }) => idBase === 'ep-related-posts',
 			transform: ({ instance }) => {
-				const { title, num_posts: number } = instance.raw;
+				const { title = null, num_posts: number } = instance.raw;
+
+				if (!title) {
+					return createBlock('elasticpress/related-posts', { number });
+				}
 
 				return [
 					createBlock('core/heading', { content: title }),

@@ -13,7 +13,11 @@ export default {
 			blocks: ['core/legacy-widget'],
 			isMatch: ({ idBase }) => idBase === 'ep-facet',
 			transform: ({ instance }) => {
-				const { title, ...attributes } = instance.raw;
+				const { title = null, ...attributes } = instance.raw;
+
+				if (!title) {
+					return createBlock('elasticpress/facet', attributes);
+				}
 
 				return [
 					createBlock('core/heading', { content: title }),
