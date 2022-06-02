@@ -1580,4 +1580,53 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
+
+	/**
+	 * Tests terms without meta value.
+	 *
+	 * @return void
+	 */
+	public function testMetaWithoutValue() {
+
+		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'category' );
+		update_term_meta( $term_id, 'key', 'value' );
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+
+		$term_id = Functions\create_and_sync_term( 'term-name-2', 'term name 2', '', 'category' );
+		update_term_meta( $term_id, 'key', 'value' );
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+
+		Functions\create_and_sync_term( 'term-name-3', 'term name 3', '', 'category' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure WP_Term_Query returns only taxonomies for whom meta exists.
+		$args = array(
+			'taxonomy' => 'category',
+			'meta_key' => 'key',
+			'ep_integrate' => true,
+			'hide_empty' => false,
+
+		);
+		$query = new \WP_Term_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, count( $query->terms ) );
+
+		// Make sure get_terms returns only taxonomies for whom meta exists.
+		$args = array(
+			'taxonomy' => 'category',
+			'hide_empty' => false,
+			'ep_integrate' => true,
+			'meta_query' => array(
+				array(
+					'key' => 'key',
+				)
+			)
+		);
+		$terms = get_terms( $args );
+		$this->assertTrue( $terms[0]->elasticsearch );
+		$this->assertEquals( 2, count( $terms ) );
+
+	}
+
 }

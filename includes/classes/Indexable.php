@@ -796,6 +796,8 @@ abstract class Indexable {
 				$compare = '=';
 				if ( ! empty( $single_meta_query['compare'] ) ) {
 					$compare = strtolower( $single_meta_query['compare'] );
+				} elseif ( ! isset( $single_meta_query['value'] ) ) {
+					$compare = 'exists';
 				}
 
 				$type = null;
