@@ -216,7 +216,7 @@ class InstantResults extends Feature {
 	 */
 	public function setup() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_filter( 'ep_after_update_feature', [ $this, 'epio_save_search_template' ] );
+		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_formatted_args', [ $this, 'maybe_apply_aggs_args' ], 10, 3 );
 		add_filter( 'ep_post_mapping', [ $this, 'add_mapping_properties' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'add_post_sync_args' ], 10, 2 );
@@ -317,6 +317,30 @@ class InstantResults extends Feature {
 	}
 
 	/**
+	 * Save or delete the search template on ElasticPress.io based on whether
+	 * the Instant Results feature is being activated or deactivated.
+	 *
+	 * @param string $feature  Feature slug
+	 * @param array  $settings Feature settings
+	 * @param array  $data     Feature activation data
+	 *
+	 * @return void
+	 *
+	 * @since 4.3.0
+	 */
+	public function after_update_feature( $feature, $settings, $data ) {
+		if ( $feature !== $this->slug ) {
+			return;
+		}
+
+		if ( true === $data['active'] ) {
+			$this->epio_save_search_template();
+		} else {
+			$this->epio_delete_search_template();
+		}
+	}
+
+	/**
 	 * Save the search template to ElasticPress.io.
 	 *
 	 * @return void
@@ -354,6 +378,44 @@ class InstantResults extends Feature {
 		 * @since 4.0.0
 		 */
 		do_action( 'ep_instant_results_template_saved', $search_template, $this->index );
+	}
+
+	/**
+	 * Delete the search template from ElasticPress.io.
+	 *
+	 * @return void
+	 *
+	 * @since 4.3.0
+	 */
+	public function epio_delete_search_template() {
+		/**
+		 * The search template API endpoint.
+		 *
+		 * @hook ep_instant_results_template_endpoint
+		 * @param string $endpoint Endpoint path.
+		 * @param string $index Elasticsearch index.
+		 *
+		 * @since 4.0.0
+		 */
+		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+
+		Elasticsearch::factory()->remote_request(
+			$endpoint,
+			[
+				'blocking' => false,
+				'method'   => 'DELETE',
+			]
+		);
+
+		/**
+		 * Fires after the request is sent the search template API endpoint.
+		 *
+		 * @hook ep_instant_results_template_deleted
+		 * @param string $index Index name.
+		 *
+		 * @since 4.3.0
+		 */
+		do_action( 'ep_instant_results_template_deleted', $this->index );
 	}
 
 	/**
