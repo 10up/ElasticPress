@@ -357,11 +357,13 @@ class RelatedPosts extends Feature {
 	 * is in use and the legacy widget has not been used.
 	 *
 	 * @since 4.3
+	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @return array array of excluded widget-type IDs to hide.
 	 */
-	function hide_legacy_widget( $widget_types ) {
-		$widget_types[] = 'ep-related-posts';
+	public function hide_legacy_widget( $widgets ) {
+		$widgets[] = 'ep-related-posts';
 
-		return $widget_types;
+		return $widgets;
 	}
 
 	/**
