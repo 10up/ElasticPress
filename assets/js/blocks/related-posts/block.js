@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import Edit from './Edit';
+import transforms from './transforms';
 
 registerBlockType('elasticpress/related-posts', {
 	title: __('Related Posts (ElasticPress)', 'elasticpress'),
@@ -25,6 +26,7 @@ registerBlockType('elasticpress/related-posts', {
 			default: 5,
 		},
 	},
+	transforms,
 
 	/**
 	 * Handle edit
