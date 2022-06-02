@@ -194,10 +194,9 @@ class InstantResults extends Feature {
 			 * Installations using self-hosted Elasticsearch will need to implement an API for
 			 * handling search requests before making the feature available.
 			 *
-			 * @hook ep_instant_results_available
-			 * @param string $available Whether the feature is available.
-			 *
 			 * @since 4.0.0
+			 * @hook ep_instant_results_available
+			 * @param {string} $available Whether the feature is available.
 			 */
 		} elseif ( apply_filters( 'ep_instant_results_available', false ) ) {
 			$status->code      = 1;
@@ -260,11 +259,10 @@ class InstantResults extends Feature {
 		/**
 		 * The search API endpoint.
 		 *
-		 * @hook ep_instant_results_search_endpoint
-		 * @param string $endpoint Endpoint path.
-		 * @param string $index Elasticsearch index.
-		 *
 		 * @since 4.0.0
+		 * @hook ep_instant_results_search_endpoint
+		 * @param {string} $endpoint Endpoint path.
+		 * @param {string} $index Elasticsearch index.
 		 */
 		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$this->index}", $this->index );
 
@@ -347,13 +345,13 @@ class InstantResults extends Feature {
 	 */
 	public function epio_save_search_template() {
 		/**
-		 * The search template API endpoint.
-		 *
-		 * @hook ep_instant_results_template_endpoint
-		 * @param string $endpoint Endpoint path.
-		 * @param string $index Elasticsearch index.
+		 * Filters the search template API endpoint.
 		 *
 		 * @since 4.0.0
+		 * @hook ep_instant_results_template_endpoint
+		 * @param {string} $endpoint Endpoint path.
+		 * @param {string} $index Elasticsearch index.
+		 * @returns {string} Search template API endpoint.
 		 */
 		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
 
@@ -371,11 +369,10 @@ class InstantResults extends Feature {
 		/**
 		 * Fires after the request is sent the search template API endpoint.
 		 *
-		 * @hook ep_instant_results_template_saved
-		 * @param string $search_template The search template (JSON).
-		 * @param string $index           Index name.
-		 *
 		 * @since 4.0.0
+		 * @hook ep_instant_results_template_saved
+		 * @param {string} $search_template The search template (JSON).
+		 * @param {string} $index Index name.
 		 */
 		do_action( 'ep_instant_results_template_saved', $search_template, $this->index );
 	}
@@ -389,13 +386,13 @@ class InstantResults extends Feature {
 	 */
 	public function epio_delete_search_template() {
 		/**
-		 * The search template API endpoint.
-		 *
-		 * @hook ep_instant_results_template_endpoint
-		 * @param string $endpoint Endpoint path.
-		 * @param string $index Elasticsearch index.
+		 * Filters the search template API endpoint.
 		 *
 		 * @since 4.0.0
+		 * @hook ep_instant_results_template_endpoint
+		 * @param {string} $endpoint Endpoint path.
+		 * @param {string} $index Elasticsearch index.
+		 * @returns {string} Search template API endpoint.
 		 */
 		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
 
@@ -410,10 +407,9 @@ class InstantResults extends Feature {
 		/**
 		 * Fires after the request is sent the search template API endpoint.
 		 *
-		 * @hook ep_instant_results_template_deleted
-		 * @param string $index Index name.
-		 *
 		 * @since 4.3.0
+		 * @hook ep_instant_results_template_deleted
+		 * @param {string} $index Index name.
 		 */
 		do_action( 'ep_instant_results_template_deleted', $this->index );
 	}
@@ -447,10 +443,10 @@ class InstantResults extends Feature {
 		 * template. This filter supports setting a specific user as the
 		 * current user while the template is generated.
 		 *
-		 * @hook ep_search_template_user_id
-		 * @param  {int} $user_id User ID to use.
-		 * @return {int} New user ID to use.
 		 * @since 4.1.0
+		 * @hook ep_search_template_user_id
+		 * @param {int} $user_id User ID to use.
+		 * @return {int} New user ID to use.
 		 */
 		$template_user_id = apply_filters( 'ep_search_template_user_id', 0 );
 		$original_user_id = get_current_user_id();
