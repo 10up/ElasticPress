@@ -163,6 +163,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
@@ -347,6 +348,20 @@ class RelatedPosts extends Feature {
 	 */
 	public function register_widget() {
 		register_widget( __NAMESPACE__ . '\Widget' );
+	}
+
+	/**
+	 * Hide the legacy widget.
+	 *
+	 * Hides the legacy widget in favor of the Block when the block editor
+	 * is in use and the legacy widget has not been used.
+	 *
+	 * @since 4.3
+	 */
+	function hide_legacy_widget( $widget_types ) {
+		$widget_types[] = 'ep-related-posts';
+
+		return $widget_types;
 	}
 
 	/**
