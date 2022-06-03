@@ -723,10 +723,14 @@ abstract class Indexable {
 		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 
+			// date_create converts 5479516sunt meta into 107039-03-10. We keep using default values
+			// if year in date is greater than 2099.
+			$max_year = 2099;
+
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
 			// issues when integrating into stricter systems. This is by design:
 			// https://bugs.php.net/bug.php?id=60288
-			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) ) {
+			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) && $new_date->format( 'Y' ) <= $max_year ) {
 				$meta_types['date']     = $new_date->format( 'Y-m-d' );
 				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
 				$meta_types['time']     = $new_date->format( 'H:i:s' );
