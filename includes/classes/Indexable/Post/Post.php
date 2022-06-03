@@ -1441,7 +1441,80 @@ class Post extends Indexable {
 
 		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
 
-		if ( '3.5' === $search_algorithm_version ) {
+		if ( '4.0' === $search_algorithm_version ) {
+			$query = array(
+				'bool' => array(
+					'should' => array(
+						array(
+							'multi_match' => array(
+								'query'  => $search_text,
+								'type'   => 'phrase',
+								'fields' => $search_fields,
+								/**
+								 * Filter boost for post match phrase query
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param  {int} $boost Phrase boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New phrase boost
+								 */
+								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
+							),
+						),
+						array(
+							'multi_match' => array(
+								'query'     => $search_text,
+								'fields'    => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_boost
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'     => apply_filters( 'ep_match_boost', 1, $search_fields, $args ),
+								/**
+								 * Filter fuzziness for post match query
+								 *
+								 * @hook ep_match_fuzziness
+								 * @since 4.0.0
+								 * @param {string|int} $fuzziness Fuzziness
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {string} New boost
+								 */
+								'fuzziness' => apply_filters( 'ep_match_fuzziness', 'auto', $search_fields, $args ),
+								'operator'  => 'and',
+							),
+						),
+						array(
+							'multi_match' => [
+								'query'       => $search_text,
+								'type'        => 'cross_fields',
+								'fields'      => $search_fields,
+								/**
+								 * Filter boost for post match query
+								 *
+								 * @hook ep_match_cross_fields_boost
+								 * @since 4.0.0
+								 * @param  {int} $boost Boost
+								 * @param {array} $prepared_search_fields Search fields
+								 * @param {array} $query_vars Query variables
+								 * @return  {int} New boost
+								 */
+								'boost'       => apply_filters( 'ep_match_cross_fields_boost', 1, $search_fields, $args ),
+								'analyzer'    => 'standard',
+								'tie_breaker' => 0.5,
+								'operator'    => 'and',
+							],
+						),
+					),
+				),
+			);
+		} elseif ( '3.5' === $search_algorithm_version ) {
 			$query = array(
 				'bool' => array(
 					'should' => array(
