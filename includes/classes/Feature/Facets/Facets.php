@@ -60,6 +60,13 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function setup() {
+		global $pagenow;
+
+		// This feature should not run while in the editor.
+		if ( 'post-new.php' === $pagenow || 'post.php' === $pagenow ) {
+			return;
+		}
+
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
