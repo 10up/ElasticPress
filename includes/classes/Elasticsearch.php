@@ -1395,7 +1395,7 @@ class Elasticsearch {
 	/**
 	 * Return ES plugins, version and type.
 	 *
-	 * This function also sets those value in the object instance, getting it from cache
+	 * This function also sets those values in the object instance, getting it from cache
 	 * or not, according to `$force` value.
 	 *
 	 * @param bool $force Bust cache or not.
