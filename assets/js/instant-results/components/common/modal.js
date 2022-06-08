@@ -74,6 +74,11 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 	useEffect(handleEvents, [onKeyDown, ref]);
 	useEffect(handleOpen, [isOpen, ref]);
 
+	/**
+	 * Allow Outside clicks.
+	 */
+	const allowOutsideClick = true;
+
 	return (
 		<div
 			aria-hidden={!isOpen}
@@ -84,7 +89,7 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 			{...props}
 		>
 			{isOpen && (
-				<FocusTrap>
+				<FocusTrap focusTrapOptions={{ allowOutsideClick }}>
 					<div className="ep-search-modal__content">
 						<button
 							className="ep-search-modal__close ep-search-reset-button ep-search-icon-button"
