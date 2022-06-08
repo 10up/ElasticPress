@@ -36,6 +36,7 @@ class AdminNotices {
 		'host_error',
 		'es_below_compat',
 		'es_above_compat',
+		'different_server_type',
 		'need_setup',
 		'no_sync',
 		'upgrade_sync',
@@ -521,6 +522,53 @@ class AdminNotices {
 				'dismiss' => true,
 			];
 		}
+	}
+
+	/**
+	 * Server software different from Elasticsearch warning.
+	 *
+	 * Type: warning
+	 * Dismiss: Anywhere
+	 * Show: All screens
+	 *
+	 * @since  4.2.1
+	 * @return array|bool
+	 */
+	protected function process_different_server_type_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$server_type = Elasticsearch::factory()->get_server_type();
+
+		if ( false === $server_type || 'elasticsearch' === $server_type ) {
+			return false;
+		}
+
+		$dismiss = Utils\get_option( 'ep_hide_different_server_type_notice', false );
+
+		if ( $dismiss ) {
+			return false;
+		}
+
+		$doc_url = 'https://10up.github.io/ElasticPress/tutorial-compatibility.html';
+		$html    = sprintf(
+			/* translator: Document page URL */
+			__( 'Your server software is not supported. To know more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
+			esc_url( $doc_url )
+		);
+
+		return [
+			'html'    => $html,
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
 	}
 
 	/**
