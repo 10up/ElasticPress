@@ -723,9 +723,16 @@ abstract class Indexable {
 		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 
-			// date_create converts 5479516sunt meta into 107039-03-10. We keep using default values
-			// if year in date is greater than 2099.
-			$max_year = 2099;
+			/**
+			 * Filter the maximum year limit for date conversion.
+			 *
+			 * @hook ep_max_year_limit
+			 * @param  {int} $year Maximum year limit.
+			 * @return {int} Maximum year limit.
+			 */
+			// Use default date if year is greater than max limit. EP has limitation that doesn't allow to have year greater than 2099.
+			// @see https://github.com/10up/ElasticPress/issues/2769
+			$max_year = apply_filters( 'ep_max_year_limit', 2099 );
 
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
 			// issues when integrating into stricter systems. This is by design:
