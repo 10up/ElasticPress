@@ -589,7 +589,18 @@ class Weighting {
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
-		if ( apply_filters( 'ep_disable_do_weighting', false, $weight_config, $args ) ) {
+		/**
+		 * Filter whether to disable weighting configuration
+		 *
+		 * @hook ep_disable_do_weighting
+		 * @since 4.2.1
+		 * @param {bool} Whether to use weighting configuration, default is false
+		 * @param {array} $weight_config Current weight config
+		 * @param {array} $args WP Query arguments
+		 * @param {array} $formatted_args Formatted ES arguments
+		 * @return {bool} Whether to use weighting configuration
+		 */
+		if ( apply_filters( 'ep_disable_do_weighting', false, $weight_config, $args, $formatted_args ) ) {
 			return $formatted_args;
 		}
 
