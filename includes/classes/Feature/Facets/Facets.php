@@ -63,7 +63,7 @@ class Facets extends Feature {
 		global $pagenow;
 
 		// This feature should not run while in the editor.
-		if ( 'post-new.php' === $pagenow || 'post.php' === $pagenow ) {
+		if ( in_array( $pagenow, ['post-new.php', 'post.php'], true ) ) {
 			return;
 		}
 
