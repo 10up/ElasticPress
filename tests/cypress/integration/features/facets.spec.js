@@ -14,45 +14,49 @@ describe('Facets Feature', () => {
 			createdWidgetsLength = $openedWidgetArea.find('.wp-block-legacy-widget').length;
 
 			cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-			cy.get('.block-editor-inserter__panel-content [class*="legacy-widget/ep-facet"]').click(
-				{
+			cy.get('.block-editor-inserter__panel-content [class*="legacy-widget/ep-facet"]')
+				.click({
 					force: true,
-				},
-			);
+				})
+				.then(() => {
+					cy.get(
+						`.is-opened .wp-block-legacy-widget:eq(${createdWidgetsLength}) .wp-block-legacy-widget__edit-form:visible .widefat:visible`,
+						{ timeout: 10000 },
+					)
+						.closest('.widget-ep-facet')
+						.within(() => {
+							cy.get('input[name^="widget-ep-facet"][name$="[title]"]').clearThenType(
+								title,
+								true,
+							);
+							cy.get('select[name^="widget-ep-facet"][name$="[facet]"]').select(
+								category,
+							);
+						});
 
-			cy.get(
-				`.is-opened .wp-block-legacy-widget:eq(${createdWidgetsLength}):visible .widefat:visible`,
-			)
-				.closest('.widget-ep-facet')
-				.within(() => {
-					cy.get('input[name^="widget-ep-facet"][name$="[title]"]').clearThenType(
-						title,
-						true,
-					);
-					cy.get('select[name^="widget-ep-facet"][name$="[facet]"]').select(category);
+					/**
+					 * Wait for WordPress to recognize the title typed.
+					 *
+					 * @todo investigate why this is needed.
+					 */
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(2000);
+
+					cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
+					cy.get('body').should('contain.text', 'Widgets saved.');
 				});
-
-			/**
-			 * Wait for WordPress to recognize the title typed.
-			 *
-			 * @todo investigate why this is needed.
-			 */
-			// eslint-disable-next-line cypress/no-unnecessary-waiting
-			cy.wait(2000);
-
-			cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
-			cy.get('body').should('contain.text', 'Widgets saved.');
 		});
 	}
 
 	before(() => {
 		cy.maybeEnableFeature('facets');
 
-		cy.wpCli('widget reset --all');
 		cy.wpCli('elasticpress index --setup --yes');
 	});
 
 	it('Can see the widget in the frontend', () => {
+		cy.wpCli('widget reset --all');
+
 		createWidget('Facet (categories)', 'category');
 
 		cy.visit('/');
