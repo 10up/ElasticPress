@@ -726,12 +726,15 @@ abstract class Indexable {
 			/**
 			 * Filter the maximum year limit for date conversion.
 			 *
+			 * Use default date if year is greater than max limit. EP has limitation that doesn't allow to have year greater than 2099.
+			 *
+			 * @see https://github.com/10up/ElasticPress/issues/2769
+			 *
 			 * @hook ep_max_year_limit
 			 * @param  {int} $year Maximum year limit.
 			 * @return {int} Maximum year limit.
+			 * @since  4.2.1
 			 */
-			// Use default date if year is greater than max limit. EP has limitation that doesn't allow to have year greater than 2099.
-			// @see https://github.com/10up/ElasticPress/issues/2769
 			$max_year = apply_filters( 'ep_max_year_limit', 2099 );
 
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
