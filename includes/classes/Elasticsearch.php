@@ -911,16 +911,16 @@ class Elasticsearch {
 		$closed = false;
 		if ( $close_first ) {
 			$closed = $this->close_index( $index );
+			if ( ! $closed ) {
+				// Closing was improper, let's re-open the index.
+				$opened = $this->open_index( $index );
+			}
 		}
 
 		if ( ! $close_first || $closed ) {
 			$settings = trailingslashit( $index ) . '_settings';
 			$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
 		} else {
-			if ( $close_first && ! $closed ) {
-				// Closing was improper, let's re-open the index.
-				$opened = $this->open_index( $index );
-			}
 			return false;
 		}
 
