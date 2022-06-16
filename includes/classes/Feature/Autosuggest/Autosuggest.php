@@ -365,12 +365,29 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Enqueue autosuggest styles
+	 *
+	 * @return void
+	 */
+	private function add_autosuggest_styles() {
+		wp_enqueue_style(
+			'elasticpress-autosuggest',
+			EP_URL . 'dist/css/autosuggest-styles.min.css',
+			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
+			Utils\get_asset_info( 'autosuggest-styles', 'version' )
+		);
+	}
+
+	/**
 	 * Enqueue our autosuggest script
 	 *
 	 * @since  2.4
 	 */
 	public function enqueue_scripts() {
 		if ( Utils\is_indexing() ) {
+			if ( apply_filters( 'ep_autosuggest_styles_if_idexing', false ) ) {
+				$this->add_autosuggest_styles();
+			}
 			return;
 		}
 
@@ -406,12 +423,7 @@ class Autosuggest extends Feature {
 			true
 		);
 
-		wp_enqueue_style(
-			'elasticpress-autosuggest',
-			EP_URL . 'dist/css/autosuggest-styles.min.css',
-			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
-			Utils\get_asset_info( 'autosuggest-styles', 'version' )
-		);
+		$this->add_autosuggest_styles();
 
 		/** Features Class @var Features $features */
 		$features = Features::factory();
