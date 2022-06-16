@@ -385,6 +385,13 @@ class Autosuggest extends Feature {
 	 */
 	public function enqueue_scripts() {
 		if ( Utils\is_indexing() ) {
+			/**
+			 * Filter whether to enqueue autosuggest styles while a index process is running or not
+			 *
+			 * @hook ep_autosuggest_styles_if_idexing
+			 * @param {bool} $show true to enqueue styles
+			 * @return {bool} New value
+			 */
 			if ( apply_filters( 'ep_autosuggest_styles_if_idexing', false ) ) {
 				$this->add_autosuggest_styles();
 			}
