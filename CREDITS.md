@@ -184,6 +184,8 @@ Thank you to all the people who have already contributed to this repository via 
 [@juliecampbell](https://github.com/juliecampbell),
 [David Greenwald (@davidegreenwald)](https://github.com/davidegreenwald),
 [Yakov Beschasnov (@yashumitsu)](https://github.com/yashumitsu),
+[@przestrzal](https://github.com/przestrzal),
+[Mohammed Razzaq (@MARQAS)](https://github.com/MARQAS),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

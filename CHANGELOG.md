@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.2.1] - 2022-06-XX
+This is a bug fix release.
+
+### Added
+- New filter `ep_disable_search_weighting_config` to bail early on `do_weighting()`. Props [@rebeccahum](https://github.com/rebeccahum) via [#2836](https://github.com/10up/ElasticPress/pull/2836).
+- Coverage of E2E tests for the activate-feature command. Props [@burhandodhy](https://github.com/burhandodhy) via [#2802](https://github.com/10up/ElasticPress/pull/2802).
+
+### Changed
+- Sync button `title` attribute. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#2814](https://github.com/10up/ElasticPress/pull/2814).
+- `npm run build:zip` to use `git archive`. Props [@felipeelia](https://github.com/felipeelia) via [#2822](https://github.com/10up/ElasticPress/pull/2822).
+
+### Fixed
+- Fatal error related to WP-CLI timers on long-running syncs. Props [@felipeelia](https://github.com/felipeelia) and [@przestrzal](https://github.com/przestrzal) via [#2820](https://github.com/10up/ElasticPress/pull/2820).
+- Uncaught TypeError on the Settings Page. Props [@burhandodhy](https://github.com/burhandodhy) via [#2816](https://github.com/10up/ElasticPress/pull/2816).
+- Meta values that are not dates converted into date format. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), [@tott](https://github.com/@tott), and [@felipeelia](https://github.com/felipeelia) via [#2828](https://github.com/10up/ElasticPress/pull/2828).
+- An issue where feature settings could be saved during a sync. Props [@JakePT](https://github.com/JakePT) via [#2823](https://github.com/10up/ElasticPress/pull/2823).
+- Admin menu bar items are not clickable when instant results popup modal is activated. Props [@MARQAS](https://github.com/MARQAS) and [@JakePT](https://github.com/JakePT) via [#2833](https://github.com/10up/ElasticPress/pull/2833).
+- Facet block wrongly available in the post editor. Props [@oscarssanchez](https://github.com/oscarssanchez) via [#2831](https://github.com/10up/ElasticPress/pull/2831).
+- Show Facet widgets on taxonomy archives. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2837](https://github.com/10up/ElasticPress/pull/2837).
+- Meta queries with 'exists' as compare operator and empty meta values handling. Props [@burhandodhy](https://github.com/burhandodhy) via [#2817](https://github.com/10up/ElasticPress/pull/2817).
+- Sync interruption message always mentioning ElasticPress.io. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#2813](https://github.com/10up/ElasticPress/pull/2813).
+- E2e tests for the Facets feature. Props [@felipeelia](https://github.com/felipeelia) via [#2840](https://github.com/10up/ElasticPress/pull/2840).
+- Intermittent error on GitHub Actions using the latest node 16 version. Props [@felipeelia](https://github.com/felipeelia) via [#2839](https://github.com/10up/ElasticPress/pull/2839).
+
 ## [4.2.0] - 2022-05-26
 ElasticPress 4.2.0 fixes some bugs and introduces some new and exciting changes.
 
@@ -1401,6 +1425,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.2.0]: https://github.com/10up/ElasticPress/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/10up/ElasticPress/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/10up/ElasticPress/compare/4.0.0...4.0.1
