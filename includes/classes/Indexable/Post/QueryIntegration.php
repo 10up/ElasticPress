@@ -244,7 +244,7 @@ class QueryIntegration {
 		 * If not search and not set default to post. If not set and is search, use searchable post types
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			if ( empty( $query_vars['s'] ) ) {
+			if ( empty( $query_vars['s'] ) && empty( $query_vars['ep_facet'] ) ) {
 				$query_vars['post_type'] = 'post';
 			} else {
 				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
