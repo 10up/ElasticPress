@@ -330,6 +330,11 @@ h2.ep-list-features {
 		border-color: var(--statusWarning);
 		display: none; /* Controlled by JavaScript. */
 	}
+
+	&.requirements-status-notice--syncing {
+		border-color: var(--statusError);
+		display: none; /* Controlled by JavaScript. */
+	}
 }
 
 .ep-feature .settings .action-wrap {
