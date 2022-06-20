@@ -76,7 +76,7 @@ describe('Dashboard Sync', () => {
 
 		// Sync and remove, so EP doesn't think it is a fresh install.
 		cy.wpCli('wp elasticpress index --setup --yes');
-		cy.wpCli('wp elasticpress delete-index --yes');
+		cy.wpCli('wp elasticpress delete-index --yes --network-wide');
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-health');
 		cy.get('.wrap').should(
