@@ -57,12 +57,30 @@ const onSubmit = async (event) => {
 	}
 
 	const feature = form.closest('.ep-feature');
+	const syncingNotice = feature.querySelector('.requirements-status-notice--syncing');
 
 	feature.classList.add('saving');
 	form.submit.disabled = true;
+	syncingNotice.style.display = null;
 
 	const request = await fetch(ajaxurl, { method: 'POST', body: data });
 	const response = await request.json();
+
+	if (response.success === false) {
+		const { data = [] } = response;
+
+		if (data) {
+			for (const { code = '' } of data) {
+				if (code === 'is_indexing') {
+					syncingNotice.style.display = 'block';
+				}
+			}
+		}
+
+		form.submit.disabled = false;
+		feature.classList.remove('saving');
+		return;
+	}
 
 	feature.classList.toggle('feature-active', response.data.active);
 
