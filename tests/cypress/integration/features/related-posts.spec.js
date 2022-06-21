@@ -1,12 +1,21 @@
 describe('Related Posts Feature', () => {
-	it('Can see the widget in the Dashboard', () => {
-		// Disable the feature.
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-related_posts .settings-button').click();
-		cy.get('.ep-feature-related_posts [name="settings[active]"][value="0"]').click();
-		cy.get('.ep-feature-related_posts .button-primary').click();
+	it('Can see the block in the Dashboard', () => {
+		cy.blockExistsForFeature('Related Posts (ElasticPress)', 'related_posts');
+		cy.maybeDisableFeature('related_posts');
+		cy.visitAdminPage('post-new.php');
 
-		cy.openWidgetsPage();
+		cy.getBlocksList()
+			.should('exist')
+			.should('not.contain.text', 'Related Posts (ElasticPress)')
+			.should('not.contain.text', 'ElasticPress - Related Posts');
+
+		cy.maybeEnableFeature('related_posts');
+		cy.visitAdminPage('post-new.php');
+
+		cy.getBlocksList()
+			.should('exist')
+			.should('contain.text', 'Related Posts (ElasticPress)')
+			.should('not.contain.text', 'ElasticPress - Related Posts');
 
 		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
@@ -26,7 +35,7 @@ describe('Related Posts Feature', () => {
 
 		cy.get('.block-editor-inserter__no-results').should('not.exist');
 		cy.get('.block-editor-block-types-list').should(($widgetsList) => {
-			expect($widgetsList).to.contain.text('ElasticPress - Related Posts');
+			expect($widgetsList).to.contain.text('');
 			expect($widgetsList).to.contain.text('Related Posts (ElasticPress)');
 		});
 	});

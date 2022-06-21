@@ -319,3 +319,20 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 	}
 	cy.wpCli(command);
 });
+
+Cypress.Commands.add('blockExistsForFeature', (blockName, feature = null) => {
+	const blockInserterToggle = '.edit-post-header-toolbar__inserter-toggle';
+	const blockList = '.block-editor-inserter__block-list';
+
+	if (feature) {
+		cy.maybeDisableFeature(feature);
+		cy.visitAdminPage('post-new.php');
+		cy.get(blockInserterToggle).click();
+		cy.get(blockList).should('not.contain.text', blockName);
+		cy.maybeEnableFeature(feature);
+	}
+
+	cy.visitAdminPage('post-new.php');
+	cy.get(blockInserterToggle).click();
+	cy.get(blockList).should('contain.text', blockName);
+});
