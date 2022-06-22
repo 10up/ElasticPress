@@ -744,15 +744,16 @@ class Post extends Indexable {
 	/**
 	 * Chekcs if meta key is allowed
 	 *
-	 * @param string $meta key
-	 * @param WP_Post $post Post object
+	 * @param string   $meta_key
+	 * @param WP_Post  $post Post object
 	 * @since 3.6.6
 	 * @return boolean
 	 */
 	public function is_meta_allowed( $meta_key, $post ) {
 		$test_metas = [
-			$meta_key => true
+			$meta_key => true,
 		];
+
 		$filtered_test_metas = $this->filter_allowed_metas( $test_metas, $post );
 
 		return array_key_exists( $meta_key, $filtered_test_metas );
@@ -761,8 +762,8 @@ class Post extends Indexable {
 	/**
 	 * Filter post meta to only the allowed ones to be send to ES
 	 *
-	 * @param array $metas Key => value pairs of post meta
-	 * @param WP_Post $post Post object
+	 * @param array    $metas Key => value pairs of post meta
+	 * @param WP_Post  $post Post object
 	 * @since 3.6.6
 	 * @return array
 	 */
