@@ -128,8 +128,8 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
-		if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+		$is_meta_allowed = $indexable->is_meta_allowed( $meta_key, $post );
+		if ( ! $is_meta_allowed ) {
 			return;
 		}
 
