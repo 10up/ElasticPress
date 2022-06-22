@@ -56,14 +56,17 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 This is a bug fix release.
 
 Added
+
 * New filter `ep_disable_search_weighting_config` to bail early on `do_weighting()`. Props [@rebeccahum](https://github.com/rebeccahum).
 * Coverage of E2E tests for the activate-feature command. Props [@burhandodhy](https://github.com/burhandodhy).
 
 Changed
+
 * Sync button `title` attribute. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT).
 * `npm run build:zip` to use `git archive`. Props [@felipeelia](https://github.com/felipeelia).
 
 Fixed
+
 * Fatal error related to WP-CLI timers on long-running syncs. Props [@felipeelia](https://github.com/felipeelia) and [@przestrzal](https://github.com/przestrzal).
 * Uncaught TypeError on the Settings Page. Props [@burhandodhy](https://github.com/burhandodhy).
 * Meta values that are not dates converted into date format. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), [@tott](https://github.com/@tott), and [@felipeelia](https://github.com/felipeelia).
