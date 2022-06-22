@@ -25,6 +25,7 @@ This is a bug fix release.
 - Show Facet widgets on taxonomy archives. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2837](https://github.com/10up/ElasticPress/pull/2837).
 - Meta queries with 'exists' as compare operator and empty meta values handling. Props [@burhandodhy](https://github.com/burhandodhy) via [#2817](https://github.com/10up/ElasticPress/pull/2817).
 - Sync interruption message always mentioning ElasticPress.io. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#2813](https://github.com/10up/ElasticPress/pull/2813).
+- An issue where the Related Posts block would display the wrong posts in the preview when added inside a Query Loop block. Props [@JakePT](https://github.com/JakePT) via [#2825](https://github.com/10up/ElasticPress/pull/2825).
 - E2e tests for the Facets feature. Props [@felipeelia](https://github.com/felipeelia) via [#2840](https://github.com/10up/ElasticPress/pull/2840).
 - Intermittent error on GitHub Actions using the latest node 16 version. Props [@felipeelia](https://github.com/felipeelia) via [#2839](https://github.com/10up/ElasticPress/pull/2839).
 
