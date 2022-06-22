@@ -33,7 +33,7 @@ class Edit extends Component {
 		};
 
 		// Use 0 if in the Widgets Screen
-		const postId = wp.data.select('core/editor').getCurrentPostId() ?? 0;
+		const { context: { postId = 0 } = {} } = this.props;
 
 		wp.apiFetch({
 			path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),

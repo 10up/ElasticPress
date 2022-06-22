@@ -25,6 +25,7 @@ registerBlockType('elasticpress/related-posts', {
 			default: 5,
 		},
 	},
+	usesContext: ['postId'],
 
 	/**
 	 * Handle edit
