@@ -560,7 +560,7 @@ class AdminNotices {
 		$doc_url = 'https://10up.github.io/ElasticPress/tutorial-compatibility.html';
 		$html    = sprintf(
 			/* translator: Document page URL */
-			__( 'Your server software is not supported. To know more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
+			__( 'Your server software is not supported. To learn more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
 			esc_url( $doc_url )
 		);
 
