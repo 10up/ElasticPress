@@ -51,6 +51,32 @@ Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usag
 
 == Changelog ==
 
+= 4.2.1 - 2022-06-XX =
+
+This is a bug fix release.
+
+Added
+* New filter `ep_disable_search_weighting_config` to bail early on `do_weighting()`. Props [@rebeccahum](https://github.com/rebeccahum).
+* Coverage of E2E tests for the activate-feature command. Props [@burhandodhy](https://github.com/burhandodhy).
+
+Changed
+* Sync button `title` attribute. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT).
+* `npm run build:zip` to use `git archive`. Props [@felipeelia](https://github.com/felipeelia).
+
+Fixed
+* Fatal error related to WP-CLI timers on long-running syncs. Props [@felipeelia](https://github.com/felipeelia) and [@przestrzal](https://github.com/przestrzal).
+* Uncaught TypeError on the Settings Page. Props [@burhandodhy](https://github.com/burhandodhy).
+* Meta values that are not dates converted into date format. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), [@tott](https://github.com/@tott), and [@felipeelia](https://github.com/felipeelia).
+* An issue where feature settings could be saved during a sync. Props [@JakePT](https://github.com/JakePT).
+* Admin menu bar items are not clickable when instant results popup modal is activated. Props [@MARQAS](https://github.com/MARQAS) and [@JakePT](https://github.com/JakePT).
+* Facet block wrongly available in the post editor. Props [@oscarssanchez](https://github.com/oscarssanchez).
+* Show Facet widgets on taxonomy archives. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Meta queries with 'exists' as compare operator and empty meta values handling. Props [@burhandodhy](https://github.com/burhandodhy).
+* Sync interruption message always mentioning ElasticPress.io. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT).
+* An issue where the Related Posts block would display the wrong posts in the preview when added inside a Query Loop block. Props [@JakePT](https://github.com/JakePT).
+* E2e tests for the Facets feature. Props [@felipeelia](https://github.com/felipeelia).
+* Intermittent error on GitHub Actions using the latest node 16 version. Props [@felipeelia](https://github.com/felipeelia).
+
 = 4.2.0 - 2022-05-26 =
 
 ElasticPress 4.2.0 fixes some bugs and introduces some new and exciting changes.
