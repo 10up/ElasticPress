@@ -744,8 +744,8 @@ class Post extends Indexable {
 	/**
 	 * Chekcs if meta key is allowed
 	 *
-	 * @param string   $meta_key
-	 * @param WP_Post  $post Post object
+	 * @param string  $meta_key meta key to check
+	 * @param WP_Post $post Post object
 	 * @since 3.6.6
 	 * @return boolean
 	 */
@@ -762,8 +762,8 @@ class Post extends Indexable {
 	/**
 	 * Filter post meta to only the allowed ones to be send to ES
 	 *
-	 * @param array    $metas Key => value pairs of post meta
-	 * @param WP_Post  $post Post object
+	 * @param array   $metas Key => value pairs of post meta
+	 * @param WP_Post $post Post object
 	 * @since 3.6.6
 	 * @return array
 	 */
