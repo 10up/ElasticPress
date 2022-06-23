@@ -109,7 +109,7 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return preg_match( '#elasticpress\.io#i', get_host() );
+	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
 }
 
 /**

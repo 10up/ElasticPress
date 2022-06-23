@@ -66,6 +66,29 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		});
 	});
 
+	it('Can see a warning in the dashboard if using other software than Elasticsearch.', () => {
+		cy.login();
+
+		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
+			// Nothing needs to be done if EP.io.
+			if (epHost.stdout.match(/elasticpress\.io/)) {
+				return;
+			}
+
+			cy.deactivatePlugin('elasticpress', 'wpCli');
+			cy.activatePlugin('unsupported-server-software elasticpress', 'wpCli');
+
+			cy.visitAdminPage('plugins.php');
+			cy.get('.notice')
+				.invoke('text')
+				.then((text) => {
+					expect(text).to.contains('Your server software is not supported.');
+				});
+
+			cy.deactivatePlugin('unsupported-server-software', 'wpCli');
+		});
+	});
+
 	it('Can see a Sync and Settings buttons on Settings Page', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-settings');
 		cy.get('.dashicons.start-sync').should('have.attr', 'title', 'Sync Page');

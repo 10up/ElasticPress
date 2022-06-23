@@ -63,10 +63,11 @@ class Renderer {
 		$taxonomy = $instance['facet'];
 
 		if ( ! is_search() ) {
-			$post_type = $wp_query->get( 'post_type' );
 
-			if ( empty( $post_type ) ) {
-				$post_type = 'post';
+			if ( is_tax() ) {
+				$post_type = get_taxonomy( get_queried_object()->taxonomy )->object_type;
+			} else {
+				$post_type = $wp_query->get( 'post_type' ) ? $wp_query->get( 'post_type' ) : 'post';
 			}
 
 			if ( ! is_object_in_taxonomy( $post_type, $taxonomy ) ) {

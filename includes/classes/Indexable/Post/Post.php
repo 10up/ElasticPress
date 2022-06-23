@@ -1280,23 +1280,24 @@ class Post extends Indexable {
 		$meta_queries = [];
 
 		/**
-		 * Support meta_key
-		 *
-		 * @since  2.1
+		 * Support `meta_key`, `meta_value`, `meta_value_num`, and `meta_compare` query args
 		 */
 		if ( ! empty( $args['meta_key'] ) ) {
-			if ( ! empty( $args['meta_value'] ) ) {
-				$meta_value = $args['meta_value'];
-			} elseif ( ! empty( $args['meta_value_num'] ) ) {
-				$meta_value = $args['meta_value_num'];
+			$meta_query_array = [
+				'key' => $args['meta_key'],
+			];
+
+			if ( isset( $args['meta_value'] ) && '' !== $args['meta_value'] ) {
+				$meta_query_array['value'] = $args['meta_value'];
+			} elseif ( isset( $args['meta_value_num'] ) && '' !== $args['meta_value_num'] ) {
+				$meta_query_array['value'] = $args['meta_value_num'];
 			}
 
-			if ( ! empty( $meta_value ) ) {
-				$meta_queries[] = array(
-					'key'   => $args['meta_key'],
-					'value' => $meta_value,
-				);
+			if ( isset( $args['meta_compare'] ) ) {
+				$meta_query_array['compare'] = $args['meta_compare'];
 			}
+
+			$meta_queries[] = $meta_query_array;
 		}
 
 		/**
