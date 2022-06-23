@@ -908,25 +908,16 @@ class Elasticsearch {
 			'timeout' => 30,
 		];
 
-		$closed = false;
 		if ( $close_first ) {
-			$closed = $this->close_index( $index );
-			if ( ! $closed ) {
-				// Closing was improper, let's re-open the index.
-				$opened = $this->open_index( $index );
-			}
+			$this->close_index( $index );
 		}
 
-		if ( ! $close_first || $closed ) {
-			$settings = trailingslashit( $index ) . '_settings';
-			$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
-		} else {
-			return false;
-		}
+		$settings = trailingslashit( $index ) . '_settings';
+		$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
 
 		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
 
-		if ( $closed ) {
+		if ( $close_first ) {
 			$opened = $this->open_index( $index );
 			return ( $updated && $opened );
 		}
