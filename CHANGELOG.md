@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 This is a bug fix release.
 
 ### Added
-- New filter `ep_disable_search_weighting_config` to bail early on `do_weighting()`. Props [@rebeccahum](https://github.com/rebeccahum) via [#2836](https://github.com/10up/ElasticPress/pull/2836).
+- Server type/software detection and warning. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#2835](https://github.com/10up/ElasticPress/pull/2835).
 - Coverage of E2E tests for the activate-feature command. Props [@burhandodhy](https://github.com/burhandodhy) via [#2802](https://github.com/10up/ElasticPress/pull/2802).
 
 ### Changed

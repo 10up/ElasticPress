@@ -57,7 +57,7 @@ This is a bug fix release.
 
 __Added:__
 
-* New filter `ep_disable_search_weighting_config` to bail early on `do_weighting()`. Props [@rebeccahum](https://github.com/rebeccahum).
+* Server type/software detection and warning. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle).
 * Coverage of E2E tests for the activate-feature command. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Changed:__
