@@ -595,7 +595,7 @@ class Weighting {
 		 * Filter whether to enable weighting configuration
 		 *
 		 * @hook ep_enable_do_weighting
-		 * @since 4.2.1
+		 * @since 4.3.0
 		 * @param  {bool}  Whether to enable weight config, defaults to true for search requests that are public or REST
 		 * @param  {array} $weight_config Current weight config
 		 * @param  {array} $args WP Query arguments
