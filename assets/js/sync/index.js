@@ -103,6 +103,11 @@ const App = () => {
 				lastSyncDateTime: indexTotals.end_date_time,
 				lastSyncFailed: indexTotals.failed > 0,
 			});
+
+			/**
+			 * Hide the "just need to sync" notice, if it's present.
+			 */
+			document.querySelector('[data-ep-notice="no_sync"]')?.remove();
 		},
 		[],
 	);
@@ -175,10 +180,12 @@ const App = () => {
 		 * @returns {void}
 		 */
 		(indexMeta) => {
+			const isInitialSync = stateRef.current.lastSyncDateTime === null;
+
 			updateState({
 				isCli: indexMeta.method === 'cli',
 				isComplete: false,
-				isDeleting: indexMeta.put_mapping,
+				isDeleting: isInitialSync ? false : indexMeta.put_mapping,
 				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
@@ -333,23 +340,29 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
+			const { isDeleting, lastSyncDateTime } = stateRef.current;
+			const isInitialSync = lastSyncDateTime === null;
+
 			updateState({ isComplete: false, isPaused: false, isSyncing: true });
-			doIndex(stateRef.current.isDeleting);
+			doIndex(isInitialSync ? true : isDeleting);
 		},
 		[doIndex],
 	);
 
 	const startSync = useCallback(
 		/**
-		 * Stop syncing.
+		 * Start syncing.
 		 *
 		 * @param {boolean} isDeleting Whether to delete and sync.
 		 * @returns {void}
 		 */
 		(isDeleting) => {
+			const { lastSyncDateTime } = stateRef.current;
+			const isInitialSync = lastSyncDateTime === null;
+
 			updateState({ isComplete: false, isDeleting, isPaused: false, isSyncing: true });
 			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
-			doIndex(isDeleting);
+			doIndex(isInitialSync ? true : isDeleting);
 		},
 		[doIndex],
 	);
@@ -440,8 +453,8 @@ const App = () => {
 		 * Start an initial index.
 		 */
 		if (autoIndex) {
-			startSync(true);
-			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
+			startSync(false);
+			logMessage(__('Starting sync…', 'elasticpress'), 'info');
 		}
 	};
 
@@ -455,6 +468,7 @@ const App = () => {
 	 */
 	return (
 		<SyncPage
+			isEpio={isEpio}
 			log={log}
 			onDelete={onDelete}
 			onPause={onPause}
