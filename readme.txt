@@ -35,11 +35,13 @@ __Comments__: Indexes your comments and provides a widget with type-ahead search
 
 == Frequently Asked Questions ==
 
-= What do I need to use the ElasticPress plugin? =
+= How does ElasticPress work? =
 
-To use ElasticPress, you will need an Elasticsearch server. After setting that up, make sure your web server is able to connect with your ES server.
+The ElasticPress plugin enables you to connect your WordPress site to the ElasticPress.io service, a SaaS solution that provides an enhanced search experience while reducing load on your WordPress site. For advanced users familiar with both WordPress and Elasticsearch hosting and management, ElasticPress also offers support for plugin functionality using an Elasticsearch instance. Please keep in mind that there are multiple security, performance, and configuration considerations to take into account if you take this approach.
 
-If you do not have an Elasticsearch server set yet, consider using [ElasticPress.io](https://www.elasticpress.io/).
+= I have to use an in-house or custom Elasticsearch solution due to policy or institutional requirements. Can you still help?
+
+If circumstances prevent the use of a SaaS solution like ElasticPress.io, we can also provide [consulting](https://www.elasticpress.io/elasticpress-consulting/) around installation and configuration of custom Elasticsearch instances.
 
 = Where can I find ElasticPress documentation and user guides? =
 
