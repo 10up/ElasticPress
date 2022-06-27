@@ -136,6 +136,13 @@ Cypress.Commands.add('publishPost', (postData) => {
 	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
 	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
 
+	if (newPostData.password && newPostData.password !== '') {
+		cy.get('h1.editor-post-title__input').click();
+		cy.get('.edit-post-post-visibility').click();
+		cy.get('.editor-post-visibility__dialog-radio[value="password"]').click();
+		cy.get('.editor-post-visibility__dialog-password-input').type(newPostData.password);
+	}
+
 	if (newPostData.status && newPostData.status === 'draft') {
 		cy.get('.editor-post-save-draft').click();
 		cy.get('.editor-post-saved-state').should('have.text', 'Saved');

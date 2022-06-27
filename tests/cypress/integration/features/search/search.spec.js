@@ -120,4 +120,28 @@ describe('Post Search Feature', () => {
 
 		cy.get('.ep-highlight').should('be.visible');
 	});
+
+	it('Can search password protected post', () => {
+		cy.login();
+
+		cy.publishPost({
+			title: 'Password Protected',
+			password: 'password',
+		});
+
+		// Admin can see post on front and search page.
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+
+		cy.get('#wp-admin-bar-logout a').click({ force: true });
+
+		// Logout user can see the post on front but not on search page.
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
+	});
 });
