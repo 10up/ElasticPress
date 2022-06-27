@@ -33,7 +33,33 @@ __Users__: Improve user search relevancy and query performance.
 
 __Comments__: Indexes your comments and provides a widget with type-ahead search functionality. It works with WooCommerce product reviews out-of-the-box.
 
-Please refer to [Github](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation. FAQs and tutorials can be also found on our [support site](https://elasticpress.zendesk.com/hc/en-us).
+== Frequently Asked Questions ==
+
+= How does ElasticPress work? =
+
+The ElasticPress plugin enables you to connect your WordPress site to the ElasticPress.io service, a SaaS solution that provides an enhanced search experience while reducing load on your WordPress site. For advanced users familiar with both WordPress and Elasticsearch hosting and management, ElasticPress also offers support for plugin functionality using an Elasticsearch instance. Please keep in mind that there are multiple security, performance, and configuration considerations to take into account if you take this approach.
+
+= I have to use an in-house or custom Elasticsearch solution due to policy or institutional requirements. Can you still help? =
+
+If circumstances prevent the use of a SaaS solution like ElasticPress.io, we can also provide [consulting](https://www.elasticpress.io/elasticpress-consulting/) around installation and configuration of custom Elasticsearch instances.
+
+= Where can I find ElasticPress documentation and user guides? =
+
+Please refer to [GitHub](https://github.com/10up/ElasticPress) for detailed usage instructions and documentation. FAQs and tutorials can be also found on our [support site](https://elasticpress.zendesk.com/hc/en-us).
+
+= I have a problem with the plugin. Where can I get help? =
+
+If you have identified a bug or would like to suggest an enhancement, please refer to our [GitHub repo](https://github.com/10up/ElasticPress). We do not provide support here at WordPress.org forums.
+
+If you are an ElasticPress.io customer, please open a ticket in your account dashboard. If you need a custom solution, we also offer [consulting](https://www.elasticpress.io/elasticpress-consulting/).
+
+= Is ElasticPress compatible with OpenSearch or Elasticsearch X.Y? =
+
+ElasticPress requirements can be found in the [Requirements section](https://github.com/10up/ElasticPress#requirements) of our GitHub repository. If your solution relies on a different server or version, you may find additional information on our [Compatibility documentation page](https://10up.github.io/ElasticPress/tutorial-compatibility.html).
+
+= I really like ElasticPress! Can I contribute? =
+
+For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](https://github.com/10up/ElasticPress). If you can, also consider sending us [a review](https://wordpress.org/support/plugin/elasticpress/reviews/#new-post).
 
 == Installation ==
 1. First, you will need to properly [install and configure](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html) Elasticsearch.
