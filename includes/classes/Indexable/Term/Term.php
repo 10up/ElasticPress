@@ -478,7 +478,7 @@ class Term extends Indexable {
 				'key' => $query_vars['meta_key'],
 			];
 
-			if ( isset( $query_vars['meta_value'] ) ) {
+			if ( isset( $query_vars['meta_value'] ) && '' !== $query_vars['meta_value'] ) {
 				$meta_query_array['value'] = $query_vars['meta_value'];
 			}
 

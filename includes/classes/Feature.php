@@ -282,6 +282,9 @@ abstract class Feature {
 	 */
 	public function output_settings_box() {
 		$requirements_status = $this->requirements_status();
+		$sync_url            = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK )
+			? network_admin_url( 'admin.php?page=elasticpress-sync' )
+			: admin_url( 'admin.php?page=elasticpress-sync' );
 		?>
 
 		<form>
@@ -301,6 +304,17 @@ abstract class Feature {
 					<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
 				</div>
 			<?php endif; ?>
+
+			<div class="requirements-status-notice requirements-status-notice--syncing" role="alert">
+				<?php
+				printf(
+					'%1$s <a href="%2$s">%3$s</a>',
+					esc_html__( 'Settings not saved. Cannot save settings while a sync is in progress.', 'elasticpress' ),
+					esc_url( $sync_url ),
+					esc_html__( 'View sync status.', 'elasticpress' )
+				);
+				?>
+			</div>
 
 			<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>
 

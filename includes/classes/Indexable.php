@@ -723,10 +723,24 @@ abstract class Indexable {
 		if ( $new_date ) {
 			$timestamp = $new_date->getTimestamp();
 
+			/**
+			 * Filter the maximum year limit for date conversion.
+			 *
+			 * Use default date if year is greater than max limit. EP has limitation that doesn't allow to have year greater than 2099.
+			 *
+			 * @see https://github.com/10up/ElasticPress/issues/2769
+			 *
+			 * @hook ep_max_year_limit
+			 * @param  {int} $year Maximum year limit.
+			 * @return {int} Maximum year limit.
+			 * @since  4.2.1
+			 */
+			$max_year = apply_filters( 'ep_max_year_limit', 2099 );
+
 			// PHP allows DateTime to build dates with the non-existing year 0000, and this causes
 			// issues when integrating into stricter systems. This is by design:
 			// https://bugs.php.net/bug.php?id=60288
-			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) ) {
+			if ( false !== $timestamp && '0000' !== $new_date->format( 'Y' ) && $new_date->format( 'Y' ) <= $max_year ) {
 				$meta_types['date']     = $new_date->format( 'Y-m-d' );
 				$meta_types['datetime'] = $new_date->format( 'Y-m-d H:i:s' );
 				$meta_types['time']     = $new_date->format( 'H:i:s' );
@@ -796,6 +810,8 @@ abstract class Indexable {
 				$compare = '=';
 				if ( ! empty( $single_meta_query['compare'] ) ) {
 					$compare = strtolower( $single_meta_query['compare'] );
+				} elseif ( ! isset( $single_meta_query['value'] ) ) {
+					$compare = 'exists';
 				}
 
 				$type = null;

@@ -24,7 +24,7 @@ const init = () => {
 	 * @returns {boolean} Whether the current tab is for ElasticPress.io.
 	 */
 	const isEpio = () => {
-		return 'epio' in activeTab.dataset;
+		return activeTab && 'epio' in activeTab.dataset;
 	};
 
 	let epioHost = isEpio() ? host.value : '';
