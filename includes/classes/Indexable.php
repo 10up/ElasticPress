@@ -360,6 +360,11 @@ abstract class Indexable {
 			$result_window     = $formatted_args['from'] + $formatted_args['size'];
 			$max_result_window = apply_filters( 'ep_max_result_window', 10000 );
 			if ( $result_window > $max_result_window ) {
+				_doing_it_wrong(
+					self::class . '::' . __FUNCTION__, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					esc_html( "Search: Attempting to query {$result_window} results, which is more than the maximum of {$max_result_window}. As a result, query has not been offloaded to Elasticsearch." ),
+					null
+				);
 				return false;
 			}
 		}
