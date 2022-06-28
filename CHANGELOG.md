@@ -1426,7 +1426,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
-[4.2.0]: https://github.com/10up/ElasticPress/compare/4.2.0...4.2.1
+[4.2.1]: https://github.com/10up/ElasticPress/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/10up/ElasticPress/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0
 [4.0.1]: https://github.com/10up/ElasticPress/compare/4.0.0...4.0.1
