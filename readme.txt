@@ -77,7 +77,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 4.2.1 - 2022-06-XX =
+= 4.2.1 - 2022-06-28 =
 
 This is a bug fix release.
 

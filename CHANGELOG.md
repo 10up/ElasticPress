@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-## [4.2.1] - 2022-06-XX
+## [4.2.1] - 2022-06-28
 This is a bug fix release.
 
 ### Added
