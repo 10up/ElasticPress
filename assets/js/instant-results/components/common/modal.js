@@ -84,9 +84,7 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 			{...props}
 		>
 			{isOpen && (
-				<FocusTrap
-					focusTrapOptions={{ clickOutsideDeactivates: true, onDeactivate: onClose }}
-				>
+				<FocusTrap focusTrapOptions={{ allowOutsideClick: true }}>
 					<div className="ep-search-modal__content">
 						<button
 							className="ep-search-modal__close ep-search-reset-button ep-search-icon-button"

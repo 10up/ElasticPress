@@ -428,6 +428,13 @@ function action_wp_ajax_ep_save_feature() {
 		exit;
 	}
 
+	if ( Utils\is_indexing() ) {
+		$error = new \WP_Error( 'is_indexing' );
+
+		wp_send_json_error( $error );
+		exit;
+	}
+
 	$data = Features::factory()->update_feature( $_POST['feature'], $_POST['settings'] );
 
 	// Since we deactivated, delete auto activate notice.
