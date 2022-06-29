@@ -27,6 +27,7 @@ registerBlockType('elasticpress/related-posts', {
 		},
 	},
 	transforms,
+	usesContext: ['postId'],
 
 	/**
 	 * Handle edit
