@@ -742,7 +742,7 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Chekcs if meta key is allowed
+	 * Checks if meta key is allowed
 	 *
 	 * @param string  $meta_key meta key to check
 	 * @param WP_Post $post Post object
