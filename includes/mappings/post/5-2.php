@@ -61,11 +61,11 @@ return array(
 					 * Filter Elasticsearch default analyzer's char_filter
 					 *
 					 * @since 4.3.0
-					 * @hook ep_default_analyzer_char_filter
-					 * @param  {array<string>} $char_filter Default filter
-					 * @return {array<string>} New filter(s)
+					 * @hook ep_default_analyzer_char_filters
+					 * @param  {array<string>} $char_filters Default filter
+					 * @return {array<string>} New filters
 					 */
-					'char_filter' => apply_filters( 'ep_default_analyzer_char_filter', array( 'html_strip' ) ),
+					'char_filter' => apply_filters( 'ep_default_analyzer_char_filters', array( 'html_strip' ) ),
 					/**
 					 * Filter Elasticsearch default language in mapping
 					 *
