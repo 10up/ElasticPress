@@ -791,11 +791,11 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Chekcs if meta key is allowed
+	 * Checks if meta key is allowed
 	 *
 	 * @param string  $meta_key meta key to check
 	 * @param WP_Post $post Post object
-	 * @since 3.6.6
+	 * @since 4.3.0
 	 * @return boolean
 	 */
 	public function is_meta_allowed( $meta_key, $post ) {
@@ -813,7 +813,7 @@ class Post extends Indexable {
 	 *
 	 * @param array   $metas Key => value pairs of post meta
 	 * @param WP_Post $post Post object
-	 * @since 3.6.6
+	 * @since 4.3.0
 	 * @return array
 	 */
 	public function filter_allowed_metas( $metas, $post ) {
