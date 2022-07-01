@@ -1172,4 +1172,45 @@ abstract class Indexable {
 
 		return [];
 	}
+
+	/**
+	 * Get the search algorithm class that should be used.
+	 *
+	 * @since 4.3.0
+	 * @param string $search_text   Search term(s)
+	 * @param array  $search_fields Search fields
+	 * @param array  $query_vars    Query vars
+	 * @return string Class name to be used
+	 */
+	public function get_search_algorithm_class( string $search_text, array $search_fields, array $query_vars ) : string {
+		$fallback_class = '\ElasticPress\SearchAlgorithm\Basic';
+
+		/**
+		 * Filter the search algorithm class to be used
+		 *
+		 * @hook ep_{$slug}_search_algorithm_class
+		 * @since  4.3.0
+		 * @param  {string} $fallback_class Name of the search algorithm class used as fallback
+		 * @param  {string} $search_term    Search term
+		 * @param  {array}  $search_fields  Fields to be searched
+		 * @param  {array}  $query_vars     Query variables
+		 * @return {string} New search algorithm class name
+		 */
+		$search_algorithm_class = apply_filters( "ep_{$this->slug}_search_algorithm_class", $fallback_class, $search_text, $search_fields, $query_vars );
+
+		if ( ! is_a( $search_algorithm_class, '\ElasticPress\SearchAlgorithm', true ) ) {
+			_doing_it_wrong(
+				'ep_term_search_algorithm_class',
+				sprintf(
+					/* translators: `Basic` class name */
+					esc_html__( 'This filter only accepts classes that extend %s', 'elasticpress' ),
+					esc_html( $fallback_class )
+				),
+				'4.3.0'
+			);
+			$search_algorithm_class = $fallback_class;
+		}
+
+		return $search_algorithm_class;
+	}
 }
