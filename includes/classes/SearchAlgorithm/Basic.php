@@ -28,7 +28,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 	 * @param array  $query_vars     Query vars
 	 * @return array ES `query`
 	 */
-	public function get_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ) : array {
+	protected function get_raw_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ) : array {
 		$query = [
 			'bool' => [
 				'should' => [
@@ -37,32 +37,60 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 							'query'  => $search_term,
 							'type'   => 'phrase',
 							'fields' => $search_fields,
-							/**
-							 * Filter match phrase boost amount
-							 *
-							 * @hook ep_{$indexable_slug}_match_phrase_boost
-							 * @param  {int}   $boost      Boost amount for match phrase
-							 * @param  {array} $query_vars Query variables
-							 * @since  4.3.0
-							 * @return {int} New boost amount
-							 */
-							'boost'  => apply_filters( "ep_{$indexable_slug}_match_phrase_boost", 4, $search_fields, $query_vars ),
+							'boost'  => ( 'post' === $indexable_slug ) ?
+								/**
+								 * Filter boost for post match phrase query.
+								 *
+								 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_match_phrase_boost`.
+								 *
+								 * @hook ep_match_phrase_boost
+								 * @param {int}   $boost         Phrase boost
+								 * @param {array} $search_fields Search fields
+								 * @param {array} $query_vars    Query variables
+								 * @return {int} New boost amount
+								 */
+								apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $query_vars ) :
+								/**
+								 * Filter match phrase boost amount
+								 *
+								 * @since 4.3.0
+								 * @hook ep_{$indexable_slug}_match_phrase_boost
+								 * @param {int}   $boost         Phrase boost
+								 * @param {array} $search_fields Search fields
+								 * @param {array} $query_vars    Query variables
+								 * @return {int} New boost amount
+								 */
+								apply_filters( "ep_{$indexable_slug}_match_phrase_boost", 4, $search_fields, $query_vars ),
 						],
 					],
 					[
 						'multi_match' => [
 							'query'     => $search_term,
 							'fields'    => $search_fields,
-							/**
-							 * Filter match boost amount
-							 *
-							 * @hook ep_{$indexable_slug}_match_boost
-							 * @param  {int}   $boost      Boost amount for match
-							 * @param  {array} $query_vars Query variables
-							 * @since  4.3.0
-							 * @return {int} New boost amount
-							 */
-							'boost'     => apply_filters( "ep_{$indexable_slug}_match_boost", 2, $search_fields, $query_vars ),
+							'boost'     => ( 'post' === $indexable_slug ) ?
+								/**
+								 * Filter boost for post match query
+								 *
+								 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_match_boost`.
+								 *
+								 * @hook ep_match_boost
+								 * @param {int}   $boost         Boost
+								 * @param {array} $search_fields Search fields
+								 * @param {array} $query_vars    Query variables
+								 * @return  {int} New boost
+								 */
+								apply_filters( 'ep_match_boost', 2, $search_fields, $query_vars ) :
+								/**
+								 * Filter match boost amount
+								 *
+								 * @since 4.3.0
+								 * @hook ep_{$indexable_slug}_match_boost
+								 * @param {int}   $boost         Boost
+								 * @param {array} $search_fields Search fields
+								 * @param {array} $query_vars    Query variables
+								 * @return  {int} New boost
+								 */
+								apply_filters( "ep_{$indexable_slug}_match_boost", 2, $search_fields, $query_vars ),
 							'fuzziness' => 0,
 							'operator'  => 'and',
 						],
@@ -71,41 +99,35 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 						'multi_match' => [
 							'fields'    => $search_fields,
 							'query'     => $search_term,
-							/**
-							 * Filter fuzziness amount
-							 *
-							 * @hook ep_{$indexable_slug}_fuzziness_arg
-							 * @param  {int}   $fuzziness  Amount of fuziness to factor into search
-							 * @param  {array} $query_vars Query variables
-							 * @since  4.3.0
-							 * @return {int} New boost amount
-							 */
-							'fuzziness' => apply_filters( "ep_{$indexable_slug}_fuzziness_arg", 1, $search_fields, $query_vars ),
+							'fuzziness' => ( 'post' === $indexable_slug ) ?
+								/**
+								 * Filter fuzziness for post query
+								 *
+								 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_fuzziness_arg`.
+								 *
+								 * @hook ep_fuzziness_arg
+								 * @param {int}   $fuzziness     Fuzziness
+								 * @param {array} $search_fields Search fields
+								 * @param {array} $query_vars    Query variables
+								 * @return  {int} New fuzziness
+								 */
+								apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $query_vars ) :
+								/**
+								 * Filter fuzziness amount
+								 *
+								 * @since 4.3.0
+								 * @hook ep_{$indexable_slug}_fuzziness_arg
+								 * @param {int}   $fuzziness     Fuzziness
+								 * @param {array} $search_fields Search fields
+								 * @param {array} $query_vars    Query variables
+								 * @return  {int} New fuzziness
+								 */
+								apply_filters( "ep_{$indexable_slug}_fuzziness_arg", 1, $search_fields, $query_vars ),
 						],
 					],
 				],
 			],
 		];
-
-		/**
-		 * Filter formatted Elasticsearch query (only contains query part)
-		 *
-		 * @hook ep_{$indexable_slug}_formatted_args_query
-		 * @param {array}  $query         Current query
-		 * @param {array}  $query_vars    Query variables
-		 * @param {string} $search_text   Search text
-		 * @param {array}  $search_fields Search fields
-		 * @return {array} New query
-		 *
-		 * @since 4.3.0
-		 */
-		$query = apply_filters(
-			"ep_{$indexable_slug}_formatted_args_query",
-			$query,
-			$query_vars,
-			$search_term,
-			$search_fields
-		);
 
 		return $query;
 	}
