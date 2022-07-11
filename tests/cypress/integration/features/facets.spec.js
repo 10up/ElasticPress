@@ -112,4 +112,33 @@ describe('Facets Feature', () => {
 		cy.url().should('include', 'ep_filter_category=classic%2Cpost-formats');
 		cy.url().should('not.include', 'page');
 	});
+
+	it('Does not change post types being displayed', () => {
+		cy.activatePlugin('cpt-and-custom-tax', 'wpCli');
+
+		cy.wpCli('post create --post_title="A new page" --post_type="page"');
+		cy.wpCli('post create --post_title="A new post" --post_type="post"');
+
+		cy.wpCli(
+			'post create --post_title="A new movie" --post_type="movie" --tax_input="{\'genre\': \'action\'}"',
+		);
+
+		// Blog page
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'A new page').should('not.exist');
+		cy.contains('.site-content article h2', 'A new post').should('exist');
+		cy.contains('.site-content article h2', 'A new movie').should('not.exist');
+
+		// Specific taxonomy archive
+		cy.visit('/blog/genre/action/');
+		cy.contains('.site-content article h2', 'A new page').should('not.exist');
+		cy.contains('.site-content article h2', 'A new post').should('not.exist');
+		cy.contains('.site-content article h2', 'A new movie').should('exist');
+
+		// Search
+		cy.visit('/?s=new');
+		cy.contains('.site-content article h2', 'A new page').should('exist');
+		cy.contains('.site-content article h2', 'A new post').should('exist');
+		cy.contains('.site-content article h2', 'A new movie').should('exist');
+	});
 });
