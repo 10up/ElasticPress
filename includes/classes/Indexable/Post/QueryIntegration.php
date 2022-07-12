@@ -245,7 +245,7 @@ class QueryIntegration {
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
 			if ( $query->is_tax() ) {
-				$query_vars['post_type'] = get_taxonomy( get_queried_object()->taxonomy )->object_type;
+				$query_vars['post_type'] = get_taxonomy( $query->get_queried_object()->taxonomy )->object_type;
 			} elseif ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';
 			} else {
