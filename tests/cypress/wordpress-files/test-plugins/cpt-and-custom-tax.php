@@ -16,7 +16,7 @@ namespace ElasticPress\Tests\E2e;
  */
 function create_post_type() {
 	register_post_type(
-		'movies',
+		'movie',
 		[
 			'labels'      => [
 				'name'          => __( 'Movies' ),
@@ -48,7 +48,7 @@ function create_taxonomy() {
 	];
 
 	$args = [
-		'hierarchical'      => true,
+		'hierarchical'      => false,
 		'labels'            => $labels,
 		'show_ui'           => true,
 		'show_admin_column' => true,
@@ -57,6 +57,6 @@ function create_taxonomy() {
 		'has_archive'       => true,
 	];
 
-	register_taxonomy( 'genre', [ 'movies' ], $args );
+	register_taxonomy( 'genre', [ 'movie' ], $args );
 }
 add_action( 'init', __NAMESPACE__ . '\\create_taxonomy' );

@@ -114,13 +114,27 @@ describe('Facets Feature', () => {
 	});
 
 	it('Does not change post types being displayed', () => {
-		cy.activatePlugin('cpt-and-custom-tax', 'wpCli');
+		cy.wpCliEval(
+			`
+			WP_CLI::runcommand( 'plugin activate cpt-and-custom-tax' );
+			WP_CLI::runcommand( 'post create --post_title="A new page" --post_type="page" --post_status="publish"' );
+			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
+			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
 
-		cy.wpCli('post create --post_title="A new page" --post_type="page"');
-		cy.wpCli('post create --post_title="A new post" --post_type="post"');
-
-		cy.wpCli(
-			'post create --post_title="A new movie" --post_type="movie" --tax_input="{\'genre\': \'action\'}"',
+			// tax_input does not seem to work properly in WP-CLI.
+			$movie_id = wp_insert_post(
+				[
+					'post_title'  => 'A new movie',
+					'post_type'   => 'movie',
+					'post_status' => 'publish',
+				]
+			);
+			if ( $movie_id ) {
+				wp_set_object_terms( $movie_id, 'action', 'genre' );
+				WP_CLI::runcommand( 'elasticpress index --include=' . $movie_id );
+				WP_CLI::runcommand( 'rewrite flush' );
+			}
+			`,
 		);
 
 		// Blog page
