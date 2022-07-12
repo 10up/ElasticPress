@@ -77,6 +77,30 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 4.2.2 - 2022-07-XX =
+
+This is a bug fix release.
+
+__Added:__
+
+* New `ep_enable_do_weighting` filter and re-factor with new function `apply_weighting`. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* New `ep_default_analyzer_char_filters` filter. Props [@rebeccahum](https://github.com/rebeccahum).
+* E2E test to prevent saving feature settings during a sync. Props [@burhandodhy](https://github.com/burhandodhy).
+* Full compatibility with Composer v2. Props [@felipeelia](https://github.com/felipeelia).
+
+__Changed:__
+
+* `update_index_settings()` now accounts for the index closing action timing out and re-opens index if closed. Props [@rebeccahum](https://github.com/rebeccahum).
+
+__Fixed:__
+
+* Wrong post types being displayed on the homepage while having the Facets feature enabled. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+
+__Security:__
+
+* Bumped `moment` from 2.29.2 to 2.29.4. Props [@dependabot](https://github.com/dependabot).
+
+
 = 4.2.1 - 2022-06-28 =
 
 This is a bug fix release.
