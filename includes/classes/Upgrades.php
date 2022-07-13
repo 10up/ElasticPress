@@ -47,6 +47,7 @@ class Upgrades {
 			'3.5.2' => [ 'upgrade_3_5_2', 'init' ],
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
+			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -165,6 +166,22 @@ class Upgrades {
 
 		foreach ( $synonyms_example_ids as $synonym_post_id ) {
 			wp_delete_post( $synonym_post_id, true );
+		}
+	}
+
+	/**
+	 * Upgrade routine of v4.2.2.
+	 *
+	 * Delete the transient with ES info, so EP is forced to fetch it again,
+	 * determining the correct software type (elasticsearch or opensearch, for example)
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2882
+	 */
+	public function upgrade_4_2_2() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( 'ep_es_info' );
+		} else {
+			delete_transient( 'ep_es_info' );
 		}
 	}
 
