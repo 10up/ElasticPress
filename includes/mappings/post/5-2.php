@@ -60,7 +60,7 @@ return array(
 					/**
 					 * Filter Elasticsearch default analyzer's char_filter
 					 *
-					 * @since 4.3.0
+					 * @since 4.2.2
 					 * @hook ep_default_analyzer_char_filters
 					 * @param  {array<string>} $char_filters Default filter
 					 * @return {array<string>} New filters
