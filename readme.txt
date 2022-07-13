@@ -95,6 +95,7 @@ __Changed:__
 __Fixed:__
 
 * Wrong post types being displayed on the homepage while having the Facets feature enabled. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+* Wrong notice about unsupported server software. Props [@felipeelia](https://github.com/felipeelia).
 
 __Security:__
 

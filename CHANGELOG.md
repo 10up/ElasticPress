@@ -18,6 +18,7 @@ This is a bug fix release.
 
 ### Fixed
 - Wrong post types being displayed on the homepage while having the Facets feature enabled. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2886](https://github.com/10up/ElasticPress/pull/2886).
+- Wrong notice about unsupported server software. Props [@felipeelia](https://github.com/felipeelia) via [#2892](https://github.com/10up/ElasticPress/pull/2892).
 
 ### Security
 - Bumped `moment` from 2.29.2 to 2.29.4. Props [@dependabot](https://github.com/dependabot) via [#2890](https://github.com/10up/ElasticPress/pull/2890).
