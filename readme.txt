@@ -77,7 +77,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 4.2.2 - 2022-07-XX =
+= 4.2.2 - 2022-07-14 =
 
 This is a bug fix release.
 
@@ -100,7 +100,6 @@ __Fixed:__
 __Security:__
 
 * Bumped `moment` from 2.29.2 to 2.29.4. Props [@dependabot](https://github.com/dependabot).
-
 
 = 4.2.1 - 2022-06-28 =
 
