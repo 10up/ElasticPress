@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.2.2] - 2022-07-14
+This is a bug fix release.
+
+### Added
+- New `ep_enable_do_weighting` filter and re-factor with new function `apply_weighting`. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#2857](https://github.com/10up/ElasticPress/pull/2857).
+- New `ep_default_analyzer_char_filters` filter. Props [@rebeccahum](https://github.com/rebeccahum) via [#2872](https://github.com/10up/ElasticPress/pull/2872).
+- E2E test to prevent saving feature settings during a sync. Props [@burhandodhy](https://github.com/burhandodhy) via [#2863](https://github.com/10up/ElasticPress/pull/2863).
+- Full compatibility with Composer v2. Props [@felipeelia](https://github.com/felipeelia) via [#2889](https://github.com/10up/ElasticPress/pull/2889).
+
+### Changed
+- `update_index_settings()` now accounts for the index closing action timing out and re-opens index if closed. Props [@rebeccahum](https://github.com/rebeccahum) via [#2843](https://github.com/10up/ElasticPress/pull/2843).
+
+### Fixed
+- Wrong post types being displayed on the homepage while having the Facets feature enabled. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez) via [#2886](https://github.com/10up/ElasticPress/pull/2886).
+- Wrong notice about unsupported server software. Props [@felipeelia](https://github.com/felipeelia) via [#2892](https://github.com/10up/ElasticPress/pull/2892).
+
+### Security
+- Bumped `moment` from 2.29.2 to 2.29.4. Props [@dependabot](https://github.com/dependabot) via [#2890](https://github.com/10up/ElasticPress/pull/2890).
+
 ## [4.2.1] - 2022-06-28
 This is a bug fix release.
 
@@ -80,7 +99,7 @@ Facets are now available through a WordPress block. If you are using the Full Si
 - Prevent an unnecessary call when the ES server is not set yet. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2782](https://github.com/10up/ElasticPress/pull/2782).
 - An incompatibility with the way WP 6.0 handles WP_User_Query using fields. Props [@felipeelia](https://github.com/felipeelia) via [#2800](https://github.com/10up/ElasticPress/pull/2800).
 
-## Security
+### Security
 - Bumped `moment` from 2.29.1 to 2.29.2. Props [@dependabot](https://github.com/dependabot) via [#2709](https://github.com/10up/ElasticPress/pull/2709).
 - Bumped `@wordpress/env` from 4.4.0 to 4.5.0. Props [@felipeelia](https://github.com/felipeelia) via [#2721](https://github.com/10up/ElasticPress/pull/2721).
 
@@ -111,7 +130,7 @@ Facets are now available through a WordPress block. If you are using the Full Si
 - "Learn More" link on the Sync Page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle) via [#2699](https://github.com/10up/ElasticPress/pull/2699).
 - Icons alignment in the WP Dashboard. Props [@jakemgold](https://github.com/jakemgold), [@felipeelia](https://github.com/felipeelia), [@brandwaffle](https://github.com/brandwaffle), and [@tlovett1](https://github.com/tlovett1) via [#2701](https://github.com/10up/ElasticPress/pull/2701).
 
-## Security
+### Security
 - Bumped `node-forge` from 1.2.1 to 1.3.0. Props [@dependabot](https://github.com/dependabot) via [#2678](https://github.com/10up/ElasticPress/pull/2678).
 - Bumped` @wordpress/env` from 4.2.2 to 4.4.0, and `minimist` from 1.2.5 to 1.2.6. Props [@felipeelia](https://github.com/felipeelia) via [#2680](https://github.com/10up/ElasticPress/pull/2680).
 
@@ -200,7 +219,7 @@ This changelog contains all changes made since 3.6.6 (including Beta 1.)
 - Sync link on index health page. Props [@JakePT](https://github.com/JakePT) via [#2644](https://github.com/10up/ElasticPress/pull/2644).
 - Logic checking if it is a full sync and if search should go or not through ElasticPress. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#2642](https://github.com/10up/ElasticPress/pull/2642).
 
-## Security
+### Security
 - Use most recent external GitHub Actions versions. Props [@felipeelia](https://github.com/felipeelia) and [@qazaqstan2025](https://github.com/qazaqstan2025) via [#2535](https://github.com/10up/ElasticPress/pull/2535).
 - Updated `10up-toolkit` from 1.0.13 to 3.0.1, `jsdoc` from 3.6.7 to 3.6.9, `terser-webpack-plugin` from 5.2.4 to 5.3.0, `@wordpress/env` from 4.1.1 to 4.2.2, and `promise-polyfill` from 8.2.0 to 8.2.1. Props [@felipeelia](https://github.com/felipeelia) via [#2559](https://github.com/10up/ElasticPress/pull/2559), [#2611](https://github.com/10up/ElasticPress/pull/2611), and [#2631](https://github.com/10up/ElasticPress/pull/2631).
 - Bumped `follow-redirects` from 1.14.7 to 1.14.9. Props [@dependabot](https://github.com/dependabot) via [#2609](https://github.com/10up/ElasticPress/pull/2609).
@@ -1426,6 +1445,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.2.2]: https://github.com/10up/ElasticPress/compare/4.2.1...4.2.2
 [4.2.1]: https://github.com/10up/ElasticPress/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/10up/ElasticPress/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/10up/ElasticPress/compare/4.0.1...4.1.0

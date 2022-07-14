@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 6.0
-Stable tag:   4.2.1
+Stable tag:   4.2.2
 License:      GPLv2 or later
 License URI:  http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,30 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 4.2.2 - 2022-07-14 =
+
+This is a bug fix release.
+
+__Added:__
+
+* New `ep_enable_do_weighting` filter and re-factor with new function `apply_weighting`. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* New `ep_default_analyzer_char_filters` filter. Props [@rebeccahum](https://github.com/rebeccahum).
+* E2E test to prevent saving feature settings during a sync. Props [@burhandodhy](https://github.com/burhandodhy).
+* Full compatibility with Composer v2. Props [@felipeelia](https://github.com/felipeelia).
+
+__Changed:__
+
+* `update_index_settings()` now accounts for the index closing action timing out and re-opens index if closed. Props [@rebeccahum](https://github.com/rebeccahum).
+
+__Fixed:__
+
+* Wrong post types being displayed on the homepage while having the Facets feature enabled. Props [@felipeelia](https://github.com/felipeelia) and [@oscarssanchez](https://github.com/oscarssanchez).
+* Wrong notice about unsupported server software. Props [@felipeelia](https://github.com/felipeelia).
+
+__Security:__
+
+* Bumped `moment` from 2.29.2 to 2.29.4. Props [@dependabot](https://github.com/dependabot).
 
 = 4.2.1 - 2022-06-28 =
 

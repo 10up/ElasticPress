@@ -75,7 +75,6 @@ jobs:
       with:
         php-version: '7.2'
         coverage: none
-        tools: composer:v1
 
     - name: composer install
       run: composer install
