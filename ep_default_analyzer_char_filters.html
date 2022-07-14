@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_facet_widget_term_html - 10up ElasticPress Hook Docs</title>
+    <title>Filter: ep_default_analyzer_char_filters - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_facet_widget_term_html</h1>
+    <h1 class="page-title">Filter: ep_default_analyzer_char_filters</h1>
 	
 
     
@@ -43,17 +43,14 @@
 
     
 
-    <h4 class="name" id="ep_facet_widget_term_html">apply_filters( 'ep_facet_widget_term_html', <span class="signature">$html, $term, $url, $selected )</span><span class="type-signature"> &rarr; {string}</span></h4>
+    <h4 class="name" id="ep_default_analyzer_char_filters">apply_filters( 'ep_default_analyzer_char_filters', <span class="signature">$char_filters )</span><span class="type-signature"> &rarr; {array.&lt;string>}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter the HTML for an individual facet term.</p>
-<p>For term search to work correctly the outermost wrapper of the term
-HTML must have data-term-name and data-term-slug attributes set to
-lowercase versions of the term name and slug respectively.</p>
+    <p>Filter Elasticsearch default analyzer's char_filter</p>
 </div>
 
 
@@ -87,13 +84,13 @@ lowercase versions of the term name and slug respectively.</p>
 
         <tr>
             
-                <td class="name"><code>$html</code></td>
+                <td class="name"><code>$char_filters</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">array.&lt;string></span>
 
 
             
@@ -103,76 +100,7 @@ lowercase versions of the term name and slug respectively.</p>
 
             
 
-            <td class="description last"><p>Facet term HTML.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>$term</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">WP_Term</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Term object.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>$url</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Filter URL.</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>$selected</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Whether the term is selected.</p></td>
+            <td class="description last"><p>Default filter</p></td>
         </tr>
 
     
@@ -190,7 +118,7 @@ lowercase versions of the term name and slug respectively.</p>
 
     
     <dt class="tag-since">Since:</dt>
-    <dd class="tag-since"><ul class="dummy"><li>3.6.3</li></ul></dd>
+    <dd class="tag-since"><ul class="dummy"><li>4.2.2</li></ul></dd>
     
 
     
@@ -216,7 +144,7 @@ lowercase versions of the term name and slug respectively.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Feature_Facets_Renderer.php.html">includes/classes/Feature/Facets/Renderer.php</a>, <a href="includes_classes_Feature_Facets_Renderer.php.html#line392">line 392</a>
+        <a href="includes_mappings_post_5-2.php.html">includes/mappings/post/5-2.php</a>, <a href="includes_mappings_post_5-2.php.html#line60">line 60</a>
     </li></ul></dd>
     
 
@@ -243,7 +171,7 @@ lowercase versions of the term name and slug respectively.</p>
 
         
 <div class="param-desc">
-    <p>Individual facet term HTML.</p>
+    <p>New filters</p>
 </div>
 
 
@@ -254,7 +182,184 @@ lowercase versions of the term name and slug respectively.</p>
     </dt>
     <dd>
         
-<span class="param-type">string</span>
+<span class="param-type">array.&lt;string></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+    
+    </div>
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    <h2></h2>
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    <h4 class="name" id="ep_default_analyzer_char_filters">apply_filters( 'ep_default_analyzer_char_filters', <span class="signature">$char_filters )</span><span class="type-signature"> &rarr; {array.&lt;string>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Filter Elasticsearch default analyzer's char_filter</p>
+</div>
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>$char_filters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array.&lt;string></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Default filter</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>4.2.2</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="includes_mappings_post_7-0.php.html">includes/mappings/post/7-0.php</a>, <a href="includes_mappings_post_7-0.php.html#line76">line 76</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>New filters</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">array.&lt;string></span>
 
 
     </dd>

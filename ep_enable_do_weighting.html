@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_facet_widget_term_html - 10up ElasticPress Hook Docs</title>
+    <title>Filter: ep_enable_do_weighting - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_facet_widget_term_html</h1>
+    <h1 class="page-title">Filter: ep_enable_do_weighting</h1>
 	
 
     
@@ -43,17 +43,14 @@
 
     
 
-    <h4 class="name" id="ep_facet_widget_term_html">apply_filters( 'ep_facet_widget_term_html', <span class="signature">$html, $term, $url, $selected )</span><span class="type-signature"> &rarr; {string}</span></h4>
+    <h4 class="name" id="ep_enable_do_weighting">apply_filters( 'ep_enable_do_weighting', <span class="signature">Whether, $weight_config, $args, $formatted_args )</span><span class="type-signature"> &rarr; {bool}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter the HTML for an individual facet term.</p>
-<p>For term search to work correctly the outermost wrapper of the term
-HTML must have data-term-name and data-term-slug attributes set to
-lowercase versions of the term name and slug respectively.</p>
+    <p>Filter whether to enable weighting configuration</p>
 </div>
 
 
@@ -87,13 +84,13 @@ lowercase versions of the term name and slug respectively.</p>
 
         <tr>
             
-                <td class="name"><code>$html</code></td>
+                <td class="name"><code>Whether</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">bool</span>
 
 
             
@@ -103,20 +100,20 @@ lowercase versions of the term name and slug respectively.</p>
 
             
 
-            <td class="description last"><p>Facet term HTML.</p></td>
+            <td class="description last"><p>to enable weight config, defaults to true for search requests that are public or REST</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>$term</code></td>
+                <td class="name"><code>$weight_config</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">WP_Term</span>
+<span class="param-type">array</span>
 
 
             
@@ -126,20 +123,20 @@ lowercase versions of the term name and slug respectively.</p>
 
             
 
-            <td class="description last"><p>Term object.</p></td>
+            <td class="description last"><p>Current weight config</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>$url</code></td>
+                <td class="name"><code>$args</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type">array</span>
 
 
             
@@ -149,20 +146,20 @@ lowercase versions of the term name and slug respectively.</p>
 
             
 
-            <td class="description last"><p>Filter URL.</p></td>
+            <td class="description last"><p>WP Query arguments</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>$selected</code></td>
+                <td class="name"><code>$formatted_args</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">boolean</span>
+<span class="param-type">array</span>
 
 
             
@@ -172,7 +169,7 @@ lowercase versions of the term name and slug respectively.</p>
 
             
 
-            <td class="description last"><p>Whether the term is selected.</p></td>
+            <td class="description last"><p>Formatted ES arguments</p></td>
         </tr>
 
     
@@ -190,7 +187,7 @@ lowercase versions of the term name and slug respectively.</p>
 
     
     <dt class="tag-since">Since:</dt>
-    <dd class="tag-since"><ul class="dummy"><li>3.6.3</li></ul></dd>
+    <dd class="tag-since"><ul class="dummy"><li>4.2.2</li></ul></dd>
     
 
     
@@ -216,7 +213,7 @@ lowercase versions of the term name and slug respectively.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Feature_Facets_Renderer.php.html">includes/classes/Feature/Facets/Renderer.php</a>, <a href="includes_classes_Feature_Facets_Renderer.php.html#line392">line 392</a>
+        <a href="includes_classes_Feature_Search_Weighting.php.html">includes/classes/Feature/Search/Weighting.php</a>, <a href="includes_classes_Feature_Search_Weighting.php.html#line594">line 594</a>
     </li></ul></dd>
     
 
@@ -243,7 +240,7 @@ lowercase versions of the term name and slug respectively.</p>
 
         
 <div class="param-desc">
-    <p>Individual facet term HTML.</p>
+    <p>Whether to use weighting configuration</p>
 </div>
 
 
@@ -254,7 +251,7 @@ lowercase versions of the term name and slug respectively.</p>
     </dt>
     <dd>
         
-<span class="param-type">string</span>
+<span class="param-type">bool</span>
 
 
     </dd>
