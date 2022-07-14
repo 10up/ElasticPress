@@ -1,16 +1,14 @@
 describe('Instant Results Feature', () => {
 	before(() => {
-		cy.deactivatePlugin('elasticpress-proxy', 'wpCli');
+		cy.activatePlugin('elasticpress-proxy', 'dashboard');
 	});
 
 	after(() => {
-		cy.deactivatePlugin('elasticpress-proxy', 'wpCli');
+		cy.deactivatePlugin('elasticpress-proxy', 'dashboard');
 	});
 
 	it('Can activate the feature and sync automatically', () => {
 		cy.login();
-
-		cy.activatePlugin('elasticpress-proxy');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-instant-results .settings-button').click();
@@ -32,9 +30,9 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('hello');
+		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.wp-block-search__button').click();
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'Search results');
+		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
 	});
 
 	it('Can click outside when instant results are shown', () => {
@@ -42,7 +40,7 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('hello');
+		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.wp-block-search__button').click();
 		cy.get('.ep-search-modal').should('be.visible');
 
