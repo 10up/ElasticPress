@@ -764,7 +764,7 @@ class Post extends Indexable {
 	 *
 	 * @param array   $metas Key => value pairs of post meta
 	 * @param WP_Post $post Post object
-	 * @since 3.6.6
+	 * @since 4.3.0
 	 * @return array
 	 */
 	public function filter_allowed_metas( $metas, $post ) {

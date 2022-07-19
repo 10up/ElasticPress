@@ -136,7 +136,6 @@ class SyncManager extends SyncManagerAbstract {
 		if ( in_array( $post->post_status, $indexable_post_statuses, true ) ) {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
-
 			if ( in_array( $post_type, $indexable_post_types, true ) ) {
 				/**
 				 * Filter to kill post sync
