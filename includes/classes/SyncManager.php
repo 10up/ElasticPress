@@ -62,6 +62,8 @@ abstract class SyncManager {
 		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
 		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
 
+		add_action( 'debug_information', array( $this, 'last_sync_health_info' ) );
+
 		// Implemented by children.
 		$this->setup();
 	}
@@ -265,6 +267,31 @@ abstract class SyncManager {
 		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false, $blog_id, $this->indexable_slug ) ) {
 			$indexable->delete_index( $blog_id );
 		}
+	}
+
+	/**
+	 * Display sync info in site health screen.
+	 *
+	 * @param array $debug_info The debug info for site health screen.
+	 * @return array The debug info for site health screen.
+	 */
+	public function last_sync_health_info( $debug_info ) {
+		$debug_info['ep_last_sync'] = array(
+			'label'  => esc_html__( 'ElasticPress - Last Sync', 'elasticpress' ),
+			'fields' => [],
+		);
+
+		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
+
+		foreach ( $sync_info as $label => $value ) {
+			$debug_info['ep_last_sync']['fields'][ sanitize_title( $label ) ] = [
+				'label'   => $label,
+				'value'   => $value,
+				'private' => true,
+			];
+		}
+
+		return $debug_info;
 	}
 
 	/**
