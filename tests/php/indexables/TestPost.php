@@ -6784,4 +6784,33 @@ class TestPost extends BaseTestCase {
 		$this->assertArrayHasKey( 'terms.category.term_id', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms'] );
 		$this->assertContains( $cat, $args['post_filter']['bool']['must'][0]['bool']['must'][0]['terms']['terms.category.term_id'] );
 	}
+
+
+	/**
+	 * Tests is_meta_allowed
+	 *
+	 * @return void
+	 * @group  is_meta_allowed
+	 */
+	public function testIsMetaAllowed() {
+		$meta_not_protected 		 = 'meta';
+		$meta_not_protected_excluded = 'meta_excluded';
+		$meta_protected 		 	 = '_meta';
+		$meta_protected_allowed 	 = '_meta_allowed';
+
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', function () use ( $meta_protected_allowed ) {
+			return [ $meta_protected_allowed ];
+		} );
+		add_filter( 'ep_prepare_meta_excluded_public_keys', function () use ( $meta_not_protected_excluded ) {
+			return [ $meta_not_protected_excluded ];
+		} );
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_not_protected, null ) );
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_protected_allowed, null ) );
+
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, null ) );
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, null ) );
+	}
 }
