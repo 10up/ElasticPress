@@ -1,109 +1,101 @@
 /**
  * WordPress dependencies.
  */
-import { AlignmentToolbar, BlockControls, InspectorControls } from '@wordpress/block-editor';
+import {
+	AlignmentToolbar,
+	BlockControls,
+	InspectorControls,
+	useBlockProps,
+} from '@wordpress/block-editor';
 import { PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
-import { Fragment, Component, RawHTML } from '@wordpress/element';
+import { RawHTML, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { addQueryArgs } from '@wordpress/url';
 
 /**
- * Edit component
+ * Edit component.
+ *
+ * @param {object} props Component props.
+ * @returns {Function} Edit component.
  */
-class Edit extends Component {
-	/**
-	 * Setup class
-	 *
-	 * @param {object} props Component properties
-	 */
-	constructor(props) {
-		super(props);
+const Edit = (props) => {
+	const { attributes, setAttributes, context } = props;
+	const { alignment, number } = attributes;
 
-		this.state = {
-			posts: false,
-		};
-	}
+	const blockProps = useBlockProps();
+	const [posts, setPosts] = useState(false);
 
 	/**
 	 * Load preview data
 	 */
-	componentDidMount() {
+	useEffect(() => {
 		const urlArgs = {
 			number: 100,
 		};
 
 		// Use 0 if in the Widgets Screen
-		const { context: { postId = 0 } = {} } = this.props;
+		const { postId = 0 } = context;
 
 		wp.apiFetch({
 			path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
 		})
 			.then((posts) => {
-				this.setState({ posts });
+				setPosts(posts);
 			})
 			.catch(() => {
-				this.setState({ posts: false });
+				setPosts(false);
 			});
-	}
+	}, [context]);
 
-	render() {
-		const {
-			attributes: { alignment, number },
-			setAttributes,
-			className,
-		} = this.props;
-		const { posts } = this.state;
+	const displayPosts = posts.length > number ? posts.slice(0, number) : posts;
 
-		const displayPosts = posts.length > number ? posts.slice(0, number) : posts;
-
-		return (
-			<Fragment>
-				<BlockControls>
-					<AlignmentToolbar
-						value={alignment}
-						onChange={(newValue) => setAttributes({ alignment: newValue })}
+	return (
+		<>
+			<BlockControls>
+				<AlignmentToolbar
+					value={alignment}
+					onChange={(newValue) => setAttributes({ alignment: newValue })}
+				/>
+			</BlockControls>
+			<InspectorControls>
+				<PanelBody title={__('Related Post Settings', 'elasticpress')}>
+					<QueryControls
+						numberOfItems={number}
+						onNumberOfItemsChange={(value) => setAttributes({ number: value })}
 					/>
-				</BlockControls>
-				<InspectorControls>
-					<PanelBody title={__('Related Post Settings', 'elasticpress')}>
-						<QueryControls
-							numberOfItems={number}
-							onNumberOfItemsChange={(value) => setAttributes({ number: value })}
-						/>
-					</PanelBody>
-				</InspectorControls>
+				</PanelBody>
+			</InspectorControls>
 
-				<div className={className}>
-					{displayPosts === false || displayPosts.length === 0 ? (
-						<Placeholder icon="admin-post" label={__('Related Posts', 'elasticpress')}>
-							{posts === false ? (
-								<Spinner />
-							) : (
-								__('No related posts yet.', 'elasticpress')
-							)}
-						</Placeholder>
-					) : (
-						<ul style={{ textAlign: alignment }}>
-							{displayPosts.map((post) => {
-								const titleTrimmed = post.title.rendered.trim();
-								return (
-									<li key={post.id}>
-										<a href={post.link}>
-											{titleTrimmed ? (
-												<RawHTML>{titleTrimmed}</RawHTML>
-											) : (
-												__('(Untitled)', 'elasticpress')
-											)}
-										</a>
-									</li>
-								);
-							})}
-						</ul>
-					)}
-				</div>
-			</Fragment>
-		);
-	}
-}
+			<div {...blockProps}>
+				{displayPosts === false || displayPosts.length === 0 ? (
+					<Placeholder icon="admin-post" label={__('Related Posts', 'elasticpress')}>
+						{posts === false ? (
+							<Spinner />
+						) : (
+							__('No related posts yet.', 'elasticpress')
+						)}
+					</Placeholder>
+				) : (
+					<ul style={{ textAlign: alignment }}>
+						{displayPosts.map((post) => {
+							const titleTrimmed = post.title.rendered.trim();
+							return (
+								<li key={post.id}>
+									<a href={post.link}>
+										{titleTrimmed ? (
+											<RawHTML>{titleTrimmed}</RawHTML>
+										) : (
+											__('(Untitled)', 'elasticpress')
+										)}
+									</a>
+								</li>
+							);
+						})}
+					</ul>
+				)}
+			</div>
+		</>
+	);
+};
 
 export default Edit;
