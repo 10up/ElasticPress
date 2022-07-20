@@ -94,4 +94,15 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		cy.get('.dashicons.start-sync').should('have.attr', 'title', 'Sync Page');
 		cy.get('.dashicons.dashicons-admin-generic').should('have.attr', 'title', 'Settings Page');
 	});
+
+	it('Cannot save settings while a sync is in progress', () => {
+		cy.login();
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.wpCliEval(`update_option( 'ep_index_meta', true );`).then(() => {
+			cy.get('.ep-feature-search .settings-button').click();
+			cy.get('.ep-feature-search .button-primary').click();
+			cy.get('.ep-feature-search .requirements-status-notice--syncing').should('be.visible');
+			cy.wpCliEval(`delete_option( 'ep_index_meta' );`);
+		});
+	});
 });

@@ -19,7 +19,6 @@ jobs:
       with:
         php-version: '7.4'
         coverage: none
-        tools: prestissimo, composer:v1
         ini-values: memory_limit=3G
 
     - name: Start MySQL

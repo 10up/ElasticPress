@@ -1,7 +1,7 @@
 name: PHP Compatibility
 
 env:
-  COMPOSER_VERSION: "1"
+  COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
 
 on:
@@ -46,7 +46,6 @@ jobs:
       with:
         php-version: '7.4'
         coverage: none
-        tools: prestissimo, composer:v1
 
     - name: Install dependencies
       run: composer install
