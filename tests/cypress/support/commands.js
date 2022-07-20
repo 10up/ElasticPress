@@ -62,29 +62,6 @@ Cypress.Commands.add('createTaxonomy', (name = 'Test taxonomy', taxonomy = 'cate
 	cy.get('#tag-name').click().type(`${name}{enter}`);
 });
 
-Cypress.Commands.add('openDocumentSettingsSidebar', () => {
-	const button =
-		'.edit-post-header__settings button[aria-label="Settings"][aria-expanded="false"]';
-	cy.get('body').then(($body) => {
-		if ($body.find(button).length > 0) {
-			cy.get(button).click();
-		}
-	});
-	cy.get('.edit-post-sidebar__panel-tab').contains('Post').click();
-});
-
-Cypress.Commands.add('openDocumentSettingsPanel', (name) => {
-	cy.openDocumentSettingsSidebar();
-	cy.get('.components-panel__body .components-panel__body-title button')
-		.contains(name)
-		.then((panel) => {
-			if (!panel.hasClass('.is-opened')) {
-				cy.get(panel).click();
-				cy.get(panel).parents('.components-panel__body').should('have.class', 'is-opened');
-			}
-		});
-});
-
 Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text, force = false) => {
 	cy.wrap(subject).clear().type(text, { force });
 });
@@ -290,19 +267,23 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 	cy.wpCli(command);
 });
 
-Cypress.Commands.add('blockExistsForFeature', (blockName, feature = null) => {
-	const blockInserterToggle = '.edit-post-header-toolbar__inserter-toggle';
-	const blockList = '.block-editor-inserter__block-list';
+Cypress.Commands.add('closeWelcomeGuide', () => {
+	cy.get('.edit-post-welcome-guide .components-modal__header button').click();
+});
 
-	if (feature) {
-		cy.maybeDisableFeature(feature);
-		cy.visitAdminPage('post-new.php');
-		cy.get(blockInserterToggle).click();
-		cy.get(blockList).should('not.contain.text', blockName);
-		cy.maybeEnableFeature(feature);
-	}
+Cypress.Commands.add('openBlockInserter', () => {
+	cy.get('.edit-post-header-toolbar__inserter-toggle').click();
+});
 
-	cy.visitAdminPage('post-new.php');
-	cy.get(blockInserterToggle).click();
-	cy.get(blockList).should('contain.text', blockName);
+Cypress.Commands.add('getBlocksList', () => {
+	cy.get('.block-editor-inserter__block-list');
+});
+
+Cypress.Commands.add('insertBlock', (blockName) => {
+	cy.get('.block-editor-block-types-list__item').contains(blockName).click();
+});
+
+Cypress.Commands.add('updatePostAndView', () => {
+	cy.get('.editor-post-publish-button__button').click();
+	cy.get('.components-snackbar__action').click();
 });

@@ -1,43 +1,71 @@
 describe('Related Posts Feature', () => {
-	it('Can see the block in the Dashboard', () => {
-		cy.blockExistsForFeature('Related Posts (ElasticPress)', 'related_posts');
+	it('Block can be inserted', () => {
+		/**
+		 * Make sure the block isn't available if the feature is not active.
+		 */
 		cy.maybeDisableFeature('related_posts');
 		cy.visitAdminPage('post-new.php');
+		cy.closeWelcomeGuide();
+		cy.openBlockInserter();
+		cy.getBlocksList().should('not.contain.text', 'Related Posts (ElasticPress)');
 
-		cy.getBlocksList()
-			.should('exist')
-			.should('not.contain.text', 'Related Posts (ElasticPress)')
-			.should('not.contain.text', 'ElasticPress - Related Posts');
-
+		/**
+		 * Create some posts that will be related.
+		 */
 		cy.maybeEnableFeature('related_posts');
-		cy.visitAdminPage('post-new.php');
 
-		cy.getBlocksList()
-			.should('exist')
-			.should('contain.text', 'Related Posts (ElasticPress)')
-			.should('not.contain.text', 'ElasticPress - Related Posts');
+		const postsToPublish = [
+			{
+				title: 'Test related posts block #1',
+				content: 'Inceptos tristique class ac eleifend leo.',
+			},
+			{
+				title: 'Test related posts block #2',
+				content: 'Inceptos tristique class ac eleifend leo.',
+			},
+			{
+				title: 'Test related posts block #3',
+				content: 'Inceptos tristique class ac eleifend leo.',
+			},
+		];
 
-		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
-
-		cy.get('.block-editor-inserter__no-results').should('exist');
-
-		// Re-enable the feature.
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-related_posts .settings-button').click();
-		cy.get('.ep-feature-related_posts [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-related_posts .button-primary').click();
-
-		cy.openWidgetsPage();
-
-		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-		cy.get('.components-search-control__input').clearThenType('ElasticPress Related Posts');
-
-		cy.get('.block-editor-inserter__no-results').should('not.exist');
-		cy.get('.block-editor-block-types-list').should(($widgetsList) => {
-			expect($widgetsList).to.contain.text('');
-			expect($widgetsList).to.contain.text('Related Posts (ElasticPress)');
+		postsToPublish.forEach((postData) => {
+			cy.publishPost(postData);
 		});
+
+		/**
+		 * On the last post insert a Related Posts block.
+		 */
+		cy.openBlockInserter();
+		cy.getBlocksList().should('contain.text', 'Related Posts (ElasticPress)');
+		cy.insertBlock('Related Posts (ElasticPress)');
+
+		/**
+		 * Check that the block is inserted into the editor, and contains the
+		 * expected content.
+		 */
+		cy.get(`.block-editor-block-list__layout .wp-block-elasticpress-related-posts`)
+			.should('exist')
+			.should('contain.text', 'Test related posts block #1')
+			.click();
+
+		/**
+		 * Check that the number control works.
+		 */
+		cy.openDocumentSettingsSidebar();
+		cy.get('.edit-post-sidebar__panel-tab').contains('Block').click();
+		cy.get('input[type="number"][aria-label="Number of items"]').clearThenType('2');
+		cy.get(`.wp-block-elasticpress-related-posts li`).should('have.length', 2);
+
+		/**
+		 * Check that the block is rendered on the front-end, and contains
+		 * the expected content.
+		 */
+		cy.updatePostAndView();
+		cy.get('.wp-block-elasticpress-related-posts li')
+			.should('exist')
+			.should('contain', 'Test related posts block #1')
+			.should('have.length', 2);
 	});
 
 	it('Can instantiate and use the widget', () => {
