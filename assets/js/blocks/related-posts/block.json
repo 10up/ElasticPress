@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 1,
 	"title": "Related Posts (ElasticPress)",
 	"textdomain": "elasticpress",
 	"name": "elasticpress/related-posts",
