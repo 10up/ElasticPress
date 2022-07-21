@@ -648,7 +648,11 @@ function init() {
 			autosuggestElement.appendChild(autosuggestList);
 		}
 
-		const clonedElement = autosuggestElement.cloneNode(true);
+		let clonedElement = autosuggestElement.cloneNode(true);
+
+		if (typeof window.epAutosuggestElementFilter !== 'undefined') {
+			clonedElement = window.epAutosuggestElementFilter(clonedElement, element);
+		}
 
 		element.insertAdjacentElement('afterend', clonedElement);
 	};
