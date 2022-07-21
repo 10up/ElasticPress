@@ -33,3 +33,32 @@ You could display the loading gif while suggestions are being fetched with this 
 	display: block;
 }
 ```
+
+### Customize Suggestion Markup
+
+When ElasticPress Autosuggest renders the suggestion list each item is run through a `window,epAutosuggestItemHTMLFilter()` function, if such a function exists. Therefore you can provide your own markup for suggestions by defining this function from your theme or plugin. This can be used to include other fields in the suggestion.
+
+The `epAutosuggestItemHTMLFilter()` function should return the HTML for the suggestion as a string, and accept 4 parameters:
+
+1. `itemHTML` _(string)_ The suggestion HTML as a string.
+2. `option` _(object)_ The Elasticsearch record for the suggestion.
+3. `i` _(int)_ The index of the suggestion in the results set.
+4. `searchText` _(string)_ The search term.
+
+This example uses the function to add the post date to the suggestion:
+
+```
+window.epAutosuggestItemHTMLFilter = (itemHTML, option, i, searchText) => {
+	const text = option._source.post_title;
+	const url = option._source.permalink;
+	const postDate = new Date(option._source.post_date).toLocaleString('en', { dateStyle: 'medium' })
+
+	return `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
+		<a href="${url}" class="autosuggest-link" data-url="${url}" tabindex="-1">
+			${text} (${postDate})
+		</a>
+	</li>`;
+}
+```
+
+Note that the `class`, `id`, `role`, `aria-selected`, `data-url`, and `tabindex` attributes in the returned markup should match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal.
