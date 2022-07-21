@@ -36,7 +36,7 @@ You could display the loading gif while suggestions are being fetched with this 
 
 ### Customize Suggestion Markup
 
-When ElasticPress Autosuggest renders the suggestion list each item is run through a `window,epAutosuggestItemHTMLFilter()` function, if such a function exists. Therefore you can provide your own markup for suggestions by defining this function from your theme or plugin. This can be used to include other fields in the suggestion.
+When ElasticPress Autosuggest renders the suggestion list each item is run through a `window.epAutosuggestItemHTMLFilter()` function, if such a function exists. Therefore you can provide your own markup for suggestions by defining this function from your theme or plugin. This can be used to include other fields in the suggestion.
 
 The `epAutosuggestItemHTMLFilter()` function should return the HTML for the suggestion as a string, and accept 4 parameters:
 
@@ -62,3 +62,60 @@ window.epAutosuggestItemHTMLFilter = (itemHTML, option, i, searchText) => {
 ```
 
 Note that the `class`, `id`, `role`, `aria-selected`, `data-url`, and `tabindex` attributes in the returned markup should match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal.
+
+### Add Items to the Suggestions List
+
+When ElasticPress Autosuggest renders the suggestion the items in the list of suggestions is run through a `window.epAutosuggestListItemsHTMLFilter()` function, if such a function exists. Therefore you can append or prepend items to the list by defining this function from your theme or plugin.
+
+The `epAutosuggestListItemsHTMLFilter()` function should return the HTML for the suggestions list as a string, and accept 3 parameters:
+
+1. `listItemsHTML` _(string)_ The list items HTML as a string.
+2. `options` _(array)_ The Elasticsearch records for all of the suggestions being listed.
+3. `input` _(Element)_ The DOM element of the input that triggered Autosuggest.
+
+This example uses the function to add a "View All Results" option to the bottom of the list.
+
+```
+window.epAutosuggestListItemsHTMLFilter = (listItemsHTML, options, input) => {
+	const allUrl = new URL(input.form.action);
+	const formData = new FormData(input.form);
+	const urlParams = new URLSearchParams(formData);
+
+	allUrl.search = urlParams.toString();
+
+	const url = allUrl.toString();
+
+	listItemsHTML += `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-all">
+		<a href="${url}" class="autosuggest-link" data-url="${url}" tabindex="-1">
+			View All Results
+		</a>
+	</li>`;
+
+	return listItemsHTML;
+}
+```
+
+Note that the `class`, `role`, `aria-selected`, and `tabindex` attributes in any new items should match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal. Items should also contain a link with the `href` and `data-url` attributes set to the URL that the item should lead to.
+
+### Customize the Suggestions Container
+
+Before ElasticPress inserts the markup for Autosuggest into the search form the element to be added is run through a `window.epAutosuggestElementFilter()` function, if such a function exists. Therefore you can modify this element by defining this function from your theme or plugin.
+
+The `epAutosuggestElementFilter()` function should return a DOM element, and accept 2 parameters:
+
+1. `element` _(Element)_ The DOM element being inserted.
+2. `input` _(Element)_ The DOM element Autosuggest is being inserted after.
+
+This example uses the function to add a "Powered by ElasticPress" message to the Autosuggest dropdown.
+
+```
+window.epAutosuggestElementFilter = (element, input) => {
+	const poweredBy = document.createElement('div');
+
+	poweredBy.textContent = 'Powered by ElasticPress';
+
+	element.appendChild(poweredBy);
+
+	return element;
+}
+```
