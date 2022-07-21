@@ -275,6 +275,10 @@ function updateAutosuggestBox(options, input) {
 		itemString += itemHTML;
 	}
 
+	if (typeof window.epAutosuggestListItemsHTMLFilter !== 'undefined') {
+		itemString = window.epAutosuggestListItemsHTMLFilter(itemString, options, input);
+	}
+
 	// append list items to the list
 	suggestList.innerHTML = itemString;
 
