@@ -46,6 +46,22 @@ class SearchAlgorithms {
 	}
 
 	/**
+	 * Unregister a search algorithm.
+	 *
+	 * A search algorithm can only be unregistered if it is not the only one left.
+	 *
+	 * @param string $slug Search Algorithm slug
+	 * @return bool Whether the search algorithm was unregistered or not.
+	 */
+	public function unregister( string $slug ) {
+		if ( isset( $this->registered_search_algorithms[ $slug ] ) && count( $this->registered_search_algorithms ) >= 2 ) {
+			unset( $this->registered_search_algorithms[ $slug ] );
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Get all search algorithm instances
 	 *
 	 * @param boolean $slug_only True returns an array of only string slugs.
