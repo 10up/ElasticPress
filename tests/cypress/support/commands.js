@@ -95,7 +95,7 @@ Cypress.Commands.add('wpCliEval', (command) => {
 	});
 });
 
-Cypress.Commands.add('publishPost', (postData) => {
+Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	cy.visitAdminPage('post-new.php');
@@ -123,6 +123,10 @@ Cypress.Commands.add('publishPost', (postData) => {
 		cy.get('.editor-post-publish-button').click();
 
 		cy.get('.components-snackbar').should('be.visible');
+
+		if (viewPost) {
+			cy.get('.post-publish-panel__postpublish-buttons a').contains('View Post').click();
+		}
 	}
 
 	/**
@@ -267,8 +271,8 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 	cy.wpCli(command);
 });
 
-Cypress.Commands.add('closeWelcomeGuide', () => {
-	cy.get('.edit-post-welcome-guide .components-modal__header button').click();
+Cypress.Commands.add('openSettingsSidebar', () => {
+	cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
 });
 
 Cypress.Commands.add('openBlockInserter', () => {
@@ -281,9 +285,4 @@ Cypress.Commands.add('getBlocksList', () => {
 
 Cypress.Commands.add('insertBlock', (blockName) => {
 	cy.get('.block-editor-block-types-list__item').contains(blockName).click();
-});
-
-Cypress.Commands.add('updatePostAndView', () => {
-	cy.get('.editor-post-publish-button__button').click();
-	cy.get('.components-snackbar__action').click();
 });
