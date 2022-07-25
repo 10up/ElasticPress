@@ -742,6 +742,13 @@ class WooCommerce extends Feature {
 				'key'   => $sku_key,
 				'label' => __( 'SKU', 'elasticpress' ),
 			);
+
+			$variations_skus_key = 'meta._variations_skus.value';
+
+			$fields['attributes']['children'][ $variations_skus_key ] = array(
+				'key'   => $variations_skus_key,
+				'label' => __( 'Variations SKUs', 'elasticpress' ),
+			);
 		}
 		return $fields;
 	}
@@ -762,6 +769,11 @@ class WooCommerce extends Feature {
 			}
 
 			$defaults['meta._sku.value'] = array(
+				'enabled' => true,
+				'weight'  => 1,
+			);
+
+			$defaults['meta._variations_skus.value'] = array(
 				'enabled' => true,
 				'weight'  => 1,
 			);
