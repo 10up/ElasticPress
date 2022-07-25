@@ -143,7 +143,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_match_cross_fields_boost`.
 		 *
 		 * @hook ep_{$indexable_slug}_match_cross_fields_boost
-		 * @since 4.3.0
+		 * @since 4.0.0
 		 * @param {int}   $boost         Boost
 		 * @param {array} $search_fields Search fields
 		 * @param {array} $query_vars    Query variables
