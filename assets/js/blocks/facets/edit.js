@@ -1,17 +1,14 @@
-import { BlockControls, InspectorControls, useBlockProps } from '@wordpress/block-editor';
+import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
 import {
 	PanelBody,
 	RadioControl,
 	SelectControl,
 	Spinner,
-	TextControl,
-	ToolbarButton,
 	Placeholder,
-	Popover,
 } from '@wordpress/components';
 import { Fragment, useEffect, useState, useCallback } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
-import { __, _x } from '@wordpress/i18n';
+import { __ } from '@wordpress/i18n';
 
 const FacetBlockEdit = (props) => {
 	const { attributes, setAttributes } = props;
@@ -19,8 +16,7 @@ const FacetBlockEdit = (props) => {
 	const [preview, setPreview] = useState('');
 	const [loading, setLoading] = useState(false);
 	const { facet, orderby, order } = attributes;
-	const [isInputDialogVisible, setIsInputDialogVisible] = useState(false);
-	const [name, setName] = useState('');
+
 	const blockProps = useBlockProps();
 
 	const load = useCallback(async () => {
@@ -46,39 +42,8 @@ const FacetBlockEdit = (props) => {
 			.finally(() => setLoading(false));
 	}, [facet, orderby, order]);
 
-	const InputNameDialog = useCallback(
-		() => (
-			<TextControl
-				className="name-attribute"
-				label={_x('Control name', 'Popup control name', 'namespace')}
-				help={_x('This is title of field', 'Popup help text', 'namespace')}
-				value={name}
-				onChange={(name) => setName(name)}
-			/>
-		),
-		[name],
-	);
-
 	return (
 		<Fragment>
-			<BlockControls group="block">
-				<ToolbarButton
-					onClick={() => {
-						setIsInputDialogVisible(true);
-					}}
-					icon="nametag"
-				>
-					{isInputDialogVisible && (
-						<Popover
-							onClose={() => {
-								setIsInputDialogVisible(false);
-							}}
-						>
-							<InputNameDialog />
-						</Popover>
-					)}
-				</ToolbarButton>
-			</BlockControls>
 			<InspectorControls>
 				<PanelBody title={__('Facet Settings', 'elasticpress')}>
 					<SelectControl
