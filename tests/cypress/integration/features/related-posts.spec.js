@@ -1,5 +1,4 @@
 describe('Related Posts Feature', () => {
-
 	/**
 	 * Test that the Related Posts block is functional.
 	 */
