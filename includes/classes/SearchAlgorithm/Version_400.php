@@ -67,9 +67,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 							'type'        => 'cross_fields',
 							'fields'      => $search_fields,
 							/**
-							 * Filter boost for post match cross_fields query
-							 *
-							 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_match_cross_fields_boost`.
+							 * Filter boost for match cross_fields query
 							 *
 							 * @hook ep_{$indexable_slug}_match_cross_fields_boost
 							 * @since 4.3.0
@@ -108,10 +106,10 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		}
 
 		/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
-		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $query_vars );
+		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_phrase_boost', 3, $search_fields, $query_vars, 'ep_post_match_phrase_boost' );
 
 		/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
-		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters( 'ep_match_boost', 1, $search_fields, $query_vars );
+		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_boost', 1, $search_fields, $query_vars, 'ep_post_match_boost' );
 
 		/**
 		 * Filter fuzziness for post match query
@@ -125,21 +123,21 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		 * @param {array}      $query_vars    Query variables
 		 * @return {string} New fuzziness
 		 */
-		$query['bool']['should'][1]['multi_match']['fuzziness'] = apply_filters( 'ep_match_fuzziness', 'auto', $search_fields, $query_vars );
+		$query['bool']['should'][1]['multi_match']['fuzziness'] = apply_filters_deprecated( 'ep_match_fuzziness', 'auto', $search_fields, $query_vars, 'ep_post_match_fuzziness' );
 
 		/**
 		 * Filter boost for post match cross_fields query
 		 *
-		 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_match_fuzziness`.
+		 * This filter exists to keep backwards-compatibility. Newer implementations should use `ep_post_match_cross_fields_boost`.
 		 *
-		 * @hook ep_match_cross_fields_boost
-		 * @since 4.0.0
+		 * @hook ep_{$indexable_slug}_match_cross_fields_boost
+		 * @since 4.3.0
 		 * @param {int}   $boost         Boost
 		 * @param {array} $search_fields Search fields
 		 * @param {array} $query_vars    Query variables
 		 * @return  {int} New boost
 		 */
-		$query['bool']['should'][2]['multi_match']['boost'] = apply_filters( 'ep_match_cross_fields_boost', 1, $search_fields, $query_vars );
+		$query['bool']['should'][2]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_cross_fields_boost', 1, $search_fields, $query_vars, 'ep_post_match_cross_fields_boost' );
 
 		return $query;
 	}

@@ -73,7 +73,7 @@ class Version_350 extends \ElasticPress\SearchAlgorithm {
 		}
 
 		/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
-		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $query_vars );
+		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_phrase_boost', 3, $search_fields, $query_vars, 'ep_post_match_phrase_boost' );
 
 		return $query;
 	}

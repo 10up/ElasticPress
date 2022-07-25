@@ -120,7 +120,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 		 * @param {array} $query_vars    Query variables
 		 * @return {int} New boost amount
 		 */
-		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $query_vars );
+		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_phrase_boost', 4, $search_fields, $query_vars, 'ep_post_match_phrase_boost' );
 
 		/**
 		 * Filter boost for post match query
@@ -133,7 +133,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 		 * @param {array} $query_vars    Query variables
 		 * @return  {int} New boost
 		 */
-		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters( 'ep_match_boost', 2, $search_fields, $query_vars );
+		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_boost', 2, $search_fields, $query_vars, 'ep_post_match_boost' );
 
 		/**
 		 * Filter fuzziness for post query
@@ -146,7 +146,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 		 * @param {array} $query_vars    Query variables
 		 * @return  {int} New fuzziness
 		 */
-		$query['bool']['should'][2]['multi_match']['fuzziness'] = apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $query_vars );
+		$query['bool']['should'][2]['multi_match']['fuzziness'] = apply_filters_deprecated( 'ep_fuzziness_arg', 1, $search_fields, $query_vars, 'ep_post_fuzziness_arg' );
 
 		return $query;
 	}
