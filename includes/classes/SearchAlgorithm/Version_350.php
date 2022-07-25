@@ -37,10 +37,8 @@ class Version_350 extends \ElasticPress\SearchAlgorithm {
 							'query'  => $search_term,
 							'type'   => 'phrase',
 							'fields' => $search_fields,
-							'boost'  => ( 'post' === $indexable_slug ) ?
-								/** These filters are documented in /includes/classes/SearchAlgorithm/Basic.php */
-								apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $query_vars ) :
-								apply_filters( "ep_{$indexable_slug}_match_phrase_boost", 3, $search_fields, $query_vars ),
+							/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
+							'boost'  => apply_filters( "ep_{$indexable_slug}_match_phrase_boost", 3, $search_fields, $query_vars ),
 						],
 					],
 					[
@@ -54,6 +52,28 @@ class Version_350 extends \ElasticPress\SearchAlgorithm {
 				],
 			],
 		];
+
+		$query = $this->apply_legacy_filters( $query, $indexable_slug, $search_fields, $query_vars );
+
+		return $query;
+	}
+
+	/**
+	 * Apply legacy filters.
+	 *
+	 * @param array  $query          ES `query`
+	 * @param string $indexable_slug Indexable slug
+	 * @param array  $search_fields  Search term(s)
+	 * @param array  $query_vars     Query vars
+	 * @return array ES `query`
+	 */
+	protected function apply_legacy_filters( array $query, string $indexable_slug, array $search_fields, array $query_vars ) : array {
+		if ( 'post' !== $indexable_slug ) {
+			return $query;
+		}
+
+		/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
+		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $query_vars );
 
 		return $query;
 	}
