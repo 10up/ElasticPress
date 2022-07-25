@@ -18,6 +18,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * EP version 4.0.0 search algorithm class.
  */
 class Version_400 extends \ElasticPress\SearchAlgorithm {
+	/**
+	 * Search algorithm slug.
+	 *
+	 * @return string
+	 */
+	public function get_slug() : string {
+		return '4.0';
+	}
+
+	/**
+	 * Search algorithm name.
+	 *
+	 * @return string
+	 */
+	public function get_name() : string {
+		return esc_html__( 'Version 4.0', 'elasticpress' );
+	}
+
+	/**
+	 * Search algorithm description.
+	 *
+	 * @return string
+	 */
+	public function get_description() : string {
+		return esc_html__( 'Version 4.0', 'elasticpress' );
+	}
 
 	/**
 	 * Return the Elasticsearch `query` clause.
@@ -109,6 +135,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_phrase_boost',
 			[ 3, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_phrase_boost'
 		);
 
@@ -116,6 +143,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_boost',
 			[ 1, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_boost'
 		);
 
@@ -134,6 +162,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][1]['multi_match']['fuzziness'] = apply_filters_deprecated(
 			'ep_match_fuzziness',
 			[ 'auto', $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_fuzziness'
 		);
 
@@ -152,6 +181,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][2]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_cross_fields_boost',
 			[ 1, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_cross_fields_boost'
 		);
 

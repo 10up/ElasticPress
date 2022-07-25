@@ -354,8 +354,7 @@ class Term extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_term_search_fields', $prepared_search_fields, $query_vars );
 
-			$search_algorithm_class  = $this->get_search_algorithm_class( $search, $prepared_search_fields, $query_vars );
-			$search_algorithm        = new $search_algorithm_class();
+			$search_algorithm        = $this->get_search_algorithm( $search, $prepared_search_fields, $query_vars );
 			$formatted_args['query'] = $search_algorithm->get_query( 'term', $search, $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [

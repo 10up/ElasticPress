@@ -477,8 +477,7 @@ class User extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_user_search_fields', $prepared_search_fields, $query_vars );
 
-			$search_algorithm_class  = $this->get_search_algorithm_class( $query_vars['search'], $prepared_search_fields, $query_vars );
-			$search_algorithm        = new $search_algorithm_class();
+			$search_algorithm        = $this->get_search_algorithm( $query_vars['search'], $prepared_search_fields, $query_vars );
 			$formatted_args['query'] = $search_algorithm->get_query( 'user', $query_vars['search'], $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [

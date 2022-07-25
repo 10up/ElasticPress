@@ -18,6 +18,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Basic search algorithm class.
  */
 class Basic extends \ElasticPress\SearchAlgorithm {
+	/**
+	 * Search algorithm slug.
+	 *
+	 * @return string
+	 */
+	public function get_slug() : string {
+		return 'basic';
+	}
+
+	/**
+	 * Search algorithm name.
+	 *
+	 * @return string
+	 */
+	public function get_name() : string {
+		return esc_html__( 'Basic', 'elasticpress' );
+	}
+
+	/**
+	 * Search algorithm description.
+	 *
+	 * @return string
+	 */
+	public function get_description() : string {
+		return esc_html__( 'Basic', 'elasticpress' );
+	}
 
 	/**
 	 * Return the Elasticsearch `query` clause.
@@ -123,6 +149,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_phrase_boost',
 			[ 4, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_phrase_boost'
 		);
 
@@ -140,6 +167,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_boost',
 			[ 2, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_boost'
 		);
 
@@ -157,6 +185,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][2]['multi_match']['fuzziness'] = apply_filters_deprecated(
 			'ep_fuzziness_arg',
 			[ 1, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_fuzziness_arg'
 		);
 

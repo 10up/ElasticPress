@@ -1401,10 +1401,9 @@ class Post extends Indexable {
 		 */
 
 		if ( ! empty( $search_text ) ) {
-			add_filter( 'ep_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
+			add_filter( 'ep_post_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
 
-			$search_algorithm_class  = $this->get_search_algorithm_class( $search_text, $search_fields, $args );
-			$search_algorithm        = new $search_algorithm_class();
+			$search_algorithm        = $this->get_search_algorithm( $search_text, $search_fields, $args );
 			$formatted_args['query'] = $search_algorithm->get_query( 'post', $search_text, $search_fields, $args );
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
@@ -2070,9 +2069,9 @@ class Post extends Indexable {
 	 * @param string $search_text   Search term(s)
 	 * @param array  $search_fields Search fields
 	 * @param array  $query_vars    Query vars
-	 * @return string Class name to be used
+	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm_class( string $search_text, array $search_fields, array $query_vars ) : string {
+	public function get_search_algorithm_class( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
 		$search_algorithm_version_option = \ElasticPress\Utils\get_option( 'ep_search_algorithm_version', '4.0' );
 
 		/**
@@ -2083,46 +2082,21 @@ class Post extends Indexable {
 		 * @param  {string} $search_algorithm_version Algorithm version.
 		 * @return  {string} New algorithm version
 		 */
-		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
-
-		switch ( $search_algorithm_version ) {
-			case '4.0':
-				$fallback_class = '\ElasticPress\SearchAlgorithm\Version_400';
-				break;
-			case '3.5':
-				$fallback_class = '\ElasticPress\SearchAlgorithm\Version_350';
-				break;
-			default:
-				$fallback_class = '\ElasticPress\SearchAlgorithm\Basic';
-				break;
-		}
+		$search_algorithm = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
 
 		/**
-		 * Filter the search algorithm class to be used
+		 * Filter the search algorithm to be used
 		 *
-		 * @hook ep_{$slug}_search_algorithm_class
+		 * @hook ep_{$indexable_slug}_search_algorithm
 		 * @since  4.3.0
-		 * @param  {string} $fallback_class Name of the search algorithm class used as fallback
-		 * @param  {string} $search_term    Search term
-		 * @param  {array}  $search_fields  Fields to be searched
-		 * @param  {array}  $query_vars     Query variables
-		 * @return {string} New search algorithm class name
+		 * @param  {string} $search_algorithm Slug of the search algorithm used as fallback
+		 * @param  {string} $search_term      Search term
+		 * @param  {array}  $search_fields    Fields to be searched
+		 * @param  {array}  $query_vars       Query variables
+		 * @return {string} New search algorithm slug
 		 */
-		$search_algorithm_class = apply_filters( "ep_{$this->slug}_search_algorithm_class", $fallback_class, $search_text, $search_fields, $query_vars );
+		$search_algorithm = apply_filters( "ep_{$this->slug}_search_algorithm", $search_algorithm, $search_text, $search_fields, $query_vars );
 
-		if ( ! is_a( $search_algorithm_class, '\ElasticPress\SearchAlgorithm', true ) ) {
-			_doing_it_wrong(
-				'ep_term_search_algorithm_class',
-				sprintf(
-					/* translators: `Basic` class name */
-					esc_html__( 'This filter only accepts classes that extend %s', 'elasticpress' ),
-					esc_html( $fallback_class )
-				),
-				'4.3.0'
-			);
-			$search_algorithm_class = $fallback_class;
-		}
-
-		return $search_algorithm_class;
+		return \ElasticPress\SearchAlgorithms::factory()->get( $search_algorithm );
 	}
 }

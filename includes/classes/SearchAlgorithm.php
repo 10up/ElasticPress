@@ -19,6 +19,27 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 abstract class SearchAlgorithm {
 	/**
+	 * Return the Search Algorithm slug.
+	 *
+	 * @return string
+	 */
+	abstract public function get_slug() : string;
+
+	/**
+	 * Return the Search Algorithm human readable name.
+	 *
+	 * @return string
+	 */
+	abstract public function get_name() : string;
+
+	/**
+	 * Return the Search Algorithm description.
+	 *
+	 * @return string
+	 */
+	abstract public function get_description() : string;
+
+	/**
 	 * Return the Elasticsearch `query` clause.
 	 *
 	 * @param string $indexable_slug Indexable slug
@@ -77,12 +98,11 @@ abstract class SearchAlgorithm {
 			 *
 			 * @since 3.5.5 $search_text and $search_fields parameters added.
 			 */
-			$query = apply_filters(
+			$query = apply_filters_deprecated(
 				'ep_formatted_args_query',
-				$query,
-				$query_vars,
-				$search_term,
-				$search_fields
+				[ $query, $query_vars, $search_term, $search_fields ],
+				'4.3.0',
+				'ep_post_formatted_args_query'
 			);
 		}
 

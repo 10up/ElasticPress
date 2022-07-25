@@ -18,6 +18,32 @@ if ( ! defined( 'ABSPATH' ) ) {
  * EP version 3.5.0 search algorithm class.
  */
 class Version_350 extends \ElasticPress\SearchAlgorithm {
+	/**
+	 * Search algorithm slug.
+	 *
+	 * @return string
+	 */
+	public function get_slug() : string {
+		return '3.5';
+	}
+
+	/**
+	 * Search algorithm name.
+	 *
+	 * @return string
+	 */
+	public function get_name() : string {
+		return esc_html__( 'Version 3.5', 'elasticpress' );
+	}
+
+	/**
+	 * Search algorithm description.
+	 *
+	 * @return string
+	 */
+	public function get_description() : string {
+		return esc_html__( 'Version 3.5', 'elasticpress' );
+	}
 
 	/**
 	 * Return the Elasticsearch `query` clause.
@@ -76,6 +102,7 @@ class Version_350 extends \ElasticPress\SearchAlgorithm {
 		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_phrase_boost',
 			[ 3, $search_fields, $query_vars ],
+			'4.3.0',
 			'ep_post_match_phrase_boost'
 		);
 
