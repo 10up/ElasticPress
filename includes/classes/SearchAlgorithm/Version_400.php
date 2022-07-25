@@ -106,10 +106,18 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		}
 
 		/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
-		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_phrase_boost', 3, $search_fields, $query_vars, 'ep_post_match_phrase_boost' );
+		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated(
+			'ep_match_phrase_boost',
+			[ 3, $search_fields, $query_vars ],
+			'ep_post_match_phrase_boost'
+		);
 
 		/** This filter is documented in /includes/classes/SearchAlgorithm/Basic.php */
-		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_boost', 1, $search_fields, $query_vars, 'ep_post_match_boost' );
+		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated(
+			'ep_match_boost',
+			[ 1, $search_fields, $query_vars ],
+			'ep_post_match_boost'
+		);
 
 		/**
 		 * Filter fuzziness for post match query
@@ -123,7 +131,11 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		 * @param {array}      $query_vars    Query variables
 		 * @return {string} New fuzziness
 		 */
-		$query['bool']['should'][1]['multi_match']['fuzziness'] = apply_filters_deprecated( 'ep_match_fuzziness', 'auto', $search_fields, $query_vars, 'ep_post_match_fuzziness' );
+		$query['bool']['should'][1]['multi_match']['fuzziness'] = apply_filters_deprecated(
+			'ep_match_fuzziness',
+			[ 'auto', $search_fields, $query_vars ],
+			'ep_post_match_fuzziness'
+		);
 
 		/**
 		 * Filter boost for post match cross_fields query
@@ -137,7 +149,11 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 		 * @param {array} $query_vars    Query variables
 		 * @return  {int} New boost
 		 */
-		$query['bool']['should'][2]['multi_match']['boost'] = apply_filters_deprecated( 'ep_match_cross_fields_boost', 1, $search_fields, $query_vars, 'ep_post_match_cross_fields_boost' );
+		$query['bool']['should'][2]['multi_match']['boost'] = apply_filters_deprecated(
+			'ep_match_cross_fields_boost',
+			[ 1, $search_fields, $query_vars ],
+			'ep_post_match_cross_fields_boost'
+		);
 
 		return $query;
 	}
