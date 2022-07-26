@@ -6,10 +6,10 @@ import { registerBlockType } from '@wordpress/blocks';
 /**
  * Internal dependencies.
  */
-import edit from './edit';
+import Edit from './Edit';
 import block from './block.json';
 
 registerBlockType(block, {
-	edit,
+	edit: (props) => <Edit {...props} />,
 	save: () => {},
 });

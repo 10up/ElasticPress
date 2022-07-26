@@ -570,6 +570,10 @@ class Command extends WP_CLI_Command {
 		$this->connect_check();
 		$this->index_occurring();
 
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			WP_CLI::error( esc_html__( 'ElasticPress is not network activated.', 'elasticpress' ) );
+		}
+
 		$indexables = Indexables::factory()->get_all( false );
 
 		foreach ( $indexables as $indexable ) {
