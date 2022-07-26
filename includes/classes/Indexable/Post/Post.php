@@ -2063,7 +2063,7 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Get the search algorithm class that should be used.
+	 * Get the search algorithm that should be used.
 	 *
 	 * @since 4.3.0
 	 * @param string $search_text   Search term(s)
@@ -2071,7 +2071,7 @@ class Post extends Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm_class( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
 		$search_algorithm_version_option = \ElasticPress\Utils\get_option( 'ep_search_algorithm_version', '4.0' );
 
 		/**
