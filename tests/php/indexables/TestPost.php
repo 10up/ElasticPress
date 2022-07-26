@@ -6865,6 +6865,63 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $expected_result, $query->post_count );
+	}
 
+	/**
+	 * Test the get_search_algorithm implementation
+	 */
+	public function testGetSearchAlgorithm() {
+		/**
+		 * Test default search algorithm
+		 */
+		$version_40 = \ElasticPress\SearchAlgorithms::factory()->get( '4.0' );
+
+		$post_indexable   = \ElasticPress\Indexables::factory()->get( 'post' );
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+
+		$this->assertSame( $version_40, $search_algorithm );
+
+		/**
+		 * Test setting a diffent algorithm through the `ep_search_algorithm_version` filter
+		 */
+		$version_35 = \ElasticPress\SearchAlgorithms::factory()->get( '3.5' );
+
+		$set_version_35 = function() {
+			return '3.5';
+		};
+
+		add_filter( 'ep_search_algorithm_version', $set_version_35 );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $version_35, $search_algorithm );
+
+		remove_filter( 'ep_search_algorithm_version', $set_version_35 );
+
+		/**
+		 * Test setting a non-existent algorithm through the `ep_search_algorithm_version` filter
+		 * It should use `basic`
+		 */
+		$basic = \ElasticPress\SearchAlgorithms::factory()->get( 'basic' );
+
+		$set_non_existent_version = function() {
+			return 'foobar';
+		};
+
+		add_filter( 'ep_search_algorithm_version', $set_non_existent_version );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $basic, $search_algorithm );
+
+		remove_filter( 'ep_search_algorithm_version', $set_non_existent_version );
+
+		/**
+		 * Test the `ep_{$indexable_slug}_search_algorithm` filter
+		 */
+		add_filter( 'ep_post_search_algorithm', $set_version_35 );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $version_35, $search_algorithm );
+
+		remove_filter( 'ep_post_search_algorithm', $set_version_35 );
 	}
 }
