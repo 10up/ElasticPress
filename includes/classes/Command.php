@@ -571,7 +571,7 @@ class Command extends WP_CLI_Command {
 		$this->index_occurring();
 
 		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
-			WP_CLI::error( esc_html__( 'ElasticPress is not activated on network.', 'elasticpress' ) );
+			WP_CLI::error( esc_html__( 'ElasticPress is not network activated.', 'elasticpress' ) );
 		}
 
 		$indexables = Indexables::factory()->get_all( false );
