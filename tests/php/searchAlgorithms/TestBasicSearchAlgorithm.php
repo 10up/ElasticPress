@@ -2,6 +2,7 @@
 /**
  * Test basic search algorithm
  *
+ * @since 4.3.0
  * @package elasticpress
  */
 
@@ -137,7 +138,14 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		remove_filter( 'ep_fuzziness_arg', $test_filter );
 	}
 
-	protected function getModel( $search_term, $search_fields ) {
+	/**
+	 * ES Query model
+	 *
+	 * @param string $search_term   Search term
+	 * @param string $search_fields Search fields
+	 * @return array
+	 */
+	protected function getModel( string $search_term, string $search_fields ) : array {
 		return [
 			'bool' => [
 				'should' => [

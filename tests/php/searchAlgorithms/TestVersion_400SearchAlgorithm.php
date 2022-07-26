@@ -2,6 +2,7 @@
 /**
  * Test EP v4.0 search algorithm
  *
+ * @since 4.3.0
  * @package elasticpress
  */
 
@@ -158,7 +159,14 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		remove_filter( 'ep_match_cross_fields_boost', $test_filter );
 	}
 
-	protected function getModel( $search_term, $search_fields ) {
+	/**
+	 * ES Query model
+	 *
+	 * @param string $search_term   Search term
+	 * @param string $search_fields Search fields
+	 * @return array
+	 */
+	protected function getModel( string $search_term, string $search_fields ) : array {
 		return [
 			'bool' => [
 				'should' => [
