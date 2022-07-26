@@ -100,10 +100,10 @@ class TestVersion_350SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * ES Query model
 	 *
 	 * @param string $search_term   Search term
-	 * @param string $search_fields Search fields
+	 * @param array  $search_fields Search fields
 	 * @return array
 	 */
-	protected function getModel( string $search_term, string $search_fields ) : array {
+	protected function getModel( string $search_term, array $search_fields ) : array {
 		return [
 			'bool' => [
 				'should' => [
