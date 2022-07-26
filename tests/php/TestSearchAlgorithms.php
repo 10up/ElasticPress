@@ -36,7 +36,7 @@ class TestSearchAlgorithms extends BaseTestCase {
 		/**
 		 * Test getting a non-existent search algorithm. `Basic` should be used.
 		 */
-		$this->assertSame( 'basic', SearchAlgorithms::factory()->get( 'foobar' )->get_slug() );
+		$this->assertSame( 'default', SearchAlgorithms::factory()->get( 'foobar' )->get_slug() );
 	}
 
 	/**
@@ -52,10 +52,10 @@ class TestSearchAlgorithms extends BaseTestCase {
 		/**
 		 * Store these search algorithms to register them back later.
 		 */
-		$basic      = SearchAlgorithms::factory()->get( 'basic' );
+		$default    = SearchAlgorithms::factory()->get( 'default' );
 		$version_35 = SearchAlgorithms::factory()->get( '3.5' );
 
-		$this->assertTrue( SearchAlgorithms::factory()->unregister( 'basic' ) );
+		$this->assertTrue( SearchAlgorithms::factory()->unregister( 'default' ) );
 		$this->assertTrue( SearchAlgorithms::factory()->unregister( '3.5' ) );
 
 		/**
@@ -63,7 +63,7 @@ class TestSearchAlgorithms extends BaseTestCase {
 		 */
 		$this->assertFalse( SearchAlgorithms::factory()->unregister( '4.0' ) );
 
-		SearchAlgorithms::factory()->register( $basic );
+		SearchAlgorithms::factory()->register( $default );
 		SearchAlgorithms::factory()->register( $version_35 );
 	}
 
@@ -74,7 +74,7 @@ class TestSearchAlgorithms extends BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testGetAll() {
-		$this->assertEqualsCanonicalizing( [ 'basic', '3.5', '4.0' ], SearchAlgorithms::factory()->get_all( true ) );
+		$this->assertEqualsCanonicalizing( [ 'default', '3.5', '4.0' ], SearchAlgorithms::factory()->get_all( true ) );
 
 		$search_algorithms = SearchAlgorithms::factory()->get_all();
 		$this->assertCount( 3, $search_algorithms );

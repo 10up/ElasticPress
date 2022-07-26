@@ -161,7 +161,7 @@ function register_indexable_posts() {
 	/**
 	 * Register search algorithms
 	 */
-	SearchAlgorithms::factory()->register( new SearchAlgorithm\Basic() );
+	SearchAlgorithms::factory()->register( new SearchAlgorithm\DefaultAlgorithm() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_350() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_400() );
 }

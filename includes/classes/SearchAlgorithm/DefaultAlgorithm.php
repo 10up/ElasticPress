@@ -1,6 +1,6 @@
 <?php
 /**
- * Basic search algorithm
+ * Default search algorithm
  *
  * @since  4.3.0
  * @package elasticpress
@@ -15,16 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Basic search algorithm class.
+ * Default search algorithm class.
  */
-class Basic extends \ElasticPress\SearchAlgorithm {
+class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	/**
 	 * Search algorithm slug.
 	 *
 	 * @return string
 	 */
 	public function get_slug() : string {
-		return 'basic';
+		return 'default';
 	}
 
 	/**
@@ -33,7 +33,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 	 * @return string
 	 */
 	public function get_name() : string {
-		return esc_html__( 'Basic', 'elasticpress' );
+		return esc_html__( 'Default', 'elasticpress' );
 	}
 
 	/**
@@ -42,7 +42,7 @@ class Basic extends \ElasticPress\SearchAlgorithm {
 	 * @return string
 	 */
 	public function get_description() : string {
-		return esc_html__( 'Basic', 'elasticpress' );
+		return esc_html__( 'Default', 'elasticpress' );
 	}
 
 	/**

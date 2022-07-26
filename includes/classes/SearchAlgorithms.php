@@ -42,7 +42,7 @@ class SearchAlgorithms {
 	public function get( string $slug ) {
 		return ( ! empty( $this->registered_search_algorithms[ $slug ] ) ) ?
 			$this->registered_search_algorithms[ $slug ] :
-			$this->registered_search_algorithms['basic'];
+			$this->registered_search_algorithms['default'];
 	}
 
 	/**
