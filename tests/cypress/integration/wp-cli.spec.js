@@ -144,6 +144,12 @@ describe('WP-CLI Commands', () => {
 
 	it('Can recreate the alias index which points to every index in the network if user runs wp elasticpress recreate-network-alias command', () => {});
 
+	it('wp elasticpress recreate-network-alias throws an error message if the plugin is not activated on the network', () => {
+		cy.wpCli('wp elasticpress recreate-network-alias', true)
+			.its('stderr')
+			.should('contain', 'ElasticPress is not activated on network');
+	});
+
 	it('Can activate and deactivate a feature', () => {
 		cy.wpCli('wp elasticpress activate-feature search', true)
 			.its('stderr')
