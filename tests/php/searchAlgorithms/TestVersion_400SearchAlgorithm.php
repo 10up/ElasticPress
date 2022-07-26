@@ -1,27 +1,27 @@
 <?php
 /**
- * Test basic search algorithm
+ * Test EP v4.0 search algorithm
  *
  * @package elasticpress
  */
 
 namespace ElasticPressTest;
 
-use ElasticPress\SearchAlgorithm\Basic;
+use ElasticPress\SearchAlgorithm\Version_400;
 
 /**
- * Test basic search algorithm class
+ * Test EP v4.0 search algorithm class
  */
-class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
+class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Test get_slug
 	 *
 	 * @group searchAlgorithms
 	 */
 	public function testGetSlug() {
-		$basic = new Basic();
+		$basic = new Version_400();
 
-		$this->assertSame( 'basic', $basic->get_slug() );
+		$this->assertSame( '4.0', $basic->get_slug() );
 	}
 
 	/**
@@ -30,7 +30,7 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testGetQuery() {
-		$basic = new Basic();
+		$basic = new Version_400();
 		
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
@@ -48,7 +48,7 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testFilters() {
-		$basic = new Basic();
+		$basic = new Version_400();
 
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
@@ -78,14 +78,24 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		remove_filter( 'ep_indexable_match_boost', $test_filter );
 
 		/**
-		 * Test the `ep_{$indexable_slug}_fuzziness_arg` filter.
+		 * Test the `ep_{$indexable_slug}_match_fuzziness` filter.
 		 */
-		add_filter( 'ep_indexable_fuzziness_arg', $test_filter );
+		add_filter( 'ep_indexable_match_fuzziness', $test_filter );
 
 		$query = $basic->get_query( 'indexable', $search_term, $search_fields, [] );
-		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['fuzziness'] );
+		$this->assertEquals( 1234, $query['bool']['should'][1]['multi_match']['fuzziness'] );
 
-		remove_filter( 'ep_indexable_fuzziness_arg', $test_filter );
+		remove_filter( 'ep_indexable_match_fuzziness', $test_filter );
+
+		/**
+		 * Test the `ep_{$indexable_slug}_match_cross_fields_boost` filter.
+		 */
+		add_filter( 'ep_indexable_match_cross_fields_boost', $test_filter );
+
+		$query = $basic->get_query( 'indexable', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['boost'] );
+
+		remove_filter( 'ep_indexable_match_cross_fields_boost', $test_filter );
 	}
 
 	/**
@@ -93,11 +103,12 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 *
 	 * @expectedDeprecated ep_match_phrase_boost
 	 * @expectedDeprecated ep_match_boost
-	 * @expectedDeprecated ep_fuzziness_arg
+	 * @expectedDeprecated ep_match_fuzziness
+	 * @expectedDeprecated ep_match_cross_fields_boost
 	 * @group searchAlgorithms
 	 */
 	public function testLegacyFilters() {
-		$basic = new Basic();
+		$basic = new Version_400();
 
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
@@ -127,14 +138,24 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		remove_filter( 'ep_match_boost', $test_filter );
 
 		/**
-		 * Test the `ep_fuzziness_arg` filter.
+		 * Test the `ep_match_fuzziness` filter.
 		 */
-		add_filter( 'ep_fuzziness_arg', $test_filter );
+		add_filter( 'ep_match_fuzziness', $test_filter );
 
 		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
-		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['fuzziness'] );
+		$this->assertEquals( 1234, $query['bool']['should'][1]['multi_match']['fuzziness'] );
 
-		remove_filter( 'ep_fuzziness_arg', $test_filter );
+		remove_filter( 'ep_match_fuzziness', $test_filter );
+
+		/**
+		 * Test the `ep_match_cross_fields_boost` filter.
+		 */
+		add_filter( 'ep_match_cross_fields_boost', $test_filter );
+
+		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['boost'] );
+
+		remove_filter( 'ep_match_cross_fields_boost', $test_filter );
 	}
 
 	protected function getModel( $search_term, $search_fields ) {
@@ -146,23 +167,27 @@ class TestBasicSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 							'query'  => $search_term,
 							'type'   => 'phrase',
 							'fields' => $search_fields,
-							'boost'  => 4,
+							'boost'  => 3,
 						],
 					],
 					[
 						'multi_match' => [
 							'query'     => $search_term,
 							'fields'    => $search_fields,
-							'boost'     => 2,
-							'fuzziness' => 0,
 							'operator'  => 'and',
+							'boost'     => 1,
+							'fuzziness' => 'auto',
 						],
 					],
 					[
 						'multi_match' => [
-							'fields'    => $search_fields,
-							'query'     => $search_term,
-							'fuzziness' => 1,
+							'query'       => $search_term,
+							'type'        => 'cross_fields',
+							'fields'      => $search_fields,
+							'boost'       => 1,
+							'analyzer'    => 'standard',
+							'tie_breaker' => 0.5,
+							'operator'    => 'and',
 						],
 					],
 				],
