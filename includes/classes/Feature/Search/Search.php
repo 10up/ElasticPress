@@ -459,13 +459,24 @@ class Search extends Feature {
 				 * @return  {string} New decay function
 				 */
 				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
-				$date_score     = array(
+				/**
+				 * Filter search date weighting field
+				 *
+				 * @hook epwr_decay_field
+				 * @param  {string} $field Current decay field
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New decay field
+				 * @since 4.3.0
+				 */
+				$field      = apply_filters( 'epwr_decay_field', 'post_date_gmt', $formatted_args, $args );
+				$date_score = array(
 					'function_score' => array(
 						'query'      => $formatted_args['query'],
 						'functions'  => array(
 							array(
 								$decay_function => array(
-									'post_date_gmt' => array(
+									$field => array(
 										/**
 										 * Filter search date weighting scale
 										 *
