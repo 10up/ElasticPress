@@ -355,9 +355,8 @@ class Synonyms {
 	 * @return array
 	 */
 	public function add_search_synonyms( $mapping, $index ) {
-		$synonyms    = $this->get_synonyms();
-		$indices     = $this->get_affected_indices();
-		$filter_name = $this->get_synonym_filter_name();
+		$synonyms = $this->get_synonyms();
+		$indices  = $this->get_affected_indices();
 
 		// Ensure we should affect this mapping.
 		if ( ! in_array( $index, $indices, true ) ) {
@@ -369,30 +368,7 @@ class Synonyms {
 			return $mapping;
 		}
 
-		// Ensure we have filters and that it is an array.
-		if ( ! isset( $mapping['settings']['analysis']['filter'] )
-			|| ! is_array( $mapping['settings']['analysis']['filter'] )
-		) {
-			return $mapping;
-		}
-
-		// Ensure we have analyzers and that it is an array.
-		if ( ! isset( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
-			|| ! is_array( $mapping['settings']['analysis']['analyzer']['default']['filter'] )
-		) {
-			return $mapping;
-		}
-
-		// Create a custom synonym filter for EP.
-		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
-
-		// Tell the analyzer to use our newly created filter.
-		$mapping['settings']['analysis']['analyzer']['default']['filter'] = array_values(
-			array_merge(
-				[ $filter_name ],
-				$mapping['settings']['analysis']['analyzer']['default']['filter']
-			)
-		);
+		$mapping['settings'] = $this->add_synonyms_to_settings( $mapping['settings'] );
 
 		return $mapping;
 	}
@@ -459,34 +435,16 @@ class Synonyms {
 		return array_reduce(
 			$this->get_affected_indices(),
 			function( $success, $index ) {
-				$filter  = $this->get_synonym_filter();
 				$mapping = Elasticsearch::factory()->get_mapping( $index );
-				$filters = $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default']['filter'];
 
-				/*
-				 * Due to limitations in Elasticsearch, we can't remove the filter and analyzer
-				 * once set on the index settings and synonyms array can't be empty.  So we set a
-				 * fallback synonyms array here if the user supplied synonym array is empty.
-				 */
-				if ( empty( $filter['synonyms'] ) ) {
-					$filter['synonyms'] = [ 'odd,unusual' ];
-				}
+				$settings = [
+					'analysis' => $mapping[ $index ]['settings']['index']['analysis'],
+				];
 
-				// Construct the synonym filter.
-				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
-
-				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default']['filter'] = array_values(
-					array_unique(
-						array_merge(
-							[ $this->get_synonym_filter_name() ],
-							$filters
-						)
-					)
-				);
+				$settings = $this->add_synonyms_to_settings( $settings );
 
 				// Put it to Elasticsearch.
-				$update = Elasticsearch::factory()->update_index_settings( $index, $setting, true );
+				$update = Elasticsearch::factory()->update_index_settings( $index, $settings, true );
 				return $success ? $update : false;
 			},
 			true
@@ -549,7 +507,12 @@ class Synonyms {
 			[
 				'type'     => 'synonym_graph',
 				'lenient'  => true,
-				'synonyms' => $this->get_synonyms(),
+				/**
+				 * Due to limitations in Elasticsearch, we can't remove the filter and analyzer
+				 * once set on the index settings and synonyms array can't be empty.  So we set a
+				 * fallback synonyms array here if the user supplied synonym array is empty.
+				 */
+				'synonyms' => $this->get_synonyms() ?? [ 'odd,unusual' ],
 			]
 		);
 	}
@@ -777,6 +740,58 @@ class Synonyms {
 			'value'   => trim( sanitize_text_field( $token ) ),
 			'primary' => $primary,
 		);
+	}
+
+	/**
+	 * Given an index settings return it with synonyms data added.
+	 *
+	 * ElasticPress's synonyms run during search time and not during index time. This function
+	 * adds a `default_search` analyzer if it does not exist, a filter and ties those two things together.
+	 *
+	 * @since 4.3.0
+	 * @param array $settings Current index settings
+	 * @return array Index settings with synonyms configured
+	 */
+	public function add_synonyms_to_settings( array $settings ) : array {
+		$filter_name = $this->get_synonym_filter_name();
+
+		// Ensure we have filters and that it is an array.
+		if ( ! isset( $settings['analysis']['filter'] )
+			|| ! is_array( $settings['analysis']['filter'] )
+		) {
+			return $settings;
+		}
+
+		// Ensure we have analyzers and that it is an array.
+		if (
+			( ! isset( $settings['analysis']['analyzer']['default']['filter'] )
+			|| ! is_array( $settings['analysis']['analyzer']['default']['filter'] ) )
+			&& ( ! isset( $settings['analysis']['analyzer']['default_search']['filter'] )
+			|| ! is_array( $settings['analysis']['analyzer']['default_search']['filter'] ) )
+		) {
+			return $settings;
+		}
+
+		// Create a custom synonym filter for EP.
+		$settings['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
+
+		if ( ! isset( $settings['analysis']['analyzer']['default_search'] )
+			|| ! is_array( $settings['analysis']['analyzer']['default_search'] )
+		) {
+			$settings['analysis']['analyzer']['default_search'] = $settings['analysis']['analyzer']['default'];
+		}
+
+		// Tell the analyzer to use our newly created filter.
+		$settings['analysis']['analyzer']['default_search']['filter'] = array_values(
+			array_unique(
+				array_merge(
+					[ $filter_name ],
+					$settings['analysis']['analyzer']['default_search']['filter']
+				)
+			)
+		);
+
+		return $settings;
 	}
 
 	/**
