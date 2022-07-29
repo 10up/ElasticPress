@@ -187,7 +187,8 @@ class TestSynonyms extends BaseTestCase {
 
 		/**
 		 * Test an array that does not have a `default_search` yet.
-		 * Filters should be copied from `default` to `default_search`
+		 * Filters should be copied from `default` to `default_search`,
+		 * except `ewp_word_delimiter` which is incompatible with synonyms.
 		 */
 		$settings = [
 			'analysis' => [
@@ -197,6 +198,7 @@ class TestSynonyms extends BaseTestCase {
 						'filter' => [
 							'filter_a',
 							'filter_b',
+							'ewp_word_delimiter',
 						],
 					],
 				],
@@ -205,9 +207,11 @@ class TestSynonyms extends BaseTestCase {
 		$changed_settings = $instance->add_synonyms_to_settings( $settings );
 		$this->assertContains( 'filter_a', $changed_settings['analysis']['analyzer']['default']['filter'] );
 		$this->assertContains( 'filter_b', $changed_settings['analysis']['analyzer']['default']['filter'] );
+		$this->assertContains( 'ewp_word_delimiter', $changed_settings['analysis']['analyzer']['default']['filter'] );
 		$this->assertNotContains( 'ep_synonyms_filter', $changed_settings['analysis']['analyzer']['default']['filter'] );
 		$this->assertContains( 'filter_a', $changed_settings['analysis']['analyzer']['default_search']['filter'] );
 		$this->assertContains( 'filter_b', $changed_settings['analysis']['analyzer']['default_search']['filter'] );
+		$this->assertNotContains( 'ewp_word_delimiter', $changed_settings['analysis']['analyzer']['default_search']['filter'] );
 		$this->assertContains( 'ep_synonyms_filter', $changed_settings['analysis']['analyzer']['default_search']['filter'] );
 
 		/**
