@@ -33,9 +33,11 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 			cy.publishPost(postData);
 		});
 	});
+
 	beforeEach(() => {
 		cy.login();
 	});
+
 	it('Can create, search, and delete synonyms sets', () => {
 		// Add the set
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
@@ -59,6 +61,7 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.visit(`/?s=${word2}`);
 		cy.contains('.site-content article h2', word1).should('not.exist');
 	});
+
 	it('Can create, search, and delete synonyms alternatives', () => {
 		// Add the set
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
@@ -85,7 +88,8 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.visit(`/?s=${word1}`);
 		cy.contains('.site-content article h2', word2).should('not.exist');
 	});
-	it('Can use the Advanced Text Editor', () => {
+
+	it('Can use the Advanced Text Editor and terms with spaces', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
 		cy.contains('.page-title-action', 'Switch to Advanced Text Editor').click();
 		cy.get('#ep-synonym-input').clearThenType(`{enter}
@@ -110,7 +114,11 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 			'Alternatives must have both a primary term and at least one alternative term.',
 		).should('exist');
 
-		cy.get('#ep-synonym-input').clearThenType('foo => bar{enter}list,of,words');
+		cy.get('#ep-synonym-input').clearThenType(
+			`foo => bar
+			list,of,words
+			IoT, Internet of Things`,
+		);
 		cy.get('#synonym-root .button-primary').click();
 		cy.contains('.notice-success', 'Successfully updated synonym filter.').should('exist');
 
@@ -126,7 +134,13 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.contains('.synonym-alternative-editor .components-form-token-field span', 'bar').should(
 			'exist',
 		);
+
+		/**
+		 * Check if it is able to sync having a term with spaces
+		 */
+		cy.wpCli('elasticpress index --setup --yes');
 	});
+
 	it('Can preserve synonyms if a sync is performed', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
 		cy.get('.page-title-action').then(($button) => {
