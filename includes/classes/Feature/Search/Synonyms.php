@@ -781,6 +781,12 @@ class Synonyms {
 			$settings['analysis']['analyzer']['default_search'] = $settings['analysis']['analyzer']['default'];
 		}
 
+		// Remove ewp_word_delimiter from default_search filters, as that is incompatible with synonyms
+		$settings['analysis']['analyzer']['default_search']['filter'] = array_diff(
+			$settings['analysis']['analyzer']['default_search']['filter'],
+			[ 'ewp_word_delimiter' ]
+		);
+
 		// Tell the analyzer to use our newly created filter.
 		$settings['analysis']['analyzer']['default_search']['filter'] = array_values(
 			array_unique(
