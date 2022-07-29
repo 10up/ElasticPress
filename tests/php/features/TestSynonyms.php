@@ -142,22 +142,10 @@ class TestSynonyms extends BaseTestCase {
 			],
 		];
 
-		$synonyms = $instance->get_synonyms();
-
-		// For some reason, the greater-than gets encoded during the multi-site
-		// tests but not the single-site tests. This updates the encoding so
-		// they both match. See https://travis-ci.com/github/petenelson/ElasticPress/jobs/470254351.
-		$synonyms = array_map(
-			function ( $synonym ) {
-				return str_replace( '>', '&gt;', $synonym );
-			},
-			$synonyms
-		);
-
 		$synonym_es_filter = [
 			'type'     => 'synonym_graph',
 			'lenient'  => true,
-			'synonyms' => $synonyms,
+			'synonyms' => $instance->get_synonyms(),
 		];
 
 		$changed_settings = $instance->add_synonyms_to_settings( $settings );
