@@ -1122,36 +1122,20 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
-		$product_name = $query->get( 'product', false );
-
-		$post_parent = $query->get( 'post_parent', false );
-
-		/**
-		 * Do nothing for single product queries
-		 */
-		if ( ! empty( $product_name ) || $query->is_single() ) {
-			return false;
-		}
-
-		/**
-		 * ElasticPress does not yet support post_parent queries
-		 */
-		if ( ! empty( $post_parent ) ) {
-			return false;
-		}
-
-		/**
-		 * If this is just a preview, let's not use Elasticsearch.
-		 */
-		if ( $query->get( 'preview', false ) ) {
-			return false;
-		}
-
-		/**
-		 * Cant hook into WC API yet
-		 */
 		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
 			return false;
+		}
+
+		if ( method_exists( $query, 'is_search' ) && ! $query->is_search() && empty( $query->query_vars['s'] ) ) {
+			/**
+			 * Filter to allow WooCommerce integration
+			 *
+			 * @hook ep_woocommerce_integration
+			 * @param  {bool} $allow True to allow ep integration
+			 * @param  {WP_Query} $query WP Query to evaluate
+			 * @return  {bool} New allow value
+			 */
+			return apply_filters( 'ep_woocommerce_integration', false, $query );
 		}
 
 		return true;
