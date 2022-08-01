@@ -1093,6 +1093,10 @@ class IndexHelper {
 				// No need to catch.
 			}
 
+			if ( function_exists( 'wp_cache_flush_runtime' ) ) {
+				wp_cache_flush_runtime();
+			}
+
 			/*
 			 * In the case where we're not using an external object cache, we need to call flush on the default
 			 * WordPress object cache class to clear the values from the cache property
