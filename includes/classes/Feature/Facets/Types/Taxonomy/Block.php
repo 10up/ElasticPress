@@ -6,7 +6,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use ElasticPress\Features;
 
@@ -83,7 +83,7 @@ class Block {
 	 * @return array
 	 */
 	public function get_rest_facetable_taxonomies() {
-		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->get_facetable_taxonomies();
+		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
 
 		$taxonomies = [];
 		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
@@ -203,7 +203,7 @@ class Block {
 			]
 		);
 		if ( empty( $attributes['facet'] ) ) {
-			$taxonomies = Features::factory()->get_registered_feature( 'facets' )->get_facetable_taxonomies();
+			$taxonomies = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
 			if ( ! empty( $taxonomies ) ) {
 				$attributes['facet'] = key( $taxonomies );
 			}

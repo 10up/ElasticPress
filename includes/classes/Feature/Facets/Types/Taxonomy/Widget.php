@@ -5,7 +5,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use \WP_Widget as WP_Widget;
 use ElasticPress\Features as Features;
@@ -101,7 +101,7 @@ class Widget extends WP_Widget {
 		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
 		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
-		$taxonomies = $feature->get_facetable_taxonomies();
+		$taxonomies = $feature->types['taxonomy']->get_facetable_taxonomies();
 
 		$orderby_options = [
 			'count' => __( 'Count', 'elasticpress' ),

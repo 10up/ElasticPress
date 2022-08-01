@@ -6,7 +6,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
@@ -75,7 +75,9 @@ class Renderer {
 			}
 		}
 
-		$selected_filters = $feature->get_selected();
+		$facet_type = $feature->types['taxonomy'];
+
+		$selected_filters = $facet_type->get_selected();
 
 		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
 
@@ -193,7 +195,7 @@ class Renderer {
 							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 							echo $this->get_facet_term_html(
 								$term,
-								$feature->build_query_url( $new_filters ),
+								$facet_type->build_query_url( $new_filters ),
 								true
 							);
 							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -256,7 +258,7 @@ class Renderer {
 								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 								echo $this->get_facet_term_html(
 									$term,
-									$feature->build_query_url( $new_filters ),
+									$facet_type->build_query_url( $new_filters ),
 									$selected
 								);
 								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -285,7 +287,7 @@ class Renderer {
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $this->get_facet_term_html(
 						$term,
-						$feature->build_query_url( $new_filters )
+						$facet_type->build_query_url( $new_filters )
 					);
 					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				endforeach;
