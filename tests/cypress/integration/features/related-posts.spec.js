@@ -37,8 +37,7 @@ describe('Related Posts Feature', () => {
 		/**
 		 * Check that the number control works.
 		 */
-		cy.openSettingsSidebar();
-		cy.get('.edit-post-sidebar__panel-tab').contains('Block').click();
+		cy.openBlockSettingsSidebar();
 		cy.get('input[type="number"][aria-label="Number of items"]').clearThenType('2');
 		cy.get(`.wp-block-elasticpress-related-posts li`).should('have.length', 2);
 

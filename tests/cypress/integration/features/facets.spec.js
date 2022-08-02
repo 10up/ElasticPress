@@ -1,116 +1,163 @@
 describe('Facets Feature', () => {
-	/**
-	 * Create a facets widget.
-	 *
-	 * @param {string} title The widget title
-	 * @param {string} category The category slug.
-	 */
-	function createWidget(title, category) {
-		cy.openWidgetsPage();
-
-		let createdWidgetsLength = 0;
-
-		cy.get('.is-opened').then(($openedWidgetArea) => {
-			createdWidgetsLength = $openedWidgetArea.find('.wp-block-legacy-widget').length;
-
-			cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-			cy.get('.block-editor-inserter__panel-content [class*="legacy-widget/ep-facet"]')
-				.click({
-					force: true,
-				})
-				.then(() => {
-					cy.get(
-						`.is-opened .wp-block-legacy-widget:eq(${createdWidgetsLength}) .wp-block-legacy-widget__edit-form:visible .widefat:visible`,
-						{ timeout: 10000 },
-					)
-						.closest('.widget-ep-facet')
-						.within(() => {
-							cy.get('input[name^="widget-ep-facet"][name$="[title]"]').clearThenType(
-								title,
-								true,
-							);
-							cy.get('select[name^="widget-ep-facet"][name$="[facet]"]').select(
-								category,
-							);
-						});
-
-					/**
-					 * Wait for WordPress to recognize the title typed.
-					 *
-					 * @todo investigate why this is needed.
-					 */
-					// eslint-disable-next-line cypress/no-unnecessary-waiting
-					cy.wait(2000);
-
-					cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
-					cy.get('body').should('contain.text', 'Widgets saved.');
-				});
-		});
-	}
-
 	before(() => {
 		cy.maybeEnableFeature('facets');
-
 		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('wp plugin install classic-widgets');
 	});
 
-	it('Can see the widget in the frontend', () => {
+	beforeEach(() => {
 		cy.wpCli('widget reset --all');
+		cy.wpCli('wp plugin deactivate classic-widgets');
+	});
 
-		createWidget('Facet (categories)', 'category');
+	/**
+	 * Test that the Related Posts block is functional.
+	 */
+	it('Facets block is functional', () => {
+		/**
+		 * Visit the block-based Widgets screen.
+		 */
+		cy.openWidgetsPage();
 
+		/**
+		 * Insert a Facets block.
+		 */
+		cy.openBlockInserter();
+		cy.getBlocksList().should('contain.text', 'Facet (ElasticPress)');
+		cy.insertBlock('Facet (ElasticPress)');
+		cy.get('.wp-block-elasticpress-facet').first().as('facetBlock');
+
+		/**
+		 * Check that the block is inserted into the editor, and contains the
+		 * expected content.
+		 */
+		cy.get('@facetBlock').find('input').should('have.attr', 'placeholder', 'Search Categories');
+		cy.get('@facetBlock').click();
+
+		/**
+		 * Set the block to use Tags and sort by name in ascending order.
+		 */
+		cy.openBlockSettingsSidebar();
+		cy.get('.block-editor-block-inspector select').select('post_tag');
+		cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
+		cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+
+		/**
+		 * Verify the block has the expected output.
+		 */
+		cy.get('@facetBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
+		cy.get('@facetBlock').find('.term').should('be.elementsSortedAlphabetically');
+
+		/**
+		 * Save widgets.
+		 */
+		cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+		cy.get('.edit-widgets-header__actions button').contains('Update').click();
+		cy.wait('@sidebarsRest');
+
+		/**
+		 * Check the output of the block on the front end.
+		 */
 		cy.visit('/');
+		cy.get('.wp-block-elasticpress-facet').first().as('facetBlock');
+		cy.get('@facetBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
+		cy.get('@facetBlock').find('.term').should('be.elementsSortedAlphabetically');
+	});
 
-		// Check if the first widget is visible.
-		cy.get('.widget_ep-facet').should('be.visible');
-		cy.contains('.widget-title', 'Facet (categories)').should('be.visible');
+	/**
+	 * Test that the Related Posts widget is functional and can be transformed
+	 * into the Related Posts block.
+	 */
+	it('Related Posts widget is functional', () => {
+		/**
+		 * Visit the classic Widgets screen.
+		 */
+		cy.wpCli('wp plugin activate classic-widgets');
+		cy.openWidgetsPage();
+		cy.intercept('/wp-admin/admin-ajax.php').as('adminAjax');
 
-		// Create a second widget, so we can test both working together.
-		createWidget('Facet (Tags)', 'post_tag');
+		/**
+		 * Find and add the widget to the first widget area.
+		 */
+		cy.get(`#widget-list [id$="ep-facet-__i__"]`)
+			.click('top')
+			.within(() => {
+				cy.get('.widgets-chooser-add').click();
+			})
+			.wait('@adminAjax');
 
+		/**
+		 * Add a title, set facet options, and save.
+		 */
+		cy.get(`#widgets-right [id*="ep-facet"]`)
+			.within(() => {
+				cy.get('input[name$="[title]"]').clearThenType('My facet');
+				cy.get('select[name$="[facet]"]').select('post_tag');
+				cy.get('select[name$="[orderby]"]').select('name');
+				cy.get('select[name$="[order]"]').select('asc');
+				cy.get('input[type="submit"]').click();
+			})
+			.wait('@adminAjax');
+
+		/**
+		 * When viewing the last post the widget should be visible and contain
+		 * the correct title and number of posts.
+		 */
 		cy.visit('/');
+		cy.get('.widget_ep-facet').first().as('facetWidget');
+		cy.get('@facetWidget').find('input').should('have.attr', 'placeholder', 'Search Tags');
+		cy.get('@facetWidget').find('.term').should('be.elementsSortedAlphabetically');
 
-		// We should have two widgets now, one of them the created above.
-		cy.get('.widget_ep-facet').should('have.length', 2);
-		cy.contains('.widget-title', 'Facet (Tags)').should('be.visible');
+		/**
+		 * Visit the block-based Widgets screen.
+		 */
+		cy.wpCli('wp plugin deactivate classic-widgets');
+		cy.openWidgetsPage();
 
-		// Check if the widget search works. Additionally, checks a hyphenated slug category.
-		cy.get('.widget_ep-facet').first().as('firstWidget');
-		cy.get('@firstWidget').find('.facet-search').clearThenType('Parent C');
-		cy.get('@firstWidget').contains('.term', 'Parent Category').should('be.visible');
-		cy.get('@firstWidget').contains('.term', 'Child Category').should('not.be.visible');
+		/**
+		 * Check that the widget is inserted in to the editor as a Legacy
+		 * Widget block.
+		 */
+		cy.get('.wp-block-legacy-widget')
+			.should('contain.text', 'ElasticPress - Facet')
+			.first()
+			.click();
 
-		// Searching in the first widget should not affect the second.
-		cy.get('.widget_ep-facet').last().as('lastWidget');
-		cy.get('@lastWidget').contains('.term', 'content').should('be.visible');
+		/**
+		 * Transform the legacywidget into the block.
+		 */
+		cy.get('.block-editor-block-switcher button').click();
+		cy.get(
+			'.block-editor-block-switcher__popover .editor-block-list-item-elasticpress-facet',
+		).click();
 
-		// Clear the search input and click in a term that was not visible before.
-		cy.get('@firstWidget').find('.facet-search').clear();
-		cy.get('@firstWidget').contains('.term', 'Classic').click();
+		/**
+		 * Check that the widget has been transformed into the correct blocks
+		 * and that their content matches the widget's settings.
+		 */
+		cy.get('.wp-block-heading').contains('My facet').should('exist');
+		cy.get('.wp-block-elasticpress-facet').first().as('facetBlock');
+		cy.get('@facetBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
+		cy.get('@facetBlock').find('.term').should('be.elementsSortedAlphabetically');
 
-		// URL should have changed and selected term should be marked as checked.
-		cy.url().should('include', 'ep_filter_category=classic');
-		cy.get('@firstWidget')
-			.contains('.term', 'Classic')
-			.find('.ep-checkbox')
-			.should('have.class', 'checked');
+		/**
+		 * Save widgets.
+		 */
+		cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+		cy.get('.edit-widgets-header__actions button').contains('Update').click();
+		cy.wait('@sidebarsRest');
 
-		// Visible articles should contain the selected category.
-		cy.get('article').each(($article) => {
-			cy.wrap($article).contains('.cat-links a', 'Classic').should('be.visible');
-		});
+		/**
+		 * Check the output of the block on the front end.
+		 */
+		cy.visit('/');
+		cy.get('.wp-block-elasticpress-facet').first().as('facetBlock');
+		cy.get('@facetBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
+		cy.get('@facetBlock').find('.term').should('be.elementsSortedAlphabetically');
 
-		// Check pagination.
-		cy.get('.next.page-numbers').click();
-		cy.url().should('include', 'page/2/?ep_filter_category=classic');
-		cy.get('article').each(($article) => {
-			cy.wrap($article).contains('.cat-links a', 'Classic').should('be.visible');
-		});
-
-		// Check if pagination resets when clicking on a different term.
-		cy.get('@firstWidget').contains('.term', 'Post Formats').click();
-		cy.url().should('include', 'ep_filter_category=classic%2Cpost-formats');
-		cy.url().should('not.include', 'page');
+		/**
+		 * TODO: Test searching within block and if links are correct.
+		 */
 	});
 
 	it('Does not change post types being displayed', () => {
