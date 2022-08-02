@@ -585,112 +585,126 @@ class Weighting {
 		 * @hook ep_weighting_configuration_for_search
 		 * @param  {array} $weight_config Current weight config
 		 * @param  {array} $args WP Query arguments
-		 * @return  {array} New configutation
+		 * @return  {array} New configuration
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
+		$should_do_weighting = Utils\is_integrated_request( 'weighting', [ 'public', 'rest' ] ) && ! empty( $args['s'] );
+
 		/**
-		 * Filter whether to disable weighting configuration
+		 * Filter whether to enable weighting configuration
 		 *
-		 * @hook ep_disable_do_weighting
-		 * @since 4.2.1
-		 * @param {bool} Whether to use weighting configuration, default is false
-		 * @param {array} $weight_config Current weight config
-		 * @param {array} $args WP Query arguments
-		 * @param {array} $formatted_args Formatted ES arguments
-		 * @return {bool} Whether to use weighting configuration
+		 * @hook ep_enable_do_weighting
+		 * @since 4.2.2
+		 * @param  {bool}  Whether to enable weight config, defaults to true for search requests that are public or REST
+		 * @param  {array} $weight_config Current weight config
+		 * @param  {array} $args WP Query arguments
+		 * @param  {array} $formatted_args Formatted ES arguments
+		 * @return  {bool} Whether to use weighting configuration
 		 */
-		if ( apply_filters( 'ep_disable_do_weighting', false, $weight_config, $args, $formatted_args ) ) {
-			return $formatted_args;
+		if ( apply_filters( 'ep_enable_do_weighting', $should_do_weighting, $weight_config, $args, $formatted_args ) ) {
+			$formatted_args = $this->apply_weighting( $formatted_args, $args, $weight_config );
 		}
 
-		if ( Utils\is_integrated_request( 'weighting', [ 'public', 'rest' ] ) && ! empty( $args['s'] ) ) {
-			/*
-			 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
-			 * which then get combined into one result set. By having separate clauses for each post type, we can then
-			 * weight fields such as post_title per post type so that we can have fine grained control over weights by post
-			 * type, rather than globally on the query
-			 */
-			$new_query = [
-				'bool' => [
-					'should' => [],
-				],
-			];
+		return $formatted_args;
+	}
 
-			// grab the query and keep track of whether or not it is nested in a function score
-			$function_score = isset( $formatted_args['query']['function_score'] );
-			$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
+	/**
+	 * Applies weighting based on ES args
+	 *
+	 * @since 4.2.2
+	 * @param array $formatted_args Formatted ES args
+	 * @param array $args WP_Query args
+	 * @param array $weight_config Weight configuration to apply
+	 *
+	 * @return array $formatted_args Formatted ES args with weightings applied
+	 */
+	protected function apply_weighting( $formatted_args, $args, $weight_config ) {
+		/*
+		 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
+		 * which then get combined into one result set. By having separate clauses for each post type, we can then
+		 * weight fields such as post_title per post type so that we can have fine grained control over weights by post
+		 * type, rather than globally on the query
+		*/
+		$new_query = [
+			'bool' => [
+				'should' => [],
+			],
+		];
 
-			foreach ( (array) $args['post_type'] as $post_type ) {
-				if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
-					continue;
-				}
-				// Copy the query, so we can set specific weight values
-				$current_query = $query;
+		// grab the query and keep track of whether or not it is nested in a function score
+		$function_score = isset( $formatted_args['query']['function_score'] );
+		$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
 
-				if ( isset( $weight_config[ $post_type ] ) ) {
-					// Find all "fields" values and inject weights for the current post type
-					$this->recursively_inject_weights_to_fields( $current_query, $weight_config[ $post_type ] );
-				} else {
-					// Use the default values for the post type
-					$this->recursively_inject_weights_to_fields( $current_query, $this->get_post_type_default_settings( $post_type ) );
-				}
+		foreach ( (array) $args['post_type'] as $post_type ) {
+			if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
+				continue;
+			}
+			// Copy the query, so we can set specific weight values
+			$current_query = $query;
 
-				// Check for any segments with null fields from recursively_inject function and remove them
-				if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
-					foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
-						if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
-							unset( $current_query['bool']['should'][ $index ] );
-						}
+			if ( isset( $weight_config[ $post_type ] ) ) {
+				// Find all "fields" values and inject weights for the current post type
+				$this->recursively_inject_weights_to_fields( $current_query, $weight_config[ $post_type ] );
+			} else {
+				// Use the default values for the post type
+				$this->recursively_inject_weights_to_fields( $current_query, $this->get_post_type_default_settings( $post_type ) );
+			}
+
+			// Check for any segments with null fields from recursively_inject function and remove them
+			if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
+				foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
+					if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
+						unset( $current_query['bool']['should'][ $index ] );
 					}
 				}
+			}
 
-				/**
-				 * Filter weighting query for a post type
-				 *
-				 * @hook ep_weighted_query_for_post_type
-				 * @param  {array} $query Weighting query
-				 * @param  {string} $post_type Post type
-				 * @param  {array} $args WP Query arguments
-				 * @return  {array} New query
-				 */
-				$new_query['bool']['should'][] = apply_filters(
-					'ep_weighted_query_for_post_type',
-					[
-						'bool' => [
-							'must'   => [
-								$current_query,
-							],
-							'filter' => [
-								[
-									'match' => [
-										'post_type.raw' => $post_type,
-									],
+			/**
+			 * Filter weighting query for a post type
+			 *
+			 * @hook ep_weighted_query_for_post_type
+			 * @param  {array} $query Weighting query
+			 * @param  {string} $post_type Post type
+			 * @param  {array} $args WP Query arguments
+			 * @return  {array} New query
+			 */
+			$new_query['bool']['should'][] = apply_filters(
+				'ep_weighted_query_for_post_type',
+				[
+					'bool' => [
+						'must'   => [
+							$current_query,
+						],
+						'filter' => [
+							[
+								'match' => [
+									'post_type.raw' => $post_type,
 								],
 							],
 						],
 					],
-					$post_type,
-					$args
-				);
-			}
-
-			// put the new query back in the correct location
-			if ( $function_score ) {
-				$formatted_args['query']['function_score']['query'] = $new_query;
-			} else {
-				$formatted_args['query'] = $new_query;
-			}
-
-			/**
-			 * Hook after weighting is added to Elasticsearch query
-			 *
-			 * @hook ep_weighting_added
-			 * @param  {array} $formatted_args Elasticsearch query
-			 * @param  {array} $args WP Query arguments
-			 */
-			do_action( 'ep_weighting_added', $formatted_args, $args );
+				],
+				$post_type,
+				$args
+			);
 		}
+
+		// put the new query back in the correct location
+		if ( $function_score ) {
+			$formatted_args['query']['function_score']['query'] = $new_query;
+		} else {
+			$formatted_args['query'] = $new_query;
+		}
+
+		/**
+		 * Hook after weighting is added to Elasticsearch query
+		 *
+		 * @hook ep_weighting_added
+		 * @param  {array} $formatted_args Elasticsearch query
+		 * @param  {array} $args WP Query arguments
+		 */
+		do_action( 'ep_weighting_added', $formatted_args, $args );
 
 		return $formatted_args;
 	}
