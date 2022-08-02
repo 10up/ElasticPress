@@ -148,9 +148,10 @@ class SyncManager extends SyncManagerAbstract {
 		 * @hook ep_skip_autosave_sync
 		 * @since 4.3.0
 		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
 		 * @return {boolean} New value
 		 */
-		if ( apply_filters( 'ep_skip_autosave_sync', true ) ) {
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 				// Bypass saving if doing autosave
 				// @codeCoverageIgnoreStart
@@ -297,9 +298,10 @@ class SyncManager extends SyncManagerAbstract {
 		 * @hook ep_skip_autosave_sync
 		 * @since 4.3.0
 		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
 		 * @return {boolean} New value
 		 */
-		if ( apply_filters( 'ep_skip_autosave_sync', true ) ) {
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 				// Bypass saving if doing autosave
 				// @codeCoverageIgnoreStart
@@ -385,9 +387,10 @@ class SyncManager extends SyncManagerAbstract {
 		 * @hook ep_skip_autosave_sync
 		 * @since 4.3.0
 		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
 		 * @return {boolean} New value
 		 */
-		if ( apply_filters( 'ep_skip_autosave_sync', true ) ) {
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 				// Bypass saving if doing autosave
 				// @codeCoverageIgnoreStart
@@ -451,9 +454,10 @@ class SyncManager extends SyncManagerAbstract {
 		 * @hook ep_skip_autosave_sync
 		 * @since 4.3.0
 		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
 		 * @return {boolean} New value
 		 */
-		if ( apply_filters( 'ep_skip_autosave_sync', true ) ) {
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 				// Bypass saving if doing autosave
 				// @codeCoverageIgnoreStart
@@ -526,9 +530,10 @@ class SyncManager extends SyncManagerAbstract {
 		 * @hook ep_skip_autosave_sync
 		 * @since 4.3.0
 		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
 		 * @return {boolean} New value
 		 */
-		if ( apply_filters( 'ep_skip_autosave_sync', true ) ) {
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 				// Bypass saving if doing autosave
 				// @codeCoverageIgnoreStart
