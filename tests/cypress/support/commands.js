@@ -289,3 +289,30 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 	}
 	cy.wpCli(command);
 });
+
+Cypress.Commands.add('createAutosavePost', (postData) => {
+	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+
+	cy.visitAdminPage('post-new.php');
+	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+	cy.get('body').then(($body) => {
+		const welcomeGuide = $body.find(
+			'.edit-post-welcome-guide .components-modal__header button',
+		);
+		cy.log(welcomeGuide);
+		if (welcomeGuide.length) {
+			welcomeGuide.click();
+		}
+	});
+
+	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
+	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+
+	/**
+	 * Give Elasticsearch some time to process the new post.
+	 *
+	 * @todo instead of waiting for an arbitrary time, we should ensure the post is stored.
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(80000);
+});
