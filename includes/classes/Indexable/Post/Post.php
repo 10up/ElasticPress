@@ -905,7 +905,7 @@ class Post extends Indexable {
 		}
 
 		$filtered_metas = $this->filter_allowed_metas( $meta, $post );
-		$prepared_meta = [];
+		$prepared_meta  = [];
 
 		foreach ( $filtered_metas as $key => $value ) {
 			$prepared_meta[ $key ] = maybe_unserialize( $value );
