@@ -1093,17 +1093,19 @@ class IndexHelper {
 				// No need to catch.
 			}
 
-			if ( function_exists( 'wp_cache_flush_runtime' ) ) {
-			    /*
-			     * Runtime flushing was introduced in WordPress 6.0 and will flush only the in-memory cache
-				 * for persistent object caches, while flushing the entire cache for non-persistent caches
-			     */
+			/*
+			 * Runtime flushing was introduced in WordPress 6.0 and will flush only the
+			 * in-memory cache for persistent object caches
+			 */
+			if ( wp_using_ext_object_cache() && function_exists( 'wp_cache_flush_runtime' ) ) {
 				wp_cache_flush_runtime();
-			} elseif ( ! wp_using_ext_object_cache() ) {
-			    /*
-			     * In the case where we're not using an external object cache, we need to call flush on the default
-			     * WordPress object cache class to clear the values from the cache property
-			     */
+			}
+
+            /*
+			 * In the case where we're not using an external object cache, we need to call flush on the default
+			 * WordPress object cache class to clear the values from the cache property
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
 			    wp_cache_flush();
 			}
 
