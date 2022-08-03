@@ -49,12 +49,10 @@ class FacetType {
 		}
 
 		// @todo For some reason these are appearing in the query args, need to investigate
-		unset( $query_args['category_name'] );
-		unset( $query_args['cat'] );
-		unset( $query_args['tag'] );
-		unset( $query_args['tag_id'] );
-		unset( $query_args['taxonomy'] );
-		unset( $query_args['term'] );
+		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
+		foreach ( $unwanted_args as $unwanted_arg ) {
+			unset( $query_args[ $unwanted_arg ] );
+		}
 
 		$facet_query_args = $query_args;
 
