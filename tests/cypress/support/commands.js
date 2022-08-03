@@ -291,6 +291,7 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 });
 
 Cypress.Commands.add('createAutosavePost', (postData) => {
+	cy.activatePlugin('shorten-autosave', 'wpCli');
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	cy.visitAdminPage('post-new.php');
@@ -309,10 +310,10 @@ Cypress.Commands.add('createAutosavePost', (postData) => {
 	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
 
 	/**
-	 * Give Elasticsearch some time to process the new post.
+	 * Wait for autosave to complete.
 	 *
-	 * @todo instead of waiting for an arbitrary time, we should ensure the post is stored.
 	 */
 	// eslint-disable-next-line cypress/no-unnecessary-waiting
-	cy.wait(80000);
+	cy.wait(5000);
+	cy.deactivatePlugin('shorten-autosave', 'wpCli');
 });
