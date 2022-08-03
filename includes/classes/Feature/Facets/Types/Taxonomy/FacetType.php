@@ -102,9 +102,14 @@ class FacetType {
 		$allowed_args = $feature->get_allowed_query_args();
 		$filter_name  = $this->get_filter_name();
 
-		$escaped_get_keys = array_map( 'sanitize_key', array_keys( $_GET ) ); // phpcs:ignore WordPress.Security.NonceVerification
-		$escaped_get_keys = array_map( 'sanitize_key', array_keys( $_GET ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$key = sanitize_key( $key );
+			if ( is_array( $value ) ) {
+				$value = array_map( 'sanitize_text_field', $value );
+			} else {
+				$value = sanitize_text_field( $value );
+			}
+
 			if ( 0 === strpos( $key, $filter_name ) ) {
 				$taxonomy = str_replace( $filter_name, '', $key );
 
