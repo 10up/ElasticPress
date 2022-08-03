@@ -99,6 +99,29 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 		$filters['s'] = 'dolor';
 		$this->assertEquals( 'test/?ep_filter_category=augue%2Cconsectetur&s=dolor', $facet_type->build_query_url( $filters ) );
+
+		/**
+		 * Test the `ep_facet_query_string` filter.
+		 */
+		$change_facet_query_string = function ( $query_string, $query_params ) {
+			$this->assertIsArray( $query_params );
+			$query_string .= '&foobar';
+			return $query_string;
+		};
+		add_filter( 'ep_facet_query_string', $change_facet_query_string, 10, 2 );
+		$this->assertStringEndsWith( '&foobar', $facet_type->build_query_url( $filters ) );
+		remove_filter( 'ep_facet_query_string', $change_facet_query_string, 10, 2 );
+
+		/**
+		 * (Indirectly) test the `ep_facet_filter_name` filter
+		 */
+		$change_ep_facet_filter_name = function( $original_name ) {
+			$this->assertEquals( 'ep_filter_', $original_name );
+			return 'ep_custom_filter_';
+		};
+		add_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
+		$this->assertEquals( 'test/?ep_custom_filter_category=augue%2Cconsectetur&s=dolor', $facet_type->build_query_url( $filters ) );
+		remove_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
 	}
 
 	/**
