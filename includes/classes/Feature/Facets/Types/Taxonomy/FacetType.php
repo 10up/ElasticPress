@@ -44,45 +44,45 @@ class FacetType {
 	 * @return array
 	 */
 	public function set_agg_filters( $args, $query_args, $query ) {
+		// Not a facetable query
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
 
-		// @todo For some reason these are appearing in the query args, need to investigate
-		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
-		foreach ( $unwanted_args as $unwanted_arg ) {
-			unset( $query_args[ $unwanted_arg ] );
+		// Without taxonomies there is nothing to do here.
+		if ( empty( $query_args['tax_query'] ) ) {
+			return $args;
 		}
 
-		$facet_query_args = $query_args;
-
 		$feature  = Features::factory()->get_registered_feature( 'facets' );
-		$settings = $feature->get_settings();
-
 		$settings = wp_parse_args(
-			$settings,
+			$feature->get_settings(),
 			array(
 				'match_type' => 'all',
 			)
 		);
 
-		if ( ! empty( $facet_query_args['tax_query'] ) ) {
-			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		$facet_query_args = $query_args;
 
+		if ( 'any' === $settings['match_type'] ) {
 			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
 				if ( is_array( $taxonomy ) ) {
-					if ( 'any' === $settings['match_type'] ) {
-						unset( $facet_query_args['tax_query'][ $key ] );
-					}
+					unset( $facet_query_args['tax_query'][ $key ] );
 				}
 			}
-
-			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
-
-			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
-
-			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		}
+
+		// @todo For some reason these are appearing in the query args, need to investigate
+		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
+		foreach ( $unwanted_args as $unwanted_arg ) {
+			unset( $facet_query_args[ $unwanted_arg ] );
+		}
+
+		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+
+		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
 		return $args;
 	}
@@ -102,6 +102,8 @@ class FacetType {
 		$allowed_args = $feature->get_allowed_query_args();
 		$filter_name  = $this->get_filter_name();
 
+		$escaped_get_keys = array_map( 'sanitize_key', array_keys( $_GET ) ); // phpcs:ignore WordPress.Security.NonceVerification
+		$escaped_get_keys = array_map( 'sanitize_key', array_keys( $_GET ) ); // phpcs:ignore WordPress.Security.NonceVerification
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			if ( 0 === strpos( $key, $filter_name ) ) {
 				$taxonomy = str_replace( $filter_name, '', $key );
