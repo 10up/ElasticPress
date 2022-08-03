@@ -1120,6 +1120,15 @@ class IndexHelper {
 		// It's high memory consuming as WP_Query instance holds all query results inside itself
 		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
 		remove_filter( 'get_term_metadata', [ wp_metadata_lazyloader(), 'lazyload_term_meta' ] );
+
+		/**
+		 * Fires after reducing the memory footprint
+		 *
+		 * @since 4.3.0
+		 *
+		 * @hook ep_stop_the_insanity
+		 */
+		do_action( 'ep_stop_the_insanity' );
 	}
 
 	/**
