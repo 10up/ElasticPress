@@ -195,8 +195,8 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_statuses = $indexable->get_indexable_post_status();
 			$post_type               = get_post_type( $object_id );
 
-			$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
-			if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+			$is_meta_allowed = $indexable->is_meta_allowed( $meta_key, $post );
+			if ( ! $is_meta_allowed ) {
 				return;
 			}
 
