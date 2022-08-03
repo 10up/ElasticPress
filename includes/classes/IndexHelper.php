@@ -1106,7 +1106,7 @@ class IndexHelper {
 			 * WordPress object cache class to clear the values from the cache property
 			 */
 			if ( ! wp_using_ext_object_cache() ) {
-			    wp_cache_flush();
+				wp_cache_flush();
 			}
 
 			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
