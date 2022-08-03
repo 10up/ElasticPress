@@ -75,8 +75,12 @@ class TestWooCommerce extends BaseTestCase {
 
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
+		// Pretend that we've enabled the WooCommerce integration.
+		add_filter( 'ep_woocommerce_integration', '__return_true' );
+
 		$args = array(
-			'post_type' => 'product',
+			'post_type'    => 'product',
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
@@ -105,8 +109,12 @@ class TestWooCommerce extends BaseTestCase {
 
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
+		// Pretend that we've enabled the WooCommerce integration.
+		add_filter( 'ep_woocommerce_integration', '__return_true' );
+
 		$args = array(
-			'tax_query' => array(
+			'ep_integrate' => true,
+			'tax_query'    => array(
 				array(
 					'taxonomy' => 'product_cat',
 					'terms'    => array( 'cat' ),
@@ -250,7 +258,7 @@ class TestWooCommerce extends BaseTestCase {
 
 	/**
 	 * Test the addition of variations skus to product meta
-	 * 
+	 *
 	 * @since 4.2.0
 	 * @group woocommerce
 	 */
@@ -262,17 +270,17 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( class_exists( '\WC_Product_Variation' ) );
 
 		$main_product = new \WC_Product_Variable();
-		$main_product->set_sku('main-product_sku');
+		$main_product->set_sku( 'main-product_sku' );
 		$main_product_id = $main_product->save();
 
 		$variation_1 = new \WC_Product_Variation();
 		$variation_1->set_parent_id( $main_product_id );
-		$variation_1->set_sku('child-sku-1');
+		$variation_1->set_sku( 'child-sku-1' );
 		$variation_1->save();
 
 		$variation_2 = new \WC_Product_Variation();
 		$variation_2->set_parent_id( $main_product_id );
-		$variation_2->set_sku('child-sku-2');
+		$variation_2->set_sku( 'child-sku-2' );
 		$variation_2->save();
 
 		$main_product_as_post  = get_post( $main_product_id );
@@ -287,7 +295,7 @@ class TestWooCommerce extends BaseTestCase {
 
 	/**
 	 * Test the translate_args_admin_products_list method
-	 * 
+	 *
 	 * @since 4.2.0
 	 * @group woocommerce
 	 */
@@ -327,7 +335,7 @@ class TestWooCommerce extends BaseTestCase {
 
 	/**
 	 * Test the ep_woocommerce_admin_products_list_search_fields filter
-	 * 
+	 *
 	 * @since 4.2.0
 	 * @group woocommerce
 	 */
