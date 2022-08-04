@@ -130,6 +130,13 @@ const App = () => {
 				logMessage(error.message, 'error');
 			}
 
+			/**
+			 * Log any messages.
+			 */
+			if (error.data?.message) {
+				logMessage(error.data.message, 'error');
+			}
+
 			logMessage(__('Sync failed', 'elasticpress'), 'error');
 			updateState({ isSyncing: false });
 		},
