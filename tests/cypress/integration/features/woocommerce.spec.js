@@ -42,6 +42,9 @@ describe('WooCommerce Feature', () => {
 		cy.maybeEnableFeature('protected_content');
 		cy.maybeEnableFeature('woocommerce');
 
+		// this is required to sync the orders to Elasticsearch.
+		cy.wpCli('elasticpress index --setup --yes');
+
 		cy.visitAdminPage('edit.php?post_type=shop_order');
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 			'contain.text',
@@ -83,6 +86,42 @@ describe('WooCommerce Feature', () => {
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 			'contain.text',
 			'Query Response Code: HTTP 200',
+		);
+	});
+
+	it('Can search orders from ElasticPress in WP Dashboard', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('protected_content');
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.visitAdminPage('edit.php?post_type=shop_order');
+
+		cy.get('#post-search-input').type('1988');
+		cy.get('#search-submit').click();
+
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
+
+		cy.get('.order_number .order-view').should('contain.text', '#1988 Mozelle Davis');
+	});
+
+	it('Can a user only see his orders on the My Account Order page', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('protected_content');
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.visit('my-account/orders');
+
+		cy.get('.woocommerce-orders-table tbody tr').should('have.length', 3);
+
+		// Test orderby parameter set to date in query.
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'["orderby"]=>\n  string(4) "date"\n',
 		);
 	});
 });
