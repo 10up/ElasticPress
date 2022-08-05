@@ -48,4 +48,24 @@ describe('Protected Content Feature', () => {
 		cy.visitAdminPage('edit.php?post_status=draft&post_type=post');
 		cy.getTotal(1);
 	});
+
+	it('Can sync autosaved drafts', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('protected_content');
+
+		// Delete previous drafts, so we can be sure we just expect 1 draft post.
+		cy.wpCli('post list --post_status=draft --format=ids').then((wpCliResponse) => {
+			if (wpCliResponse.stdout !== '') {
+				cy.wpCli(`post delete ${wpCliResponse.stdout}`);
+			}
+		});
+
+		cy.wpCli('elasticpress index --setup --yes');
+
+		cy.createAutosavePost();
+
+		cy.visitAdminPage('edit.php?post_status=draft&post_type=post');
+		cy.getTotal(1);
+	});
 });
