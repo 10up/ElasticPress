@@ -47,6 +47,7 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ], 10, 1 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'exclude_protected_posts' ], 10, 2 );
 		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
+		add_filter( 'ep_skip_autosave_sync', '__return_false' );
 		add_filter( 'ep_index_posts_args', [ $this, 'query_password_protected_posts' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
 
