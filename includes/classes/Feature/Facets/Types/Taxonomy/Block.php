@@ -115,7 +115,7 @@ class Block {
 	 */
 	public function register_block() {
 		register_block_type_from_metadata(
-			EP_PATH . 'assets/js/blocks/facets',
+			EP_PATH . 'assets/js/blocks/facets/taxonomy',
 			[
 				'render_callback' => [ $this, 'render_block' ],
 			]

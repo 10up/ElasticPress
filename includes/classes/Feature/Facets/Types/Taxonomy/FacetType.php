@@ -30,6 +30,7 @@ class FacetType {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		$this->block = new Block();
 		$this->block->setup();
@@ -87,44 +88,6 @@ class FacetType {
 		return $args;
 	}
 
-	/**
-	 * Get currently selected facets from query args
-	 *
-	 * @return array
-	 */
-	public function get_selected() {
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
-		$filters = array(
-			'taxonomies' => [],
-		);
-
-		$allowed_args = $feature->get_allowed_query_args();
-		$filter_name  = $this->get_filter_name();
-
-		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$key = sanitize_key( $key );
-			if ( is_array( $value ) ) {
-				$value = array_map( 'sanitize_text_field', $value );
-			} else {
-				$value = sanitize_text_field( $value );
-			}
-
-			if ( 0 === strpos( $key, $filter_name ) ) {
-				$taxonomy = str_replace( $filter_name, '', $key );
-
-				$filters['taxonomies'][ $taxonomy ] = array(
-					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
-				);
-			}
-
-			if ( in_array( $key, $allowed_args, true ) ) {
-				$filters[ $key ] = $value;
-			}
-		}
-
-		return $filters;
-	}
 
 	/**
 	 * Build query url
@@ -189,7 +152,7 @@ class FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	protected function get_filter_name() {
+	public function get_filter_name() {
 		/**
 		 * Filter the facet filter name that's added to the URL
 		 *
@@ -199,6 +162,23 @@ class FacetType {
 		 * @return  {string} New facet filter name
 		 */
 		return apply_filters( 'ep_facet_filter_name', 'ep_filter_' );
+	}
+
+	/**
+	 * Get the facet filter name.
+	 *
+	 * @return string The filter name.
+	 */
+	public function get_filter_type() {
+		/**
+		 * Filter the facet filter name that's added to the URL
+		 *
+		 * @hook ep_facet_filter_name
+		 * @since 4.0.0
+		 * @param   {string} Facet filter name
+		 * @return  {string} New facet filter name
+		 */
+		return apply_filters( 'ep_facet_filter_type', 'taxonomies' );
 	}
 
 	/**
@@ -247,47 +227,7 @@ class FacetType {
 			return;
 		}
 
-		$query->set( 'ep_integrate', true );
-		$query->set( 'ep_facet', true );
-
-		$facets = [];
-
-		/**
-		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
-		 * Values available out-of-the-box are:
-		 *  - slug (default)
-		 *  - term_id
-		 *  - name
-		 *  - parent
-		 *  - term_taxonomy_id
-		 *  - term_order
-		 *  - facet (retrieves a JSON representation of the term object)
-		 *
-		 * @since 3.6.0
-		 * @hook ep_facet_use_field
-		 * @param  {string} $field The term field to use
-		 * @return  {string} The chosen term field
-		 */
-		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
-
-		foreach ( $taxonomies as $slug => $taxonomy ) {
-			$facets[ $slug ] = array(
-				'terms' => array(
-					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
-					'field' => 'terms.' . $slug . '.' . $facet_field,
-				),
-			);
-		}
-
-		$aggs = array(
-			'name'       => 'terms',
-			'use-filter' => true,
-			'aggs'       => $facets,
-		);
-
-		$query->set( 'aggs', $aggs );
-
-		$selected_filters = $this->get_selected();
+		$selected_filters = $feature->get_selected();
 
 		$settings = $feature->get_settings();
 
@@ -324,5 +264,58 @@ class FacetType {
 		}
 
 		$query->set( 'tax_query', $tax_query );
+	}
+
+	/**
+	 * Add taxonomies to facets aggs
+	 *
+	 * @param array $facet_aggs Facet Aggs array.
+	 * @since 4.3.0
+	 * @return array
+	 */
+	public function set_wp_query_aggs( $facet_aggs ) {
+		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+
+		/**
+		 * Filter taxonomies made available for faceting
+		 *
+		 * @hook ep_facet_include_taxonomies
+		 * @param  {array} $taxonomies Taxonomies
+		 * @return  {array} New taxonomies
+		 */
+		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+
+		if ( empty( $taxonomies ) ) {
+			return $facet_aggs;
+		}
+
+		/**
+		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+		 * Values available out-of-the-box are:
+		 *  - slug (default)
+		 *  - term_id
+		 *  - name
+		 *  - parent
+		 *  - term_taxonomy_id
+		 *  - term_order
+		 *  - facet (retrieves a JSON representation of the term object)
+		 *
+		 * @since 3.6.0
+		 * @hook ep_facet_use_field
+		 * @param  {string} $field The term field to use
+		 * @return  {string} The chosen term field
+		 */
+		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
+
+		foreach ( $taxonomies as $slug => $taxonomy ) {
+			$facet_aggs[ $slug ] = array(
+				'terms' => array(
+					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
+					'field' => 'terms.' . $slug . '.' . $facet_field,
+				),
+			);
+		}
+
+		return $facet_aggs;
 	}
 }

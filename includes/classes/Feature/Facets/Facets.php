@@ -82,6 +82,8 @@ class Facets extends Feature {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 	}
 
 	/**
@@ -115,14 +117,51 @@ class Facets extends Feature {
 	 * @param  array    $args ES arguments
 	 * @param  array    $query_args Query arguments
 	 * @param  WP_Query $query WP Query instance
-	 * @since  2.5, deprecated in 4.3.0
+	 * @since  2.5
 	 * @return array
 	 */
 	public function set_agg_filters( $args, $query_args, $query ) {
-		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->set_agg_filters()" );
+		// Not a facetable query
+		if ( empty( $query_args['ep_facet'] ) ) {
+			return $args;
+		}
 
-		return $this->types['taxonomy']->set_agg_filters( $args, $query_args, $query );
+		// Without taxonomies there is nothing to do here.
+		if ( empty( $query_args['tax_query'] ) ) {
+			return $args;
+		}
 
+		$feature  = Features::factory()->get_registered_feature( 'facets' );
+		$settings = wp_parse_args(
+			$feature->get_settings(),
+			array(
+				'match_type' => 'all',
+			)
+		);
+
+		$facet_query_args = $query_args;
+
+		if ( 'any' === $settings['match_type'] ) {
+			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
+				if ( is_array( $taxonomy ) ) {
+					unset( $facet_query_args['tax_query'][ $key ] );
+				}
+			}
+		}
+
+		// @todo For some reason these are appearing in the query args, need to investigate
+		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
+		foreach ( $unwanted_args as $unwanted_arg ) {
+			unset( $facet_query_args[ $unwanted_arg ] );
+		}
+
+		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+
+		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
+
+		return $args;
 	}
 	/**
 	 * Output scripts for widget admin
@@ -223,12 +262,42 @@ class Facets extends Feature {
 	 * everywhere where a facet widget could be used.
 	 *
 	 * @param  WP_Query $query WP Query
-	 * @since  2.5, deprecated in 4.3.0
+	 * @since  2.5
 	 */
 	public function facet_query( $query ) {
-		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->facet_query()" );
+		$feature = Features::factory()->get_registered_feature( 'facets' );
 
-		return $this->types['taxonomy']->facet_query( $query );
+		if ( ! $feature->is_facetable( $query ) ) {
+			return;
+		}
+
+		/**
+		 * Filter facet aggregations.
+		 *
+		 * This is used by facet types to add their own aggregations to the
+		 * general facet.
+		 *
+		 * @hook ep_facet_wp_query_aggs_facet
+		 * @since 4.3.0
+		 * @param {array} $facets Facets aggregations
+		 * @return {array} New facets aggregations
+		 */
+		$facets = apply_filters( 'ep_facet_wp_query_aggs_facet', [] );
+
+		if ( empty( $facets ) ) {
+			return;
+		}
+
+		$query->set( 'ep_integrate', true );
+		$query->set( 'ep_facet', true );
+
+		$aggs = array(
+			'name'       => 'terms',
+			'use-filter' => true,
+			'aggs'       => $facets,
+		);
+
+		$query->set( 'aggs', $aggs );
 	}
 
 	/**
@@ -273,13 +342,45 @@ class Facets extends Feature {
 	/**
 	 * Get currently selected facets from query args
 	 *
-	 * @since  2.5, deprecated in 4.3.0
+	 * @since  2.5
 	 * @return array
 	 */
 	public function get_selected() {
-		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_selected()" );
+		$allowed_args = $this->get_allowed_query_args();
 
-		return $this->types['taxonomy']->get_selected();
+		$filters      = [];
+		$filter_names = [];
+		foreach ( $this->types as $type_obj ) {
+			$filter_type = $type_obj->get_filter_type();
+
+			$filters[ $filter_type ]      = [];
+			$filter_names[ $filter_type ] = $type_obj->get_filter_name();
+		}
+
+		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
+			$key = sanitize_key( $key );
+			if ( is_array( $value ) ) {
+				$value = array_map( 'sanitize_text_field', $value );
+			} else {
+				$value = sanitize_text_field( $value );
+			}
+
+			foreach ( $filter_names as $filter_type => $filter_name ) {
+				if ( 0 === strpos( $key, $filter_name ) ) {
+					$facet = str_replace( $filter_name, '', $key );
+
+					$filters[ $filter_type ][ $facet ] = array(
+						'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
+					);
+				}
+			}
+
+			if ( in_array( $key, $allowed_args, true ) ) {
+				$filters[ $key ] = $value;
+			}
+		}
+
+		return $filters;
 	}
 
 	/**
