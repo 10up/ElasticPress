@@ -57,8 +57,20 @@ Cypress.Commands.add('openWidgetsPage', () => {
 	});
 });
 
-Cypress.Commands.add('createTaxonomy', (name = 'Test taxonomy', taxonomy = 'category') => {
+Cypress.Commands.add('createTaxonomy', (data) => {
+	const { taxonomy, name, parent } = {
+		name: 'Test taxonomy',
+		taxonomy: 'category',
+		parent: null,
+		...data,
+	};
+
 	cy.visitAdminPage(`edit-tags.php?taxonomy=${taxonomy}`);
+
+	if (parent !== null) {
+		cy.get('#parent').select(parent);
+	}
+
 	cy.get('#tag-name').click().type(`${name}{enter}`);
 });
 

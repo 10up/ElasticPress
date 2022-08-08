@@ -17,10 +17,9 @@ describe('Terms Feature', () => {
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});
 
-	it('Can searching a term in the admin dashboard use Elasticsearch when the Protected Content feature is enabled', () => {
+	it('Can searching a term in the admin dashboard use Elasticsearch', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
-		cy.maybeEnableFeature('protected_content');
 
 		cy.visitAdminPage('edit-tags.php?taxonomy=category');
 
@@ -41,17 +40,13 @@ describe('Terms Feature', () => {
 	it('Can a term be removed from the admin dashboard after deleting it', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
-		cy.maybeEnableFeature('protected_content');
 
 		cy.visitAdminPage('edit-tags.php?taxonomy=category');
 
 		const term = 'amazing';
 
 		// Create a new term
-		cy.get('#tag-name').type(term);
-		cy.intercept('POST', 'wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('#submit').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+		cy.createTaxonomy({ name: term });
 
 		// Search for the term
 		cy.get('#tag-search-input').type(term);
@@ -72,28 +67,20 @@ describe('Terms Feature', () => {
 	it('Can return a correct tag on searching a tag in admin dashboard', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
-		cy.maybeEnableFeature('protected_content');
 
 		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
 
 		const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing'];
-
-		cy.intercept('POST', 'wp-admin/admin-ajax.php*').as('ajaxRequest');
-
 		// create tags.
 		tags.forEach((tag) => {
-			cy.get('#tag-name').type(tag);
-			cy.get('#submit').click();
-			cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+			cy.createTaxonomy({ name: tag, taxonomy: 'post_tag' });
 		});
 
 		// search for the tag.
 		cy.get('#tag-search-input').type('the most fun thing');
 		cy.get('#search-submit').click();
 
-		cy.get('.wp-list-table tbody tr .row-title')
-			.should('have.length', 1)
-			.should('contain.text', 'The Most Fun Thing');
+		cy.get('.wp-list-table tbody tr .row-title').should('contain.text', 'The Most Fun Thing');
 
 		// delete the tags.
 		tags.forEach((tag) => {
@@ -107,5 +94,34 @@ describe('Terms Feature', () => {
 						.click({ force: true });
 				});
 		});
+	});
+
+	it('Can a child term be updated when a parent term is deleted', () => {
+		cy.login();
+		cy.maybeEnableFeature('terms');
+
+		const parentTerm = 'bar-parent';
+		const childTerm = 'baz-child';
+
+		cy.createTaxonomy({ name: parentTerm });
+		cy.createTaxonomy({ name: childTerm, parent: parentTerm });
+
+		cy.get('#tag-search-input').type(`${parentTerm}{enter}`);
+
+		// delete the parent term.
+		cy.intercept('POST', 'wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.get('.wp-list-table tbody tr')
+			.first()
+			.find('.row-actions .delete a')
+			.click({ force: true });
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+
+		// make sure the child term parent field is set to none.
+		cy.get('#tag-search-input').clear().type(`${childTerm}{enter}`);
+		cy.get('.wp-list-table tbody tr .column-primary a').first().click();
+		cy.get('#parent').should('have.value', '-1');
+
+		// delete the child term.
+		cy.get('#delete-link a').click();
 	});
 });
