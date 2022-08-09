@@ -108,7 +108,7 @@ describe('WooCommerce Feature', () => {
 		);
 	});
 
-	it("can not display other users' orders on the My Account Order page", () => {
+	it('Can not display other users orders on the My Account Order page', () => {
 		cy.login();
 
 		cy.activatePlugin('woocommerce');
