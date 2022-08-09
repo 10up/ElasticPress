@@ -17,13 +17,13 @@ describe('Terms Feature', () => {
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});
 
-	it('Can searching a term in the admin dashboard use Elasticsearch', () => {
+	it('Can search a term in the admin dashboard using Elasticsearch', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
 
-		cy.visitAdminPage('edit-tags.php?taxonomy=category');
+		const searchTerm = 'search term';
+		cy.createTaxonomy({ name: searchTerm });
 
-		const searchTerm = 'classic';
 		cy.get('#tag-search-input').type(searchTerm);
 		cy.get('#search-submit').click();
 
@@ -31,27 +31,35 @@ describe('Terms Feature', () => {
 			.should('have.length', 1)
 			.should('contain.text', searchTerm);
 
-		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
-			'contain.text',
-			'Query Response Code: HTTP 200',
-		);
+		// make sure elasticsearch result does contain the term.
+		cy.get(
+			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
+		).should('contain.text', searchTerm);
+
+		// Delete the term
+		cy.get('.wp-list-table tbody tr')
+			.first()
+			.find('.row-actions .delete a')
+			.click({ force: true });
 	});
 
 	it('Can a term be removed from the admin dashboard after deleting it', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
 
-		cy.visitAdminPage('edit-tags.php?taxonomy=category');
-
-		const term = 'amazing';
-
 		// Create a new term
+		const term = 'amazing term';
 		cy.createTaxonomy({ name: term });
 
 		// Search for the term
 		cy.get('#tag-search-input').type(term);
 		cy.get('#search-submit').click();
 		cy.get('.wp-list-table tbody tr').should('have.length', 1).should('contain.text', term);
+
+		// make sure elasticsearch result does contain the term.
+		cy.get(
+			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
+		).should('contain.text', term);
 
 		// Delete the term
 		cy.get('.wp-list-table tbody tr')
@@ -62,6 +70,10 @@ describe('Terms Feature', () => {
 		// Re-search for the term and make sure it's not there.
 		cy.get('#search-submit').click();
 		cy.get('.wp-list-table tbody').should('contain.text', 'No categories found');
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
 	});
 
 	it('Can return a correct tag on searching a tag in admin dashboard', () => {
@@ -82,6 +94,10 @@ describe('Terms Feature', () => {
 
 		cy.get('.wp-list-table tbody tr .row-title').should('contain.text', 'The Most Fun Thing');
 
+		cy.get(
+			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
+		).should('contain.text', 'The Most Fun Thing');
+
 		// delete the tags.
 		tags.forEach((tag) => {
 			cy.get('#tag-search-input').clear().type(tag);
@@ -96,7 +112,7 @@ describe('Terms Feature', () => {
 		});
 	});
 
-	it('Can a child term be updated when a parent term is deleted', () => {
+	it('can update a child term when a parent term is deleted', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
 
