@@ -119,3 +119,32 @@ window.epAutosuggestElementFilter = (element, input) => {
 	return element;
 }
 ```
+
+### Customize the Autosuggest Query
+
+To get suggestions for Autosuggest ElasticPress sends an AJAX request containing an Elasticsearch query to your Elasticsearch instance. Just before the request is sent this query is run through a `window.epAutosuggestQueryFilter()` function, if such a function exists. Therefore you can modify the query by defining this function from your theme or plugin.
+
+The `epAutosuggestQueryFilter()` function should return a JavaScript object representing the query, and accepts 3 parameters:
+
+1. `query` _(Object)_ The Elasticsearch query as a JavaScript object.
+2. `searchText` _(string)_ The search term.
+2. `input` _(Element)_ The DOM element of the input that triggered Autosuggest.
+
+This example uses the function to add the value of a `wp_dropdown_categories()` field as a filter to the search query:
+
+```
+window.epAutosuggestQueryFilter = (query, searchText, input) => {
+	const formData = new FormData(input.form);
+	const category = formData.get('cat');
+
+	if (category) {
+		query.post_filter.bool.must.push({
+			term: {
+				'terms.category.term_id': parseInt(category, 10),
+			},
+		});
+	}
+
+	return query;
+}
+```
