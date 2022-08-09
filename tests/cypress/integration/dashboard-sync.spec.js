@@ -35,7 +35,7 @@ describe('Dashboard Sync', () => {
 		}
 	});
 
-	it('There should only be a single sync option for the initial sync', () => {
+	it('Should only display a single sync option for the initial sync', () => {
 		/**
 		 * Reset settings and skip install.
 		 */
@@ -51,7 +51,7 @@ describe('Dashboard Sync', () => {
 		cy.get('.ep-sync-panel')
 			.should('have.length', 1)
 			.as('syncPanel')
-			.should('contain.text', 'Run a sync to index your existing content in Elasticsearch.');
+			.should('contain.text', 'Run a sync to index your existing content');
 
 		/**
 		 * Perform an initial sync.
@@ -74,10 +74,7 @@ describe('Dashboard Sync', () => {
 		cy.get('.ep-sync-panel')
 			.should('have.length', 2)
 			.last()
-			.should(
-				'contain.text',
-				'If you are still having issues with your search results, you may need to do a completely fresh sync.',
-			);
+			.should('contain.text', 'If you are still having issues with your search results');
 	});
 
 	it('Can index content and see indexes names in the Health Screen', () => {
