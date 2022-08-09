@@ -566,6 +566,13 @@ function init() {
 				query = JSON.stringify(query);
 			}
 
+			// Allow filtering the search query based on the input.
+			if (typeof window.epAutosuggestQueryFilter !== 'undefined') {
+				query = JSON.stringify(
+					window.epAutosuggestQueryFilter(JSON.parse(query), searchText, input),
+				);
+			}
+
 			// fetch the results
 			const response = await esSearch(query, searchText);
 
