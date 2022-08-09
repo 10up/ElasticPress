@@ -124,14 +124,14 @@ const App = () => {
 			}
 
 			/**
-			 * Log any messages.
+			 * Log any error messages created by the browser.
 			 */
 			if (error.message) {
 				logMessage(error.message, 'error');
 			}
 
 			/**
-			 * Log any messages.
+			 * Log any error messages created by the back-end.
 			 */
 			if (error.data?.message) {
 				logMessage(error.data.message, 'error');
