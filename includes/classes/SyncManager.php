@@ -281,7 +281,7 @@ abstract class SyncManager {
 			'fields' => [],
 		);
 
-		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$sync_info = IndexHelper::factory()->get_last_index();
 
 		foreach ( $sync_info as $label => $value ) {
 			$debug_info['ep_last_sync']['fields'][ sanitize_title( $label ) ] = [
