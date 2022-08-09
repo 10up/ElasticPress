@@ -4,7 +4,7 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
-    "@wordpress/env": "^4.2.2",
+    "@wordpress/env": "^5.0.0",
     "10up-toolkit": "^3.0.0",
     "classnames": "^2.3.1",
     "cypress": "^9.5.0",
