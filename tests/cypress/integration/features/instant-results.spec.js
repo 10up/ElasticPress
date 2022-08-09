@@ -1,4 +1,18 @@
 describe('Instant Results Feature', () => {
+	/**
+	 * Create a Search widget.
+	 */
+	function createSearchWidget() {
+		cy.openWidgetsPage();
+
+		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
+		cy.get('.block-editor-inserter__panel-content [class*="search/default"]').click({
+			force: true,
+		});
+
+		cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
+		cy.get('body').should('contain.text', 'Widgets saved.');
+	}
 	before(() => {
 		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
 			// Nothing needs to be done if EP.io.
@@ -7,6 +21,8 @@ describe('Instant Results Feature', () => {
 			}
 			cy.activatePlugin('elasticpress-proxy', 'dashboard');
 		});
+		// Add search widget that will be used for the tests.
+		createSearchWidget();
 	});
 
 	after(() => {
@@ -73,7 +89,7 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.wp-block-search__input').type('test');
 		cy.get('.wp-block-search__button').click();
 		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
 	});
@@ -83,7 +99,7 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.wp-block-search__input').type('test');
 		cy.get('.wp-block-search__button').click();
 		cy.get('.ep-search-modal').should('be.visible');
 
