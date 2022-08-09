@@ -447,98 +447,111 @@ class Search extends Feature {
 	 * @return array
 	 */
 	public function weight_recent( $formatted_args, $args ) {
-		if ( ! empty( $args['s'] ) ) {
-			if ( $this->is_decaying_enabled() ) {
-				/**
-				 * Filter search date weighting scale
-				 *
-				 * @hook epwr_decay_function
-				 * @param  {string} $decay_function Current decay function
-				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-				 * @param  {array} $args WP_Query arguments
-				 * @return  {string} New decay function
-				 */
-				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
-				$date_score     = array(
-					'function_score' => array(
-						'query'      => $formatted_args['query'],
-						'functions'  => array(
-							array(
-								$decay_function => array(
-									'post_date_gmt' => array(
-										/**
-										 * Filter search date weighting scale
-										 *
-										 * @hook epwr_scale
-										 * @param  {string} $scale Current scale
-										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-										 * @param  {array} $args WP_Query arguments
-										 * @return  {string} New scale
-										 */
-										'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
-										/**
-										 * Filter search date weighting decay
-										 *
-										 * @hook epwr_decay
-										 * @param  {float} $decay Current decay
-										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-										 * @param  {array} $args WP_Query arguments
-										 * @return  {float} New decay
-										 */
-										'decay'  => apply_filters( 'epwr_decay', 0.25, $formatted_args, $args ),
-										/**
-										 * Filter search date weighting offset
-										 *
-										 * @hook epwr_offset
-										 * @param  {string} $offset Current offset
-										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-										 * @param  {array} $args WP_Query arguments
-										 * @return  {string} New offset
-										 */
-										'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
-									),
-								),
-							),
-							array(
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+		if ( ! $this->is_decaying_enabled() ) {
+			return $formatted_args;
+		}
+		/**
+		 * Filter search date weighting scale
+		 *
+		 * @hook epwr_decay_function
+		 * @param  {string} $decay_function Current decay function
+		 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+		 * @param  {array} $args WP_Query arguments
+		 * @return  {string} New decay function
+		 */
+		$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
+		/**
+		 * Filter search date weighting field
+		 *
+		 * @hook epwr_decay_field
+		 * @param  {string} $field Current decay field
+		 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+		 * @param  {array} $args WP_Query arguments
+		 * @return  {string} New decay field
+		 * @since 4.3.0
+		 */
+		$field      = apply_filters( 'epwr_decay_field', 'post_date_gmt', $formatted_args, $args );
+		$date_score = array(
+			'function_score' => array(
+				'query'      => $formatted_args['query'],
+				'functions'  => array(
+					array(
+						$decay_function => array(
+							$field => array(
 								/**
-								 * Filter search date weight
+								 * Filter search date weighting scale
 								 *
-								 * @since 3.5.6
-								 * @hook epwr_weight
-								 * @param  {float} $weight Current weight
+								 * @hook epwr_scale
+								 * @param  {string} $scale Current scale
 								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
 								 * @param  {array} $args WP_Query arguments
-								 * @return  {float} New weight
+								 * @return  {string} New scale
 								 */
-								'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
+								'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+								/**
+								 * Filter search date weighting decay
+								 *
+								 * @hook epwr_decay
+								 * @param  {float} $decay Current decay
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {float} New decay
+								 */
+								'decay'  => apply_filters( 'epwr_decay', 0.25, $formatted_args, $args ),
+								/**
+								 * Filter search date weighting offset
+								 *
+								 * @hook epwr_offset
+								 * @param  {string} $offset Current offset
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {string} New offset
+								 */
+								'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 							),
 						),
-						/**
-						 * Filter search date weighting score mode
-						 *
-						 * @hook epwr_score_mode
-						 * @param  {string} $score_mode Current score mode
-						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-						 * @param  {array} $args WP_Query arguments
-						 * @return  {string} New score mode
-						 */
-						'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
-						/**
-						 * Filter search date weighting boost mode
-						 *
-						 * @hook epwr_boost_mode
-						 * @param  {string} $boost_mode Current boost mode
-						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-						 * @param  {array} $args WP_Query arguments
-						 * @return  {string} New boost mode
-						 */
-						'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
 					),
-				);
+					array(
+						/**
+						 * Filter search date weight
+						 *
+						 * @since 3.5.6
+						 * @hook epwr_weight
+						 * @param  {float} $weight Current weight
+						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+						 * @param  {array} $args WP_Query arguments
+						 * @return  {float} New weight
+						 */
+						'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
+					),
+				),
+				/**
+				 * Filter search date weighting score mode
+				 *
+				 * @hook epwr_score_mode
+				 * @param  {string} $score_mode Current score mode
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New score mode
+				 */
+				'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
+				/**
+				 * Filter search date weighting boost mode
+				 *
+				 * @hook epwr_boost_mode
+				 * @param  {string} $boost_mode Current boost mode
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New boost mode
+				 */
+				'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
+			),
+		);
 
-				$formatted_args['query'] = $date_score;
-			}
-		}
+		$formatted_args['query'] = $date_score;
 
 		return $formatted_args;
 	}

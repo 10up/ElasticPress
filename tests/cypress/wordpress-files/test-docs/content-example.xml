@@ -8527,11 +8527,11 @@ If the site is set to display the Blog Posts Index as the Front Page, then this 
 		<description></description>
 		<content:encoded><![CDATA[Welcome to image alignment! The best way to demonstrate the ebb and flow of the various image positioning options is to nestle them snuggly among an ocean of words. Grab a paddle and let's get started.
 
-On the topic of alignment, it should be noted that users can choose from the options of <em>None</em>, <em>Left</em>, <em>Right, </em>and <em>Center</em>. In addition, they also get the options of <em>Thumbnail</em>, <em>Medium</em>, <em>Large</em> &amp; <em>Fullsize</em>. Be sure to try this page in RTL mode and it should look the same as LTR. 
+On the topic of alignment, it should be noted that users can choose from the options of <em>None</em>, <em>Left</em>, <em>Right, </em>and <em>Center</em>. In addition, they also get the options of <em>Thumbnail</em>, <em>Medium</em>, <em>Large</em> &amp; <em>Fullsize</em>. Be sure to try this page in RTL mode and it should look the same as LTR.
 <p><img class="size-full wp-image-906 aligncenter" title="Image Alignment 580x300" alt="Image Alignment 580x300" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-580x300.jpg" width="580" height="300" /></p>
 The image above happens to be <em><strong>centered</strong></em>.
 
-<img class="size-full wp-image-904 alignleft" title="Image Alignment 150x150" alt="Image Alignment 150x150" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-150x150.jpg" width="150" height="150" /> The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>. 
+<img class="size-full wp-image-904 alignleft" title="Image Alignment 150x150" alt="Image Alignment 150x150" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-150x150.jpg" width="150" height="150" /> The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>.
 
 As you can see the should be some space above, below, and to the right of the image. The text should not be creeping on the image. Creeping is just not right. Images need breathing room too. Let them speak like you words. Let them do their jobs without any hassle from the text. In about one more sentence here, we'll see that the text moves from the right of the image down below the image in seamless transition. Again, letting the do it's thang. Mission accomplished!
 
@@ -8559,7 +8559,7 @@ The image above happens to be <em><strong>centered</strong></em>. The caption al
 
 [caption id="attachment_904" align="alignleft" width="150"]<img class="size-full wp-image-904  " title="Image Alignment 150x150" alt="Image Alignment 150x150" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-150x150.jpg" width="150" height="150" /> Bigger caption than the image usually is.[/caption]
 
-The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>. 
+The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>.
 
 As you can see the should be some space above, below, and to the right of the image. The text should not be creeping on the image. Creeping is just not right. Images need breathing room too. Let them speak like you words. Let them do their jobs without any hassle from the text. In about one more sentence here, we'll see that the text moves from the right of the image down below the image in seamless transition. Again, letting the do it's thang. Mission accomplished!
 
@@ -10905,11 +10905,11 @@ This is a paragraph. It should not have any alignment of any kind. It should jus
 		<description></description>
 		<content:encoded><![CDATA[Welcome to image alignment! The best way to demonstrate the ebb and flow of the various image positioning options is to nestle them snuggly among an ocean of words. Grab a paddle and let's get started.
 
-On the topic of alignment, it should be noted that users can choose from the options of <em>None</em>, <em>Left</em>, <em>Right, </em>and <em>Center</em>. In addition, they also get the options of <em>Thumbnail</em>, <em>Medium</em>, <em>Large</em> &amp; <em>Fullsize</em>. Be sure to try this page in RTL mode and it should look the same as LTR. 
+On the topic of alignment, it should be noted that users can choose from the options of <em>None</em>, <em>Left</em>, <em>Right, </em>and <em>Center</em>. In addition, they also get the options of <em>Thumbnail</em>, <em>Medium</em>, <em>Large</em> &amp; <em>Fullsize</em>. Be sure to try this page in RTL mode and it should look the same as LTR.
 <p><img class="size-full wp-image-906 aligncenter" title="Image Alignment 580x300" alt="Image Alignment 580x300" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-580x300.jpg" width="580" height="300" /></p>
 The image above happens to be <em><strong>centered</strong></em>.
 
-<img class="size-full wp-image-904 alignleft" title="Image Alignment 150x150" alt="Image Alignment 150x150" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-150x150.jpg" width="150" height="150" /> The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>. 
+<img class="size-full wp-image-904 alignleft" title="Image Alignment 150x150" alt="Image Alignment 150x150" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-150x150.jpg" width="150" height="150" /> The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>.
 
 As you can see the should be some space above, below, and to the right of the image. The text should not be creeping on the image. Creeping is just not right. Images need breathing room too. Let them speak like you words. Let them do their jobs without any hassle from the text. In about one more sentence here, we'll see that the text moves from the right of the image down below the image in seamless transition. Again, letting the do it's thang. Mission accomplished!
 
@@ -10937,7 +10937,7 @@ The image above happens to be <em><strong>centered</strong></em>. The caption al
 
 [caption id="attachment_904" align="alignleft" width="150"]<img class="size-full wp-image-904  " title="Image Alignment 150x150" alt="Image Alignment 150x150" src="http://ep-wpa-snapshot.test/wp-content/uploads/2013/03/image-alignment-150x150.jpg" width="150" height="150" /> Bigger caption than the image usually is.[/caption]
 
-The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>. 
+The rest of this paragraph is filler for the sake of seeing the text wrap around the 150x150 image, which is <em><strong>left aligned</strong></em>.
 
 As you can see the should be some space above, below, and to the right of the image. The text should not be creeping on the image. Creeping is just not right. Images need breathing room too. Let them speak like you words. Let them do their jobs without any hassle from the text. In about one more sentence here, we'll see that the text moves from the right of the image down below the image in seamless transition. Again, letting the do it's thang. Mission accomplished!
 
@@ -11601,7 +11601,7 @@ The custom HTML block
 		<content:encoded><![CDATA[<!-- wp:paragraph -->
 <p>The Layout Elements category includes the following blocks: <em>Button, Columns, Media &amp; Text, separator, spacer, read more, and page break.</em></p>
 <!-- /wp:paragraph -->
-    
+
 <!-- wp:button -->
 <div class="wp-block-button"><a class="wp-block-button__link">The button</a></div>
 <!-- /wp:button -->
@@ -11769,7 +11769,7 @@ The custom HTML block
     <!-- wp:paragraph -->
 <p>This post tests various embed blocks:</p>
 <!-- /wp:paragraph -->
-    
+
 <!-- wp:core-embed/twitter {"url":"https://twitter.com/WordPress/status/1057136472321613824","type":"rich","providerNameSlug":"twitter","align":"wide","className":""} -->
 <figure class="wp-block-embed-twitter alignwide wp-block-embed is-type-rich is-provider-twitter"><div class="wp-block-embed__wrapper">
 https://twitter.com/WordPress/status/1057136472321613824
@@ -12527,11 +12527,11 @@ The third column block has 4 columns. Make sure that all the text is visible and
 
 <!-- wp:gallery {"align":"full"} -->
 <ul class="wp-block-gallery alignfull columns-3 is-cropped"><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/01/canola2.jpg" alt="canola" data-id="611" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/canola2/" class="wp-image-611" />
-<figcaption>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec mollis. Quisque convallis libero in sapien pharetra tincidunt. Aliquam elit ante, malesuada id, tempor eu, gravida id, odio. Maecenas suscipit, risus et eleifend imperdiet, nisi orci ullamcorper massa, 
-et adipiscing orci velit quis magna.</figcaption></figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/cep00032.jpg" alt="Sunburst Over River" data-id="756" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/cep00032/" class="wp-image-756" /><figcaption>Sunburst over the Clinch River, 
+<figcaption>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec mollis. Quisque convallis libero in sapien pharetra tincidunt. Aliquam elit ante, malesuada id, tempor eu, gravida id, odio. Maecenas suscipit, risus et eleifend imperdiet, nisi orci ullamcorper massa,
+et adipiscing orci velit quis magna.</figcaption></figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/cep00032.jpg" alt="Sunburst Over River" data-id="756" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/cep00032/" class="wp-image-756" /><figcaption>Sunburst over the Clinch River,
 Southwest Virginia.</figcaption></figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/dsc02085.jpg" alt="Orange Iris" data-id="763" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/dsc02085/" class="wp-image-763" /><figcaption>Orange Iris</figcaption>
 </figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/dcp_2082.jpg" alt="Boardwalk" data-id="757" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/dcp_2082/" class="wp-image-757" />
-<figcaption>Boardwalk at Westport, WA</figcaption></figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/100_5478.jpg" alt="Bell on Wharf" data-id="754" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/100_5478/" class="wp-image-754" /><figcaption>Bell on wharf in San 
+<figcaption>Boardwalk at Westport, WA</figcaption></figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/100_5478.jpg" alt="Bell on Wharf" data-id="754" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/100_5478/" class="wp-image-754" /><figcaption>Bell on wharf in San
 Francisco</figcaption></figure></li><li class="blocks-gallery-item"><figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/07/img_0767.jpg" alt="Huatulco Coastline" data-id="770" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery//img_0767/" class="wp-image-770" />
 <figcaption>Coastline in Huatulco, Oaxaca, Mexico</figcaption></figure></li></ul>
 <!-- /wp:gallery -->
@@ -12582,7 +12582,7 @@ Francisco</figcaption></figure></li><li class="blocks-gallery-item"><figure><img
 <figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/01/dsc20050813_115856_52.jpg" alt="dsc20050813_115856_52" data-id="617" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/dsc20050813_115856_52/" class="wp-image-617" /></figure></li><li class="blocks-gallery-item"><figure>
 <img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/01/dsc20050727_091048_222.jpg" alt="dsc20050727_091048_222" data-id="616" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/dsc20050727_091048_222/" class="wp-image-616" /></figure></li><li class="blocks-gallery-item">
 <figure><img src="http://ep-wpa-snapshot.test/wp-content/uploads/2011/01/canola2.jpg" alt="canola" data-id="611" data-link="https://wpthemetestdata.wordpress.com/2010/09/10/post-format-gallery/canola2/" class="wp-image-611" /><figcaption>
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec mollis. Quisque convallis libero in sapien pharetra tincidunt. Aliquam elit ante, malesuada id, 
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec mollis. Quisque convallis libero in sapien pharetra tincidunt. Aliquam elit ante, malesuada id,
 tempor eu, gravida id, odio. Maecenas suscipit, risus et eleifend imperdiet, nisi orci ullamcorper massa, et adipiscing orci velit quis magna.</figcaption></figure>
 </li></ul>
 <!-- /wp:gallery -->
@@ -31287,6 +31287,10 @@ Incidunt repellendus voluptatem laudantium et aut delectus rem. Et velit ullam o
 		<wp:meta_key><![CDATA[_product_version]]></wp:meta_key>
 		<wp:meta_value><![CDATA[4.0.1]]></wp:meta_value>
 		</wp:postmeta>
+    <wp:postmeta>
+        <wp:meta_key><![CDATA[_sku]]></wp:meta_key>
+        <wp:meta_value><![CDATA[awesome-aluminum-shoes-variation-sku]]></wp:meta_value>
+    </wp:postmeta>
 							</item>
 					<item>
 		<title>Order &#8211; April 17, 2020 @ 03:00 AM</title>
@@ -35706,4 +35710,3 @@ Incidunt repellendus voluptatem laudantium et aut delectus rem. Et velit ullam o
 					</item>
 				</channel>
 </rss>
-	

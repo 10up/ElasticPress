@@ -60,6 +60,13 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function setup() {
+		global $pagenow;
+
+		// This feature should not run while in the editor.
+		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) ) {
+			return;
+		}
+
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
@@ -237,11 +244,7 @@ class Facets extends Feature {
 			return false;
 		}
 
-		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
-			|| $query->is_post_type_archive()
-			|| $query->is_search()
-			|| ( is_home() && empty( $query->get( 'page_id' ) ) ) )
-		) {
+		if ( ! $this->is_facetable_page( $query ) ) {
 			return false;
 		}
 
@@ -554,5 +557,16 @@ class Facets extends Feature {
 		 * @return  {array} New taxonomies
 		 */
 		return apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+	}
+
+	/**
+	 * Figure out if Facet widget can display on page.
+	 *
+	 * @param  WP_Query $query WP Query
+	 * @since  4.2.1
+	 * @return bool
+	 */
+	protected function is_facetable_page( $query ) {
+		return $query->is_home() || $query->is_search() || $query->is_tax() || $query->is_tag() || $query->is_category() || $query->is_post_type_archive();
 	}
 }

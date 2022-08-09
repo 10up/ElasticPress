@@ -109,7 +109,7 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return preg_match( '#elasticpress\.io#i', get_host() );
+	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
 }
 
 /**
@@ -353,7 +353,9 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				$terms_map[ $term->term_id ] = $term;
 			}
 
-			if ( empty( $term->parent ) || ! term_exists( $term->parent, $term->taxonomy ) ) {
+			$parent_term = get_term( $term->parent, $term->taxonomy );
+
+			if ( empty( $term->parent ) || is_wp_error( $parent_term ) || ! $parent_term ) {
 				$term->level = 0;
 
 				if ( empty( $orderby ) ) {

@@ -56,6 +56,7 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
 		add_filter( 'ep_post_sync_args', [ $this, 'remove_fields_from_password_protected' ], 11, 2 );
 		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
+		add_filter( 'ep_skip_autosave_sync', '__return_false' );
 
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );

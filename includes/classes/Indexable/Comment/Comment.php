@@ -882,18 +882,17 @@ class Comment extends Indexable {
 
 		unset( $all_query_args['number'] );
 		unset( $all_query_args['offset'] );
+		$all_query_args['count'] = true;
 
 		/**
-		 * Filter database arguments for term count query
+		 * Filter database arguments for comment count query
 		 *
 		 * @hook ep_comment_all_query_db_args
 		 * @param  {array} $args Query arguments based to WP_Comment_Query
 		 * @since  3.6.0
 		 * @return {array} New arguments
 		 */
-		$all_query = new WP_Comment_Query( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
-
-		$total_objects = count( $all_query->comments );
+		$total_objects = get_comments( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
 
 		if ( ! empty( $args['offset'] ) ) {
 			if ( (int) $args['offset'] >= $total_objects ) {

@@ -158,37 +158,7 @@ Cypress.Commands.add('publishPost', (postData) => {
 });
 
 Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
-	const features = {
-		search: {
-			active: 1,
-			highlight_enabled: true,
-			highlight_excerpt: true,
-			highlight_tag: 'mark',
-			highlight_color: '#157d84',
-		},
-		related_posts: {
-			active: 1,
-		},
-		facets: {
-			active: 1,
-		},
-		searchordering: {
-			active: 1,
-		},
-		autosuggest: {
-			active: 1,
-		},
-		woocommerce: {
-			active: 0,
-		},
-		protected_content: {
-			active: 0,
-		},
-		users: {
-			active: 0,
-		},
-		...newFeaturesValues,
-	};
+	const features = Object.assign({}, cy.elasticPress.defaultFeatures, ...newFeaturesValues);
 
 	const escapedFeatures = JSON.stringify(features);
 
@@ -318,4 +288,32 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 		command += ' --network';
 	}
 	cy.wpCli(command);
+});
+
+Cypress.Commands.add('createAutosavePost', (postData) => {
+	cy.activatePlugin('shorten-autosave', 'wpCli');
+	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+
+	cy.visitAdminPage('post-new.php');
+	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+	cy.get('body').then(($body) => {
+		const welcomeGuide = $body.find(
+			'.edit-post-welcome-guide .components-modal__header button',
+		);
+		cy.log(welcomeGuide);
+		if (welcomeGuide.length) {
+			welcomeGuide.click();
+		}
+	});
+
+	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
+	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+
+	/**
+	 * Wait for autosave to complete.
+	 *
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(5000);
+	cy.deactivatePlugin('shorten-autosave', 'wpCli');
 });
