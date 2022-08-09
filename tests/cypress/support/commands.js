@@ -352,3 +352,31 @@ Cypress.Commands.add('emptyWidgets', () => {
 		}
 	});
 });
+
+Cypress.Commands.add('createAutosavePost', (postData) => {
+	cy.activatePlugin('shorten-autosave', 'wpCli');
+	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+
+	cy.visitAdminPage('post-new.php');
+	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+	cy.get('body').then(($body) => {
+		const welcomeGuide = $body.find(
+			'.edit-post-welcome-guide .components-modal__header button',
+		);
+		cy.log(welcomeGuide);
+		if (welcomeGuide.length) {
+			welcomeGuide.click();
+		}
+	});
+
+	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
+	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+
+	/**
+	 * Wait for autosave to complete.
+	 *
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(5000);
+	cy.deactivatePlugin('shorten-autosave', 'wpCli');
+});
