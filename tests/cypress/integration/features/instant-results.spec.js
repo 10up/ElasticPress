@@ -91,7 +91,7 @@ describe('Instant Results Feature', () => {
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('test');
 		cy.get('.wp-block-search__button').click();
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'test');
 	});
 
 	it('Can click outside when instant results are shown', () => {
