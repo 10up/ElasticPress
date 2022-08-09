@@ -300,3 +300,55 @@ Cypress.Commands.add('getBlocksList', () => {
 Cypress.Commands.add('insertBlock', (blockName) => {
 	cy.get('.block-editor-block-types-list__item').contains(blockName).click();
 });
+
+Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
+	cy.wpCli('wp plugin activate classic-widgets');
+	cy.openWidgetsPage();
+	cy.intercept('/wp-admin/admin-ajax.php').as('adminAjax');
+
+	/**
+	 * Find and add the widget to the first widget area.
+	 */
+	cy.get(`#widget-list [id$="${widgetId}-__i__"]`)
+		.click('top')
+		.within(() => {
+			cy.get('.widgets-chooser-add').click();
+		})
+		.wait('@adminAjax');
+
+	/**
+	 * Set widget settings and save.
+	 */
+	cy.get(`#widgets-right .widget[id*="${widgetId}"]`)
+		.last()
+		.within(() => {
+			for (const setting of settings) {
+				cy.get(`[name$="[${setting.name}]"]`).as('control');
+
+				switch (setting.type) {
+					case 'select':
+						cy.get('@control').select(setting.value);
+						break;
+					case 'checkbox':
+					case 'radio':
+						cy.get('@control').check(setting.value);
+						break;
+					default:
+						cy.get('@control').clearThenType(setting.value);
+						break;
+				}
+			}
+
+			cy.get('input[type="submit"]').click();
+		})
+		.wait('@adminAjax');
+});
+
+Cypress.Commands.add('emptyWidgets', () => {
+	cy.wpCli('widget reset --all');
+	cy.wpCli('widget list wp_inactive_widgets --format=ids').then((wpCliResponse) => {
+		if (wpCliResponse.stdout) {
+			cy.wpCli(`widget delete ${wpCliResponse.stdout}`);
+		}
+	});
+});

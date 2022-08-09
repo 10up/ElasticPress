@@ -1,13 +1,33 @@
 describe('Related Posts Feature', () => {
 	/**
+	 * Ensure the feature is active and ensure Classic Widgets is installed
+	 * before running tests.
+	 */
+	before(() => {
+		cy.maybeEnableFeature('related_posts');
+		cy.wpCli('wp plugin install classic-widgets');
+	});
+
+	/**
+	 * Delete all widgets, ensure Classic Widgets is deactivated, and remove
+	 * test posts before each test.
+	 */
+	beforeEach(() => {
+		cy.emptyWidgets();
+		cy.wpCli('plugin deactivate classic-widgets');
+		cy.wpCli('post list --s="Test related posts" --ep_integrate=false --format=ids').then(
+			(wpCliResponse) => {
+				if (wpCliResponse.stdout) {
+					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
+				}
+			},
+		);
+	});
+
+	/**
 	 * Test that the Related Posts block is functional.
 	 */
-	it('Related Posts block is functional', () => {
-		/**
-		 * Enable the feature.
-		 */
-		cy.maybeEnableFeature('related_posts');
-
+	it('Related Posts block', () => {
 		/**
 		 * Create some posts that will be related.
 		 */
@@ -26,29 +46,44 @@ describe('Related Posts Feature', () => {
 		cy.insertBlock('Related Posts (ElasticPress)');
 
 		/**
-		 * Check that the block is inserted into the editor, and contains the
+		 * Verify that the block is inserted into the editor, and contains the
 		 * expected content.
 		 */
-		cy.get(`.block-editor-block-list__layout .wp-block-elasticpress-related-posts`)
-			.should('exist')
-			.should('contain.text', 'Test related posts block #1')
-			.click();
+		cy.get('.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('@block')
+			.find('li')
+			.should('contain', 'Test related posts block #')
+			.should('have.length', 5);
 
 		/**
-		 * Check that the number control works.
+		 * Set the block to display 2 related posts.
 		 */
+		cy.get('@block').click();
 		cy.openBlockSettingsSidebar();
 		cy.get('input[type="number"][aria-label="Number of items"]').clearThenType('2');
-		cy.get(`.wp-block-elasticpress-related-posts li`).should('have.length', 2);
 
 		/**
-		 * Check that the block is rendered on the front-end, and contains
-		 * the expected content.
+		 * Verify the block has the expected output in the editor based on the
+		 * block's settings.
+		 */
+		cy.get('@block')
+			.find('li')
+			.should('contain', 'Test related posts block #')
+			.should('have.length', 2);
+
+		/**
+		 * Update the post and visit the front end.
 		 */
 		cy.get('.editor-post-publish-button__button').click();
 		cy.get('.components-snackbar__action').click();
-		cy.get('.wp-block-elasticpress-related-posts li')
-			.should('exist')
+
+		/**
+		 * Verify the block has the expected output on the front-end based on the
+		 * block's settings.
+		 */
+		cy.get('.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('@block')
+			.find('li')
 			.should('contain', 'Test related posts block #')
 			.should('have.length', 2);
 	});
@@ -57,46 +92,20 @@ describe('Related Posts Feature', () => {
 	 * Test that the Related Posts widget is functional and can be transformed
 	 * into the Related Posts block.
 	 */
-	it('Related Posts widget is functional', () => {
+	it('Related Posts widget', () => {
 		/**
-		 * Enable the feature.
+		 * Add the legacy widget.
 		 */
-		cy.maybeEnableFeature('related_posts');
-
-		/**
-		 * Clear any existing widgets.
-		 */
-		cy.wpCli('widget reset --all');
-
-		/**
-		 * Visit the classic Widgets screen.
-		 */
-		cy.wpCli('wp plugin install classic-widgets --activate');
-		cy.openWidgetsPage();
-
-		/**
-		 * Find and add the widget to the first widget area.
-		 */
-		cy.intercept('/wp-admin/admin-ajax.php').as('adminAjax');
-
-		cy.get(`#widget-list [id$="ep-related-posts-__i__"]`)
-			.click('top')
-			.within(() => {
-				cy.get('.widgets-chooser-add').click();
-			});
-
-		cy.wait('@adminAjax');
-
-		/**
-		 * Add a title, set the post count, and save.
-		 */
-		cy.get(`#widgets-right [id*="ep-related-posts"]`).within(() => {
-			cy.get('input[name$="[title]"]').clearThenType('My related posts');
-			cy.get('input[name$="[num_posts]"]').clearThenType('2');
-			cy.get('input[type="submit"]').click();
-		});
-
-		cy.wait('@adminAjax');
+		cy.createClassicWidget('ep-related-posts', [
+			{
+				name: 'title',
+				value: 'My related posts widget',
+			},
+			{
+				name: 'num_posts',
+				value: '2',
+			},
+		]);
 
 		/**
 		 * Create some posts that will be related and view the last post.
@@ -114,18 +123,15 @@ describe('Related Posts Feature', () => {
 		}
 
 		/**
-		 * When viewing the last post the widget should be visible and contain
-		 * the correct title and number of posts.
+		 * Verify the widget has the expected output on the front-end based on
+		 * the widget's settings.
 		 */
-		cy.get(`[id^="ep-related-posts"]`)
-			.should('be.visible')
-			.should('contain.text', 'My related posts')
-			.within(() => {
-				cy.get('li')
-					.should('exist')
-					.should('contain', 'Test related posts widget #')
-					.should('have.length', 2);
-			});
+		cy.get(`[id^="ep-related-posts"]`).first().as('widget');
+		cy.get('@widget')
+			.should('contain.text', 'My related posts widget')
+			.find('li')
+			.should('contain', 'Test related posts widget #')
+			.should('have.length', 2);
 
 		/**
 		 * Visit the block-based Widgets screen.
@@ -137,53 +143,28 @@ describe('Related Posts Feature', () => {
 		 * Check that the widget is inserted in to the editor as a Legacy
 		 * Widget block.
 		 */
-		cy.get(`.block-editor-block-list__layout .wp-block-legacy-widget`)
-			.should('exist')
-			.should('contain.text', 'ElasticPress - Related Posts')
-			.first()
-			.click();
+		cy.get(`.wp-block-legacy-widget`).first().as('widget');
+		cy.get('@widget').should('contain.text', 'ElasticPress - Related Posts');
 
 		/**
 		 * Transform the legacywidget into the block.
 		 */
+		cy.get('@widget').click();
 		cy.get('.block-editor-block-switcher button').click();
 		cy.get(
 			'.block-editor-block-switcher__popover .editor-block-list-item-elasticpress-related-posts',
 		).click();
 
 		/**
-		 * Check that the widget has been transformed into the correct blocks
-		 * and that their content matches the widget's settings.
+		 * Check that the widget has been transformed into the correct blocks.
 		 */
-		cy.get(`.block-editor-block-list__layout .wp-block-heading`)
-			.should('exist')
-			.should('contain.text', 'My related posts');
-
-		cy.get(`.block-editor-block-list__layout .wp-block-elasticpress-related-posts li`)
-			.should('exist')
-			.should('contain.text', 'Test related posts widget #')
-			.should('have.length', 2);
-
-		cy.get('.edit-widgets-header__actions button').contains('Update').click();
+		cy.get(`.wp-block-heading`).contains('My related posts widget').should('exist');
+		cy.get('.wp-block-elasticpress-related-posts').should('exist').first().as('block');
 
 		/**
-		 * Create a new post and view it.
+		 * Check that the block's settings match the widget's.
 		 */
-		cy.publishPost(
-			{
-				title: 'Test related posts widget #5',
-				content: 'Inceptos tristique class ac eleifend leo.',
-			},
-			true,
-		);
-
-		/**
-		 * Confirm that the transformed block is rendered on the front-end,
-		 * and contains the expected content.
-		 */
-		cy.get('.wp-block-elasticpress-related-posts li')
-			.should('exist')
-			.should('contain', 'Test related posts widget #')
-			.should('have.length', 2);
+		cy.get('@block').click();
+		cy.get('input[type="number"][aria-label="Number of items"]').should('have.value', '2');
 	});
 });
