@@ -35,6 +35,48 @@ describe('Dashboard Sync', () => {
 		}
 	});
 
+	it('Should only display a single sync option for the initial sync', () => {
+		/**
+		 * Reset settings and skip install.
+		 */
+		cy.wpCli('elasticpress settings-reset --yes');
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.get('.setup-message a').contains('Skip Install').click();
+
+		/**
+		 * If a sync has not been performed the sync page should only show a
+		 * single sync panel.
+		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-sync-panel')
+			.should('have.length', 1)
+			.as('syncPanel')
+			.should('contain.text', 'Run a sync to index your existing content');
+
+		/**
+		 * Perform an initial sync.
+		 */
+		cy.get('@syncPanel').find('.ep-sync-button').click();
+		cy.get('.ep-sync-progress__details', {
+			timeout: Cypress.config('elasticPressIndexTimeout'),
+		}).should('contain.text', 'Sync complete');
+
+		/**
+		 * The sync log should indicate that mapping was sent.
+		 */
+		cy.get('@syncPanel').find('.components-form-toggle').click();
+		cy.get('@syncPanel').find('.ep-sync-messages').should('contain.text', 'Mapping sent');
+
+		/**
+		 * After the initial sync is complete there should be 2 sync panels
+		 * and the second should contain the delete & sync option.
+		 */
+		cy.get('.ep-sync-panel')
+			.should('have.length', 2)
+			.last()
+			.should('contain.text', 'If you are still having issues with your search results');
+	});
+
 	it('Can index content and see indexes names in the Health Screen', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.get('.ep-sync-button--delete').click();
