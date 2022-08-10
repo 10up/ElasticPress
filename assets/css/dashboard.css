@@ -47,6 +47,16 @@ html.wp-toolbar {
 	width: 100%;
 }
 
+.elasticpress_page_elasticpress-settings #wpbody {
+	overflow-x: hidden;
+
+	& #update-nag,
+	& .update-nag,
+	& .ep-header-menu {
+		margin-left: 0;
+	}
+}
+
 h2.ep-list-features {
 	display: none;
 }
