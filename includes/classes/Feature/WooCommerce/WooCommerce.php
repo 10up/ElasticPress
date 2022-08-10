@@ -824,10 +824,6 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
-
-		if ( is_admin() ) {
-			add_filter( 'ep_woocommerce_integration', '__return_true' );
-		}
 	}
 
 	/**
