@@ -1117,9 +1117,12 @@ class WooCommerce extends Feature {
 		 * @param  {WP_Query} $query WP Query to evaluate
 		 * @return  {bool} New skip value
 		 */
-		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) ) {
+		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return false;
+		}
+
+		if ( isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return true;
 		}
 
 		if ( ! Utils\is_integrated_request( $this->slug ) ) {

@@ -75,9 +75,6 @@ class TestWooCommerce extends BaseTestCase {
 
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
-		// Pretend that we've enabled the WooCommerce integration.
-		add_filter( 'ep_woocommerce_integration', '__return_true' );
-
 		$args = array(
 			'post_type'    => 'product',
 			'ep_integrate' => true,
@@ -108,9 +105,6 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
-		// Pretend that we've enabled the WooCommerce integration.
-		add_filter( 'ep_woocommerce_integration', '__return_true' );
 
 		$args = array(
 			'ep_integrate' => true,
