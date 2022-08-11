@@ -1,4 +1,27 @@
 describe('Terms Feature', () => {
+	const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing'];
+
+	after(() => {
+		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
+
+		/**
+		 * Delete all tags
+		 *
+		 * @todo Instead of looping through each tag, we would select all tags and delete them once the dummy data is removed.
+		 */
+		tags.forEach((tag) => {
+			cy.get('#tag-search-input').clear().type(tag);
+			cy.get('#search-submit')
+				.click()
+				.then(() => {
+					cy.get('.wp-list-table tbody tr')
+						.first()
+						.find('.row-actions .delete a')
+						.click({ force: true });
+				});
+		});
+	});
+
 	it('Can turn the feature on', () => {
 		cy.login();
 
@@ -82,7 +105,6 @@ describe('Terms Feature', () => {
 
 		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
 
-		const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing'];
 		// create tags.
 		tags.forEach((tag) => {
 			cy.createTaxonomy({ name: tag, taxonomy: 'post_tag' });
@@ -97,22 +119,9 @@ describe('Terms Feature', () => {
 		cy.get(
 			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
 		).should('contain.text', 'The Most Fun Thing');
-
-		// delete the tags.
-		tags.forEach((tag) => {
-			cy.get('#tag-search-input').clear().type(tag);
-			cy.get('#search-submit')
-				.click()
-				.then(() => {
-					cy.get('.wp-list-table tbody tr')
-						.first()
-						.find('.row-actions .delete a')
-						.click({ force: true });
-				});
-		});
 	});
 
-	it('can update a child term when a parent term is deleted', () => {
+	it('Can update a child term when a parent term is deleted', () => {
 		cy.login();
 		cy.maybeEnableFeature('terms');
 
