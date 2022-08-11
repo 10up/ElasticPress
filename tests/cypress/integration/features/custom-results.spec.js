@@ -32,7 +32,7 @@ describe('Custom Results', () => {
 			'.pointers .pointer:first-of-type .dashicons-menu',
 			'.pointers .pointer:last-of-type .dashicons-menu',
 		).then(() => {
-			// save the posts pointer in a list
+			// save the posts positions in a list
 			cy.get('.pointers .pointer .title').each((post) => {
 				cy.wrap(post)
 					.invoke('text')
@@ -51,7 +51,7 @@ describe('Custom Results', () => {
 
 	it('Can include the new post in search result and verify the result on search', () => {
 		const searchResult = [];
-		const searchTerm = 'Content';
+		const searchTerm = 'Custom Page';
 
 		cy.visitAdminPage('post-new.php?post_type=ep-pointer');
 		cy.intercept('GET', 'wp-json/elasticpress/v1/pointer_preview*').as('ajaxRequest');
@@ -67,13 +67,17 @@ describe('Custom Results', () => {
 
 		// add the post to the search result.
 		cy.get('.pointer-result:first-of-type .dashicons-plus.add-pointer').click();
+
+		// save the posts positions in a list
 		cy.get('.pointers .pointer .title').each((post) => {
 			cy.wrap(post)
 				.invoke('text')
 				.then((text) => searchResult.push(text));
 		});
 
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('#publish').click();
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.visit(`?s=${searchTerm}`);
 
