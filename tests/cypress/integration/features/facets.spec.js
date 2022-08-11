@@ -1,7 +1,7 @@
 describe('Facets Feature', () => {
 	/**
-	 * Ensure the feature is active, perform an index, and ensure Classic
-	 * Widgets is installed before running tests.
+	 * Ensure the feature is active, perform an index, and remove test posts
+	 * before running tests.
 	 */
 	before(() => {
 		cy.maybeEnableFeature('facets');
@@ -27,7 +27,7 @@ describe('Facets Feature', () => {
 	/**
 	 * Test that the Related Posts block is functional.
 	 */
-	it('Facet block', () => {
+	it('Can insert, configure, and use the Facet block', () => {
 		/**
 		 * Insert two Facets blocks.
 		 */
@@ -152,7 +152,7 @@ describe('Facets Feature', () => {
 	 * Test that the Facet widget is functional and can be transformed into the
 	 * Facet block.
 	 */
-	it('Facet widget', () => {
+	it('Can insert, configure, use, and transform the legacy Facet widget', () => {
 		/**
 		 * Add the legacy widget.
 		 */

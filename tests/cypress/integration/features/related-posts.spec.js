@@ -26,7 +26,7 @@ describe('Related Posts Feature', () => {
 	/**
 	 * Test that the Related Posts block is functional.
 	 */
-	it('Related Posts block', () => {
+	it('Can insert, configure, and use the Related Posts block', () => {
 		/**
 		 * Create some posts that will be related.
 		 */
@@ -91,7 +91,7 @@ describe('Related Posts Feature', () => {
 	 * Test that the Related Posts widget is functional and can be transformed
 	 * into the Related Posts block.
 	 */
-	it('Related Posts widget', () => {
+	it('Can insert, configure, use, and transform the legacy Related Posts widget', () => {
 		/**
 		 * Add the legacy widget.
 		 */
