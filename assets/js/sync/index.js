@@ -483,7 +483,7 @@ const App = () => {
 		 */
 		if (autoIndex) {
 			startSync(true);
-			logMessage(__('Starting sync…', 'elasticpress'), 'info');
+			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 		}
 	};
 
