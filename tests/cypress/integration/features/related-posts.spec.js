@@ -5,7 +5,6 @@ describe('Related Posts Feature', () => {
 	 */
 	before(() => {
 		cy.maybeEnableFeature('related_posts');
-		cy.wpCli('wp plugin install classic-widgets');
 	});
 
 	/**
@@ -14,7 +13,7 @@ describe('Related Posts Feature', () => {
 	 */
 	beforeEach(() => {
 		cy.emptyWidgets();
-		cy.wpCli('plugin deactivate classic-widgets');
+		cy.deactivatePlugin('classic-widgets', 'wpCli');
 		cy.wpCli('post list --s="Test related posts" --ep_integrate=false --format=ids').then(
 			(wpCliResponse) => {
 				if (wpCliResponse.stdout) {
@@ -96,6 +95,7 @@ describe('Related Posts Feature', () => {
 		/**
 		 * Add the legacy widget.
 		 */
+		cy.activatePlugin('classic-widgets', 'wpCli');
 		cy.createClassicWidget('ep-related-posts', [
 			{
 				name: 'title',
@@ -136,7 +136,7 @@ describe('Related Posts Feature', () => {
 		/**
 		 * Visit the block-based Widgets screen.
 		 */
-		cy.wpCli('wp plugin deactivate classic-widgets');
+		cy.deactivatePlugin('classic-widgets', 'wpCli');
 		cy.openWidgetsPage();
 
 		/**

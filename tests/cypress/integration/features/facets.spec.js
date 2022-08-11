@@ -6,7 +6,6 @@ describe('Facets Feature', () => {
 	before(() => {
 		cy.maybeEnableFeature('facets');
 		cy.wpCli('elasticpress index --setup --yes');
-		cy.wpCli('plugin install classic-widgets');
 		cy.wpCli('post list --s="A new" --ep_integrate=false --format=ids').then(
 			(wpCliResponse) => {
 				if (wpCliResponse.stdout) {
@@ -22,7 +21,7 @@ describe('Facets Feature', () => {
 	 */
 	beforeEach(() => {
 		cy.emptyWidgets();
-		cy.wpCli('plugin deactivate classic-widgets');
+		cy.deactivatePlugin('classic-widgets', 'wpCli');
 	});
 
 	/**
@@ -157,6 +156,7 @@ describe('Facets Feature', () => {
 		/**
 		 * Add the legacy widget.
 		 */
+		cy.activatePlugin('classic-widgets', 'wpCli');
 		cy.createClassicWidget('ep-facet', [
 			{
 				name: 'title',
@@ -191,7 +191,7 @@ describe('Facets Feature', () => {
 		/**
 		 * Visit the block-based widgets screen.
 		 */
-		cy.wpCli('wp plugin deactivate classic-widgets');
+		cy.deactivatePlugin('classic-widgets', 'wpCli');
 		cy.openWidgetsPage();
 
 		/**

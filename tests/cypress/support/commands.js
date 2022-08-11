@@ -302,7 +302,6 @@ Cypress.Commands.add('insertBlock', (blockName) => {
 });
 
 Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
-	cy.wpCli('wp plugin activate classic-widgets');
 	cy.openWidgetsPage();
 	cy.intercept('/wp-admin/admin-ajax.php').as('adminAjax');
 
