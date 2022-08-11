@@ -57,15 +57,19 @@ describe('Dashboard Sync', () => {
 		 * Perform an initial sync.
 		 */
 		cy.get('@syncPanel').find('.ep-sync-button').click();
-		cy.get('.ep-sync-progress__details', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
 
 		/**
-		 * The sync log should indicate that mapping was sent.
+		 * The sync log should indicate that the sync completed and that
+		 * mapping was sent.
 		 */
+		const timeout = Cypress.config('elasticPressIndexTimeout');
+
+		cy.get('.ep-sync-panel').last().as('syncPanel');
 		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel').find('.ep-sync-messages').should('contain.text', 'Mapping sent');
+		cy.get('@syncPanel')
+			.find('.ep-sync-messages', { timeout })
+			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete');
 
 		/**
 		 * After the initial sync is complete there should be 2 sync panels
