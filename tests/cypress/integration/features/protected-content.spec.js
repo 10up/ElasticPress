@@ -10,12 +10,10 @@ describe('Protected Content Feature', () => {
 			return true;
 		});
 
-		const timeout = Cypress.config('elasticPressIndexTimeout');
-
 		cy.get('.ep-sync-panel').last().as('syncPanel');
 		cy.get('@syncPanel').find('.components-form-toggle').click();
 		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout })
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
