@@ -123,6 +123,8 @@ describe('WP-CLI Commands', () => {
 				.its('stdout')
 				.should('contain', 'Index command with --static-bulk flag completed')
 				.should('contain', 'Done');
+
+			cy.deactivatePlugin('fake-log-messages');
 		});
 	});
 
