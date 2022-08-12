@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# cat ./bin/2022-02-15-12-49.sql | npm run env run tests-cli "wp db import -"
+# cat ./bin/2022-02-15-12-49.sql | ./bin/wp-env-cli tests-wordpress "wp --allow-root db import -"
 
 EP_HOST=""
 ES_SHIELD=""
@@ -49,43 +49,43 @@ if [ -z $EP_HOST ]; then
 		EP_HOST="http://172.17.0.1:8890/"
 	fi
 fi
-npm run env run tests-cli "wp config set EP_HOST ${EP_HOST}"
+./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_HOST ${EP_HOST}"
 
 if [ ! -z $ES_SHIELD ]; then
-	npm run env run tests-cli "wp config set ES_SHIELD ${ES_SHIELD}"
+	./bin/wp-env-cli tests-wordpress "wp --allow-root config set ES_SHIELD ${ES_SHIELD}"
 fi
 
 if [ ! -z $EP_INDEX_PREFIX ]; then
-	npm run env run tests-cli "wp config set EP_INDEX_PREFIX ${EP_INDEX_PREFIX}"
+	./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_INDEX_PREFIX ${EP_INDEX_PREFIX}"
 fi
 
-npm run env run tests-cli "wp core multisite-convert"
+./bin/wp-env-cli tests-wordpress "wp --allow-root core multisite-convert"
 
-SITES_COUNT=$(npm --silent run env run tests-cli "wp site list --format=count")
+SITES_COUNT=$(./bin/wp-env-cli tests-wordpress "wp --allow-root site list --format=count")
 if [ $SITES_COUNT -eq 1 ]; then
-	npm run env run tests-cli "wp site create --slug=second-site --title='Second Site'"
-	npm --silent run env run tests-cli "wp search-replace localhost/ localhost:8889/ --all-tables"
+	./bin/wp-env-cli tests-wordpress "wp --allow-root site create --slug=second-site --title='Second Site'"
+	./bin/wp-env-cli tests-wordpress "wp --allow-root search-replace localhost/ localhost:8889/ --all-tables"
 fi
 
 # Not sure why, wp-env makes it http://localhost:8889/:8889 (not related to the command above)
-npm run env run tests-cli "option set home 'http://localhost:8889'"
-npm run env run tests-cli "option set siteurl 'http://localhost:8889'"
+./bin/wp-env-cli tests-wordpress "wp --allow-root option set home 'http://localhost:8889'"
+./bin/wp-env-cli tests-wordpress "wp --allow-root option set siteurl 'http://localhost:8889'"
 
-npm run env run tests-cli "wp theme enable twentytwentyone --network --activate"
+./bin/wp-env-cli tests-wordpress "wp --allow-root theme enable twentytwentyone --network --activate"
 
-npm run env run tests-cli "wp import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
+./bin/wp-env-cli tests-wordpress "wp --allow-root import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
 
-npm run env run tests-cli "wp plugin deactivate woocommerce"
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate woocommerce"
 
-npm run env run tests-cli "wp plugin activate debug-bar debug-bar-elasticpress wordpress-importer --network"
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate debug-bar debug-bar-elasticpress wordpress-importer --network"
 
-npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME}"
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME}"
 
-npm run env run tests-cli "wp elasticpress index --setup --yes --show-errors"
+./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress index --setup --yes --show-errors"
 
-npm run env run tests-cli "wp option set posts_per_page 5"
-npm run env run tests-cli "wp user meta update admin edit_post_per_page 5"
+./bin/wp-env-cli tests-wordpress "wp --allow-root option set posts_per_page 5"
+./bin/wp-env-cli tests-wordpress "wp --allow-root user meta update admin edit_post_per_page 5"
 
 # Generate a SQL file that can be imported later to make things faster
 SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
-npm --silent run env run tests-cli "wp db export -" > $SQL_FILENAME
+./bin/wp-env-cli tests-wordpress tests-cli "wp db export -" > $SQL_FILENAME
