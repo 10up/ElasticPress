@@ -70,14 +70,11 @@ jobs:
         restore-keys: |
           composer-${{ env.COMPOSER_VERSION }}-
 
-    - name: Set PHP version
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '7.2'
-        coverage: none
-
     - name: composer install
       run: composer install
 
     - name: PHPCS check
-      run: composer run lint
+      uses: chekalsky/phpcs-action@v1
+      with:
+        enable_warnings: true
+        phpcs_bin_path: './vendor/bin/phpcs elasticpress.php includes --runtime-set testVersion 7.0-'
