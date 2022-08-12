@@ -93,7 +93,9 @@ jobs:
       run: npm ci --include=dev
 
     - name: Set up WP environment
-      run: npm run env start
+      run: |
+        npm run env start
+        npm run env:install-tests-cli
 
     - name: Build asset
       run: npm run build
