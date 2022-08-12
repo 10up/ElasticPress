@@ -103,6 +103,11 @@ const App = () => {
 				lastSyncDateTime: indexTotals.end_date_time,
 				lastSyncFailed: indexTotals.failed > 0,
 			});
+
+			/**
+			 * Hide the "just need to sync" notice, if it's present.
+			 */
+			document.querySelector('[data-ep-notice="no_sync"]')?.remove();
 		},
 		[],
 	);
@@ -182,10 +187,17 @@ const App = () => {
 		 * @returns {void}
 		 */
 		(indexMeta) => {
+			const isInitialSync = stateRef.current.lastSyncDateTime === null;
+
+			/**
+			 * We should not appear to be deleting if this is the first sync.
+			 */
+			const isDeleting = isInitialSync ? false : indexMeta.put_mapping;
+
 			updateState({
 				isCli: indexMeta.method === 'cli',
 				isComplete: false,
-				isDeleting: indexMeta.put_mapping,
+				isDeleting,
 				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
@@ -280,13 +292,13 @@ const App = () => {
 
 	const doIndex = useCallback(
 		/**
-		 * Start or continues a sync.
+		 * Start or continue a sync.
 		 *
-		 * @param {boolean} isDeleting Whether to delete and sync.
+		 * @param {boolean} putMapping Whether to send mapping.
 		 * @returns {void}
 		 */
-		(isDeleting) => {
-			index(isDeleting)
+		(putMapping) => {
+			index(putMapping)
 				.then(updateSyncState)
 				.then(
 					/**
@@ -299,7 +311,7 @@ const App = () => {
 						if (method === 'cli') {
 							doIndexStatus();
 						} else {
-							doIndex(isDeleting);
+							doIndex(putMapping);
 						}
 					},
 				)
@@ -340,23 +352,46 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
+			const { isDeleting, lastSyncDateTime } = stateRef.current;
+			const isInitialSync = lastSyncDateTime === null;
+
+			/**
+			 * Send mapping if we are deleting and syncing or if this is the
+			 * first sync.
+			 */
+			const putMapping = isInitialSync || isDeleting;
+
 			updateState({ isComplete: false, isPaused: false, isSyncing: true });
-			doIndex(stateRef.current.isDeleting);
+			doIndex(putMapping);
 		},
 		[doIndex],
 	);
 
 	const startSync = useCallback(
 		/**
-		 * Stop syncing.
+		 * Start syncing.
 		 *
-		 * @param {boolean} isDeleting Whether to delete and sync.
+		 * @param {boolean} deleteAndSync Whether to delete and sync.
 		 * @returns {void}
 		 */
-		(isDeleting) => {
+		(deleteAndSync) => {
+			const { lastSyncDateTime } = stateRef.current;
+			const isInitialSync = lastSyncDateTime === null;
+
+			/**
+			 * We should not appear to be deleting if this is the first sync.
+			 */
+			const isDeleting = isInitialSync ? false : deleteAndSync;
+
+			/**
+			 * Send mapping if we are deleting and syncing or if this is the
+			 * first sync.
+			 */
+			const putMapping = isInitialSync || deleteAndSync;
+
 			updateState({ isComplete: false, isDeleting, isPaused: false, isSyncing: true });
 			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
-			doIndex(isDeleting);
+			doIndex(putMapping);
 		},
 		[doIndex],
 	);
@@ -462,6 +497,7 @@ const App = () => {
 	 */
 	return (
 		<SyncPage
+			isEpio={isEpio}
 			log={log}
 			onDelete={onDelete}
 			onPause={onPause}
