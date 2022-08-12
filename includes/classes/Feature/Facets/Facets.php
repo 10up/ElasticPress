@@ -68,6 +68,7 @@ class Facets extends Feature {
 		}
 
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
@@ -486,6 +487,22 @@ class Facets extends Feature {
 	 */
 	public function register_widgets() {
 		register_widget( __NAMESPACE__ . '\Widget' );
+	}
+
+	/**
+	 * Hide the legacy widget.
+	 *
+	 * Hides the legacy widget in favor of the Block when the block editor
+	 * is in use and the legacy widget has not been used.
+	 *
+	 * @since 4.3
+	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @return array array of excluded widget-type IDs to hide.
+	 */
+	public function hide_legacy_widget( $widgets ) {
+		$widgets[] = 'ep-facet';
+
+		return $widgets;
 	}
 
 	/**
