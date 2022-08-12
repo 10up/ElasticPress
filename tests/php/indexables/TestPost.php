@@ -4459,10 +4459,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -4480,10 +4493,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
