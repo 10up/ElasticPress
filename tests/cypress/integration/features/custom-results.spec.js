@@ -19,7 +19,7 @@ describe('Custom Results', () => {
 		cy.visitAdminPage('edit.php');
 		cy.get('#post-search-input').type(`${testPost}{enter}`);
 
-		// element doesn't exist where there are no custom results
+		// element doesn't exist when there are no post.
 		cy.get('body').then(($body) => {
 			if ($body.find('#the-list .has-row-actions').length > 0) {
 				cy.get('#cb-select-all-1').click();
