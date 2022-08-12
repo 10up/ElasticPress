@@ -119,5 +119,5 @@ jobs:
       if: always()
       run: |
         PLUGIN_NAME=$(basename "$PWD")
-        npm run env run tests-cli "wp plugin activate ${PLUGIN_NAME} --network"
-        npm run env run tests-cli "wp elasticpress-tests delete-all-indices"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress-tests delete-all-indices"
