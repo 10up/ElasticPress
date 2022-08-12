@@ -95,9 +95,11 @@ Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
 	if (ignoreFailures) {
 		options.failOnNonZeroExit = false;
 	}
-	cy.exec(`npm --silent run env run tests-cli "${escapedCommand}"`, options).then((result) => {
-		cy.wrap(result);
-	});
+	cy.exec(`./bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`, options).then(
+		(result) => {
+			cy.wrap(result);
+		},
+	);
 });
 
 Cypress.Commands.add('wpCliEval', (command) => {
@@ -111,7 +113,7 @@ Cypress.Commands.add('wpCliEval', (command) => {
 
 	// which is read from it's proper location in the plugins directory
 	cy.exec(
-		`npm --silent run env run tests-cli "eval-file wp-content/plugins/${pluginName}/${fileName}"`,
+		`./bin/wp-env-cli tests-wordpress "wp --allow-root eval-file wp-content/plugins/${pluginName}/${fileName}"`,
 	).then((result) => {
 		cy.exec(`rm ${fileName}`);
 		cy.wrap(result);
