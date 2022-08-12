@@ -70,6 +70,13 @@ jobs:
         restore-keys: |
           composer-${{ env.COMPOSER_VERSION }}-
 
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        coverage: none
+        tools: composer
+
     - name: composer install
       run: composer install
 
