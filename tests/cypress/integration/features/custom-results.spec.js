@@ -10,26 +10,13 @@ describe('Custom Results', () => {
 			},
 		);
 
-		/**
-		 * Delete the test post if it exists.
-		 *
-		 * @todo Replace with WPCLI when dummy data is removed.
-		 */
-		cy.login();
-		cy.visitAdminPage('edit.php');
-		cy.get('#post-search-input').type(`${testPost}{enter}`);
-
-		// element doesn't exist when there are no post.
-		cy.get('body').then(($body) => {
-			if ($body.find('#the-list .has-row-actions').length > 0) {
-				cy.get('#cb-select-all-1').click();
-				cy.get('#bulk-action-selector-top').select('trash');
-				cy.get('#doaction').click();
-
-				cy.visitAdminPage('edit.php?post_status=trash&post_type=post');
-				cy.get('.tablenav.top #delete_all').click();
-			}
-		});
+		cy.wpCli(`wp post list --s='${testPost}' --ep_integrate='false' --format=ids`, true).then(
+			(wpCliResponse) => {
+				if (wpCliResponse.code === 0) {
+					cy.wpCli(`wp post delete ${wpCliResponse.stdout} --force`, true);
+				}
+			},
+		);
 	});
 
 	it('Can change post position and verify the result on search', () => {
