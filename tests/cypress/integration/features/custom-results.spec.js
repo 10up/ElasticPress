@@ -1,16 +1,32 @@
 describe('Custom Results', () => {
+	const testPost = 'test-post';
+
 	before(() => {
+		cy.wpCli("wp post list --post_type='ep-pointer' --format=ids", true).then(
+			(wpCliResponse) => {
+				if (wpCliResponse.code === 0) {
+					cy.wpCli(`wp post delete ${wpCliResponse.stdout} --force`, true);
+				}
+			},
+		);
+
+		/**
+		 * Delete the test post if it exists.
+		 *
+		 * @todo Replace with WPCLI when dummy data is removed.
+		 */
 		cy.login();
-		cy.visitAdminPage('edit.php?post_type=ep-pointer');
+		cy.visitAdminPage('edit.php');
+		cy.get('#post-search-input').type(`${testPost}{enter}`);
 
 		// element doesn't exist where there are no custom results
 		cy.get('body').then(($body) => {
-			if ($body.find('#bulk-action-selector-top').length > 0) {
+			if ($body.find('#the-list .has-row-actions').length > 0) {
 				cy.get('#cb-select-all-1').click();
 				cy.get('#bulk-action-selector-top').select('trash');
 				cy.get('#doaction').click();
 
-				cy.visitAdminPage('edit.php?post_status=trash&post_type=ep-pointer');
+				cy.visitAdminPage('edit.php?post_status=trash&post_type=post');
 				cy.get('.tablenav.top #delete_all').click();
 			}
 		});
@@ -53,6 +69,10 @@ describe('Custom Results', () => {
 		const searchResult = [];
 		const searchTerm = 'Custom Page';
 
+		cy.publishPost({
+			title: testPost,
+		});
+
 		cy.visitAdminPage('post-new.php?post_type=ep-pointer');
 		cy.intercept('GET', 'wp-json/elasticpress/v1/pointer_preview*').as('ajaxRequest');
 
@@ -62,7 +82,7 @@ describe('Custom Results', () => {
 		cy.intercept('GET', 'wp-json/elasticpress/v1/pointer_search*').as('ajaxRequest');
 
 		// search for the post.
-		cy.get('.search-pointers').type('hello world');
+		cy.get('.search-pointers').type(testPost);
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		// add the post to the search result.
