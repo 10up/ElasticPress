@@ -89,3 +89,5 @@ fi
 # Generate a SQL file that can be imported later to make things faster
 SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
 ./bin/wp-env-cli tests-wordpress tests-cli "wp db export -" > $SQL_FILENAME
+
+exit 0
