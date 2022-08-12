@@ -4,7 +4,7 @@ describe('WooCommerce Feature', () => {
 		email: 'testuser@example.com',
 		password: 'password',
 		firstName: 'John',
-		lastName: 'Cena',
+		lastName: 'Doe',
 		address: '123 Main St',
 		city: 'Culver City',
 		postCode: '90230',

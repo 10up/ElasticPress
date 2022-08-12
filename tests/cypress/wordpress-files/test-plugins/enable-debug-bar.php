@@ -7,4 +7,5 @@
  * License:     GPLv2 or later
  */
 
-add_filter( 'pre_option_ep_last_sync', '__return_empty_array' );
+add_filter( 'debug_bar_enable', '__return_true' );
+add_filter( 'show_admin_bar', '__return_true' );
