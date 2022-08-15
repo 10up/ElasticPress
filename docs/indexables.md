@@ -93,7 +93,13 @@ ElasticPress integrates with `WP_Query` if the `ep_integrate` parameter is passe
         'day'   => 1,
     ) );
     ```
+* ```custom_query``` (*string*)
 
+    ```custom_query``` allows the user to write a custom query in the painless scripting language [https://www.elastic.co/guide/en/elasticsearch/painless/current/index.html](https://www.elastic.co/guide/en/elasticsearch/painless/current/index.html).
+    ```php 
+          $args['custom_query'][] = "doc['meta.birthday'].value.getMonthValue() == 3";
+    ```      
+    
 * ```date_query``` (*array*)
 
     ```date_query``` accepts an array of keys and values (array|string|int) to find posts created on
