@@ -157,6 +157,13 @@ function register_indexable_posts() {
 			new Feature\Terms\Terms()
 		);
 	}
+
+	/**
+	 * Register search algorithms
+	 */
+	SearchAlgorithms::factory()->register( new SearchAlgorithm\DefaultAlgorithm() );
+	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_350() );
+	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_400() );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
