@@ -26,11 +26,9 @@ describe('Terms Feature', () => {
 			return true;
 		});
 
-		cy.get('.ep-sync-progress strong', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		})
-		.should('contain.text', 'Mapping sent')
-		.should('contain.text', 'Sync complete');
+		cy.get('.ep-sync-progress strong', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete');
 
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});
