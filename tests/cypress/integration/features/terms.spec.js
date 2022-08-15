@@ -1,7 +1,7 @@
 describe('Terms Feature', () => {
 	const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing'];
 
-	after(() => {
+	before(() => {
 		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
 
 		/**
@@ -10,15 +10,10 @@ describe('Terms Feature', () => {
 		 * @todo Instead of looping through each tag, we would select all tags and delete them once the dummy data is removed.
 		 */
 		tags.forEach((tag) => {
-			cy.get('#tag-search-input').clear().type(tag);
-			cy.get('#search-submit')
-				.click()
-				.then(() => {
-					cy.get('.wp-list-table tbody tr')
-						.first()
-						.find('.row-actions .delete a')
-						.click({ force: true });
-				});
+			cy.wpCli(
+				`wp term delete post_tag $(wp term get post_tag -s='${tag}' --field=ids)`,
+				true,
+			);
 		});
 	});
 
@@ -45,7 +40,7 @@ describe('Terms Feature', () => {
 		cy.maybeEnableFeature('terms');
 
 		const searchTerm = 'search term';
-		cy.createTaxonomy({ name: searchTerm });
+		cy.createTerm({ name: searchTerm });
 
 		cy.get('#tag-search-input').type(searchTerm);
 		cy.get('#search-submit').click();
@@ -72,7 +67,7 @@ describe('Terms Feature', () => {
 
 		// Create a new term
 		const term = 'amazing term';
-		cy.createTaxonomy({ name: term });
+		cy.createTerm({ name: term });
 
 		// Search for the term
 		cy.get('#tag-search-input').type(term);
@@ -107,7 +102,7 @@ describe('Terms Feature', () => {
 
 		// create tags.
 		tags.forEach((tag) => {
-			cy.createTaxonomy({ name: tag, taxonomy: 'post_tag' });
+			cy.createTerm({ name: tag, taxonomy: 'post_tag' });
 		});
 
 		// search for the tag.
@@ -128,8 +123,8 @@ describe('Terms Feature', () => {
 		const parentTerm = 'bar-parent';
 		const childTerm = 'baz-child';
 
-		cy.createTaxonomy({ name: parentTerm });
-		cy.createTaxonomy({ name: childTerm, parent: parentTerm });
+		cy.createTerm({ name: parentTerm });
+		cy.createTerm({ name: childTerm, parent: parentTerm });
 
 		cy.get('#tag-search-input').type(`${parentTerm}{enter}`);
 
