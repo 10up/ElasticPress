@@ -10,9 +10,12 @@ describe('Protected Content Feature', () => {
 			return true;
 		});
 
-		cy.get('.ep-sync-progress strong', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
+		cy.get('.ep-sync-panel').last().as('syncPanel');
+		cy.get('@syncPanel').find('.components-form-toggle').click();
+		cy.get('@syncPanel')
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete');
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'protected_content');
 	});

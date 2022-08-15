@@ -78,6 +78,7 @@ class Facets extends Feature {
 			$this->types[ $type ]->setup();
 		}
 
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
@@ -403,6 +404,22 @@ class Facets extends Feature {
 	 */
 	public function register_widgets() {
 		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types[ \$type ]->register_widgets()" );
+	}
+
+	/**
+	 * Hide the legacy widget.
+	 *
+	 * Hides the legacy widget in favor of the Block when the block editor
+	 * is in use and the legacy widget has not been used.
+	 *
+	 * @since 4.3
+	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @return array array of excluded widget-type IDs to hide.
+	 */
+	public function hide_legacy_widget( $widgets ) {
+		$widgets[] = 'ep-facet';
+
+		return $widgets;
 	}
 
 	/**
