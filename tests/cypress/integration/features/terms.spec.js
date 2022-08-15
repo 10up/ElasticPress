@@ -5,9 +5,7 @@ describe('Terms Feature', () => {
 		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
 
 		/**
-		 * Delete all tags
-		 *
-		 * @todo Instead of looping through each tag, we would select all tags and delete them once the dummy data is removed.
+		 * Delete all tags.
 		 */
 		tags.forEach((tag) => {
 			cy.wpCli(
@@ -30,7 +28,9 @@ describe('Terms Feature', () => {
 
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
+		})
+		.should('contain.text', 'Mapping sent')
+		.should('contain.text', 'Sync complete');
 
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});

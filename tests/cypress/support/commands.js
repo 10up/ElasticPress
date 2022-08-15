@@ -58,7 +58,7 @@ Cypress.Commands.add('openWidgetsPage', () => {
 	});
 });
 
-Cypress.Commands.add('createTaxonomy', (data) => {
+Cypress.Commands.add('createTerm', (data) => {
 	const { taxonomy, name, parent } = {
 		name: 'Test taxonomy',
 		taxonomy: 'category',
@@ -72,7 +72,10 @@ Cypress.Commands.add('createTaxonomy', (data) => {
 		cy.get('#parent').select(parent);
 	}
 
+	// wait for ajax request to finish.
+	cy.intercept('POST', 'wp-admin/admin-ajax.php*').as('ajaxRequest');
 	cy.get('#tag-name').click().type(`${name}{enter}`);
+	cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 });
 
 Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text, force = false) => {
