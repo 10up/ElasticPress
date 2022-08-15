@@ -221,6 +221,8 @@ class Term extends Indexable {
 		 * Support `slug` query var
 		 */
 		if ( ! empty( $query_vars['slug'] ) ) {
+			$query_vars['slug'] = array_map( 'sanitize_title', $query_vars['slug'] );
+
 			$filter['bool']['must'][] = [
 				'terms' => [
 					'slug.raw' => (array) $query_vars['slug'],
