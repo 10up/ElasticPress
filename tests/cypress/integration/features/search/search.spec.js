@@ -141,4 +141,19 @@ describe('Post Search Feature', () => {
 			);
 		});
 	});
+
+	it('Can update related posts when the term is updated', () => {
+		cy.createTerm({ name: 'test-category' });
+
+		cy.publishPost({
+			title: 'Test Post 1',
+			category: 'test-category',
+		});
+
+		cy.publishPost({
+			title: 'Test Post 2',
+			category: 'test-category',
+		});
+
+	});
 });
