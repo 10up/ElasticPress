@@ -25,7 +25,19 @@ class Block {
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 
-		$this->renderer = new Renderer();
+		/**
+		 * Filter the class name to be used to render the Facet.
+		 *
+		 * @since 4.3.0
+		 * @hook ep_facet_renderer_class
+		 * @param {string} $classname  The name of the class to be instantiated and used as a renderer.
+		 * @param {string} $facet_type The type of the facet.
+		 * @param {string} $context    Context where the renderer will be used: `block` or `widget`, for example.
+		 * @return {string} The name of the class
+		 */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block' );
+
+		$this->renderer = new $renderer_class();
 	}
 
 	/**

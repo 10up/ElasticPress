@@ -28,7 +28,7 @@ class FacetType {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
-		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ] );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
@@ -39,20 +39,13 @@ class FacetType {
 	/**
 	 * If we are doing or matches, we need to remove filters from aggs
 	 *
-	 * @param  array    $args ES arguments
-	 * @param  array    $query_args Query arguments
-	 * @param  WP_Query $query WP Query instance
+	 * @param  array $query_args Query arguments
 	 * @return array
 	 */
-	public function set_agg_filters( $args, $query_args, $query ) {
-		// Not a facetable query
-		if ( empty( $query_args['ep_facet'] ) ) {
-			return $args;
-		}
-
+	public function agg_filters( $query_args ) {
 		// Without taxonomies there is nothing to do here.
 		if ( empty( $query_args['tax_query'] ) ) {
-			return $args;
+			return $query_args;
 		}
 
 		$feature  = Features::factory()->get_registered_feature( 'facets' );
@@ -63,12 +56,10 @@ class FacetType {
 			)
 		);
 
-		$facet_query_args = $query_args;
-
 		if ( 'any' === $settings['match_type'] ) {
-			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
+			foreach ( $query_args['tax_query'] as $key => $taxonomy ) {
 				if ( is_array( $taxonomy ) ) {
-					unset( $facet_query_args['tax_query'][ $key ] );
+					unset( $query_args['tax_query'][ $key ] );
 				}
 			}
 		}
@@ -76,68 +67,10 @@ class FacetType {
 		// @todo For some reason these are appearing in the query args, need to investigate
 		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
 		foreach ( $unwanted_args as $unwanted_arg ) {
-			unset( $facet_query_args[ $unwanted_arg ] );
+			unset( $query_args[ $unwanted_arg ] );
 		}
 
-		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
-		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
-		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
-
-		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
-
-		return $args;
-	}
-
-
-	/**
-	 * Build query url
-	 *
-	 * @param  array $filters Facet filters
-	 * @return string
-	 */
-	public function build_query_url( $filters ) {
-		$query_param = array();
-
-		if ( ! empty( $filters['taxonomies'] ) ) {
-			$tax_filters = $filters['taxonomies'];
-
-			foreach ( $tax_filters as $taxonomy => $filter ) {
-				if ( ! empty( $filter['terms'] ) ) {
-					$query_param[ $this->get_filter_name() . $taxonomy ] = implode( ',', array_keys( $filter['terms'] ) );
-				}
-			}
-		}
-
-		$feature      = Features::factory()->get_registered_feature( 'facets' );
-		$allowed_args = $feature->get_allowed_query_args();
-
-		if ( ! empty( $filters ) ) {
-			foreach ( $filters as $filter => $value ) {
-				if ( ! empty( $value ) && in_array( $filter, $allowed_args, true ) ) {
-					$query_param[ $filter ] = $value;
-				}
-			}
-		}
-
-		$query_string = http_build_query( $query_param );
-
-		/**
-		 * Filter facet query string
-		 *
-		 * @hook ep_facet_query_string
-		 * @param  {string} $query_string Current query string
-		 * @param  {array} $query_param Query parameters
-		 * @return  {string} New query string
-		 */
-		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_param );
-
-		$url        = $_SERVER['REQUEST_URI'];
-		$pagination = strpos( $url, '/page' );
-		if ( false !== $pagination ) {
-			$url = substr( $url, 0, $pagination );
-		}
-
-		return strtok( trailingslashit( $url ), '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
+		return $query_args;
 	}
 
 	/**
@@ -174,7 +107,7 @@ class FacetType {
 		 * Filter the facet filter name that's added to the URL
 		 *
 		 * @hook ep_facet_filter_name
-		 * @since 4.0.0
+		 * @since 4.3.0
 		 * @param   {string} Facet filter name
 		 * @return  {string} New facet filter name
 		 */

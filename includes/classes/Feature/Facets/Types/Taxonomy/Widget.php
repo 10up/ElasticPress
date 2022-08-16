@@ -36,7 +36,10 @@ class Widget extends WP_Widget {
 
 		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
 
-		$this->renderer = new Renderer();
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'widget' );
+
+		$this->renderer = new $renderer_class();
 	}
 
 	/**

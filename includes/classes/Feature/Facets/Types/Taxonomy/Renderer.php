@@ -75,11 +75,7 @@ class Renderer {
 			}
 		}
 
-		$facet_type = $feature->types['taxonomy'];
-
 		$selected_filters = $feature->get_selected();
-
-		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
 
 		/**
 		 * Get all the terms so we know if we should output the widget
@@ -196,7 +192,7 @@ class Renderer {
 							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 							echo $this->get_facet_term_html(
 								$term,
-								$facet_type->build_query_url( $new_filters ),
+								$feature->build_query_url( $new_filters ),
 								true
 							);
 							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -259,7 +255,7 @@ class Renderer {
 								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 								echo $this->get_facet_term_html(
 									$term,
-									$facet_type->build_query_url( $new_filters ),
+									$feature->build_query_url( $new_filters ),
 									$selected
 								);
 								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -288,7 +284,7 @@ class Renderer {
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $this->get_facet_term_html(
 						$term,
-						$facet_type->build_query_url( $new_filters )
+						$feature->build_query_url( $new_filters )
 					);
 					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				endforeach;

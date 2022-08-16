@@ -11,7 +11,6 @@ namespace ElasticPress\Feature\Facets;
 use ElasticPress\Feature as Feature;
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -53,6 +52,26 @@ class Facets extends Feature {
 		$types = [
 			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
 		];
+
+		/**
+		 * Filter the Facet types available.
+		 *
+		 * ```
+		 * add_filter(
+		 *     'ep_facet_types',
+		 *     function ( $types ) {
+		 *         $types['post_type'] = '\MyPlugin\PostType';
+		 *         return $types;
+		 *     }
+		 * );
+		 * ```
+		 *
+		 * @since 4.3.0
+		 * @hook ep_facet_types
+		 * @param {array} $types Array of types available. Keys are slugs, values are class names.
+		 * @return {array} New array of types available
+		 */
+		$types = apply_filters( 'ep_facet_types', $types );
 
 		foreach ( $types as $type => $class ) {
 			$this->types[ $type ] = new $class();
@@ -113,7 +132,10 @@ class Facets extends Feature {
 	}
 
 	/**
-	 * If we are doing or matches, we need to remove filters from aggs
+	 * If we are doing `or` matches, we need to remove filters from aggs.
+	 *
+	 * By default, the same filters applied to the main query are applied to aggregations.
+	 * If doing `or` matches, those should be removed so we get a broader set of results.
 	 *
 	 * @param  array    $args ES arguments
 	 * @param  array    $query_args Query arguments
@@ -127,43 +149,30 @@ class Facets extends Feature {
 			return $args;
 		}
 
-		// Without taxonomies there is nothing to do here.
-		if ( empty( $query_args['tax_query'] ) ) {
-			return $args;
-		}
-
-		$feature  = Features::factory()->get_registered_feature( 'facets' );
-		$settings = wp_parse_args(
-			$feature->get_settings(),
-			array(
-				'match_type' => 'all',
-			)
-		);
-
-		$facet_query_args = $query_args;
-
-		if ( 'any' === $settings['match_type'] ) {
-			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
-				if ( is_array( $taxonomy ) ) {
-					unset( $facet_query_args['tax_query'][ $key ] );
-				}
-			}
-		}
-
-		// @todo For some reason these are appearing in the query args, need to investigate
-		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
-		foreach ( $unwanted_args as $unwanted_arg ) {
-			unset( $facet_query_args[ $unwanted_arg ] );
-		}
+		/**
+		 * Filter WP query arguments that will be used to build the aggregations filter.
+		 *
+		 * The returned `$query_args` will be used to build the aggregations filter passing
+		 * it through `Indexable\Post\Post::format_args()`.
+		 *
+		 * @hook ep_facet_agg_filters
+		 * @since 4.3.0
+		 * @param {array} $query_args Query arguments
+		 * @param {array} $args       ES arguments
+		 * @param {array} $query      WP Query instance
+		 * @return {array} New facets aggregations
+		 */
+		$query_args = apply_filters( 'ep_facet_agg_filters', $query_args, $args, $query );
 
 		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
-		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
+		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_args, $query );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 
 		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
 		return $args;
 	}
+
 	/**
 	 * Output scripts for widget admin
 	 *
@@ -387,14 +396,57 @@ class Facets extends Feature {
 	/**
 	 * Build query url
 	 *
-	 * @since  2.5, deprecated in 4.3.0
+	 * @since  2.5
 	 * @param  array $filters Facet filters
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {
-		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->build_query_url()" );
+		$query_param = array();
 
-		return $this->types['taxonomy']->build_query_url( $filters );
+		foreach ( $this->types as $type_obj ) {
+			$filter_type = $type_obj->get_filter_type();
+
+			if ( ! empty( $filters[ $filter_type ] ) ) {
+				$type_filters = $filters[ $filter_type ];
+
+				foreach ( $type_filters as $facet => $filter ) {
+					if ( ! empty( $filter['terms'] ) ) {
+						$query_param[ $type_obj->get_filter_name() . $facet ] = implode( ',', array_keys( $filter['terms'] ) );
+					}
+				}
+			}
+		}
+
+		$feature      = Features::factory()->get_registered_feature( 'facets' );
+		$allowed_args = $feature->get_allowed_query_args();
+
+		if ( ! empty( $filters ) ) {
+			foreach ( $filters as $filter => $value ) {
+				if ( ! empty( $value ) && in_array( $filter, $allowed_args, true ) ) {
+					$query_param[ $filter ] = $value;
+				}
+			}
+		}
+
+		$query_string = http_build_query( $query_param );
+
+		/**
+		 * Filter facet query string
+		 *
+		 * @hook ep_facet_query_string
+		 * @param  {string} $query_string Current query string
+		 * @param  {array} $query_param Query parameters
+		 * @return  {string} New query string
+		 */
+		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_param );
+
+		$url        = $_SERVER['REQUEST_URI'];
+		$pagination = strpos( $url, '/page' );
+		if ( false !== $pagination ) {
+			$url = substr( $url, 0, $pagination );
+		}
+
+		return strtok( trailingslashit( $url ), '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
 	/**
