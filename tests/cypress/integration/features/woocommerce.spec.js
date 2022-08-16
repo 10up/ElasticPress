@@ -11,10 +11,12 @@ describe('WooCommerce Feature', () => {
 		phoneNumber: '1234567890',
 	};
 
-	before(() => {
+	beforeEach(() => {
 		// delete test user.
 		cy.wpCli(`wp user delete ${userData.username} --yes --network`, true);
+	});
 
+	before(() => {
 		cy.deactivatePlugin('woocommerce', 'wpCli');
 	});
 
