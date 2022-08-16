@@ -27,15 +27,15 @@ describe('Facets Feature', () => {
 	/**
 	 * Test that the Related Posts block is functional.
 	 */
-	it('Can insert, configure, and use the Facet block', () => {
+	it('Can insert, configure, and use the Facet by Taxonomy block', () => {
 		/**
 		 * Insert two Facets blocks.
 		 */
 		cy.openWidgetsPage();
 		cy.openBlockInserter();
-		cy.getBlocksList().should('contain.text', 'Facet (ElasticPress)');
-		cy.insertBlock('Facet (ElasticPress)');
-		cy.insertBlock('Facet (ElasticPress)');
+		cy.getBlocksList().should('contain.text', 'Facet by Taxonomy (ElasticPress)');
+		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
+		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
 		cy.get('.wp-block-elasticpress-facet').last().as('block');
 
 		/**
