@@ -8,4 +8,4 @@
  */
 
 add_filter( 'debug_bar_enable', '__return_true' );
-add_filter( 'show_admin_bar', '__return_true' );
+add_filter( 'show_admin_bar', '__return_true', 99 );

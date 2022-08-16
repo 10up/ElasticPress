@@ -12,12 +12,8 @@ describe('WooCommerce Feature', () => {
 	};
 
 	before(() => {
-		// delete user if exists.
-		cy.wpCli(`wp user get ${userData.username} --field=ID`, true).then((wpCliResponse) => {
-			if (wpCliResponse.code === 0) {
-				cy.wpCli(`wp user delete ${userData.username} --yes --network`);
-			}
-		});
+		// delete test user.
+		cy.wpCli(`wp user delete ${userData.username} --yes --network`, true);
 
 		cy.deactivatePlugin('woocommerce', 'wpCli');
 	});
