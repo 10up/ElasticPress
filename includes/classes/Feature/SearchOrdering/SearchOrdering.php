@@ -389,7 +389,7 @@ class SearchOrdering extends Feature {
 		foreach ( $query->posts as $post ) {
 			$final_posts[ $post->ID ] = $post;
 			// Add the post to filtered array. By doing this, we removed the posts that don't exist anymore.
-			$filtered_pointers[] = $pointers[ array_search( $post->ID, $post_ids ) ];
+			$filtered_pointers[] = $pointers[ array_search( $post->ID, $post_ids, true ) ];
 		}
 
 		return [
