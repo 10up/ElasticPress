@@ -59,9 +59,10 @@ class TestFacets extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 * @group facets
-	 * @expectedDeprecated ElasticPress\Feature\Facets\Facets::build_query_url
 	 */
 	public function testBuildQueryUrl() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
 		$filters = [
 			'taxonomies' => [
 				'category' => [
@@ -71,7 +72,53 @@ class TestFacets extends BaseTestCase {
 				]
 			]
 		];
-		Features::factory()->get_registered_feature( 'facets' )->build_query_url( $filters );
+
+		$this->assertEquals( '/?ep_filter_category=augue', $facet_feature->build_query_url( $filters ) );
+
+		$filters['s'] = 'dolor';
+		$this->assertEquals( '/?ep_filter_category=augue&s=dolor', $facet_feature->build_query_url( $filters ) );
+
+		unset( $filters['s'] );
+		$filters = [
+			'taxonomies' => [
+				'category' => [
+					'terms' => [
+						'augue'       => 1,
+						'consectetur' => 1
+					]
+				]
+			]
+		];
+
+		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
+
+		$_SERVER['REQUEST_URI'] = 'test/page/1';
+
+		$filters['s'] = 'dolor';
+		$this->assertEquals( 'test/?ep_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+
+		/**
+		 * Test the `ep_facet_query_string` filter.
+		 */
+		$change_facet_query_string = function ( $query_string, $query_params ) {
+			$this->assertIsArray( $query_params );
+			$query_string .= '&foobar';
+			return $query_string;
+		};
+		add_filter( 'ep_facet_query_string', $change_facet_query_string, 10, 2 );
+		$this->assertStringEndsWith( '&foobar', $facet_feature->build_query_url( $filters ) );
+		remove_filter( 'ep_facet_query_string', $change_facet_query_string, 10, 2 );
+
+		/**
+		 * (Indirectly) test the `ep_facet_filter_name` filter
+		 */
+		$change_ep_facet_filter_name = function( $original_name ) {
+			$this->assertEquals( 'ep_filter_', $original_name );
+			return 'ep_custom_filter_';
+		};
+		add_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
+		$this->assertEquals( 'test/?ep_custom_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+		remove_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
 	}
 
 	/**
