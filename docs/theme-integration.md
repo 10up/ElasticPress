@@ -2,7 +2,7 @@
 
 ### Connecting Autosuggest to Your Theme's Search Bar
 
-When enabled the ElasticPress Autosuggest will automatically be added to any `input[type="search"]` elments on the page, as well as any elements with the `.ep-autosuggest` or  `.search-field` classes. You can add autosuggest to additional elements yourself by adding [selectors](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors) as a comma-separated list to the _Autosuggest Selector_ setting under _ElasticPress > Features > Autosuggest > Settings_.
+When enabled, ElasticPress Autosuggest will automatically add itself to any `input[type="search"]` elments on the page, as well as any elements with the `.ep-autosuggest` or  `.search-field` classes. You can add Autosuggest to additional elements yourself by adding [selectors](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors) as a comma-separated list to the _Autosuggest Selector_ setting under _ElasticPress > Features > Autosuggest > Settings_.
 
 You can change or remove the default selectors used by the plugin with the `ep_autosuggest_default_selectors` filter:
 ```
@@ -36,9 +36,9 @@ You could display the loading gif while suggestions are being fetched with this 
 
 ### Customize Suggestion Markup
 
-When ElasticPress Autosuggest renders the suggestion list each item is run through a `window.epAutosuggestItemHTMLFilter()` function, if such a function exists. Therefore you can provide your own markup for suggestions by defining this function from your theme or plugin. This can be used to include other fields in the suggestion.
+When ElasticPress Autosuggest renders the list of suggestions, each item is run through a `window.epAutosuggestItemHTMLFilter()` function (if this function is defined). Defining this function in your theme (or a plugin, if appropriate) enables you to customize the markup for suggestions and add or remove fields to be displayed in the suggestion.
 
-The `epAutosuggestItemHTMLFilter()` function should return the HTML for the suggestion as a string, and accept 4 parameters:
+The `epAutosuggestItemHTMLFilter()` function must return the HTML for the suggestion as a string, and accept 4 parameters:
 
 1. `itemHTML` _(string)_ The suggestion HTML as a string.
 2. `option` _(object)_ The Elasticsearch record for the suggestion.
@@ -61,19 +61,19 @@ window.epAutosuggestItemHTMLFilter = (itemHTML, option, i, searchText) => {
 }
 ```
 
-Note that the `class`, `id`, `role`, `aria-selected`, `data-url`, and `tabindex` attributes in the returned markup should match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal.
+Note that the `class`, `id`, `role`, `aria-selected`, `data-url`, and `tabindex` attributes in the returned markup must match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal.
 
-### Add Items to the Suggestions List
+### Customize Suggestions List Markup
 
-When ElasticPress Autosuggest renders the suggestion the items in the list of suggestions is run through a `window.epAutosuggestListItemsHTMLFilter()` function, if such a function exists. Therefore you can append or prepend items to the list by defining this function from your theme or plugin.
+ElasticPress Autosuggest enables customization of the entire suggestions list using the `window.epAutosuggestListItemsHTMLFilter()` function, (if this function is defined). By defining this function in your theme (or a plugin, if appropriate), you can append or prepend items to the suggestions list, or otherwise make edits to the entire list (rather than individual suggestions).
 
-The `epAutosuggestListItemsHTMLFilter()` function should return the HTML for the suggestions list as a string, and accept 3 parameters:
+The `epAutosuggestListItemsHTMLFilter()` function must return the HTML for the suggestions list as a string, and accept 3 parameters:
 
 1. `listItemsHTML` _(string)_ The list items HTML as a string.
 2. `options` _(array)_ The Elasticsearch records for all of the suggestions being listed.
 3. `input` _(Element)_ The DOM element of the input that triggered Autosuggest.
 
-This example uses the function to add a "View All Results" option to the bottom of the list.
+This example uses the function to add a "View All Results" link to the bottom of the suggestions list.
 
 ```
 window.epAutosuggestListItemsHTMLFilter = (listItemsHTML, options, input) => {
@@ -95,13 +95,13 @@ window.epAutosuggestListItemsHTMLFilter = (listItemsHTML, options, input) => {
 }
 ```
 
-Note that the `class`, `role`, `aria-selected`, and `tabindex` attributes in any new items should match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal. Items should also contain a link with the `href` and `data-url` attributes set to the URL that the item should lead to.
+Note that the `class`, `role`, `aria-selected`, and `tabindex` attributes in any new items must match the default values for those attributes, as they do in the example, to ensure that Autosuggest functions as normal. Items must also contain a link with the `href` and `data-url` attributes set to the URL that the item should link to.
 
 ### Customize the Suggestions Container
 
-Before ElasticPress inserts the markup for Autosuggest into the search form the element to be added is run through a `window.epAutosuggestElementFilter()` function, if such a function exists. Therefore you can modify this element by defining this function from your theme or plugin.
+Before ElasticPress inserts the markup for Autosuggest into the search form the element to be added is run through a `window.epAutosuggestElementFilter()` function (if this function is defined). This function enables you to modify the markup of the Autosuggest container by defining this function in your theme (or a plugin, if appropriate).
 
-The `epAutosuggestElementFilter()` function should return a DOM element, and accept 2 parameters:
+The `epAutosuggestElementFilter()` function must return a DOM element, and accept 2 parameters:
 
 1. `element` _(Element)_ The DOM element being inserted.
 2. `input` _(Element)_ The DOM element Autosuggest is being inserted after.
@@ -122,9 +122,9 @@ window.epAutosuggestElementFilter = (element, input) => {
 
 ### Customize the Autosuggest Query
 
-To get suggestions for Autosuggest ElasticPress sends an AJAX request containing an Elasticsearch query to your Elasticsearch instance. Just before the request is sent this query is run through a `window.epAutosuggestQueryFilter()` function, if such a function exists. Therefore you can modify the query by defining this function from your theme or plugin.
+To get suggestions for Autosuggest, ElasticPress sends an AJAX request containing an Elasticsearch query to your Autosuggest endpoint. This request can be modified prior to sending via the `window.epAutosuggestQueryFilter()` function (if this function is defined) in order to customize or enhance the request with additional client-side data.
 
-The `epAutosuggestQueryFilter()` function should return a JavaScript object representing the query, and accepts 3 parameters:
+The `epAutosuggestQueryFilter()` function must return a JavaScript object representing the query, and accept 3 parameters:
 
 1. `query` _(Object)_ The Elasticsearch query as a JavaScript object.
 2. `searchText` _(string)_ The search term.
