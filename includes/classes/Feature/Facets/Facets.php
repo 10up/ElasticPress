@@ -74,7 +74,9 @@ class Facets extends Feature {
 		$types = apply_filters( 'ep_facet_types', $types );
 
 		foreach ( $types as $type => $class ) {
-			$this->types[ $type ] = new $class();
+			if ( is_a( $class, __NAMESPACE__ . '\FacetType', true ) ) {
+				$this->types[ $type ] = new $class();
+			}
 		}
 
 		parent::__construct();

@@ -9,12 +9,11 @@
 namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use \ElasticPress\Features;
-use \ElasticPress\Indexables;
 
 /**
  * Taxonomy facet type class
  */
-class FacetType {
+class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 	/**
 	 * Block instance.
@@ -85,7 +84,7 @@ class FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_name() {
+	public function get_filter_name() : string {
 		/**
 		 * Filter the facet filter name that's added to the URL
 		 *
@@ -98,18 +97,18 @@ class FacetType {
 	}
 
 	/**
-	 * Get the facet filter name.
+	 * Get the facet filter type.
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_type() {
+	public function get_filter_type() : string {
 		/**
-		 * Filter the facet filter name that's added to the URL
+		 * Filter the facet filter type. Used by the Facet feature to organize filters.
 		 *
-		 * @hook ep_facet_filter_name
+		 * @hook ep_facet_filter_type
 		 * @since 4.3.0
-		 * @param   {string} Facet filter name
-		 * @return  {string} New facet filter name
+		 * @param   {string} Facet filter type
+		 * @return  {string} New facet filter type
 		 */
 		return apply_filters( 'ep_facet_filter_type', 'taxonomies' );
 	}
