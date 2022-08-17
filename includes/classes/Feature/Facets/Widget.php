@@ -29,7 +29,11 @@ class Widget extends WP_Widget {
 	 * Create widget
 	 */
 	public function __construct() {
-		$options = array( 'description' => esc_html__( 'Add a facet to an archive or search results page.', 'elasticpress' ) );
+		$options = array(
+			'description'           => esc_html__( 'Add a facet to an archive or search results page.', 'elasticpress' ),
+			'show_instance_in_rest' => true,
+		);
+
 		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
 
 		$this->renderer = new Renderer();
