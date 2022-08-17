@@ -13,6 +13,7 @@ describe('Instant Results Feature', () => {
 		cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
 		cy.get('body').should('contain.text', 'Widgets saved.');
 	}
+
 	before(() => {
 		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
 			// Nothing needs to be done if EP.io.
@@ -89,9 +90,21 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('test');
+		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.wp-block-search__button').click();
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'test');
+		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+	});
+
+	it('Can show the modal in the same state after a reload', () => {
+		cy.login();
+		cy.maybeEnableFeature('instant-results');
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.wp-block-search__button').click();
+		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+		cy.reload();
+		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
 	});
 
 	it('Can click outside when instant results are shown', () => {
@@ -99,7 +112,7 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('test');
+		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.wp-block-search__button').click();
 		cy.get('.ep-search-modal').should('be.visible');
 
