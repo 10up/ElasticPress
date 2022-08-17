@@ -14,8 +14,42 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+import './assertions';
 import './commands';
 import './global-hooks';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+
+cy.elasticPress = {
+	defaultFeatures: {
+		search: {
+			active: 1,
+			highlight_enabled: true,
+			highlight_excerpt: true,
+			highlight_tag: 'mark',
+			highlight_color: '#157d84',
+		},
+		related_posts: {
+			active: 1,
+		},
+		facets: {
+			active: 1,
+		},
+		searchordering: {
+			active: 1,
+		},
+		autosuggest: {
+			active: 1,
+		},
+		woocommerce: {
+			active: 0,
+		},
+		protected_content: {
+			active: 0,
+		},
+		users: {
+			active: 0,
+		},
+	},
+};

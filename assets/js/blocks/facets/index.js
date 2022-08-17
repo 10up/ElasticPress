@@ -1,9 +1,17 @@
-import edit from './edit';
-import block from './block.json';
+/**
+ * WordPress dependencies.
+ */
+import { registerBlockType } from '@wordpress/blocks';
 
-const { registerBlockType } = wp.blocks;
+/**
+ * Internal dependencies.
+ */
+import edit from './edit';
+import transforms from './transforms';
+import block from './block.json';
 
 registerBlockType(block, {
 	edit,
 	save: () => {},
+	transforms,
 });

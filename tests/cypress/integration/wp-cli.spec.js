@@ -115,6 +115,17 @@ describe('WP-CLI Commands', () => {
 				expect(indexPerPostType).to.not.equal(indexTotal);
 			});
 		});
+
+		it('Can index without using dynamic bulk requests if user specifies --static-bulk parameter', () => {
+			cy.activatePlugin('fake-log-messages');
+
+			cy.wpCli('wp elasticpress index --static-bulk')
+				.its('stdout')
+				.should('contain', 'Index command with --static-bulk flag completed')
+				.should('contain', 'Done');
+
+			cy.deactivatePlugin('fake-log-messages');
+		});
 	});
 
 	it('Can delete the index of current blog if user runs wp elasticpress delete-index', () => {
@@ -143,6 +154,12 @@ describe('WP-CLI Commands', () => {
 	});
 
 	it('Can recreate the alias index which points to every index in the network if user runs wp elasticpress recreate-network-alias command', () => {});
+
+	it('Can throw an error while running wp elasticpress recreate-network-alias if the plugin is not network activated', () => {
+		cy.wpCli('wp elasticpress recreate-network-alias', true)
+			.its('stderr')
+			.should('contain', 'ElasticPress is not network activated');
+	});
 
 	it('Can activate and deactivate a feature', () => {
 		cy.wpCli('wp elasticpress activate-feature search', true)
@@ -284,5 +301,69 @@ describe('WP-CLI Commands', () => {
 
 			checkIfNotMissingIndexes('network');
 		});
+	});
+
+	it('Can set the algorithm version', () => {
+		cy.wpCli('wp elasticpress set-algorithm-version --default')
+			.its('stdout')
+			.should('contain', 'Done');
+
+		cy.wpCli('wp elasticpress get-algorithm-version')
+			.its('stdout')
+			.should('contain', 'default');
+
+		cy.wpCli('wp elasticpress set-algorithm-version --version=1.0.0')
+			.its('stdout')
+			.should('contain', 'Done');
+
+		cy.wpCli('wp elasticpress get-algorithm-version').its('stdout').should('contain', '1.0.0');
+
+		cy.wpCli('wp elasticpress set-algorithm-version', true)
+			.its('stderr')
+			.should('contain', 'This command expects a version number or the --default flag');
+	});
+
+	it('Can get the mapping information', () => {
+		cy.wpCli('wp elasticpress get-mapping').its('stdout').should('contain', 'mapping_version');
+	});
+
+	it('Can get the cluster indexes information', () => {
+		cy.wpCli('wp elasticpress get-cluster-indexes').its('stdout').should('contain', 'health');
+	});
+
+	it('Can get the indexes names', () => {
+		cy.wpCli('wp elasticpress get-indexes').its('code').should('equal', 0);
+
+		cy.wpCli('wp elasticpress get-indexes --pretty').its('stdout').should('contain', '\n');
+	});
+
+	it('Can stop the sync operation and clear it', () => {
+		// if no index is running, this will fail.
+		cy.wpCli('wp elasticpress stop-indexing')
+			.its('stderr')
+			.should('contain', 'There is no indexing operation running');
+
+		// mock the indexing process
+		cy.wpCliEval(
+			`update_option('ep_index_meta', true); set_transient('ep_sync_interrupted', true);`,
+		);
+
+		cy.wpCli('wp elasticpress stop-indexing').its('stdout').should('contain', 'Done');
+
+		cy.wpCli('wp elasticpress clear-index').its('stdout').should('contain', 'Index cleared');
+	});
+
+	it('can send an HTTP request to Elasticsearch', () => {
+		cy.wpCli('wp elasticpress  request _cat/indices').its('code').should('equal', 0);
+
+		// check if it throw an error if non supported method is used?
+		cy.wpCli('wp elasticpress request _cat/indices --method=POST')
+			.its('stdout')
+			.should('contain', 'Incorrect HTTP method for uri');
+
+		// check if it print the debugging info?
+		cy.wpCli('wp elasticpress request _cat/indices --debug-http-request')
+			.its('stdout')
+			.should('contain', '[http_response] => WP_HTTP_Requests_Response Object');
 	});
 });

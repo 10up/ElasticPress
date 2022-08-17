@@ -4459,10 +4459,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -4480,10 +4493,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -5427,6 +5453,7 @@ class TestPost extends BaseTestCase {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
 		$post_id_3 = Functions\create_and_sync_post();
+		$post_id_4 = Functions\create_and_sync_post( [ 'post_password' => '123' ] );
 
 		// Test the first loop of the indexing.
 		$results = $indexable_post_object->query_db(
@@ -5522,6 +5549,19 @@ class TestPost extends BaseTestCase {
 
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page'     => 1,
+				'has_password' => null, // `null` here makes WP ignore passwords completely, bringing everything
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_4, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**
@@ -5636,7 +5676,7 @@ class TestPost extends BaseTestCase {
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
-		
+
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
@@ -5649,7 +5689,7 @@ class TestPost extends BaseTestCase {
 		$this->assertEqualsCanonicalizing( [ $post1 ], $query->posts );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-		
+
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
@@ -5662,7 +5702,7 @@ class TestPost extends BaseTestCase {
 		$this->assertEqualsCanonicalizing( [ $post1, $post2 ], $query->posts );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-		
+
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
@@ -5675,7 +5715,7 @@ class TestPost extends BaseTestCase {
 		$this->assertEqualsCanonicalizing( [ $post2 ], $query->posts );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-		
+
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
@@ -5687,7 +5727,7 @@ class TestPost extends BaseTestCase {
 		$this->assertEqualsCanonicalizing( [ $post1, $post2, $post4 ], $query->posts );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-		
+
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
@@ -6812,5 +6852,144 @@ class TestPost extends BaseTestCase {
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 		$this->assertEquals( 'different-tag-slug', $document['terms']['post_tag'][0]['slug'] );
 		$this->assertEquals( 'Different Tag Name', $document['terms']['post_tag'][0]['name'] );
+	}
+
+	/**
+	 * Tests post without meta value.
+	 *
+	 * @return void
+	 */
+	public function testMetaWithoutValue() {
+
+		Functions\create_and_sync_post( array(), array( 'test_key' => '' ) );
+		Functions\create_and_sync_post( array(), array( 'test_key' => '' ) );
+		Functions\create_and_sync_post();
+
+		$expected_result = '2';
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure WordPress returns only 2 posts.
+		$args  = array(
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( $expected_result, $query->post_count );
+		$this->assertNull( $query->elasticsearch_success );
+
+		// Make sure ElasticPress returns only 2 posts when meta query is set
+		$args  = array(
+			'ep_integrate' => true,
+			'meta_query'   => array(
+				array(
+					'key' => 'test_key',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $expected_result, $query->post_count );
+
+		// Make sure ElasticPress returns only 2 posts when meta key is set
+		$args  = array(
+			'ep_integrate' => true,
+			'meta_key'     => 'test_key',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $expected_result, $query->post_count );
+	}
+
+	/**
+	 * Test the get_search_algorithm implementation
+	 */
+	public function testGetSearchAlgorithm() {
+		/**
+		 * Test default search algorithm
+		 */
+		$version_40 = \ElasticPress\SearchAlgorithms::factory()->get( '4.0' );
+
+		$post_indexable   = \ElasticPress\Indexables::factory()->get( 'post' );
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+
+		$this->assertSame( $version_40, $search_algorithm );
+
+		/**
+		 * Test setting a diffent algorithm through the `ep_search_algorithm_version` filter
+		 */
+		$version_35 = \ElasticPress\SearchAlgorithms::factory()->get( '3.5' );
+
+		$set_version_35 = function() {
+			return '3.5';
+		};
+
+		add_filter( 'ep_search_algorithm_version', $set_version_35 );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $version_35, $search_algorithm );
+
+		remove_filter( 'ep_search_algorithm_version', $set_version_35 );
+
+		/**
+		 * Test setting a non-existent algorithm through the `ep_search_algorithm_version` filter
+		 * It should use `basic`
+		 */
+		$basic = \ElasticPress\SearchAlgorithms::factory()->get( 'basic' );
+
+		$set_non_existent_version = function() {
+			return 'foobar';
+		};
+
+		add_filter( 'ep_search_algorithm_version', $set_non_existent_version );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $basic, $search_algorithm );
+
+		remove_filter( 'ep_search_algorithm_version', $set_non_existent_version );
+
+		/**
+		 * Test the `ep_{$indexable_slug}_search_algorithm` filter
+		 */
+		add_filter( 'ep_post_search_algorithm', $set_version_35 );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $version_35, $search_algorithm );
+
+		remove_filter( 'ep_post_search_algorithm', $set_version_35 );
+	}
+
+	/**
+	 * Tests is_meta_allowed
+	 *
+	 * @return void
+	 * @group  is_meta_allowed
+	 */
+	public function testIsMetaAllowed() {
+		$meta_not_protected 		 = 'meta';
+		$meta_not_protected_excluded = 'meta_excluded';
+		$meta_protected 		 	 = '_meta';
+		$meta_protected_allowed 	 = '_meta_allowed';
+
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', function () use ( $meta_protected_allowed ) {
+			return [ $meta_protected_allowed ];
+		} );
+		add_filter( 'ep_prepare_meta_excluded_public_keys', function () use ( $meta_not_protected_excluded ) {
+			return [ $meta_not_protected_excluded ];
+		} );
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_not_protected, null ) );
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_protected_allowed, null ) );
+
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, null ) );
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, null ) );
 	}
 }

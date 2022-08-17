@@ -142,11 +142,22 @@ class SyncManager extends SyncManagerAbstract {
 
 		$indexable = Indexables::factory()->get( $this->indexable_slug );
 
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			// Bypass saving if doing autosave
-			// @codeCoverageIgnoreStart
-			return;
-			// @codeCoverageIgnoreEnd
+		/**
+		 * Filter to whether skip a sync during autosave, defaults to true
+		 *
+		 * @hook ep_skip_autosave_sync
+		 * @since 4.3.0
+		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				// Bypass saving if doing autosave
+				// @codeCoverageIgnoreStart
+				return;
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		$post = get_post( $object_id );
@@ -195,8 +206,8 @@ class SyncManager extends SyncManagerAbstract {
 			$indexable_post_statuses = $indexable->get_indexable_post_status();
 			$post_type               = get_post_type( $object_id );
 
-			$allowed_meta_to_be_indexed = $indexable->prepare_meta( $post );
-			if ( ! in_array( $meta_key, array_keys( $allowed_meta_to_be_indexed ), true ) ) {
+			$is_meta_allowed = $indexable->is_meta_allowed( $meta_key, $post );
+			if ( ! $is_meta_allowed ) {
 				return;
 			}
 
@@ -281,11 +292,22 @@ class SyncManager extends SyncManagerAbstract {
 		$indexable = Indexables::factory()->get( $this->indexable_slug );
 		$post_type = get_post_type( $post_id );
 
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			// Bypass saving if doing autosave
-			// @codeCoverageIgnoreStart
-			return;
-			// @codeCoverageIgnoreEnd
+		/**
+		 * Filter to whether skip a sync during autosave, defaults to true
+		 *
+		 * @hook ep_skip_autosave_sync
+		 * @since 4.3.0
+		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				// Bypass saving if doing autosave
+				// @codeCoverageIgnoreStart
+				return;
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		/**
@@ -359,9 +381,22 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			// Bypass saving if doing autosave
-			return;
+		/**
+		 * Filter to whether skip a sync during autosave, defaults to true
+		 *
+		 * @hook ep_skip_autosave_sync
+		 * @since 4.3.0
+		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				// Bypass saving if doing autosave
+				// @codeCoverageIgnoreStart
+				return;
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		/**
@@ -413,9 +448,22 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
 		global $wpdb;
 
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			// Bypass saving if doing autosave
-			return;
+		/**
+		 * Filter to whether skip a sync during autosave, defaults to true
+		 *
+		 * @hook ep_skip_autosave_sync
+		 * @since 4.3.0
+		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				// Bypass saving if doing autosave
+				// @codeCoverageIgnoreStart
+				return;
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		// Find ID of all attached posts (query lifted from wp_delete_term())
@@ -476,9 +524,22 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			// Bypass saving if doing autosave
-			return;
+		/**
+		 * Filter to whether skip a sync during autosave, defaults to true
+		 *
+		 * @hook ep_skip_autosave_sync
+		 * @since 4.3.0
+		 * @param {bool} $skip True means to disable sync for autosaves
+		 * @param {string} $function Function applying filter
+		 * @return {boolean} New value
+		 */
+		if ( apply_filters( 'ep_skip_autosave_sync', true, __FUNCTION__ ) ) {
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+				// Bypass saving if doing autosave
+				// @codeCoverageIgnoreStart
+				return;
+				// @codeCoverageIgnoreEnd
+			}
 		}
 
 		/**

@@ -38,7 +38,7 @@
     "yoast/phpunit-polyfills": "1.x-dev"
   },
   "scripts": {
-    "lint": "phpcs elasticpress.php includes",
+    "lint": "phpcs elasticpress.php includes --runtime-set testVersion 7.0-",
     "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",
@@ -48,5 +48,11 @@
     "installer-paths": {
           "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
       }
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }
