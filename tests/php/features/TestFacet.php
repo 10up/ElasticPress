@@ -143,25 +143,23 @@ class TestFacets extends BaseTestCase {
 		// No `ep_facet` in query_args will make it return the same array.
 		$this->assertSame( $args, $facet_feature->set_agg_filters( $args, $query_args, $query ) );
 
-		// No `tax_query` in query_args will make it return the same array.
-		$query_args = [
-			'ep_facet' => 1,
+		/**
+		 * Without any function hooked to `ep_facet_agg_filters` we expect
+		 * aggregation filters to matche exactly the filter applied to the main
+		 * query.
+		 */
+		remove_all_filters( 'ep_facet_agg_filters' );
+		$query_args    = [
+			'ep_facet'    => 1,
+			'post_type'   => 'post',
+			'post_status' => 'publish',
 		];
-		$this->assertSame( $args, $facet_feature->set_agg_filters( $args, $query_args, $query ) );
+		// Get the ES query args.
+		$formatted_args = \ElasticPress\Indexables::factory()->get( 'post' )->format_args( $query_args, $query );
+		// Get the ES query args after applying the changes to aggs filters.
+		$formatted_args_with_args = $facet_feature->set_agg_filters( $formatted_args, $query_args, $query );
 
-		$query_args = [
-			'ep_facet'  => 1,
-			'tax_query' => [
-				[
-					'taxonomy' => 'category',
-					'field'    => 'slug',
-					'terms'    => [ 'foo', 'bar' ],
-
-				],
-			],
-		];
-		$changed_args = $facet_feature->set_agg_filters( $args, $query_args, $query );
-		$this->assertArrayHasKey( 'filter', $changed_args['aggs']['terms'] );
+		$this->assertSame( $formatted_args['post_filter'], $formatted_args_with_args['aggs']['terms']['filter'] );
 	}
 
 	/**
