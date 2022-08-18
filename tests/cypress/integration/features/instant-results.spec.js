@@ -91,8 +91,11 @@ describe('Instant Results Feature', () => {
 
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.wp-block-search__button').click();
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+		cy.get('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+			});
 	});
 
 	it('Can show the modal in the same state after a reload', () => {
@@ -102,9 +105,17 @@ describe('Instant Results Feature', () => {
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.wp-block-search__button').click();
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+		cy.get('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+			});
 		cy.reload();
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+		cy.get('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+			});
 	});
 
 	it('Can click outside when instant results are shown', () => {
