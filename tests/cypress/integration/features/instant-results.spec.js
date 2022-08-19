@@ -98,23 +98,93 @@ describe('Instant Results Feature', () => {
 			});
 	});
 
+	it('Can display the number of results', () => {
+		cy.login();
+		cy.maybeEnableFeature('instant-results');
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+				cy.get('.ep-search-results__title').contains(/\d+/);
+			});
+	});
+
 	it('Can show the modal in the same state after a reload', () => {
 		cy.login();
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.wp-block-search__button').click();
 		cy.get('.wp-block-search__button')
 			.click()
 			.then(() => {
 				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
 			});
 		cy.reload();
+		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+	});
+
+	it('Can update the results after changing the search term', () => {
+		cy.login();
+		cy.maybeEnableFeature('instant-results');
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.wp-block-search__button')
 			.click()
 			.then(() => {
 				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+			});
+		cy.get('#ep-instant-results .ep-search-input')
+			.clearThenType('test')
+			.then(() => {
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'test');
+			});
+	});
+
+	it('Can update the URL after changing the filters', () => {
+		cy.login();
+		cy.maybeEnableFeature('instant-results');
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+			});
+		cy.get('ep-search-sidebar #ep-search-post-type-page')
+			.click()
+			.then(() => {
+				cy.url().should('include', 'ep-post_type=page');
+			});
+	});
+
+	it('Can show post type label alongside taxonomies', () => {
+		cy.login();
+		cy.maybeEnableFeature('instant-results');
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.get('.ep-feature-instant-results .settings-button').click();
+		cy.get('.ep-feature-instant-results .components-form-token-field__input')
+			.type('category')
+			.first()
+			.click()
+			.then((input) => {
+				input.type('category').first().click();
+			});
+		cy.get('.ep-feature-instant-results .button-primary').click();
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('test');
+		cy.get('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.get('.ep-search-modal ep-search-sidebar')
+					.last()
+					.should('contain.text', 'Category (Products)');
 			});
 	});
 
