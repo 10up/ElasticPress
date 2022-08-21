@@ -819,7 +819,7 @@ class IndexHelper {
 	protected function update_last_index() {
 		$start_time = $this->index_meta['start_time'];
 		$totals     = $this->index_meta['totals'];
-		$method    = $this->index_meta['method'];
+		$method     = $this->index_meta['method'];
 
 		$this->index_meta = null;
 
