@@ -1,4 +1,9 @@
 <?php
+/**
+ * Health info screen.
+ *
+ * @package ElasticPress
+ */
 
 namespace ElasticPress\Screen;
 
@@ -6,7 +11,14 @@ use ElasticPress\Features as Features;
 use ElasticPress\IndexHelper;
 use ElasticPress\Utils as Utils;
 
+/**
+ * Health info screen Class.
+ */
 class HealthInfo {
+
+	/**
+	 * Initialize class.
+	 */
 	public function setup() {
 		add_action( 'debug_information', [ $this, 'last_sync_health_info' ] );
 		add_filter( 'debug_information', [ $this, 'epio_autosuggest_health_check_info' ] );
