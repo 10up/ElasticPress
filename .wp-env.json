@@ -6,6 +6,7 @@
       ],
       "plugins": [
         ".",
+        "https://downloads.wordpress.org/plugin/classic-widgets.zip",
         "https://downloads.wordpress.org/plugin/debug-bar.zip",
         "https://downloads.wordpress.org/plugin/debug-bar-elasticpress.zip",
         "https://downloads.wordpress.org/plugin/wordpress-importer.zip",
@@ -18,6 +19,7 @@
         "wp-content/plugins/unsupported-server-software.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-server-software.php",
         "wp-content/plugins/unsupported-elasticsearch-version.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-elasticsearch-version.php",
         "wp-content/plugins/shorten-autosave.php": "./tests/cypress/wordpress-files/test-plugins/shorten-autosave.php",
+        "wp-content/plugins/fake-log-messages.php": "./tests/cypress/wordpress-files/test-plugins/fake-log-messages.php",
         "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml"
       }
     }
