@@ -138,7 +138,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		).should('contain.text', 'end_date_time');
 
 		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(8) td',
-		).should('contain.text', 'end_time_gmt');
+			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(9) td',
+		).should('contain.text', 'method');
 	});
 });

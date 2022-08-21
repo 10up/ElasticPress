@@ -819,6 +819,7 @@ class IndexHelper {
 	protected function update_last_index() {
 		$start_time = $this->index_meta['start_time'];
 		$totals     = $this->index_meta['totals'];
+		$method    = $this->index_meta['method'];
 
 		$this->index_meta = null;
 
@@ -827,6 +828,7 @@ class IndexHelper {
 		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
 		$totals['end_time_gmt']  = time();
 		$totals['total_time']    = microtime( true ) - $start_time;
+		$totals['method']        = $method;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 	}

@@ -36,6 +36,14 @@ class Screen {
 	public $sync_screen;
 
 	/**
+	 * Info screen instance
+	 *
+	 * @var Screen\HealthInfo
+	 * @since  4.2.2
+	 */
+	public $health_info_screen;
+
+	/**
 	 * Initialize class
 	 *
 	 * @since 3.0
@@ -43,8 +51,10 @@ class Screen {
 	public function setup() {
 		add_action( 'admin_init', [ $this, 'determine_screen' ] );
 
-		$this->sync_screen = new Screen\Sync();
+		$this->sync_screen        = new Screen\Sync();
+		$this->health_info_screen = new Screen\HealthInfo();
 		$this->sync_screen->setup();
+		$this->health_info_screen->setup();
 	}
 
 	/**
