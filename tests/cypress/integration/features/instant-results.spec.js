@@ -181,7 +181,7 @@ describe('Instant Results Feature', () => {
 			});
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('aciform');
+		cy.get('.wp-block-search__input').type('Keyboard navigation');
 		cy.get('.wp-block-search__button')
 			.click()
 			.then(() => {
