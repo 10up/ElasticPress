@@ -5,4 +5,5 @@
   <rule ref="10up-Default">
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
   </rule>
+  <rule ref="PHPCompatibilityWP" />
 </ruleset>

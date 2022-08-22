@@ -25,6 +25,7 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import 'cypress-file-upload';
+import './commands/block-editor';
 
 Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.visit(`/wp-admin`);
@@ -62,29 +63,6 @@ Cypress.Commands.add('createTaxonomy', (name = 'Test taxonomy', taxonomy = 'cate
 	cy.get('#tag-name').click().type(`${name}{enter}`);
 });
 
-Cypress.Commands.add('openDocumentSettingsSidebar', () => {
-	const button =
-		'.edit-post-header__settings button[aria-label="Settings"][aria-expanded="false"]';
-	cy.get('body').then(($body) => {
-		if ($body.find(button).length > 0) {
-			cy.get(button).click();
-		}
-	});
-	cy.get('.edit-post-sidebar__panel-tab').contains('Post').click();
-});
-
-Cypress.Commands.add('openDocumentSettingsPanel', (name) => {
-	cy.openDocumentSettingsSidebar();
-	cy.get('.components-panel__body .components-panel__body-title button')
-		.contains(name)
-		.then((panel) => {
-			if (!panel.hasClass('.is-opened')) {
-				cy.get(panel).click();
-				cy.get(panel).parents('.components-panel__body').should('have.class', 'is-opened');
-			}
-		});
-});
-
 Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text, force = false) => {
 	cy.wrap(subject).clear().type(text, { force });
 });
@@ -95,9 +73,11 @@ Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
 	if (ignoreFailures) {
 		options.failOnNonZeroExit = false;
 	}
-	cy.exec(`npm --silent run env run tests-cli "${escapedCommand}"`, options).then((result) => {
-		cy.wrap(result);
-	});
+	cy.exec(`./bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`, options).then(
+		(result) => {
+			cy.wrap(result);
+		},
+	);
 });
 
 Cypress.Commands.add('wpCliEval', (command) => {
@@ -111,14 +91,14 @@ Cypress.Commands.add('wpCliEval', (command) => {
 
 	// which is read from it's proper location in the plugins directory
 	cy.exec(
-		`npm --silent run env run tests-cli "eval-file wp-content/plugins/${pluginName}/${fileName}"`,
+		`./bin/wp-env-cli tests-wordpress "wp --allow-root eval-file wp-content/plugins/${pluginName}/${fileName}"`,
 	).then((result) => {
 		cy.exec(`rm ${fileName}`);
 		cy.wrap(result);
 	});
 });
 
-Cypress.Commands.add('publishPost', (postData) => {
+Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	cy.visitAdminPage('post-new.php');
@@ -146,6 +126,10 @@ Cypress.Commands.add('publishPost', (postData) => {
 		cy.get('.editor-post-publish-button').click();
 
 		cy.get('.components-snackbar').should('be.visible');
+
+		if (viewPost) {
+			cy.get('.post-publish-panel__postpublish-buttons a').contains('View Post').click();
+		}
 	}
 
 	/**
@@ -288,4 +272,130 @@ Cypress.Commands.add('deactivatePlugin', (slug, method = 'dashboard', mode = 'si
 		command += ' --network';
 	}
 	cy.wpCli(command);
+});
+
+Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
+	cy.openWidgetsPage();
+	cy.intercept('/wp-admin/admin-ajax.php').as('adminAjax');
+
+	/**
+	 * Find and add the widget to the first widget area.
+	 */
+	cy.get(`#widget-list [id$="${widgetId}-__i__"]`)
+		.click('top')
+		.within(() => {
+			cy.get('.widgets-chooser-add').click();
+		})
+		.wait('@adminAjax');
+
+	/**
+	 * Set widget settings and save.
+	 */
+	cy.get(`#widgets-right .widget[id*="${widgetId}"]`)
+		.last()
+		.within(() => {
+			for (const setting of settings) {
+				cy.get(`[name$="[${setting.name}]"]`).as('control');
+
+				switch (setting.type) {
+					case 'select':
+						cy.get('@control').select(setting.value);
+						break;
+					case 'checkbox':
+					case 'radio':
+						cy.get('@control').check(setting.value);
+						break;
+					default:
+						cy.get('@control').clearThenType(setting.value);
+						break;
+				}
+			}
+
+			cy.get('input[type="submit"]').click();
+		})
+		.wait('@adminAjax');
+});
+
+Cypress.Commands.add('emptyWidgets', () => {
+	cy.wpCli('widget reset --all');
+	cy.wpCli('widget list wp_inactive_widgets --format=ids').then((wpCliResponse) => {
+		if (wpCliResponse.stdout) {
+			cy.wpCli(`widget delete ${wpCliResponse.stdout}`);
+		}
+	});
+});
+
+// Command to drag and drop React DnD element. Original code from: https://github.com/cypress-io/cypress/issues/3942#issuecomment-485648100
+Cypress.Commands.add('dragAndDrop', (subject, target) => {
+	Cypress.log({
+		name: 'DRAGNDROP',
+		message: `Dragging element ${subject} to ${target}`,
+		consoleProps: () => {
+			return {
+				subject,
+				target,
+			};
+		},
+	});
+	const BUTTON_INDEX = 0;
+	const SLOPPY_CLICK_THRESHOLD = 10;
+	cy.get(target)
+		.first()
+		.then(($target) => {
+			const coordsDrop = $target[0].getBoundingClientRect();
+			cy.get(subject)
+				.first()
+				.then((subject) => {
+					const coordsDrag = subject[0].getBoundingClientRect();
+					cy.wrap(subject)
+						.trigger('mousedown', {
+							button: BUTTON_INDEX,
+							clientX: coordsDrag.x,
+							clientY: coordsDrag.y,
+							force: true,
+						})
+						.trigger('mousemove', {
+							button: BUTTON_INDEX,
+							clientX: coordsDrag.x + SLOPPY_CLICK_THRESHOLD,
+							clientY: coordsDrag.y,
+							force: true,
+						});
+					cy.get('body')
+						.trigger('mousemove', {
+							button: BUTTON_INDEX,
+							clientX: coordsDrop.x,
+							clientY: coordsDrop.y,
+							force: true,
+						})
+						.trigger('mouseup');
+				});
+		});
+});
+
+Cypress.Commands.add('createAutosavePost', (postData) => {
+	cy.activatePlugin('shorten-autosave', 'wpCli');
+	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+
+	cy.visitAdminPage('post-new.php');
+	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+	cy.get('body').then(($body) => {
+		const welcomeGuide = $body.find(
+			'.edit-post-welcome-guide .components-modal__header button',
+		);
+		cy.log(welcomeGuide);
+		if (welcomeGuide.length) {
+			welcomeGuide.click();
+		}
+	});
+
+	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
+	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+
+	/**
+	 * Wait for autosave to complete.
+	 *
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(5000);
+	cy.deactivatePlugin('shorten-autosave', 'wpCli');
 });

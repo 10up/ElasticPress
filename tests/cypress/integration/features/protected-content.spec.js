@@ -10,9 +10,12 @@ describe('Protected Content Feature', () => {
 			return true;
 		});
 
-		cy.get('.ep-sync-progress strong', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
+		cy.get('.ep-sync-panel').last().as('syncPanel');
+		cy.get('@syncPanel').find('.components-form-toggle').click();
+		cy.get('@syncPanel')
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete');
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'protected_content');
 	});
@@ -44,6 +47,26 @@ describe('Protected Content Feature', () => {
 			title: 'Test ElasticPress Draft',
 			status: 'draft',
 		});
+
+		cy.visitAdminPage('edit.php?post_status=draft&post_type=post');
+		cy.getTotal(1);
+	});
+
+	it('Can sync autosaved drafts', () => {
+		cy.login();
+
+		cy.maybeEnableFeature('protected_content');
+
+		// Delete previous drafts, so we can be sure we just expect 1 draft post.
+		cy.wpCli('post list --post_status=draft --format=ids').then((wpCliResponse) => {
+			if (wpCliResponse.stdout !== '') {
+				cy.wpCli(`post delete ${wpCliResponse.stdout}`);
+			}
+		});
+
+		cy.wpCli('elasticpress index --setup --yes');
+
+		cy.createAutosavePost();
 
 		cy.visitAdminPage('edit.php?post_status=draft&post_type=post');
 		cy.getTotal(1);
