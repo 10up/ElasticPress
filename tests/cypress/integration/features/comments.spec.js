@@ -2,6 +2,7 @@ describe('Comments Feature', () => {
 	const defaultApprovedComments = 26;
 
 	before(() => {
+		// set default settings.
 		cy.visitAdminPage('options-discussion.php');
 		cy.get('#require_name_email').check();
 		cy.get('#comment_moderation').check();
@@ -52,7 +53,7 @@ describe('Comments Feature', () => {
 		cy.login();
 		cy.maybeEnableFeature('comments');
 
-		// enable wordpress comments
+		// enable comments
 		cy.visitAdminPage('options-discussion.php');
 		cy.get('#require_name_email').uncheck();
 		cy.get('#submit').click();
