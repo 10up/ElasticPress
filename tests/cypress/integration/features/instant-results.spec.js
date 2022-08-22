@@ -156,7 +156,7 @@ describe('Instant Results Feature', () => {
 			.then(() => {
 				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'test');
 			});
-		cy.get('ep-search-sidebar #ep-search-post-type-post')
+		cy.get('.ep-search-sidebar #ep-search-post-type-post')
 			.click()
 			.then(() => {
 				cy.url().should('include', 'ep-post_type=post');
@@ -185,7 +185,7 @@ describe('Instant Results Feature', () => {
 		cy.get('.wp-block-search__button')
 			.click()
 			.then(() => {
-				cy.get('.ep-search-modal ep-search-sidebar')
+				cy.get('.ep-search-modal .ep-search-sidebar')
 					.last()
 					.should('contain.text', 'Category (Products)');
 			});
