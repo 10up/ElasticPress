@@ -181,13 +181,14 @@ describe('Instant Results Feature', () => {
 			});
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('test');
+		cy.get('.wp-block-search__input').type('aciform');
 		cy.get('.wp-block-search__button')
 			.click()
 			.then(() => {
-				cy.get('.ep-search-modal .ep-search-sidebar')
-					.last()
-					.should('contain.text', 'Category (Products)');
+				cy.get('.ep-search-modal .ep-search-sidebar').should(
+					'contain.text',
+					'Category (Posts)',
+				);
 			});
 	});
 
