@@ -163,35 +163,6 @@ describe('Instant Results Feature', () => {
 			});
 	});
 
-	it('Can show post type label alongside taxonomies', () => {
-		cy.login();
-		cy.maybeEnableFeature('instant-results');
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-instant-results .settings-button').click();
-		cy.get('.ep-feature-instant-results .components-form-token-field__input')
-			.type('category')
-			.first()
-			.click();
-		cy.get('.ep-feature-instant-results .components-form-token-field__input')
-			.type('category')
-			.first()
-			.click()
-			.then(() => {
-				cy.get('.ep-feature-instant-results .button-primary').click();
-			});
-
-		cy.visit('/');
-		cy.get('.wp-block-search__input').type('Keyboard navigation');
-		cy.get('.wp-block-search__button')
-			.click()
-			.then(() => {
-				cy.get('.ep-search-modal .ep-search-sidebar').should(
-					'contain.text',
-					'Category (Posts)',
-				);
-			});
-	});
-
 	it('Can click outside when instant results are shown', () => {
 		cy.login();
 		cy.maybeEnableFeature('instant-results');
