@@ -236,7 +236,7 @@ class WooCommerce extends Feature {
 	 * @since  2.1
 	 */
 	public function translate_args( $query ) {
-		if ( ! $this->should_integrate_with_query( $query ) ) {
+		if ( ! $this->should_integrate_with_query( $query, true ) ) {
 			return;
 		}
 
@@ -624,7 +624,7 @@ class WooCommerce extends Feature {
 	public function maybe_hook_woocommerce_search_fields( $query ) {
 		global $pagenow, $wp, $wc_list_table;
 
-		if ( ! $this->should_integrate_with_query( $query ) ) {
+		if ( ! $this->should_integrate_with_query( $query, true ) ) {
 			return;
 		}
 
@@ -646,7 +646,7 @@ class WooCommerce extends Feature {
 	 * @since  2.3
 	 */
 	public function search_order( $wp ) {
-		if ( ! $this->should_integrate_with_query( $wp ) ) {
+		if ( ! $this->should_integrate_with_query( $wp, true ) ) {
 			return;
 		}
 
@@ -1096,10 +1096,11 @@ class WooCommerce extends Feature {
 	 * Determines whether or not ES should be integrating with the provided query
 	 *
 	 * @param \WP_Query $query Query we might integrate with
+	 * @param bool      $allow To allow the integration
 	 *
 	 * @return bool
 	 */
-	protected function should_integrate_with_query( $query ) {
+	protected function should_integrate_with_query( $query, $allow = false ) {
 		// Lets make sure this doesn't interfere with the CLI
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			return false;
@@ -1129,6 +1130,10 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		// Let's integrate for the default behaviors
+		if ( true === $allow ) {
+			return true;
+		}
 		if ( method_exists( $query, 'is_search' ) && ! $query->is_search() && empty( $query->query_vars['s'] ) ) {
 			/**
 			 * Filter to allow WooCommerce integration
