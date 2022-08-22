@@ -150,16 +150,16 @@ describe('Instant Results Feature', () => {
 		cy.maybeEnableFeature('instant-results');
 
 		cy.visit('/');
-		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.wp-block-search__input').type('test');
 		cy.get('.wp-block-search__button')
 			.click()
 			.then(() => {
-				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'test');
 			});
-		cy.get('ep-search-sidebar #ep-search-post-type-page')
+		cy.get('ep-search-sidebar #ep-search-post-type-post')
 			.click()
 			.then(() => {
-				cy.url().should('include', 'ep-post_type=page');
+				cy.url().should('include', 'ep-post_type=post');
 			});
 	});
 
@@ -171,11 +171,14 @@ describe('Instant Results Feature', () => {
 		cy.get('.ep-feature-instant-results .components-form-token-field__input')
 			.type('category')
 			.first()
+			.click();
+		cy.get('.ep-feature-instant-results .components-form-token-field__input')
+			.type('category')
+			.first()
 			.click()
-			.then((input) => {
-				input.type('category').first().click();
+			.then(() => {
+				cy.get('.ep-feature-instant-results .button-primary').click();
 			});
-		cy.get('.ep-feature-instant-results .button-primary').click();
 
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('test');
