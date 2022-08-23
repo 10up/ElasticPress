@@ -87,6 +87,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 * meta fields used in facets.
 		 */
 		$facets_meta_fields = $this->get_facets_meta_fields();
+
 		foreach ( $query_args['meta_query'] as $i => $meta_query_clause ) {
 			if ( is_array( $meta_query_clause )
 				&& ! empty( $meta_query_clause['key'] )
@@ -201,15 +202,27 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			return;
 		}
 
+		$settings = wp_parse_args(
+			$feature->get_settings(),
+			array(
+				'match_type' => 'all',
+			)
+		);
+
 		$meta_query = (array) $query->get( 'meta_query', [] );
 
 		$meta_fields = $selected_filters[ $this->get_filter_type() ];
 		foreach ( $meta_fields as $meta_field => $values ) {
 			$meta_query[] = [
-				'key'     => $meta_field,
-				'value'   => array_keys( $values['terms'] ),
-				'compare' => 'IN',
+				'key'      => $meta_field,
+				'value'    => array_keys( $values['terms'] ),
+				'compare'  => 'IN',
+				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
 			];
+		}
+
+		if ( ! empty( $selected_filters[ $this->get_filter_type() ] ) && 'any' === $settings['match_type'] ) {
+			$meta_query['relation'] = 'or';
 		}
 
 		$query->set( 'meta_query', $meta_query );
