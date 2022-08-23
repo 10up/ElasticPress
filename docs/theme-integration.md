@@ -148,3 +148,70 @@ window.epAutosuggestQueryFilter = (query, searchText, input) => {
 	return query;
 }
 ```
+
+## Instant Results
+
+### Customize the Template Used for Results
+
+When ElasticPress Instant Results renders search results it does so using a [React component](https://reactjs.org/docs/components-and-props.html). You can replace this component with your own from within a theme or plugin using the `elasticpress.InstantResults.Result` [JavaScript hook](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-hooks/).
+
+The result component receives the following props that your component can use to render the result:
+
+| prop | type | description
+| - | - | -
+| `averageRating` | number | Average review rating for WooCommerce products.
+| `date` | string | Localized date.
+| `hit` | object | Full result from Elasticsearch.
+| `excerpt` | string | Highlighted excerpt.
+| `id` | string | Post ID.
+| `priceHtml` | string | Price HTML for a WooCommerce product.
+| `thumbnail` | object | Thumbnail image attributes.
+| `title` | string | Highlighted title.
+| `type` | string | Post type label.
+| `url` | string | Post permalink.
+
+This example replaces the result component with a component that renders results as just a simple linked title and date in a div:
+
+```
+const CustomResult = ({ date, title, url }) => {
+	return (
+		<div>
+			<strong><a href={url}>{title}</a></strong> {date}
+		</div>
+	)
+};
+
+wp.hooks.addFilter('elasticpress.InstantResults.Result', 'customResult', () => CustomResult);
+```
+
+To conditionally replace the component based on each result you can pass a simple component that checks the result before either rendering the original component or a new custom component. This example renders the custom component from above but only for results with the `post` post type:
+
+```
+wp.hooks.addFilter('elasticpress.InstantResults.Result', 'customResultForPosts', (Result) => {
+	return (props) => {
+		if (props.hit._source.post_type === 'post') {
+			return <CustomResult {...props} />;
+		}
+
+		return <Result {...props} />;
+	};
+});
+```
+
+By returning a new component that wraps the original component you can customize the props that are passed to it. This example uses this approach to remove the post type label from results with the `page` post type:
+
+```
+wp.hooks.addFilter('elasticpress.InstantResults.Result', 'noTypeLabelsForPages', (Result) => {
+	return (props) => {
+		if (props.hit._source.post_type === 'page') {
+			return <Result {...props} type={null} />;
+		}
+
+		return <Result {...props} />;
+	};
+});
+
+```
+**Notes:**
+ - To take advantage of JavaScript hooks, make sure to set `wp-hooks` as a [dependency](https://developer.wordpress.org/reference/functions/wp_enqueue_script/#parameters) of your script.
+ - These examples use [JSX](https://reactjs.org/docs/introducing-jsx.html) to render for readability. Using JSX will require a build tool such as [@wordpress/scripts](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/) to compile it into a format that can be understood by the browser. To create a component without a build process you will need to use the more verbose `createElement` method of [@wordpress/element](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-element/).
