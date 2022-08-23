@@ -1,38 +1,71 @@
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, RadioControl, TextControl, Spinner, Placeholder } from '@wordpress/components';
-import { Fragment, useEffect, useState } from '@wordpress/element';
+import {
+	PanelBody,
+	RadioControl,
+	TextControl,
+	Spinner,
+	Placeholder,
+	SelectControl,
+} from '@wordpress/components';
+import { Fragment, useEffect, useState, useCallback } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 
 const FacetBlockEdit = (props) => {
 	const { attributes, setAttributes } = props;
+	const [metaKeys, setMetaKeys] = useState([]);
 	const [preview, setPreview] = useState('');
 	const [loading, setLoading] = useState(false);
-	const { facet, orderby, order } = attributes;
+	const { searchPlaceholder, facet, orderby, order } = attributes;
 
 	const blockProps = useBlockProps();
+
+	const load = useCallback(async () => {
+		const metaKeys = await apiFetch({
+			path: '/elasticpress/v1/facets/meta/keys',
+		});
+		setMetaKeys(metaKeys);
+	}, [setMetaKeys]);
+
+	useEffect(load, [load]);
 
 	useEffect(() => {
 		setLoading(true);
 		const params = new URLSearchParams({
+			searchPlaceholder,
 			facet,
 			orderby,
 			order,
 		});
 		apiFetch({
-			path: `/elasticpress/v1/facets/block-meta-preview?${params}`,
+			path: `/elasticpress/v1/facets/meta/block-preview?${params}`,
 		})
 			.then((preview) => setPreview(preview))
 			.finally(() => setLoading(false));
-	}, [facet, orderby, order]);
+	}, [searchPlaceholder, facet, orderby, order]);
 
 	return (
 		<Fragment>
 			<InspectorControls>
 				<PanelBody title={__('Facet Settings', 'elasticpress')}>
 					<TextControl
+						label={__('Search Placeholder', 'elasticpress')}
+						value={searchPlaceholder}
+						onChange={(value) => setAttributes({ searchPlaceholder: value })}
+					/>
+					<SelectControl
 						label={__('Meta Field Key', 'elasticpress')}
+						help={__(
+							'This is the list of meta fields indexed in Elasticsearch. If you do not see your field here, you might need to sync your content.',
+							'elasticpress',
+						)}
 						value={facet}
+						options={[
+							...metaKeys.map((metaKey) => ({
+								label: metaKey,
+								value: metaKey,
+							})),
+						]}
 						onChange={(value) => setAttributes({ facet: value })}
 					/>
 					<RadioControl

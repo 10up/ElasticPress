@@ -1198,4 +1198,24 @@ abstract class Indexable {
 
 		return \ElasticPress\SearchAlgorithms::factory()->get( $search_algorithm );
 	}
+
+	/**
+	 * Get all distinct meta field keys.
+	 *
+	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys( $blog_id = null ) {
+		$mapping = $this->get_mapping();
+
+		try {
+			$meta_keys = array_keys( $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'] );
+			$meta_keys = array_values( $meta_keys );
+			sort( $meta_keys );
+		} catch ( \Throwable $th ) {
+			return new \Exception( 'Meta fields not available.', 0 );
+		}
+
+		return $meta_keys;
+	}
 }

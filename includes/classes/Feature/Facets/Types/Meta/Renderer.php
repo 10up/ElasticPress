@@ -130,11 +130,8 @@ class Renderer {
 		?>
 		<div class="terms <?php if ( count( $values ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $values ) > $search_threshold ) : ?>
-				<?php // translators: Meta Field Key ?>
-				<input class="facet-search" type="search" placeholder="<?php printf( esc_html__( 'Search %s', 'elasticpress' ), esc_attr( $this->meta_field ) ); ?>">
-				<?php
-			endif;
-			?>
+				<input class="facet-search" type="search" placeholder="<?php echo esc_attr( $instance['searchPlaceholder'] ); ?>">
+			<?php endif; ?>
 
 			<div class="inner">
 				<?php

@@ -37,19 +37,31 @@ class Block {
 	public function setup_endpoints() {
 		register_rest_route(
 			'elasticpress/v1',
-			'facets/block-meta-preview',
+			'facets/meta/keys',
+			[
+				'methods'             => 'GET',
+				'permission_callback' => [ $this, 'check_facets_meta_rest_permission' ],
+				'callback'            => [ $this, 'get_rest_registered_metakeys' ],
+			]
+		);
+		register_rest_route(
+			'elasticpress/v1',
+			'facets/meta/block-preview',
 			[
 				'methods'             => 'GET',
 				'permission_callback' => [ $this, 'check_facets_meta_rest_permission' ],
 				'callback'            => [ $this, 'render_block_preview' ],
 				'args'                => [
-					'facet'   => [
+					'searchPlaceholder' => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
-					'orderby' => [
+					'facet'             => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
-					'order'   => [
+					'orderby'           => [
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'order'             => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -69,6 +81,23 @@ class Block {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Return an array of registered meta keys.
+	 *
+	 * @return array
+	 */
+	public function get_rest_registered_metakeys() {
+		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		try {
+			$meta_keys = $post_indexable->get_distinct_meta_field_keys();
+		} catch ( \Throwable $th ) {
+			$meta_keys = [];
+		}
+
+		return $meta_keys;
 	}
 
 	/**
@@ -114,9 +143,10 @@ class Block {
 
 		$attributes = $this->parse_attributes(
 			[
-				'facet'   => $request->get_param( 'facet' ),
-				'orderby' => $request->get_param( 'orderby' ),
-				'order'   => $request->get_param( 'order' ),
+				'searchPlaceholder' => $request->get_param( 'searchPlaceholder' ),
+				'facet'             => $request->get_param( 'facet' ),
+				'orderby'           => $request->get_param( 'orderby' ),
+				'order'             => $request->get_param( 'order' ),
 			]
 		);
 
@@ -140,6 +170,10 @@ class Block {
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
+			if ( empty( $attributes['facet'] ) ) {
+				return esc_html__( 'Preview not available', 'elasticpress' );
+			}
+
 			return sprintf(
 				/* translators: Meta field name */
 				esc_html__( 'Preview for %s not available', 'elasticpress' ),
@@ -161,12 +195,19 @@ class Block {
 		$attributes = wp_parse_args(
 			$attributes,
 			[
-				'facet'   => '',
-				'orderby' => 'count',
-				'order'   => 'desc',
+				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by meta search placeholder', 'elasticpress' ),
+				'facet'             => '',
+				'orderby'           => 'count',
+				'order'             => 'desc',
 
 			]
 		);
+		if ( empty( $attributes['facet'] ) ) {
+			$registered_metakeys = $this->get_rest_registered_metakeys();
+			if ( ! empty( $registered_metakeys ) ) {
+				$attributes['facet'] = reset( $registered_metakeys );
+			}
+		}
 		return $attributes;
 	}
 }
