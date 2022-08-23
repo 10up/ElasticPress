@@ -65,7 +65,7 @@ class Renderer {
 		/**
 		 * Get all the terms so we know if we should output the widget
 		 */
-		$raw_values = $this->get_meta_values( $instance['facet'] );
+		$raw_values = $facet_type->get_meta_values( $instance['facet'] );
 
 		$values = [];
 
@@ -248,38 +248,6 @@ class Renderer {
 		 * @return {string} Individual facet meta value HTML.
 		 */
 		return apply_filters( 'ep_facet_meta_value_html', $html, $value, $url );
-	}
-
-	/**
-	 * Get all values for the selected meta field.
-	 *
-	 * @param string $meta_key The selected meta field.
-	 * @return array
-	 */
-	public function get_meta_values( string $meta_key ) : array {
-		global $wpdb;
-
-		/**
-		 * Short-circuits the process of getting distinct meta values.
-		 *
-		 * Returning a non-null value will effectively short-circuit the function.
-		 *
-		 * @since 4.3.0
-		 * @hook ep_facet_meta_custom_meta_values
-		 * @param {null}   $meta_values Distinct meta values array
-		 * @param {array}  $meta_key    Key of the field.
-		 * @return {null|array} Distinct meta values array or `null` to keep default behavior.
-		 */
-		$custom_meta_values = apply_filters( 'ep_facet_meta_custom_meta_values', null, $meta_key );
-		if ( null !== $custom_meta_values ) {
-			return $custom_meta_values;
-		}
-
-		$meta_values = $wpdb->get_col(
-			$wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s", $meta_key )
-		);
-
-		return $meta_values;
 	}
 
 	/**

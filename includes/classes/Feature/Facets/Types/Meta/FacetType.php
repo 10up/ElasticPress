@@ -19,6 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
+	const TRANSIENT_PREFIX = 'ep_facet_meta_';
+
 	/**
 	 * Block instance.
 	 *
@@ -33,6 +35,10 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
+
+		add_action( 'ep_delete_post', [ $this, 'invalidate_meta_values_cache' ] );
+		add_action( 'ep_after_index_post', [ $this, 'invalidate_meta_values_cache' ] );
+		add_action( 'ep_after_bulk_index', [ $this, 'invalidate_meta_values_cache_after_bulk' ], 10, 2 );
 
 		$this->block = new Block();
 		$this->block->setup();
@@ -227,11 +233,11 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 				continue;
 			}
 
-			if ( ! preg_match( '/"facet":"(.*?)"/', $instance['content'], $matches ) ) {
+			if ( ! preg_match_all( '/"facet":"(.*?)"/', $instance['content'], $matches ) ) {
 				continue;
 			}
 
-			$facets_meta_fields[] = $matches[1];
+			$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
 		}
 
 		/**
@@ -243,5 +249,61 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 * @return {string} The array of meta field keys
 		 */
 		return apply_filters( 'ep_facet_meta_fields', $facets_meta_fields );
+	}
+
+	/**
+	 * Get all values for the a given meta field.
+	 *
+	 * @param string $meta_key The meta field.
+	 * @return array
+	 */
+	public function get_meta_values( string $meta_key ) : array {
+		/**
+		 * Short-circuits the process of getting distinct meta values.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.3.0
+		 * @hook ep_facet_meta_custom_meta_values
+		 * @param {null}   $meta_values Distinct meta values array
+		 * @param {array}  $meta_key    Key of the field.
+		 * @return {null|array} Distinct meta values array or `null` to keep default behavior.
+		 */
+		$custom_meta_values = apply_filters( 'ep_facet_meta_custom_meta_values', null, $meta_key );
+		if ( null !== $custom_meta_values ) {
+			return $custom_meta_values;
+		}
+
+		$meta_values = get_transient( self::TRANSIENT_PREFIX . $meta_key );
+		if ( ! $meta_values ) {
+			$meta_values = \ElasticPress\Indexables::factory()->get( 'post' )->get_all_distinct_values( "meta.{$meta_key}.raw" );
+			set_transient( self::TRANSIENT_PREFIX . $meta_key, $meta_values );
+		}
+
+		return $meta_values;
+	}
+
+	/**
+	 * Flush cached values of all facet fields.
+	 */
+	public function invalidate_meta_values_cache() {
+		$fields = $this->get_facets_meta_fields();
+		foreach ( $fields as $field ) {
+			delete_transient( self::TRANSIENT_PREFIX . $field );
+		}
+	}
+
+	/**
+	 * Check if it is bulk indexing posts and, if so, flush facet fields cache.
+	 *
+	 * @param array  $object_ids     Object IDs being indexed
+	 * @param string $indexable_slug Indexable slug
+	 */
+	public function invalidate_meta_values_cache_after_bulk( $object_ids, $indexable_slug ) {
+		if ( 'post' !== $indexable_slug ) {
+			return;
+		}
+
+		$this->invalidate_meta_values_cache();
 	}
 }

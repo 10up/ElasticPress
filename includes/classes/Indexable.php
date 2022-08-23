@@ -1202,6 +1202,7 @@ abstract class Indexable {
 	/**
 	 * Get all distinct meta field keys.
 	 *
+	 * @since 4.3.0
 	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
 	 * @return array
 	 */
@@ -1217,5 +1218,42 @@ abstract class Indexable {
 		}
 
 		return $meta_keys;
+	}
+
+	/**
+	 * Get all distinct values for a given field.
+	 *
+	 * @since 4.3.0
+	 * @param string $field   Field full name. For example: `meta.name.raw`
+	 * @param int    $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
+	 * @return array
+	 */
+	public function get_all_distinct_values( $field, $blog_id = null ) {
+		$aggregation_name = 'distinct_values';
+
+		$es_query = [
+			'_source' => false,
+			'size'    => 0,
+			'aggs'    => [
+				$aggregation_name => [
+					'terms' => [
+						'field' => $field,
+					],
+				],
+			],
+		];
+
+		$response = Elasticsearch::factory()->query( $this->get_index_name( $blog_id ), $this->slug, $es_query, [] );
+
+		if ( ! $response || empty( $response['aggregations'] ) || empty( $response['aggregations'][ $aggregation_name ] ) || empty( $response['aggregations'][ $aggregation_name ]['buckets'] ) ) {
+			return [];
+		}
+
+		$values = [];
+		foreach ( $response['aggregations'][ $aggregation_name ]['buckets'] as $es_bucket ) {
+			$values[] = $es_bucket['key'];
+		}
+
+		return $values;
 	}
 }
