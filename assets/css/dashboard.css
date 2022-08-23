@@ -39,14 +39,6 @@ html.wp-toolbar {
 	margin: 0.5em 0 0.75em;
 }
 
-#wpbody #update-nag,
-#wpbody .update-nag {
-	margin-bottom: 20px;
-	margin-left: -20px;
-	margin-top: 0;
-	width: auto;
-}
-
 h2.ep-list-features {
 	display: none;
 }
