@@ -76,7 +76,7 @@ class Block {
 	 * @return WP_Error|true
 	 */
 	public function check_facets_meta_rest_permission() {
-		if ( ! is_user_logged_in() ) {
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
 		}
 
