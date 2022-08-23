@@ -157,18 +157,18 @@ When ElasticPress Instant Results renders search results it does so using a [Rea
 
 The result component receives the following props that your component can use to render the result:
 
-| prop | type | description
-| - | - | -
+| prop            | type   | description
+| --------------- | ------ | -----------------------------------------------
 | `averageRating` | number | Average review rating for WooCommerce products.
-| `date` | string | Localized date.
-| `hit` | object | Full result from Elasticsearch.
-| `excerpt` | string | Highlighted excerpt.
-| `id` | string | Post ID.
-| `priceHtml` | string | Price HTML for a WooCommerce product.
-| `thumbnail` | object | Thumbnail image attributes.
-| `title` | string | Highlighted title.
-| `type` | string | Post type label.
-| `url` | string | Post permalink.
+| `date`          | string | Localized date.
+| `hit`           | object | Full result from Elasticsearch.
+| `excerpt`       | string | Highlighted excerpt.
+| `id`            | string | Post ID.
+| `priceHtml`     | string | Price HTML for a WooCommerce product.
+| `thumbnail`     | object | Thumbnail image attributes.
+| `title`         | string | Highlighted title.
+| `type`          | string | Post type label.
+| `url`           | string | Post permalink.
 
 This example replaces the result component with a component that renders results as just a simple linked title and date in a div:
 
