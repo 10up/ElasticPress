@@ -79,7 +79,7 @@ class Autosuggest extends Feature {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
-		add_filter( 'ep_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
+		add_filter( 'ep_post_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
 		add_filter( 'ep_weighted_query_for_post_type', [ $this, 'adjust_fuzzy_fields' ], 10, 3 );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
@@ -652,8 +652,13 @@ class Autosuggest extends Feature {
 	public function delete_cached_query() {
 		global $wp_object_cache;
 		if ( wp_using_ext_object_cache() ) {
-			// Delete the entire group.
-			unset( $wp_object_cache->cache['ep_autosuggest'] );
+			if ( function_exists( 'wp_cache_supports_group_flush' ) && wp_cache_supports_group_flush() ) {
+				wp_cache_flush_group( 'ep_autosuggest' );
+			} else {
+				// Try to delete the entire group.
+				// This may fail because the `$cache` property is not standardized.
+				unset( $wp_object_cache->cache['ep_autosuggest'] );
+			}
 		} else {
 			delete_transient( 'ep_autosuggest_query_request_cache' );
 		}

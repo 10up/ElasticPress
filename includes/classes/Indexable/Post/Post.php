@@ -219,6 +219,8 @@ class Post extends Indexable {
 	 * @return int The total posts.
 	 */
 	protected function get_total_objects_for_query_from_db( $query_args ) {
+		global $wpdb;
+
 		$post_count = 0;
 
 		if ( ! isset( $query_args['post_type'] ) || isset( $query_args['ep_indexing_upper_limit_object_id'] )
@@ -234,6 +236,18 @@ class Post extends Indexable {
 				}
 				$post_count += $post_status_count;
 			}
+		}
+
+		/**
+		 * As `wp_count_posts` will also count posts with password, we need to remove
+		 * them from the final count if they will not be used.
+		 *
+		 * The if below will pass if `has_password` is false but not null.
+		 */
+		if ( isset( $query_args['has_password'] ) && ! $query_args['has_password'] ) {
+			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" );
+
+			$post_count -= $posts_with_password;
 		}
 
 		return $post_count;
@@ -791,6 +805,89 @@ class Post extends Indexable {
 	}
 
 	/**
+	 * Checks if meta key is allowed
+	 *
+	 * @param string  $meta_key meta key to check
+	 * @param WP_Post $post Post object
+	 * @since 4.3.0
+	 * @return boolean
+	 */
+	public function is_meta_allowed( $meta_key, $post ) {
+		$test_metas = [
+			$meta_key => true,
+		];
+
+		$filtered_test_metas = $this->filter_allowed_metas( $test_metas, $post );
+
+		return array_key_exists( $meta_key, $filtered_test_metas );
+	}
+
+	/**
+	 * Filter post meta to only the allowed ones to be send to ES
+	 *
+	 * @param array   $metas Key => value pairs of post meta
+	 * @param WP_Post $post Post object
+	 * @since 4.3.0
+	 * @return array
+	 */
+	public function filter_allowed_metas( $metas, $post ) {
+		$filtered_metas = [];
+
+		/**
+		 * Filter indexable protected meta keys for posts
+		 *
+		 * @hook ep_prepare_meta_allowed_protected_keys
+		 * @param  {array} $keys Allowed protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+
+		/**
+		 * Filter public keys to exclude from indexed post
+		 *
+		 * @hook ep_prepare_meta_excluded_public_keys
+		 * @param  {array} $keys Excluded protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
+		 */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
+
+		foreach ( $metas as $key => $value ) {
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
+					$allow_index = true;
+				}
+			} else {
+
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
+					$allow_index = true;
+				}
+			}
+
+			/**
+			 * Filter force whitelisting a meta key
+			 *
+			 * @hook ep_prepare_meta_whitelist_key
+			 * @param  {bool} $whitelist True to whitelist key
+			 * @param  {string} $key Meta key
+			 * @param  {WP_Post} $post Post object
+			 * @return  {bool} New whitelist value
+			 */
+			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
+				$filtered_metas[ $key ] = $value;
+			}
+		}
+		return $filtered_metas;
+	}
+
+	/**
 	 * Prepare post meta to send to ES
 	 *
 	 * @param WP_Post $post Post object
@@ -821,58 +918,11 @@ class Post extends Indexable {
 			return apply_filters( 'ep_prepared_post_meta', [], $post );
 		}
 
-		$prepared_meta = [];
+		$filtered_metas = $this->filter_allowed_metas( $meta, $post );
+		$prepared_meta  = [];
 
-		/**
-		 * Filter indexable protected meta keys for posts
-		 *
-		 * @hook ep_prepare_meta_allowed_protected_keys
-		 * @param  {array} $keys Allowed protected keys
-		 * @param  {WP_Post} $post Post object
-		 * @since  1.7
-		 * @return  {array} New keys
-		 */
-		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
-
-		/**
-		 * Filter public keys to exclude from indexed post
-		 *
-		 * @hook ep_prepare_meta_excluded_public_keys
-		 * @param  {array} $keys Excluded protected keys
-		 * @param  {WP_Post} $post Post object
-		 * @since  1.7
-		 * @return  {array} New keys
-		 */
-		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
-
-		foreach ( $meta as $key => $value ) {
-
-			$allow_index = false;
-
-			if ( is_protected_meta( $key ) ) {
-
-				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
-					$allow_index = true;
-				}
-			} else {
-
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
-					$allow_index = true;
-				}
-			}
-
-			/**
-			 * Filter force whitelisting a meta key
-			 *
-			 * @hook ep_prepare_meta_whitelist_key
-			 * @param  {bool} $whitelist True to whitelist key
-			 * @param  {string} $key Meta key
-			 * @param  {WP_Post} $post Post object
-			 * @return  {bool} New whitelist value
-			 */
-			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
-				$prepared_meta[ $key ] = maybe_unserialize( $value );
-			}
+		foreach ( $filtered_metas as $key => $value ) {
+			$prepared_meta[ $key ] = maybe_unserialize( $value );
 		}
 
 		/**
@@ -1391,189 +1441,7 @@ class Post extends Indexable {
 		 */
 		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
 
-		$default_algorithm_version = '4.0';
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$search_algorithm_version_option = get_site_option( 'ep_search_algorithm_version', $default_algorithm_version );
-		} else {
-			$search_algorithm_version_option = get_option( 'ep_search_algorithm_version', $default_algorithm_version );
-		}
-
-		/**
-		 * Filter the algorithm version to be used.
-		 *
-		 * @since  3.5
-		 * @hook ep_search_algorithm_version
-		 * @param  {string} $search_algorithm_version Algorithm version.
-		 * @return  {string} New algorithm version
-		 */
-		$search_algorithm_version = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
-
 		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
-
-		if ( '4.0' === $search_algorithm_version ) {
-			$query = array(
-				'bool' => array(
-					'should' => array(
-						array(
-							'multi_match' => array(
-								'query'  => $search_text,
-								'type'   => 'phrase',
-								'fields' => $search_fields,
-								/**
-								 * Filter boost for post match phrase query
-								 *
-								 * @hook ep_match_phrase_boost
-								 * @param  {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
-							),
-						),
-						array(
-							'multi_match' => array(
-								'query'     => $search_text,
-								'fields'    => $search_fields,
-								/**
-								 * Filter boost for post match query
-								 *
-								 * @hook ep_match_boost
-								 * @param  {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New boost
-								 */
-								'boost'     => apply_filters( 'ep_match_boost', 1, $search_fields, $args ),
-								/**
-								 * Filter fuzziness for post match query
-								 *
-								 * @hook ep_match_fuzziness
-								 * @since 4.0.0
-								 * @param {string|int} $fuzziness Fuzziness
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {string} New boost
-								 */
-								'fuzziness' => apply_filters( 'ep_match_fuzziness', 'auto', $search_fields, $args ),
-								'operator'  => 'and',
-							),
-						),
-						array(
-							'multi_match' => [
-								'query'       => $search_text,
-								'type'        => 'cross_fields',
-								'fields'      => $search_fields,
-								/**
-								 * Filter boost for post match query
-								 *
-								 * @hook ep_match_cross_fields_boost
-								 * @since 4.0.0
-								 * @param  {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New boost
-								 */
-								'boost'       => apply_filters( 'ep_match_cross_fields_boost', 1, $search_fields, $args ),
-								'analyzer'    => 'standard',
-								'tie_breaker' => 0.5,
-								'operator'    => 'and',
-							],
-						),
-					),
-				),
-			);
-		} elseif ( '3.5' === $search_algorithm_version ) {
-			$query = array(
-				'bool' => array(
-					'should' => array(
-						array(
-							'multi_match' => array(
-								'query'  => $search_text,
-								'type'   => 'phrase',
-								'fields' => $search_fields,
-								/**
-								 * Filter boost for post match phrase query
-								 *
-								 * @hook ep_match_phrase_boost
-								 * @param  {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_match_phrase_boost', 3, $search_fields, $args ),
-							),
-						),
-						array(
-							'multi_match' => array(
-								'query'  => $search_text,
-								'fields' => $search_fields,
-								'type'   => 'phrase',
-								'slop'   => 5,
-							),
-						),
-					),
-				),
-			);
-		} else {
-			$query = array(
-				'bool' => array(
-					'should' => array(
-						array(
-							'multi_match' => array(
-								'query'  => $search_text,
-								'type'   => 'phrase',
-								'fields' => $search_fields,
-								/**
-								 * Filter boost for post match phrase query
-								 *
-								 * @hook ep_match_phrase_boost
-								 * @param  {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_match_phrase_boost', 4, $search_fields, $args ),
-							),
-						),
-						array(
-							'multi_match' => array(
-								'query'     => $search_text,
-								'fields'    => $search_fields,
-								/**
-								 * Filter boost for post match query
-								 *
-								 * @hook ep_match_boost
-								 * @param  {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New boost
-								 */
-								'boost'     => apply_filters( 'ep_match_boost', 2, $search_fields, $args ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							),
-						),
-						array(
-							'multi_match' => array(
-								'query'     => $search_text,
-								'fields'    => $search_fields,
-								/**
-								 * Filter fuzziness for post query
-								 *
-								 * @hook ep_fuzziness_arg
-								 * @param  {int} $fuzziness Fuzziness
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return  {int} New fuzziness
-								 */
-								'fuzziness' => apply_filters( 'ep_fuzziness_arg', 1, $search_fields, $args ),
-							),
-						),
-					),
-				),
-			);
-		}
 
 		/**
 		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
@@ -1582,28 +1450,11 @@ class Post extends Indexable {
 		 * @since 1.3
 		 */
 
-		if ( ! empty( $args['s'] ) ) {
-			add_filter( 'ep_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
+		if ( ! empty( $search_text ) ) {
+			add_filter( 'ep_post_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
 
-			/**
-			 * Filter formatted Elasticsearch post query (only contains query part)
-			 *
-			 * @hook ep_formatted_args_query
-			 * @param {array}  $query         Current query
-			 * @param {array}  $query_vars    Query variables
-			 * @param {string} $search_text   Search text
-			 * @param {array}  $search_fields Search fields
-			 * @return {array} New query
-			 *
-			 * @since 3.5.5 $search_text and $search_fields parameters added.
-			 */
-			$formatted_args['query'] = apply_filters(
-				'ep_formatted_args_query',
-				$query,
-				$args,
-				$search_text,
-				$search_fields
-			);
+			$search_algorithm        = $this->get_search_algorithm( $search_text, $search_fields, $args );
+			$formatted_args['query'] = $search_algorithm->get_query( 'post', $search_text, $search_fields, $args );
 		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
 			$formatted_args['query']['match_all'] = array(
 				'boost' => 1,
@@ -2259,5 +2110,43 @@ class Post extends Indexable {
 		}
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Get the search algorithm that should be used.
+	 *
+	 * @since 4.3.0
+	 * @param string $search_text   Search term(s)
+	 * @param array  $search_fields Search fields
+	 * @param array  $query_vars    Query vars
+	 * @return SearchAlgorithm Instance of search algorithm to be used
+	 */
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+		$search_algorithm_version_option = \ElasticPress\Utils\get_option( 'ep_search_algorithm_version', '4.0' );
+
+		/**
+		 * Filter the algorithm version to be used.
+		 *
+		 * @since  3.5
+		 * @hook ep_search_algorithm_version
+		 * @param  {string} $search_algorithm_version Algorithm version.
+		 * @return  {string} New algorithm version
+		 */
+		$search_algorithm = apply_filters( 'ep_search_algorithm_version', $search_algorithm_version_option );
+
+		/**
+		 * Filter the search algorithm to be used
+		 *
+		 * @hook ep_{$indexable_slug}_search_algorithm
+		 * @since  4.3.0
+		 * @param  {string} $search_algorithm Slug of the search algorithm used as fallback
+		 * @param  {string} $search_term      Search term
+		 * @param  {array}  $search_fields    Fields to be searched
+		 * @param  {array}  $query_vars       Query variables
+		 * @return {string} New search algorithm slug
+		 */
+		$search_algorithm = apply_filters( "ep_{$this->slug}_search_algorithm", $search_algorithm, $search_text, $search_fields, $query_vars );
+
+		return \ElasticPress\SearchAlgorithms::factory()->get( $search_algorithm );
 	}
 }
