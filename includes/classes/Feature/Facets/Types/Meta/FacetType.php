@@ -143,27 +143,28 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	public function set_wp_query_aggs( $facet_aggs ) {
 		$facets_meta_fields = $this->get_facets_meta_fields();
 
-		/**
-		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
-		 * Values available out-of-the-box are:
-		 * - raw (default)
-		 * - long
-		 * - double
-		 * - boolean
-		 * - date
-		 * - datetime
-		 * - time
-		 *
-		 * `meta.<field>.value` is *not* available, as that throws a `Fielddata is disabled on text fields by default` error.
-		 *
-		 * @since 4.3.0
-		 * @hook ep_facet_meta_use_field
-		 * @param {string} $field The Elasticsearch field to use for this meta field
-		 * @return {string} The chosen ES field
-		 */
-		$facet_field = apply_filters( 'ep_facet_meta_use_field', 'raw' );
-
 		foreach ( $facets_meta_fields as $meta_field ) {
+			/**
+			 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+			 * Values available out-of-the-box are:
+			 * - raw (default)
+			 * - long
+			 * - double
+			 * - boolean
+			 * - date
+			 * - datetime
+			 * - time
+			 *
+			 * `meta.<field>.value` is *not* available, as that throws a `Fielddata is disabled on text fields by default` error.
+			 *
+			 * @since 4.3.0
+			 * @hook ep_facet_meta_use_field
+			 * @param {string} $es_field   The Elasticsearch field to use for this meta field
+			 * @param {string} $meta_field The meta field key
+			 * @return {string} The chosen ES field
+			 */
+			$facet_field = apply_filters( 'ep_facet_meta_use_field', 'raw', $meta_field );
+
 			$facet_aggs[ $this->get_filter_name() . $meta_field ] = array(
 				'terms' => array(
 					/**

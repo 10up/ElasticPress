@@ -24,11 +24,6 @@ class Block {
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
-
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block' );
-
-		$this->renderer = new $renderer_class();
 	}
 
 	/**
@@ -119,10 +114,15 @@ class Block {
 	 */
 	public function render_block( $attributes ) {
 		$attributes = $this->parse_attributes( $attributes );
+
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block', $attributes );
+		$renderer       = new $renderer_class();
+
 		ob_start();
 		?>
 		<div class="wp-block-elasticpress-facet">
-			<?php $this->renderer->render( [], $attributes ); ?>
+			<?php $renderer->render( [], $attributes ); ?>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -165,8 +165,12 @@ class Block {
 			]
 		);
 
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block', $attributes );
+		$renderer       = new $renderer_class();
+
 		ob_start();
-		$this->renderer->render( [], $attributes );
+		$renderer->render( [], $attributes );
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {

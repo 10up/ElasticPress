@@ -105,11 +105,12 @@ class Renderer {
 		 *
 		 * @hook ep_facet_meta_values_with_count
 		 * @since 4.3.0
-		 * @param {array}  $values     Values with names and counts.
+		 * @param {array}  $values     Values with names and counts
 		 * @param {string} $meta_field Meta field
+		 * @param {array}  $instance   Block info
 		 * @return {array} New values
 		 */
-		$values = apply_filters( 'ep_facet_meta_all_values', $values, $this->meta_field );
+		$values = apply_filters( 'ep_facet_meta_all_values', $values, $this->meta_field, $instance );
 
 		echo wp_kses_post( $args['before_widget'] );
 
@@ -121,12 +122,13 @@ class Renderer {
 		 * Filter facet search threshold
 		 *
 		 * @hook ep_facet_search_threshold
-		 * @param  {int} $search_threshold Search threshold
-		 * @param  {string} $taxonomy Current taxonomy
-		 * @param  {string} $context Hint about where the value will be used
+		 * @param  {int}    $search_threshold Search threshold
+		 * @param  {string} $taxonomy         Current taxonomy
+		 * @param  {string} $context          Hint about where the value will be used
+		 * @param  {array}  $instance         Block instance
 		 * @return  {int} New threshold
 		 */
-		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $this->meta_field, 'meta' );
+		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $this->meta_field, 'meta', $instance );
 		?>
 		<div class="terms <?php if ( count( $values ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $values ) > $search_threshold ) : ?>
