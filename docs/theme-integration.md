@@ -154,7 +154,7 @@ window.epAutosuggestQueryFilter = (query, searchText, input) => {
 
 ### Styling Instant Results
 
-The default styles for Instant Results are as minimal as they can be to allow Instant Results to reflect the active theme's design and styles as much as possible while maintaining the expected layout. However you may still wish to add styles to your theme specifically for Instant Results. To help with styling Instant Results supports several [custom CSS properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) that can be used to update certain recurring styles without needing to target multiple selectors. For other elements Instant Results uses [BEM syntax](https://css-tricks.com/bem-101/) to allow easier styling of recurring components.
+The default styles for Instant Results are as minimal as they can be to allow Instant Results to reflect the active theme's design and styles as much as possible while maintaining the expected layout. However, you may still wish to add styles to your theme specifically for Instant Results. To help with styling, Instant Results supports several [custom CSS properties](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) that can be used to update certain recurring styles without needing to target multiple selectors. For other elements Instant Results uses [BEM syntax](https://css-tricks.com/bem-101/) to allow easier styling of recurring components.
 
 #### Custom Properties
 
