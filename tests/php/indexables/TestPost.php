@@ -5453,6 +5453,7 @@ class TestPost extends BaseTestCase {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
 		$post_id_3 = Functions\create_and_sync_post();
+		$post_id_4 = Functions\create_and_sync_post( [ 'post_password' => '123' ] );
 
 		// Test the first loop of the indexing.
 		$results = $indexable_post_object->query_db(
@@ -5548,6 +5549,19 @@ class TestPost extends BaseTestCase {
 
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page'     => 1,
+				'has_password' => null, // `null` here makes WP ignore passwords completely, bringing everything
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_4, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**
