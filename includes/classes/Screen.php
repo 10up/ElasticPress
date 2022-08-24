@@ -39,7 +39,7 @@ class Screen {
 	 * Info screen instance
 	 *
 	 * @var Screen\HealthInfo
-	 * @since  4.2.2
+	 * @since  4.3.0
 	 */
 	public $health_info_screen;
 

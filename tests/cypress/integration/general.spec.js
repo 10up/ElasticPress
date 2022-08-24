@@ -112,10 +112,10 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		cy.get('[aria-controls="health-check-accordion-block-ep_last_sync"]').click();
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(1) td',
-		).should('contain.text', 'total');
+		).should('contain.text', 'Total');
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(2) td',
-		).should('contain.text', 'synced');
+		).should('contain.text', 'Synced');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(3) td',
@@ -123,22 +123,22 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(4) td',
-		).should('contain.text', 'failed');
+		).should('contain.text', 'Failed');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(5) td',
-		).should('contain.text', 'total_time');
+		).should('contain.text', 'Total time');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(6) td',
-		).should('contain.text', 'errors');
+		).should('contain.text', 'Errors');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(7) td',
-		).should('contain.text', 'end_date_time');
+		).should('contain.text', 'End date_time');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(9) td',
-		).should('contain.text', 'method');
+		).should('contain.text', 'Method');
 	});
 });
