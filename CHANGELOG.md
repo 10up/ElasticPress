@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Autosuggest: filter the HTML of all results by defining a `window.epAutosuggestListItemsHTMLFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
 - Autosuggest: filter the container element by defining a `window.epAutosuggestElementFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
 - Documentation for Autosuggest JavaScript filters. Props [@JakePT](https://github.com/JakePT) and [@brandwaffle](https://github.com/brandwaffle) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
+- Documentation for styling Instant Results. Props [@JakePT](https://github.com/JakePT) via [#2949](https://github.com/10up/ElasticPress/pull/2949).
 - Use `wp_cache_flush_group()` for autosuggest when available. Props [@tillkruss](https://github.com/tillkruss) via [#2916](https://github.com/10up/ElasticPress/pull/2916).
 - The public search API is automatically deactivated when the Instant Results feature is deactivated. Props [@JakePT](https://github.com/JakePT) via [#2821](https://github.com/10up/ElasticPress/pull/2821).
 - Support for transforming instances of the legacy Facet and Related Posts widgets into blocks. Props [@JakePT](https://github.com/JakePT) via [#2819](https://github.com/10up/ElasticPress/pull/2819).
