@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Stuck progress bar when no post is found. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2953](https://github.com/10up/ElasticPress/pull/2953).
 - Infinite loop during sync if the site has just password protected posts and no other content. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2953](https://github.com/10up/ElasticPress/pull/2953).
 - JS error on Custom Results edit page. Props [@burhandodhy](https://github.com/burhandodhy) via [#2935](https://github.com/10up/ElasticPress/pull/2935).
+- Horizontal scroll in ElasticPress Quick Setup Screen. Props [@MARQAS](https://github.com/MARQAS) and [@JakePT](https://github.com/JakePT) via [#2937](https://github.com/10up/ElasticPress/pull/2937).
 - Intermittent error with sticky posts in the tests suite. Props [@felipeelia](https://github.com/felipeelia) via [#2943](https://github.com/10up/ElasticPress/pull/2943).
 
 ### Security
