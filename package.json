@@ -62,6 +62,7 @@
       "sites-admin-script.min": "./assets/js/sites-admin.js",
       "stats-script.min": "./assets/js/stats.js",
       "synonyms-script.min": "./assets/js/synonyms/index.js",
+      "admin-script.min": "./assets/js/admin.js",
       "weighting-script.min": "./assets/js/weighting.js",
       "autosuggest-styles.min": "./assets/css/autosuggest.css",
       "comments-styles.min": "./assets/css/comments.css",
