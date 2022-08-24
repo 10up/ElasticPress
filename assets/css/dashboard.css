@@ -47,6 +47,12 @@ h2.ep-list-features {
  * Header
  */
 
+#wpbody #update-nag,
+#wpbody .update-nag {
+	display: block;
+	margin: 5px 15px 2px;
+}
+
 .ep-header-menu {
 	background-color: #fff;
 	border-bottom: 2px solid #ddd;
