@@ -421,3 +421,29 @@ Cypress.Commands.add('createAutosavePost', (postData) => {
 	cy.wait(5000);
 	cy.deactivatePlugin('shorten-autosave', 'wpCli');
 });
+
+Cypress.Commands.add('createUser', (userData) => {
+	const newUserDate = {
+		username: 'testuser',
+		password: 'password',
+		email: 'testuser@example.com',
+		role: 'subscriber',
+		login: false,
+		...userData,
+	};
+
+	// delete the user.
+	cy.wpCli(`wp user delete ${newUserDate.username} --yes --network`, true);
+
+	// create the user
+	cy.wpCli(
+		`wp user create ${newUserDate.username} ${newUserDate.email} --user_pass=${newUserDate.password} --role=${newUserDate.role}`,
+	);
+
+	if (newUserDate.login) {
+		cy.visit('wp-login.php');
+		cy.get('#user_login').type(newUserDate.username);
+		cy.get('#user_pass').type(newUserDate.password);
+		cy.get('#wp-submit').click();
+	}
+});
