@@ -4,6 +4,58 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.3.0] - 2022-08-XX
+
+### Added
+- Search products by their variations' SKUs. Props [@burhandodhy](https://github.com/burhandodhy) via [#2854](https://github.com/10up/ElasticPress/pull/2854).
+- New `epwr_decay_field` filter to set the decay field for date weighting. Props [@MARQAS](https://github.com/MARQAS) and [@HypeAU](https://github.com/HypeAU) via [#2907](https://github.com/10up/ElasticPress/pull/2907).
+- Autosuggest: filter the autosuggest ElasticSearch query by defining a `window.epAutosuggestQueryFilter()` function in JavaScript. Props [@johnwatkins0](https://github.com/johnwatkins0) via [#2909](https://github.com/10up/ElasticPress/pull/2909).
+- Autosuggest: filter the HTML of all results by defining a `window.epAutosuggestListItemsHTMLFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
+- Autosuggest: filter the container element by defining a `window.epAutosuggestElementFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
+- Documentation for Autosuggest JavaScript filters. Props [@JakePT](https://github.com/JakePT) and [@brandwaffle](https://github.com/brandwaffle) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
+- Use `wp_cache_flush_group()` for autosuggest when available. Props [@tillkruss](https://github.com/tillkruss) via [#2916](https://github.com/10up/ElasticPress/pull/2916).
+- The public search API is automatically deactivated when the Instant Results feature is deactivated. Props [@JakePT](https://github.com/JakePT) via [#2821](https://github.com/10up/ElasticPress/pull/2821).
+- Support for transforming instances of the legacy Facet and Related Posts widgets into blocks. Props [@JakePT](https://github.com/JakePT) via [#2819](https://github.com/10up/ElasticPress/pull/2819).
+- E2E tests for the Custom Results feature. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2871](https://github.com/10up/ElasticPress/pull/2871).
+- E2E tests for the Terms feature. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2931](https://github.com/10up/ElasticPress/pull/2931).
+
+### Changed
+- Improved performance in `get_term_tree()`. Props [@rebeccahum](https://github.com/rebeccahum) via [#2883](https://github.com/10up/ElasticPress/pull/2883).
+- Migrated Related Posts block definitions to `block.json`. Props [@JakePT](https://github.com/JakePT) via [#2898](https://github.com/10up/ElasticPress/pull/2898).
+- Total comment count made during sync process to be a proper count call. Props [@felipeelia](https://github.com/felipeelia) and [@bsabalaskey](https://github.com/bsabalaskey) via [#2903](https://github.com/10up/ElasticPress/pull/2903).
+- Search algorithms moved to separate classes. Props [@felipeelia](https://github.com/felipeelia) via [#2880](https://github.com/10up/ElasticPress/pull/2880).
+- The legacy Facet and Related Posts widgets are now hidden when using the block editor. Props [@JakePT](https://github.com/JakePT) via [#2819](https://github.com/10up/ElasticPress/pull/2819).
+- PHP compatibility check merged to regular lint. Props [@felipeelia](https://github.com/felipeelia) via [#2945](https://github.com/10up/ElasticPress/pull/2945).
+- E2e tests to run WP-CLI commands in an existent docker container. Props [@felipeelia](https://github.com/felipeelia) via [#2944](https://github.com/10up/ElasticPress/pull/2944).
+- Increased E2e tests coverage for WP-CLI commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2926](https://github.com/10up/ElasticPress/pull/2926).
+
+### Deprecated
+- The following filters were deprecated via [#2880](https://github.com/10up/ElasticPress/pull/2880). They will still work but add a notice in the error logs.
+
+|Old Filter|New Filter|
+|---|---|
+|ep_formatted_args_query|ep_post_formatted_args_query|
+|ep_match_phrase_boost|ep_post_match_phrase_boost|
+|ep_match_boost|ep_post_match_boost|
+|ep_fuzziness_arg|ep_post_fuzziness_arg|
+|ep_match_fuzziness|ep_post_match_fuzziness|
+|ep_match_cross_fields_boost|ep_post_match_cross_fields_boost|
+
+### Fixed
+- Error returned by the `recreate-network-alias` CLI command when called on single site. Props [@burhandodhy](https://github.com/burhandodhy) via [#2906](https://github.com/10up/ElasticPress/pull/2906).
+- Term objects in `format_hits_as_terms` to use `WP_Term` instead of `stdClass` to match WordPress expectations. Props [@jonathanstegall](https://github.com/jonathanstegall) via [#2913](https://github.com/10up/ElasticPress/pull/2913).
+- Post reindex on meta deletion. Props [@pschoffer](https://github.com/pschoffer) via [#2862](https://github.com/10up/ElasticPress/pull/2862).
+- Autosaved drafts not showing up in draft post listing when using the Protected Content feature. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#2861](https://github.com/10up/ElasticPress/pull/2861).
+- Display fatal error messages in the Sync Dashboard. Props [@felipeelia](https://github.com/felipeelia) and [@orasik](https://github.com/orasik) via [#2927](https://github.com/10up/ElasticPress/pull/2927).
+- An issue where syncing after skipping setup, instead of deleting and syncing, resulted in an error. Props [@JakePT](https://github.com/JakePT) via [#2858](https://github.com/10up/ElasticPress/pull/2858) and [#2939](https://github.com/10up/ElasticPress/pull/2939).
+- Stuck progress bar when no post is found. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2953](https://github.com/10up/ElasticPress/pull/2953).
+- Infinite loop during sync if the site has just password protected posts and no other content. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2953](https://github.com/10up/ElasticPress/pull/2953).
+- Intermittent error with sticky posts in the tests suite. Props [@felipeelia](https://github.com/felipeelia) via [#2943](https://github.com/10up/ElasticPress/pull/2943).
+
+### Security
+- Bumped `terser` from 5.12.0 to 5.14.2. Props [@dependabot](https://github.com/dependabot) via [#2900](https://github.com/10up/ElasticPress/pull/2900).
+- Bumped `@wordpress/env` from 4.5.0 to 5.0.0. Props [@felipeelia](https://github.com/felipeelia) via [#2925](https://github.com/10up/ElasticPress/pull/2925).
+
 ## [4.2.2] - 2022-07-14
 This is a bug fix release.
 
@@ -1445,6 +1497,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.3.0]: https://github.com/10up/ElasticPress/compare/4.2.2...4.3.0
 [4.2.2]: https://github.com/10up/ElasticPress/compare/4.2.1...4.2.2
 [4.2.1]: https://github.com/10up/ElasticPress/compare/4.2.0...4.2.1
 [4.2.0]: https://github.com/10up/ElasticPress/compare/4.1.0...4.2.0
