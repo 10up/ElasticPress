@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 - An issue where syncing after skipping setup, instead of deleting and syncing, resulted in an error. Props [@JakePT](https://github.com/JakePT) via [#2858](https://github.com/10up/ElasticPress/pull/2858) and [#2939](https://github.com/10up/ElasticPress/pull/2939).
 - Stuck progress bar when no post is found. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2953](https://github.com/10up/ElasticPress/pull/2953).
 - Infinite loop during sync if the site has just password protected posts and no other content. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#2953](https://github.com/10up/ElasticPress/pull/2953).
+- JS error on Custom Results edit page. Props [@burhandodhy](https://github.com/burhandodhy) via [#2935](https://github.com/10up/ElasticPress/pull/2935).
 - Intermittent error with sticky posts in the tests suite. Props [@felipeelia](https://github.com/felipeelia) via [#2943](https://github.com/10up/ElasticPress/pull/2943).
 
 ### Security
