@@ -1225,10 +1225,11 @@ abstract class Indexable {
 	 *
 	 * @since 4.3.0
 	 * @param string $field   Field full name. For example: `meta.name.raw`
+	 * @param int    $count   (Optional) Max number of different distinct values to be returned
 	 * @param int    $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
 	 * @return array
 	 */
-	public function get_all_distinct_values( $field, $blog_id = null ) {
+	public function get_all_distinct_values( $field, $count = 10000, $blog_id = null ) {
 		$aggregation_name = 'distinct_values';
 
 		$es_query = [
@@ -1237,6 +1238,16 @@ abstract class Indexable {
 			'aggs'    => [
 				$aggregation_name => [
 					'terms' => [
+						/**
+						 * Filter the max. number of different distinct values to be returned by Elasticsearch.
+						 *
+						 * @since 4.3.0
+						 * @hook ep_{$indexable_slug}_all_distinct_values
+						 * @param {int}    $size  The number of different values. Default: 10000
+						 * @param {string} $field The meta field
+						 * @return {string} The new number of different values
+						 */
+						'size'  => apply_filters( 'ep_' . $this->slug . '_all_distinct_values', $count, $field ),
 						'field' => $field,
 					],
 				],

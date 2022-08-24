@@ -171,7 +171,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 					 *
 					 * @since 4.3.0
 					 * @hook ep_facet_meta_size
-					 * @param {int}    $size  The number of different values. Default: 1000
+					 * @param {int}    $size  The number of different values. Default: 10000
 					 * @param {string} $field The meta field
 					 * @return {string} The new number of different values
 					 */
@@ -289,7 +289,43 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$meta_values = get_transient( self::TRANSIENT_PREFIX . $meta_key );
 		if ( ! $meta_values ) {
-			$meta_values = \ElasticPress\Indexables::factory()->get( 'post' )->get_all_distinct_values( "meta.{$meta_key}.raw" );
+			$meta_values = \ElasticPress\Indexables::factory()->get( 'post' )->get_all_distinct_values( "meta.{$meta_key}.raw", 100 );
+
+			/**
+			 * Max length of each value in the facet.
+			 *
+			 * To set it to only display 3 characters of each value when the meta_key is `my_key`:
+			 * ```
+			 * add_filter(
+			 *     'ep_facet_meta_value_max_strlen',
+			 *     function( $length, $meta_key ) {
+			 *         if ( 'my_key' !== $meta_key ) {
+			 *             return $length;
+			 *         }
+			 *         return 3;
+			 *     },
+			 *     10,
+			 *     3
+			 * );
+			 * ```
+			 *
+			 * Please note that this value is cached. After adding that code to your codebase you will need
+			 * to clear WordPress's cache or save a post.
+			 *
+			 * @since 4.3.0
+			 * @hook ep_facet_meta_value_max_strlen
+			 * @param {int}    $length   Length of each value. Defaults to 100.
+			 * @param {string} $meta_key Key of the field.
+			 * @return {int} New length.
+			 */
+			$max_value_length = apply_filters( 'ep_facet_meta_value_max_strlen', 100, $meta_key );
+
+			$meta_values = array_map(
+				function ( $value ) use ( $max_value_length ) {
+					return substr( $value, 0, $max_value_length );
+				},
+				$meta_values
+			);
 			set_transient( self::TRANSIENT_PREFIX . $meta_key, $meta_values );
 		}
 
