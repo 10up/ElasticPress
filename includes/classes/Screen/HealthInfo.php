@@ -38,9 +38,24 @@ class HealthInfo {
 
 		$sync_info = IndexHelper::factory()->get_last_index();
 
+		if ( ! empty( $sync_info['end_time_gmt'] ) ) {
+			unset( $sync_info['end_time_gmt'] );
+		}
+
+		$labels = [
+			'total'         => esc_html__( 'Total', 'elasticpress' ),
+			'synced'        => esc_html__( 'Synced', 'elasticpress' ),
+			'skipped'       => esc_html__( 'Skipped', 'elasticpress' ),
+			'failed'        => esc_html__( 'Failed', 'elasticpress' ),
+			'errors'        => esc_html__( 'Errors', 'elasticpress' ),
+			'method'        => esc_html__( 'Method', 'elasticpress' ),
+			'end_date_time' => esc_html__( 'End Date Time', 'elasticpress' ),
+			'total_time'    => esc_html__( 'Total Time', 'elasticpress' ),
+		];
+
 		foreach ( $sync_info as $label => $value ) {
 			$debug_info['ep_last_sync']['fields'][ sanitize_title( $label ) ] = [
-				'label'   => sanitize_title( $label ),
+				'label'   => $labels[ $label ] ?? $label,
 				'value'   => $value,
 				'private' => true,
 			];
@@ -92,7 +107,7 @@ class HealthInfo {
 
 		foreach ( $fields as $label => $value ) {
 			$debug_info['epio_autosuggest']['fields'][ sanitize_title( $label ) ] = [
-				'label'   => sanitize_title( $label ),
+				'label'   => $label,
 				'value'   => $value,
 				'private' => true,
 			];
