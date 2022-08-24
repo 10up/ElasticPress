@@ -119,7 +119,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(3) td',
-		).should('contain.text', 'skipped');
+		).should('contain.text', 'Skipped');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(4) td',
@@ -135,7 +135,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(7) td',
-		).should('contain.text', 'End date_time');
+		).should('contain.text', 'End date time');
 
 		cy.get(
 			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(9) td',
