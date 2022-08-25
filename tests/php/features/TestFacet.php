@@ -14,6 +14,36 @@ use ElasticPress\Features as Features;
  */
 class TestFacets extends BaseTestCase {
 	/**
+	 * Test facet type registration
+	 *
+	 * @since 4.3.0
+	 * @group facets
+	 */
+	public function testFacetTypeRegistration() {
+		$facet_type = $this->getMockForAbstractClass( '\ElasticPress\Feature\Facets\FacetType' );
+		$facet_type->expects( $this->exactly( 1 ) )->method( 'setup' );
+
+		$register_facet_type = function( $types ) use ( $facet_type ) {
+			$types['test_custom'] = get_class( $facet_type );
+			return $types;
+		};
+
+		add_filter( 'ep_facet_types', $register_facet_type );
+
+		$facets = new \ElasticPress\Feature\Facets\Facets();
+
+		$this->assertArrayHasKey( 'test_custom', $facets->types );
+		$this->assertInstanceOf( get_class( $facet_type ), $facets->types['test_custom'] );
+
+		// Make sure it uses our instance
+		$facets->types['test_custom'] = $facet_type;
+
+		$facets->setup();
+
+		remove_filter( 'ep_facet_types', $register_facet_type );
+	}
+
+	/**
 	 * Test the `get_selected` method
 	 *
 	 * @since 3.6.0
