@@ -73,6 +73,8 @@ describe('Instant Results Feature', () => {
 				'You are using a custom proxy. Make sure you implement all security measures needed',
 			);
 			cy.get('.ep-feature-instant-results .input-wrap').should('not.have.class', 'disabled');
+		} else {
+			cy.get('.ep-feature-instant-results .input-wrap').should('not.have.class', 'disabled');
 		}
 	});
 
