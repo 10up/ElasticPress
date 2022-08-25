@@ -35,11 +35,6 @@ class Widget extends WP_Widget {
 		);
 
 		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
-
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'widget' );
-
-		$this->renderer = new $renderer_class();
 	}
 
 	/**
@@ -50,7 +45,11 @@ class Widget extends WP_Widget {
 	 * @since 2.5, 4.2.0 made a wrapper for the renderer call.
 	 */
 	public function widget( $args, $instance ) {
-		$this->renderer->render( $args, $instance );
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $instance );
+		$renderer       = new $renderer_class();
+
+		$renderer->render( $args, $instance );
 	}
 
 	/**
@@ -65,7 +64,11 @@ class Widget extends WP_Widget {
 	protected function get_facet_term_html( $term, $url, $selected = false ) {
 		_deprecated_function( __FUNCTION__, '4.2.0', '$this->renderer->get_facet_term_html()' );
 
-		return $this->renderer->get_facet_term_html( $term, $url, $selected );
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', [] );
+		$renderer       = new $renderer_class();
+
+		return $renderer->get_facet_term_html( $term, $url, $selected );
 	}
 
 	/**
