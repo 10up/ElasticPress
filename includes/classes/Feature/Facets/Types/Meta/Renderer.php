@@ -188,7 +188,7 @@ class Renderer {
 		 * @since 4.3.0
 		 * @hook ep_facet_meta_value_label
 		 * @param {string} $label Facet meta value label.
-		 * @param {array}  $value Value array. It contains `raw_value`, `name`, `count`, and `is_selected`.
+		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet meta value label.
 		 */
 		$label = apply_filters( 'ep_facet_meta_value_label', $value['name'], $value );
@@ -204,7 +204,7 @@ class Renderer {
 		 * @since 4.3.0
 		 * @hook ep_facet_meta_value_accessible_label
 		 * @param {string}  $label Facet meta value accessible label.
-		 * @param {array}   $value Value array. It contains `raw_value`, `name`, `count`, and `is_selected`.
+		 * @param {array}   $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet term accessible label.
 		 */
 		$accessible_label = apply_filters(
@@ -245,7 +245,7 @@ class Renderer {
 		 * @since 4.3.0
 		 * @hook ep_facet_meta_value_html
 		 * @param {string} $html  Facet meta value HTML.
-		 * @param {array}  $value Value array. It contains `raw_value`, `name`, `count`, and `is_selected`.
+		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @param {string} $url   Filter URL.
 		 * @return {string} Individual facet meta value HTML.
 		 */
