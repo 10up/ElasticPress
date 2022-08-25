@@ -134,11 +134,13 @@ describe('Post Search Feature', () => {
 				},
 			},
 		}).then(() => {
-			cy.wpCli('elasticpress index --setup --yes');
-			cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-			cy.contains('.site-content article:nth-of-type(1) h2', 'Awesome Aluminum Shoes').should(
-				'exist',
-			);
+			cy.wpCli('elasticpress index --setup --yes').then(() => {
+				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+				cy.contains(
+					'.site-content article:nth-of-type(1) h2',
+					'Awesome Aluminum Shoes',
+				).should('exist');
+			});
 		});
 	});
 });
