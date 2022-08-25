@@ -144,16 +144,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			return;
 		}
 
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
-
-		/**
-		 * Filter taxonomies made available for faceting
-		 *
-		 * @hook ep_facet_include_taxonomies
-		 * @param  {array} $taxonomies Taxonomies
-		 * @return  {array} New taxonomies
-		 */
-		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+		$taxonomies = $this->get_facetable_taxonomies();
 
 		if ( empty( $taxonomies ) ) {
 			return;
@@ -206,40 +197,32 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	public function set_wp_query_aggs( $facet_aggs ) {
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
-
-		/**
-		 * Filter taxonomies made available for faceting
-		 *
-		 * @hook ep_facet_include_taxonomies
-		 * @param  {array} $taxonomies Taxonomies
-		 * @return  {array} New taxonomies
-		 */
-		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+		$taxonomies = $this->get_facetable_taxonomies();
 
 		if ( empty( $taxonomies ) ) {
 			return $facet_aggs;
 		}
 
-		/**
-		 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
-		 * Values available out-of-the-box are:
-		 *  - slug (default)
-		 *  - term_id
-		 *  - name
-		 *  - parent
-		 *  - term_taxonomy_id
-		 *  - term_order
-		 *  - facet (retrieves a JSON representation of the term object)
-		 *
-		 * @since 3.6.0
-		 * @hook ep_facet_use_field
-		 * @param  {string} $field The term field to use
-		 * @return  {string} The chosen term field
-		 */
-		$facet_field = apply_filters( 'ep_facet_use_field', 'slug' );
-
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			/**
+			 * Retrieve aggregations based on a custom field. This field must exist on the mapping.
+			 * Values available out-of-the-box are:
+			 *  - slug (default)
+			 *  - term_id
+			 *  - name
+			 *  - parent
+			 *  - term_taxonomy_id
+			 *  - term_order
+			 *  - facet (retrieves a JSON representation of the term object)
+			 *
+			 * @since 3.6.0, 4.3.0 added $taxonomy
+			 * @hook ep_facet_use_field
+			 * @param  {string}      $field    The term field to use
+			 * @param  {WP_Taxonomy} $taxonomy The taxonomy
+			 * @return  {string} The chosen term field
+			 */
+			$facet_field = apply_filters( 'ep_facet_use_field', 'slug', $taxonomy );
+
 			$facet_aggs[ $slug ] = array(
 				'terms' => array(
 					'size'  => apply_filters( 'ep_facet_taxonomies_size', 10000, $taxonomy ),
