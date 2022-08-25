@@ -252,7 +252,7 @@ class Search extends Feature {
 	 * for the selected tag to be displayed in it.
 	 */
 	public function allow_excerpt_html() {
-		if ( is_admin() ) {
+		if ( ! Utils\is_integrated_request( 'highlighting', [ 'public' ] ) ) {
 			return;
 		}
 
