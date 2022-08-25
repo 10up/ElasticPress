@@ -4459,10 +4459,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -4480,10 +4493,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -5427,6 +5453,7 @@ class TestPost extends BaseTestCase {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
 		$post_id_3 = Functions\create_and_sync_post();
+		$post_id_4 = Functions\create_and_sync_post( [ 'post_password' => '123' ] );
 
 		// Test the first loop of the indexing.
 		$results = $indexable_post_object->query_db(
@@ -5522,6 +5549,19 @@ class TestPost extends BaseTestCase {
 
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page'     => 1,
+				'has_password' => null, // `null` here makes WP ignore passwords completely, bringing everything
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_4, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**

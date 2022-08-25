@@ -481,6 +481,13 @@ function action_admin_enqueue_dashboard_scripts() {
 			Utils\get_asset_info( 'dashboard-styles', 'dependencies' ),
 			Utils\get_asset_info( 'dashboard-styles', 'version' )
 		);
+		wp_enqueue_script(
+			'ep_admin_script',
+			EP_URL . 'dist/js/admin-script.min.js',
+			Utils\get_asset_info( 'admin-script', 'dependencies' ),
+			Utils\get_asset_info( 'admin-script', 'version' ),
+			true
+		);
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
