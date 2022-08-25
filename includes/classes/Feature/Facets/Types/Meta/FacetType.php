@@ -227,6 +227,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		}
 
 		$query->set( 'meta_query', $meta_query );
+		$query->set( 'ignore_sticky_posts', true );
 	}
 
 	/**

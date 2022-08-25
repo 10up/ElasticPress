@@ -311,7 +311,15 @@ class Renderer {
 		$order = in_array( $order, [ 'ASC', 'DESC' ], true ) ? $order : 'DESC';
 
 		$values = wp_list_sort( $values, $orderby, $order, true );
-		$values = wp_list_sort( $values, 'is_selected', 'DESC', true );
+
+		$selected = [];
+		foreach ( $values as $key => $value ) {
+			if ( $value['is_selected'] ) {
+				$selected[ $key ] = $value;
+				unset( $values[ $key ] );
+			}
+		}
+		$values = $selected + $values;
 
 		return $values;
 	}
