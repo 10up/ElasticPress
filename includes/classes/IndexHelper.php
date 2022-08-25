@@ -825,10 +825,11 @@ class IndexHelper {
 
 		$end_date_time = date_create( 'now', wp_timezone() );
 
-		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
-		$totals['end_time_gmt']  = time();
-		$totals['total_time']    = microtime( true ) - $start_time;
-		$totals['method']        = $method;
+		$totals['end_date_time']   = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
+		$totals['start_date_time'] = $start_time ? wp_date( DATE_ATOM, $start_time ) : false;
+		$totals['end_time_gmt']    = time();
+		$totals['total_time']      = microtime( true ) - $start_time;
+		$totals['method']          = $method;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 	}

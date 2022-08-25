@@ -110,35 +110,15 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		cy.login();
 		cy.visitAdminPage('site-health.php?tab=debug');
 		cy.get('[aria-controls="health-check-accordion-block-ep_last_sync"]').click();
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(1) td',
-		).should('contain.text', 'Total');
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(2) td',
-		).should('contain.text', 'Synced');
-
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(3) td',
-		).should('contain.text', 'Skipped');
-
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(4) td',
-		).should('contain.text', 'Failed');
-
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(5) td',
-		).should('contain.text', 'Total Time');
-
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(6) td',
-		).should('contain.text', 'Errors');
-
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(7) td',
-		).should('contain.text', 'End Date Time');
-
-		cy.get(
-			'#health-check-accordion-block-ep_last_sync table.widefat.striped.health-check-table tbody tr:nth-child(8) td',
-		).should('contain.text', 'Method');
+		cy.get('#health-check-accordion-block-ep_last_sync .health-check-table').as('syncTable');
+		cy.get('@syncTable').get('tr:nth-child(1) td').should('contain.text', 'Method');
+		cy.get('@syncTable').get('tr:nth-child(2) td').should('contain.text', 'Start Date Time');
+		cy.get('@syncTable').get('tr:nth-child(3) td').should('contain.text', 'End Date Time');
+		cy.get('@syncTable').get('tr:nth-child(4) td').should('contain.text', 'Total Time');
+		cy.get('@syncTable').get('tr:nth-child(5) td').should('contain.text', 'Total');
+		cy.get('@syncTable').get('tr:nth-child(6) td').should('contain.text', 'Synced');
+		cy.get('@syncTable').get('tr:nth-child(7) td').should('contain.text', 'Skipped');
+		cy.get('@syncTable').get('tr:nth-child(8) td').should('contain.text', 'Failed');
+		cy.get('@syncTable').get('tr:nth-child(9) td').should('contain.text', 'Errors');
 	});
 });
