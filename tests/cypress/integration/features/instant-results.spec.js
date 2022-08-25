@@ -1,5 +1,20 @@
 describe('Instant Results Feature', () => {
 	/**
+	 * Create a Search widget.
+	 */
+	function createSearchWidget() {
+		cy.openWidgetsPage();
+
+		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
+		cy.get('.block-editor-inserter__panel-content [class*="search/default"]').click({
+			force: true,
+		});
+
+		cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
+		cy.get('body').should('contain.text', 'Widgets saved.');
+	}
+
+	/**
 	 * Check if it's Elasticpress.io.
 	 */
 	function isEpIo() {
@@ -26,6 +41,8 @@ describe('Instant Results Feature', () => {
 			content: 'This is a sample test post.',
 		});
 		cy.wpCli('elasticpress index --setup --yes');
+		// Add search widget that will be used for the tests.
+		createSearchWidget();
 	});
 
 	after(() => {
