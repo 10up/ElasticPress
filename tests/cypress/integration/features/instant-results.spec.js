@@ -1,43 +1,44 @@
 describe('Instant Results Feature', () => {
 	/**
-	 * Create a Search widget.
+	 * Check if it's Elasticpress.io.
 	 */
-	function createSearchWidget() {
-		cy.openWidgetsPage();
-
-		cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
-		cy.get('.block-editor-inserter__panel-content [class*="search/default"]').click({
-			force: true,
-		});
-
-		cy.get('.edit-widgets-header__actions .components-button.is-primary').click();
-		cy.get('body').should('contain.text', 'Widgets saved.');
-	}
-
-	before(() => {
+	function isEpIo() {
 		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
 			// Nothing needs to be done if EP.io.
 			if (epHost.stdout.match(/elasticpress\.io/)) {
-				return;
+				return true;
 			}
-			cy.activatePlugin('elasticpress-proxy', 'dashboard');
+			return false;
 		});
-		// Add search widget that will be used for the tests.
-		createSearchWidget();
+	}
+
+	before(() => {
+		if (!isEpIo()) {
+			cy.activatePlugin('elasticpress-proxy', 'dashboard');
+		}
+		// Create a sample post and index
+		cy.publishPost({
+			title: 'Blog post',
+			content: 'This is a sample Blog post.',
+		});
+		cy.publishPost({
+			title: 'Test Post',
+			content: 'This is a sample test post.',
+		});
+		cy.wpCli('elasticpress index --setup --yes');
 	});
 
 	after(() => {
 		cy.deactivatePlugin('elasticpress-proxy', 'dashboard');
 	});
 
-	it("Can't activate the feature If not in ElasticPress.io nor using a custom PHP proxy", () => {
+	/**
+	 * Test that the feature cannot be activted when not in ElasticPress.io nor using a custom PHP proxy.
+	 * Also, it can show a warning when using a custom PHP proxy
+	 */
+	it("Can't activate the feature If not in ElasticPress.io nor using a custom PHP proxy and can see a warning if using cusotom proxy", () => {
 		cy.login();
-
-		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
-			// Nothing needs to be done if EP.io.
-			if (epHost.stdout.match(/elasticpress\.io/)) {
-				return;
-			}
+		if (!isEpIo()) {
 			cy.deactivatePlugin('elasticpress-proxy', 'dashboard');
 			cy.visitAdminPage('admin.php?page=elasticpress');
 			cy.get('.ep-feature-instant-results .settings-button').click();
@@ -46,17 +47,8 @@ describe('Instant Results Feature', () => {
 				'To use this feature you need to be an ElasticPress.io customer or implement a custom proxy',
 			);
 			cy.get('.ep-feature-instant-results .input-wrap').should('have.class', 'disabled');
+			// Can see the warning if using custom proxy
 			cy.activatePlugin('elasticpress-proxy', 'dashboard');
-		});
-	});
-
-	it('Can see a warning if using cusotom proxy', () => {
-		cy.login();
-		cy.wpCli('eval "echo ElasticPress\\Utils\\get_host();"').then((epHost) => {
-			// Nothing needs to be done if EP.io.
-			if (epHost.stdout.match(/elasticpress\.io/)) {
-				return;
-			}
 			cy.visitAdminPage('admin.php?page=elasticpress');
 			cy.get('.ep-feature-instant-results .settings-button').click();
 			cy.get('.requirements-status-notice').should(
@@ -64,9 +56,12 @@ describe('Instant Results Feature', () => {
 				'You are using a custom proxy. Make sure you implement all security measures needed',
 			);
 			cy.get('.ep-feature-instant-results .input-wrap').should('not.have.class', 'disabled');
-		});
+		}
 	});
 
+	/**
+	 * Test that the feature can be activted and it can sync automatically.
+	 */
 	it('Can activate the feature and sync automatically', () => {
 		cy.login();
 
@@ -85,7 +80,13 @@ describe('Instant Results Feature', () => {
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'instant-results');
 	});
 
-	it('Can see instant results list', () => {
+	/**
+	 * Test that the instant results list is visible
+	 * It can display the number of test results
+	 * It can show the modal in the same state after a reload
+	 * Can change the URL when search term is changed
+	 */
+	it('Can see instant results list, number of results, modal in the same state after reload, and updated result after changing the search term', () => {
 		cy.login();
 		cy.maybeEnableFeature('instant-results');
 
@@ -95,49 +96,13 @@ describe('Instant Results Feature', () => {
 			.click()
 			.then(() => {
 				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
-			});
-	});
-
-	it('Can display the number of results', () => {
-		cy.login();
-		cy.maybeEnableFeature('instant-results');
-
-		cy.visit('/');
-		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.wp-block-search__button')
-			.click()
-			.then(() => {
-				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+				// Show the number of results
 				cy.get('.ep-search-results__title').contains(/\d+/);
 			});
-	});
-
-	it('Can show the modal in the same state after a reload', () => {
-		cy.login();
-		cy.maybeEnableFeature('instant-results');
-
-		cy.visit('/');
-		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.wp-block-search__button')
-			.click()
-			.then(() => {
-				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
-			});
+		// Show the modal in the same state after a reload
 		cy.reload();
 		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
-	});
-
-	it('Can update the results after changing the search term', () => {
-		cy.login();
-		cy.maybeEnableFeature('instant-results');
-
-		cy.visit('/');
-		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.wp-block-search__button')
-			.click()
-			.then(() => {
-				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
-			});
+		// Update the results when search term is changed
 		cy.get('#ep-instant-results .ep-search-input')
 			.clearThenType('test')
 			.then(() => {
