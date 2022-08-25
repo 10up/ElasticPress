@@ -1073,9 +1073,25 @@ class IndexHelper {
 	 * Resets some values to reduce memory footprint.
 	 */
 	protected function stop_the_insanity() {
-		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
+		global $wpdb, $wp_object_cache, $wp_actions;
 
 		$wpdb->queries = [];
+
+		/*
+		 * Runtime flushing was introduced in WordPress 6.0 and will flush only the
+		 * in-memory cache for persistent object caches
+		 */
+		if ( function_exists( 'wp_cache_flush_runtime' ) ) {
+			wp_cache_flush_runtime();
+		} else {
+			/*
+			 * In the case where we're not using an external object cache, we need to call flush on the default
+			 * WordPress object cache class to clear the values from the cache property
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
+				wp_cache_flush();
+			}
+		}
 
 		if ( is_object( $wp_object_cache ) ) {
 			$wp_object_cache->group_ops      = [];
@@ -1093,14 +1109,6 @@ class IndexHelper {
 				// No need to catch.
 			}
 
-			/*
-			 * In the case where we're not using an external object cache, we need to call flush on the default
-			 * WordPress object cache class to clear the values from the cache property
-			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
-
 			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 				call_user_func( [ $wp_object_cache, '__remoteset' ] );
 			}
@@ -1114,6 +1122,14 @@ class IndexHelper {
 		// It's high memory consuming as WP_Query instance holds all query results inside itself
 		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
 		remove_filter( 'get_term_metadata', [ wp_metadata_lazyloader(), 'lazyload_term_meta' ] );
+
+		/**
+		 * Fires after reducing the memory footprint
+		 *
+		 * @since 4.3.0
+		 * @hook ep_stop_the_insanity
+		 */
+		do_action( 'ep_stop_the_insanity' );
 	}
 
 	/**
