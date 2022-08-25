@@ -231,7 +231,7 @@ class Search extends Feature {
 
 		// tags
 		$opening_tag = '<' . $highlight_tag . " class='" . $highlight_class . "'>";
-		$closing_tag = '</' . $highlight_tag . >';
+		$closing_tag = '</' . $highlight_tag . '>';
 
 		foreach ( $fields_to_highlight as $field ) {
 			$formatted_args['highlight']['fields'][ $field ] = [
