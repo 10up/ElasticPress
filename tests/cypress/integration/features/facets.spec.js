@@ -304,7 +304,7 @@ describe('Facets Feature', () => {
 		/**
 		 * Test that the Facet by Meta block is functional.
 		 */
-		it.only('Can insert, configure, and use the Facet by Meta block', () => {
+		it('Can insert, configure, and use the Facet by Meta block', () => {
 			/**
 			 * Insert a Facet block.
 			 */
