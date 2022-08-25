@@ -2,7 +2,6 @@ describe('WooCommerce Feature', () => {
 	const userData = {
 		username: 'testuser',
 		email: 'testuser@example.com',
-		password: 'password',
 		firstName: 'John',
 		lastName: 'Doe',
 		address: '123 Main St',
@@ -120,16 +119,12 @@ describe('WooCommerce Feature', () => {
 
 		cy.logout();
 
-		// delete test user.
-		cy.wpCli(`wp user delete ${userData.username} --yes --network`, true);
-
-		// create and login a new user.
-		cy.wpCli(
-			`wp user create ${userData.username} ${userData.email} --user_pass=${userData.password}`,
-		);
-		cy.visit('my-account');
-		cy.get('#username').type(userData.username);
-		cy.get('#password').type(`${userData.password}{enter}`);
+		// create new user.
+		cy.createUser({
+			username: userData.username,
+			email: userData.email,
+			login: true,
+		});
 
 		// add product to cart.
 		cy.visit('product/fantastic-silk-knife');
@@ -157,18 +152,63 @@ describe('WooCommerce Feature', () => {
 			'contain.text',
 			"'orderby' => 'date'",
 		);
+
+		cy.logout();
+
+		cy.createUser({
+			username: 'testuser2',
+			email: 'testuser2@example.com',
+			login: true,
+		});
+
+		// ensure no order is show.
+		cy.visit('my-account/orders');
+		cy.get('.woocommerce-orders-table tbody tr').should('have.length', 0);
+
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
 	});
 
 	it('Can search orders from ElasticPress in WP Dashboard', () => {
 		cy.login();
 
+		cy.activatePlugin('woocommerce');
 		cy.maybeEnableFeature('protected_content');
 		cy.maybeEnableFeature('woocommerce');
 
 		cy.visitAdminPage('edit.php?post_type=shop_order');
 
-		cy.get('#post-search-input').type(`${userData.firstName} ${userData.lastName}{enter}`);
+		// search order by user's name.
+		cy.get('#post-search-input')
+			.clear()
+			.type(`${userData.firstName} ${userData.lastName}{enter}`);
 
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
+
+		cy.get('.order_number .order-view').should(
+			'contain.text',
+			`${userData.firstName} ${userData.lastName}`,
+		);
+
+		// search order by user's address.
+		cy.get('#post-search-input').clear().type(`${userData.address}{enter}`);
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+			'contain.text',
+			'Query Response Code: HTTP 200',
+		);
+
+		cy.get('.order_number .order-view').should(
+			'contain.text',
+			`${userData.firstName} ${userData.lastName}`,
+		);
+
+		// search order by product.
+		cy.get('#post-search-input').clear().type(`fantastic-silk-knife{enter}`);
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 			'contain.text',
 			'Query Response Code: HTTP 200',
