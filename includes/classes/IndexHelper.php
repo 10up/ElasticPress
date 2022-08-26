@@ -824,7 +824,7 @@ class IndexHelper {
 		$this->index_meta = null;
 
 		$end_date_time  = date_create( 'now', wp_timezone() );
-		$start_time_sec = (int) $start_time * 1000; // Convert from ms to seconds
+		$start_time_sec = (int) $start_time;
 
 		$totals['end_date_time']   = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
 		$totals['start_date_time'] = $start_time ? wp_date( DATE_ATOM, $start_time_sec ) : false;
