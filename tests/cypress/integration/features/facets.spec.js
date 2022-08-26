@@ -25,17 +25,17 @@ describe('Facets Feature', () => {
 	});
 
 	/**
-	 * Test that the Related Posts block is functional.
+	 * Test that the Facet by Taxonomy block is functional.
 	 */
-	it('Can insert, configure, and use the Facet block', () => {
+	it('Can insert, configure, and use the Facet by Taxonomy block', () => {
 		/**
 		 * Insert two Facets blocks.
 		 */
 		cy.openWidgetsPage();
 		cy.openBlockInserter();
-		cy.getBlocksList().should('contain.text', 'Facet (ElasticPress)');
-		cy.insertBlock('Facet (ElasticPress)');
-		cy.insertBlock('Facet (ElasticPress)');
+		cy.getBlocksList().should('contain.text', 'Facet by Taxonomy (ElasticPress)');
+		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
+		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
 		cy.get('.wp-block-elasticpress-facet').last().as('block');
 
 		/**
@@ -271,5 +271,175 @@ describe('Facets Feature', () => {
 		cy.contains('.site-content article h2', 'A new page').should('exist');
 		cy.contains('.site-content article h2', 'A new post').should('exist');
 		cy.contains('.site-content article h2', 'A new movie').should('exist');
+	});
+
+	describe('Facet by Meta Block', () => {
+		before(() => {
+			cy.wpCli('post list --meta_key=facet_by_meta_tests --meta_value=1 --format=ids').then(
+				(wpCliResponse) => {
+					if (wpCliResponse.stdout) {
+						cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
+					}
+				},
+			);
+			cy.wpCliEval(
+				`
+				for ( $i = 1; $i <= 20; $i++ ) {
+					wp_insert_post(
+						[
+							'post_title'  => "Facet By Meta Post {$i}",
+							'post_status' => 'publish',
+							'meta_input'  => [
+								'facet_by_meta_tests' => 1,
+								'meta_field_1'        => "Meta Value (1) - {$i}",
+								'meta_field_2'        => "Meta Value (2) - {$i}",
+							],
+						]
+					);
+				}
+				`,
+			);
+		});
+
+		/**
+		 * Test that the Facet by Meta block is functional.
+		 */
+		it('Can insert, configure, and use the Facet by Meta block', () => {
+			/**
+			 * Insert a Facet block.
+			 */
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
+			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-meta').last().as('block1');
+
+			// Configure the block
+			cy.get('@block1').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
+				'Search Meta 1',
+			);
+			cy.get('.block-editor-block-inspector select').select('meta_field_1');
+
+			/**
+			 * Verify that the blocks are inserted into the editor, and contain the
+			 * expected content.
+			 */
+			cy.get('@block1').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
+
+			/**
+			 * Insert a second block.
+			 */
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
+			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-meta').last().as('block2');
+
+			// Configure the block
+			cy.get('@block2').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
+				'Search Meta 2',
+			);
+			cy.get('.block-editor-block-inspector select').select('meta_field_2');
+			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
+			cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+
+			/**
+			 * Verify the block has the expected output in the editor based on the
+			 * block's settings.
+			 */
+			cy.get('@block2').find('input').should('have.attr', 'placeholder', 'Search Meta 2');
+			cy.get('@block2').find('.term').should('be.elementsSortedAlphabetically');
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@sidebarsRest');
+			cy.visit('/');
+
+			/**
+			 * Verify the blocks have the expected output on the front-end based on
+			 * their settings.
+			 */
+			cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
+			cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
+			cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
+			cy.get('@secondBlock')
+				.find('input')
+				.should('have.attr', 'placeholder', 'Search Meta 2');
+			cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
+
+			/**
+			 * Typing in the input should filter the list of terms for that block
+			 * without affecting other blocks.
+			 */
+			cy.get('@firstBlock').find('input').as('firstBlockSearch').clearThenType('12');
+			cy.get('@firstBlock').contains('.term', 'Meta Value (1) - 12').should('be.visible');
+			cy.get('@firstBlockSearch').clearThenType('Meta Value (1) - 13');
+			cy.get('@firstBlock').contains('.term', 'Meta Value (1) - 13').should('be.visible');
+
+			/**
+			 * Clearing the input should restore previously hidden terms and allow
+			 * them to be selected.
+			 */
+			cy.get('@firstBlockSearch').clear();
+			cy.get('@firstBlock').contains('.term', 'Meta Value (1) - 20').click();
+
+			/**
+			 * Selecting that term should lead to the correct URL, mark the correct
+			 * item as checked, and all articles being displayed should have the
+			 * selected category.
+			 */
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+			cy.get('@firstBlock')
+				.contains('.term', 'Meta Value (1) - 20')
+				.find('.ep-checkbox')
+				.should('have.class', 'checked');
+			cy.contains('.site-content article:nth-of-type(1) h2', 'Facet By Meta Post 20').should(
+				'exist',
+			);
+
+			/**
+			 * Facets should continue to apply across pagination.
+			cy.get('.page-numbers.next').click();
+			cy.url().should('include', 'page/2');
+			cy.url().should('include', 'ep_filter_category=classic');
+			cy.get('article').each(($article) => {
+				cy.wrap($article).contains('.cat-links a', 'Classic').should('exist');
+			});
+			 */
+
+			/**
+			 * When another facet is selected pagination should reset and results
+			 * should be filtered by both selections.
+			 */
+			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+			cy.url().should('include', 'ep_meta_filter_meta_field_2=Meta+Value+%282%29+-+20');
+			cy.url().should('not.include', 'page/2');
+			cy.get('@firstBlock')
+				.contains('.term', 'Meta Value (1) - 20')
+				.find('.ep-checkbox')
+				.should('have.class', 'checked');
+			cy.get('@secondBlock')
+				.contains('.term', 'Meta Value (2) - 20')
+				.find('.ep-checkbox')
+				.should('have.class', 'checked');
+			cy.contains('.site-content article:nth-of-type(1) h2', 'Facet By Meta Post 20').should(
+				'exist',
+			);
+
+			/**
+			 * Clicking selected facet should remove it while keeping any other
+			 * facets active.
+			 */
+			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
+			cy.url().should('not.include', 'ep_meta_filter_meta_field_2=Meta+Value+%282%29+-+20');
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+		});
 	});
 });
