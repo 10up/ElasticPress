@@ -230,7 +230,7 @@ class Search extends Feature {
 		$highlight_class = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
 
 		// tags
-		$opening_tag = '<' . $highlight_tag . ' class="' . $highlight_class . '">';
+		$opening_tag = '<' . $highlight_tag . " class='" . $highlight_class . "'>";
 		$closing_tag = '</' . $highlight_tag . '>';
 
 		foreach ( $fields_to_highlight as $field ) {
