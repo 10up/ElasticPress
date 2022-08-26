@@ -1198,4 +1198,73 @@ abstract class Indexable {
 
 		return \ElasticPress\SearchAlgorithms::factory()->get( $search_algorithm );
 	}
+
+	/**
+	 * Get all distinct meta field keys.
+	 *
+	 * @since 4.3.0
+	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys( $blog_id = null ) {
+		$mapping = $this->get_mapping();
+
+		try {
+			$meta_keys = array_keys( $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'] );
+			$meta_keys = array_values( $meta_keys );
+			sort( $meta_keys );
+		} catch ( \Throwable $th ) {
+			return new \Exception( 'Meta fields not available.', 0 );
+		}
+
+		return $meta_keys;
+	}
+
+	/**
+	 * Get all distinct values for a given field.
+	 *
+	 * @since 4.3.0
+	 * @param string $field   Field full name. For example: `meta.name.raw`
+	 * @param int    $count   (Optional) Max number of different distinct values to be returned
+	 * @param int    $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
+	 * @return array
+	 */
+	public function get_all_distinct_values( $field, $count = 10000, $blog_id = null ) {
+		$aggregation_name = 'distinct_values';
+
+		$es_query = [
+			'_source' => false,
+			'size'    => 0,
+			'aggs'    => [
+				$aggregation_name => [
+					'terms' => [
+						/**
+						 * Filter the max. number of different distinct values to be returned by Elasticsearch.
+						 *
+						 * @since 4.3.0
+						 * @hook ep_{$indexable_slug}_all_distinct_values
+						 * @param {int}    $size  The number of different values. Default: 10000
+						 * @param {string} $field The meta field
+						 * @return {string} The new number of different values
+						 */
+						'size'  => apply_filters( 'ep_' . $this->slug . '_all_distinct_values', $count, $field ),
+						'field' => $field,
+					],
+				],
+			],
+		];
+
+		$response = Elasticsearch::factory()->query( $this->get_index_name( $blog_id ), $this->slug, $es_query, [] );
+
+		if ( ! $response || empty( $response['aggregations'] ) || empty( $response['aggregations'][ $aggregation_name ] ) || empty( $response['aggregations'][ $aggregation_name ]['buckets'] ) ) {
+			return [];
+		}
+
+		$values = [];
+		foreach ( $response['aggregations'][ $aggregation_name ]['buckets'] as $es_bucket ) {
+			$values[] = $es_bucket['key'];
+		}
+
+		return $values;
+	}
 }

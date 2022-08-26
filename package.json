@@ -56,6 +56,7 @@
       "notice-script.min": "./assets/js/notice.js",
       "ordering-script.min": "./assets/js/ordering/index.js",
       "facets-block-script.min": "./assets/js/blocks/facets/taxonomy/index.js",
+      "facets-meta-block-script.min": "./assets/js/blocks/facets/meta/index.js",
       "related-posts-block-script.min": "./assets/js/blocks/related-posts/index.js",
       "settings-script.min": "./assets/js/settings.js",
       "sync-script.min": "./assets/js/sync/index.js",
