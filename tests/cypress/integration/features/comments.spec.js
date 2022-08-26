@@ -29,24 +29,11 @@ describe('Comments Feature', () => {
 		cy.get('@syncPanel')
 			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
-			.should('contain.text', 'Sync complete');
+			.should('contain.text', 'Sync complete')
+			// check that the number of approved comments is the same as the default.
+			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'comments');
-	});
-
-	it('Can only sync approved comments', () => {
-		cy.login();
-		cy.maybeEnableFeature('comments');
-
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-
-		// start sync and test results.
-		cy.get('.ep-sync-button--sync').click();
-		cy.get('.ep-sync-panel').first().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
 	});
 
 	it('Can not sync anonymous comments', () => {
@@ -80,30 +67,13 @@ describe('Comments Feature', () => {
 				timeout: Cypress.config('elasticPressIndexTimeout'),
 			})
 			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
-
-		// trash the comment
-		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
-		cy.get('.column-comment .trash a').first().click({ force: true });
 	});
 
 	it('Can sync comments if approved manually', () => {
 		cy.login();
-		cy.publishPost({
-			title: 'Test Post',
-		});
-
-		cy.logout();
-
-		// publish comment as a logged out user
-		cy.visit('/');
-		cy.contains('#main .entry-title a', 'Test Post').first().click();
-		cy.get('#comment').type('This is a pending comment');
-		cy.get('#author').type('Test Author');
-		cy.get('#email').type('test@example.com');
-		cy.get('#submit').click();
+		cy.maybeEnableFeature('comments');
 
 		cy.visitAdminPage('edit-comments.php');
-		cy.maybeEnableFeature('comments');
 
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
@@ -180,11 +150,6 @@ describe('Comments Feature', () => {
 		cy.get('#comment_moderation').uncheck();
 		cy.get('#comment_previously_approved').uncheck();
 		cy.get('#submit').click();
-
-		// create test post.
-		cy.publishPost({
-			title: 'Test Comment',
-		});
 
 		cy.logout();
 
