@@ -105,6 +105,14 @@ class Block {
 				'render_callback' => [ $this, 'render_block' ],
 			]
 		);
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sync_url = admin_url( 'network/admin.php?page=elasticpress-sync' );
+		} else {
+			$sync_url = admin_url( 'admin.php?page=elasticpress-sync' );
+		}
+
+		wp_localize_script( 'elasticpress-facet-meta-editor-script', 'facetMetaBlock', [ 'syncUrl' => $sync_url ] );
 	}
 
 	/**

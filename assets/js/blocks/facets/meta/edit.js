@@ -1,3 +1,5 @@
+/* global facetMetaBlock */
+
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
 import {
 	PanelBody,
@@ -7,7 +9,13 @@ import {
 	Placeholder,
 	SelectControl,
 } from '@wordpress/components';
-import { Fragment, useEffect, useState, useCallback } from '@wordpress/element';
+import {
+	Fragment,
+	useEffect,
+	useState,
+	useCallback,
+	createInterpolateElement,
+} from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
 
@@ -55,9 +63,13 @@ const FacetBlockEdit = (props) => {
 					/>
 					<SelectControl
 						label={__('Meta Field Key', 'elasticpress')}
-						help={__(
-							'This is the list of meta fields indexed in Elasticsearch. If you do not see your field here, you might need to sync your content.',
-							'elasticpress',
+						help={createInterpolateElement(
+							__(
+								'This is the list of meta fields indexed in Elasticsearch. If your desired field does not appear in this list please try to <a>sync your content</a>',
+								'elasticpress',
+							),
+							// eslint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label
+							{ a: <a href={facetMetaBlock.syncUrl} /> },
 						)}
 						value={facet}
 						options={[
