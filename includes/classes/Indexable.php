@@ -1210,8 +1210,12 @@ abstract class Indexable {
 		$mapping = $this->get_mapping();
 
 		try {
-			$meta_keys = array_keys( $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'] );
-			$meta_keys = array_values( $meta_keys );
+			if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
+			} else {
+				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
+			}
+			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );
 		} catch ( \Throwable $th ) {
 			return new \Exception( 'Meta fields not available.', 0 );
