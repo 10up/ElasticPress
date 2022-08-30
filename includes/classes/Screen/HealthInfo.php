@@ -60,12 +60,23 @@ class HealthInfo {
 			);
 		}
 
-		$methods = [
-			'web' => esc_html__( 'WP Dashboard', 'elasticpress' ),
-			'cli' => esc_html__( 'WP-CLI', 'elasticpress' ),
-		];
+		if ( ! empty( $sync_info['method'] ) ) {
+			$methods = [
+				'web' => esc_html__( 'WP Dashboard', 'elasticpress' ),
+				'cli' => esc_html__( 'WP-CLI', 'elasticpress' ),
+			];
 
-		$sync_info['method'] = $methods[ $sync_info['method'] ] ?? $sync_info['method'];
+			$sync_info['method'] = $methods[ $sync_info['method'] ] ?? $sync_info['method'];
+		}
+
+		if ( empty( $sync_info ) ) {
+			$debug_info['ep_last_sync']['fields']['not_available'] = [
+				'label'   => esc_html__( 'Last Sync', 'elasticpress' ),
+				'value'   => esc_html__( 'Last sync info not available.', 'elasticpress' ),
+				'private' => true,
+			];
+			return $debug_info;
+		}
 
 		$labels = [
 			'total'           => esc_html__( 'Total', 'elasticpress' ),
@@ -79,9 +90,22 @@ class HealthInfo {
 			'total_time'      => esc_html__( 'Total Time', 'elasticpress' ),
 		];
 
-		// Apply a custom order to the table rows
-		$preferred_order = [ 'method', 'start_date_time', 'end_date_time', 'total_time', 'total', 'synced', 'skipped', 'failed', 'errors' ];
-		$sync_info       = array_replace( array_flip( $preferred_order ), $sync_info );
+		/**
+		 * Apply a custom order to the table rows.
+		 *
+		 * As some rows could be unavailable (if the last sync was done using an older version of the plugin, for example),
+		 * the usual `array_replace(array_flip())` strategy to reorder an array adds a wrong numeric value to the
+		 * non-existent row.
+		 */
+		$preferred_order   = [ 'method', 'start_date_time', 'end_date_time', 'total_time', 'total', 'synced', 'skipped', 'failed', 'errors' ];
+		$ordered_sync_info = [];
+		foreach ( $preferred_order as $field ) {
+			if ( array_key_exists( $field, $sync_info ) ) {
+				$ordered_sync_info[ $field ] = $sync_info[ $field ] ?? esc_html_x( 'N/A', 'Sync info not available', 'elasticpress' );
+				unset( $sync_info[ $field ] );
+			}
+		}
+		$sync_info = $ordered_sync_info + $sync_info;
 
 		foreach ( $sync_info as $label => $value ) {
 			$debug_info['ep_last_sync']['fields'][ sanitize_title( $label ) ] = [
