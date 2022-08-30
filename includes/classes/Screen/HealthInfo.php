@@ -38,6 +38,15 @@ class HealthInfo {
 
 		$sync_info = IndexHelper::factory()->get_last_index();
 
+		if ( empty( $sync_info ) ) {
+			$debug_info['ep_last_sync']['fields']['not_available'] = [
+				'label'   => esc_html__( 'Last Sync', 'elasticpress' ),
+				'value'   => esc_html__( 'Last sync info not available.', 'elasticpress' ),
+				'private' => true,
+			];
+			return $debug_info;
+		}
+
 		if ( ! empty( $sync_info['end_time_gmt'] ) ) {
 			unset( $sync_info['end_time_gmt'] );
 		}
@@ -67,15 +76,6 @@ class HealthInfo {
 			];
 
 			$sync_info['method'] = $methods[ $sync_info['method'] ] ?? $sync_info['method'];
-		}
-
-		if ( empty( $sync_info ) ) {
-			$debug_info['ep_last_sync']['fields']['not_available'] = [
-				'label'   => esc_html__( 'Last Sync', 'elasticpress' ),
-				'value'   => esc_html__( 'Last sync info not available.', 'elasticpress' ),
-				'private' => true,
-			];
-			return $debug_info;
 		}
 
 		$labels = [
