@@ -15,8 +15,8 @@ Facets received some further improvements in this version. In addition to some r
 
 ### Added
 - Search products by their variations' SKUs. Props [@burhandodhy](https://github.com/burhandodhy) via [#2854](https://github.com/10up/ElasticPress/pull/2854).
-- New block to Facet by Meta fields. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/@tott) via [#2954](https://github.com/10up/ElasticPress/pull/2954).
-- Display last sync info in site health screen. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#2917](https://github.com/10up/ElasticPress/pull/2917).
+- New block to Facet by Meta fields. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/@tott) via [#2954](https://github.com/10up/ElasticPress/pull/2954) and [#2968](https://github.com/10up/ElasticPress/pull/2968).
+- Display last sync info in site health screen. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#2917](https://github.com/10up/ElasticPress/pull/2917) and [#2973](https://github.com/10up/ElasticPress/pull/2973).
 - New `epwr_decay_field` filter to set the decay field for date weighting. Props [@MARQAS](https://github.com/MARQAS) and [@HypeAU](https://github.com/HypeAU) via [#2907](https://github.com/10up/ElasticPress/pull/2907).
 - Autosuggest: filter the autosuggest ElasticSearch query by defining a `window.epAutosuggestQueryFilter()` function in JavaScript. Props [@johnwatkins0](https://github.com/johnwatkins0) via [#2909](https://github.com/10up/ElasticPress/pull/2909).
 - Autosuggest: filter the HTML of all results by defining a `window.epAutosuggestListItemsHTMLFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT) via [#2902](https://github.com/10up/ElasticPress/pull/2902).
