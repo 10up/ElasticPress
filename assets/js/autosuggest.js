@@ -275,6 +275,10 @@ function updateAutosuggestBox(options, input) {
 		itemString += itemHTML;
 	}
 
+	if (typeof window.epAutosuggestListItemsHTMLFilter !== 'undefined') {
+		itemString = window.epAutosuggestListItemsHTMLFilter(itemString, options, input);
+	}
+
 	// append list items to the list
 	suggestList.innerHTML = itemString;
 
@@ -562,6 +566,13 @@ function init() {
 				query = JSON.stringify(query);
 			}
 
+			// Allow filtering the search query based on the input.
+			if (typeof window.epAutosuggestQueryFilter !== 'undefined') {
+				query = JSON.stringify(
+					window.epAutosuggestQueryFilter(JSON.parse(query), searchText, input),
+				);
+			}
+
 			// fetch the results
 			const response = await esSearch(query, searchText);
 
@@ -648,7 +659,11 @@ function init() {
 			autosuggestElement.appendChild(autosuggestList);
 		}
 
-		const clonedElement = autosuggestElement.cloneNode(true);
+		let clonedElement = autosuggestElement.cloneNode(true);
+
+		if (typeof window.epAutosuggestElementFilter !== 'undefined') {
+			clonedElement = window.epAutosuggestElementFilter(clonedElement, element);
+		}
 
 		element.insertAdjacentElement('afterend', clonedElement);
 	};

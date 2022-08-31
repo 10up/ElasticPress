@@ -5,7 +5,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use \WP_Widget as WP_Widget;
 use ElasticPress\Features as Features;
@@ -29,10 +29,12 @@ class Widget extends WP_Widget {
 	 * Create widget
 	 */
 	public function __construct() {
-		$options = array( 'description' => esc_html__( 'Add a facet to an archive or search results page.', 'elasticpress' ) );
-		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
+		$options = array(
+			'description'           => esc_html__( 'Add a facet to an archive or search results page.', 'elasticpress' ),
+			'show_instance_in_rest' => true,
+		);
 
-		$this->renderer = new Renderer();
+		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
 	}
 
 	/**
@@ -43,7 +45,11 @@ class Widget extends WP_Widget {
 	 * @since 2.5, 4.2.0 made a wrapper for the renderer call.
 	 */
 	public function widget( $args, $instance ) {
-		$this->renderer->render( $args, $instance );
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $instance );
+		$renderer       = new $renderer_class();
+
+		$renderer->render( $args, $instance );
 	}
 
 	/**
@@ -58,7 +64,11 @@ class Widget extends WP_Widget {
 	protected function get_facet_term_html( $term, $url, $selected = false ) {
 		_deprecated_function( __FUNCTION__, '4.2.0', '$this->renderer->get_facet_term_html()' );
 
-		return $this->renderer->get_facet_term_html( $term, $url, $selected );
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', [] );
+		$renderer       = new $renderer_class();
+
+		return $renderer->get_facet_term_html( $term, $url, $selected );
 	}
 
 	/**
@@ -101,7 +111,7 @@ class Widget extends WP_Widget {
 		$orderby = ( ! empty( $instance['orderby'] ) ) ? $instance['orderby'] : '';
 		$order   = ( ! empty( $instance['order'] ) ) ? $instance['order'] : '';
 
-		$taxonomies = $feature->get_facetable_taxonomies();
+		$taxonomies = $feature->types['taxonomy']->get_facetable_taxonomies();
 
 		$orderby_options = [
 			'count' => __( 'Count', 'elasticpress' ),

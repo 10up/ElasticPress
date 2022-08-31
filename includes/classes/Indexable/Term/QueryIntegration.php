@@ -242,6 +242,8 @@ class QueryIntegration {
 
 			$term->elasticsearch = true; // Super useful for debugging.
 
+			$term = new \WP_Term( $term ); // Necessary for WordPress actions that expect WP_Term as the object type.
+
 			if ( $term ) {
 				$new_terms[] = $term;
 			}

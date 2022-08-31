@@ -79,13 +79,12 @@ class Autosuggest extends Feature {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
-		add_filter( 'ep_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
+		add_filter( 'ep_post_fuzziness_arg', [ $this, 'set_fuzziness' ], 10, 3 );
 		add_filter( 'ep_weighted_query_for_post_type', [ $this, 'adjust_fuzzy_fields' ], 10, 3 );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
 		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_autosuggest_public_request' ] );
-		add_filter( 'debug_information', [ $this, 'epio_autosuggest_health_check_info' ] );
 
 		add_action( 'ep_cli_after_set_search_algorithm_version', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_wp_cli_after_index', [ $this, 'delete_cached_query' ] );
@@ -652,8 +651,13 @@ class Autosuggest extends Feature {
 	public function delete_cached_query() {
 		global $wp_object_cache;
 		if ( wp_using_ext_object_cache() ) {
-			// Delete the entire group.
-			unset( $wp_object_cache->cache['ep_autosuggest'] );
+			if ( function_exists( 'wp_cache_supports_group_flush' ) && wp_cache_supports_group_flush() ) {
+				wp_cache_flush_group( 'ep_autosuggest' );
+			} else {
+				// Try to delete the entire group.
+				// This may fail because the `$cache` property is not standardized.
+				unset( $wp_object_cache->cache['ep_autosuggest'] );
+			}
 		} else {
 			delete_transient( 'ep_autosuggest_query_request_cache' );
 		}
@@ -909,54 +913,4 @@ class Autosuggest extends Feature {
 		return $allowed_params;
 	}
 
-	/**
-	 * Add Autosuggest info for EP.io Users in Health Check Info Screen.
-	 *
-	 * @since 3.5.x
-	 * @param array $debug_info Debug Info set so far.
-	 * @return array
-	 */
-	public function epio_autosuggest_health_check_info( $debug_info ) {
-		if ( ! Utils\is_epio() ) {
-			return $debug_info;
-		}
-
-		$debug_info['epio_autosuggest'] = array(
-			'label'  => esc_html__( 'ElasticPress.io - Autosuggest', 'elasticpress' ),
-			'fields' => [],
-		);
-
-		$allowed_params = $this->epio_autosuggest_set_and_get();
-
-		if ( empty( $allowed_params ) ) {
-			return $debug_info;
-		}
-
-		$allowed_params = wp_parse_args(
-			$allowed_params,
-			[
-				'postTypes'    => [],
-				'postStatus'   => [],
-				'searchFields' => [],
-				'returnFields' => '',
-			]
-		);
-
-		$fields = [
-			'Post Types'      => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postTypes'] ),
-			'Post Status'     => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postStatus'] ),
-			'Search Fields'   => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['searchFields'] ),
-			'Returned Fields' => wp_sprintf( esc_html( var_export( $allowed_params['returnFields'], true ) ) ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
-		];
-
-		foreach ( $fields as $label => $value ) {
-			$debug_info['epio_autosuggest']['fields'][ sanitize_title( $label ) ] = [
-				'label'   => $label,
-				'value'   => $value,
-				'private' => true,
-			];
-		}
-
-		return $debug_info;
-	}
 }

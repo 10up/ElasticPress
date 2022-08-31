@@ -466,6 +466,7 @@ class Elasticsearch {
 				[
 					'found_documents' => $total_hits,
 					'documents'       => $documents,
+					'aggregations'    => $response['aggregations'] ?? [],
 				],
 				$response,
 				$query,

@@ -477,78 +477,8 @@ class User extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_user_search_fields', $prepared_search_fields, $query_vars );
 
-			$query = array(
-				'bool' => array(
-					'should' => array(
-						array(
-							'multi_match' => array(
-								'query'  => $query_vars['search'],
-								'type'   => 'phrase',
-								'fields' => $prepared_search_fields,
-								/**
-								 * Filter boost for user match phrase query
-								 *
-								 * @hook ep_user_match_phrase_boost
-								 * @param  {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @since  3.0
-								 * @return  {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_user_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
-							),
-						),
-						array(
-							'multi_match' => array(
-								'query'     => $query_vars['search'],
-								'fields'    => $prepared_search_fields,
-								/**
-								 * Filter boost for user match query
-								 *
-								 * @hook ep_user_match_boost
-								 * @param  {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @since  3.0
-								 * @return  {int} New boost
-								 */
-								'boost'     => apply_filters( 'ep_user_match_boost', 2, $prepared_search_fields, $query_vars ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							),
-						),
-						array(
-							'multi_match' => array(
-								'fields'    => $prepared_search_fields,
-								'query'     => $query_vars['search'],
-								/**
-								 * Filter fuzziness for user query
-								 *
-								 * @hook ep_user_fuzziness_arg
-								 * @param  {int} $fuzziness Fuzziness
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @since  3.0
-								 * @return  {int} New fuzziness
-								 */
-								'fuzziness' => apply_filters( 'ep_user_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
-							),
-						),
-					),
-				),
-			);
-
-			/**
-			 * Filter formatted Elasticsearch user query (only contains query part)
-			 *
-			 * @hook ep_user_formatted_args_query
-			 * @param {array} $query Current query
-			 * @param {array} $query_vars Query variables
-			 * @since  3.0
-			 * @return  {array} New query
-			 */
-			$formatted_args['query'] = apply_filters( 'ep_user_formatted_args_query', $query, $query_vars );
-
+			$search_algorithm        = $this->get_search_algorithm( $query_vars['search'], $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'user', $query_vars['search'], $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
