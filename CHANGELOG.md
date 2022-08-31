@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-## [4.3.0] - 2022-08-XX
+## [4.3.0] - 2022-08-31
 ElasticPress 4.3.0 fixes some bugs and introduces some new and exciting changes.
 
 WooCommerce Product Variations SKUs are now a publicly searchable field. Site administrators wanting to allow users to search for their product variations SKUs can enable it in the _Search Fields & Weighting_ Dashboard, under Products. If a user searches for a variation SKU, the parent product will be displayed in the search results.
