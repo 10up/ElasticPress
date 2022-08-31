@@ -186,6 +186,13 @@ Thank you to all the people who have already contributed to this repository via 
 [Yakov Beschasnov (@yashumitsu)](https://github.com/yashumitsu),
 [@przestrzal](https://github.com/przestrzal),
 [Mohammed Razzaq (@MARQAS)](https://github.com/MARQAS),
+[@HypeAU](https://github.com/HypeAU),
+[Bruce Sabalaskey (@bsabalaskey)](https://github.com/bsabalaskey),
+[Jonathan Stegall (@jonathanstegall)](https://github.com/jonathanstegall),
+[Till Krüss (@tillkruss)](https://github.com/tillkruss),
+[Oras Al-Kubaisi (@orasik)](https://github.com/orasik),
+[@nickchomey](https://github.com/nickchomey),
+[@alaa-alshamy](https://github.com/alaa-alshamy),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
