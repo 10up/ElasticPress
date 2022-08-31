@@ -9,7 +9,7 @@ import {
 	replaceGlobally,
 	debounce,
 	domReady,
-} from './utils/helpers';
+} from '../utils/helpers';
 
 const { epas } = window;
 
