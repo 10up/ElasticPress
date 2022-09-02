@@ -995,6 +995,14 @@ h2 .nav-tab.ep-credentials-tab {
 	border-top: 1px solid #ccc;
 }
 
+.ep-settings .ep-credentials-general {
+	padding: 0 1rem;
+}
+
+.ep-settings .button-primary {
+	margin: 0 1rem;
+}
+
 .ep-settings .description {
 	font-size: 0.75rem;
 	font-style: italic;
