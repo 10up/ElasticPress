@@ -106,7 +106,7 @@ if (queriesTimeChart) {
 	new Chart(queriesTimeChart, {
 		type: 'pie',
 		data: {
-			labels: ['Avg indexing time in ms', 'Avg query time in ms'],
+			labels: ['Total indexing time in ms', 'Total query time in ms'],
 			datasets: [
 				{
 					label: '',
