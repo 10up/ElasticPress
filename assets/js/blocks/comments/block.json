@@ -1,0 +1,17 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Comments (ElasticPress)",
+	"textdomain": "elasticpress",
+	"name": "elasticpress/comments",
+	"category": "widgets",
+	"attributes": {
+		"postTypes": {
+			"default": [],
+			"type": "array"
+		}
+	},
+	"editorScript": "file:/../../../../dist/js/comments-block-script.min.js",
+	"script": "elasticpress-comments",
+	"style": "elasticpress-comments"
+}

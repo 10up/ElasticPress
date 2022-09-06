@@ -13,6 +13,7 @@ use ElasticPress\Indexables as Indexables;
 use ElasticPress\Indexable as Indexable;
 use ElasticPress\Features as Features;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Utils;
 
 /**
  * Comments feature class
@@ -46,9 +47,12 @@ class Comments extends Feature {
 	public function setup() {
 		Indexables::factory()->register( new Indexable\Comment\Comment() );
 
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
+		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'init', [ $this, 'search_setup' ] );
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
 	}
 
 	/**
@@ -250,5 +254,134 @@ class Comments extends Feature {
 		 * @return {array} New value
 		 */
 		return apply_filters( 'ep_comment_search_widget_response', $return );
+	}
+
+	/**
+	 * Check whether a post type supports comments.
+	 *
+	 * @param string $post_type Post type name,
+	 * @return boolean Whether the post type supports comments.
+	 */
+	public static function post_type_supports_comments( $post_type ) {
+		return post_type_supports( $post_type, 'comments' );
+	}
+
+	/**
+	 * Get a list of searchable post types that support comments.
+	 *
+	 * @return array Array of post type kabeks keyed by post type.
+	 */
+	public static function get_searchable_post_types() {
+		$searchable_post_types = array();
+
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+		$post_types = array_filter( $post_types, 'self::post_type_supports_comments' );
+
+		foreach ( $post_types as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+			$post_type_labels = get_post_type_labels( $post_type_object );
+
+			$searchable_post_types[ $post_type ] = $post_type_labels->name;
+		}
+
+		return $searchable_post_types;
+	}
+
+	/**
+	 * Enqueue admin scripts.
+	 *
+	 * @since 4.4.0
+	 */
+	public function admin_scripts() {
+		wp_localize_script(
+			'elasticpress-comments-editor-script',
+			'epComments',
+			[
+				'searchablePostTypes' => self::get_searchable_post_types(),
+			]
+		);
+	}
+
+	/**
+	 * Enqueue frontend scripts.
+	 *
+	 * @since 4.4.0
+	 */
+	public function frontend_scripts() {
+		wp_register_script(
+			'elasticpress-comments',
+			EP_URL . 'dist/js/comments-script.min.js',
+			Utils\get_asset_info( 'comments-script', 'dependencies' ),
+			Utils\get_asset_info( 'comments-script', 'version' ),
+			true
+		);
+
+		wp_register_style(
+			'elasticpress-comments',
+			EP_URL . 'dist/css/comments-styles.min.css',
+			Utils\get_asset_info( 'comments-styles', 'dependencies' ),
+			Utils\get_asset_info( 'comments-styles', 'version' )
+		);
+
+		$default_script_data = [
+			'noResultsFoundText'    => esc_html__( 'We could not find any results', 'elasticpress' ),
+			'minimumLengthToSearch' => 2,
+			'restApiEndpoint'       => get_rest_url( null, 'elasticpress/v1/comments' ),
+		];
+
+		/**
+		 * Filter the l10n data attached to the Widget Search Comments script
+		 *
+		 * @since  3.6.0
+		 * @hook ep_comment_search_widget_l10n_data_script
+		 * @param  {array} $default_script_data Default data attached to the script
+		 * @return  {array} New l10n data to be attached
+		 */
+		$script_data = apply_filters( 'ep_comment_search_widget_l10n_data_script', $default_script_data );
+
+		wp_localize_script(
+			'elasticpress-comments',
+			'epc',
+			$script_data
+		);
+	}
+
+	/**
+	 * Register block.
+	 *
+	 * @since 4.4.0
+	 */
+	public function register_block() {
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/comments',
+			[
+				'render_callback' => [ $this, 'render_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Render block.
+	 *
+	 * @param array $attributes Block attributes
+	 * @since 4.4.0
+	 * @return string
+	 */
+	public function render_block( $attributes ) {
+		$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => 'ep-widget-search-comments' ) );
+		$post_types_input   = ! empty( $attributes['postTypes'] )
+			? sprintf(
+				'<input type="hidden" id="ep-widget-search-comments-post-type" value="%s">',
+				esc_attr( implode( ',', $attributes['postTypes'] ) )
+			)
+			: '';
+
+		$block_html = sprintf(
+			'<div %1$s>%2$s</div>',
+			$wrapper_attributes, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$post_types_input
+		);
+
+		return $block_html;
 	}
 }

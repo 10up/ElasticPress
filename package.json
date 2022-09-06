@@ -49,6 +49,7 @@
     "entry": {
       "autosuggest-script.min": "./assets/js/autosuggest.js",
       "comments-script.min": "./assets/js/comments.js",
+      "comments-block-script.min": "./assets/js/blocks/comments/index.js",
       "dashboard-script.min": "./assets/js/dashboard.js",
       "facets-script.min": "./assets/js/facets.js",
       "instant-results-script.min": "./assets/js/instant-results/index.js",
