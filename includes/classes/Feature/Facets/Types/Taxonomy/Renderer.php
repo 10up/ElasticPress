@@ -122,6 +122,16 @@ class Renderer {
 		}
 
 		/**
+		 * Filter the facet terms.
+		 *
+		 * @hook ep_facet_search_terms
+		 * @param  {array} $terms Terms
+		 * @param  {string} $taxonomy Taxonomy name
+		 * @return  {array} New terms
+		 */
+		$terms_by_slug = apply_filters( 'ep_facet_search_terms', $terms_by_slug, $taxonomy );
+
+		/**
 		 * Check to make sure all terms exist before proceeding
 		 */
 		if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'] ) ) {
@@ -266,7 +276,7 @@ class Renderer {
 				<?php endif; ?>
 
 				<?php
-				foreach ( $terms as $term ) :
+				foreach ( $terms_by_slug as $term ) :
 					if ( ! empty( $outputted_terms[ $term->slug ] ) ) {
 						continue;
 					}
