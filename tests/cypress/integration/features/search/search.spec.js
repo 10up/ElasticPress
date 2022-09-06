@@ -135,6 +135,12 @@ describe('Post Search Feature', () => {
 			},
 		}).then(() => {
 			cy.wpCli('elasticpress index --setup --yes').then(() => {
+				/**
+				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+				 *
+				 */
+				// eslint-disable-next-line cypress/no-unnecessary-waiting
+				cy.wait(2000);
 				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
 				cy.contains(
 					'.site-content article:nth-of-type(1) h2',
