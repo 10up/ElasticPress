@@ -90,7 +90,6 @@ describe('Terms Feature', () => {
 		 * Give Elasticsearch some time. Apparently, if we search again it returns the outdated data.
 		 *
 		 * @see https://github.com/10up/ElasticPress/issues/2726
-		 *
 		 */
 		// eslint-disable-next-line cypress/no-unnecessary-waiting
 		cy.wait(2000);
