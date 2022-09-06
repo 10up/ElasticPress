@@ -79,6 +79,10 @@ class QueryIntegration {
 			return $results;
 		}
 
+		if ( ! $this->is_indexable_taxonomies( $query ) ) {
+			return $results;
+		}
+
 		$new_terms = apply_filters( 'ep_wp_query_cached_terms', null, $query );
 
 		if ( null === $new_terms ) {
@@ -331,6 +335,20 @@ class QueryIntegration {
 		}
 
 		return $new_terms;
+	}
+
+	/**
+	 * Determine if all taxonomies are indexable.
+	 *
+	 * @param \WP_Term_Query $query The WP_Term_Query object.
+	 * @return boolean
+	 */
+	protected function is_indexable_taxonomies( $query ) {
+
+		$taxonomies           = $query->query_vars['taxonomy'];
+		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
+
+		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
 
 }
