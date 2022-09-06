@@ -1106,6 +1106,10 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
+			return false;
+		}
+
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -1118,16 +1122,12 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
-			return true;
-		}
-
 		if ( ! Utils\is_integrated_request( $this->slug ) ) {
 			return false;
 		}
 
-		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
-			return false;
+		if ( isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return true;
 		}
 
 		// Let's integrate for the default behaviors
@@ -1141,6 +1141,7 @@ class WooCommerce extends Feature {
 			 * @hook ep_woocommerce_integration
 			 * @param  {bool} $allow True to allow ep integration
 			 * @param  {WP_Query} $query WP Query to evaluate
+			 * @since  4.4.0
 			 * @return  {bool} New allow value
 			 */
 			return apply_filters( 'ep_woocommerce_integration', false, $query );

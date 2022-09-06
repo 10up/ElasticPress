@@ -77,7 +77,6 @@ class TestWooCommerce extends BaseTestCase {
 
 		$args = array(
 			'post_type'    => 'product',
-			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
@@ -107,7 +106,6 @@ class TestWooCommerce extends BaseTestCase {
 		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
-			'ep_integrate' => true,
 			'tax_query'    => array(
 				array(
 					'taxonomy' => 'product_cat',
