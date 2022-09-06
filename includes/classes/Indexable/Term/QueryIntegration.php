@@ -79,7 +79,7 @@ class QueryIntegration {
 			return $results;
 		}
 
-		if ( ! $this->is_indexable_taxonomies( $query ) ) {
+		if ( ! $this->is_searchable( $query ) ) {
 			return $results;
 		}
 
@@ -338,16 +338,19 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Determine if all taxonomies are indexable.
+	 * Determine whether ES should be used for the query if all taxonomies are indexable.
 	 *
 	 * @param \WP_Term_Query $query The WP_Term_Query object.
 	 * @return boolean
 	 */
-	protected function is_indexable_taxonomies( $query ) {
+	protected function is_searchable( $query ) {
 
-		$taxonomies           = $query->query_vars['taxonomy'];
+		$taxonomies = $query->query_vars['taxonomy'];
+		if ( ! $taxonomies ) {
+			return true;
+		}
+
 		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
-
 		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
 
