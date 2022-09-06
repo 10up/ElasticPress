@@ -10,6 +10,7 @@ import {
 	useRef,
 	WPElement,
 } from '@wordpress/element';
+import { addAction, doAction, removeAction } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -166,6 +167,15 @@ const App = () => {
 	}, []);
 
 	/**
+	 * Handle open action.
+	 *
+	 * @param {Event} event Input event.
+	 */
+	const onOpen = useCallback((args) => {
+		dispatch({ type: 'APPLY_ARGS', payload: args });
+	}, []);
+
+	/**
 	 * Handle changes to search parameters.
 	 */
 	const handleChanges = () => {
@@ -186,20 +196,13 @@ const App = () => {
 	 * @returns {Function} A cleanup function that unbinds the events.
 	 */
 	const handleEvents = () => {
-		const inputs = document.querySelectorAll('form input[type="search"');
 		const modal = modalRef.current;
 
-		inputs.forEach((input) => {
-			input.form.addEventListener('submit', onSubmit);
-		});
-
+		addAction('ep.InstantResults.open', 'ep/onOpenInstantResults', onOpen);
 		modal.ownerDocument.defaultView.addEventListener('popstate', onPopState);
 
 		return () => {
-			inputs.forEach((input) => {
-				input.form.removeEventListener('submit', onSubmit);
-			});
-
+			removeAction('ep.InstantResults.open', 'ep/onOpenInstantResults');
 			modal.ownerDocument.defaultView.removeEventListener('popstate', onPopState);
 		};
 	};
@@ -220,7 +223,7 @@ const App = () => {
 	 * Effects.
 	 */
 	useEffect(handleInit, []);
-	useEffect(handleEvents, [onEscape, onPopState, onSubmit]);
+	useEffect(handleEvents, [onEscape, onOpen, onPopState]);
 	useEffect(handleChanges, [
 		doSearch,
 		pushState,
@@ -250,4 +253,33 @@ const App = () => {
 	);
 };
 
-render(<App />, document.getElementById('ep-instant-results'));
+/**
+ * Handle submission of search forms.
+ *
+ * @param {Event} event Submit.
+ */
+const onSubmit = (event) => {
+	event.preventDefault();
+
+	const search = event.currentTarget.s.value;
+	const post_type = getPostTypesFromForm(event.currentTarget);
+
+	doAction('ep.InstantResults.open', { search, post_type });
+};
+
+/**
+ * Initialize Instant Results.
+ *
+ * @returns {void}
+ */
+const init = () => {
+	const inputs = document.querySelectorAll('form input[name="s"');
+
+	inputs.forEach((input) => {
+		input.form.addEventListener('submit', onSubmit);
+	});
+
+	render(<App />, document.getElementById('ep-instant-results'));
+};
+
+window.addEventListener('DOMContentLoaded', init);
