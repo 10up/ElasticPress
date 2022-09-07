@@ -122,14 +122,15 @@ class Renderer {
 		}
 
 		/**
-		 * Filter the facet terms.
+		 * Filter the taxonomy facet terms.
 		 *
-		 * @hook ep_facet_search_terms
+		 * @since  4.4.0
+		 * @hook ep_facet_taxonomy_terms
 		 * @param  {array} $terms Terms
 		 * @param  {string} $taxonomy Taxonomy name
 		 * @return  {array} New terms
 		 */
-		$terms_by_slug = apply_filters( 'ep_facet_search_terms', $terms_by_slug, $taxonomy );
+		$terms_by_slug = apply_filters( 'ep_facet_taxonomy_terms', $terms_by_slug, $taxonomy );
 
 		/**
 		 * Check to make sure all terms exist before proceeding
@@ -148,7 +149,7 @@ class Renderer {
 		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
 
-		$terms = Utils\get_term_tree( $terms, $orderby, $order, true );
+		$terms = Utils\get_term_tree( $terms_by_slug, $orderby, $order, true );
 
 		$outputted_terms = array();
 
@@ -276,7 +277,7 @@ class Renderer {
 				<?php endif; ?>
 
 				<?php
-				foreach ( $terms_by_slug as $term ) :
+				foreach ( $terms as $term ) :
 					if ( ! empty( $outputted_terms[ $term->slug ] ) ) {
 						continue;
 					}
