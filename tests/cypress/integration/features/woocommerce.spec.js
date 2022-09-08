@@ -165,10 +165,9 @@ describe('WooCommerce Feature', () => {
 		cy.visit('my-account/orders');
 		cy.get('.woocommerce-orders-table tbody tr').should('have.length', 0);
 
-		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
-			'contain.text',
-			'Query Response Code: HTTP 200',
-		);
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+			.should('contain.text', 'shop_order')
+			.should('contain.text', 'Query Response Code: HTTP 200');
 	});
 
 	it('Can search orders from ElasticPress in WP Dashboard', () => {
@@ -218,5 +217,34 @@ describe('WooCommerce Feature', () => {
 			'contain.text',
 			`${userData.firstName} ${userData.lastName}`,
 		);
+	});
+
+	it('Can Search Product by Variation SKU', () => {
+		cy.login();
+		cy.activatePlugin('woocommerce', 'wpCli');
+		cy.maybeEnableFeature('woocommerce');
+
+		cy.updateWeighting({
+			product: {
+				'meta._variations_skus.value': {
+					weight: 1,
+					enabled: true,
+				},
+			},
+		}).then(() => {
+			cy.wpCli('elasticpress index --setup --yes').then(() => {
+				/**
+				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+				 *
+				 */
+				// eslint-disable-next-line cypress/no-unnecessary-waiting
+				cy.wait(2000);
+				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+				cy.contains(
+					'.site-content article:nth-of-type(1) h2',
+					'Awesome Aluminum Shoes',
+				).should('exist');
+			});
+		});
 	});
 });
