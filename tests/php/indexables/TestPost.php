@@ -5453,6 +5453,7 @@ class TestPost extends BaseTestCase {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
 		$post_id_3 = Functions\create_and_sync_post();
+		$post_id_4 = Functions\create_and_sync_post( [ 'post_password' => '123' ] );
 
 		// Test the first loop of the indexing.
 		$results = $indexable_post_object->query_db(
@@ -5548,6 +5549,19 @@ class TestPost extends BaseTestCase {
 
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page'     => 1,
+				'has_password' => null, // `null` here makes WP ignore passwords completely, bringing everything
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_4, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**
@@ -6977,5 +6991,70 @@ class TestPost extends BaseTestCase {
 
 		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, null ) );
 		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, null ) );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetDistinctMetaFieldKeys() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => '' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => '' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$distinct_meta_field_keys = $indexable->get_distinct_meta_field_keys();
+
+		$this->assertIsArray( $distinct_meta_field_keys );
+		$this->assertContains( 'new_meta_key_1', $distinct_meta_field_keys );
+		$this->assertContains( 'new_meta_key_2', $distinct_meta_field_keys );
+	}
+
+	/**
+	 * Tests get_all_distinct_values
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetAllDistinctValues() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foo' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'bar' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foobar' ) );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'lorem' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'ipsum' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+
+		$this->assertCount( 3, $distinct_values );
+		$this->assertContains( 'foo', $distinct_values );
+		$this->assertContains( 'bar', $distinct_values );
+		$this->assertContains( 'foobar', $distinct_values );
+
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw', 1 );
+		$this->assertCount( 1, $distinct_values );
+		$this->assertContains( 'bar', $distinct_values );
+
+		$change_bucket_size = function( $count, $field ) {
+			return ( 'meta.new_meta_key_1.raw' === $field ) ? 1 : $count;
+		};
+		add_filter( 'ep_post_all_distinct_values', $change_bucket_size, 10, 2 );
+
+		$distinct_values_1 = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+		$this->assertCount( 1, $distinct_values_1 );
+		$this->assertContains( 'bar', $distinct_values_1 );
+
+		$distinct_values_2 = $indexable->get_all_distinct_values( 'meta.new_meta_key_2.raw' );
+		$this->assertCount( 2, $distinct_values_2 );
+		$this->assertContains( 'lorem', $distinct_values_2 );
+		$this->assertContains( 'ipsum', $distinct_values_2 );
 	}
 }
