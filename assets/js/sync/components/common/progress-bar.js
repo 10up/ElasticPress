@@ -13,7 +13,7 @@ import { WPElement } from '@wordpress/element';
  * @returns {WPElement} Component.
  */
 export default ({ isComplete, current, total }) => {
-	const now = Math.floor((current / total) * 100);
+	const now = total ? Math.floor((current / total) * 100) : 100;
 
 	return (
 		<div
