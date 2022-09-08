@@ -68,8 +68,6 @@ describe('Comments Feature', () => {
 			})
 			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
 
-		cy.visitAdminPage('edit-comments.php');
-
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
 		cy.get('.approve a').first().click({ force: true });
