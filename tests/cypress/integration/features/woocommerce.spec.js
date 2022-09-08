@@ -148,10 +148,9 @@ describe('WooCommerce Feature', () => {
 		cy.get('.woocommerce-orders-table tbody tr').should('have.length', 1);
 
 		// Test orderby parameter set to `date` in query.
-		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
-			'contain.text',
-			"'orderby' => 'date'",
-		);
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+			.should('contain.text', 'shop_order')
+			.should('contain.text', "'orderby' => 'date'");
 
 		cy.logout();
 
