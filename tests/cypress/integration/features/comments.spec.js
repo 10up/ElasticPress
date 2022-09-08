@@ -36,7 +36,7 @@ describe('Comments Feature', () => {
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'comments');
 	});
 
-	it('Can not sync anonymous comments', () => {
+	it('Can not sync anonymous comments until it is approved manually', () => {
 		cy.login();
 		cy.maybeEnableFeature('comments');
 
@@ -67,11 +67,6 @@ describe('Comments Feature', () => {
 				timeout: Cypress.config('elasticPressIndexTimeout'),
 			})
 			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
-	});
-
-	it('Can sync comments if approved manually', () => {
-		cy.login();
-		cy.maybeEnableFeature('comments');
 
 		cy.visitAdminPage('edit-comments.php');
 
