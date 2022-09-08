@@ -6,7 +6,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
@@ -76,8 +76,6 @@ class Renderer {
 		}
 
 		$selected_filters = $feature->get_selected();
-
-		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
 
 		/**
 		 * Get all the terms so we know if we should output the widget
@@ -158,9 +156,10 @@ class Renderer {
 		 * @hook ep_facet_search_threshold
 		 * @param  {int} $search_threshold Search threshold
 		 * @param  {string} $taxonomy Current taxonomy
+		 * @param  {string} $context Hint about where the value will be used
 		 * @return  {int} New threshold
 		 */
-		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
+		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy, 'taxonomy' );
 		?>
 
 		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">
