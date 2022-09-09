@@ -253,10 +253,11 @@ class Synonyms {
 					'post_type'      => self::POST_TYPE_NAME,
 					'posts_per_page' => 1,
 					'orderby'        => 'modified',
+					'post_status'    => 'any',
 				)
 			);
 
-			$this->synonym_post_id = 1 === $query_synonym_post->post_count ? $query_synonym_post->posts[0] : false;
+			$this->synonym_post_id = ( $query_synonym_post->post_count >= 1 ) ? $query_synonym_post->posts[0] : false;
 
 			if ( ! $this->synonym_post_id ) {
 				$this->synonym_post_id = $this->insert_default_synonym_post();
