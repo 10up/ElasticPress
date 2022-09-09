@@ -155,8 +155,8 @@ describe('WooCommerce Feature', () => {
 		cy.logout();
 
 		cy.createUser({
-			username: 'testuser2',
-			email: 'testuser2@example.com',
+			username: 'buyer',
+			email: 'buyer@example.com',
 			login: true,
 		});
 
