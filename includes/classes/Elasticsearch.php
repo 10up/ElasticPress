@@ -402,7 +402,7 @@ class Elasticsearch {
 			$documents = [];
 
 			foreach ( $hits as $hit ) {
-				$document            = $hit['_source'];
+				$document            = isset( $hit['_source'] ) ? $hit['_source'] : array();
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
 				if ( ! empty( $hit['highlight'] ) ) {
