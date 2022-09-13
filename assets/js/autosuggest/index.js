@@ -208,6 +208,7 @@ async function esSearch(query, searchTerm) {
 		 * @since 4.4.0
 		 *
 		 * @param {object} data Response data.
+		 * @param {string} searchTerm Search term.
 		 * @returns {object} Response data.
 		 */
 		return applyFilters('ep.Autosuggest.data', data, searchTerm);
