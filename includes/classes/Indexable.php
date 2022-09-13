@@ -812,6 +812,7 @@ abstract class Indexable {
 					$compare = strtolower( $single_meta_query['compare'] );
 				} elseif ( ! isset( $single_meta_query['value'] ) ) {
 					$compare = 'exists';
+					$outer_relation = 'must';
 				}
 
 				$type = null;
