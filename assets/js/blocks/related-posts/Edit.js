@@ -4,8 +4,11 @@
 import apiFetch from '@wordpress/api-fetch';
 import { AlignmentToolbar, BlockControls, InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
+import { useInstanceId } from '@wordpress/compose';
+import { useDispatch } from '@wordpress/data';
 import { Fragment, RawHTML, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { store as noticeStore } from '@wordpress/notices';
 import { addQueryArgs } from '@wordpress/url';
 
 /**
@@ -18,8 +21,10 @@ import { addQueryArgs } from '@wordpress/url';
  * @param {Function} props.setAttributes Attribute setter.
  * @returns {Function} Component element.
  */
-export default ({ attributes, className, context, setAttributes }) => {
+const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => {
 	const { alignment, number } = attributes;
+	const { createWarningNotice } = useDispatch(noticeStore);
+	const instanceId = useInstanceId(RelatedPostsEdit);
 	const [posts, setPosts] = useState(false);
 
 	/**
@@ -46,6 +51,21 @@ export default ({ attributes, className, context, setAttributes }) => {
 			.catch(() => {
 				setPosts(false);
 			});
+	};
+
+	/**
+	 * Show a notice when redirect is prevented.
+	 *
+	 * @param {Event} event Click event.
+	 * @returns {void}
+	 */
+	const showRedirectionPreventedNotice = (event) => {
+		event.preventDefault();
+
+		createWarningNotice(__('Links are disabled in the editor.'), {
+			id: `elasticpress/related-posts/redirection-prevented/${instanceId}`,
+			type: 'snackbar',
+		});
 	};
 
 	/**
@@ -85,7 +105,7 @@ export default ({ attributes, className, context, setAttributes }) => {
 							const titleTrimmed = post.title.rendered.trim();
 							return (
 								<li key={post.id}>
-									<a href={post.link}>
+									<a href={post.link} onClick={showRedirectionPreventedNotice}>
 										{titleTrimmed ? (
 											<RawHTML>{titleTrimmed}</RawHTML>
 										) : (
@@ -101,3 +121,5 @@ export default ({ attributes, className, context, setAttributes }) => {
 		</Fragment>
 	);
 };
+
+export default RelatedPostsEdit;
