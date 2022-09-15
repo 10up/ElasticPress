@@ -186,7 +186,7 @@ abstract class Feature {
 
 		$active = false;
 
-		if ( ! empty( $feature_settings[ $this->slug ] ) && $feature_settings[ $this->slug ]['active'] && empty( $feature_settings[ $this->slug ][ 'force_inactive' ] ) ) {
+		if ( ! empty( $feature_settings[ $this->slug ] ) && $feature_settings[ $this->slug ]['active'] && empty( $feature_settings[ $this->slug ]['force_inactive'] ) ) {
 			$active = true;
 		}
 
