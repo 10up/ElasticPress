@@ -380,6 +380,7 @@ class SearchOrdering extends Feature {
 				'post_type' => 'any',
 				'post__in'  => $post_ids,
 				'count'     => count( $post_ids ),
+				'orderby'   => 'post__in',
 			]
 		);
 
