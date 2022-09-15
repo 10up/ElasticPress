@@ -124,11 +124,32 @@ class Renderer {
 		/**
 		 * Filter the taxonomy facet terms.
 		 *
-		 * @since  4.4.0
+		 * Example of usage, to hide unavailable category terms:
+		 * ```
+		 * add_filter(
+		 *     'ep_facet_taxonomy_terms',
+		 *     function ( $terms, $taxonomy ) {
+		 *         if ( 'category' !== $taxonomy ) {
+		 *             return $terms;
+		 *         }
+		 *
+		 *         return array_filter(
+		 *              $terms,
+		 *              function ( $term ) {
+		 *                  return $term->count > 0;
+		 *              }
+		 *         );
+		 *      },
+		 *      10,
+		 *      2
+		 * );
+		 * ```
+		 *
+		 * @since 4.3.1
 		 * @hook ep_facet_taxonomy_terms
-		 * @param  {array} $terms Terms
-		 * @param  {string} $taxonomy Taxonomy name
-		 * @return  {array} New terms
+		 * @param {array} $terms Terms
+		 * @param {string} $taxonomy Taxonomy name
+		 * @return {array} New terms
 		 */
 		$terms_by_slug = apply_filters( 'ep_facet_taxonomy_terms', $terms_by_slug, $taxonomy );
 
