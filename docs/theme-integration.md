@@ -172,7 +172,7 @@ The result component receives the following props that your component can use to
 
 This example replaces the result component with a component that renders results as just a simple linked title and date in a div:
 
-```
+```js
 const CustomResult = ({ date, title, url }) => {
 	return (
 		<div>
@@ -186,7 +186,7 @@ wp.hooks.addFilter('elasticpress.InstantResults.Result', 'customResult', () => C
 
 To conditionally replace the component based on each result you can pass a simple component that checks the result before either rendering the original component or a new custom component. This example renders the custom component from above but only for results with the `post` post type:
 
-```
+```js
 wp.hooks.addFilter('elasticpress.InstantResults.Result', 'customResultForPosts', (Result) => {
 	return (props) => {
 		if (props.hit._source.post_type === 'post') {
@@ -200,7 +200,7 @@ wp.hooks.addFilter('elasticpress.InstantResults.Result', 'customResultForPosts',
 
 By returning a new component that wraps the original component you can customize the props that are passed to it. This example uses this approach to remove the post type label from results with the `page` post type:
 
-```
+```js
 wp.hooks.addFilter('elasticpress.InstantResults.Result', 'noTypeLabelsForPages', (Result) => {
 	return (props) => {
 		if (props.hit._source.post_type === 'page') {
