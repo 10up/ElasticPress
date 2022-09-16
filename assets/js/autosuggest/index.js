@@ -1,4 +1,4 @@
-/* eslint-disable camelcase, no-underscore-dangle, no-use-before-define, jsdoc/check-tag-names */
+/* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
 
 /**
  * WordPress dependencies.
@@ -204,8 +204,8 @@ async function esSearch(query, searchTerm) {
 		/**
 		 * Filter the Elasticsearch response data used for Autosuggest.
 		 *
-		 * @hook ep.Autosuggest.data
-		 * @since 4.4.0
+		 * @filter ep.Autosuggest.data
+		 * @since 4.3.1
 		 *
 		 * @param {object} data Response data.
 		 * @param {string} searchTerm Search term.
@@ -281,8 +281,8 @@ function updateAutosuggestBox(options, input) {
 		/**
 		 * Filter the HTML for an Autosuggest suggestion.
 		 *
-		 * @hook ep.Autosuggest.itemHTML
-		 * @since 4.4.0
+		 * @filter ep.Autosuggest.itemHTML
+		 * @since 4.3.1
 		 *
 		 * @param {string} itemHTML Item HTML.
 		 * @param {object} option Elasticsearch record for suggestion.
@@ -298,8 +298,8 @@ function updateAutosuggestBox(options, input) {
 	/**
 	 * Filter the HTML for the list of Autosuggest suggestions.
 	 *
-	 * @hook ep.Autosuggest.listHTML
-	 * @since 4.4.0
+	 * @filter ep.Autosuggest.listHTML
+	 * @since 4.3.1
 	 *
 	 * @param {string} listHTML List HTML.
 	 * @param {object[]} options Elasticsearch records for suggestions.
@@ -596,8 +596,8 @@ function init() {
 			/**
 			 * Filter the Elasticsearch query used for Autosuggest.
 			 *
-			 * @hook ep.Autosuggest.query
-			 * @since 4.4.0
+			 * @filter ep.Autosuggest.query
+			 * @since 4.3.1
 			 *
 			 * @param {object} query Elasticsearch query.
 			 * @param {string} searchText Search term.
@@ -698,8 +698,8 @@ function init() {
 		/**
 		 * Filter the Autosuggest container element before it is inserted.
 		 *
-		 * @hook ep.Autosuggest.element
-		 * @since 4.4.0
+		 * @filter ep.Autosuggest.element
+		 * @since 4.3.1
 		 *
 		 * @param {Element} element Autosuggest container element.
 		 * @param {Element} previousElement Element the container will be inserted after.
