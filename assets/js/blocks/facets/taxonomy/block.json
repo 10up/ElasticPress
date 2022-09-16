@@ -1,7 +1,7 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"title": "Facet (ElasticPress)",
+	"title": "Facet by Taxonomy (ElasticPress)",
 	"textdomain": "elasticpress",
 	"name": "elasticpress/facet",
 	"icon": "feedback",
@@ -25,6 +25,6 @@
 	"supports": {
 		"html": false
 	},
-	"editorScript": "file:/../../../../dist/js/facets-block-script.min.js",
-	"style": "file:/../../../../dist/css/facets-styles.min.css"
+	"editorScript": "file:/../../../../../dist/js/facets-block-script.min.js",
+	"style": "file:/../../../../../dist/css/facets-styles.min.css"
 }
