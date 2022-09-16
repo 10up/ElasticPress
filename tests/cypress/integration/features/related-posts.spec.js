@@ -71,6 +71,12 @@ describe('Related Posts Feature', () => {
 			.should('have.length', 2);
 
 		/**
+		 * Clicking a related rost link in the editor shouldn't change the URL.
+		 */
+		cy.get('@block').find('a').first().click();
+		cy.url().should('include', 'wp-admin/post.php');
+
+		/**
 		 * Update the post and visit the front end.
 		 */
 		cy.get('.editor-post-publish-button__button').click();
