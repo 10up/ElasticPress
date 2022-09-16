@@ -74,13 +74,11 @@ const Result = ({ averageRating = 0, date, excerpt, priceHtml, thumbnail, title,
 	);
 };
 
-/* eslint-disable jsdoc/check-tag-names */
-
 /**
  * Filter the Result component.
  *
- * @hook elasticpress.InstantResults.Result
- * @since 4.3.0
+ * @filter elasticpress.InstantResults.Result
+ * @since 4.4.0
  *
  * @param {React.Component|React.FunctionComponent} Result Result component.
  * @returns {React.Component|React.FunctionComponent} Result component.
