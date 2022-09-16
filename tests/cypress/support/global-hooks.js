@@ -27,7 +27,7 @@ before(() => {
 	});
 
 	cy.wpCli('eval "echo (int) \\ElasticPress\\Utils\\is_epio();"').then((response) => {
-		window.isEpIo = response.stdout === 1;
+		window.isEpIo = response.stdout === '1';
 	});
 });
 
