@@ -1784,6 +1784,10 @@ class Post extends Indexable {
 					$field = 'name.raw';
 				}
 
+				if ( 'slug' === $field ) {
+					$terms = array_map( 'sanitize_title', $terms );
+				}
+
 				// Set up our terms object
 				$terms_obj = array(
 					'terms.' . $single_tax_query['taxonomy'] . '.' . $field => array_values( array_filter( $terms ) ),
