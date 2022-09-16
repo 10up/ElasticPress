@@ -215,7 +215,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			CAPABILITY,
+			self::CAPABILITY,
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -695,7 +695,7 @@ class SearchOrdering extends Feature {
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_search' ],
 				'permission_callback' => function() {
-					return current_user_can( CAPABILITY );
+					return current_user_can( self::CAPABILITY );
 				},
 				'args'                => [
 					's' => [
@@ -715,7 +715,7 @@ class SearchOrdering extends Feature {
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_preview' ],
 				'permission_callback' => function() {
-					return current_user_can( CAPABILITY );
+					return current_user_can( self::CAPABILITY );
 				},
 				'args'                => [
 					's' => [
