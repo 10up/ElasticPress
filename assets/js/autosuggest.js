@@ -676,9 +676,10 @@ function init() {
 	 */
 	const prepareInputForAutosuggest = (input) => {
 		/**
-		 * Skip facet widget search fields.
+		 * Skip facet widget search fields and instant results.
 		 */
-		if (input.classList.contains('facet-search')) {
+		const ignoredClasses = ['facet-search', 'ep-search-input'];
+		if (ignoredClasses.some((className) => input.classList.contains(className))) {
 			return;
 		}
 
