@@ -25,7 +25,7 @@ describe('Instant Results Feature', () => {
 	before(() => {
 		createSearchWidget();
 
-		// Create a sample post and index
+		// Create some sample posts
 		cy.publishPost({
 			title: 'Blog post',
 			content: 'This is a sample Blog post.',
@@ -34,7 +34,6 @@ describe('Instant Results Feature', () => {
 			title: 'Test Post',
 			content: 'This is a sample test post.',
 		});
-		cy.wpCli('elasticpress index --setup --yes');
 	});
 
 	after(() => {
@@ -50,7 +49,7 @@ describe('Instant Results Feature', () => {
 		}
 
 		cy.login();
-		cy.deactivatePlugin('elasticpress-proxy', 'dashboard');
+		cy.deactivatePlugin('elasticpress-proxy');
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-instant-results .settings-button').click();
 		cy.get('.requirements-status-notice').should(
@@ -127,13 +126,15 @@ describe('Instant Results Feature', () => {
 		// Show the modal in the same state after a reload
 		cy.reload();
 		cy.wait('@apiRequest');
-		cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'blog');
+		cy.get('@searchModal').should('be.visible').should('contain.text', 'blog');
 
 		// Update the results when search term is changed
-		cy.get('#ep-instant-results .ep-search-input')
+		cy.get('@searchModal')
+			.find('.ep-search-input')
 			.clearThenType('test')
 			.then(() => {
-				cy.get('.ep-search-modal').should('be.visible').should('contain.text', 'test');
+				cy.wait('@apiRequest');
+				cy.get('@searchModal').should('be.visible').should('contain.text', 'test');
 				cy.url().should('include', 'search=test');
 			});
 
