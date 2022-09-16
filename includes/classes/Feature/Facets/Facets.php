@@ -499,7 +499,7 @@ class Facets extends Feature {
 	 * @since 3.6.0
 	 */
 	public function get_allowed_query_args() {
-		$args = array( 's', 'post_type' );
+		$args = array( 's', 'post_type', 'orderby' );
 
 		/**
 		 * Filter allowed query args
