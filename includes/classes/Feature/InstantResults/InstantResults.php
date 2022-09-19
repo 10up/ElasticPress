@@ -83,6 +83,7 @@ class InstantResults extends Feature {
 			'highlight_tag' => 'mark',
 			'facets'        => 'post_type,category,post_tag',
 			'match_type'    => 'all',
+			'term_count'    => '1',
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -171,6 +172,18 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Term Count', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label>
+					<input name="settings[term_count]" <?php checked( (bool) $this->settings['term_count'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+				</label><br>
+				<label>
+					<input name="settings[term_count]" <?php checked( ! (bool) $this->settings['term_count'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+				</label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
 
 		<?php
 	}
@@ -224,6 +237,7 @@ class InstantResults extends Feature {
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
+		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_count_settings' ] );
 	}
 
 	/**
@@ -281,6 +295,7 @@ class InstantResults extends Feature {
 				'matchType'      => $this->settings['match_type'],
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
+				'termCount'      => $this->settings['term_count'],
 			)
 		);
 	}
@@ -922,5 +937,19 @@ class InstantResults extends Feature {
 			}
 		}
 		return $args;
+	}
+
+	/**
+	 * Sanitizes our term count settings.
+	 *
+	 * @param array $settings Array of current settings
+	 * @return mixed
+	 */
+	public function sanitize_count_settings( $settings ) {
+		if ( ! empty( $settings['instant-results']['term_count'] ) ) {
+			$settings['instant-results']['term_count'] = (bool) $settings['instant-results']['term_count'];
+		}
+
+		return $settings;
 	}
 }
