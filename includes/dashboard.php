@@ -605,7 +605,7 @@ function action_admin_init() {
 
 			update_site_option( 'ep_credentials', $credentials );
 			// Update prefix with username as both are same
-			$prefix = $credentials['username'];
+			$prefix = sanitize_text_field( wp_unslash( $credentials['username'] ) );
 			update_site_option( 'ep_prefix', $prefix );
 		}
 
