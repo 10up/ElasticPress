@@ -225,7 +225,7 @@ describe('Dashboard Sync', () => {
 		/**
 		 * Reset settings.
 		 */
-		cy.wpCli('elasticpress delete-index --yes');
+		cy.wpCli('wp elasticpress delete-index --yes');
 
 		/**
 		 * If the index is deleted the sync page should only show a
