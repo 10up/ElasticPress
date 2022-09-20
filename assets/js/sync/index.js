@@ -18,7 +18,6 @@ import {
 	lastSyncFailed,
 	isEpio,
 	indexMeta,
-	indices,
 	indexStats,
 } from './config';
 import { useIndex } from './hooks';
@@ -512,7 +511,6 @@ const App = () => {
 			onResume={onResume}
 			onStop={onStop}
 			onSync={onSync}
-			indices={indices}
 			indexStats={indexStats}
 			{...state}
 		/>

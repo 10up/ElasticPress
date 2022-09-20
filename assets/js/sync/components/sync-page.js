@@ -30,7 +30,6 @@ import SyncPanel from './sync/panel';
  * @param {Function} props.onStop Callback for clicking stop.
  * @param {Function} props.onSync Callback for clicking sync.
  * @param {object[]} props.indexStats Index Stats.
- * @param {string} props.indices Indices names.
  * @param {string} props.syncStartDateTime Date and time of current sync in ISO 8601.
  * @returns {WPElement} Sync page component.
  */
@@ -41,7 +40,6 @@ export default ({
 	isEpio,
 	isSyncing,
 	log,
-	indices,
 	indexStats,
 	...props
 }) => {

@@ -174,7 +174,6 @@ class Sync {
 		}
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
-		$indices       = Indexables::factory()->get( 'post' )->get_index_name();
 		// Get the stats of the current index
 		$index_stats = Stats::factory()->get_totals();
 
@@ -224,7 +223,6 @@ class Sync {
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
 		$data['is_epio']              = Utils\is_epio();
-		$data['indices_data']         = $indices;
 		$data['index_stats']          = $index_stats;
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
