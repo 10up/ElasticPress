@@ -73,7 +73,7 @@ export default ({
 				isDisabled={(isSyncing && isDeleting) || (isSyncing && isCli)}
 				isSyncing={isSyncing && !isDeleting}
 				logMessages={log.filter((m) => !m.isDeleting)}
-				showLastSync
+				showLastSync={!isInitialSync}
 				showProgress={!isDeleting && (isSyncing || isComplete)}
 				showSync
 				{...props}
