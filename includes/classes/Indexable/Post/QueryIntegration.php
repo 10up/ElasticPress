@@ -282,13 +282,13 @@ class QueryIntegration {
 			if ( ! empty( $query_vars['sites'] ) ) {
 
 				_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
-				$site__in = ! is_array( $query_vars['sites'] ) ? array( $query_vars['sites'] ) : $query_vars['sites'];
+				$site__in = (array) $query_vars['sites'];
 				$scope    = 'all' === $query_vars['sites'] ? 'all' : $site__in;
 			}
 
 			if ( ! empty( $query_vars['site__in'] ) ) {
 
-				$site__in = ! is_array( $query_vars['site__in'] ) ? array( $query_vars['site__in'] ) : $query_vars['site__in'];
+				$site__in = (array) $query_vars['site__in'];
 				$scope    = 'all' === $query_vars['site__in'] ? 'all' : $site__in;
 			}
 
