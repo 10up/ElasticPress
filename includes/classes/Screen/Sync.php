@@ -11,7 +11,6 @@ namespace ElasticPress\Screen;
 use ElasticPress\IndexHelper;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
-use ElasticPress\Indexables;
 use ElasticPress\Stats as Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
