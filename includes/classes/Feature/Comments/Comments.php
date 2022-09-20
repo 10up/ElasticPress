@@ -53,6 +53,7 @@ class Comments extends Feature {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 	}
 
 	/**
@@ -383,5 +384,21 @@ class Comments extends Feature {
 		);
 
 		return $block_html;
+	}
+
+	/**
+	 * Hide the legacy widget.
+	 *
+	 * Hides the legacy widget in favor of the Block when the block editor
+	 * is in use and the legacy widget has not been used.
+	 *
+	 * @since 4.4.0
+	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @return array array of excluded widget-type IDs to hide.
+	 */
+	public function hide_legacy_widget( $widgets ) {
+		$widgets[] = 'ep-comments';
+
+		return $widgets;
 	}
 }

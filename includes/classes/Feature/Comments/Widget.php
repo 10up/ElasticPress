@@ -27,7 +27,11 @@ class Widget extends WP_Widget {
 	 * @since 3.6.0
 	 */
 	public function __construct() {
-		$options = array( 'description' => esc_html__( 'A search form for comments.', 'elasticpress' ) );
+		$options = array(
+			'description'           => esc_html__( 'A search form for comments.', 'elasticpress' ),
+			'show_instance_in_rest' => true,
+		);
+
 		parent::__construct( 'ep-comments', esc_html__( 'ElasticPress - Comments', 'elasticpress' ), $options );
 	}
 
