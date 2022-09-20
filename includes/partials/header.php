@@ -40,3 +40,5 @@ $is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 
 	<div class="progress-bar"></div>
 </div>
+
+<hr id="ep-wp-header-end" class="wp-header-end">

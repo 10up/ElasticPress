@@ -6,7 +6,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
@@ -77,8 +77,6 @@ class Renderer {
 
 		$selected_filters = $feature->get_selected();
 
-		$match_type = ( ! empty( $instance['match_type'] ) ) ? $instance['match_type'] : 'all';
-
 		/**
 		 * Get all the terms so we know if we should output the widget
 		 */
@@ -124,6 +122,38 @@ class Renderer {
 		}
 
 		/**
+		 * Filter the taxonomy facet terms.
+		 *
+		 * Example of usage, to hide unavailable category terms:
+		 * ```
+		 * add_filter(
+		 *     'ep_facet_taxonomy_terms',
+		 *     function ( $terms, $taxonomy ) {
+		 *         if ( 'category' !== $taxonomy ) {
+		 *             return $terms;
+		 *         }
+		 *
+		 *         return array_filter(
+		 *              $terms,
+		 *              function ( $term ) {
+		 *                  return $term->count > 0;
+		 *              }
+		 *         );
+		 *      },
+		 *      10,
+		 *      2
+		 * );
+		 * ```
+		 *
+		 * @since 4.3.1
+		 * @hook ep_facet_taxonomy_terms
+		 * @param {array} $terms Terms
+		 * @param {string} $taxonomy Taxonomy name
+		 * @return {array} New terms
+		 */
+		$terms_by_slug = apply_filters( 'ep_facet_taxonomy_terms', $terms_by_slug, $taxonomy );
+
+		/**
 		 * Check to make sure all terms exist before proceeding
 		 */
 		if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'] ) ) {
@@ -140,7 +170,7 @@ class Renderer {
 		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
 
-		$terms = Utils\get_term_tree( $terms, $orderby, $order, true );
+		$terms = Utils\get_term_tree( $terms_by_slug, $orderby, $order, true );
 
 		$outputted_terms = array();
 
@@ -158,9 +188,10 @@ class Renderer {
 		 * @hook ep_facet_search_threshold
 		 * @param  {int} $search_threshold Search threshold
 		 * @param  {string} $taxonomy Current taxonomy
+		 * @param  {string} $context Hint about where the value will be used
 		 * @return  {int} New threshold
 		 */
-		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy );
+		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $taxonomy, 'taxonomy' );
 		?>
 
 		<div class="terms <?php if ( count( $terms_by_slug ) > $search_threshold ) : ?>searchable<?php endif; ?>">

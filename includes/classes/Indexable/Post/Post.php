@@ -219,6 +219,8 @@ class Post extends Indexable {
 	 * @return int The total posts.
 	 */
 	protected function get_total_objects_for_query_from_db( $query_args ) {
+		global $wpdb;
+
 		$post_count = 0;
 
 		if ( ! isset( $query_args['post_type'] ) || isset( $query_args['ep_indexing_upper_limit_object_id'] )
@@ -234,6 +236,18 @@ class Post extends Indexable {
 				}
 				$post_count += $post_status_count;
 			}
+		}
+
+		/**
+		 * As `wp_count_posts` will also count posts with password, we need to remove
+		 * them from the final count if they will not be used.
+		 *
+		 * The if below will pass if `has_password` is false but not null.
+		 */
+		if ( isset( $query_args['has_password'] ) && ! $query_args['has_password'] ) {
+			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" );
+
+			$post_count -= $posts_with_password;
 		}
 
 		return $post_count;
@@ -1768,6 +1782,10 @@ class Post extends Indexable {
 
 				if ( 'name' === $field ) {
 					$field = 'name.raw';
+				}
+
+				if ( 'slug' === $field ) {
+					$terms = array_map( 'sanitize_title', $terms );
 				}
 
 				// Set up our terms object
