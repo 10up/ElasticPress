@@ -220,4 +220,45 @@ describe('Dashboard Sync', () => {
 
 		setPerIndexCycle();
 	});
+
+	it('Should only display a single sync option if index is deleted', () => {
+		/**
+		 * Reset settings.
+		 */
+		cy.wpCli('elasticpress delete-index --yes');
+
+		/**
+		 * If the index is deleted the sync page should only show a
+		 * single sync panel.
+		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-sync-panel')
+			.should('have.length', 1)
+			.as('syncPanel')
+			.should('contain.text', 'Run a sync to index your existing content');
+
+		/**
+		 * Perform an initial sync.
+		 */
+		cy.get('@syncPanel').find('.ep-sync-button').click();
+
+		/**
+		 * The sync log should indicate that the sync completed and that
+		 * posts are indexed.
+		 */
+		cy.get('@syncPanel').find('.components-form-toggle').click();
+		cy.get('@syncPanel')
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Indexing posts')
+			.should('contain.text', 'Sync complete');
+
+		/**
+		 * After the initial sync is complete there should be 2 sync panels
+		 * and the second should contain the delete & sync option.
+		 */
+		cy.get('.ep-sync-panel')
+			.should('have.length', 2)
+			.last()
+			.should('contain.text', 'If you are still having issues with your search results');
+	});
 });
