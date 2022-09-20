@@ -174,7 +174,7 @@ class QueryIntegration {
 				if ( ! Utils\is_site_indexable( $site_id ) ) {
 					continue;
 				}
-				$index[] = Indexables::factory()->get( 'post' )->get_index_name( $site_id );
+				$index[] = Indexables::factory()->get( 'comment' )->get_index_name( $site_id );
 			}
 
 			$this->index = implode( ',', $index );
