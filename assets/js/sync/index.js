@@ -12,7 +12,15 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import { autoIndex, lastSyncDateTime, lastSyncFailed, isEpio, indexMeta } from './config';
+import {
+	autoIndex,
+	lastSyncDateTime,
+	lastSyncFailed,
+	isEpio,
+	indexMeta,
+	indices,
+	indexStats,
+} from './config';
 import { useIndex } from './hooks';
 import {
 	clearSyncParam,
@@ -504,6 +512,8 @@ const App = () => {
 			onResume={onResume}
 			onStop={onStop}
 			onSync={onSync}
+			indices={indices}
+			indexStats={indexStats}
 			{...state}
 		/>
 	);

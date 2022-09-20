@@ -11,6 +11,8 @@ namespace ElasticPress\Screen;
 use ElasticPress\IndexHelper;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
+use ElasticPress\Indexables;
+use ElasticPress\Stats as Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -172,6 +174,9 @@ class Sync {
 		}
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
+		$indices       = Indexables::factory()->get( 'post' )->get_index_name();
+		// Get the stats of the current index
+		$index_stats = Stats::factory()->get_totals();
 
 		if ( ! empty( $ep_last_index ) ) {
 			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
@@ -219,6 +224,8 @@ class Sync {
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
 		$data['is_epio']              = Utils\is_epio();
+		$data['indices_data']         = $indices;
+		$data['index_stats']          = $index_stats;
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
 	}
