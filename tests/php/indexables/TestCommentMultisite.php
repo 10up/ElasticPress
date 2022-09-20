@@ -99,10 +99,12 @@ class TestCommentMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		$query = new \WP_Comment_Query( array(
-			'ep_integrate' => true,
-			'site__in' => 'all'
-		) );
+		$query = new \WP_Comment_Query(
+			array(
+				'ep_integrate' => true,
+				'site__in'     => 'all',
+			)
+		);
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 9, count( $query->get_comments() ) );
@@ -135,10 +137,12 @@ class TestCommentMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		$query = new \WP_Comment_Query( array(
-			'ep_integrate' => true,
-			'site__in' => [ $sites[0]['blog_id'], $sites[2]['blog_id'] ]
-		) );
+		$query = new \WP_Comment_Query(
+			array(
+				'ep_integrate' => true,
+				'site__in'     => array( $sites[0]['blog_id'], $sites[2]['blog_id'] ),
+			)
+		);
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 6, count( $query->get_comments() ) );
@@ -170,10 +174,12 @@ class TestCommentMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		$query = new \WP_Comment_Query( array(
-			'ep_integrate' => true,
-			'site__not_in' => [ $sites[2]['blog_id'] ]
-		) );
+		$query = new \WP_Comment_Query(
+			array(
+				'ep_integrate' => true,
+				'site__not_in' => array( $sites[2]['blog_id'] ),
+			)
+		);
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 6, count( $query->get_comments() ) );
@@ -199,16 +205,23 @@ class TestCommentMultisite extends BaseTestCase {
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
-			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id, 'comment_content' => 'Hello World' ) );
+			$this->ep_factory->comment->create(
+				array(
+					'comment_post_ID' => $post_id,
+					'comment_content' => 'Hello World',
+				)
+			);
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 			restore_current_blog();
 		}
 
-		$query = new \WP_Comment_Query( array(
-			'search' => 'Hello World',
-			'site__in' => 'all'
-		) );
+		$query = new \WP_Comment_Query(
+			array(
+				'search'   => 'Hello World',
+				'site__in' => 'all',
+			)
+		);
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, count( $query->get_comments() ) );
@@ -241,10 +254,12 @@ class TestCommentMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		$query = new \WP_Comment_Query( array(
-			'ep_integrate' => true,
-			'sites' => 'all'
-		) );
+		$query = new \WP_Comment_Query(
+			array(
+				'ep_integrate' => true,
+				'sites'        => 'all',
+			)
+		);
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 9, count( $query->get_comments() ) );
