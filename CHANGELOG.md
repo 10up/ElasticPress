@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+## [4.3.1] - 2022-09-XX
+This release fixes some bugs and also adds some new actions and filters.
+
+### Added
+- New `ep_facet_taxonomy_terms` filter to filter the Facet terms. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2989](https://github.com/10up/ElasticPress/pull/2989).
+- Added `ep.Autosuggest.itemHTML`, `ep.Autosuggest.listHTML`, `ep.Autosuggest.query`, and `ep.Autosuggest.element` JavaScript hooks to Autosuggest and migrated filter functions to hook callbacks for backwards compatibility Props [@JakePT](https://github.com/JakePT) via [#2983](https://github.com/10up/ElasticPress/pull/2983).
+- E2E tests for the Comments Feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#2955](https://github.com/10up/ElasticPress/pull/2955).
+- E2E tests for the Instant Results feature. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#2851](https://github.com/10up/ElasticPress/pull/2851).
+- More E2E tests for the WooCommerce Feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#2923](https://github.com/10up/ElasticPress/pull/2923).
+
+### Changed
+- REST API endpoints used for managing custom results are no longer publicly accessible. Props [@JakePT](https://github.com/JakePT) and [@PypWalters](https://github.com/PypWalters) via [#3004](https://github.com/10up/ElasticPress/pull/3004).
+
+### Fixed
+- WooCommerce data privacy eraser query deleting all orders if EP is enabled for admin and Ajax requests. Props [@sun](https://github.com/sun) and [@bogdanarizancu](https://github.com/bogdanarizancu) via [#2975](https://github.com/10up/ElasticPress/pull/2975).
+- Facets removing WooCommerce sorting. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2982](https://github.com/10up/ElasticPress/pull/2982).
+- Facets triggering the ElasticPress integration in feed pages. Props [@felipeelia](https://github.com/felipeelia) and [@rafaucau](https://github.com/rafaucau) via [#2980](https://github.com/10up/ElasticPress/pull/2980).
+- Taxonomy Facet tree issue when child category is selected. Props [@burhandodhy](https://github.com/burhandodhy) via [#3015](https://github.com/10up/ElasticPress/pull/3015).
+- Term search in the admin panel for non-public taxonomies returning nothing. Props [@burhandodhy](https://github.com/burhandodhy) via [#2988](https://github.com/10up/ElasticPress/pull/2988).
+- Clicking a Related Posts link while in the editor no longer follows the link. Props [@JakePT](https://github.com/JakePT) via [#2998](https://github.com/10up/ElasticPress/pull/2998).
+- Visually alignment of elements in the Settings page. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#3018](https://github.com/10up/ElasticPress/pull/3018).
+- Intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) via [#2984](https://github.com/10up/ElasticPress/pull/2984).
+
 ## [4.3.0] - 2022-08-31
 ElasticPress 4.3.0 fixes some bugs and introduces some new and exciting changes.
 
@@ -1514,6 +1537,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.3.1]: https://github.com/10up/ElasticPress/compare/4.3.0...4.3.1
 [4.3.0]: https://github.com/10up/ElasticPress/compare/4.2.2...4.3.0
 [4.2.2]: https://github.com/10up/ElasticPress/compare/4.2.1...4.2.2
 [4.2.1]: https://github.com/10up/ElasticPress/compare/4.2.0...4.2.1
