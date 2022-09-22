@@ -1,15 +1,21 @@
 /* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
 
 /**
+ * WordPress dependencies.
+ */
+import { applyFilters } from '@wordpress/hooks';
+
+/**
  * Internal dependencies.
  */
+import './back-compat';
 import {
 	findAncestorByClass,
 	escapeDoubleQuotes,
 	replaceGlobally,
 	debounce,
 	domReady,
-} from './utils/helpers';
+} from '../utils/helpers';
 
 const { epas } = window;
 
@@ -195,13 +201,17 @@ async function esSearch(query, searchTerm) {
 
 		const data = await response.json();
 
-		// allow for filtered data before returning it to
-		// be output on the front end
-		if (typeof window.epDataFilter !== 'undefined') {
-			return window.epDataFilter(data, searchTerm);
-		}
-
-		return data;
+		/**
+		 * Filter the Elasticsearch response data used for Autosuggest.
+		 *
+		 * @filter ep.Autosuggest.data
+		 * @since 4.3.1
+		 *
+		 * @param {object} data Response data.
+		 * @param {string} searchTerm Search term.
+		 * @returns {object} Response data.
+		 */
+		return applyFilters('ep.Autosuggest.data', data, searchTerm);
 	} catch (error) {
 		// eslint-disable-next-line no-console
 		console.error(error);
@@ -217,11 +227,10 @@ async function esSearch(query, searchTerm) {
  * @returns {boolean} return true
  */
 function updateAutosuggestBox(options, input) {
-	let i;
-	let itemString = '';
+	let listHTML = '';
 
 	// get the search term for use later on
-	const { value } = input;
+	const { value: searchText } = input;
 	const container = findAncestorByClass(input, 'ep-autosuggest-container');
 	const resultsContainer = container.querySelector('.ep-autosuggest');
 	const suggestList = resultsContainer.querySelector('.autosuggest-list');
@@ -244,12 +253,13 @@ function updateAutosuggestBox(options, input) {
 
 	// create markup for list items
 	// eslint-disable-next-line
-	for ( i = 0; resultsLimit > i; ++i ) {
-		const text = options[i]._source.post_title;
-		const url = options[i]._source.permalink;
+	for ( let index = 0; resultsLimit > index; ++index ) {
+		const option = options[index];
+		const text = option._source.post_title;
+		const url = option._source.permalink;
 		const escapedText = escapeDoubleQuotes(text);
 
-		const searchParts = value.trim().split(' ');
+		const searchParts = searchText.trim().split(' ');
 		let resultsText = escapedText;
 
 		if (epas.highlightingEnabled) {
@@ -262,25 +272,44 @@ function updateAutosuggestBox(options, input) {
 			);
 		}
 
-		let itemHTML = `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${i}">
+		let itemHTML = `<li class="autosuggest-item" role="option" aria-selected="false" id="autosuggest-option-${index}">
 				<a href="${url}" class="autosuggest-link" data-search="${escapedText}" data-url="${url}"  tabindex="-1">
 					${resultsText}
 				</a>
 			</li>`;
 
-		if (typeof window.epAutosuggestItemHTMLFilter !== 'undefined') {
-			itemHTML = window.epAutosuggestItemHTMLFilter(itemHTML, options[i], i, value);
-		}
+		/**
+		 * Filter the HTML for an Autosuggest suggestion.
+		 *
+		 * @filter ep.Autosuggest.itemHTML
+		 * @since 4.3.1
+		 *
+		 * @param {string} itemHTML Item HTML.
+		 * @param {object} option Elasticsearch record for suggestion.
+		 * @param {number} index Suggestion index.
+		 * @param {string} searchText Search term.
+		 * @returns {string} Item HTML.
+		 */
+		itemHTML = applyFilters('ep.Autosuggest.itemHTML', itemHTML, option, index, searchText);
 
-		itemString += itemHTML;
+		listHTML += itemHTML;
 	}
 
-	if (typeof window.epAutosuggestListItemsHTMLFilter !== 'undefined') {
-		itemString = window.epAutosuggestListItemsHTMLFilter(itemString, options, input);
-	}
+	/**
+	 * Filter the HTML for the list of Autosuggest suggestions.
+	 *
+	 * @filter ep.Autosuggest.listHTML
+	 * @since 4.3.1
+	 *
+	 * @param {string} listHTML List HTML.
+	 * @param {object[]} options Elasticsearch records for suggestions.
+	 * @param {Element} input Input element that triggered Autosuggest.
+	 * @returns {string} List HTML.
+	 */
+	listHTML = applyFilters('ep.Autosuggest.listHTML', listHTML, options, input);
 
 	// append list items to the list
-	suggestList.innerHTML = itemString;
+	suggestList.innerHTML = listHTML;
 
 	const autosuggestItems = Array.from(document.querySelectorAll('.autosuggest-link'));
 
@@ -552,9 +581,9 @@ function init() {
 
 			let query = buildSearchQuery(searchText, placeholder, queryJSON);
 
-			if (postTypes.length > 0) {
-				query = JSON.parse(query);
+			query = JSON.parse(query);
 
+			if (postTypes.length > 0) {
 				if (typeof query.post_filter.bool.must !== 'undefined') {
 					query.post_filter.bool.must.push({
 						terms: {
@@ -562,16 +591,21 @@ function init() {
 						},
 					});
 				}
-
-				query = JSON.stringify(query);
 			}
 
-			// Allow filtering the search query based on the input.
-			if (typeof window.epAutosuggestQueryFilter !== 'undefined') {
-				query = JSON.stringify(
-					window.epAutosuggestQueryFilter(JSON.parse(query), searchText, input),
-				);
-			}
+			/**
+			 * Filter the Elasticsearch query used for Autosuggest.
+			 *
+			 * @filter ep.Autosuggest.query
+			 * @since 4.3.1
+			 *
+			 * @param {object} query Elasticsearch query.
+			 * @param {string} searchText Search term.
+			 * @param {Element} input Input element that triggered Autosuggest.
+			 * @returns {object} Elasticsearch query.
+			 */
+			query = applyFilters('ep.Autosuggest.query', query, searchText, input);
+			query = JSON.stringify(query);
 
 			// fetch the results
 			const response = await esSearch(query, searchText);
@@ -643,10 +677,10 @@ function init() {
 	/**
 	 * Insert an autosuggest list after an element.
 	 *
-	 * @param {Element} element Element to add the autosuggest list after.
+	 * @param {Element} previousElement Element to add the autosuggest list after.
 	 * @returns {void}
 	 */
-	const insertAutosuggestElement = (element) => {
+	const insertAutosuggestElement = (previousElement) => {
 		if (!autosuggestElement) {
 			autosuggestElement = document.createElement('div');
 			autosuggestElement.classList.add('ep-autosuggest');
@@ -659,13 +693,21 @@ function init() {
 			autosuggestElement.appendChild(autosuggestList);
 		}
 
-		let clonedElement = autosuggestElement.cloneNode(true);
+		let element = autosuggestElement.cloneNode(true);
 
-		if (typeof window.epAutosuggestElementFilter !== 'undefined') {
-			clonedElement = window.epAutosuggestElementFilter(clonedElement, element);
-		}
+		/**
+		 * Filter the Autosuggest container element before it is inserted.
+		 *
+		 * @filter ep.Autosuggest.element
+		 * @since 4.3.1
+		 *
+		 * @param {Element} element Autosuggest container element.
+		 * @param {Element} previousElement Element the container will be inserted after.
+		 * @returns {Element} Autosuggest container element.
+		 */
+		element = applyFilters('ep.Autosuggest.element', element, previousElement);
 
-		element.insertAdjacentElement('afterend', clonedElement);
+		previousElement.insertAdjacentElement('afterend', element);
 	};
 
 	/**
