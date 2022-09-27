@@ -24,7 +24,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 *
 	 * Useful to share arguments to methods called by hooks.
 	 *
-	 * @since 4.0.0
+	 * @since 4.4.0
 	 * @var array
 	 */
 	protected $args = [];
@@ -34,7 +34,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 *
 	 * Useful to share arguments to methods called by hooks.
 	 *
-	 * @since 4.0.0
+	 * @since 4.4.0
 	 * @var array
 	 */
 	protected $assoc_args = [];

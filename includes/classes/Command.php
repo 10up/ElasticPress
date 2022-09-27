@@ -1063,7 +1063,7 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-last-cli-index
+	 * @subcommand get-last-cli-sync
 	 * @since 4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
