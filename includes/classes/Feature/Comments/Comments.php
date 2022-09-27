@@ -379,7 +379,7 @@ class Comments extends Feature {
 
 		$label = ! empty( $attributes['label'] )
 			? sprintf(
-				'<label for="%1$s">%2$s</label>',
+				'<label for="%1$s-s">%2$s</label>',
 				esc_attr( $wrapper_id ),
 				wp_kses_post( $attributes['label'] )
 			)
