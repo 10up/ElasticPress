@@ -4,8 +4,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-## [4.3.1] - 2022-09-XX
-This release fixes some bugs and also adds some new actions and filters.
+## [4.3.1] - 2022-09-27
+This release fixes some bugs and also adds some new filters.
 
 ### Added
 - New `ep_facet_taxonomy_terms` filter to filter the Facet terms. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2989](https://github.com/10up/ElasticPress/pull/2989).
@@ -24,7 +24,7 @@ This release fixes some bugs and also adds some new actions and filters.
 - Taxonomy Facet tree issue when child category is selected. Props [@burhandodhy](https://github.com/burhandodhy) via [#3015](https://github.com/10up/ElasticPress/pull/3015).
 - Term search in the admin panel for non-public taxonomies returning nothing. Props [@burhandodhy](https://github.com/burhandodhy) via [#2988](https://github.com/10up/ElasticPress/pull/2988).
 - Clicking a Related Posts link while in the editor no longer follows the link. Props [@JakePT](https://github.com/JakePT) via [#2998](https://github.com/10up/ElasticPress/pull/2998).
-- Visually alignment of elements in the Settings page. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#3018](https://github.com/10up/ElasticPress/pull/3018).
+- Visual alignment of elements in the Settings page. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#3018](https://github.com/10up/ElasticPress/pull/3018).
 - Intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) via [#2984](https://github.com/10up/ElasticPress/pull/2984).
 
 ## [4.3.0] - 2022-08-31

@@ -77,6 +77,33 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 4.3.1 - 2022-09-27 =
+
+This release fixes some bugs and also adds some new filters.
+
+__Added:__
+
+* New `ep_facet_taxonomy_terms` filter to filter the Facet terms. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Added `ep.Autosuggest.itemHTML`, `ep.Autosuggest.listHTML`, `ep.Autosuggest.query`, and `ep.Autosuggest.element` JavaScript hooks to Autosuggest and migrated filter functions to hook callbacks for backwards compatibility Props [@JakePT](https://github.com/JakePT).
+* E2E tests for the Comments Feature. Props [@burhandodhy](https://github.com/burhandodhy).
+* E2E tests for the Instant Results feature. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia).
+* More E2E tests for the WooCommerce Feature. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Changed:__
+
+* REST API endpoints used for managing custom results are no longer publicly accessible. Props [@JakePT](https://github.com/JakePT) and [@PypWalters](https://github.com/PypWalters).
+
+__Fixed:__
+
+* WooCommerce data privacy eraser query deleting all orders if EP is enabled for admin and Ajax requests. Props [@sun](https://github.com/sun) and [@bogdanarizancu](https://github.com/bogdanarizancu).
+* Facets removing WooCommerce sorting. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Facets triggering the ElasticPress integration in feed pages. Props [@felipeelia](https://github.com/felipeelia) and [@rafaucau](https://github.com/rafaucau).
+* Taxonomy Facet tree issue when child category is selected. Props [@burhandodhy](https://github.com/burhandodhy).
+* Term search in the admin panel for non-public taxonomies returning nothing. Props [@burhandodhy](https://github.com/burhandodhy).
+* Clicking a Related Posts link while in the editor no longer follows the link. Props [@JakePT](https://github.com/JakePT).
+* Visual alignment of elements in the Settings page. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia).
+* Intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy).
+
 = 4.3.0 - 2022-08-31 =
 
 ElasticPress 4.3.0 fixes some bugs and introduces some new and exciting changes.
