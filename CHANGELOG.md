@@ -9,7 +9,7 @@ This release fixes some bugs and also adds some new filters.
 
 ### Added
 - New `ep_facet_taxonomy_terms` filter to filter the Facet terms. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#2989](https://github.com/10up/ElasticPress/pull/2989).
-- Added `ep.Autosuggest.itemHTML`, `ep.Autosuggest.listHTML`, `ep.Autosuggest.query`, and `ep.Autosuggest.element` JavaScript hooks to Autosuggest and migrated filter functions to hook callbacks for backwards compatibility Props [@JakePT](https://github.com/JakePT) via [#2983](https://github.com/10up/ElasticPress/pull/2983).
+- Added `ep.Autosuggest.itemHTML`, `ep.Autosuggest.listHTML`, `ep.Autosuggest.query`, and `ep.Autosuggest.element` JavaScript hooks to Autosuggest and migrated filter functions to hook callbacks for backwards compatibility. Props [@JakePT](https://github.com/JakePT) via [#2983](https://github.com/10up/ElasticPress/pull/2983).
 - E2E tests for the Comments Feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#2955](https://github.com/10up/ElasticPress/pull/2955).
 - E2E tests for the Instant Results feature. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#2851](https://github.com/10up/ElasticPress/pull/2851).
 - More E2E tests for the WooCommerce Feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#2923](https://github.com/10up/ElasticPress/pull/2923).
