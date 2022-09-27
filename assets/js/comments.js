@@ -5,10 +5,12 @@ const widgetSearchComments = document.querySelectorAll('.ep-widget-search-commen
 let selectedResultIndex;
 
 widgetSearchComments.forEach((element) => {
+	const { id } = element;
 	const input = document.createElement('input');
 	input.setAttribute('autocomplete', 'off');
 	input.setAttribute('type', 'search');
 	input.setAttribute('class', 'ep-widget-search-comments-input');
+	input.setAttribute('id', `${id}-s`);
 
 	const resultList = document.createElement('ul');
 	resultList.setAttribute('class', 'ep-widget-search-comments-results');
