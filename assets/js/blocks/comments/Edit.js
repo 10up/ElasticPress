@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
+import { InspectorControls, RichText, useBlockProps } from '@wordpress/block-editor';
 import { CheckboxControl, PanelBody } from '@wordpress/components';
 import { useMemo } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
@@ -20,7 +20,7 @@ const { searchablePostTypes } = window.epComments;
  * @returns {Function} Component.
  */
 export default ({ attributes, setAttributes }) => {
-	const { postTypes } = attributes;
+	const { label, postTypes } = attributes;
 
 	const blockProps = useBlockProps({
 		className: 'ep-widget-search-comments',
@@ -48,15 +48,27 @@ export default ({ attributes, setAttributes }) => {
 	/**
 	 * Handle selecting all post types.
 	 *
+	 * @param {boolean} checked Whether all has been selected.
 	 * @returns {void}
 	 */
-	const onSelectAll = () => {
-		setAttributes({ postTypes: [] });
+	const onSelectAll = (checked) => {
+		if (checked) {
+			setAttributes({ postTypes: [] });
+		} else {
+			setAttributes({ postTypes: Object.keys(searchablePostTypes) });
+		}
 	};
 
 	return (
 		<>
 			<div {...blockProps}>
+				<RichText
+					aria-label={__('Label text')}
+					placeholder={__('Add label…')}
+					withoutInteractiveFormatting
+					value={label}
+					onChange={(html) => setAttributes({ label: html })}
+				/>
 				<input
 					autoComplete="off"
 					className="ep-widget-search-comments-input"
@@ -68,7 +80,6 @@ export default ({ attributes, setAttributes }) => {
 				<PanelBody title={__('Search settings', 'elasticpress')}>
 					<CheckboxControl
 						checked={allSelected}
-						disabled={allSelected}
 						label={__('Search all comments', 'elasticpress')}
 						onChange={onSelectAll}
 					/>

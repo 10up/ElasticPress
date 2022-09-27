@@ -369,17 +369,34 @@ class Comments extends Feature {
 	 * @return string
 	 */
 	public function render_block( $attributes ) {
-		$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => 'ep-widget-search-comments' ) );
-		$post_types_input   = ! empty( $attributes['postTypes'] )
+		$wrapper_id         = 'ep-search-comments-' . uniqid();
+		$wrapper_attributes = get_block_wrapper_attributes(
+			array(
+				'id'    => $wrapper_id,
+				'class' => 'ep-widget-search-comments',
+			)
+		);
+
+		$label = ! empty( $attributes['label'] )
 			? sprintf(
-				'<input type="hidden" id="ep-widget-search-comments-post-type" value="%s">',
+				'<label for="%1$s">%2$s</label>',
+				esc_attr( $wrapper_id ),
+				wp_kses_post( $attributes['label'] )
+			)
+			: '';
+
+		$post_types_input = ! empty( $attributes['postTypes'] )
+			? sprintf(
+				'<input type="hidden" id="%1$s-post-type" value="%2$s">',
+				esc_attr( $wrapper_id ),
 				esc_attr( implode( ',', $attributes['postTypes'] ) )
 			)
 			: '';
 
 		$block_html = sprintf(
-			'<div %1$s>%2$s</div>',
+			'<div %1$s>%2$s%3$s</div>',
 			$wrapper_attributes, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$label,
 			$post_types_input
 		);
 

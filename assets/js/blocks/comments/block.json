@@ -1,11 +1,16 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"title": "Comments (ElasticPress)",
+	"title": "Search Comments (ElasticPress)",
+	"icon": "search",
 	"textdomain": "elasticpress",
 	"name": "elasticpress/comments",
 	"category": "widgets",
 	"attributes": {
+		"label": {
+			"default": "Search comments",
+			"type": "string"
+		},
 		"postTypes": {
 			"default": [],
 			"type": "array"

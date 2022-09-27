@@ -52,14 +52,15 @@ class Widget extends WP_Widget {
 			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
 		}
 
+		$wrapper_id = 'ep-search-comments-' . uniqid();
 		?>
-		<div class="ep-widget-search-comments">
+		<div id="<?php echo esc_attr( $wrapper_id ); ?>" class="ep-widget-search-comments">
 			<?php
 			if ( ! empty( $instance['post_type'] ) ) {
 				?>
 				<input
 					type="hidden"
-					id="ep-widget-search-comments-post-type"
+					id="<?php echo esc_attr( $wrapper_id ); ?>-post-type"
 					value="<?php echo esc_attr( implode( ',', $instance['post_type'] ) ); ?>"
 				/>
 				<?php
