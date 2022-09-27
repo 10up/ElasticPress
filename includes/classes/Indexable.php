@@ -1038,7 +1038,7 @@ abstract class Indexable {
 				if ( false !== $terms_obj ) {
 					$meta_filter[] = $terms_obj;
 				}
-			} elseif ( is_array( $single_meta_query ) && isset( $single_meta_query[0] ) && is_array( $single_meta_query[0] ) ) {
+			} elseif ( is_array( $single_meta_query ) ) {
 				/**
 				 * Handle multidimensional array. Something like:
 				 *

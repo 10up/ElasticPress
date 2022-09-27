@@ -47,7 +47,7 @@
   },
   "10up-toolkit": {
     "entry": {
-      "autosuggest-script.min": "./assets/js/autosuggest.js",
+      "autosuggest-script.min": "./assets/js/autosuggest/index.js",
       "comments-script.min": "./assets/js/comments.js",
       "comments-block-script.min": "./assets/js/blocks/comments/index.js",
       "dashboard-script.min": "./assets/js/dashboard.js",
