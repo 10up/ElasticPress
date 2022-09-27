@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_prepare_user_meta_data - 10up ElasticPress Hook Docs</title>
+    <title>Filter: ep_facet_taxonomy_terms - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_prepare_user_meta_data</h1>
+    <h1 class="page-title">Filter: ep_facet_taxonomy_terms</h1>
 	
 
     
@@ -43,14 +43,33 @@
 
     
 
-    <h4 class="name" id="ep_prepare_user_meta_data">apply_filters( 'ep_prepare_user_meta_data', <span class="signature">$meta, $user_id )</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="ep_facet_taxonomy_terms">apply_filters( 'ep_facet_taxonomy_terms', <span class="signature">$terms, $taxonomy )</span><span class="type-signature"> &rarr; {array}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter pre-prepare meta for a user</p>
+    <p>Filter the taxonomy facet terms.</p>
+<p>Example of usage, to hide unavailable category terms:</p>
+<pre class="prettyprint source"><code>add_filter(
+    'ep_facet_taxonomy_terms',
+    function ( $terms, $taxonomy ) {
+        if ( 'category' !== $taxonomy ) {
+            return $terms;
+        }
+
+        return array_filter(
+             $terms,
+             function ( $term ) {
+                 return $term->count > 0;
+             }
+        );
+     },
+     10,
+     2
+);
+</code></pre>
 </div>
 
 
@@ -84,7 +103,7 @@
 
         <tr>
             
-                <td class="name"><code>$meta</code></td>
+                <td class="name"><code>$terms</code></td>
             
 
             <td class="type">
@@ -100,20 +119,20 @@
 
             
 
-            <td class="description last"><p>Meta data</p></td>
+            <td class="description last"><p>Terms</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>$user_id</code></td>
+                <td class="name"><code>$taxonomy</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">int</span>
+<span class="param-type">string</span>
 
 
             
@@ -123,7 +142,7 @@
 
             
 
-            <td class="description last"><p>User ID</p></td>
+            <td class="description last"><p>Taxonomy name</p></td>
         </tr>
 
     
@@ -139,6 +158,9 @@
 
     
 
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>4.3.1</li></ul></dd>
     
 
     
@@ -164,7 +186,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Indexable_User_User.php.html">includes/classes/Indexable/User/User.php</a>, <a href="includes_classes_Indexable_User_User.php.html#line834">line 834</a>
+        <a href="includes_classes_Feature_Facets_Types_Taxonomy_Renderer.php.html">includes/classes/Feature/Facets/Types/Taxonomy/Renderer.php</a>, <a href="includes_classes_Feature_Facets_Types_Taxonomy_Renderer.php.html#line124">line 124</a>
     </li></ul></dd>
     
 
@@ -191,7 +213,7 @@
 
         
 <div class="param-desc">
-    <p>New meta</p>
+    <p>New terms</p>
 </div>
 
 
