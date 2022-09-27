@@ -339,7 +339,7 @@ describe('WP-CLI Commands', () => {
 		// if no sync process is running, this will fail.
 		cy.wpCli('wp elasticpress stop-sync')
 			.its('stderr')
-			.should('contain', 'There is no sync operation running');
+			.should('contain', 'There is no indexing operation running');
 
 		// mock the sync process
 		cy.wpCliEval(
