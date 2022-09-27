@@ -1628,4 +1628,46 @@ class TestTerm extends BaseTestCase {
 		$this->assertEquals( 2, count( $terms ) );
 	}
 
+	/**
+	 * Test term query for non-public taxonomies.
+	 *
+	 * @return void
+	 */
+	public function testQueryForNonPublicTaxonomies() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'public' => false,
+			)
+		);
+
+		Functions\create_and_sync_term( 'term-name-1', 'term name 1', '', 'wptests_tax' );
+		Functions\create_and_sync_term( 'term-name-2', 'term name 2', '', 'wptests_tax' );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'wptests_tax',
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+			]
+		);
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$this->assertEquals( 2, count( $term_query->terms ) );
+
+		Functions\create_and_sync_term( 'tag-name-1', 'tag name 1', '', 'post_tag' );
+		Functions\create_and_sync_term( 'tag-name-1', 'tag name 2', '', 'post_tag' );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => array( 'wptests_tax', 'post_tag' ),
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+			]
+		);
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$this->assertEquals( 4, count( $term_query->terms ) );
+	}
 }

@@ -1,4 +1,5 @@
 window.indexNames = null;
+window.isEpIo = false;
 
 before(() => {
 	cy.wpCliEval(
@@ -23,6 +24,10 @@ before(() => {
 		`,
 	).then((wpCliResponse) => {
 		window.indexNames = JSON.parse(wpCliResponse.stdout);
+	});
+
+	cy.wpCli('eval "echo (int) \\ElasticPress\\Utils\\is_epio();"').then((response) => {
+		window.isEpIo = response.stdout === '1';
 	});
 });
 
