@@ -25,5 +25,6 @@ Cypress.Commands.add('getBlocksList', () => {
 });
 
 Cypress.Commands.add('insertBlock', (blockName) => {
+	cy.getBlocksList().should('contain.text', blockName);
 	cy.get('.block-editor-block-types-list__item').contains(blockName).click();
 });
