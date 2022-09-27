@@ -200,6 +200,7 @@ Dashboard\setup();
  */
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	WP_CLI::add_command( 'elasticpress', __NAMESPACE__ . '\Command' );
+	WP_CLI::add_command( 'elasticpress', __NAMESPACE__ . '\DeprecatedCommand' );
 }
 
 /**

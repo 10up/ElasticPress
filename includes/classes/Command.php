@@ -395,19 +395,19 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Return all indexes from the cluster as a JSON object.
+	 * Return all indices from the cluster as a JSON object.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-cluster-indexes
-	 * @since      3.2, `--pretty` introduced in 4.1.0
+	 * @subcommand get-cluster-indices
+	 * @since      4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_cluster_indexes( $args, $assoc_args ) {
+	public function get_cluster_indices( $args, $assoc_args ) {
 		$path = '_cat/indices?format=json';
 
 		$response = Elasticsearch::factory()->remote_request( $path );
@@ -423,12 +423,12 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-indexes
-	 * @since      3.2, `--pretty` introduced in 4.1.0
+	 * @subcommand get-indices
+	 * @since      4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_indexes( $args, $assoc_args ) {
+	public function get_indices( $args, $assoc_args ) {
 		$index_names = $this->get_index_names();
 
 		$this->pretty_json_encode( $index_names, ! empty( $assoc_args['pretty'] ) );
@@ -711,10 +711,10 @@ class Command extends WP_CLI_Command {
 	 * : Skip confirmation needed by `--setup`
 	 *
 	 * @param array $args Positional CLI args.
-	 * @since 0.1.2
+	 * @since 4.4.0
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function index( $args, $assoc_args ) {
+	public function sync( $args, $assoc_args ) {
 		global $wp_actions;
 
 		$setup_option = isset( $assoc_args['setup'] ) ? $assoc_args['setup'] : false;
@@ -970,13 +970,13 @@ class Command extends WP_CLI_Command {
 	 *
 	 * If an index was stopped prematurely and won't start again, this will clear this cached data such that a new index can start.
 	 *
-	 * @subcommand clear-index
+	 * @subcommand clear-sync
 	 * @alias delete-transient
-	 * @since      3.4
+	 * @since      4.4.0
 	 */
-	public function clear_index() {
+	public function clear_sync() {
 		/**
-		 * Fires before the CLI `clear-index` command is executed.
+		 * Fires before the CLI `clear-sync` command is executed.
 		 *
 		 * @hook ep_cli_before_clear_index
 		 *
@@ -987,7 +987,7 @@ class Command extends WP_CLI_Command {
 		$this->delete_transient();
 
 		/**
-		 * Fires after the CLI `clear-index` command is executed.
+		 * Fires after the CLI `clear-sync` command is executed.
 		 *
 		 * @hook ep_cli_after_clear_index
 		 *
@@ -1012,12 +1012,12 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-indexing-status
+	 * @subcommand get-ongoing-sync-status
 	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_indexing_status( $args, $assoc_args ) {
+	public function get_ongoing_sync_status( $args, $assoc_args ) {
 		$indexing_status = Utils\get_indexing_status();
 
 		if ( empty( $indexing_status ) ) {
@@ -1053,7 +1053,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
+	 * Returns a JSON array with the results of the last CLI sync (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
@@ -1064,11 +1064,11 @@ class Command extends WP_CLI_Command {
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
 	 * @subcommand get-last-cli-index
-	 * @since 3.5.1, `--pretty` introduced in 4.1.0
+	 * @since 4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_last_cli_index( $args, $assoc_args ) {
+	public function get_last_cli_sync( $args, $assoc_args ) {
 		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
@@ -1132,14 +1132,14 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Stop the indexing operation started from the dashboard.
+	 * Stop the Sync operation started from the dashboard.
 	 *
-	 * @subcommand stop-indexing
-	 * @since      3.5.2
+	 * @subcommand stop-sync
+	 * @since      4.4.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function stop_indexing( $args, $assoc_args ) {
+	public function stop_sync( $args, $assoc_args ) {
 		$indexing_status = \ElasticPress\Utils\get_indexing_status();
 
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
