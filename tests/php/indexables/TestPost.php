@@ -850,7 +850,6 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			'ep_integrate' => false,
 			's'         => 'findme',
 			'tax_query' => array(
 				array(
