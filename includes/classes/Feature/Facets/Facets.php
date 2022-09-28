@@ -371,18 +371,13 @@ class Facets extends Feature {
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$key = sanitize_key( $key );
-			if ( is_array( $value ) ) {
-				$value = array_map( 'sanitize_text_field', $value );
-			} else {
-				$value = sanitize_text_field( $value );
-			}
 
 			foreach ( $filter_names as $filter_type => $filter_name ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
 					$facet = str_replace( $filter_name, '', $key );
 
 					$filters[ $filter_type ][ $facet ] = array(
-						'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
+						'terms' => array_fill_keys( array_map( 'sanitize_title', explode( ',', trim( $value, ',' ) ) ), true ),
 					);
 				}
 			}
