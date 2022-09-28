@@ -1778,11 +1778,7 @@ class Post extends Indexable {
 			$single_tax_query = $tax_queries;
 			if ( ! empty( $single_tax_query['taxonomy'] ) ) {
 				$terms = isset( $single_tax_query['terms'] ) ? (array) $single_tax_query['terms'] : array();
-				$field = ( ! empty( $single_tax_query['field'] ) ) ? $single_tax_query['field'] : 'term_id';
-
-				if ( 'name' === $field ) {
-					$field = 'name.raw';
-				}
+				$field = $this->parse_tax_query_field( $single_tax_query['field'] );
 
 				if ( 'slug' === $field ) {
 					$terms = array_map( 'sanitize_title', $terms );
@@ -2152,5 +2148,32 @@ class Post extends Indexable {
 		$search_algorithm = apply_filters( "ep_{$this->slug}_search_algorithm", $search_algorithm, $search_text, $search_fields, $query_vars );
 
 		return \ElasticPress\SearchAlgorithms::factory()->get( $search_algorithm );
+	}
+
+	/**
+	 * Parse tax query field value.
+	 *
+	 * @since 4.4.0
+	 * @param string $field Field name
+	 * @return string
+	 */
+	protected function parse_tax_query_field( $field ) : string {
+
+		switch ( $field ) {
+			case 'name':
+				$field = 'name.raw';
+				break;
+			case 'slug':
+				$field = 'slug';
+				break;
+			case 'term_taxonomy_id':
+				$field = 'term_taxonomy_id';
+				break;
+			default:
+				$field = 'term_id';
+				break;
+		}
+
+		return $field;
 	}
 }
