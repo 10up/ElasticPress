@@ -82,6 +82,18 @@ class TestFacets extends BaseTestCase {
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
 		$this->assertSame( 'posttype', $selected['post_type'] );
+
+		// test for a term having accents characters in it.
+		$term = $this->factory->category->create_and_get(
+			array(
+				'name' => 'غير-مصنف',
+			)
+		);
+		parse_str( "post_type=posttype&ep_filter_taxonomy={$term->slug}", $_GET );
+		$selected = $facet_feature->get_selected();
+		$this->assertSelectedTax( array( $term->slug => true ), 'taxonomy', $selected );
+		$this->assertArrayHasKey( 'post_type', $selected );
+		$this->assertSame( 'posttype', $selected['post_type'] );
 	}
 
 	/**
@@ -169,7 +181,7 @@ class TestFacets extends BaseTestCase {
 		$query_args = [];
 
 		$query = new \WP_Query();
-		
+
 		// No `ep_facet` in query_args will make it return the same array.
 		$this->assertSame( $args, $facet_feature->set_agg_filters( $args, $query_args, $query ) );
 
