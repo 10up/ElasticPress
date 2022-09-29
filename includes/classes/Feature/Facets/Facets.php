@@ -46,7 +46,8 @@ class Facets extends Feature {
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [
-			'match_type' => 'all',
+			'match_type'         => 'all',
+			'match_type_between' => 'all',
 		];
 
 		$types = [
@@ -123,11 +124,20 @@ class Facets extends Feature {
 		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
 		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
+			<div class="field-name status"><?php esc_html_e( 'Match Type Within Facets', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
 				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
 				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches within facets. "Any" will show content that matches within facet.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Match Type Between Facets', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label><input name="settings[match_type_between]" type="radio" <?php checked( $settings['match_type_between'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[match_type_between]" type="radio" <?php checked( $settings['match_type_between'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches between facets. "Any" will show content that matches between facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<?php
