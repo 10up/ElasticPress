@@ -32,7 +32,13 @@ class ProtectedContent extends Feature {
 
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
+		$this->summary = __( 'Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#protected-content', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
+
+		$this->available_during_installation = true;
 
 		parent::__construct();
 	}
@@ -48,7 +54,9 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_post_formatted_args', [ $this, 'exclude_protected_posts' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'query_password_protected_posts' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'include_post_password' ], 10, 2 );
+		add_filter( 'ep_post_sync_args', [ $this, 'remove_fields_from_password_protected' ], 11, 2 );
 		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
+		add_filter( 'ep_skip_autosave_sync', '__return_false' );
 
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
@@ -221,6 +229,58 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
+	 * Prevent some fields in password protected posts from being indexed.
+	 *
+	 * As some solutions publicly expose full post contents, this method prevents password
+	 * protected posts to have their full content and their meta fields indexed. Developers
+	 * wanting to bypass this behavior can use the `ep_pc_skip_post_content_cleanup` filter.
+	 *
+	 * @param array $post_args Post arguments
+	 * @param int   $post_id   Post ID
+	 * @return array
+	 */
+	public function remove_fields_from_password_protected( $post_args, $post_id ) {
+		if ( empty( $post_args['post_password'] ) ) {
+			return $post_args;
+		}
+
+		/**
+		 * Filter to skip the password protected content clean up.
+		 *
+		 * @hook ep_pc_skip_post_content_cleanup
+		 * @since 4.0.0, 4.2.0 added $post_args and $post_id
+		 * @param  {bool}  $skip      Whether the password protected content should have their content, and meta removed
+		 * @param  {array} $post_args Post arguments
+		 * @param  {int}   $post_id   Post ID
+		 * @return {bool}
+		 */
+		if ( apply_filters( 'ep_pc_skip_post_content_cleanup', false, $post_args, $post_id ) ) {
+			return $post_args;
+		}
+
+		$fields_to_remove = [
+			'post_content_filtered',
+			'post_content',
+			'meta',
+			'thumbnail',
+			'post_content_plain',
+			'price_html',
+		];
+
+		foreach ( $fields_to_remove as $field ) {
+			if ( ! empty( $post_args[ $field ] ) ) {
+				if ( is_array( $post_args[ $field ] ) ) {
+					$post_args[ $field ] = [];
+				} else {
+					$post_args[ $field ] = '';
+				}
+			}
+		}
+
+		return $post_args;
+	}
+
+	/**
 	 * Exclude proctected post from the frontend queries.
 	 *
 	 * @since 4.0.0
@@ -235,10 +295,11 @@ class ProtectedContent extends Feature {
 			 * Filter to exclude protected posts from search.
 			 *
 			 * @hook ep_exclude_password_protected_from_search
+			 * @since 4.0.0
 			 * @param  {bool} $exclude Exclude post from search.
 			 * @return {bool}
 			 */
-			if ( ! is_user_logged_in() && apply_filters( 'ep_exclude_password_protected_from_search', true ) ) {
+			if ( ( ! is_user_logged_in() && ! empty( $args['s'] ) ) || apply_filters( 'ep_exclude_password_protected_from_search', false ) ) {
 				$formatted_args['post_filter']['bool']['must_not'][] = array(
 					'exists' => array(
 						'field' => 'post_password',
@@ -307,17 +368,6 @@ class ProtectedContent extends Feature {
 			}
 		}
 
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**

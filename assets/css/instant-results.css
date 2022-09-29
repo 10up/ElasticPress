@@ -1,4 +1,5 @@
 @import "instant-results/utilities.css";
+@import "instant-results/checkbox.css";
 @import "instant-results/input.css";
 @import "instant-results/modal.css";
 @import "instant-results/options-list.css";
@@ -11,6 +12,7 @@
 @import "instant-results/sidebar.css";
 @import "instant-results/sidebar-toggle.css";
 @import "instant-results/sort.css";
+@import "instant-results/tokens.css";
 @import "instant-results/toolbar.css";
 
 :root {

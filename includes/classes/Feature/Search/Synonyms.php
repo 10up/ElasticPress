@@ -140,6 +140,8 @@ class Synonyms {
 			true
 		);
 
+		wp_enqueue_style( 'wp-edit-post' );
+
 		wp_enqueue_style(
 			'ep_synonyms_styles',
 			EP_URL . 'dist/css/synonyms-styles.min.css',
@@ -202,7 +204,7 @@ class Synonyms {
 			return;
 		}
 
-		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_STRING );
+		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_SPECIAL_CHARS );
 
 		if ( ! in_array( $update, [ 'success', 'error-update-post', 'error-update-index' ], true ) ) {
 			return;
@@ -342,7 +344,7 @@ class Synonyms {
 			return false;
 		}
 
-		return filter_var( trim( $synonym ), FILTER_SANITIZE_STRING );
+		return sanitize_text_field( $synonym, true );
 	}
 
 	/**
@@ -401,13 +403,13 @@ class Synonyms {
 	 * @return void
 	 */
 	public function handle_update_synonyms() {
-		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_STRING );
-		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_STRING );
+		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
+		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		$post_id = false;
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
-			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
-			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_STRING );
+			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_CALLBACK, [ 'options' => 'wp_strip_all_tags' ] );
+			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_SPECIAL_CHARS );
 			$content  = trim( sanitize_textarea_field( $synonyms ) );
 
 			// Content can't be empty.

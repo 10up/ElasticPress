@@ -37,6 +37,22 @@ abstract class Feature {
 	public $title;
 
 	/**
+	 * Feature summary
+	 *
+	 * @var string
+	 * @since  4.0.0
+	 */
+	public $summary;
+
+	/**
+	 * URL to feature documentation.
+	 *
+	 * @var string
+	 * @since  4.0.0
+	 */
+	public $docs_url;
+
+	/**
 	 * Optional feature default settings
 	 *
 	 * @since  2.2
@@ -68,6 +84,14 @@ abstract class Feature {
 	 */
 	public $group_order;
 
+	/**
+	 * True if activation of this feature should be available during
+	 * installation.
+	 *
+	 * @since 4.0.0
+	 * @var boolean
+	 */
+	public $available_during_installation = false;
 
 	/**
 	 * Run on every page load for feature to set itself up
@@ -77,11 +101,15 @@ abstract class Feature {
 	abstract public function setup();
 
 	/**
-	 * Implement to output feature box summary
+	 * Output feature box summary
 	 *
-	 * @since  3.0
+	 * @since 2.1
 	 */
-	abstract public function output_feature_box_summary();
+	public function output_feature_box_summary() {
+		if ( $this->summary ) {
+			echo '<p>' . esc_html( $this->summary ) . '</p>';
+		}
+	}
 
 	/**
 	 * Implement to output feature box long text
@@ -211,12 +239,12 @@ abstract class Feature {
 		do_action( 'ep_feature_box_summary', $this->slug, $this );
 		?>
 
-		<a class="learn-more"><?php esc_html_e( 'Learn more', 'elasticpress' ); ?></a>
+		<button aria-expanded="false" class="learn-more button button-secondary button-small" type="button"><?php esc_html_e( 'Learn more', 'elasticpress' ); ?></button>
 
 		<div class="long">
 			<?php $this->output_feature_box_long(); ?>
 
-			<p><a class="collapse"><?php esc_html_e( 'Collapse', 'elasticpress' ); ?></a></p>
+			<p><button aria-expanded="true" class="collapse button button-secondary button-small" type="button"><?php esc_html_e( 'Collapse', 'elasticpress' ); ?></button></p>
 
 			<?php
 			/**
@@ -254,54 +282,73 @@ abstract class Feature {
 	 */
 	public function output_settings_box() {
 		$requirements_status = $this->requirements_status();
+		$sync_url            = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK )
+			? network_admin_url( 'admin.php?page=elasticpress-sync' )
+			: admin_url( 'admin.php?page=elasticpress-sync' );
 		?>
 
-		<?php
-		if ( ! empty( $requirements_status->message ) ) :
-			$messages = (array) $requirements_status->message;
-			?>
-			<?php foreach ( $messages as $message ) : ?>
-				<div class="requirements-status-notice">
-					<?php echo wp_kses_post( $message ); ?>
-				</div>
-			<?php endforeach; ?>
-		<?php endif; ?>
-
-		<?php if ( $this->requires_install_reindex ) : ?>
-			<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
-				<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
-			</div>
-		<?php endif; ?>
-
-		<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>
-
-		<div class="feature-fields">
-			<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>" data-requires-reindex="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>" data-was-active="<?php echo $this->is_active() ? '1' : '0'; ?>">
-				<div class="field-name status"><?php esc_html_e( 'Status', 'elasticpress' ); ?></div>
-				<div class="input-wrap <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?>">
-					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_enabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( $this->is_active() ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-					<label for="feature_active_<?php echo esc_attr( $this->slug ); ?>_disabled"><input name="feature_active_<?php echo esc_attr( $this->slug ); ?>" id="feature_active_<?php echo esc_attr( $this->slug ); ?>_disabled" data-field-name="active" class="setting-field" <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?> type="radio" <?php if ( ! $this->is_active() ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
-				</div>
-			</div>
-
+		<form>
 			<?php
-			$this->output_feature_box_settings();
-			?>
-		</div>
+			if ( ! empty( $requirements_status->message ) ) :
+				$messages = (array) $requirements_status->message;
+				?>
+				<?php foreach ( $messages as $message ) : ?>
+					<div class="requirements-status-notice">
+						<?php echo wp_kses_post( $message ); ?>
+					</div>
+				<?php endforeach; ?>
+			<?php endif; ?>
 
-		<div class="action-wrap">
-			<span class="no-dash-sync">
-				<?php esc_html_e( 'Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
-			</span>
+			<?php if ( $this->requires_install_reindex ) : ?>
+				<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
+					<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
+				</div>
+			<?php endif; ?>
 
-			<a
-				data-feature="<?php echo esc_attr( $this->slug ); ?>"
-				data-requires-reindex="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>"
-				data-was-active="<?php echo $this->is_active() ? '1' : '0'; ?>"
-				class="<?php if ( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ) : ?>disabled<?php endif; ?> button button-primary save-settings">
+			<div class="requirements-status-notice requirements-status-notice--syncing" role="alert">
+				<?php
+				printf(
+					'%1$s <a href="%2$s">%3$s</a>',
+					esc_html__( 'Settings not saved. Cannot save settings while a sync is in progress.', 'elasticpress' ),
+					esc_url( $sync_url ),
+					esc_html__( 'View sync status.', 'elasticpress' )
+				);
+				?>
+			</div>
+
+			<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>
+
+			<div class="feature-fields">
+				<div class="field js-toggle-feature">
+					<div class="field-name status"><?php esc_html_e( 'Status', 'elasticpress' ); ?></div>
+					<div class="input-wrap <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?>">
+						<label><input name="settings[active]" <?php disabled( 2 === $requirements_status->code ); ?> type="radio" <?php checked( $this->is_active() ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+						<label><input name="settings[active]" <?php disabled( 2 === $requirements_status->code ); ?> type="radio" <?php checked( ! $this->is_active() ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+					</div>
+				</div>
+
+				<?php
+				$this->output_feature_box_settings();
+				?>
+			</div>
+
+			<div class="action-wrap">
+				<span class="no-dash-sync">
+					<?php esc_html_e( 'Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
+				</span>
+
+				<input type="hidden" name="action" value="ep_save_feature">
+				<input type="hidden" name="feature" value="<?php echo esc_attr( $this->slug ); ?>">
+				<input type="hidden" name="requires_reindex" value="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>">
+				<input type="hidden" name="was_active" value="<?php echo $this->is_active() ? '1' : '0'; ?>">
+				<?php wp_nonce_field( 'ep_dashboard_nonce', 'nonce' ); ?>
+
+				<button name="submit" <?php disabled( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ); ?> class="button button-primary" type="submit">
 					<?php esc_html_e( 'Save', 'elasticpress' ); ?>
-			</a>
-		</div>
+				</button>
+			</div>
+		</form>
+
 		<?php
 	}
 }

@@ -53,14 +53,21 @@ class Search extends Feature {
 
 		$this->title = esc_html__( 'Post Search', 'elasticpress' );
 
+		$this->summary = __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#post-search', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [
-			'decaying_enabled'     => true,
+
+		$this->default_settings = [
+			'decaying_enabled'     => '1',
 			'synonyms_editor_mode' => 'simple',
-			'highlight_enabled'    => false,
-			'highlight_excerpt'    => false,
+			'highlight_enabled'    => '0',
+			'highlight_excerpt'    => '0',
 			'highlight_tag'        => 'mark',
 		];
+
+		$this->available_during_installation = true;
 
 		parent::__construct();
 	}
@@ -223,7 +230,7 @@ class Search extends Feature {
 		$highlight_class = apply_filters( 'ep_highlighting_class', 'ep-highlight' );
 
 		// tags
-		$opening_tag = '<' . $highlight_tag . ' class="' . $highlight_class . '">';
+		$opening_tag = '<' . $highlight_tag . " class='" . $highlight_class . "'>";
 		$closing_tag = '</' . $highlight_tag . '>';
 
 		foreach ( $fields_to_highlight as $field ) {
@@ -245,7 +252,7 @@ class Search extends Feature {
 	 * for the selected tag to be displayed in it.
 	 */
 	public function allow_excerpt_html() {
-		if ( is_admin() ) {
+		if ( ! Utils\is_integrated_request( 'highlighting', [ 'public' ] ) ) {
 			return;
 		}
 
@@ -440,111 +447,113 @@ class Search extends Feature {
 	 * @return array
 	 */
 	public function weight_recent( $formatted_args, $args ) {
-		if ( ! empty( $args['s'] ) ) {
-			if ( $this->is_decaying_enabled() ) {
-				/**
-				 * Filter search date weighting scale
-				 *
-				 * @hook epwr_decay_function
-				 * @param  {string} $decay_function Current decay function
-				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-				 * @param  {array} $args WP_Query arguments
-				 * @return  {string} New decay function
-				 */
-				$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
-				$date_score     = array(
-					'function_score' => array(
-						'query'      => $formatted_args['query'],
-						'functions'  => array(
-							array(
-								$decay_function => array(
-									'post_date_gmt' => array(
-										/**
-										 * Filter search date weighting scale
-										 *
-										 * @hook epwr_scale
-										 * @param  {string} $scale Current scale
-										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-										 * @param  {array} $args WP_Query arguments
-										 * @return  {string} New scale
-										 */
-										'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
-										/**
-										 * Filter search date weighting decay
-										 *
-										 * @hook epwr_decay
-										 * @param  {string} $decay Current decay
-										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-										 * @param  {array} $args WP_Query arguments
-										 * @return  {string} New decay
-										 */
-										'decay'  => apply_filters( 'epwr_decay', .25, $formatted_args, $args ),
-										/**
-										 * Filter search date weighting offset
-										 *
-										 * @hook epwr_offset
-										 * @param  {string} $offset Current offset
-										 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-										 * @param  {array} $args WP_Query arguments
-										 * @return  {string} New offset
-										 */
-										'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
-									),
-								),
-							),
-							array(
+		if ( empty( $args['s'] ) ) {
+			return $formatted_args;
+		}
+		if ( ! $this->is_decaying_enabled() ) {
+			return $formatted_args;
+		}
+		/**
+		 * Filter search date weighting scale
+		 *
+		 * @hook epwr_decay_function
+		 * @param  {string} $decay_function Current decay function
+		 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+		 * @param  {array} $args WP_Query arguments
+		 * @return  {string} New decay function
+		 */
+		$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
+		/**
+		 * Filter search date weighting field
+		 *
+		 * @hook epwr_decay_field
+		 * @param  {string} $field Current decay field
+		 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+		 * @param  {array} $args WP_Query arguments
+		 * @return  {string} New decay field
+		 * @since 4.3.0
+		 */
+		$field      = apply_filters( 'epwr_decay_field', 'post_date_gmt', $formatted_args, $args );
+		$date_score = array(
+			'function_score' => array(
+				'query'      => $formatted_args['query'],
+				'functions'  => array(
+					array(
+						$decay_function => array(
+							$field => array(
 								/**
-								 * Filter search date weight
+								 * Filter search date weighting scale
 								 *
-								 * @since 3.5.6
-								 * @hook epwr_weight
-								 * @param  {string} $weight Current weight
+								 * @hook epwr_scale
+								 * @param  {string} $scale Current scale
 								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
 								 * @param  {array} $args WP_Query arguments
-								 * @return  {string} New weight
+								 * @return  {string} New scale
 								 */
-								'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
+								'scale'  => apply_filters( 'epwr_scale', '14d', $formatted_args, $args ),
+								/**
+								 * Filter search date weighting decay
+								 *
+								 * @hook epwr_decay
+								 * @param  {float} $decay Current decay
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {float} New decay
+								 */
+								'decay'  => apply_filters( 'epwr_decay', 0.25, $formatted_args, $args ),
+								/**
+								 * Filter search date weighting offset
+								 *
+								 * @hook epwr_offset
+								 * @param  {string} $offset Current offset
+								 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+								 * @param  {array} $args WP_Query arguments
+								 * @return  {string} New offset
+								 */
+								'offset' => apply_filters( 'epwr_offset', '7d', $formatted_args, $args ),
 							),
 						),
-						/**
-						 * Filter search date weighting score mode
-						 *
-						 * @hook epwr_score_mode
-						 * @param  {string} $score_mode Current score mode
-						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-						 * @param  {array} $args WP_Query arguments
-						 * @return  {string} New score mode
-						 */
-						'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
-						/**
-						 * Filter search date weighting boost mode
-						 *
-						 * @hook epwr_boost_mode
-						 * @param  {string} $boost_mode Current boost mode
-						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
-						 * @param  {array} $args WP_Query arguments
-						 * @return  {string} New boost mode
-						 */
-						'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
 					),
-				);
+					array(
+						/**
+						 * Filter search date weight
+						 *
+						 * @since 3.5.6
+						 * @hook epwr_weight
+						 * @param  {float} $weight Current weight
+						 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+						 * @param  {array} $args WP_Query arguments
+						 * @return  {float} New weight
+						 */
+						'weight' => apply_filters( 'epwr_weight', 0.001, $formatted_args, $args ),
+					),
+				),
+				/**
+				 * Filter search date weighting score mode
+				 *
+				 * @hook epwr_score_mode
+				 * @param  {string} $score_mode Current score mode
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New score mode
+				 */
+				'score_mode' => apply_filters( 'epwr_score_mode', 'sum', $formatted_args, $args ),
+				/**
+				 * Filter search date weighting boost mode
+				 *
+				 * @hook epwr_boost_mode
+				 * @param  {string} $boost_mode Current boost mode
+				 * @param  {array} $formatted_args Formatted Elasticsearch arguments
+				 * @param  {array} $args WP_Query arguments
+				 * @return  {string} New boost mode
+				 */
+				'boost_mode' => apply_filters( 'epwr_boost_mode', 'multiply', $formatted_args, $args ),
+			),
+		);
 
-				$formatted_args['query'] = $date_score;
-			}
-		}
+		$formatted_args['query'] = $date_score;
 
 		return $formatted_args;
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.0
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
@@ -595,7 +604,16 @@ class Search extends Feature {
 			}
 		}
 
-		return $enabled;
+		/**
+		 * Filter whether to enable integration on search queries or not.
+		 *
+		 * @hook ep_integrate_search_queries
+		 * @since 4.2.0
+		 * @param {bool}     $enabled Original enabled value
+		 * @param {WP_Query} $query   WP_Query
+		 * @return {bool} New $enabled value
+		 */
+		return apply_filters( 'ep_integrate_search_queries', $enabled, $query );
 	}
 
 	/**
@@ -613,25 +631,25 @@ class Search extends Feature {
 		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		?>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="decaying_enabled"><input name="decaying_enabled" id="decaying_enabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="decaying_disabled"><input name="decaying_enabled" id="decaying_disabled" data-field-name="decaying_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['decaying_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( (bool) $settings['decaying_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( ! (bool) $settings['decaying_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Highlighting status', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="highlighting_enabled"><input name="highlight_enabled" id="highlighting_enabled" data-field-name="highlight_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['highlight_enabled'] ) : ?>checked<?php endif; ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="highlighting_disabled"><input name="highlight_enabled" id="highlighting_disabled" data-field-name="highlight_enabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['highlight_enabled'] ) : ?>checked<?php endif; ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( (bool) $settings['highlight_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( ! (bool) $settings['highlight_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ); ?></p>
 			</div>
 		</div>
-		<div class="field" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<label for="highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight tag ', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
-				<select id="highlight-tag" name="highlight-tag" class="setting-field" data-field-name="highlight_tag">
+				<select id="highlight-tag" name="settings[highlight_tag]">
 					<?php
 					foreach ( self::$default_highlight_tags as $option ) :
 						echo '<option value="' . esc_attr( $option ) . '" ' . selected( $option, $settings['highlight_tag'] ) . '>' . esc_html( $option ) . '</option>';
@@ -641,11 +659,11 @@ class Search extends Feature {
 			</div>
 		</div>
 
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Excerpt highlighting', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="highlight_excerpt_enabled"><input name="highlight_excerpt" id="highlight_excerpt_enabled" class="setting-field" type="radio" <?php if ( (bool) $settings['highlight_excerpt'] ) : ?>checked<?php endif; ?>  value="1" data-field-name="highlight_excerpt"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label for="highlight_excerpt_disabled"><input name="highlight_excerpt" id="highlight_excerpt_disabled" class="setting-field" type="radio" <?php if ( ! (bool) $settings['highlight_excerpt'] ) : ?>checked<?php endif; ?>  value="0" data-field-name="highlight_excerpt"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( (bool) $settings['highlight_excerpt'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( ! (bool) $settings['highlight_excerpt'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. ', 'elasticpress' ); ?></p>
 			</div>
 		</div>

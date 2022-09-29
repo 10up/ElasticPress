@@ -529,84 +529,8 @@ class Comment extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_comment_search_fields', $prepared_search_fields, $query_vars );
 
-			$query = [
-				'bool' => [
-					'should' => [
-						[
-							'multi_match' => [
-								'query'  => $search,
-								'type'   => 'phrase',
-								'fields' => $prepared_search_fields,
-								/**
-								 * Filter boost for comment match phrase query
-								 *
-								 * @hook ep_comment_match_phrase_boost
-								 * @since 3.6.0
-								 * @param {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_comment_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
-							],
-						],
-						[
-							'multi_match' => [
-								'query'     => $search,
-								'fields'    => $prepared_search_fields,
-								/**
-								 * Filter boost for comment match query
-								 *
-								 * @hook ep_comment_match_boost
-								 * @param {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return {int} New boost
-								 */
-								'boost'     => apply_filters( 'ep_comment_match_boost', 2, $prepared_search_fields, $query_vars ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							],
-						],
-						[
-							'multi_match' => [
-								'fields'    => $prepared_search_fields,
-								'query'     => $search,
-								/**
-								 * Filter fuzziness for post query
-								 *
-								 * @hook ep_comment_fuzziness_arg
-								 * @since 3.6.0
-								 * @param {int} $fuzziness Fuzziness
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return {int} New fuzziness
-								 */
-								'fuzziness' => apply_filters( 'ep_comment_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
-							],
-						],
-					],
-				],
-			];
-
-			/**
-			 * Filter formatted Elasticsearch post query (only contains query part)
-			 *
-			 * @hook ep_comment_formatted_args_query
-			 * @since 3.6.0
-			 * @param {array}  $query         Current query
-			 * @param {array}  $query_vars    Query variables
-			 * @param {string} $search_text   Search text
-			 * @param {array}  $search_fields Search fields
-			 * @return {array} New query
-			 */
-			$formatted_args['query'] = apply_filters(
-				'ep_comment_formatted_args_query',
-				$query,
-				$query_vars,
-				$search,
-				$prepared_search_fields
-			);
+			$search_algorithm        = $this->get_search_algorithm( $search, $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'comment', $search, $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
@@ -750,12 +674,12 @@ class Comment extends Indexable {
 	}
 
 	/**
-	 * Put mapping for comments
+	 * Generate the mapping array
 	 *
-	 * @since  3.6.0
-	 * @return boolean
+	 * @since 4.1.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -797,7 +721,7 @@ class Comment extends Indexable {
 		 */
 		$mapping = apply_filters( 'ep_comment_mapping', $mapping );
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return $mapping;
 	}
 
 	/**
@@ -882,18 +806,17 @@ class Comment extends Indexable {
 
 		unset( $all_query_args['number'] );
 		unset( $all_query_args['offset'] );
+		$all_query_args['count'] = true;
 
 		/**
-		 * Filter database arguments for term count query
+		 * Filter database arguments for comment count query
 		 *
 		 * @hook ep_comment_all_query_db_args
 		 * @param  {array} $args Query arguments based to WP_Comment_Query
 		 * @since  3.6.0
 		 * @return {array} New arguments
 		 */
-		$all_query = new WP_Comment_Query( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
-
-		$total_objects = count( $all_query->comments );
+		$total_objects = get_comments( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
 
 		if ( ! empty( $args['offset'] ) ) {
 			if ( (int) $args['offset'] >= $total_objects ) {

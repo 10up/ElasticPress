@@ -79,6 +79,10 @@ class QueryIntegration {
 			return $results;
 		}
 
+		if ( ! $this->is_searchable( $query ) ) {
+			return $results;
+		}
+
 		$new_terms = apply_filters( 'ep_wp_query_cached_terms', null, $query );
 
 		if ( null === $new_terms ) {
@@ -242,6 +246,8 @@ class QueryIntegration {
 
 			$term->elasticsearch = true; // Super useful for debugging.
 
+			$term = new \WP_Term( $term ); // Necessary for WordPress actions that expect WP_Term as the object type.
+
 			if ( $term ) {
 				$new_terms[] = $term;
 			}
@@ -329,6 +335,23 @@ class QueryIntegration {
 		}
 
 		return $new_terms;
+	}
+
+	/**
+	 * Determine whether ES should be used for the query if all taxonomies are indexable.
+	 *
+	 * @param \WP_Term_Query $query The WP_Term_Query object.
+	 * @return boolean
+	 */
+	protected function is_searchable( $query ) {
+
+		$taxonomies = $query->query_vars['taxonomy'];
+		if ( ! $taxonomies ) {
+			return true;
+		}
+
+		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
+		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
 
 }

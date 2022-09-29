@@ -1580,4 +1580,94 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
+
+	/**
+	 * Tests terms without meta value.
+	 *
+	 * @return void
+	 */
+	public function testMetaWithoutValue() {
+
+		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'category' );
+		update_term_meta( $term_id, 'test_key', 'value' );
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+
+		$term_id = Functions\create_and_sync_term( 'term-name-2', 'term name 2', '', 'category' );
+		update_term_meta( $term_id, 'test_key', 'value' );
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+
+		Functions\create_and_sync_term( 'term-name-3', 'term name 3', '', 'category' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure WP_Term_Query returns only taxonomies for whom meta exists.
+		$args = array(
+			'taxonomy'     => 'category',
+			'meta_key'     => 'test_key',
+			'ep_integrate' => true,
+			'hide_empty'   => false,
+
+		);
+		$query = new \WP_Term_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, count( $query->terms ) );
+
+		// Make sure get_terms returns only taxonomies for whom meta exists.
+		$args  = array(
+			'taxonomy'     => 'category',
+			'hide_empty'   => false,
+			'ep_integrate' => true,
+			'meta_query'   => array(
+				array(
+					'key' => 'test_key',
+				),
+			),
+		);
+		$terms = get_terms( $args );
+		$this->assertTrue( $terms[0]->elasticsearch );
+		$this->assertEquals( 2, count( $terms ) );
+	}
+
+	/**
+	 * Test term query for non-public taxonomies.
+	 *
+	 * @return void
+	 */
+	public function testQueryForNonPublicTaxonomies() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'public' => false,
+			)
+		);
+
+		Functions\create_and_sync_term( 'term-name-1', 'term name 1', '', 'wptests_tax' );
+		Functions\create_and_sync_term( 'term-name-2', 'term name 2', '', 'wptests_tax' );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'wptests_tax',
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+			]
+		);
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$this->assertEquals( 2, count( $term_query->terms ) );
+
+		Functions\create_and_sync_term( 'tag-name-1', 'tag name 1', '', 'post_tag' );
+		Functions\create_and_sync_term( 'tag-name-1', 'tag name 2', '', 'post_tag' );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => array( 'wptests_tax', 'post_tag' ),
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+			]
+		);
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$this->assertEquals( 4, count( $term_query->terms ) );
+	}
 }

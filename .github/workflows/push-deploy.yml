@@ -13,17 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: install node v10
-      uses: actions/setup-node@v1
-      with:
-        node-version: 10
-
-    - name: Build
-      run: |
-        npm install
-        npm run build
+      uses: actions/checkout@v3
 
     - name: WordPress Plugin Deploy
       if: "! github.event.release.prerelease"
@@ -33,19 +23,3 @@ jobs:
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
         SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         SLUG: ${{ env.SLUG }}
-
-    - name: Create ZIP
-      run: |
-        TMP_DIR="${HOME}/archive/${{ env.SLUG }}"
-        mkdir -p $TMP_DIR
-        rsync -rc --exclude-from="${{ github.workspace }}/.distignore" "${{ github.workspace }}/" "$TMP_DIR/" && cd $TMP_DIR/.. && zip -r "${{ github.workspace }}/${{ env.SLUG }}.zip" .
-
-    - name: Upload release asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ${{ github.workspace }}/${{ env.SLUG }}.zip
-        asset_name: elasticpress-${{ github.ref_name }}.zip
-        asset_content_type: application/zip

@@ -862,6 +862,95 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a taxonomy query with invalid terms
+	 *
+	 * @since 4.0.0
+	 * @group post
+	 */
+	public function testTaxQueryWithInvalidTerms() {
+		$post = Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array(
+					'one',
+					'two',
+				),
+			)
+		);
+		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme test 3',
+				'tags_input'   => array(
+					'one',
+					'three',
+				),
+			)
+		);
+
+		$tags   = wp_get_post_tags( $post );
+		$tag_id = 0;
+
+		foreach ( $tags as $tag ) {
+			if ( 'one' === $tag->slug ) {
+				$tag_id = $tag->term_id;
+			}
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id, null ),
+					'field'    => 'term_id',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( null, $tag_id, false ),
+					'field'    => 'term_id',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$args = array(
+			's'         => 'findme',
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id, null ),
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a category_name query
 	 *
 	 * @since 1.5
@@ -4370,10 +4459,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -4391,10 +4493,23 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 1' ) );
-		$sticky_id = Functions\create_and_sync_post( array( 'post_title' => 'Sticky post' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 1',
+			]
+		);
+		$sticky_id = Functions\create_and_sync_post(
+			[
+				'post_title' => 'Sticky post',
+				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+			]
+		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post( array( 'post_title' => 'Normal post 2' ) );
+		Functions\create_and_sync_post(
+			[
+				'post_title' => 'Normal post 2',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -5196,36 +5311,48 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTagQuery() {
+		$tag1 = wp_insert_category( [ 'cat_name' => 'tag-1', 'taxonomy' => 'post_tag' ] );
+		$tag2 = wp_insert_category( [ 'cat_name' => 'tag-2', 'taxonomy' => 'post_tag' ] );
+		$tag3 = wp_insert_category( [ 'cat_name' => 'tag-3', 'taxonomy' => 'post_tag' ] );
+		$tag4 = wp_insert_category( [ 'cat_name' => 'tag-4', 'taxonomy' => 'post_tag' ] );
+		$tag5 = wp_insert_category( [ 'cat_name' => 'tag-5', 'taxonomy' => 'post_tag' ] );
+		$tag6 = wp_insert_category( [ 'cat_name' => 'tag-6', 'taxonomy' => 'post_tag' ] );
+
 		$post_id_1 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme test 1',
-				'tags_input'   => array( 'one', 'two' ),
+				'tags_input'   => array( $tag1, $tag2 ),
 			)
 		);
 		$post_id_2 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme test 2',
-				'tags_input'   => array( 'three', 'four', 'five', 'six' ),
+				'tags_input'   => array( $tag3, $tag4, $tag5, $tag6 ),
 			)
 		);
 
 		$post_id_3 = Functions\create_and_sync_post(
 			array(
 				'post_content' => 'findme test 3',
-				'tags_input'   => array( 'one', 'six' ),
+				'tags_input'   => array( $tag1, $tag2, $tag6 ),
 			)
 		);
 
-		$post_1_tags = get_the_tags( $post_id_1 );
-		$post_2_tags = get_the_tags( $post_id_2 );
-		$post_3_tags = get_the_tags( $post_id_3 );
+		/*
+		 *        |  1  |  2  |  3  |  4  |  5  |  6  |
+		 * post 1 |  x  |  x  |     |     |     |     |
+		 * post 2 |     |     |  x  |  x  |  x  |  x  |
+		 * post 3 |  x  |  x  |     |     |     |  x  |
+		 */
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
+		// Should find only posts with both tags 1 AND 2
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'post',
-			'tag__and'  => array( $post_1_tags[1]->term_id, $post_2_tags[1]->term_id ),
+			'tag__and'  => array( $tag1, $tag2 ),
+			'fields'    => 'ids',
 		);
 
 		$query = new \WP_Query( $args );
@@ -5233,25 +5360,37 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEqualsCanonicalizing( [ $post_id_1, $post_id_3 ], $query->posts );
 
-		// Verify we're only getting the posts we requested.
-		$post_names = wp_list_pluck( $query->posts, 'post_name' );
-
-		$this->assertContains( get_post_field( 'post_name', $post_id_1 ), $post_names );
-		$this->assertContains( get_post_field( 'post_name', $post_id_2 ), $post_names );
-		$this->assertNotContains( get_post_field( 'post_name', $post_id_3 ), $post_names );
-
+		// Should find only posts with tag 3
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'post',
-			'tag_id'    => $post_3_tags[1]->term_id,
+			'tag_id'    => $tag3,
+			'fields'    => 'ids',
 		);
 
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEqualsCanonicalizing( [ $post_id_2 ], $query->posts );
+
+		// Should find only posts with tags 1 OR 3
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'post',
+			'tag__in'    => array( $tag1, $tag3 ),
+			'fields'    => 'ids',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEqualsCanonicalizing( [ $post_id_1, $post_id_2, $post_id_3 ], $query->posts );
 	}
 
 	/**
@@ -5314,6 +5453,7 @@ class TestPost extends BaseTestCase {
 		$post_id_1 = Functions\create_and_sync_post();
 		$post_id_2 = Functions\create_and_sync_post();
 		$post_id_3 = Functions\create_and_sync_post();
+		$post_id_4 = Functions\create_and_sync_post( [ 'post_password' => '123' ] );
 
 		// Test the first loop of the indexing.
 		$results = $indexable_post_object->query_db(
@@ -5409,6 +5549,19 @@ class TestPost extends BaseTestCase {
 
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Test the first loop of the indexing.
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page'     => 1,
+				'has_password' => null, // `null` here makes WP ignore passwords completely, bringing everything
+			]
+		);
+
+		$post_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $post_id_4, $post_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**
@@ -5493,69 +5646,99 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testFormatArgsRootLevelTaxonomies() {
+		$cat1 = wp_create_category( 'category one' );
+		$cat2 = wp_create_category( 'category two' );
+		$tag1 = wp_insert_category( [ 'cat_name' => 'tag-1', 'taxonomy' => 'post_tag' ] );
+		$tag2 = wp_insert_category( [ 'cat_name' => 'tag-2', 'taxonomy' => 'post_tag' ] );
+		$tag3 = wp_insert_category( [ 'cat_name' => 'tag-3', 'taxonomy' => 'post_tag' ] );
 
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		$query = new \WP_Query();
-		$posts_per_page = (int) get_option( 'posts_per_page' );
-
-		$args = $post->format_args(
-			[
-				'cat'       => 123,
-				'tag'       => 'tag-slug',
-				'post_tag'  => 'post-tag-slug',
-			],
-			$query
+		$post1 = Functions\create_and_sync_post(
+			array(
+				'tags_input'    => array( $tag1, $tag2 ),
+				'post_category' => array( $cat1 ),
+			)
+		);
+		$post2 = Functions\create_and_sync_post(
+			array(
+				'tags_input'    => array( $tag1, $tag2, $tag3 ),
+				'post_category' => array( $cat2 ),
+			)
+		);
+		$post3 = Functions\create_and_sync_post(
+			array(
+				'post_category' => array( $cat1 ),
+			)
+		);
+		$post4 = Functions\create_and_sync_post(
+			array(
+				'tags_input' => array( $tag1, $tag3 ),
+			)
 		);
 
-		$this->assertSame( $posts_per_page, $args['size'] );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
-
-		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
-
-		$this->assertSame( 123, $must_terms[0]['terms']['terms.category.term_id'][0] );
-		$this->assertSame( 'tag-slug', $must_terms[1]['terms']['terms.post_tag.slug'][0] );
-		$this->assertSame( 'post-tag-slug', $must_terms[2]['terms']['terms.post_tag.slug'][0] );
-
-		// Verify a bug fix where two different terms.post_tag.term_id
-		// parameters were being created. Should only be one parameter
-		// with the two IDs.
-		$args = $post->format_args(
+		$query = new \WP_Query(
 			[
-				'tag__and' => [ 123, 456 ],
-				'tag_id'   => 123,
-			],
-			$query
+				'ep_integrate' => true,
+				'cat'          => $cat1,
+				'tag'          => 'tag-1',
+				'fields'       => 'ids',
+			]
 		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1 ], $query->posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 
-		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
-
-		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
-
-		$this->assertCount( 1, $must_terms );
-		$this->assertCount( 2, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 123, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 456, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-
-		// Verify we're append the tag_id to the array.
-		$args = $post->format_args(
+		$query = new \WP_Query(
 			[
-				'tag__and' => [ 123, 456 ],
-				'tag_id'   => 789,
-			],
-			$query
+				'ep_integrate' => true,
+				'tag__and'     => [ $tag1, $tag2 ],
+				'tag_id'       => $tag1,
+				'fields'       => 'ids',
+			]
 		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1, $post2 ], $query->posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 
-		$this->assertTrue( is_array( $args['post_filter']['bool']['must'][0]['bool']['must'] ) );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'tag__and'     => [ $tag1, $tag2 ],
+				'tag_id'       => $tag3,
+				'fields'       => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post2 ], $query->posts );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 
-		$must_terms = $args['post_filter']['bool']['must'][0]['bool']['must'];
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'tag__in'      => [ $tag1, $tag2, $tag3 ],
+				'fields'       => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1, $post2, $post4 ], $query->posts );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 
-		$this->assertCount( 1, $must_terms );
-		$this->assertCount( 3, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 123, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 456, $must_terms[0]['terms']['terms.post_tag.term_id'] );
-		$this->assertContains( 789, $must_terms[0]['terms']['terms.post_tag.term_id'] );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'category__in' => [ $cat1, $cat2 ],
+				'fields'       => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEqualsCanonicalizing( [ $post1, $post2, $post3 ], $query->posts );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
 	}
 
 	/**
@@ -5795,6 +5978,38 @@ class TestPost extends BaseTestCase {
 			new \WP_Query()
 		);
 
+		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
+
+		// Multiple aggs.
+		$args = $post->format_args(
+			[
+				// Triggers $use_filter to be true.
+				'post_status' => 'publish',
+
+				'aggs' => [
+					[
+						'name' => 'taxonomies',
+						'use-filter' => true,
+						'aggs' => [
+							'terms' => [
+								'field' => 'terms.category.slug',
+							],
+						],
+					],
+					[
+						'aggs' => [
+							'terms' => [
+								'field' => 'terms.post_type',
+							],
+						],
+					]
+				],
+			],
+			new \WP_Query()
+		);
+
+		$this->assertSame( 'publish', $args['aggs']['taxonomies']['filter']['bool']['must'][1]['term']['post_status'] );
+		$this->assertSame( 'terms.category.slug', $args['aggs']['taxonomies']['aggs']['terms']['field'] );
 		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
 	}
 
@@ -6567,5 +6782,279 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 		$this->assertEquals( $query->posts[0]->ID, $new_post_id );
+	}
+
+	/**
+	 * Tests term deletion applied to posts
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostDeletedTerm() {
+		$cat = wp_create_category( 'test category' );
+		$tag = wp_insert_category( [ 'taxonomy' => 'post_tag', 'cat_name' => 'test-tag' ] );
+
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'tags_input'    => array( $tag ),
+				'post_category' => array( $cat ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$this->assertNotEmpty( $document['terms']['category'] );
+		$this->assertNotEmpty( $document['terms']['post_tag'] );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+
+		wp_delete_term( $tag, 'post_tag' );
+		wp_delete_term( $cat, 'category' );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		// Category will fallback to Uncategorized.
+		$this->assertNotContains( $cat, wp_list_pluck( $document['terms']['category'], 'term_id' ) );
+		$this->assertArrayNotHasKey( 'post_tag', $document['terms'] );
+	}
+
+	/**
+	 * Tests term edition applied to posts
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testPostEditedTerm() {
+		$post_id = Functions\create_and_sync_post(
+			array(
+				'tags_input' => array( 'test-tag' ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$test_tag = get_term_by( 'name', 'test-tag', 'post_tag' );
+		wp_update_term(
+			$test_tag->term_id,
+			'post_tag',
+			[
+				'slug' => 'different-tag-slug',
+				'name' => 'Different Tag Name',
+			]
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$this->assertEquals( 'different-tag-slug', $document['terms']['post_tag'][0]['slug'] );
+		$this->assertEquals( 'Different Tag Name', $document['terms']['post_tag'][0]['name'] );
+	}
+
+	/**
+	 * Tests post without meta value.
+	 *
+	 * @return void
+	 */
+	public function testMetaWithoutValue() {
+
+		Functions\create_and_sync_post( array(), array( 'test_key' => '' ) );
+		Functions\create_and_sync_post( array(), array( 'test_key' => '' ) );
+		Functions\create_and_sync_post();
+
+		$expected_result = '2';
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure WordPress returns only 2 posts.
+		$args  = array(
+			'meta_query' => array(
+				array(
+					'key' => 'test_key',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( $expected_result, $query->post_count );
+		$this->assertNull( $query->elasticsearch_success );
+
+		// Make sure ElasticPress returns only 2 posts when meta query is set
+		$args  = array(
+			'ep_integrate' => true,
+			'meta_query'   => array(
+				array(
+					'key' => 'test_key',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $expected_result, $query->post_count );
+
+		// Make sure ElasticPress returns only 2 posts when meta key is set
+		$args  = array(
+			'ep_integrate' => true,
+			'meta_key'     => 'test_key',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $expected_result, $query->post_count );
+	}
+
+	/**
+	 * Test the get_search_algorithm implementation
+	 */
+	public function testGetSearchAlgorithm() {
+		/**
+		 * Test default search algorithm
+		 */
+		$version_40 = \ElasticPress\SearchAlgorithms::factory()->get( '4.0' );
+
+		$post_indexable   = \ElasticPress\Indexables::factory()->get( 'post' );
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+
+		$this->assertSame( $version_40, $search_algorithm );
+
+		/**
+		 * Test setting a diffent algorithm through the `ep_search_algorithm_version` filter
+		 */
+		$version_35 = \ElasticPress\SearchAlgorithms::factory()->get( '3.5' );
+
+		$set_version_35 = function() {
+			return '3.5';
+		};
+
+		add_filter( 'ep_search_algorithm_version', $set_version_35 );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $version_35, $search_algorithm );
+
+		remove_filter( 'ep_search_algorithm_version', $set_version_35 );
+
+		/**
+		 * Test setting a non-existent algorithm through the `ep_search_algorithm_version` filter
+		 * It should use `basic`
+		 */
+		$basic = \ElasticPress\SearchAlgorithms::factory()->get( 'basic' );
+
+		$set_non_existent_version = function() {
+			return 'foobar';
+		};
+
+		add_filter( 'ep_search_algorithm_version', $set_non_existent_version );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $basic, $search_algorithm );
+
+		remove_filter( 'ep_search_algorithm_version', $set_non_existent_version );
+
+		/**
+		 * Test the `ep_{$indexable_slug}_search_algorithm` filter
+		 */
+		add_filter( 'ep_post_search_algorithm', $set_version_35 );
+
+		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
+		$this->assertSame( $version_35, $search_algorithm );
+
+		remove_filter( 'ep_post_search_algorithm', $set_version_35 );
+	}
+
+	/**
+	 * Tests is_meta_allowed
+	 *
+	 * @return void
+	 * @group  is_meta_allowed
+	 */
+	public function testIsMetaAllowed() {
+		$meta_not_protected 		 = 'meta';
+		$meta_not_protected_excluded = 'meta_excluded';
+		$meta_protected 		 	 = '_meta';
+		$meta_protected_allowed 	 = '_meta_allowed';
+
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', function () use ( $meta_protected_allowed ) {
+			return [ $meta_protected_allowed ];
+		} );
+		add_filter( 'ep_prepare_meta_excluded_public_keys', function () use ( $meta_not_protected_excluded ) {
+			return [ $meta_not_protected_excluded ];
+		} );
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_not_protected, null ) );
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_protected_allowed, null ) );
+
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, null ) );
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, null ) );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetDistinctMetaFieldKeys() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => '' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => '' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$distinct_meta_field_keys = $indexable->get_distinct_meta_field_keys();
+
+		$this->assertIsArray( $distinct_meta_field_keys );
+		$this->assertContains( 'new_meta_key_1', $distinct_meta_field_keys );
+		$this->assertContains( 'new_meta_key_2', $distinct_meta_field_keys );
+	}
+
+	/**
+	 * Tests get_all_distinct_values
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetAllDistinctValues() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foo' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'bar' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foobar' ) );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'lorem' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'ipsum' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+
+		$this->assertCount( 3, $distinct_values );
+		$this->assertContains( 'foo', $distinct_values );
+		$this->assertContains( 'bar', $distinct_values );
+		$this->assertContains( 'foobar', $distinct_values );
+
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw', 1 );
+		$this->assertCount( 1, $distinct_values );
+		$this->assertContains( 'bar', $distinct_values );
+
+		$change_bucket_size = function( $count, $field ) {
+			return ( 'meta.new_meta_key_1.raw' === $field ) ? 1 : $count;
+		};
+		add_filter( 'ep_post_all_distinct_values', $change_bucket_size, 10, 2 );
+
+		$distinct_values_1 = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+		$this->assertCount( 1, $distinct_values_1 );
+		$this->assertContains( 'bar', $distinct_values_1 );
+
+		$distinct_values_2 = $indexable->get_all_distinct_values( 'meta.new_meta_key_2.raw' );
+		$this->assertCount( 2, $distinct_values_2 );
+		$this->assertContains( 'lorem', $distinct_values_2 );
+		$this->assertContains( 'ipsum', $distinct_values_2 );
 	}
 }

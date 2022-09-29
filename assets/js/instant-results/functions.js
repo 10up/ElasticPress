@@ -1,14 +1,49 @@
 /**
  * Internal deendencies.
  */
-import { currencyCode } from './config';
+import { currencyCode, facets, locale } from './config';
+import { sanitizeArg, sanitizeParam } from './utilities';
+
+/**
+ * Clear facet filters from a set of args.
+ *
+ * @param {object} args Args to clear facets from.
+ * @returns {object} Cleared args.
+ */
+export const clearFacetsFromArgs = (args) => {
+	const clearedArgs = { ...args };
+
+	facets.forEach(({ name, type }) => {
+		switch (type) {
+			case 'price_range':
+				delete clearedArgs.max_price;
+				delete clearedArgs.min_price;
+				break;
+			default:
+				delete clearedArgs[name];
+				break;
+		}
+	});
+
+	return clearedArgs;
+};
+
+/**
+ * Format a date.
+ *
+ * @param {string} date Date string.
+ * @returns {string} Formatted number.
+ */
+export const formatDate = (date) => {
+	return new Date(date).toLocaleString(locale, { dateStyle: 'long' });
+};
 
 /**
  * Format a number as a price.
  *
  * @param {number} number  Number to format.
- * @param {Object} options Formatter options.
- * @return {string} Formatted number.
+ * @param {object} options Formatter options.
+ * @returns {string} Formatted number.
  */
 export const formatPrice = (number, options) => {
 	const format = new Intl.NumberFormat(navigator.language, {
@@ -25,7 +60,7 @@ export const formatPrice = (number, options) => {
  * Get the post types from a search form.
  *
  * @param {HTMLFormElement} form Form element.
- * @return {Array} Post types.
+ * @returns {Array} Post types.
  */
 export const getPostTypesFromForm = (form) => {
 	const data = new FormData(form);
@@ -42,41 +77,59 @@ export const getPostTypesFromForm = (form) => {
 };
 
 /**
- * Get query parameters for an API request from the state.
+ * Get permalink URL parameters from args.
  *
- * @param {Object} state State.
- * @return {URLSearchParams} URLSearchParams instance.
+ * @typedef {object} ArgSchema
+ * @property {string}    type            Arg type.
+ * @property {any}       [default]       Default arg value.
+ * @property {Array}     [allowedValues] Array of allowed values.
+ *
+ * @param    {object}    args            Args
+ * @param    {ArgSchema} schema          Args schema.
+ * @param    {string}    [prefix]        Prefix to prepend to args.
+ * @returns {URLSearchParams} URLSearchParams instance.
  */
-export const getURLParamsFromState = (state) => {
-	const { args, filters } = state;
+export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
+	const urlParams = new URLSearchParams();
 
-	const filterArgs = Object.entries(filters).reduce((filterArgs, [filter, value]) => {
-		switch (filter) {
-			case 'price_range':
-				if (value.length > 0) {
-					filterArgs.min_price = value[0];
-					filterArgs.max_price = value[1];
-				}
+	Object.entries(schema).forEach(([arg, options]) => {
+		const param = prefix + arg;
+		const value = typeof args[arg] !== 'undefined' ? sanitizeParam(args[arg], options) : null;
 
-				break;
-			case 'post_type':
-				if (value.length > 0) {
-					filterArgs[filter] = value.join(',');
-				}
+		if (value !== null) {
+			urlParams.set(param, value);
+		}
+	});
 
-				break;
-			default:
-				if (value.length > 0) {
-					filterArgs[`tax-${filter}`] = value.join(',');
-				}
+	return urlParams;
+};
 
-				break;
+/**
+ * Build request args from URL parameters using a given schema.
+ *
+ * @typedef {object} ArgSchema
+ * @property {string}                     type            Arg type.
+ * @property {any}                        [default]       Default arg value.
+ * @property {Array}                      [allowedValues] Array of allowed values.
+ *
+ * @param    {URLSearchParams}            urlParams       URL parameters.
+ * @param    {object.<string, ArgSchema>} schema          Schema to build args from.
+ * @param    {string}                     [prefix]        Parameter prefix.
+ * @param    {boolean}                    [useDefaults]   Whether to populate params with default values.
+ * @returns {object.<string, any>} Query args.
+ */
+export const getArgsFromUrlParams = (urlParams, schema, prefix = '', useDefaults = true) => {
+	const args = Object.entries(schema).reduce((args, [arg, options]) => {
+		const param = urlParams.get(prefix + arg);
+		const value =
+			typeof param !== 'undefined' ? sanitizeArg(param, options, useDefaults) : null;
+
+		if (value !== null) {
+			args[arg] = value;
 		}
 
-		return filterArgs;
+		return args;
 	}, {});
 
-	const init = { ...args, ...filterArgs };
-
-	return new URLSearchParams(init);
+	return args;
 };

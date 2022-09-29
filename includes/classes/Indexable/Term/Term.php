@@ -221,6 +221,12 @@ class Term extends Indexable {
 		 * Support `slug` query var
 		 */
 		if ( ! empty( $query_vars['slug'] ) ) {
+			if ( ! is_array( $query_vars['slug'] ) ) {
+				$query_vars['slug'] = array( $query_vars['slug'] );
+			}
+
+			$query_vars['slug'] = array_map( 'sanitize_title', $query_vars['slug'] );
+
 			$filter['bool']['must'][] = [
 				'terms' => [
 					'slug.raw' => (array) $query_vars['slug'],
@@ -354,75 +360,8 @@ class Term extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_term_search_fields', $prepared_search_fields, $query_vars );
 
-			$query = [
-				'bool' => [
-					'should' => [
-						[
-							'multi_match' => [
-								'query'  => $search,
-								'type'   => 'phrase',
-								'fields' => $prepared_search_fields,
-								/**
-								 * Filter term match phrase boost amount
-								 *
-								 * @hook ep_term_match_phrase_boost
-								 * @param  {int} $boos Boost amount for match phrase
-								 * @param  {array} $query_vars Query variables
-								 * @since  3.4
-								 * @return {int} New boost amount
-								 */
-								'boost'  => apply_filters( 'ep_term_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
-							],
-						],
-						[
-							'multi_match' => [
-								'query'     => $search,
-								'fields'    => $prepared_search_fields,
-								/**
-								 * Filter term match boost amount
-								 *
-								 * @hook ep_term_match_boost
-								 * @param  {int} $boost Boost amount for match
-								 * @param  {array} $query_vars Query variables
-								 * @since  3.4
-								 * @return {int} New boost amount
-								 */
-								'boost'     => apply_filters( 'ep_term_match_boost', 2, $prepared_search_fields, $query_vars ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							],
-						],
-						[
-							'multi_match' => [
-								'fields'    => $prepared_search_fields,
-								'query'     => $search,
-								/**
-								 * Filter term fuzziness amount
-								 *
-								 * @hook ep_term_fuzziness_arg
-								 * @param  {int} $fuzziness Amount of fuziness to factor into search
-								 * @param  {array} $query_vars Query variables
-								 * @since  3.4
-								 * @return {int} New boost amount
-								 */
-								'fuzziness' => apply_filters( 'ep_term_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
-							],
-						],
-					],
-				],
-			];
-
-			/**
-			 * Filter Elasticsearch query used for Terms indexable
-			 *
-			 * @hook ep_term_formatted_args_query
-			 * @param  {array} $query Elasticsearch query
-			 * @param  {array} $query_vars Query variables
-			 * @since  3.4
-			 * @return {array} New query
-			 */
-			$formatted_args['query'] = apply_filters( 'ep_term_formatted_args_query', $query, $query_vars );
-
+			$search_algorithm        = $this->get_search_algorithm( $search, $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'term', $search, $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
@@ -478,7 +417,7 @@ class Term extends Indexable {
 				'key' => $query_vars['meta_key'],
 			];
 
-			if ( isset( $query_vars['meta_value'] ) ) {
+			if ( isset( $query_vars['meta_value'] ) && '' !== $query_vars['meta_value'] ) {
 				$meta_query_array['value'] = $query_vars['meta_value'];
 			}
 
@@ -620,18 +559,6 @@ class Term extends Indexable {
 		$mapping = apply_filters( 'ep_term_mapping', $mapping );
 
 		return $mapping;
-	}
-
-	/**
-	 * Put mapping for terms
-	 *
-	 * @since  3.1
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->generate_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
 	}
 
 	/**
@@ -1020,10 +947,6 @@ class Term extends Indexable {
 					$es_field_name = 'meta.' . $args['meta_key'] . '.long';
 				}
 
-				break;
-
-			case 'description':
-				$es_field_name = 'description.sortable';
 				break;
 
 			case 'parent':

@@ -36,6 +36,11 @@ class SearchOrdering extends Feature {
 	const TAXONOMY_NAME = 'ep_custom_result';
 
 	/**
+	 * Capability required to manage.
+	 */
+	const CAPABILITY = 'manage_options';
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -45,8 +50,11 @@ class SearchOrdering extends Feature {
 
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
+		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [];
 
 		parent::__construct();
 	}
@@ -178,15 +186,6 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Output feature box summary
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Insert specific posts into search results for specific search queries.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Output feature box long
 	 */
 	public function output_feature_box_long() {
@@ -216,7 +215,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			'manage_options',
+			self::CAPABILITY,
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -386,17 +385,21 @@ class SearchOrdering extends Feature {
 				'post_type' => 'any',
 				'post__in'  => $post_ids,
 				'count'     => count( $post_ids ),
+				'orderby'   => 'post__in',
 			]
 		);
 
-		$final_posts = [];
+		$final_posts       = [];
+		$filtered_pointers = [];
 
 		foreach ( $query->posts as $post ) {
 			$final_posts[ $post->ID ] = $post;
+			// Add the post to filtered array. By doing this, we removed the posts that don't exist anymore.
+			$filtered_pointers[] = $pointers[ array_search( $post->ID, $post_ids, true ) ];
 		}
 
 		return [
-			'pointers' => $pointers,
+			'pointers' => $filtered_pointers,
 			'posts'    => $final_posts,
 		];
 	}
@@ -691,7 +694,9 @@ class SearchOrdering extends Feature {
 			[
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_search' ],
-				'permission_callback' => '__return_true',
+				'permission_callback' => function() {
+					return current_user_can( self::CAPABILITY );
+				},
 				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {
@@ -709,7 +714,9 @@ class SearchOrdering extends Feature {
 			[
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_preview' ],
-				'permission_callback' => '__return_true',
+				'permission_callback' => function() {
+					return current_user_can( self::CAPABILITY );
+				},
 				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {

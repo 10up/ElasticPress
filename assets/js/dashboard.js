@@ -1,60 +1,49 @@
-/* eslint-disable camelcase, no-use-before-define */
+/**
+ * Internal dependencies.
+ */
+import Tooltip from '@10up/component-tooltip';
+
+/**
+ * WordPress dependencies.
+ */
 import { __ } from '@wordpress/i18n';
-import jQuery from 'jquery';
 
-const { ajaxurl, epDash } = window;
+/**
+ * Window dependencies.
+ */
+const {
+	ajaxurl,
+	epDash: { skipUrl, syncUrl },
+} = window;
 
-const $features = jQuery(document.getElementsByClassName('ep-features'));
-const $epCredentialsTab = jQuery(document.getElementsByClassName('ep-credentials-tab'));
-const $epCredentialsHostLabel = jQuery('.ep-host-row label');
-const $epCredentialsHostLegend = jQuery(document.getElementsByClassName('ep-host-legend'));
-const $epCredentialsAdditionalFields = jQuery(
-	document.getElementsByClassName('ep-additional-fields'),
-);
-const epHostField = document.getElementById('ep_host');
-const epHost = epHostField ? epHostField.value : null;
-let epHostNewValue = '';
+/**
+ * Determine whether a Feature's new settings will require a reindex.
+ *
+ * @param {FormData} data Form data.
+ * @returns {boolean} Whether a reindex will need to occur when saved.
+ */
+const willChangeTriggerReindex = (data) => {
+	return (
+		data.get('requires_reindex') === '1' &&
+		data.get('was_active') === '0' &&
+		data.get('settings[active]') === '1'
+	);
+};
 
-$features.on('click', '.learn-more, .collapse', function () {
-	jQuery(this).parents('.ep-feature').toggleClass('show-full');
-});
-
-$features.on('click', '.settings-button', function () {
-	jQuery(this).parents('.ep-feature').toggleClass('show-settings');
-});
-
-$features.on('click', '.save-settings', function (event) {
+/**
+ * Handle Feature settings being submitted.
+ *
+ * @param {Event} event Submit event.
+ */
+const onSubmit = async (event) => {
 	event.preventDefault();
 
-	if (jQuery(this).hasClass('disabled')) {
-		return;
-	}
-
-	const { feature, requiresReindex, wasActive } = event.target.dataset;
-	const $feature = $features.find(`.ep-feature-${feature}`);
-	const settings = {};
-	const $settings = $feature.find('.setting-field');
-
-	$settings.each(function () {
-		const $this = jQuery(this);
-		const type = $this.attr('type');
-		const name = $this.attr('data-field-name');
-		const value = $this.val();
-
-		if (type === 'radio') {
-			if ($this.is(':checked')) {
-				settings[name] = value;
-			}
-		} else {
-			settings[name] = value;
-		}
-	});
-
-	const requiresConfirmation =
-		requiresReindex === '1' && wasActive === '0' && settings.active === '1';
+	const form = event.target;
+	const data = new FormData(form);
+	const requiresConfirmation = willChangeTriggerReindex(data);
 
 	if (requiresConfirmation) {
-		// eslint-disable-next-line no-alert
+		/* eslint-disable no-alert */
 		const isConfirmed = window.confirm(
 			__(
 				'Enabling this feature will begin re-indexing your content. Do you wish to proceed?',
@@ -67,115 +56,144 @@ $features.on('click', '.save-settings', function (event) {
 		}
 	}
 
-	$feature.addClass('saving');
+	const feature = form.closest('.ep-feature');
+	const syncingNotice = feature.querySelector('.requirements-status-notice--syncing');
 
-	jQuery
-		.ajax({
-			method: 'post',
-			url: ajaxurl,
-			data: {
-				action: 'ep_save_feature',
-				feature,
-				nonce: epDash.nonce,
-				settings,
-			},
-		})
-		.done((response) => {
-			setTimeout(() => {
-				$feature.removeClass('saving');
+	feature.classList.add('saving');
+	form.submit.disabled = true;
+	syncingNotice.style.display = null;
 
-				if (settings.active === '1') {
-					$feature.addClass('feature-active');
-				} else {
-					$feature.removeClass('feature-active');
+	const request = await fetch(ajaxurl, { method: 'POST', body: data });
+	const response = await request.json();
+
+	if (response.success === false) {
+		const { data = [] } = response;
+
+		if (data) {
+			for (const { code = '' } of data) {
+				if (code === 'is_indexing') {
+					syncingNotice.style.display = 'block';
 				}
+			}
+		}
 
-				event.target.dataset.wasActive = settings.active;
-				event.target
-					.closest('.settings')
-					.querySelector('.js-toggle-feature').dataset.wasActive = settings.active;
+		form.submit.disabled = false;
+		feature.classList.remove('saving');
+		return;
+	}
 
-				if (response.data.reindex) {
-					window.location = epDash.sync_url;
+	feature.classList.toggle('feature-active', response.data.active);
 
-					/*
-					syncStatus = 'initialsync';
+	if (response.data.reindex) {
+		window.location = syncUrl;
+	} else {
+		feature.classList.remove('saving');
+		form.submit.disabled = false;
+		form.was_active.value = response.data.active ? '1' : '0';
+	}
+};
 
-					updateSyncDash();
+/**
+ * Handle a Feature being set to be turned on or off.
+ *
+ * @param {Event} event Change event.
+ */
+const onToggle = (event) => {
+	const { form } = event.target;
+	const data = new FormData(form);
 
-					// On initial sync, remove dashboard warnings that dont make sense
-					jQuery(
-						'[data-ep-notice="no-sync"], [data-ep-notice="auto-activate-sync"], [data-ep-notice="upgrade-sync"]',
-					).remove();
+	const notice = form.querySelector('.requirements-status-notice--reindex');
+	const requiresConfirmation = willChangeTriggerReindex(data);
 
-					syncStatus = 'sync';
+	if (notice) {
+		notice.style.display = requiresConfirmation ? 'block' : null;
+	}
+};
 
-					$feature.addClass('feature-syncing');
+/**
+ * Handle click events within a Feature.
+ *
+ * @param {Event} event Click event.
+ */
+const onClick = (event) => {
+	const { target } = event;
 
-					featureSync = feature;
+	/**
+	 * Handle toggling settings.
+	 */
+	if (target.classList.contains('settings-button')) {
+		const feature = target.closest('.ep-feature');
 
-					sync();
-					*/
-				}
-			}, 700);
-		})
-		.error(() => {
-			setTimeout(() => {
-				$feature.removeClass('saving');
-				$feature.removeClass('feature-active');
-				$feature.removeClass('feature-syncing');
-			}, 700);
-		});
-});
+		feature.classList.toggle('show-settings');
+		target.setAttribute('aria-expanded', feature.classList.contains('show-settings'));
+	}
 
-if (epHostField) {
-	epHostField.addEventListener('input', (e) => {
-		epHostNewValue = e.target.value;
-	});
+	/**
+	 * Handle toggling description.
+	 */
+	if (target.classList.contains('learn-more') || target.classList.contains('collapse')) {
+		target.closest('.ep-feature').classList.toggle('show-full');
+	}
+};
+
+/**
+ * Handle setup form submission.
+ *
+ * Asks for confirmation if the user doesn't select any features to activate.
+ * If the user wants to continue then skip installation.
+ *
+ * @param {Event} event Submit event.
+ * @returns {void}
+ */
+const onSubmitSetup = (event) => {
+	const features = new FormData(event.target).getAll('features[]');
+
+	/**
+	 * If any features are selected continue as normal...
+	 */
+	if (features.length > 0) {
+		return;
+	}
+
+	/**
+	 * ...otherwise stop submission and ask for confirmation.
+	 */
+	event.preventDefault();
+
+	const confirm = window.confirm(
+		__(
+			'It looks like you’re trying to use ElasticPress’s advanced features only. If you’d like to activate basic search, please select Cancel and activate the Post Search Feature. Otherwise, please click Ok to configure advanced features.',
+			'elasticpress',
+		),
+	);
+
+	/**
+	 * If the user wants to proceed, skip installation.
+	 */
+	if (confirm) {
+		window.location = skipUrl;
+	}
+};
+
+/**
+ * Bind events.
+ */
+const featuresEl = document.querySelector('.ep-features');
+
+if (featuresEl) {
+	featuresEl.addEventListener('change', onToggle);
+	featuresEl.addEventListener('submit', onSubmit);
+	featuresEl.addEventListener('click', onClick);
 }
 
-$epCredentialsTab.on('click', (e) => {
-	const epio = e.currentTarget.getAttribute('data-epio') !== null;
-	const $target = jQuery(e.currentTarget);
-	const initial = $target.hasClass('initial');
+const submitEl = document.querySelector('button.setup-button');
 
-	e.preventDefault();
+if (submitEl) {
+	submitEl.form.addEventListener('submit', onSubmitSetup);
+}
 
-	if (initial && !epHostField.disabled) {
-		epHostField.value = epHost;
-	} else {
-		epHostField.value = epHostNewValue;
-	}
-
-	$epCredentialsTab.removeClass('nav-tab-active');
-	$target.addClass('nav-tab-active');
-
-	if (epio) {
-		$epCredentialsHostLabel.text('ElasticPress.io Host URL');
-		$epCredentialsHostLegend.text('Plug in your ElasticPress.io server here!');
-		$epCredentialsAdditionalFields.show();
-		$epCredentialsAdditionalFields.attr('aria-hidden', 'false');
-	} else {
-		$epCredentialsHostLabel.text('Elasticsearch Host URL');
-		$epCredentialsHostLegend.text('Plug in your Elasticsearch server here!');
-		$epCredentialsAdditionalFields.hide();
-		$epCredentialsAdditionalFields.attr('aria-hidden', 'true');
-	}
-});
-
-$features.on('change', '.js-toggle-feature', function (event) {
-	const container = event.currentTarget
-		.closest('.settings')
-		.querySelector('.requirements-status-notice--reindex');
-
-	if (!container) return;
-
-	const { value } = event.target;
-	const { requiresReindex, wasActive } = event.currentTarget.dataset;
-
-	if (requiresReindex === '1' && wasActive === '0' && value === '1') {
-		container.style.display = 'block';
-	} else {
-		container.style.display = null;
-	}
-});
+/**
+ * Tooltips.
+ */
+// eslint-disable-next-line no-new
+new Tooltip('.a11y-tip');

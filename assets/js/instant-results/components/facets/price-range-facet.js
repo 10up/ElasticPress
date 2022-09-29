@@ -16,20 +16,22 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Price range facet.
  *
- * @param {Object}  props               Props.
+ * @param {object}  props               Props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
  * @param {string}  props.label         Facet label.
- * @return {WPElement} Component element.
+ * @returns {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label }) => {
 	const {
 		state: {
+			aggregations: {
+				price_range: {
+					max_price: { value: maxAgg = null } = {},
+					min_price: { value: minAgg = null } = {},
+				} = {},
+			},
+			args: { max_price: maxArg = null, min_price: minArg = null },
 			isLoading,
-			priceRangeAggregations: {
-				max_price: { value: maxAgg = null } = {},
-				min_price: { value: minAgg = null } = {},
-			} = {},
-			filters: { price_range: [minArg = null, maxArg = null] = [] },
 		},
 		dispatch,
 	} = useContext(Context);
@@ -70,7 +72,9 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {number[]} values Lowest and highest values.
 	 */
 	const onAfterChange = (values) => {
-		dispatch({ type: 'APPLY_FILTER', payload: { price_range: values } });
+		const [min_price, max_price] = values;
+
+		dispatch({ type: 'APPLY_ARGS', payload: { min_price, max_price } });
 	};
 
 	/**
@@ -87,7 +91,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * Handle clearing the filter.
 	 */
 	const onClear = () => {
-		dispatch({ type: 'APPLY_FILTER', payload: { price_range: [] } });
+		dispatch({ type: 'APPLY_ARGS', payload: { max_price: null, min_price: null } });
 	};
 
 	/**

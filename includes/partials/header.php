@@ -30,13 +30,15 @@ $is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC && ! $is_sync_page ) : ?>
 			<a
 				class="dashicons start-sync dashicons-update"
-				title="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>"
-				aria-label="<?php esc_attr_e( 'Start Sync', 'elasticpress' ); ?>"
+				title="<?php esc_attr_e( 'Sync Page', 'elasticpress' ); ?>"
+				aria-label="<?php esc_attr_e( 'Sync Page', 'elasticpress' ); ?>"
 				<?php echo ( $is_sync_page ) ? '' : 'href="' . esc_url( $base_url . 'elasticpress-sync' ) . '"'; ?>
 			></a>
 		<?php endif; ?>
-		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic" title="<?php esc_attr_e( 'Settings', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Settings', 'elasticpress' ); ?>"></a>
+		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic" title="<?php esc_attr_e( 'Settings Page', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Settings Page', 'elasticpress' ); ?>"></a>
 	</div>
 
 	<div class="progress-bar"></div>
 </div>
+
+<hr id="ep-wp-header-end" class="wp-header-end">

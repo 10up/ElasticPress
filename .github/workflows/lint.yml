@@ -3,14 +3,14 @@ name: Linting
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "14"
+  NODE_VERSION: "16"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
   push:
     branches:
       - develop
-      - master
+      - trunk
   pull_request:
     branches:
       - develop
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set standard 10up cache directories
       run: |
@@ -37,12 +37,12 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ env.NODE_VERSION }}
 
-    - name: npm install
-      run: npm install
+    - name: npm ci
+      run: npm ci
 
     - name: es lint
       run: npm run lint-js
@@ -56,7 +56,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set standard 10up cache directories
       run: |
@@ -73,12 +73,14 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.2'
+        php-version: '7.4'
         coverage: none
-        tools: composer:v1
 
     - name: composer install
       run: composer install
 
     - name: PHPCS check
-      run: composer run lint
+      uses: chekalsky/phpcs-action@v1
+      with:
+        enable_warnings: true
+        phpcs_bin_path: './vendor/bin/phpcs elasticpress.php includes --runtime-set testVersion 7.0-'

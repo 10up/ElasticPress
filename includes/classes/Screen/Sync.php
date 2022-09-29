@@ -8,11 +8,9 @@
 
 namespace ElasticPress\Screen;
 
-use ElasticPress\Features as Features;
-use ElasticPress\Screen as Screen;
-use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\IndexHelper;
+use ElasticPress\Screen;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -29,8 +27,8 @@ class Sync {
 	 * Initialize class
 	 */
 	public function setup() {
-		add_action( 'wp_ajax_ep_cli_index', [ $this, 'action_wp_ajax_ep_cli_index' ] );
 		add_action( 'wp_ajax_ep_index', [ $this, 'action_wp_ajax_ep_index' ] );
+		add_action( 'wp_ajax_ep_index_status', [ $this, 'action_wp_ajax_ep_index_status' ] );
 		add_action( 'wp_ajax_ep_cancel_index', [ $this, 'action_wp_ajax_ep_cancel_index' ] );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
@@ -41,9 +39,9 @@ class Sync {
 	 *
 	 * @since  3.6.0
 	 */
-	public function action_wp_ajax_ep_cli_index() {
+	public function action_wp_ajax_ep_index_status() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
-			wp_send_json_error();
+			wp_send_json_error( null, 403 );
 			exit;
 		}
 
@@ -67,6 +65,7 @@ class Sync {
 		wp_send_json_success(
 			[
 				'is_finished' => true,
+				'totals'      => Utils\get_option( 'ep_last_index' ),
 			]
 		);
 	}
@@ -78,23 +77,24 @@ class Sync {
 	 */
 	public function action_wp_ajax_ep_index() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
-			wp_send_json_error();
+			wp_send_json_error( null, 403 );
 			exit;
 		}
 
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
-			wp_send_json_success( $index_meta );
+			$this->action_wp_ajax_ep_index_status();
 			exit;
 		}
 
-		\ElasticPress\IndexHelper::factory()->full_index(
+		IndexHelper::factory()->full_index(
 			[
 				'method'        => 'dashboard',
 				'put_mapping'   => ! empty( $_REQUEST['put_mapping'] ),
 				'output_method' => [ $this, 'index_output' ],
 				'show_errors'   => true,
+				'network_wide'  => 0,
 			]
 		);
 	}
@@ -106,7 +106,7 @@ class Sync {
 	 */
 	public function action_wp_ajax_ep_cancel_index() {
 		if ( ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) || ! EP_DASHBOARD_SYNC ) {
-			wp_send_json_error();
+			wp_send_json_error( null, 403 );
 			exit;
 		}
 
@@ -133,6 +133,7 @@ class Sync {
 		if ( 'sync' !== Screen::factory()->get_current_screen() ) {
 			return;
 		}
+
 		wp_enqueue_script(
 			'ep_sync_scripts',
 			EP_URL . 'dist/js/sync-script.min.js',
@@ -140,6 +141,9 @@ class Sync {
 			Utils\get_asset_info( 'sync-script', 'version' ),
 			true
 		);
+
+		wp_enqueue_style( 'wp-components' );
+		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_sync_style',
@@ -167,10 +171,11 @@ class Sync {
 			$data['index_meta'] = $index_meta;
 		}
 
-		$ep_last_index = Utils\get_option( 'ep_last_index' );
+		$ep_last_index = IndexHelper::factory()->get_last_index();
 
 		if ( ! empty( $ep_last_index ) ) {
-			$data['ep_last_sync_date'] = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
+			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
+			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) ? true : false;
 		}
 
 		/**

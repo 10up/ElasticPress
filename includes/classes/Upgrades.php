@@ -47,6 +47,7 @@ class Upgrades {
 			'3.5.2' => [ 'upgrade_3_5_2', 'init' ],
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
+			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -66,6 +67,8 @@ class Upgrades {
 		} else {
 			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 		}
+
+		add_filter( 'ep_admin_notices', [ $this, 'resync_notice_4_0_0_instant_results' ] );
 	}
 
 	/**
@@ -167,6 +170,79 @@ class Upgrades {
 	}
 
 	/**
+	 * Upgrade routine of v4.2.2.
+	 *
+	 * Delete the transient with ES info, so EP is forced to fetch it again,
+	 * determining the correct software type (elasticsearch or opensearch, for example)
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2882
+	 */
+	public function upgrade_4_2_2() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( 'ep_es_info' );
+		} else {
+			delete_transient( 'ep_es_info' );
+		}
+	}
+
+	/**
+	 * Adjust the upgrade sync notice to warn users about Instant Results.
+	 *
+	 * As 4.0.0 introduces this new feature and it requires a resync, admin users
+	 * might want to enable the feature before the resync (and then resync only once.)
+	 *
+	 * @since 4.0.0
+	 * @param array $notices All admin notices
+	 * @return array
+	 */
+	public function resync_notice_4_0_0_instant_results( $notices ) {
+		if ( ! isset( $notices['upgrade_sync'] ) ) {
+			return $notices;
+		}
+
+		$instant_results = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+		if ( $instant_results->is_active() ) {
+			return $notices;
+		}
+
+		$feature_status   = $instant_results->requirements_status();
+		$appended_message = '';
+		if ( 1 >= $feature_status->code ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$features_url = admin_url( 'network/admin.php?page=elasticpress' );
+			} else {
+				$features_url = admin_url( 'admin.php?page=elasticpress' );
+			}
+
+			$appended_message = wp_kses_post(
+				sprintf(
+					/* translators: 1: <a> tag (Zendesk article); 2. </a>; 3: <a> tag (link to Features screen); 4. </a>; */
+					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click %3$shere%4$s to activate the feature and start your sync.', 'elasticpress' ),
+					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">',
+					'</a>',
+					'<a href="' . $features_url . '">',
+					'</a>'
+				)
+			);
+		} else {
+			$appended_message = wp_kses_post(
+				sprintf(
+					/* translators: 1: <a> tag (Zendesk article about Instant Results); 2. </a>; 3: <a> tag (Zendesk article about self hosted Elasticsearch setups); 4. </a>; */
+					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to %3$sinstall and configure a PHP proxy%4$s.', 'elasticpress' ),
+					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">',
+					'</a>',
+					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/4413938931853-Considerations-for-self-hosted-Elasticsearch-setups">',
+					'</a>'
+				)
+			);
+		}
+
+		$notices['upgrade_sync']['html'] .= '<br><br>' . $appended_message;
+
+		return $notices;
+	}
+
+	/**
 	 * Check if a reindex is needed based on the version number.
 	 */
 	public function check_reindex_needed() {
@@ -204,6 +280,7 @@ class Upgrades {
 				'3.6.0',
 				'3.6.1',
 				'4.0.0-beta.1',
+				'4.0.0',
 			)
 		);
 

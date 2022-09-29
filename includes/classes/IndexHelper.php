@@ -65,6 +65,9 @@ class IndexHelper {
 	 * @param array $args Arguments.
 	 */
 	public function full_index( $args ) {
+		register_shutdown_function( [ $this, 'handle_index_error' ] );
+		add_filter( 'wp_php_error_message', [ $this, 'wp_handle_index_error' ], 10, 2 );
+
 		$this->index_meta = Utils\get_indexing_status();
 		$this->args       = $args;
 
@@ -96,16 +99,29 @@ class IndexHelper {
 
 		$start_date_time = date_create( 'now', wp_timezone() );
 
+		/**
+		 * There are two ways to control pagination of things that need to be indexed:
+		 * - offset:   The number of items to skip on each iteration
+		 * - id range: Given an ID range, process a batch and set the upper limit as the last processed ID -1
+		 *
+		 * Although in the first case offset is updated to really control the flow, in the
+		 * second it is updated to simply output the number of items processed.
+		 */
+		$pagination_method = ( ! empty( $this->args['offset'] ) || ! empty( $this->args['post-ids'] ) || ! empty( $this->args['include'] ) ) ?
+			'offset' :
+			'id_range';
+
 		$this->index_meta = [
-			'method'          => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
-			'put_mapping'     => ! empty( $this->args['put_mapping'] ),
-			'offset'          => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
-			'start'           => true,
-			'sync_stack'      => [],
-			'network_alias'   => [],
-			'start_time'      => microtime( true ),
-			'start_date_time' => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
-			'totals'          => [
+			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
+			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
+			'offset'            => ! empty( $this->args['offset'] ) ? absint( $this->args['offset'] ) : 0,
+			'pagination_method' => $pagination_method,
+			'start'             => true,
+			'sync_stack'        => [],
+			'network_alias'     => [],
+			'start_time'        => microtime( true ),
+			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
+			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
 				'skipped'    => 0,
@@ -118,8 +134,10 @@ class IndexHelper {
 		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true ) );
 		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true ) );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			if ( empty( $this->args['network_wide'] ) || ! is_numeric( $this->args['network_wide'] ) ) {
+		$is_network_wide = isset( $this->args['network_wide'] ) && ! is_null( $this->args['network_wide'] );
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && $is_network_wide ) {
+			if ( ! is_numeric( $this->args['network_wide'] ) ) {
 				$this->args['network_wide'] = 0;
 			}
 
@@ -272,7 +290,7 @@ class IndexHelper {
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name, 2: Site ID */
-						esc_html__( 'Indexing %1$s on site %2$d...', 'elasticpress' ),
+						esc_html__( 'Indexing %1$s on site %2$d…', 'elasticpress' ),
 						esc_html( strtolower( $indexable->labels['plural'] ) ),
 						$this->index_meta['current_sync_item']['blog_id']
 					)
@@ -280,9 +298,9 @@ class IndexHelper {
 			} else {
 				$message_string = ( $indexable->global ) ?
 					/* translators: 1: Indexable name */
-					esc_html__( 'Indexing %1$s (globally)...', 'elasticpress' ) :
+					esc_html__( 'Indexing %1$s (globally)…', 'elasticpress' ) :
 					/* translators: 1: Indexable name */
-					esc_html__( 'Indexing %1$s...', 'elasticpress' );
+					esc_html__( 'Indexing %1$s…', 'elasticpress' );
 
 				$this->output_success(
 					sprintf(
@@ -382,9 +400,28 @@ class IndexHelper {
 
 		$this->current_query = $this->get_objects_to_index();
 
-		$this->index_meta['found_items'] = (int) $this->current_query['total_objects'];
-
+		$this->index_meta['from']                       = $this->index_meta['offset'];
+		$this->index_meta['found_items']                = (int) $this->current_query['total_objects'];
 		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
+
+		if ( 'offset' === $this->index_meta['pagination_method'] ) {
+			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+
+			if ( empty( $this->index_meta['current_sync_item']['shown_skip_message'] ) ) {
+				$this->index_meta['current_sync_item']['shown_skip_message'] = true;
+
+				$this->output(
+					sprintf(
+						/* translators: 1. Number of objects skipped 2. Indexable type */
+						esc_html__( 'Skipping %1$d %2$s…', 'elasticpress' ),
+						$this->index_meta['from'],
+						esc_html( strtolower( $indexable->labels['plural'] ) )
+					),
+					'info',
+					'index_objects'
+				);
+			}
+		}
 
 		if ( $this->index_meta['found_items'] && $this->index_meta['offset'] < $this->index_meta['found_items'] ) {
 			$this->index_next_batch();
@@ -448,21 +485,24 @@ class IndexHelper {
 
 		$args = [
 			'per_page' => absint( $per_page ),
-			'offset'   => $this->index_meta['offset'],
 		];
+
+		if ( ! $indexable->support_indexing_advanced_pagination || 'offset' === $this->index_meta['pagination_method'] ) {
+			$args['offset'] = $this->index_meta['offset'];
+		}
 
 		if ( ! empty( $this->args['post-ids'] ) ) {
 			$args['include'] = $this->args['post-ids'];
 		}
 
 		if ( ! empty( $this->args['include'] ) ) {
-			$include          = explode( ',', str_replace( ' ', '', $this->args['include'] ) );
+			$include          = ( is_array( $this->args['include'] ) ) ? $this->args['include'] : explode( ',', str_replace( ' ', '', $this->args['include'] ) );
 			$args['include']  = array_map( 'absint', $include );
 			$args['per_page'] = count( $args['include'] );
 		}
 
 		if ( ! empty( $this->args['post_type'] ) ) {
-			$args['post_type'] = explode( ',', $this->args['post_type'] );
+			$args['post_type'] = ( is_array( $this->args['post_type'] ) ) ? $this->args['post_type'] : explode( ',', $this->args['post_type'] );
 			$args['post_type'] = array_map( 'trim', $args['post_type'] );
 		}
 
@@ -475,8 +515,7 @@ class IndexHelper {
 			$args['ep_indexing_lower_limit_object_id'] = $this->args['lower_limit_object_id'];
 		}
 
-		if ( ! empty( $args['ep_indexing_advanced_pagination'] ) &&
-			! empty( $this->index_meta['current_sync_item']['last_processed_object_id'] ) &&
+		if ( ! empty( $this->index_meta['current_sync_item']['last_processed_object_id'] ) &&
 			is_numeric( $this->index_meta['current_sync_item']['last_processed_object_id'] )
 		) {
 			$args['ep_indexing_last_processed_object_id'] = $this->index_meta['current_sync_item']['last_processed_object_id'];
@@ -564,6 +603,8 @@ class IndexHelper {
 				 */
 				do_action( 'ep_index_batch_new_attempt', $attempts, $total_attempts );
 
+				$should_retry = false;
+
 				if ( $nobulk ) {
 					$object_id = reset( $queued_items_ids );
 					$return    = $indexable->index( $object_id, true );
@@ -600,35 +641,50 @@ class IndexHelper {
 							$failed_objects[ $object->ID ] = null;
 						}
 					}
+
+					if ( is_wp_error( $return ) ) {
+						$should_retry = true;
+					}
 				} else {
-					$return = $indexable->bulk_index( $queued_items_ids );
+					if ( ! empty( $this->args['static_bulk'] ) ) {
+						$bulk_requests = [ $indexable->bulk_index( $queued_items_ids ) ];
+					} else {
+						$bulk_requests = $indexable->bulk_index_dynamically( $queued_items_ids );
+					}
 
-					/**
-					 * Fires after bulk indexing
-					 *
-					 * @hook ep_cli_{indexable_slug}_bulk_index
-					 * @param  {array} $objects Objects being indexed
-					 * @param  {array} response Elasticsearch bulk index response
-					 */
-					do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
+					$failed_objects = [];
+					foreach ( $bulk_requests as $return ) {
+						/**
+						 * Fires after bulk indexing
+						 *
+						 * @hook ep_cli_{indexable_slug}_bulk_index
+						 * @param  {array} $objects Objects being indexed
+						 * @param  {array} response Elasticsearch bulk index response
+						 */
+						do_action( "ep_cli_{$indexable->slug}_bulk_index", $queued_items, $return );
 
-					if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
-						$failed_objects = array_filter(
-							$return['items'],
-							function( $item ) {
-								return ! empty( $item['index']['error'] );
-							}
-						);
+						if ( is_wp_error( $return ) ) {
+							$should_retry = true;
+						}
+						if ( is_array( $return ) && isset( $return['errors'] ) && true === $return['errors'] ) {
+							$failed_objects = array_merge(
+								$failed_objects,
+								array_filter(
+									$return['items'],
+									function( $item ) {
+										return ! empty( $item['index']['error'] );
+									}
+								)
+							);
+						}
 					}
 				}
 
 				// Things worked, we don't need to try again.
-				if ( ! is_wp_error( $return ) && ! count( $failed_objects ) ) {
+				if ( ! $should_retry && ! count( $failed_objects ) ) {
 					break;
 				}
 			}
-
-			$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $queued_items_ids );
 
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
@@ -648,10 +704,14 @@ class IndexHelper {
 			}
 		}
 
+		$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $this->current_query['objects'] )->ID;
+
 		$this->output(
 			sprintf(
-				/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID */
-				esc_html__( 'Processed %1$d/%2$d. Last Object ID: %3$d', 'elasticpress' ),
+				/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
+				esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
+				esc_html( strtolower( $indexable->labels['plural'] ) ),
+				$this->index_meta['from'],
 				$this->index_meta['offset'],
 				$this->index_meta['found_items'],
 				$this->index_meta['current_sync_item']['last_processed_object_id']
@@ -659,6 +719,36 @@ class IndexHelper {
 			'info',
 			'index_next_batch'
 		);
+	}
+
+	/**
+	 * Update the sync info with the totals from the last sync item.
+	 *
+	 * @since 4.2.0
+	 */
+	protected function update_totals_from_current_sync_item() {
+		$current_sync_item = $this->index_meta['current_sync_item'];
+
+		$errors = array_merge(
+			$this->index_meta['totals']['errors'],
+			$current_sync_item['errors']
+		);
+
+		/**
+		 * Filter the number of errors of a sync that should be stored.
+		 *
+		 * @since  4.2.0
+		 * @hook ep_sync_number_of_errors_stored
+		 * @param  {int} $number Number of errors to be logged.
+		 * @return {int} New value
+		 */
+		$logged_errors = (int) apply_filters( 'ep_sync_number_of_errors_stored', 50 );
+
+		$this->index_meta['totals']['total']   += $current_sync_item['total'];
+		$this->index_meta['totals']['synced']  += $current_sync_item['synced'];
+		$this->index_meta['totals']['skipped'] += $current_sync_item['skipped'];
+		$this->index_meta['totals']['failed']  += $current_sync_item['failed'];
+		$this->index_meta['totals']['errors']   = array_slice( $errors, $logged_errors * -1 );
 	}
 
 	/**
@@ -670,22 +760,15 @@ class IndexHelper {
 	protected function index_cleanup() {
 		wp_reset_postdata();
 
+		$this->update_totals_from_current_sync_item();
+
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
-		$this->index_meta['totals']['total']   += $current_sync_item['total'];
-		$this->index_meta['totals']['synced']  += $current_sync_item['synced'];
-		$this->index_meta['totals']['skipped'] += $current_sync_item['skipped'];
-		$this->index_meta['totals']['failed']  += $current_sync_item['failed'];
-		$this->index_meta['totals']['errors']   = array_merge(
-			$this->index_meta['totals']['errors'],
-			$current_sync_item['errors']
-		);
+		$this->index_meta['current_sync_item'] = null;
 
 		if ( $current_sync_item['failed'] ) {
-			$this->index_meta['current_sync_item']['failed'] = 0;
-
 			if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$message = sprintf(
 					/* translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects */
@@ -706,8 +789,7 @@ class IndexHelper {
 			$this->output( $message, 'warning' );
 		}
 
-		$this->index_meta['offset']            = 0;
-		$this->index_meta['current_sync_item'] = null;
+		$this->index_meta['offset'] = 0;
 
 		if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$message = sprintf(
@@ -730,23 +812,36 @@ class IndexHelper {
 	}
 
 	/**
+	 * Update last sync info.
+	 *
+	 * @since 4.2.0
+	 */
+	protected function update_last_index() {
+		$start_time = $this->index_meta['start_time'];
+		$totals     = $this->index_meta['totals'];
+		$method     = $this->index_meta['method'];
+
+		$this->index_meta = null;
+
+		$end_date_time  = date_create( 'now', wp_timezone() );
+		$start_time_sec = (int) $start_time;
+
+		$totals['end_date_time']   = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
+		$totals['start_date_time'] = $start_time ? wp_date( DATE_ATOM, $start_time_sec ) : false;
+		$totals['end_time_gmt']    = time();
+		$totals['total_time']      = microtime( true ) - $start_time;
+		$totals['method']          = $method;
+		Utils\update_option( 'ep_last_cli_index', $totals, false );
+		Utils\update_option( 'ep_last_index', $totals, false );
+	}
+
+	/**
 	 * Make the necessary clean up after everything was sync'd.
 	 *
 	 * @since 4.0.0
 	 */
 	protected function full_index_complete() {
-		$start_time = $this->index_meta['start_time'];
-		$totals     = $this->index_meta['totals'];
-
-		$this->index_meta = null;
-
-		$end_date_time = date_create( 'now', wp_timezone() );
-
-		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
-		$totals['end_time_gmt']  = time();
-		$totals['total_time']    = microtime( true ) - $start_time;
-		Utils\update_option( 'ep_last_cli_index', $totals, false );
-		Utils\update_option( 'ep_last_index', $totals, false );
+		$this->update_last_index();
 
 		/**
 		 * Fires after executing a reindex
@@ -801,7 +896,7 @@ class IndexHelper {
 			$this->output_success(
 				sprintf(
 					/* translators: 1: Indexable name */
-					esc_html__( 'Network alias created for %1$s ...', 'elasticpress' ),
+					esc_html__( 'Network alias created for %1$s', 'elasticpress' ),
 					esc_html( strtolower( $indexable->labels['plural'] ) )
 				)
 			);
@@ -809,7 +904,7 @@ class IndexHelper {
 			$this->output_error(
 				sprintf(
 					/* translators: 1: Indexable name */
-					esc_html__( 'Network alias creation failed for %1$s ...', 'elasticpress' ),
+					esc_html__( 'Network alias creation failed for %1$s', 'elasticpress' ),
 					esc_html( strtolower( $indexable->labels['plural'] ) )
 				)
 			);
@@ -820,9 +915,9 @@ class IndexHelper {
 	 * Output a message.
 	 *
 	 * @since 4.0.0
-	 * @param string $message_text Message to be outputted
-	 * @param string $type         Type of message
-	 * @param string $context      Context of the output
+	 * @param string|array $message_text Message to be outputted
+	 * @param string       $type         Type of message
+	 * @param string       $context      Context of the output
 	 * @return void
 	 */
 	protected function output( $message_text, $type = 'info', $context = '' ) {
@@ -830,11 +925,11 @@ class IndexHelper {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
-			$totals = Utils\get_option( 'ep_last_index' );
+			$totals = $this->get_last_index();
 		}
 
 		$message = [
-			'message'    => $message_text,
+			'message'    => ( is_array( $message_text ) ) ? implode( "\n", $message_text ) : $message_text,
 			'index_meta' => $this->index_meta,
 			'totals'     => $totals ?? [],
 			'status'     => $type,
@@ -894,7 +989,7 @@ class IndexHelper {
 	 * @return boolean
 	 */
 	public function is_full_reindexing( $indexable_slug, $blog_id = null ) {
-		if ( empty( $this->index_meta ) ) {
+		if ( empty( $this->index_meta ) || empty( $this->index_meta['put_mapping'] ) ) {
 			/**
 			 * Filter if a fully reindex is being done to an indexable
 			 *
@@ -921,10 +1016,6 @@ class IndexHelper {
 				continue;
 			}
 
-			if ( empty( $sync_item['put_mapping'] ) ) {
-				break;
-			}
-
 			if (
 				( empty( $sync_item['blog_id'] ) && ! $blog_id ) ||
 				(int) $sync_item['blog_id'] === $blog_id
@@ -934,7 +1025,17 @@ class IndexHelper {
 		}
 
 		/* this filter is documented above */
-		apply_filters( "ep_is_full_reindexing_{$indexable_slug}", $is_full_reindexing );
+		return apply_filters( "ep_is_full_reindexing_{$indexable_slug}", $is_full_reindexing );
+	}
+
+	/**
+	 * Get the last index/sync meta information.
+	 *
+	 * @since 4.2.0
+	 * @return array
+	 */
+	public function get_last_index() {
+		return Utils\get_option( 'ep_last_index', [] );
 	}
 
 	/**
@@ -976,9 +1077,25 @@ class IndexHelper {
 	 * Resets some values to reduce memory footprint.
 	 */
 	protected function stop_the_insanity() {
-		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
+		global $wpdb, $wp_object_cache, $wp_actions;
 
 		$wpdb->queries = [];
+
+		/*
+		 * Runtime flushing was introduced in WordPress 6.0 and will flush only the
+		 * in-memory cache for persistent object caches
+		 */
+		if ( function_exists( 'wp_cache_flush_runtime' ) ) {
+			wp_cache_flush_runtime();
+		} else {
+			/*
+			 * In the case where we're not using an external object cache, we need to call flush on the default
+			 * WordPress object cache class to clear the values from the cache property
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
+				wp_cache_flush();
+			}
+		}
 
 		if ( is_object( $wp_object_cache ) ) {
 			$wp_object_cache->group_ops      = [];
@@ -996,14 +1113,6 @@ class IndexHelper {
 				// No need to catch.
 			}
 
-			/*
-			 * In the case where we're not using an external object cache, we need to call flush on the default
-			 * WordPress object cache class to clear the values from the cache property
-			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
-
 			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 				call_user_func( [ $wp_object_cache, '__remoteset' ] );
 			}
@@ -1017,6 +1126,14 @@ class IndexHelper {
 		// It's high memory consuming as WP_Query instance holds all query results inside itself
 		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
 		remove_filter( 'get_term_metadata', [ wp_metadata_lazyloader(), 'lazyload_term_meta' ] );
+
+		/**
+		 * Fires after reducing the memory footprint
+		 *
+		 * @since 4.3.0
+		 * @hook ep_stop_the_insanity
+		 */
+		do_action( 'ep_stop_the_insanity' );
 	}
 
 	/**
@@ -1036,6 +1153,70 @@ class IndexHelper {
 	 */
 	public function get_index_meta() {
 		return Utils\get_option( 'ep_index_meta', [] );
+	}
+
+	/**
+	 * Handle fatal errors during syncs.
+	 *
+	 * Added by register_shutdown_function. It will not be called if `WP_DISABLE_FATAL_ERROR_HANDLER` is false (default.)
+	 *
+	 * @since 4.2.0
+	 */
+	public function handle_index_error() {
+		$error = error_get_last();
+		if ( empty( $error['type'] ) || E_ERROR !== $error['type'] ) {
+			return;
+		}
+
+		$this->on_error_update_and_clean( $error );
+	}
+
+	/**
+	 * Handle fatal errors during syncs.
+	 *
+	 * Added via the `wp_php_error_message` filter. It will be called only if `WP_DISABLE_FATAL_ERROR_HANDLER` is false (default.)
+	 *
+	 * @since 4.2.0
+	 * @param bool  $message HTML error message to display.
+	 * @param array $error   Error information retrieved from error_get_last().
+	 * @return bool
+	 */
+	public function wp_handle_index_error( $message, $error ) {
+		$this->on_error_update_and_clean( $error );
+		return $message;
+	}
+
+	/**
+	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
+	 *
+	 * @since 4.2.0
+	 * @param array $error Error information retrieved from error_get_last().
+	 */
+	protected function on_error_update_and_clean( $error ) {
+		$this->update_totals_from_current_sync_item();
+
+		$totals = $this->index_meta['totals'];
+
+		$this->index_meta['totals']['errors'][] = $error['message'];
+		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
+		$this->update_last_index();
+
+		/**
+		 * Fires after a sync failed due to a PHP fatal error.
+		 *
+		 * @since 4.2.0
+		 * @hook ep_after_sync_error
+		 * @param {array} $error The error
+		 */
+		do_action( 'ep_after_sync_error', $error );
+
+		$this->output_error(
+			sprintf(
+				/* translators: Error message */
+				esc_html__( 'Index failed: %s', 'elasticpress' ),
+				$error['message']
+			)
+		);
 	}
 
 	/**
