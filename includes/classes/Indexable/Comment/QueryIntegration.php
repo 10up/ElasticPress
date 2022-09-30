@@ -133,7 +133,7 @@ class QueryIntegration {
 		}
 
 		if ( ! empty( $query->query_vars['site__not_in'] ) ) {
-			$site__not_in = ! is_array( $query->query_vars['site__not_in'] ) ? array( $query->query_vars['site__not_in'] ) : $query->query_vars['site__not_in'];
+			$site__not_in = (array) $query->query_vars['site__not_in'];
 		}
 
 		/**

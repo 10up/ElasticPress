@@ -293,7 +293,7 @@ class QueryIntegration {
 			}
 
 			if ( ! empty( $query_vars['site__not_in'] ) ) {
-				$site__not_in = ! is_array( $query_vars['site__not_in'] ) ? array( $query_vars['site__not_in'] ) : $query_vars['site__not_in'];
+				$site__not_in = (array) $query_vars['site__not_in'];
 			}
 
 			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars, $query );

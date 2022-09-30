@@ -1814,7 +1814,7 @@ class TestPostMultisite extends BaseTestCase {
 	}
 
 	/**
-	 * Test a simple post content search on a subset of network sites with depreciated `sites` parameter
+	 * Test a simple post content search on a subset of network sites with deprecated `sites` parameter
 	 *
 	 * @since 4.4.0
 	 * @expectedDeprecated get_es_posts
@@ -1856,7 +1856,7 @@ class TestPostMultisite extends BaseTestCase {
 	}
 
 	/**
-	 * Test a simple post content search with depreciated `sites` parameter
+	 * Test a simple post content search with deprecated `sites` parameter
 	 *
 	 * @since 4.4.0
 	 * @expectedDeprecated get_es_posts
@@ -1886,8 +1886,6 @@ class TestPostMultisite extends BaseTestCase {
 			's'     => 'findme',
 			'sites' => 'all',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
