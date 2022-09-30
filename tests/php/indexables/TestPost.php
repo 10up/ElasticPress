@@ -849,9 +849,9 @@ class TestPost extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
-			's'         => 'findme',
-			'tax_query' => array(
+		$args  = array(
+			'ep_integrate' => false,
+			'tax_query'    => array(
 				array(
 					'taxonomy' => 'post_tag',
 					'terms'    => array( $tag_id ),
@@ -860,10 +860,15 @@ class TestPost extends BaseTestCase {
 			),
 		);
 		$query = new \WP_Query( $args );
+		$this->assertNull( $query->elasticsearch_success );
+
+		$expected_result = wp_list_pluck( $query->posts, 'ID' );
+
+		$args['ep_integrate'] = true;
+		$query                = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $expected_result, wp_list_pluck( $query->posts, 'ID' ) );
 	}
 
 	/**
