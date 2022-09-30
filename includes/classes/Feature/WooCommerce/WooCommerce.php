@@ -1092,8 +1092,8 @@ class WooCommerce extends Feature {
 		}
 
 		// Sets the meta query for `stock_status` if needed.
-		$stock_status_query = $query->get( 'stock_status', '' );
-		$stock_status_url   = ! empty( $_GET['stock_status'] ) ? sanitize_text_field( $_GET['stock_status'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$stock_status_query   = $query->get( 'stock_status', '' );
+		$stock_status_url     = ! empty( $_GET['stock_status'] ) ? sanitize_text_field( $_GET['stock_status'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		$allowed_stock_status = [ 'instock', 'outofstock', 'onbackorder' ];
 		if ( empty( $stock_status_query ) && ! empty( $stock_status_url ) && in_array( $stock_status_url, $allowed_stock_status, true ) ) {
 			$meta_query   = $query->get( 'meta_query', [] );
