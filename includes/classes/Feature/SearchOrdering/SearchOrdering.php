@@ -655,7 +655,7 @@ class SearchOrdering extends Feature {
 				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
 					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
 						if ( strtolower( $current_term['name'] ) === $search_query ) {
-							$to_inject[ $current_term['term_order'] ] = $post->ID;
+							$to_inject[ $current_term['term_order'] ] = $post;
 
 							unset( $posts[ $key ] );
 
@@ -673,7 +673,7 @@ class SearchOrdering extends Feature {
 
 			if ( ! empty( $to_inject ) ) {
 				foreach ( $to_inject as $position => $newpost ) {
-					array_splice( $posts, $position - 1, 0, $newpost );
+					array_splice( $posts, $position - 1, 0, array( $newpost ) );
 				}
 			}
 
