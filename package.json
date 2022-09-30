@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "4.2.2",
+  "version": "4.3.1",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
@@ -47,7 +47,7 @@
   },
   "10up-toolkit": {
     "entry": {
-      "autosuggest-script.min": "./assets/js/autosuggest.js",
+      "autosuggest-script.min": "./assets/js/autosuggest/index.js",
       "comments-script.min": "./assets/js/comments.js",
       "dashboard-script.min": "./assets/js/dashboard.js",
       "facets-script.min": "./assets/js/facets.js",
@@ -55,13 +55,15 @@
       "instant-results-admin-script.min": "./assets/js/instant-results/admin/index.js",
       "notice-script.min": "./assets/js/notice.js",
       "ordering-script.min": "./assets/js/ordering/index.js",
-      "facets-block-script.min": "./assets/js/blocks/facets/index.js",
+      "facets-block-script.min": "./assets/js/blocks/facets/taxonomy/index.js",
+      "facets-meta-block-script.min": "./assets/js/blocks/facets/meta/index.js",
       "related-posts-block-script.min": "./assets/js/blocks/related-posts/index.js",
       "settings-script.min": "./assets/js/settings.js",
       "sync-script.min": "./assets/js/sync/index.js",
       "sites-admin-script.min": "./assets/js/sites-admin.js",
       "stats-script.min": "./assets/js/stats.js",
       "synonyms-script.min": "./assets/js/synonyms/index.js",
+      "admin-script.min": "./assets/js/admin.js",
       "weighting-script.min": "./assets/js/weighting.js",
       "autosuggest-styles.min": "./assets/css/autosuggest.css",
       "comments-styles.min": "./assets/css/comments.css",

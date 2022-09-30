@@ -120,40 +120,4 @@ describe('Post Search Feature', () => {
 
 		cy.get('.ep-highlight').should('be.visible');
 	});
-
-	it('Can Search Product by Variation SKU', () => {
-		cy.login();
-		cy.activatePlugin('woocommerce', 'wpCli');
-		cy.maybeEnableFeature('woocommerce');
-
-		cy.updateWeighting({
-			product: {
-				'meta._variations_skus.value': {
-					weight: 1,
-					enabled: true,
-				},
-			},
-		}).then(() => {
-			cy.wpCli('elasticpress index --setup --yes');
-			cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-			cy.contains('.site-content article:nth-of-type(1) h2', 'Awesome Aluminum Shoes').should(
-				'exist',
-			);
-		});
-	});
-
-	it('Can update related posts when the term is updated', () => {
-		cy.createTerm({ name: 'test-category' });
-
-		cy.publishPost({
-			title: 'Test Post 1',
-			category: 'test-category',
-		});
-
-		cy.publishPost({
-			title: 'Test Post 2',
-			category: 'test-category',
-		});
-
-	});
 });
