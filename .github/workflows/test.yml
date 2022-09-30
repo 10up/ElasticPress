@@ -18,7 +18,7 @@ on:
 
 jobs:
   phpunit_single_site:
-    name: PHP Unit Tests (Single Site)
+    name: PHP Unit (Single Site)
     runs-on: ubuntu-latest
 
     steps:
@@ -71,7 +71,7 @@ jobs:
         composer run-script test-single-site
 
   phpunit_multisite:
-    name: PHP Unit Tests (Multisite)
+    name: PHP Unit (Multisite)
     runs-on: ubuntu-latest
 
     steps:
