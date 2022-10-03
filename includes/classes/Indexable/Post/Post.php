@@ -1543,34 +1543,26 @@ class Post extends Indexable {
 	 * @return int
 	 */
 	protected function parse_size( $args ) {
-		if ( ! empty( $args['posts_per_page'] ) ) {
-			$posts_per_page = (int) $args['posts_per_page'];
+		if ( empty( $args['posts_per_page'] ) ) {
+			return (int) get_option( 'posts_per_page' );
+		}
 
-			// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
-			if ( -1 === $posts_per_page ) {
-				/**
-				 * Set the maximum results window size.
-				 *
-				 * The request will return a HTTP 500 Internal Error if the size of the
-				 * request is larger than the [index.max_result_window] parameter in ES.
-				 * See the scroll api for a more efficient way to request large data sets.
-				 *
-				 * @return int The max results window size.
-				 *
-				 * @since 2.3.0
-				 */
+		$posts_per_page = (int) $args['posts_per_page'];
 
-				/**
-				 * Filter max result size if set to -1
-				 *
-				 * @hook ep_max_results_window
-				 * @param  {int} Max result window
-				 * @return {int} New window
-				 */
-				$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
-			}
-		} else {
-			$posts_per_page = (int) get_option( 'posts_per_page' );
+		// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
+		if ( -1 === $posts_per_page ) {
+			/**
+			 * Filter max result size if set to -1
+			 *
+			 * The request will return a HTTP 500 Internal Error if the size of the
+			 * request is larger than the [index.max_result_window] parameter in ES.
+			 * See the scroll api for a more efficient way to request large data sets.
+			 *
+			 * @hook ep_max_results_window
+			 * @param  {int} Max result window
+			 * @return {int} New window
+			 */
+			$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
 		}
 
 		return $posts_per_page;
@@ -1732,19 +1724,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_parent( $args ) {
-		if ( isset( $args['post_parent'] ) && '' !== $args['post_parent'] && 'any' !== strtolower( $args['post_parent'] ) ) {
-			return [
-				'bool' => [
-					'must' => [
-						'term' => [
-							'post_parent' => $args['post_parent'],
-						],
-					],
-				],
-			];
+		if ( empty( $args['post_parent'] ) || 'any' === strtolower( $args['post_parent'] ) ) {
+			return [];
 		}
 
-		return [];
+		return [
+			'bool' => [
+				'must' => [
+					'term' => [
+						'post_parent' => $args['post_parent'],
+					],
+				],
+			],
+		];
 	}
 
 	/**
@@ -1755,19 +1747,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post__in( $args ) {
-		if ( ! empty( $args['post__in'] ) ) {
-			return [
-				'bool' => [
-					'must' => [
-						'terms' => [
-							'post_id' => array_values( (array) $args['post__in'] ),
-						],
-					],
-				],
-			];
+		if ( empty( $args['post__in'] ) ) {
+			return [];
 		}
 
-		return [];
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_id' => array_values( (array) $args['post__in'] ),
+					],
+				],
+			],
+		];
 	}
 
 	/**
@@ -1778,19 +1770,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_name__in( $args ) {
-		if ( ! empty( $args['post_name__in'] ) ) {
-			return [
-				'bool' => [
-					'must' => [
-						'terms' => [
-							'post_name.raw' => array_values( (array) $args['post_name__in'] ),
-						],
+		if ( empty( $args['post_name__in'] ) ){
+			return [];
+		}
+			
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_name.raw' => array_values( (array) $args['post_name__in'] ),
 					],
 				],
-			];
-		}
-
-		return [];
+			],
+		];
 	}
 
 	/**
@@ -1801,19 +1793,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post__not_in( $args ) {
-		if ( ! empty( $args['post__not_in'] ) ) {
-			return [
-				'bool' => [
-					'must_not' => [
-						'terms' => [
-							'post_id' => (array) $args['post__not_in'],
-						],
+		if ( empty( $args['post__not_in'] ) ) {
+			return [];
+		}
+	
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'post_id' => (array) $args['post__not_in'],
 					],
 				],
-			];
-		}
-
-		return [];
+			],
+		];
 	}
 
 	/**
@@ -1824,19 +1816,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_category__not_in( $args ) {
-		if ( ! empty( $args['category__not_in'] ) ) {
-			return [
-				'bool' => [
-					'must_not' => [
-						'terms' => [
-							'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
-						],
-					],
-				],
-			];
+		if ( empty( $args['category__not_in'] ) ) {
+			return [];
 		}
 
-		return [];
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+					],
+				],
+			],
+		];
 	}
 
 	/**
@@ -1847,19 +1839,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_tag__not_in( $args ) {
-		if ( ! empty( $args['tag__not_in'] ) ) {
-			return [
-				'bool' => [
-					'must_not' => [
-						'terms' => [
-							'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
-						],
-					],
-				],
-			];
+		if ( empty( $args['tag__not_in'] ) ) {
+			return [];
 		}
 
-		return [];
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
+					],
+				],
+			],
+		];
 	}
 
 	/**
@@ -1928,38 +1920,43 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_mime_type( $args ) {
-		if ( ! empty( $args['post_mime_type'] ) ) {
-			if ( is_array( $args['post_mime_type'] ) ) {
-
-				$args_post_mime_type = [];
-
-				foreach ( $args['post_mime_type'] as $mime_type ) {
-					/**
-					 * check if matches the MIME type pattern: type/subtype and
-					 * leave an empty string as posts, pages and CPTs don't have a MIME type
-					 */
-					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
-						$args_post_mime_type[] = $mime_type;
-					} else {
-						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
-
-						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
-					}
-				}
-
-				return [
-					'terms' => [
-						'post_mime_type' => $args_post_mime_type,
-					],
-				];
-			} elseif ( is_string( $args['post_mime_type'] ) ) {
-				return [
-					'regexp' => array(
-						'post_mime_type' => $args['post_mime_type'] . '.*',
-					),
-				];
-			}
+		if ( empty( $args['post_mime_type'] ) ) {
+			return [];
 		}
+
+		if ( is_array( $args['post_mime_type'] ) ) {
+
+			$args_post_mime_type = [];
+
+			foreach ( $args['post_mime_type'] as $mime_type ) {
+				/**
+				 * check if matches the MIME type pattern: type/subtype and
+				 * leave an empty string as posts, pages and CPTs don't have a MIME type
+				 */
+				if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+					$args_post_mime_type[] = $mime_type;
+				} else {
+					$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+					$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+				}
+			}
+
+			return [
+				'terms' => [
+					'post_mime_type' => $args_post_mime_type,
+				],
+			];
+		}
+		
+		if ( is_string( $args['post_mime_type'] ) ) {
+			return [
+				'regexp' => array(
+					'post_mime_type' => $args['post_mime_type'] . '.*',
+				),
+			];
+		}
+
 		return [];
 	}
 
