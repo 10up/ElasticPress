@@ -152,11 +152,9 @@ describe('WP-CLI Commands', () => {
 			.should('contain', 'Adding post mapping')
 			.should('contain', 'Mapping sent');
 
-		cy.activatePlugin('elasticpress', 'wpCli', 'network');
-
 		cy.wpCli('wp elasticpress put-mapping --network-wide')
 			.its('stdout')
-			.should('contain', 'Adding post mapping for site')
+			.should('contain', 'Adding post mapping')
 			.should('contain', 'Mapping sent');
 	});
 
