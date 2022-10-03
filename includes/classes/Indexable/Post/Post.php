@@ -1770,10 +1770,10 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_name__in( $args ) {
-		if ( empty( $args['post_name__in'] ) ){
+		if ( empty( $args['post_name__in'] ) ) {
 			return [];
 		}
-			
+
 		return [
 			'bool' => [
 				'must' => [
@@ -1796,7 +1796,7 @@ class Post extends Indexable {
 		if ( empty( $args['post__not_in'] ) ) {
 			return [];
 		}
-	
+
 		return [
 			'bool' => [
 				'must_not' => [
@@ -1948,7 +1948,7 @@ class Post extends Indexable {
 				],
 			];
 		}
-		
+
 		if ( is_string( $args['post_mime_type'] ) ) {
 			return [
 				'regexp' => array(
