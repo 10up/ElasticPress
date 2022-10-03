@@ -1441,10 +1441,23 @@ class Post extends Indexable {
 			'post_status'      => $this->parse_post_status( $args ),
 		];
 
-		$filters     = array_values( array_filter( $filters ) );
-		$use_filters = ! empty( $filters );
+		/**
+		 * Filter the ES filters that will be applied to the ES query.
+		 *
+		 * Although each index of the `$filters` array contains the related WP Query argument,
+		 * it will be removed before applied to the ES query.
+		 *
+		 * @hook ep_post_filters
+		 * @param  {array}    Current filters
+		 * @param  {array}    WP Query args
+		 * @param  {WP_Query} WP Query object
+		 * @return {array} New filters
+		 */
+		$filters = apply_filters( 'ep_post_filters', $filters, $args, $query );
 
-		if ( $use_filters ) {
+		$filters = array_values( array_filter( $filters ) );
+
+		if ( ! empty( $filters ) ) {
 			$filters = [
 				'bool' => [
 					'must' => $filters,
