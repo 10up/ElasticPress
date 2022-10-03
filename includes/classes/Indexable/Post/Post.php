@@ -1918,6 +1918,15 @@ class Post extends Indexable {
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
 		$orderbys = $this->get_orderby_array( $orderbys );
 
+		$from_to = [
+			'relevance' => '_score',
+			'date'      => 'post_date',
+			'type'      => 'post_type.raw',
+			'modified'  => 'post_modified',
+			'name'      => 'post_name.raw',
+			'title'     => 'post_title.sortable',
+		];
+
 		$sort = [];
 
 		foreach ( $orderbys as $key => $value ) {
@@ -1929,67 +1938,26 @@ class Post extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
-				if ( 'relevance' === $orderby_clause ) {
-					$sort[] = array(
-						'_score' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'date' === $orderby_clause ) {
-					$sort[] = array(
-						'post_date' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'type' === $orderby_clause ) {
-					$sort[] = array(
-						'post_type.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'modified' === $orderby_clause ) {
-					$sort[] = array(
-						'post_modified' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'name' === $orderby_clause ) {
-					$sort[] = array(
-						'post_' . $orderby_clause . '.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'title' === $orderby_clause ) {
-					$sort[] = array(
-						'post_' . $orderby_clause . '.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'meta_value' === $orderby_clause ) {
-					if ( ! empty( $args['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $args['meta_key'] . '.raw' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} elseif ( 'meta_value_num' === $orderby_clause ) {
-					if ( ! empty( $args['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $args['meta_key'] . '.long' => array(
-								'order' => $order,
-							),
-						);
-					}
+			if ( empty( $orderby_clause ) || 'rand' === $orderby_clause ) {
+				continue;
+			}
+
+			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
+				if ( empty( $args['meta_key'] ) ) {
+					continue;
 				} else {
-					$sort[] = array(
-						$orderby_clause => array(
-							'order' => $order,
-						),
-					);
+					$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
+					$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
 				}
 			}
+
+			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
+
+			$sort[] = array(
+				$orderby_clause => array(
+					'order' => $order,
+				),
+			);
 		}
 
 		return $sort;
