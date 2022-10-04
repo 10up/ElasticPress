@@ -60,7 +60,7 @@ export const dummyData = [
 			},
 		],
 
-		metas: [
+		meta: [
 			// {
 			// 	name: 'example_key',
 			// 	searchable: false,
@@ -139,7 +139,7 @@ export const dummyData = [
 			},
 		],
 
-		metas: [],
+		meta: [],
 	},
 	{
 		label: 'Product',
@@ -201,7 +201,7 @@ export const dummyData = [
 				weight: 1,
 			},
 		],
-		metas: [],
+		meta: [],
 	},
 ];
 

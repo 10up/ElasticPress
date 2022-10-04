@@ -491,6 +491,14 @@ function action_admin_enqueue_dashboard_scripts() {
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
+		wp_enqueue_style( 'wp-edit-post' );
+		wp_enqueue_style(
+			'ep_weighting_styles',
+			EP_URL . 'dist/css/weighting-styles.min.css',
+			Utils\get_asset_info( 'weighting-styles', 'dependencies' ),
+			Utils\get_asset_info( 'weighting-styles', 'version' )
+		);
+
 		wp_enqueue_script(
 			'ep_weighting_script',
 			EP_URL . 'dist/js/weighting-script.min.js',
