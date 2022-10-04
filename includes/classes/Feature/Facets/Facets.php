@@ -152,6 +152,10 @@ class Facets extends Feature {
 			return $args;
 		}
 
+		if ( 'any' === $this->get_match_type() ) {
+			add_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
+		}
+
 		/**
 		 * Filter WP query arguments that will be used to build the aggregations filter.
 		 *
@@ -170,6 +174,8 @@ class Facets extends Feature {
 		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_args, $query );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+
+		remove_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
 
 		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
@@ -555,14 +561,7 @@ class Facets extends Feature {
 			return $filters;
 		}
 
-		$settings = wp_parse_args(
-			$this->get_settings(),
-			array(
-				'match_type' => 'all',
-			)
-		);
-
-		$es_operator = ( 'any' === $settings['match_type'] ) ? 'should' : 'must';
+		$es_operator = ( 'any' === $this->get_match_type() ) ? 'should' : 'must';
 
 		$filters['facets'] = [
 			'bool' => [
@@ -570,6 +569,37 @@ class Facets extends Feature {
 			],
 		];
 
+		return $filters;
+	}
+
+	/**
+	 * Utilitary function to retrieve the match type selected by the user.
+	 *
+	 * @since 4.4.0
+	 * @return string
+	 */
+	public function get_match_type() {
+		$settings = wp_parse_args(
+			$this->get_settings(),
+			array(
+				'match_type' => 'all',
+			)
+		);
+
+		return $settings['match_type'];
+	}
+
+	/**
+	 * Given an array of filters, remove the facets filter.
+	 *
+	 * This is used when the user wants posts matching ANY criteria, so aggregations should not restrict their results.
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Filters to be applied to the ES query
+	 * @return array
+	 */
+	public function remove_facets_filter( $filters ) {
+		unset( $filters['facets'] );
 		return $filters;
 	}
 

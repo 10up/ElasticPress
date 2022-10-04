@@ -27,7 +27,6 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
-		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ] );
 		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
@@ -42,32 +41,11 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	public function agg_filters( $query_args ) {
-		// Without taxonomies there is nothing to do here.
-		if ( empty( $query_args['tax_query'] ) ) {
-			return $query_args;
-		}
-
-		$feature  = Features::factory()->get_registered_feature( 'facets' );
-		$settings = wp_parse_args(
-			$feature->get_settings(),
-			array(
-				'match_type' => 'all',
-			)
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Aggregation filters related to facet types are now managed by the main Facets class.' ),
+			'ElasticPress 4.4.0'
 		);
-
-		if ( 'any' === $settings['match_type'] ) {
-			foreach ( $query_args['tax_query'] as $key => $taxonomy ) {
-				if ( is_array( $taxonomy ) ) {
-					unset( $query_args['tax_query'][ $key ] );
-				}
-			}
-		}
-
-		// @todo For some reason these are appearing in the query args, need to investigate
-		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
-		foreach ( $unwanted_args as $unwanted_arg ) {
-			unset( $query_args[ $unwanted_arg ] );
-		}
 
 		return $query_args;
 	}
