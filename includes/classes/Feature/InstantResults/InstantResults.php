@@ -237,7 +237,6 @@ class InstantResults extends Feature {
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
-		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_count_settings' ] );
 	}
 
 	/**
@@ -939,17 +938,4 @@ class InstantResults extends Feature {
 		return $args;
 	}
 
-	/**
-	 * Sanitizes our term count settings.
-	 *
-	 * @param array $settings Array of current settings
-	 * @return mixed
-	 */
-	public function sanitize_count_settings( $settings ) {
-		if ( ! empty( $settings['instant-results']['term_count'] ) ) {
-			$settings['instant-results']['term_count'] = (bool) $settings['instant-results']['term_count'];
-		}
-
-		return $settings;
-	}
 }
