@@ -34,6 +34,8 @@ describe('Instant Results Feature', () => {
 			title: 'Test Post',
 			content: 'This is a sample test post.',
 		});
+
+		cy.deactivatePlugin('custom-instant-results-template', 'wpCli');
 	});
 
 	after(() => {
@@ -140,5 +142,30 @@ describe('Instant Results Feature', () => {
 
 		cy.get('#wpadminbar li#wp-admin-bar-debug-bar').click();
 		cy.get('#querylist').should('be.visible');
+	});
+
+	it('Can filter the result template', () => {
+		/**
+		 * Activate test plugin with filter.
+		 */
+		cy.maybeEnableFeature('instant-results');
+		cy.activatePlugin('custom-instant-results-template', 'wpCli');
+
+		/**
+		 * Perform a search.
+		 */
+		cy.intercept('*api/v1/search*').as('apiRequest');
+		cy.visit('/');
+		cy.get('.wp-block-search').last().as('searchBlock');
+		cy.get('@searchBlock').find('input[type="search"]').type('Block');
+		cy.get('@searchBlock').find('button').click();
+		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
+		cy.wait('@apiRequest');
+
+		/**
+		 * Results should use the filtered template with a custom class.
+		 */
+		cy.get('.my-custom-result').should('exist');
+		cy.get('.ep-search-result').should('not.exist');
 	});
 });
