@@ -211,16 +211,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 	}
 
 	/**
-	 * Test agg_filters
-	 *
-	 * @since 4.3.0
-	 * @group facets
-	 */
-	public function testAggFilters() {
-		$this->markTestIncomplete();
-	}
-
-	/**
 	 * Test get_facets_meta_fields
 	 *
 	 * @since 4.3.0
