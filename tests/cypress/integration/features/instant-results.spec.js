@@ -154,10 +154,10 @@ describe('Instant Results Feature', () => {
 		/**
 		 * Perform a search.
 		 */
-		cy.intercept('*api/v1/search*').as('apiRequest');
+		cy.intercept('*search=blog*').as('apiRequest');
 		cy.visit('/');
 		cy.get('.wp-block-search').last().as('searchBlock');
-		cy.get('@searchBlock').find('input[type="search"]').type('Block');
+		cy.get('@searchBlock').find('input[type="search"]').type('blog');
 		cy.get('@searchBlock').find('button').click();
 		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
 		cy.wait('@apiRequest');
