@@ -28,7 +28,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ] );
-		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		$this->block = new Block();
@@ -187,6 +187,49 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		}
 
 		$query->set( 'tax_query', $tax_query );
+	}
+
+	/**
+	 * Add selected filters to the Facet filter in the ES query
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Current Facet filters
+	 * @return array
+	 */
+	public function add_query_filters( $filters ) {
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$taxonomies = $this->get_facetable_taxonomies();
+		if ( empty( $taxonomies ) ) {
+			return;
+		}
+
+		$selected_filters = $feature->get_selected();
+		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
+			return;
+		}
+
+		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
+		$attribute_taxonomies = [];
+		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
+			$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+			}
+		}
+
+		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
+			$taxonomy_slug = $attribute_taxonomies[ $taxonomy ] ?? $taxonomy;
+
+			$filters[] = [
+				'terms' => [
+					'terms.' . $taxonomy_slug . '.slug' => array_keys( $filter['terms'] ),
+				],
+			];
+		}
+
+		return $filters;
 	}
 
 	/**

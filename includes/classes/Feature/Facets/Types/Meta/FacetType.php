@@ -33,7 +33,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 */
 	public function setup() {
 		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ], 10, 3 );
-		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		add_action( 'ep_delete_post', [ $this, 'invalidate_meta_values_cache' ] );
@@ -228,6 +228,33 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$query->set( 'meta_query', $meta_query );
 		$query->set( 'ignore_sticky_posts', true );
+	}
+
+	/**
+	 * Add selected filters to the Facet filter in the ES query
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Current Facet filters
+	 * @return array
+	 */
+	public function add_query_filters( $filters ) {
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$selected_filters = $feature->get_selected();
+		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
+			return $filters;
+		}
+
+		$meta_fields = $selected_filters[ $this->get_filter_type() ];
+		foreach ( $meta_fields as $meta_field => $values ) {
+			$filters[] = [
+				'terms' => [
+					'meta.' . $meta_field . '.raw' => array_keys( $values['terms'] ),
+				],
+			];
+		}
+
+		return $filters;
 	}
 
 	/**

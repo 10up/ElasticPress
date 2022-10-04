@@ -106,6 +106,7 @@ class Facets extends Feature {
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
 	}
 
 	/**
@@ -277,9 +278,7 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function facet_query( $query ) {
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
-		if ( ! $feature->is_facetable( $query ) ) {
+		if ( ! $this->is_facetable( $query ) ) {
 			return;
 		}
 
@@ -534,6 +533,44 @@ class Facets extends Feature {
 
 		return $this->types['taxonomy']->get_filter_name();
 
+	}
+
+	/**
+	 * Add a new filter to the ES query with selected facets
+	 *
+	 * @since 4.4.0
+	 * @param array    $filters  Current filters
+	 * @param array    $args     WP Query args
+	 * @param WP_Query $query    WP Query object
+	 * @return array
+	 */
+	public function apply_facets_filters( $filters, $args, $query ) {
+		if ( ! $this->is_facetable( $query ) ) {
+			return $filters;
+		}
+
+		$facets_filters = apply_filters( 'ep_facet_query_filters', [], $args, $query );
+
+		if ( empty( $facets_filters ) ) {
+			return $filters;
+		}
+
+		$settings = wp_parse_args(
+			$this->get_settings(),
+			array(
+				'match_type' => 'all',
+			)
+		);
+
+		$es_operator = ( 'any' === $settings['match_type'] ) ? 'should' : 'must';
+
+		$filters['facets'] = [
+			'bool' => [
+				$es_operator => $facets_filters,
+			],
+		];
+
+		return $filters;
 	}
 
 	/**
