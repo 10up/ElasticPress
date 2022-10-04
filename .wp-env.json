@@ -10,7 +10,8 @@
         "https://downloads.wordpress.org/plugin/debug-bar.zip",
         "https://downloads.wordpress.org/plugin/debug-bar-elasticpress.zip",
         "https://downloads.wordpress.org/plugin/wordpress-importer.zip",
-        "https://downloads.wordpress.org/plugin/woocommerce.zip"
+        "https://downloads.wordpress.org/plugin/woocommerce.zip",
+        "10up/elasticpress-proxy#develop"
       ],
       "mappings": {
         "wp-content/mu-plugins/unique-index-name.php": "./tests/cypress/wordpress-files/test-mu-plugins/unique-index-name.php",
