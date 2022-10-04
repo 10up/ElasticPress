@@ -77,10 +77,10 @@ const Result = ({ averageRating = 0, date, excerpt, priceHtml, thumbnail, title,
 /**
  * Filter the Result component.
  *
- * @filter elasticpress.InstantResults.Result
+ * @filter ep.InstantResults.Result
  * @since 4.4.0
  *
  * @param {React.Component|React.FunctionComponent} Result Result component.
  * @returns {React.Component|React.FunctionComponent} Result component.
  */
-export default applyFilters('elasticpress.InstantResults.Result', Result);
+export default applyFilters('ep.InstantResults.Result', Result);

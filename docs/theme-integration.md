@@ -176,7 +176,7 @@ wp.hooks.addFilter('ep.Autosuggest.query', 'myTheme/autosuggestQueryFilter', aut
 
 ### Customize the Template Used for Results
 
-When ElasticPress Instant Results renders search results it does so using a [React component](https://reactjs.org/docs/components-and-props.html). You can replace this component with your own from within a theme or plugin using the `elasticpress.InstantResults.Result` [JavaScript hook](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-hooks/).
+When ElasticPress Instant Results renders search results it does so using a [React component](https://reactjs.org/docs/components-and-props.html). You can replace this component with your own from within a theme or plugin using the `ep.InstantResults.Result` [JavaScript hook](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-hooks/).
 
 The result component receives the following props that your component can use to render the result:
 
@@ -205,7 +205,7 @@ const CustomResult = ({ date, title, url }) => {
 	)
 };
 
-wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/customResult', () => CustomResult);
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResult', () => CustomResult);
 ```
 **Plain**
 ```js
@@ -231,14 +231,14 @@ const CustomResult = ({ date, title, url }) => {
 	);
 };
 
-wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/customResult', () => CustomResult);
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResult', () => CustomResult);
 ```
 
 To conditionally replace the component based on each result you can pass a simple component that checks the result before either rendering the original component or a new custom component. This example renders the custom component from above but only for results with the `post` post type:
 
 **JSX**
 ```js
-wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/customResultForPosts', (Result) => {
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResultForPosts', (Result) => {
 	return (props) => {
 		if (props.hit._source.post_type === 'post') {
 			return <CustomResult {...props} />;
@@ -252,7 +252,7 @@ wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/customResultFo
 ```js
 const el = wp.element.createElement;
 
-wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/customResultForPosts', (Result) => {
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResultForPosts', (Result) => {
 	return (props) => {
 		if (props.hit._source.post_type === 'post') {
 			return el(CustomResult, props);
@@ -267,7 +267,7 @@ By returning a new component that wraps the original component you can customize
 
 **JSX**
 ```js
-wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/noTypeLabelsForPages', (Result) => {
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/noTypeLabelsForPages', (Result) => {
 	return (props) => {
 		if (props.hit._source.post_type === 'page') {
 			return <Result {...props} type={null} />;
@@ -281,7 +281,7 @@ wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/noTypeLabelsFo
 ```js
 const el = wp.element.createElement;
 
-wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/noTypeLabelsForPages', (Result) => {
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/noTypeLabelsForPages', (Result) => {
 	return (props) => {
 		if (props.hit._source.post_type === 'page') {
 			return el(Result, {...props, type: null});

@@ -32,7 +32,7 @@ add_action(
 					date
 				);
 			};
-			wp.hooks.addFilter('elasticpress.InstantResults.Result', 'myTheme/customResult', () => CustomResult);",
+			wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResult', () => CustomResult);",
 			'before'
 		);
 	},
