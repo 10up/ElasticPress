@@ -306,6 +306,8 @@ describe('Facets Feature', () => {
 		 * Test that the Facet by Meta block is functional.
 		 */
 		it('Can insert, configure, and use the Facet by Meta block', () => {
+			cy.intercept('/wp-json/elasticpress/v1/facets/meta/block-preview*').as('blockPreview');
+
 			/**
 			 * Insert a Facet block.
 			 */
@@ -322,6 +324,7 @@ describe('Facets Feature', () => {
 				'Search Meta 1',
 			);
 			cy.get('.block-editor-block-inspector select').select('meta_field_1');
+			cy.wait('@blockPreview');
 
 			/**
 			 * Verify that the blocks are inserted into the editor, and contain the
@@ -346,6 +349,7 @@ describe('Facets Feature', () => {
 			cy.get('.block-editor-block-inspector select').select('meta_field_2');
 			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
 			cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+			cy.wait('@blockPreview');
 
 			/**
 			 * Verify the block has the expected output in the editor based on the
