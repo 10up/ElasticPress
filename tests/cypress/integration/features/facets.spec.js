@@ -51,7 +51,13 @@ describe('Facets Feature', () => {
 		cy.openBlockSettingsSidebar();
 		cy.get('.block-editor-block-inspector select').select('post_tag');
 		cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
+
+		// Make sure it waits for the correct request.
+		cy.intercept('/wp-json/elasticpress/v1/facets/block-preview*orderby=name&order=asc*').as(
+			'blockPreview1',
+		);
 		cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+		cy.wait('@blockPreview1');
 
 		/**
 		 * Verify the block has the expected output in the editor based on the
