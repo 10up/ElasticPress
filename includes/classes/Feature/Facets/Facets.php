@@ -290,7 +290,7 @@ class Facets extends Feature {
 
 		// If any filter was selected, there is no reason to prepend the list with sticky posts.
 		$selected_filters = $this->get_selected();
-		if ( ! empty( $selected_filters ) ) {
+		if ( ! empty( array_filter( $selected_filters ) ) ) {
 			$query->set( 'ignore_sticky_posts', true );
 		}
 
