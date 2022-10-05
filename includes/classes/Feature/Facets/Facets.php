@@ -288,6 +288,12 @@ class Facets extends Feature {
 			return;
 		}
 
+		// If any filter was selected, there is no reason to prepend the list with sticky posts.
+		$selected_filters = $this->get_selected();
+		if ( ! empty( $selected_filters ) ) {
+			$query->set( 'ignore_sticky_posts', true );
+		}
+
 		/**
 		 * Filter facet aggregations.
 		 *
