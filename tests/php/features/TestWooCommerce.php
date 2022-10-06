@@ -63,8 +63,8 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'product 1',
 				'post_type'    => 'product',
@@ -99,7 +99,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -131,7 +131,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'post_type'    => 'shop_order',
@@ -163,7 +163,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = Functions\create_and_sync_post(
+		$shop_order_id = $this->ep_factory->post->create(
 			array(
 				'post_type' => 'shop_order',
 			)
@@ -250,7 +250,7 @@ class TestWooCommerce extends BaseTestCase {
 
 	/**
 	 * Test the addition of variations skus to product meta
-	 * 
+	 *
 	 * @since 4.2.0
 	 * @group woocommerce
 	 */
@@ -287,7 +287,7 @@ class TestWooCommerce extends BaseTestCase {
 
 	/**
 	 * Test the translate_args_admin_products_list method
-	 * 
+	 *
 	 * @since 4.2.0
 	 * @group woocommerce
 	 */
@@ -329,7 +329,7 @@ class TestWooCommerce extends BaseTestCase {
 
 	/**
 	 * Test the ep_woocommerce_admin_products_list_search_fields filter
-	 * 
+	 *
 	 * @since 4.2.0
 	 * @group woocommerce
 	 */

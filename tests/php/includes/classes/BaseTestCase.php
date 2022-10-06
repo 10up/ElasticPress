@@ -31,6 +31,30 @@ class BaseTestCase extends WP_UnitTestCase {
 	protected $applied_filters = array();
 
 	/**
+	 * Holds the factory object
+	 *
+	 * @var obj
+	 * @since 4.4.0
+	 */
+	protected $ep_factory;
+
+	/**
+	 * Set up the test case.
+	 *
+	 * @var obj
+	 * @since 4.4.0
+	 */
+	public function setup() {
+
+		$this->ep_factory = new \stdClass();
+		$this->ep_factory->post = new PostFactory();
+		$this->ep_factory->user = new UserFactory();
+		$this->ep_factory->term = new TermFactory();
+		$this->ep_factory->category = new TermFactory($this, 'category');
+		parent::setup();
+	}
+
+	/**
 	 * Helper function to test whether a post sync has happened
 	 *
 	 * @since 1.0
