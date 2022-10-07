@@ -155,7 +155,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foo' )) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foo' ) ) );
 		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'bar' ) ) );
 		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foobar' ) ) );
 
