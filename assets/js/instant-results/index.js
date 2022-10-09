@@ -10,7 +10,6 @@ import {
 	useRef,
 	WPElement,
 } from '@wordpress/element';
-import { addAction, doAction, removeAction } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -37,6 +36,15 @@ const App = () => {
 	const stateRef = useRef(state);
 
 	stateRef.current = state;
+
+	/**
+	 * Handle open action.
+	 *
+	 * @param {Event} event Input event.
+	 */
+	const openModal = useCallback((args) => {
+		dispatch({ type: 'APPLY_ARGS', payload: args });
+	}, []);
 
 	/**
 	 * Close the modal.
@@ -151,29 +159,23 @@ const App = () => {
 	}, []);
 
 	/**
-	 * Handle submitting the search form.
+	 * Handle submission of search forms.
 	 *
-	 * @param {Event} event Input event.
+	 * @param {Event} event Submit.
 	 */
-	const onSubmit = useCallback((event) => {
-		event.preventDefault();
+	const onSubmit = useCallback(
+		(event) => {
+			event.preventDefault();
 
-		inputRef.current = event.target.s;
+			inputRef.current = event.target.s;
 
-		const search = inputRef.current.value;
-		const post_type = getPostTypesFromForm(inputRef.current.form);
+			const search = inputRef.current.value;
+			const post_type = getPostTypesFromForm(inputRef.current.form);
 
-		dispatch({ type: 'APPLY_ARGS', payload: { search, post_type } });
-	}, []);
-
-	/**
-	 * Handle open action.
-	 *
-	 * @param {Event} event Input event.
-	 */
-	const onOpen = useCallback((args) => {
-		dispatch({ type: 'APPLY_ARGS', payload: args });
-	}, []);
+			openModal({ post_type, search });
+		},
+		[openModal],
+	);
 
 	/**
 	 * Handle changes to search parameters.
@@ -196,34 +198,52 @@ const App = () => {
 	 * @returns {Function} A cleanup function that unbinds the events.
 	 */
 	const handleEvents = () => {
+		const inputs = document.querySelectorAll('form input[name="s"');
 		const modal = modalRef.current;
 
-		addAction('ep.InstantResults.open', 'ep/onOpenInstantResults', onOpen);
+		inputs.forEach((input) => {
+			input.form.addEventListener('submit', onSubmit);
+		});
+
 		modal.ownerDocument.defaultView.addEventListener('popstate', onPopState);
 
 		return () => {
-			removeAction('ep.InstantResults.open', 'ep/onOpenInstantResults');
+			inputs.forEach((input) => {
+				input.form.removeEventListener('submit', onSubmit);
+			});
+
 			modal.ownerDocument.defaultView.removeEventListener('popstate', onPopState);
 		};
 	};
 
 	/**
-	 * Open modal with pre-defined args if they are found in the URL.
+	 * Initialize the Instant Results modal.
+	 *
+	 * @returns {void}
 	 */
 	const handleInit = () => {
+		/**
+		 * Automatically open the modal with pre-defined args if they are found
+		 * in the URL.
+		 */
 		const urlParams = new URLSearchParams(window.location.search);
 		const args = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
 
 		if (Object.keys(args).length > 0) {
-			dispatch({ type: 'APPLY_ARGS', payload: args });
+			openModal(args);
 		}
+
+		/**
+		 * Publicly expose certain methods for interacting with the modal.
+		 */
+		window.epInstantResults.openModal = openModal;
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleInit, []);
-	useEffect(handleEvents, [onEscape, onOpen, onPopState]);
+	useEffect(handleInit, [openModal]);
+	useEffect(handleEvents, [onEscape, onPopState, onSubmit]);
 	useEffect(handleChanges, [
 		doSearch,
 		pushState,
@@ -254,31 +274,11 @@ const App = () => {
 };
 
 /**
- * Handle submission of search forms.
- *
- * @param {Event} event Submit.
- */
-const onSubmit = (event) => {
-	event.preventDefault();
-
-	const search = event.currentTarget.s.value;
-	const post_type = getPostTypesFromForm(event.currentTarget);
-
-	doAction('ep.InstantResults.open', { search, post_type });
-};
-
-/**
  * Initialize Instant Results.
  *
  * @returns {void}
  */
 const init = () => {
-	const inputs = document.querySelectorAll('form input[name="s"');
-
-	inputs.forEach((input) => {
-		input.form.addEventListener('submit', onSubmit);
-	});
-
 	render(<App />, document.getElementById('ep-instant-results'));
 };
 
