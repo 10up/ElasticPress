@@ -18,6 +18,7 @@
         "wp-content/plugins/cpt-and-custom-tax.php": "./tests/cypress/wordpress-files/test-plugins/cpt-and-custom-tax.php",
         "wp-content/plugins/elasticpress-facet-by-meta.php": "./tests/cypress/wordpress-files/test-plugins/elasticpress-facet-by-meta.php",
         "wp-content/plugins/fake-new-activation.php": "./tests/cypress/wordpress-files/test-plugins/fake-new-activation.php",
+        "wp-content/plugins/open-instant-results-with-buttons.php": "./tests/cypress/wordpress-files/test-plugins/open-instant-results-with-buttons.php",
         "wp-content/plugins/unsupported-server-software.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-server-software.php",
         "wp-content/plugins/unsupported-elasticsearch-version.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-elasticsearch-version.php",
         "wp-content/plugins/shorten-autosave.php": "./tests/cypress/wordpress-files/test-plugins/shorten-autosave.php",

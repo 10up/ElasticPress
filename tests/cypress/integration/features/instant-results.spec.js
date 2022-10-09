@@ -34,6 +34,8 @@ describe('Instant Results Feature', () => {
 			title: 'Test Post',
 			content: 'This is a sample test post.',
 		});
+
+		cy.deactivatePlugin('open-instant-results-with-buttons', 'wpCli');
 	});
 
 	after(() => {
@@ -140,5 +142,45 @@ describe('Instant Results Feature', () => {
 
 		cy.get('#wpadminbar li#wp-admin-bar-debug-bar').click();
 		cy.get('#querylist').should('be.visible');
+	});
+
+	it('Is possible to manually open Instant Results with a plugin', () => {
+		/**
+		 * Activate test plugin with JavaScript.
+		 */
+		cy.maybeEnableFeature('instant-results');
+		cy.activatePlugin('open-instant-results-with-buttons', 'wpCli');
+
+		/**
+		 * Create a post with a Buttons block.
+		 */
+		cy.publishPost({
+			title: `Test openModal()`,
+			content: 'Testing openModal()',
+		});
+
+		cy.openBlockInserter();
+		cy.insertBlock('Buttons');
+		cy.get('.wp-block-button__link').type('Search "Block"');
+
+		/**
+		 * Update the post and visit the front end.
+		 */
+		cy.get('.editor-post-publish-button__button').click();
+		cy.get('.components-snackbar__action').click();
+
+		/**
+		 * Click the button.
+		 */
+		cy.intercept('*search=blog*').as('apiRequest');
+		cy.get('.wp-block-button__link').click();
+
+		/**
+		 * Instant Results should be open and populated with out search term.
+		 */
+		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
+		cy.wait('@apiRequest');
+		cy.get('searchModal').find('.ep-search-input').should('have.value', 'block');
+		cy.get('searchModal').find('.ep-search-results__title').should('contain.text', 'block');
 	});
 });

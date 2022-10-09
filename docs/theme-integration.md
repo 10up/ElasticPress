@@ -212,3 +212,30 @@ The HTML classes used by Instant Results adhere to the BEM syntax and therefore 
 - `.ep-search-pagination-button` This is the component used for the Next and Previous page buttons. By default it will use the theme's default styling for `<button>` elements.
 
 All other components that can be styled, such as those used for layout, can be found by inspecting the markup of Instant Results with a browser's developer tools. New components may be added as more features and customization options are added to Instant Results.
+
+### Open Instant Results on Button Press
+
+By default the Instant Results modal will only be opened by submitting a WordPress search form, but you can manually open Instant Results from your theme or plugin by calling the `window.epInstantResults.openModal()` function. This allows you to open Instant Results in response to other events, such as clicking a button. Additionally, by passing certain parameters to the function you can set the initial search term, sorting and filters.
+
+The following parameters are supported by passing them to the `openModal()` function in an object:
+
+| Parameter                | Type                        | Description
+| ------------------------ | --------------------------- | ---------------------------------------------------------------------
+| search                   | string                      | Search term. Default `''`.
+| per_page                 | integer                     | Maximum number of items to be returned in result set.
+| tax-{$taxonomy}          | number[]                    | Filter results by taxonomy terms. Array of term IDs.
+| order                    | `asc\|desc`                 | Order results in ascending or descending order. Default `desc`.
+| orderby                  | `date\|relevance\|price`    | Order results by attribute. Default `relevance`.
+| post_type                | string                      | Filter results by post type. Comma separated list of post type slugs.
+
+This example uses the function to open the modal with a search for a specific search term when a button is clicked:
+
+```html
+<button id="search-blocks" type="button">Search for "Blocks"</button>
+
+<script>
+document.getElementById('search-blocks').addEventListener('click', () => {
+	window.epInstantResults.openModal({ search: "blocks" });
+});
+</script>
+```
