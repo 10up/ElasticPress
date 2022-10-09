@@ -159,9 +159,9 @@ const App = () => {
 	}, []);
 
 	/**
-	 * Handle submission of search forms.
+	 * Handle submitting the search form.
 	 *
-	 * @param {Event} event Submit.
+	 * @param {Event} event Submit event.
 	 */
 	const onSubmit = useCallback(
 		(event) => {
@@ -198,7 +198,7 @@ const App = () => {
 	 * @returns {Function} A cleanup function that unbinds the events.
 	 */
 	const handleEvents = () => {
-		const inputs = document.querySelectorAll('form input[name="s"');
+		const inputs = document.querySelectorAll('form input[name="s"]');
 		const modal = modalRef.current;
 
 		inputs.forEach((input) => {
@@ -273,13 +273,4 @@ const App = () => {
 	);
 };
 
-/**
- * Initialize Instant Results.
- *
- * @returns {void}
- */
-const init = () => {
-	render(<App />, document.getElementById('ep-instant-results'));
-};
-
-window.addEventListener('DOMContentLoaded', init);
+render(<App />, document.getElementById('ep-instant-results'));
