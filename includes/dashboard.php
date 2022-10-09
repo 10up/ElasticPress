@@ -506,6 +506,17 @@ function action_admin_enqueue_dashboard_scripts() {
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
 		);
+
+		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
+
+		wp_localize_script(
+			'ep_weighting_script',
+			'epWeighting',
+			array(
+				'weightableFields'       => $weighting->get_weightable_fields(),
+				'weightingConfiguration' => $weighting->get_weighting_configuration_with_defaults(),
+			)
+		);
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'install' ], true ) ) {

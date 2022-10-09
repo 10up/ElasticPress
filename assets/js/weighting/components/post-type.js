@@ -9,50 +9,31 @@ import { isEqual } from 'lodash';
 /**
  * Internal dependencies.
  */
-import Properties from './post-type/properties';
+import Group from './post-type/group';
 import UndoButton from './common/undo-button';
 
 /**
  * Post type weighting settings component.
  *
  * @param {object} props Components props.
+ * @param {object[]} props.groups Field groups.
  * @param {string} props.label Post type label.
  * @param {Function} props.onChange Data change handler.
- * @param {object} props.originalValue Saved post type settings.
- * @param {object} props.value Current post type settings.
+ * @param {object} props.originalValues Saved post type settings.
+ * @param {object} props.values Current post type settings.
  * @returns {WPElement} Component element.
  */
-export default ({ label, onChange, originalValue, value }) => {
-	const isChanged = useMemo(() => !isEqual(originalValue, value), [originalValue, value]);
+export default ({ groups, label, onChange, originalValues, values }) => {
+	const isChanged = useMemo(() => !isEqual(originalValues, values), [originalValues, values]);
 
 	/**
-	 * Handle a change to post type indexing.
+	 * Handle a change to the post type's setttings.
 	 *
-	 * @param {boolean} indexable Is post type indexable.
+	 * @param {Array} values Post type settings.
 	 * @returns {void}
 	 */
-	const onChangeIndexable = (indexable) => {
-		onChange({ ...value, indexable });
-	};
-
-	/**
-	 * Handle a change to the post type's attribute setttings.
-	 *
-	 * @param {Array} attributes Attribute settings.
-	 * @returns {void}
-	 */
-	const onChangeAttributes = (attributes) => {
-		onChange({ ...value, attributes });
-	};
-
-	/**
-	 * Handle a change to the post type's taxonomy setttings.
-	 *
-	 * @param {Array} taxonomies Taxonomy settings.
-	 * @returns {void}
-	 */
-	const onChangeTaxonomies = (taxonomies) => {
-		onChange({ ...value, taxonomies });
+	const onChangeGroup = (values) => {
+		onChange(values);
 	};
 
 	/**
@@ -61,7 +42,7 @@ export default ({ label, onChange, originalValue, value }) => {
 	 * @returns {void}
 	 */
 	const onReset = () => {
-		onChange({ ...originalValue });
+		onChange(originalValues);
 	};
 
 	return (
@@ -72,11 +53,7 @@ export default ({ label, onChange, originalValue, value }) => {
 						<h2>{label}</h2>
 					</div>
 					<div className="ep-weighting-property__checkbox">
-						<CheckboxControl
-							checked={value.indexable}
-							label={__('Index', 'elasticpress')}
-							onChange={onChangeIndexable}
-						/>
+						<CheckboxControl label={__('Index', 'elasticpress')} />
 					</div>
 					<div className="ep-weighting-property__undo">
 						{isChanged ? (
@@ -89,22 +66,19 @@ export default ({ label, onChange, originalValue, value }) => {
 					</div>
 				</div>
 			</PanelHeader>
-			{value.indexable ? (
-				<>
-					<Properties
-						label={__('Attributes', 'elasticpress')}
-						onChange={onChangeAttributes}
-						originalValue={originalValue.attributes}
-						value={value.attributes}
+			{Object.entries(groups)
+				.filter(([, g]) => g.children.length !== 0)
+				.map(([key, { label, children }]) => (
+					<Group
+						isEditable={key === 'meta'}
+						key={key}
+						label={label}
+						onChange={onChangeGroup}
+						originalValues={originalValues}
+						properties={children}
+						values={values}
 					/>
-					<Properties
-						label={__('Taxonomies', 'elasticpress')}
-						onChange={onChangeTaxonomies}
-						originalValue={originalValue.taxonomies}
-						value={value.taxonomies}
-					/>
-				</>
-			) : null}
+				))}
 		</Panel>
 	);
 };

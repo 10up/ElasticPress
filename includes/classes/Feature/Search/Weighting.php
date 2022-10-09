@@ -8,6 +8,7 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
+use ElasticPress\Indexables;
 use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Utils as Utils;
 
@@ -38,32 +39,6 @@ class Weighting {
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
 		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
-	}
-
-	/**
-	 * Returns unique list of meta keys
-	 *
-	 * @param string $post_type Post type
-	 *
-	 * @return array
-	 */
-	public function get_meta_keys_for_post_type( $post_type ) {
-
-
-		$meta_keys = array();
-		$posts     = get_posts( array( 'post_type' => $post_type, 'limit' => -1 ) );
-
-
-		foreach ( $posts as $post ) {
-			$post_meta_keys = get_post_custom_keys( $post->ID );
-			var_dump($post_meta_keys);
-			$meta_keys      = array_merge( $meta_keys, $post_meta_keys );
-		}
-
-		// Use array_unique to remove duplicate meta_keys that we received from all posts
-		// Use array_values to reset the index of the array
-		return array_values( array_unique( $meta_keys ) );
-
 	}
 
 	/**
@@ -126,6 +101,29 @@ class Weighting {
 		}
 
 		/**
+		 * TODO: Meta keys per post type?
+		 */
+		$fields['meta'] = [
+			'label'    => 'Metadata',
+			'children' => [],
+		];
+
+		try {
+			$meta_keys = Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
+		} catch ( \Throwable $th ) {
+			$meta_keys = [];
+		}
+
+		foreach ( $meta_keys as $meta_key ) {
+			$key = "meta.$meta_key.value";
+
+			$fields['meta']['children'][$key] = [
+				'key'   => $key,
+				'label' => $meta_key,
+			];
+		}
+
+		/**
 		 * Filter weighting fields for a post type
 		 *
 		 * @hook ep_weighting_fields_for_post_type
@@ -134,6 +132,23 @@ class Weighting {
 		 * @return  {array} New fields
 		 */
 		return apply_filters( 'ep_weighting_fields_for_post_type', $fields, $post_type );
+	}
+
+	/**
+	 * Get weightable fields for all searchable post types.
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	public function get_weightable_fields() {
+		$weightable = array();
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+
+		foreach ( $post_types as $post_type ) {
+			$weightable[ $post_type ] = $this->get_weightable_fields_for_post_type( $post_type );
+		}
+
+		return $weightable;
 	}
 
 	/**
@@ -191,6 +206,26 @@ class Weighting {
 		}
 
 		/**
+		 * TODO: Meta keys per post type?
+		 */
+		$indexable = Indexables::factory()->get( 'post' );
+
+		try {
+			$meta_keys = $indexable->get_distinct_meta_field_keys();
+		} catch ( \Throwable $th ) {
+			$meta_keys = [];
+		}
+
+		foreach ( $meta_keys as $meta_key ) {
+			$key = "meta.$meta_key.value";
+
+			$post_type_defaults[ $key ] = [
+				'enabled' => false,
+				'weight'  => 1,
+			];
+		}
+
+		/**
 		 * Filter weighting defaults for post type
 		 *
 		 * @hook ep_weighting_default_post_type_weights
@@ -215,6 +250,28 @@ class Weighting {
 		 * @return  {array} New configuration
 		 */
 		return apply_filters( 'ep_weighting_configuration', get_option( 'elasticpress_weighting', [] ) );
+	}
+
+	/**
+	 * Returns the current weighting configuration with defaults for any
+	 * missing properties.
+	 *
+	 * @return array Current weighting configuration with defaults.
+	 * @since 4.4.0
+	 */
+	public function get_weighting_configuration_with_defaults() {
+		$search     = Features::factory()->get_registered_feature( 'search' );
+		$post_types = $search->get_searchable_post_types();
+		$weighting  = $this->get_weighting_configuration();
+
+		foreach ( $post_types as $post_type ) {
+			$config  = isset( $weighting[ $post_type ] ) ? $weighting[ $post_type ] : array();
+			$default = $this->get_post_type_default_settings( $post_type );
+
+			$weighting[ $post_type ] = wp_parse_args( $config, $default );
+		}
+
+		return $weighting;
 	}
 
 	/**

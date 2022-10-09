@@ -8,7 +8,7 @@ import { cloneDeep, isEqual } from 'lodash';
 /**
  * Internal Dependencies.
  */
-import { dummyData } from './dummyData';
+import { weightableFields, weightingConfiguration } from './config';
 import PostType from './components/post-type';
 import Save from './components/save';
 
@@ -18,8 +18,8 @@ import Save from './components/save';
  * @returns {WPElement} Element.
  */
 const App = () => {
-	const [data, setData] = useState(cloneDeep(dummyData));
-	const [savedData, setSavedData] = useState(cloneDeep(dummyData));
+	const [data, setData] = useState(cloneDeep(weightingConfiguration));
+	const [savedData, setSavedData] = useState(cloneDeep(weightingConfiguration));
 	const [isBusy, setIsBusy] = useState(false);
 
 	/**
@@ -31,10 +31,13 @@ const App = () => {
 	 * Handle data change.
 	 *
 	 * @param {Array} value Updated data.
+	 * @param {string} postType Updated post type.
 	 * @returns {void}
 	 */
-	const onChange = (value) => {
-		setData(value);
+	const onChangePostType = (value, postType) => {
+		const newData = { ...data, [postType]: value };
+
+		setData(newData);
 	};
 
 	/**
@@ -81,19 +84,16 @@ const App = () => {
 				</p>
 			</div>
 
-			{data.map((value, index) => (
+			{Object.entries(weightableFields).map(([key, groups]) => (
 				<PostType
-					key={value.name}
-					label={value.label}
+					groups={groups}
+					key={key}
+					label={key}
 					onChange={(value) => {
-						const newValue = [...data];
-
-						newValue.splice(index, 1, value);
-
-						onChange(newValue);
+						onChangePostType(value, key);
 					}}
-					originalValue={savedData[index]}
-					value={value}
+					originalValues={savedData[key]}
+					values={data[key]}
 				/>
 			))}
 

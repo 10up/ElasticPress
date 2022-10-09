@@ -23,7 +23,7 @@ import WeightControl from '../common/weight-control';
  * @returns {WPElement} Component element.
  */
 export default ({ label, onChange, originalValue, value }) => {
-	const { indexable, searchable, weight } = value;
+	const { enabled = true, weight = 99 } = value;
 
 	/**
 	 * Is the current value different to the original.
@@ -33,21 +33,11 @@ export default ({ label, onChange, originalValue, value }) => {
 	/**
 	 * Handle change of indexable.
 	 *
-	 * @param {boolean} indexable New indexable value.
+	 * @param {boolean} enabled New indexable value.
 	 * @returns {void}
 	 */
-	const onChangeIndex = (indexable) => {
-		onChange({ ...value, indexable, searchable: false });
-	};
-
-	/**
-	 * Handle change of searchable.
-	 *
-	 * @param {boolean} searchable New searchable value.
-	 * @returns {void}
-	 */
-	const onChangeSearchable = (searchable) => {
-		onChange({ ...value, indexable: true, searchable });
+	const onChangeEnabled = (enabled) => {
+		onChange({ ...value, enabled });
 	};
 
 	/**
@@ -65,8 +55,8 @@ export default ({ label, onChange, originalValue, value }) => {
 	 *
 	 * @returns {void}
 	 */
-	const onUndo = () => {
-		onChange({ ...originalValue });
+	const onReset = () => {
+		onChange(originalValue);
 	};
 
 	return (
@@ -76,29 +66,21 @@ export default ({ label, onChange, originalValue, value }) => {
 				<div className="ep-weighting-property__indexable">
 					<CheckboxControl
 						label={__('Index', 'elsaticpress')}
-						onChange={onChangeIndex}
-						checked={indexable}
+						onChange={onChangeEnabled}
+						checked={enabled}
 					/>
 				</div>
 				<div className="ep-weighting-property__searchable">
-					<CheckboxControl
-						label={__('Searchable', 'elsaticpress')}
-						onChange={onChangeSearchable}
-						checked={searchable}
-					/>
+					<CheckboxControl label={__('Searchable', 'elsaticpress')} />
 				</div>
 				<div className="ep-weighting-property__weighting">
-					<WeightControl
-						disabled={!searchable}
-						value={weight}
-						onChange={onChangeWeight}
-					/>
+					<WeightControl disabled={!enabled} value={weight} onChange={onChangeWeight} />
 				</div>
 				<div className="ep-weighting-property__undo">
 					<UndoButton
 						disabled={!isChanged}
 						label={__('Undo changes', 'elasticpress')}
-						onClick={onUndo}
+						onClick={onReset}
 					/>
 				</div>
 			</fieldset>
