@@ -143,6 +143,14 @@ describe('WooCommerce Feature', () => {
 		// ensure order is placed.
 		cy.url().should('include', '/checkout/order-received');
 
+		/**
+		 * Give Elasticsearch some time to process the new posts.
+		 *
+		 * @todo instead of waiting for an arbitrary time, we should ensure the posts were processed OR retry the next block.
+		 */
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
+
 		// ensure order is visible to user.
 		cy.visit('my-account/orders');
 		cy.get('.woocommerce-orders-table tbody tr').should('have.length', 1);
