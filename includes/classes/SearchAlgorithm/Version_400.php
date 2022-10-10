@@ -42,7 +42,7 @@ class Version_400 extends \ElasticPress\SearchAlgorithm {
 	 * @return string
 	 */
 	public function get_description() : string {
-		return esc_html__( 'Version 4.0', 'elasticpress' );
+		return esc_html__( 'Search for all search terms in one field first, then prioritize them over search terms matched in different fields.', 'elasticpress' );
 	}
 
 	/**

@@ -42,7 +42,7 @@ class Version_350 extends \ElasticPress\SearchAlgorithm {
 	 * @return string
 	 */
 	public function get_description() : string {
-		return esc_html__( 'Version 3.5', 'elasticpress' );
+		return esc_html__( 'Search for the existence of all words in the search first, then return results based on how closely those words appear.', 'elasticpress' );
 	}
 
 	/**
