@@ -2879,6 +2879,64 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test an advanced meta filter query with or relation while sorting by Meta key
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testMetaQueryOrRelationWithSort() {
+		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => date('Ymd')-5 ) );
+		Functions\create_and_sync_post(
+			array( 'post_content' => 'the post content findme' ),
+			array(
+				'test_key'  => date('Ymd')+5,
+				'test_key2' => date('Ymd')+6,
+			)
+		);
+		Functions\create_and_sync_post(
+			array( 'post_content' => 'post content findme' ),
+			array(
+				'test_key' => date('Ymd')+5,
+				'test_key2' => date('Ymd')+6,
+			)
+		);
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			'ep_integrate' => true,
+			'meta_key' => 'test_key',
+			'meta_query' => array(
+				array(
+					'key'     => 'test_key',
+					'value'   => date('Ymd'),
+					'compare' => '>=',
+					'type' => 'NUMERIC',
+				),
+				array(
+					'key'     => 'test_key2',
+					'value'   => date('Ymd'),
+					'compare' => '>=',
+					'type' => 'NUMERIC',
+				),
+				'relation' => 'or',
+			),
+			'orderby' => 'meta_value_num',
+			'order' => 'ASC',
+		);
+
+		$query = new \WP_Query( $args );
+		$args = $post->format_args($args, new \WP_Query() );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertSame( 'meta.test_key', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['exists']['field'] );
+		$this->assertArrayHasKey( 'meta.test_key.long', $args['post_filter']['bool']['must'][0]['bool']['must'][1]['bool']['must'][0]['range'] );
+		$this->assertArrayHasKey( 'meta.test_key2.long', $args['post_filter']['bool']['must'][0]['bool']['must'][2]['bool']['must'][0]['range'] );
+	}
+
+	/**
 	 * Test an advanced meta filter query
 	 *
 	 * @since 1.3
