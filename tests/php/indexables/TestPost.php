@@ -2900,10 +2900,11 @@ class TestPost extends BaseTestCase {
 			'ep_integrate' => true,
 			'meta_key' => 'test_key',
 			'meta_query' => array(
+				'relation' => 'or',
 				array(
 					'key'     => 'test_key',
 					'value'   => date('Ymd'),
-					'compare' => '>=',
+					'compare' => '<=',
 					'type' => 'NUMERIC',
 				),
 				array(
@@ -2912,7 +2913,6 @@ class TestPost extends BaseTestCase {
 					'compare' => '>=',
 					'type' => 'NUMERIC',
 				),
-				'relation' => 'or',
 			),
 			'orderby' => 'meta_value_num',
 			'order' => 'ASC',
@@ -2921,12 +2921,14 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $args );
 		$args = $post->format_args($args, new \WP_Query() );
 
+		$outer_must = $args['post_filter']['bool']['must'][0]['bool']['must'];
+
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertEquals( 2, $query->post_count );
-		$this->assertEquals( 2, $query->found_posts );
-		$this->assertSame( 'meta.test_key', $args['post_filter']['bool']['must'][0]['bool']['must'][0]['exists']['field'] );
-		$this->assertArrayHasKey( 'meta.test_key.long', $args['post_filter']['bool']['must'][0]['bool']['must'][1]['bool']['must'][0]['range'] );
-		$this->assertArrayHasKey( 'meta.test_key2.long', $args['post_filter']['bool']['must'][0]['bool']['must'][2]['bool']['must'][0]['range'] );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertSame( 'meta.test_key', $outer_must[0]['exists']['field'] );
+		$this->assertArrayHasKey( 'meta.test_key.long', $outer_must[1]['bool']['should']['bool']['should'][0]['bool']['must'][0]['range'] );
+		$this->assertArrayHasKey( 'meta.test_key2.long', $outer_must[1]['bool']['should']['bool']['should'][1]['bool']['must'][0]['range'] );
 	}
 
 	/**
