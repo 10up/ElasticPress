@@ -42,7 +42,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	 * @return string
 	 */
 	public function get_description() : string {
-		return esc_html__( 'Default', 'elasticpress' );
+		return esc_html__( 'Use a fuzzy match approach which includes results that have misspellings, and also includes matches on only some of the words in the search.', 'elasticpress' );
 	}
 
 	/**
@@ -148,7 +148,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 		 */
 		$query['bool']['should'][0]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_phrase_boost',
-			[ 4, $search_fields, $query_vars ],
+			[ $query['bool']['should'][0]['multi_match']['boost'], $search_fields, $query_vars ],
 			'4.3.0',
 			'ep_post_match_phrase_boost'
 		);
@@ -166,7 +166,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 		 */
 		$query['bool']['should'][1]['multi_match']['boost'] = apply_filters_deprecated(
 			'ep_match_boost',
-			[ 2, $search_fields, $query_vars ],
+			[ $query['bool']['should'][1]['multi_match']['boost'], $search_fields, $query_vars ],
 			'4.3.0',
 			'ep_post_match_boost'
 		);
@@ -184,7 +184,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 		 */
 		$query['bool']['should'][2]['multi_match']['fuzziness'] = apply_filters_deprecated(
 			'ep_fuzziness_arg',
-			[ 1, $search_fields, $query_vars ],
+			[ $query['bool']['should'][2]['multi_match']['fuzziness'], $search_fields, $query_vars ],
 			'4.3.0',
 			'ep_post_fuzziness_arg'
 		);

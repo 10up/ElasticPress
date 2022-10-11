@@ -134,6 +134,10 @@ class TestFacets extends BaseTestCase {
 
 		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
 
+		// test when search parameter is empty.
+		$filters['s'] = '';
+		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur&s=', $facet_feature->build_query_url( $filters ) );
+
 		$_SERVER['REQUEST_URI'] = 'test/page/1';
 
 		$filters['s'] = 'dolor';
