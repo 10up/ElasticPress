@@ -90,6 +90,55 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	}
 
 	/**
+	 * Test filters with posts
+	 * 
+	 * As posts also apply the legacy filters, these tests assure code honors the value of the newer filters
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/3033 
+	 * @group searchAlgorithms
+	 */
+	public function testPostFilters() {
+		$default = new DefaultAlgorithm();
+
+		$search_term   = 'search_term';
+		$search_fields = [ 'post_title', 'post_content' ];
+
+		$test_filter = function() {
+			return 1234;
+		};
+
+		/**
+		 * Test the `ep_post_match_phrase_boost` filter.
+		 */
+		add_filter( 'ep_post_match_phrase_boost', $test_filter );
+
+		$query = $default->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][0]['multi_match']['boost'] );
+
+		remove_filter( 'ep_post_match_phrase_boost', $test_filter );
+
+		/**
+		 * Test the `ep_post_match_boost` filter.
+		 */
+		add_filter( 'ep_post_match_boost', $test_filter );
+
+		$query = $default->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][1]['multi_match']['boost'] );
+
+		remove_filter( 'ep_post_match_boost', $test_filter );
+
+		/**
+		 * Test the `ep_post_fuzziness_arg` filter.
+		 */
+		add_filter( 'ep_post_fuzziness_arg', $test_filter );
+
+		$query = $default->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['fuzziness'] );
+
+		remove_filter( 'ep_post_fuzziness_arg', $test_filter );
+	}
+
+	/**
 	 * Test deprecated/legacy filters
 	 *
 	 * @expectedDeprecated ep_match_phrase_boost

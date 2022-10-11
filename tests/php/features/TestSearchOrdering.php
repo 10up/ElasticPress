@@ -445,6 +445,73 @@ class TestSearchOrdering extends BaseTestCase {
 		remove_filter( 'rest_url', [ $this, 'filter_rest_url_for_leading_slash' ], 10, 2 );
 	}
 
+	/**
+	 * Test API endpoints are accessible for users with `manage_options` capability.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testUserWithManageOptionsCapabilityCanAccessAPI() {
+
+		global $wp_rest_server;
+		/** @var WP_REST_Server $wp_rest_server */
+		$wp_rest_server = new \WP_REST_Server;
+		do_action( 'rest_api_init', $wp_rest_server );
+
+		$request  = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_search' );
+		$request->set_query_params(
+			array(
+				's' => 'hello-world',
+			)
+		);
+		$response = $wp_rest_server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+
+		$request  = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_preview' );
+		$request->set_query_params(
+			array(
+				's' => 'hello-world',
+			)
+		);
+		$response = $wp_rest_server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * Test API endpoints are not accessible for users without `manage_options` capability.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testUserWithOutManageOptionsCapabilityCanNotAccessAPI() {
+
+		// Set current user without `manage_options` capability.
+		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		global $wp_rest_server;
+		/** @var WP_REST_Server $wp_rest_server */
+		$wp_rest_server = new \WP_REST_Server;
+		do_action( 'rest_api_init', $wp_rest_server );
+
+		$request  = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_search' );
+		$request->set_query_params(
+			array(
+				's' => 'hello-world',
+			)
+		);
+		$response = $wp_rest_server->dispatch( $request );
+		$this->assertEquals( 403, $response->get_status() );
+
+
+		$request  = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_preview' );
+		$request->set_query_params(
+			array(
+				's' => 'hello-world',
+			)
+		);
+		$response = $wp_rest_server->dispatch( $request );
+		$this->assertEquals( 403, $response->get_status() );
+	}
+
 	public function filter_rest_url_for_leading_slash( $url, $path ) {
 		if ( is_multisite() || get_option( 'permalink_structure' ) ) {
 			return $url;
