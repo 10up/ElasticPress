@@ -49,15 +49,6 @@ class BaseTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper function to test whether a EP search has happened
-	 *
-	 * @since 1.0
-	 */
-	public function action_wp_query_search() {
-		$this->fired_actions['ep_wp_query_search'] = true;
-	}
-
-	/**
 	 * Helper function to check post sync args
 	 *
 	 * @param  array $post_args Post arguments
