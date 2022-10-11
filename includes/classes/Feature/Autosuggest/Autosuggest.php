@@ -552,13 +552,36 @@ class Autosuggest extends Feature {
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
-		$search = new \WP_Query(
-			[
-				'post_type'    => $post_type,
-				'post_status'  => $post_status,
-				's'            => $placeholder,
-				'ep_integrate' => true,
-			]
+		new \WP_Query(
+			/**
+			 * Filter WP Query args of the autosuggest query template.
+			 *
+			 * If you want to display 20 posts in autosuggest:
+			 *
+			 * ```
+			 * add_filter(
+			 *     'ep_autosuggest_query_args',
+			 *     function( $args ) {
+			 *         $args['posts_per_page'] = 20;
+			 *         return $args;
+			 *     }
+			 * );
+			 * ```
+			 *
+			 * @since 4.4.0
+			 * @hook ep_autosuggest_query_args
+			 * @param {array} $args Query args
+			 * @return {array} New query args
+			 */
+			apply_filters(
+				'ep_autosuggest_query_args',
+				[
+					'post_type'    => $post_type,
+					'post_status'  => $post_status,
+					's'            => $placeholder,
+					'ep_integrate' => true,
+				]
+			)
 		);
 
 		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );

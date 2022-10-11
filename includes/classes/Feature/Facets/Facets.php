@@ -237,7 +237,7 @@ class Facets extends Feature {
 			return true;
 		}
 
-		if ( is_admin() ) {
+		if ( is_admin() || is_feed() ) {
 			return false;
 		}
 
@@ -424,7 +424,7 @@ class Facets extends Feature {
 
 		if ( ! empty( $filters ) ) {
 			foreach ( $filters as $filter => $value ) {
-				if ( ! empty( $value ) && in_array( $filter, $allowed_args, true ) ) {
+				if ( in_array( $filter, $allowed_args, true ) ) {
 					$query_param[ $filter ] = $value;
 				}
 			}
@@ -499,7 +499,7 @@ class Facets extends Feature {
 	 * @since 3.6.0
 	 */
 	public function get_allowed_query_args() {
-		$args = array( 's', 'post_type' );
+		$args = array( 's', 'post_type', 'orderby' );
 
 		/**
 		 * Filter allowed query args

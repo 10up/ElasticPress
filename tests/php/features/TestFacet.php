@@ -122,6 +122,10 @@ class TestFacets extends BaseTestCase {
 
 		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
 
+		// test when search parameter is empty.
+		$filters['s'] = '';
+		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur&s=', $facet_feature->build_query_url( $filters ) );
+
 		$_SERVER['REQUEST_URI'] = 'test/page/1';
 
 		$filters['s'] = 'dolor';
@@ -169,7 +173,7 @@ class TestFacets extends BaseTestCase {
 		$query_args = [];
 
 		$query = new \WP_Query();
-		
+
 		// No `ep_facet` in query_args will make it return the same array.
 		$this->assertSame( $args, $facet_feature->set_agg_filters( $args, $query_args, $query ) );
 

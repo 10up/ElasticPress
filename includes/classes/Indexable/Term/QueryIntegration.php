@@ -79,14 +79,34 @@ class QueryIntegration {
 			return $results;
 		}
 
+		if ( ! $this->is_searchable( $query ) ) {
+			return $results;
+		}
+
 		$new_terms = apply_filters( 'ep_wp_query_cached_terms', null, $query );
 
 		if ( null === $new_terms ) {
 			$formatted_args = $indexable->format_args( $query->query_vars );
 
 			$scope = 'current';
+
+			$site__in     = [];
+			$site__not_in = [];
+
 			if ( ! empty( $query->query_vars['sites'] ) ) {
-				$scope = $query->query_vars['sites'];
+
+				_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
+				$site__in = (array) $query->query_vars['sites'];
+				$scope    = 'all' === $query->query_vars['sites'] ? 'all' : $site__in;
+			}
+
+			if ( ! empty( $query->query_vars['site__in'] ) ) {
+				$site__in = (array) $query->query_vars['site__in'];
+				$scope    = 'all' === $query->query_vars['site__in'] ? 'all' : $site__in;
+			}
+
+			if ( ! empty( $query->query_vars['site__not_in'] ) ) {
+				$site__not_in = (array) $query->query_vars['site__not_in'];
 			}
 
 			/**
@@ -107,15 +127,28 @@ class QueryIntegration {
 
 			if ( 'all' === $scope ) {
 				$index = $indexable->get_network_alias();
-			} elseif ( is_numeric( $scope ) ) {
-				$index = $indexable->get_index_name( (int) $scope );
-			} elseif ( is_array( $scope ) ) {
+			} elseif ( ! empty( $site__in ) ) {
 				$index = [];
 
-				foreach ( $scope as $site_id ) {
+				foreach ( $site__in as $site_id ) {
 					$index[] = $indexable->get_index_name( $site_id );
 				}
 
+				$index = implode( ',', $index );
+			} elseif ( ! empty( $site__not_in ) ) {
+
+				$sites = get_sites(
+					array(
+						'fields'       => 'ids',
+						'site__not_in' => $site__not_in,
+					)
+				);
+				foreach ( $sites as $site_id ) {
+					if ( ! Utils\is_site_indexable( $site_id ) ) {
+						continue;
+					}
+					$index[] = Indexables::factory()->get( 'term' )->get_index_name( $site_id );
+				}
 				$index = implode( ',', $index );
 			}
 
@@ -331,6 +364,23 @@ class QueryIntegration {
 		}
 
 		return $new_terms;
+	}
+
+	/**
+	 * Determine whether ES should be used for the query if all taxonomies are indexable.
+	 *
+	 * @param \WP_Term_Query $query The WP_Term_Query object.
+	 * @return boolean
+	 */
+	protected function is_searchable( $query ) {
+
+		$taxonomies = $query->query_vars['taxonomy'];
+		if ( ! $taxonomies ) {
+			return true;
+		}
+
+		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
+		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
 
 }
