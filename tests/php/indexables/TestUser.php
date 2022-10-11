@@ -1645,5 +1645,82 @@ class TestUser extends BaseTestCase {
 	}
 
 
+	public function testProtectedMetaNotIndex() {
+
+
+		$user_id = $this->factory->user->create( array(
+			'meta_input' => array(
+				'_phone_number' => '1234567890'
+			)
+		) );
+
+		$user = new \ElasticPress\Indexable\User\User();
+
+		$user_args = $user->prepare_document( $user_id );
+
+		$this->assertTrue( empty( $user_args['meta']['_phone_number'] ) );
+	}
+
+
+	public function testProtectedWhiteListMetaIndex() {
+
+		add_filter( 'ep_prepare_user_meta_allowed_protected_keys', function( $meta_keys )  {
+			$meta_keys[] = '_phone_number';
+
+			return $meta_keys;
+		} );
+
+
+		$user_id = $this->factory->user->create( array(
+			'meta_input' => array(
+				'_phone_number' => '1234567890'
+			)
+		) );
+
+		$user = new \ElasticPress\Indexable\User\User();
+		$user_args = $user->prepare_document( $user_id );
+
+		$this->assertEquals( $user_args['meta']['_phone_number'][0]['value'], '1234567890' );
+	}
+
+
+	public function testQueryDb() {
+
+		$this->createAndIndexUsers();
+		$user_1 = $this->factory->user->create();
+		$user_2 = $this->factory->user->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+
+		$user = new \ElasticPress\Indexable\User\User();
+
+		// Test the first loop of the indexing.
+		$results = $user->query_db(
+			[
+				'per_page' => 1,
+			]
+		);
+
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 7, $results['total_objects'] );
+		$this->assertEquals( $user_2, $results['objects'][0]->ID );
+
+
+		// Test the second loop of the indexing.
+		$results = $user->query_db(
+			[
+				'per_page' => 1,
+				'offset'   => 1,
+			]
+		);
+
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 7, $results['total_objects'] );
+		$this->assertEquals( $user_1, $results['objects'][0]->ID );
+
+	}
+
+
 
 }
