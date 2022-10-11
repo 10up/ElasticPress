@@ -36,6 +36,7 @@ describe('Instant Results Feature', () => {
 		});
 
 		cy.deactivatePlugin('open-instant-results-with-buttons', 'wpCli');
+		cy.deactivatePlugin('custom-instant-results-template', 'wpCli');
 	});
 
 	after(() => {
@@ -182,5 +183,30 @@ describe('Instant Results Feature', () => {
 		cy.wait('@apiRequest');
 		cy.get('searchModal').find('.ep-search-input').should('have.value', 'block');
 		cy.get('searchModal').find('.ep-search-results__title').should('contain.text', 'block');
+	});
+
+	it('Can filter the result template', () => {
+		/**
+		 * Activate test plugin with filter.
+		 */
+		cy.maybeEnableFeature('instant-results');
+		cy.activatePlugin('custom-instant-results-template', 'wpCli');
+
+		/**
+		 * Perform a search.
+		 */
+		cy.intercept('*search=blog*').as('apiRequest');
+		cy.visit('/');
+		cy.get('.wp-block-search').last().as('searchBlock');
+		cy.get('@searchBlock').find('input[type="search"]').type('blog');
+		cy.get('@searchBlock').find('button').click();
+		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
+		cy.wait('@apiRequest');
+
+		/**
+		 * Results should use the filtered template with a custom class.
+		 */
+		cy.get('.my-custom-result').should('exist');
+		cy.get('.ep-search-result').should('not.exist');
 	});
 });
