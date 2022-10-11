@@ -146,7 +146,6 @@ describe('WooCommerce Feature', () => {
 		/**
 		 * Give Elasticsearch some time to process the new posts.
 		 *
-		 * @todo instead of waiting for an arbitrary time, we should ensure the posts were processed OR retry the next block.
 		 */
 		// eslint-disable-next-line cypress/no-unnecessary-waiting
 		cy.wait(2000);
