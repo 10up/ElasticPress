@@ -199,8 +199,6 @@ class TestPost extends BaseTestCase {
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -250,8 +248,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -412,7 +408,6 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 		$query = new \WP_Query( array( 's' => '#findme' ) );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -549,8 +544,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -3107,8 +3100,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -6991,5 +6982,70 @@ class TestPost extends BaseTestCase {
 
 		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, null ) );
 		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, null ) );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetDistinctMetaFieldKeys() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => '' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => '' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$distinct_meta_field_keys = $indexable->get_distinct_meta_field_keys();
+
+		$this->assertIsArray( $distinct_meta_field_keys );
+		$this->assertContains( 'new_meta_key_1', $distinct_meta_field_keys );
+		$this->assertContains( 'new_meta_key_2', $distinct_meta_field_keys );
+	}
+
+	/**
+	 * Tests get_all_distinct_values
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testGetAllDistinctValues() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foo' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'bar' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foobar' ) );
+
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'lorem' ) );
+		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'ipsum' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+
+		$this->assertCount( 3, $distinct_values );
+		$this->assertContains( 'foo', $distinct_values );
+		$this->assertContains( 'bar', $distinct_values );
+		$this->assertContains( 'foobar', $distinct_values );
+
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw', 1 );
+		$this->assertCount( 1, $distinct_values );
+		$this->assertContains( 'bar', $distinct_values );
+
+		$change_bucket_size = function( $count, $field ) {
+			return ( 'meta.new_meta_key_1.raw' === $field ) ? 1 : $count;
+		};
+		add_filter( 'ep_post_all_distinct_values', $change_bucket_size, 10, 2 );
+
+		$distinct_values_1 = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+		$this->assertCount( 1, $distinct_values_1 );
+		$this->assertContains( 'bar', $distinct_values_1 );
+
+		$distinct_values_2 = $indexable->get_all_distinct_values( 'meta.new_meta_key_2.raw' );
+		$this->assertCount( 2, $distinct_values_2 );
+		$this->assertContains( 'lorem', $distinct_values_2 );
+		$this->assertContains( 'ipsum', $distinct_values_2 );
 	}
 }

@@ -86,6 +86,14 @@ describe('Terms Feature', () => {
 			.find('.row-actions .delete a')
 			.click({ force: true });
 
+		/**
+		 * Give Elasticsearch some time. Apparently, if we search again it returns the outdated data.
+		 *
+		 * @see https://github.com/10up/ElasticPress/issues/2726
+		 */
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
+
 		// Re-search for the term and make sure it's not there.
 		cy.get('#search-submit').click();
 		cy.get('.wp-list-table tbody').should('contain.text', 'No categories found');

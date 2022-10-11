@@ -6,7 +6,7 @@
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets;
+namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use ElasticPress\Features;
 
@@ -24,8 +24,6 @@ class Block {
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
-
-		$this->renderer = new Renderer();
 	}
 
 	/**
@@ -83,7 +81,7 @@ class Block {
 	 * @return array
 	 */
 	public function get_rest_facetable_taxonomies() {
-		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->get_facetable_taxonomies();
+		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
 
 		$taxonomies = [];
 		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
@@ -115,7 +113,7 @@ class Block {
 	 */
 	public function register_block() {
 		register_block_type_from_metadata(
-			EP_PATH . 'assets/js/blocks/facets',
+			EP_PATH . 'assets/js/blocks/facets/taxonomy',
 			[
 				'render_callback' => [ $this, 'render_block' ],
 			]
@@ -129,10 +127,25 @@ class Block {
 	 */
 	public function render_block( $attributes ) {
 		$attributes = $this->parse_attributes( $attributes );
+
+		/**
+		 * Filter the class name to be used to render the Facet.
+		 *
+		 * @since 4.3.0
+		 * @hook ep_facet_renderer_class
+		 * @param {string} $classname  The name of the class to be instantiated and used as a renderer.
+		 * @param {string} $facet_type The type of the facet.
+		 * @param {string} $context    Context where the renderer will be used: `block` or `widget`, for example.
+		 * @param {string} $attributes Element attributes.
+		 * @return {string} The name of the class
+		 */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $attributes );
+		$renderer       = new $renderer_class();
+
 		ob_start();
 		?>
 		<div class="wp-block-elasticpress-facet">
-			<?php $this->renderer->render( [], $attributes ); ?>
+			<?php $renderer->render( [], $attributes ); ?>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -166,8 +179,12 @@ class Block {
 			]
 		);
 
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $attributes );
+		$renderer       = new $renderer_class();
+
 		ob_start();
-		$this->renderer->render( [], $attributes );
+		$renderer->render( [], $attributes );
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
@@ -203,7 +220,7 @@ class Block {
 			]
 		);
 		if ( empty( $attributes['facet'] ) ) {
-			$taxonomies = Features::factory()->get_registered_feature( 'facets' )->get_facetable_taxonomies();
+			$taxonomies = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
 			if ( ! empty( $taxonomies ) ) {
 				$attributes['facet'] = key( $taxonomies );
 			}
