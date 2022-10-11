@@ -1493,4 +1493,157 @@ class TestUser extends BaseTestCase {
 			$this->assertTrue( $user->elasticsearch );
 		}
 	}
+
+
+	public function testUserQueryUserLogin() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'       => 'contributor',
+				'search_columns' => [ 'user_login' ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
+		$this->assertTrue( $user_query->results[0]->elasticsearch );
+	}
+
+
+
+	/**
+	 * Test basic user search via user url
+	 *
+	 * @since 3.0
+	 */
+	public function testBasicUserSearchUserUrlNew() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'        => 'http://google.com',
+				'search_columns' => [ 'user_url' ],
+			]
+		);
+
+		foreach ( $user_query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+		}
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
+	}
+
+
+
+	public function testUserQueryUserNiceName() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'       => 'mike',
+				'search_columns' => [ 'user_nicename' ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
+		$this->assertTrue( $user_query->results[0]->elasticsearch );
+	}
+
+
+
+
+	public function testUserQueryUserEmail() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'       => 'zoey@gmail.com',
+				'search_columns' => [ 'user_email' ],
+				'ep_integrate' => true,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
+		$this->assertTrue( $user_query->results[0]->elasticsearch );
+	}
+
+
+	/**
+	 * Test default order by set to user_login
+	 *
+	 * @return void
+	 */
+	public function testUserQueryDefaultOrderBy() {
+		$this->createAndIndexUsers();
+
+		$expected_user_order = [
+			'admin',
+			'test_admin',
+			'user1-author',
+			'user2-contributor',
+			'user3-editor',
+		];
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => '',
+			]
+		);
+
+		$user_order = array();
+		foreach ( $user_query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+			$user_order[] = $user->user_login;
+		}
+
+		$this->assertEquals( $expected_user_order, $user_order );
+	}
+
+	/**
+	 * Test default order set to the score when orderby is set to empty
+	 *
+	 * @return void
+	 */
+	public function testUserQueryDefaultOrder() {
+		$this->createAndIndexUsers();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+
+		add_action( 'pre_http_request', function( $preempt,  $parsed_args, $url ) {
+			$body = json_decode( $parsed_args['body'], true );
+
+			$this->assertIsObject( $body->sort[0]->_score );
+			return $preempt;
+		}, 10, 3  );
+
+
+		$user_query = new \WP_User_Query(
+			[
+				'orderby'      => '',
+				'search'       => 'user',
+			]
+		);
+
+		foreach ( $user_query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+		}
+
+	}
+
+
+
 }
