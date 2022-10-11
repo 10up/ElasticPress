@@ -199,8 +199,6 @@ class TestPost extends BaseTestCase {
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -250,8 +248,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -412,7 +408,6 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 		$query = new \WP_Query( array( 's' => '#findme' ) );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -549,8 +544,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -3107,8 +3100,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 

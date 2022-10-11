@@ -70,15 +70,13 @@ class TestSearch extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$args = array(
 			's' => 'findme',
 		);
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 	}
 
 	/**
@@ -367,4 +365,3 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
 }
-

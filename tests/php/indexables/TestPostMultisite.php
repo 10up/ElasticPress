@@ -198,8 +198,6 @@ class TestPostMultisite extends BaseTestCase {
 			'sites' => 'all',
 		);
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -450,8 +448,6 @@ class TestPostMultisite extends BaseTestCase {
 			'sites' => 'all',
 		);
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -498,8 +494,6 @@ class TestPostMultisite extends BaseTestCase {
 			's'     => 'findme',
 			'sites' => 'all',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
