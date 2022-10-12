@@ -195,6 +195,65 @@ class TestAutosuggest extends BaseTestCase {
         $this->assertContains( 'ep_autosuggest_placeholder', $query );
     }
 
+    public function testGenerateSearchQueryFilters() {
+		/**
+		 * Test the `ep_autosuggest_query_placeholder` filter.
+		 */
+        $test_placeholder_filter = function() {
+			return 'lorem-ipsum';
+		};
+
+		add_filter( 'ep_autosuggest_query_placeholder', $test_placeholder_filter );
+
+		$query = $this->get_feature()->generate_search_query();
+		$this->assertContains( 'lorem-ipsum', $query['body'] );
+
+		remove_filter( 'ep_autosuggest_query_placeholder', $test_placeholder_filter );
+
+		/**
+		 * Test the `ep_autosuggest_query_placeholder` filter.
+		 */
+        $test_post_type_filter = function() {
+			return [ 'my-custom-post-type' ];
+		};
+
+		add_filter( 'ep_term_suggest_post_type', $test_post_type_filter );
+
+		$query = $this->get_feature()->generate_search_query();
+		$this->assertContains( 'my-custom-post-type', $query['body'] );
+
+		remove_filter( 'ep_term_suggest_post_type', $test_post_type_filter );
+
+		/**
+		 * Test the `ep_term_suggest_post_status` filter.
+		 */
+        $test_post_status_filter = function() {
+			return [ 'trash' ];
+		};
+
+		add_filter( 'ep_term_suggest_post_status', $test_post_status_filter );
+
+		$query = $this->get_feature()->generate_search_query();
+		$this->assertContains( 'trash', $query['body'] );
+
+		remove_filter( 'ep_term_suggest_post_status', $test_post_status_filter );
+
+		/**
+		 * Test the `ep_term_suggest_post_status` filter.
+		 */
+        $test_args_filter = function( $args ) {
+            $args['posts_per_page'] = 1234;
+			return $args;
+		};
+
+		add_filter( 'ep_autosuggest_query_args', $test_args_filter );
+
+		$query = $this->get_feature()->generate_search_query();
+		$this->assertContains( '1234', $query['body'] );
+
+		remove_filter( 'ep_autosuggest_query_args', $test_args_filter );
+    }
+
     public function testReturnEmptyPosts() {
         $this->assertEmpty( $this->get_feature()->return_empty_posts() );
     }

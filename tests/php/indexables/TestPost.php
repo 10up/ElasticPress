@@ -199,8 +199,6 @@ class TestPost extends BaseTestCase {
 			's' => 'findme',
 		);
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -250,8 +248,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -412,7 +408,6 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 		$query = new \WP_Query( array( 's' => '#findme' ) );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -549,8 +544,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -3168,8 +3161,6 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's' => 'findme',
 		);
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$query = new \WP_Query( $args );
 
@@ -6072,6 +6063,43 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( 'publish', $args['aggs']['taxonomies']['filter']['bool']['must'][1]['term']['post_status'] );
 		$this->assertSame( 'terms.category.slug', $args['aggs']['taxonomies']['aggs']['terms']['field'] );
 		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
+	}
+
+	/**
+	 * Tests the `ep_post_filters` filter
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsEpPostFilter() {
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$test_args  = [];
+		$test_query = new \WP_Query( $test_args );
+
+		$add_es_filter = function( $filters, $args, $query ) use ( $test_query, $test_args ) {
+			$filters['new_filter'] = [
+				'term' => [
+					'my_custom_field.raw' => 'my_custom_value',
+				],
+			];
+
+			// Simple check if the filter additional parameters work.
+			$this->assertSame( $test_query, $query );
+			$this->assertSame( $test_args, $args );
+
+			return $filters;
+		};
+		add_filter( 'ep_post_filters', $add_es_filter, 10, 3 );
+
+		$args = $post->format_args( $test_args, $test_query );
+
+		$this->assertNotEmpty( $args['post_filter']['bool']['must'] );
+
+		$last_filter = end( $args['post_filter']['bool']['must'] );
+		$this->assertSame( [ 'my_custom_field.raw' => 'my_custom_value' ], $last_filter['term'] );
+
+		remove_filter( 'ep_post_filters', $add_es_filter );
 	}
 
 	/**
