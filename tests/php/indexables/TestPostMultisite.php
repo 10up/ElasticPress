@@ -1792,9 +1792,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1835,9 +1835,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1876,9 +1876,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1948,9 +1948,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post();
+			$this->ep_factory->post->create_many( 3 );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1987,9 +1985,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 

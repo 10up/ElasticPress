@@ -89,7 +89,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -127,7 +127,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -164,7 +164,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -201,7 +201,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -244,7 +244,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
