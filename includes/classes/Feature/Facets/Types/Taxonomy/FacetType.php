@@ -119,7 +119,14 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	public function get_facetable_taxonomies() {
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		$taxonomies = get_taxonomies(
+			array(
+				'public'  => true,
+				'show_ui' => true,
+			),
+			'object'
+		);
+
 		/**
 		 * Filter taxonomies made available for faceting
 		 *

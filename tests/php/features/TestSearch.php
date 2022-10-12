@@ -62,15 +62,11 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$post_ids = array();
-
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
 			's' => 'findme',
@@ -78,7 +74,7 @@ class TestSearch extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 	}
 
 	/**
@@ -97,9 +93,9 @@ class TestSearch extends BaseTestCase {
 
 		$post_ids = array();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 
@@ -136,7 +132,7 @@ class TestSearch extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -193,7 +189,7 @@ class TestSearch extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -367,4 +363,3 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
 }
-

@@ -182,54 +182,56 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			</fieldset>
 		</div>
 
-		<table class="form-table">
-			<tbody>
-			<tr>
-				<th scope="row">
-					<label for="ep_language"><?php esc_html_e( 'Elasticsearch Language', 'elasticpress' ); ?></label>
-				</th>
-				<td>
-					<?php
-					$ep_language = Utils\get_language();
-
-					wp_dropdown_languages(
-						[
-							'id'       => 'ep_language',
-							'name'     => 'ep_language',
-							'selected' => $ep_language,
-						]
-					);
-					?>
-					<p class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row">
-					<label><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
-				<td>
-					<?php if ( $is_epio ) : ?>
-						<?php esc_html_e( 'ElasticPress.io Managed Platform' ); ?>
-					<?php else : ?>
-						<?php if ( ! empty( $version ) ) : ?>
-							<?php echo esc_html( $version ); ?>
-						<?php else : ?>
-							&mdash;
-						<?php endif; ?>
-					<?php endif; ?>
-				</td>
-			</tr>
-			<?php if ( ! empty( $host ) && ! has_filter( 'ep_index_posts_per_page' ) ) : ?>
+		<div class="ep-credentials-general">
+			<table class="form-table">
+				<tbody>
 				<tr>
 					<th scope="row">
-						<label for="ep_bulk_setting"><?php esc_html_e( 'Content Items per Index Cycle ', 'elasticpress' ); ?></label>
+						<label for="ep_language"><?php esc_html_e( 'Elasticsearch Language', 'elasticpress' ); ?></label>
 					</th>
 					<td>
-						<input type="text" name="ep_bulk_setting" id="ep_bulk_setting" value="<?php echo absint( $bulk_setting ); ?>">
+						<?php
+						$ep_language = Utils\get_language();
+
+						wp_dropdown_languages(
+							[
+								'id'       => 'ep_language',
+								'name'     => 'ep_language',
+								'selected' => $ep_language,
+							]
+						);
+						?>
+						<p class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></p>
 					</td>
 				</tr>
-			<?php endif; ?>
-			</tbody>
-		</table>
+				<tr>
+					<th scope="row">
+						<label><?php esc_html_e( 'Elasticsearch Version', 'elasticpress' ); ?></label></th>
+					<td>
+						<?php if ( $is_epio ) : ?>
+							<?php esc_html_e( 'ElasticPress.io Managed Platform' ); ?>
+						<?php else : ?>
+							<?php if ( ! empty( $version ) ) : ?>
+								<?php echo esc_html( $version ); ?>
+							<?php else : ?>
+								&mdash;
+							<?php endif; ?>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<?php if ( ! empty( $host ) && ! has_filter( 'ep_index_posts_per_page' ) ) : ?>
+					<tr>
+						<th scope="row">
+							<label for="ep_bulk_setting"><?php esc_html_e( 'Content Items per Index Cycle ', 'elasticpress' ); ?></label>
+						</th>
+						<td>
+							<input type="text" name="ep_bulk_setting" id="ep_bulk_setting" value="<?php echo absint( $bulk_setting ); ?>">
+						</td>
+					</tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
 
 		<?php
 		/**

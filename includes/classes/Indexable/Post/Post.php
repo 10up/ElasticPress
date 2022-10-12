@@ -947,735 +947,24 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function format_args( $args, $wp_query ) {
-		if ( ! empty( $args['posts_per_page'] ) ) {
-			$posts_per_page = (int) $args['posts_per_page'];
+		$args = $this->sanitize_wp_query_args( $args );
 
-			// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
-			if ( -1 === $posts_per_page ) {
-				/**
-				 * Set the maximum results window size.
-				 *
-				 * The request will return a HTTP 500 Internal Error if the size of the
-				 * request is larger than the [index.max_result_window] parameter in ES.
-				 * See the scroll api for a more efficient way to request large data sets.
-				 *
-				 * @return int The max results window size.
-				 *
-				 * @since 2.3.0
-				 */
-
-				/**
-				 * Filter max result size if set to -1
-				 *
-				 * @hook ep_max_results_window
-				 * @param  {int} Max result window
-				 * @return {int} New window
-				 */
-				$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
-			}
-		} else {
-			$posts_per_page = (int) get_option( 'posts_per_page' );
-		}
-
-		$formatted_args = array(
-			'from' => 0,
-			'size' => $posts_per_page,
-		);
-
-		/**
-		 * Order and Orderby arguments
-		 *
-		 * Used for how Elasticsearch will sort results
-		 *
-		 * @since 1.1
-		 */
-
-		// Set sort order, default is 'desc'.
-		if ( ! empty( $args['order'] ) ) {
-			$order = $this->parse_order( $args['order'] );
-		} else {
-			$order = 'desc';
-		}
-
-		// Default sort for non-searches to date.
-		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
-			/**
-			 * Filter default post query order by
-			 *
-			 * @hook ep_set_default_sort
-			 * @param  {string} $sort Default sort
-			 * @param  {string $order Order direction
-			 * @return  {string} New default
-			 */
-			$args['orderby'] = apply_filters( 'ep_set_default_sort', 'date', $order );
-		}
-
-		// Set sort type.
-		if ( ! empty( $args['orderby'] ) ) {
-			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
-		} else {
-			// Default sort is to use the score (based on relevance).
-			$default_sort = array(
-				array(
-					'_score' => array(
-						'order' => $order,
-					),
-				),
-			);
-
-			/**
-			 * Filter the ES query order (`sort` clause)
-			 *
-			 * This filter is used in searches if `orderby` is not set in the WP_Query args.
-			 * The default value is:
-			 *
-			 *    $default_sort = array(
-			 *        array(
-			 *            '_score' => array(
-			 *                'order' => $order,
-			 *            ),
-			 *        ),
-			 *    );
-			 *
-			 * @hook ep_set_sort
-			 * @since 3.6.3
-			 * @param  {array}  $sort  Default sort.
-			 * @param  {string} $order Order direction
-			 * @return {array}  New default
-			 */
-			$default_sort = apply_filters( 'ep_set_sort', $default_sort, $order );
-
-			$formatted_args['sort'] = $default_sort;
-		}
-
-		$filter      = array(
-			'bool' => array(
-				'must' => [],
-			),
-		);
-		$use_filters = false;
-
-		// Sanitize array query args. Elasticsearch will error if a terms query contains empty items like an
-		// empty string.
-		$keys_to_sanitize = [
-			'author__in',
-			'author__not_in',
-			'category__and',
-			'category__in',
-			'category__not_in',
-			'tag__and',
-			'tag__in',
-			'tag__not_in',
-			'tag_slug__and',
-			'tag_slug__in',
-			'post_parent__in',
-			'post_parent__not_in',
-			'post__in',
-			'post__not_in',
-			'post_name__in',
+		$formatted_args = [
+			'from' => $this->parse_from( $args ),
+			'size' => $this->parse_size( $args ),
 		];
-		foreach ( $keys_to_sanitize as $key ) {
-			if ( ! isset( $args[ $key ] ) ) {
-				continue;
-			}
-			$args[ $key ] = array_filter( (array) $args[ $key ] );
+
+		$filters = $this->parse_filters( $args, $wp_query );
+
+		if ( ! empty( $filters ) ) {
+			$formatted_args['post_filter'] = $filters;
 		}
 
-		/**
-		 * Tax Query support
-		 *
-		 * Support for the tax_query argument of WP_Query. Currently only provides support for the 'AND' relation
-		 * between taxonomies. Field only supports slug, term_id, and name defaulting to term_id.
-		 *
-		 * @use field = slug
-		 *      terms array
-		 * @since 0.9.1
-		 */
-		if ( ! empty( $wp_query->tax_query ) && ! empty( $wp_query->tax_query->queries ) ) {
-			$args['tax_query'] = $wp_query->tax_query->queries;
-		}
-
-		if ( ! empty( $args['tax_query'] ) ) {
-			// Main tax_query array for ES.
-			$es_tax_query = [];
-
-			$tax_queries = $this->parse_tax_query( $args['tax_query'] );
-
-			if ( ! empty( $tax_queries['tax_filter'] ) ) {
-				$relation = 'must';
-
-				if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
-					$relation = 'should';
-				}
-
-				$es_tax_query[ $relation ] = $tax_queries['tax_filter'];
-			}
-
-			if ( ! empty( $tax_queries['tax_must_not_filter'] ) ) {
-				$es_tax_query['must_not'] = $tax_queries['tax_must_not_filter'];
-			}
-
-			if ( ! empty( $es_tax_query ) ) {
-				$filter['bool']['must'][]['bool'] = $es_tax_query;
-			}
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'post_parent' arg support.
-		 *
-		 * @since 2.0
-		 */
-		if ( isset( $args['post_parent'] ) && '' !== $args['post_parent'] && 'any' !== strtolower( $args['post_parent'] ) ) {
-			$filter['bool']['must'][]['bool']['must'] = array(
-				'term' => array(
-					'post_parent' => $args['post_parent'],
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'post__in' arg support.
-		 *
-		 * @since x.x
-		 */
-		if ( ! empty( $args['post__in'] ) ) {
-			$filter['bool']['must'][]['bool']['must'] = array(
-				'terms' => array(
-					'post_id' => array_values( (array) $args['post__in'] ),
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'post_name__in' arg support.
-		 *
-		 * @since 3.6.0
-		 */
-		if ( ! empty( $args['post_name__in'] ) ) {
-			$filter['bool']['must'][]['bool']['must'] = array(
-				'terms' => array(
-					'post_name.raw' => array_values( (array) $args['post_name__in'] ),
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'post__not_in' arg support.
-		 *
-		 * @since x.x
-		 */
-		if ( ! empty( $args['post__not_in'] ) ) {
-			$filter['bool']['must'][]['bool']['must_not'] = array(
-				'terms' => array(
-					'post_id' => (array) $args['post__not_in'],
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'category__not_in' arg support.
-		 *
-		 * @since 3.6.0
-		 */
-		if ( ! empty( $args['category__not_in'] ) ) {
-			$filter['bool']['must'][]['bool']['must_not'] = array(
-				'terms' => array(
-					'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * 'tag__not_in' arg support.
-		 *
-		 * @since 3.6.0
-		 */
-		if ( ! empty( $args['tag__not_in'] ) ) {
-			$filter['bool']['must'][]['bool']['must_not'] = array(
-				'terms' => array(
-					'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Author query support
-		 *
-		 * @since 1.0
-		 */
-		if ( ! empty( $args['author'] ) ) {
-			$filter['bool']['must'][] = array(
-				'term' => array(
-					'post_author.id' => $args['author'],
-				),
-			);
-
-			$use_filters = true;
-		} elseif ( ! empty( $args['author_name'] ) ) {
-			// Since this was set to use the display name initially, there might be some code that used this feature.
-			// Let's ensure that any query vars coming in using author_name are in fact slugs.
-			// This was changed back in ticket #1622 to use the display name, so we removed the sanitize_user() call.
-			$filter['bool']['must'][] = array(
-				'term' => array(
-					'post_author.display_name' => $args['author_name'],
-				),
-			);
-
-			$use_filters = true;
-		} elseif ( ! empty( $args['author__in'] ) ) {
-			$filter['bool']['must'][]['bool']['must'] = array(
-				'terms' => array(
-					'post_author.id' => array_values( (array) $args['author__in'] ),
-				),
-			);
-
-			$use_filters = true;
-		} elseif ( ! empty( $args['author__not_in'] ) ) {
-			$filter['bool']['must'][]['bool']['must_not'] = array(
-				'terms' => array(
-					'post_author.id' => array_values( (array) $args['author__not_in'] ),
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Add support for post_mime_type
-		 *
-		 * If we have array, it will be fool text search filter.
-		 * If we have string(like filter images in media screen), we will have mime type "image" so need to check it as
-		 * regexp filter.
-		 *
-		 * @since 2.3
-		 */
-		if ( ! empty( $args['post_mime_type'] ) ) {
-			if ( is_array( $args['post_mime_type'] ) ) {
-
-				$args_post_mime_type = [];
-
-				foreach ( $args['post_mime_type'] as $mime_type ) {
-					/**
-					 * check if matches the MIME type pattern: type/subtype and
-					 * leave an empty string as posts, pages and CPTs don't have a MIME type
-					 */
-					if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
-						$args_post_mime_type[] = $mime_type;
-					} else {
-						$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
-
-						$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
-					}
-				}
-
-				$filter['bool']['must'][] = array(
-					'terms' => array(
-						'post_mime_type' => $args_post_mime_type,
-					),
-				);
-
-				$use_filters = true;
-			} elseif ( is_string( $args['post_mime_type'] ) ) {
-				$filter['bool']['must'][] = array(
-					'regexp' => array(
-						'post_mime_type' => $args['post_mime_type'] . '.*',
-					),
-				);
-
-				$use_filters = true;
-			}
-		}
-
-		/**
-		 * Simple date params support
-		 *
-		 * @since 1.3
-		 */
-		$date_filter = DateQuery::simple_es_date_filter( $args );
-
-		if ( ! empty( $date_filter ) ) {
-			$filter['bool']['must'][] = $date_filter;
-			$use_filters              = true;
-		}
-
-		/**
-		 * 'date_query' arg support.
-		 */
-		if ( ! empty( $args['date_query'] ) ) {
-
-			$date_query = new DateQuery( $args['date_query'] );
-
-			$date_filter = $date_query->get_es_filter();
-
-			if ( array_key_exists( 'and', $date_filter ) ) {
-				$filter['bool']['must'][] = $date_filter['and'];
-				$use_filters              = true;
-			}
-		}
-
-		$meta_queries = [];
-
-		/**
-		 * Support `meta_key`, `meta_value`, `meta_value_num`, and `meta_compare` query args
-		 */
-		if ( ! empty( $args['meta_key'] ) ) {
-			$meta_query_array = [
-				'key' => $args['meta_key'],
-			];
-
-			if ( isset( $args['meta_value'] ) && '' !== $args['meta_value'] ) {
-				$meta_query_array['value'] = $args['meta_value'];
-			} elseif ( isset( $args['meta_value_num'] ) && '' !== $args['meta_value_num'] ) {
-				$meta_query_array['value'] = $args['meta_value_num'];
-			}
-
-			if ( isset( $args['meta_compare'] ) ) {
-				$meta_query_array['compare'] = $args['meta_compare'];
-			}
-
-			$meta_queries[] = $meta_query_array;
-		}
-
-		/**
-		 * Todo: Support meta_type
-		 */
-
-		/**
-		 * 'meta_query' arg support.
-		 *
-		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
-		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
-		 *
-		 * @since 1.3
-		 */
-		if ( ! empty( $args['meta_query'] ) ) {
-			$meta_queries = array_merge( $meta_queries, $args['meta_query'] );
-		}
-
-		if ( ! empty( $meta_queries ) ) {
-
-			$relation = 'must';
-			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
-				$relation = 'should';
-			}
-
-			// get meta query filter
-			$meta_filter = $this->build_meta_query( $meta_queries );
-
-			if ( ! empty( $meta_filter ) ) {
-				$filter['bool']['must'][] = $meta_filter;
-
-				$use_filters = true;
-			}
-		}
-
-		/**
-		 * Allow for search field specification
-		 *
-		 * @since 1.0
-		 */
-		if ( ! empty( $args['search_fields'] ) ) {
-			$search_field_args = $args['search_fields'];
-			$search_fields     = [];
-
-			if ( ! empty( $search_field_args['taxonomies'] ) ) {
-				$taxes = (array) $search_field_args['taxonomies'];
-
-				foreach ( $taxes as $tax ) {
-					$search_fields[] = 'terms.' . $tax . '.name';
-				}
-
-				unset( $search_field_args['taxonomies'] );
-			}
-
-			if ( ! empty( $search_field_args['meta'] ) ) {
-				$metas = (array) $search_field_args['meta'];
-
-				foreach ( $metas as $meta ) {
-					$search_fields[] = 'meta.' . $meta . '.value';
-				}
-
-				unset( $search_field_args['meta'] );
-			}
-
-			if ( in_array( 'author_name', $search_field_args, true ) ) {
-				$search_fields[] = 'post_author.login';
-
-				$author_name_index = array_search( 'author_name', $search_field_args, true );
-				unset( $search_field_args[ $author_name_index ] );
-			}
-
-			$search_fields = array_merge( $search_field_args, $search_fields );
-		} else {
-			$search_fields = array(
-				'post_title',
-				'post_excerpt',
-				'post_content',
-			);
-		}
-
-		/**
-		 * Filter default post search fields
-		 *
-		 * If you are using the weighting engine, this filter should not be used.
-		 * Instead, you should use the ep_weighting_configuration_for_search filter.
-		 *
-		 * @hook ep_search_fields
-		 * @param  {array} $search_fields Default search fields
-		 * @param  {array} $args WP Query arguments
-		 * @return  {array} New defaults
-		 */
-		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
-
-		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
-
-		/**
-		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
-		 * supported for legacy code but may be deprecated and removed eventually.
-		 *
-		 * @since 1.3
-		 */
-
-		if ( ! empty( $search_text ) ) {
-			add_filter( 'ep_post_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
-
-			$search_algorithm        = $this->get_search_algorithm( $search_text, $search_fields, $args );
-			$formatted_args['query'] = $search_algorithm->get_query( 'post', $search_text, $search_fields, $args );
-		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
-			$formatted_args['query']['match_all'] = array(
-				'boost' => 1,
-			);
-		}
-
-		/**
-		 * Order by 'rand' support
-		 *
-		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
-		 */
-		if ( ! empty( $args['orderby'] ) ) {
-			$orderbys = $this->get_orderby_array( $args['orderby'] );
-			if ( in_array( 'rand', $orderbys, true ) ) {
-				$formatted_args_query                                      = $formatted_args['query'];
-				$formatted_args['query']                                   = [];
-				$formatted_args['query']['function_score']['query']        = $formatted_args_query;
-				$formatted_args['query']['function_score']['random_score'] = (object) [];
-			}
-		}
-
-		/**
-		 * Sticky posts support
-		 */
-
-		// Check first if there's sticky posts and show them only in the front page
-		$sticky_posts = get_option( 'sticky_posts' );
-		$sticky_posts = ( is_array( $sticky_posts ) && empty( $sticky_posts ) ) ? false : $sticky_posts;
-
-		/**
-		 * Filter whether to enable sticky posts for this request
-		 *
-		 * @hook ep_enable_sticky_posts
-		 *
-		 * @param {bool}  $allow          Allow sticky posts for this request
-		 * @param {array} $args           Query variables
-		 * @param {array} $formatted_args EP formatted args
-		 *
-		 * @return  {bool} $allow
-		 */
-		$enable_sticky_posts = apply_filters( 'ep_enable_sticky_posts', is_home(), $args, $formatted_args );
-
-		if ( false !== $sticky_posts
-			&& $enable_sticky_posts
-			&& empty( $args['s'] )
-			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
-			$new_sort = [
-				[
-					'_score' => [
-						'order' => 'desc',
-					],
-				],
-			];
-
-			$formatted_args['sort'] = array_merge( $new_sort, $formatted_args['sort'] );
-
-			$formatted_args_query                                   = $formatted_args['query'];
-			$formatted_args['query']                                = array();
-			$formatted_args['query']['function_score']['query']     = $formatted_args_query;
-			$formatted_args['query']['function_score']['functions'] = array(
-				// add extra weight to sticky posts to show them on top
-					(object) array(
-						'filter' => array(
-							'terms' => array( '_id' => $sticky_posts ),
-						),
-						'weight' => 20,
-					),
-			);
-		}
-
-		/**
-		 * If not set default to post. If search and not set, default to "any".
-		 */
-		if ( ! empty( $args['post_type'] ) ) {
-			// should NEVER be "any" but just in case
-			if ( 'any' !== $args['post_type'] ) {
-				$post_types     = (array) $args['post_type'];
-				$terms_map_name = 'terms';
-
-				$filter['bool']['must'][] = array(
-					$terms_map_name => array(
-						'post_type.raw' => array_values( $post_types ),
-					),
-				);
-
-				$use_filters = true;
-			}
-		} elseif ( empty( $args['s'] ) ) {
-			$filter['bool']['must'][] = array(
-				'term' => array(
-					'post_type.raw' => 'post',
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		/**
-		 * Like WP_Query in search context, if no post_status is specified we default to "any". To
-		 * be safe you should ALWAYS specify the post_status parameter UNLIKE with WP_Query.
-		 *
-		 * @since 2.1
-		 */
-		if ( ! empty( $args['post_status'] ) ) {
-			// should NEVER be "any" but just in case
-			if ( 'any' !== $args['post_status'] ) {
-				$post_status    = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
-				$post_status    = array_map( 'trim', $post_status );
-				$terms_map_name = 'terms';
-				if ( count( $post_status ) < 2 ) {
-					$terms_map_name = 'term';
-					$post_status    = $post_status[0];
-				}
-
-				$filter['bool']['must'][] = array(
-					$terms_map_name => array(
-						'post_status' => $post_status,
-					),
-				);
-
-				$use_filters = true;
-			}
-		} else {
-			$statuses = get_post_stati( array( 'public' => true ) );
-
-			if ( is_admin() ) {
-				/**
-				 * In the admin we will add protected and private post statuses to the default query
-				 * per WP default behavior.
-				 */
-				$statuses = array_merge(
-					$statuses,
-					get_post_stati(
-						array(
-							'protected'              => true,
-							'show_in_admin_all_list' => true,
-						)
-					)
-				);
-
-				if ( is_user_logged_in() ) {
-					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
-				}
-			}
-
-			$statuses = array_values( $statuses );
-
-			$post_status_filter_type = 'terms';
-
-			$filter['bool']['must'][] = array(
-				$post_status_filter_type => array(
-					'post_status' => $statuses,
-				),
-			);
-
-			$use_filters = true;
-		}
-
-		if ( isset( $args['offset'] ) ) {
-			$formatted_args['from'] = (int) $args['offset'];
-		}
-
-		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
-			$formatted_args['from'] = $args['posts_per_page'] * ( $args['paged'] - 1 );
-		}
-
-		/**
-		 * Fix negative offset. This happens, for example, on hierarchical post types.
-		 *
-		 * Ref: https://github.com/10up/ElasticPress/issues/2480
-		 */
-		if ( $formatted_args['from'] < 0 ) {
-			$formatted_args['from'] = 0;
-		}
-
-		if ( $use_filters ) {
-			$formatted_args['post_filter'] = $filter;
-		}
-
-		/**
-		 * Support fields.
-		 */
-		if ( isset( $args['fields'] ) ) {
-			switch ( $args['fields'] ) {
-				case 'ids':
-					$formatted_args['_source'] = array(
-						'includes' => array(
-							'post_id',
-						),
-					);
-					break;
-
-				case 'id=>parent':
-					$formatted_args['_source'] = array(
-						'includes' => array(
-							'post_id',
-							'post_parent',
-						),
-					);
-					break;
-			}
-		}
-
-		/**
-		 * Aggregations
-		 */
-		if ( ! empty( $args['aggs'] ) && is_array( $args['aggs'] ) ) {
-			// Check if the array indexes are all numeric.
-			$agg_keys          = array_keys( $args['aggs'] );
-			$agg_num_keys      = array_filter( $agg_keys, 'is_int' );
-			$has_only_num_keys = count( $agg_num_keys ) === count( $args['aggs'] );
-
-			if ( $has_only_num_keys ) {
-				foreach ( $args['aggs'] as $agg ) {
-					$formatted_args = $this->apply_aggregations( $formatted_args, $agg, $use_filters, $filter );
-				}
-			} else {
-				// Single aggregation.
-				$formatted_args = $this->apply_aggregations( $formatted_args, $args['aggs'], $use_filters, $filter );
-			}
-		}
+		$formatted_args = $this->maybe_set_search_fields( $formatted_args, $args );
+		$formatted_args = $this->maybe_set_fields( $formatted_args, $args );
+		$formatted_args = $this->maybe_orderby( $formatted_args, $args );
+		$formatted_args = $this->maybe_add_sticky_posts( $formatted_args, $args );
+		$formatted_args = $this->maybe_set_aggs( $formatted_args, $args, $filters );
 
 		/**
 		 * Filter formatted Elasticsearch [ost ]query (entire query)
@@ -1918,6 +1207,15 @@ class Post extends Indexable {
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
 		$orderbys = $this->get_orderby_array( $orderbys );
 
+		$from_to = [
+			'relevance' => '_score',
+			'date'      => 'post_date',
+			'type'      => 'post_type.raw',
+			'modified'  => 'post_modified',
+			'name'      => 'post_name.raw',
+			'title'     => 'post_title.sortable',
+		];
+
 		$sort = [];
 
 		foreach ( $orderbys as $key => $value ) {
@@ -1929,67 +1227,26 @@ class Post extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
-				if ( 'relevance' === $orderby_clause ) {
-					$sort[] = array(
-						'_score' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'date' === $orderby_clause ) {
-					$sort[] = array(
-						'post_date' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'type' === $orderby_clause ) {
-					$sort[] = array(
-						'post_type.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'modified' === $orderby_clause ) {
-					$sort[] = array(
-						'post_modified' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'name' === $orderby_clause ) {
-					$sort[] = array(
-						'post_' . $orderby_clause . '.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'title' === $orderby_clause ) {
-					$sort[] = array(
-						'post_' . $orderby_clause . '.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'meta_value' === $orderby_clause ) {
-					if ( ! empty( $args['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $args['meta_key'] . '.raw' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} elseif ( 'meta_value_num' === $orderby_clause ) {
-					if ( ! empty( $args['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $args['meta_key'] . '.long' => array(
-								'order' => $order,
-							),
-						);
-					}
+			if ( empty( $orderby_clause ) || 'rand' === $orderby_clause ) {
+				continue;
+			}
+
+			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
+				if ( empty( $args['meta_key'] ) ) {
+					continue;
 				} else {
-					$sort[] = array(
-						$orderby_clause => array(
-							'order' => $order,
-						),
-					);
+					$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
+					$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
 				}
 			}
+
+			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
+
+			$sort[] = array(
+				$orderby_clause => array(
+					'order' => $order,
+				),
+			);
 		}
 
 		return $sort;
@@ -2089,7 +1346,7 @@ class Post extends Indexable {
 	 * Given ES args, add aggregations to it.
 	 *
 	 * @since 4.1.0
-	 * @param array   $formatted_args Formatted Elasticsearch query.
+	 * @param array   $formatted_args Formatted Elasticsearch query
 	 * @param array   $agg            Aggregation data.
 	 * @param boolean $use_filters    Whether filters should be used or not.
 	 * @param array   $filter         Filters defined so far.
@@ -2152,5 +1409,966 @@ class Post extends Indexable {
 		$search_algorithm = apply_filters( "ep_{$this->slug}_search_algorithm", $search_algorithm, $search_text, $search_fields, $query_vars );
 
 		return \ElasticPress\SearchAlgorithms::factory()->get( $search_algorithm );
+	}
+
+	/**
+	 * Based on WP_Query arguments, parses the various filters that could be applied into the ES query.
+	 *
+	 * @since 4.4.0
+	 * @param array    $args  WP_Query arguments
+	 * @param WP_Query $query WP_Query object
+	 * @return array
+	 */
+	protected function parse_filters( $args, $query ) {
+		/**
+		 * A note about the order of this array indices:
+		 * As previously there was no way to access each part, some snippets might be accessing
+		 * these filters by its usual numeric indices (see the array_values() call below.)
+		 */
+		$filters = [
+			'tax_query'        => $this->parse_tax_queries( $args, $query ),
+			'post_parent'      => $this->parse_post_parent( $args ),
+			'post__in'         => $this->parse_post__in( $args ),
+			'post_name__in'    => $this->parse_post_name__in( $args ),
+			'post__not_in'     => $this->parse_post__not_in( $args ),
+			'category__not_in' => $this->parse_category__not_in( $args ),
+			'tag__not_in'      => $this->parse_tag__not_in( $args ),
+			'author'           => $this->parse_author( $args ),
+			'post_mime_type'   => $this->parse_post_mime_type( $args ),
+			'date'             => $this->parse_date( $args ),
+			'meta_query'       => $this->parse_meta_queries( $args ),
+			'post_type'        => $this->parse_post_type( $args ),
+			'post_status'      => $this->parse_post_status( $args ),
+		];
+
+		/**
+		 * Filter the ES filters that will be applied to the ES query.
+		 *
+		 * Although each index of the `$filters` array contains the related WP Query argument,
+		 * it will be removed before applied to the ES query.
+		 *
+		 * @hook ep_post_filters
+		 * @param  {array}    Current filters
+		 * @param  {array}    WP Query args
+		 * @param  {WP_Query} WP Query object
+		 * @return {array} New filters
+		 */
+		$filters = apply_filters( 'ep_post_filters', $filters, $args, $query );
+
+		$filters = array_values( array_filter( $filters ) );
+
+		if ( ! empty( $filters ) ) {
+			$filters = [
+				'bool' => [
+					'must' => $filters,
+				],
+			];
+		}
+
+		return $filters;
+	}
+
+	/**
+	 * Sanitize WP_Query arguments to be used to create the ES query.
+	 *
+	 * Elasticsearch will error if a terms query contains empty items like an empty string.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function sanitize_wp_query_args( $args ) {
+		$keys_to_sanitize = [
+			'author__in',
+			'author__not_in',
+			'category__and',
+			'category__in',
+			'category__not_in',
+			'tag__and',
+			'tag__in',
+			'tag__not_in',
+			'tag_slug__and',
+			'tag_slug__in',
+			'post_parent__in',
+			'post_parent__not_in',
+			'post__in',
+			'post__not_in',
+			'post_name__in',
+		];
+		foreach ( $keys_to_sanitize as $key ) {
+			if ( ! isset( $args[ $key ] ) ) {
+				continue;
+			}
+			$args[ $key ] = array_filter( (array) $args[ $key ] );
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Parse the `from` clause of the ES Query.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return int
+	 */
+	protected function parse_from( $args ) {
+		$from = 0;
+
+		if ( isset( $args['offset'] ) ) {
+			$from = (int) $args['offset'];
+		}
+
+		if ( isset( $args['paged'] ) && $args['paged'] > 1 ) {
+			$from = $args['posts_per_page'] * ( $args['paged'] - 1 );
+		}
+
+		/**
+		 * Fix negative offset. This happens, for example, on hierarchical post types.
+		 *
+		 * Ref: https://github.com/10up/ElasticPress/issues/2480
+		 */
+		if ( $from < 0 ) {
+			$from = 0;
+		}
+
+		return $from;
+	}
+
+	/**
+	 * Parse the `size` clause of the ES Query.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return int
+	 */
+	protected function parse_size( $args ) {
+		if ( empty( $args['posts_per_page'] ) ) {
+			return (int) get_option( 'posts_per_page' );
+		}
+
+		$posts_per_page = (int) $args['posts_per_page'];
+
+		// ES have a maximum size allowed so we have to convert "-1" to a maximum size.
+		if ( -1 === $posts_per_page ) {
+			/**
+			 * Filter max result size if set to -1
+			 *
+			 * The request will return a HTTP 500 Internal Error if the size of the
+			 * request is larger than the [index.max_result_window] parameter in ES.
+			 * See the scroll api for a more efficient way to request large data sets.
+			 *
+			 * @hook ep_max_results_window
+			 * @param  {int} Max result window
+			 * @return {int} New window
+			 */
+			$posts_per_page = apply_filters( 'ep_max_results_window', 10000 );
+		}
+
+		return $posts_per_page;
+	}
+
+	/**
+	 * Parse the order of results in the ES query. It could simply be a `sort` clause or a function score query if using RAND.
+	 *
+	 * @since 4.4.0
+	 * @param array $formatted_args Formatted Elasticsearch query
+	 * @param array $args           WP_Query arguments
+	 * @return array
+	 */
+	protected function maybe_orderby( $formatted_args, $args ) {
+		/**
+		 * Order and Orderby arguments
+		 *
+		 * Used for how Elasticsearch will sort results
+		 *
+		 * @since 1.1
+		 */
+
+		// Set sort order, default is 'desc'.
+		if ( ! empty( $args['order'] ) ) {
+			$order = $this->parse_order( $args['order'] );
+		} else {
+			$order = 'desc';
+		}
+
+		// Default sort for non-searches to date.
+		if ( empty( $args['orderby'] ) && ( ! isset( $args['s'] ) || '' === $args['s'] ) ) {
+			/**
+			 * Filter default post query order by
+			 *
+			 * @hook ep_set_default_sort
+			 * @param  {string} $sort Default sort
+			 * @param  {string $order Order direction
+			 * @return  {string} New default
+			 */
+			$args['orderby'] = apply_filters( 'ep_set_default_sort', 'date', $order );
+		}
+
+		// Set sort type.
+		if ( ! empty( $args['orderby'] ) ) {
+			$formatted_args['sort'] = $this->parse_orderby( $args['orderby'], $order, $args );
+		} else {
+			// Default sort is to use the score (based on relevance).
+			$default_sort = array(
+				array(
+					'_score' => array(
+						'order' => $order,
+					),
+				),
+			);
+
+			/**
+			 * Filter the ES query order (`sort` clause)
+			 *
+			 * This filter is used in searches if `orderby` is not set in the WP_Query args.
+			 * The default value is:
+			 *
+			 *    $default_sort = array(
+			 *        array(
+			 *            '_score' => array(
+			 *                'order' => $order,
+			 *            ),
+			 *        ),
+			 *    );
+			 *
+			 * @hook ep_set_sort
+			 * @since 3.6.3
+			 * @param  {array}  $sort  Default sort.
+			 * @param  {string} $order Order direction
+			 * @return {array}  New default
+			 */
+			$default_sort = apply_filters( 'ep_set_sort', $default_sort, $order );
+
+			$formatted_args['sort'] = $default_sort;
+		}
+
+		/**
+		 * Order by 'rand' support
+		 *
+		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
+		 */
+		if ( ! empty( $args['orderby'] ) ) {
+			$orderbys = $this->get_orderby_array( $args['orderby'] );
+			if ( in_array( 'rand', $orderbys, true ) ) {
+				$formatted_args_query                                      = $formatted_args['query'];
+				$formatted_args['query']                                   = [];
+				$formatted_args['query']['function_score']['query']        = $formatted_args_query;
+				$formatted_args['query']['function_score']['random_score'] = (object) [];
+			}
+		}
+
+		return $formatted_args;
+	}
+
+	/**
+	 * Parse all taxonomy queries.
+	 *
+	 * Although the name may be misleading, it handles the `tax_query` argument. There is a `parse_tax_query` that handles each "small" query.
+	 *
+	 * @since 4.4.0
+	 * @param array    $args  WP_Query arguments
+	 * @param WP_Query $query WP_Query object
+	 * @return array
+	 */
+	protected function parse_tax_queries( $args, $query ) {
+		/**
+		 * Tax Query support
+		 *
+		 * Support for the tax_query argument of WP_Query. Currently only provides support for the 'AND' relation
+		 * between taxonomies. Field only supports slug, term_id, and name defaulting to term_id.
+		 *
+		 * @use field = slug
+		 *      terms array
+		 * @since 0.9.1
+		 */
+		if ( ! empty( $query->tax_query ) && ! empty( $query->tax_query->queries ) ) {
+			$args['tax_query'] = $query->tax_query->queries;
+		}
+
+		if ( empty( $args['tax_query'] ) ) {
+			return [];
+		}
+
+		// Main tax_query array for ES.
+		$es_tax_query = [];
+
+		$tax_queries = $this->parse_tax_query( $args['tax_query'] );
+
+		if ( ! empty( $tax_queries['tax_filter'] ) ) {
+			$relation = 'must';
+
+			if ( ! empty( $args['tax_query']['relation'] ) && 'or' === strtolower( $args['tax_query']['relation'] ) ) {
+				$relation = 'should';
+			}
+
+			$es_tax_query[ $relation ] = $tax_queries['tax_filter'];
+		}
+
+		if ( ! empty( $tax_queries['tax_must_not_filter'] ) ) {
+			$es_tax_query['must_not'] = $tax_queries['tax_must_not_filter'];
+		}
+
+		if ( ! empty( $es_tax_query ) ) {
+			return [ 'bool' => $es_tax_query ];
+		}
+
+		return [];
+	}
+
+	/**
+	 * Parse the `post_parent` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent( $args ) {
+		if ( empty( $args['post_parent'] ) || 'any' === strtolower( $args['post_parent'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must' => [
+					'term' => [
+						'post_parent' => $args['post_parent'],
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post__in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post__in( $args ) {
+		if ( empty( $args['post__in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_id' => array_values( (array) $args['post__in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post_name__in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_name__in( $args ) {
+		if ( empty( $args['post_name__in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_name.raw' => array_values( (array) $args['post_name__in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post__not_in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post__not_in( $args ) {
+		if ( empty( $args['post__not_in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'post_id' => (array) $args['post__not_in'],
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `category__not_in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_category__not_in( $args ) {
+		if ( empty( $args['category__not_in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'terms.category.term_id' => array_values( (array) $args['category__not_in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `tag__not_in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_tag__not_in( $args ) {
+		if ( empty( $args['tag__not_in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'terms.post_tag.term_id' => array_values( (array) $args['tag__not_in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the various author-related WP Query args and transform them into ES query clauses.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_author( $args ) {
+		if ( ! empty( $args['author'] ) ) {
+			return [
+				'term' => [
+					'post_author.id' => $args['author'],
+				],
+			];
+		}
+
+		if ( ! empty( $args['author_name'] ) ) {
+			// Since this was set to use the display name initially, there might be some code that used this feature.
+			// Let's ensure that any query vars coming in using author_name are in fact slugs.
+			// This was changed back in ticket #1622 to use the display name, so we removed the sanitize_user() call.
+			return [
+				'term' => [
+					'post_author.display_name' => $args['author_name'],
+				],
+			];
+		}
+
+		if ( ! empty( $args['author__in'] ) ) {
+			return [
+				'bool' => [
+					'must' => [
+						'terms' => [
+							'post_author.id' => array_values( (array) $args['author__in'] ),
+						],
+					],
+				],
+			];
+		}
+
+		if ( ! empty( $args['author__not_in'] ) ) {
+			return [
+				'bool' => [
+					'must_not' => [
+						'terms' => [
+							'post_author.id' => array_values( (array) $args['author__not_in'] ),
+						],
+					],
+				],
+			];
+		}
+
+		return [];
+	}
+
+	/**
+	 * Parse the `post_mime_type` WP Query arg and transform it into an ES query clause.
+	 *
+	 * If we have array, it will be fool text search filter.
+	 * If we have string(like filter images in media screen), we will have mime type "image" so need to check it as
+	 * regexp filter.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_mime_type( $args ) {
+		if ( empty( $args['post_mime_type'] ) ) {
+			return [];
+		}
+
+		if ( is_array( $args['post_mime_type'] ) ) {
+
+			$args_post_mime_type = [];
+
+			foreach ( $args['post_mime_type'] as $mime_type ) {
+				/**
+				 * check if matches the MIME type pattern: type/subtype and
+				 * leave an empty string as posts, pages and CPTs don't have a MIME type
+				 */
+				if ( preg_match( '/^[-._a-z0-9]+\/[-._a-z0-9]+$/i', $mime_type ) || empty( $mime_type ) ) {
+					$args_post_mime_type[] = $mime_type;
+				} else {
+					$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
+
+					$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+				}
+			}
+
+			return [
+				'terms' => [
+					'post_mime_type' => $args_post_mime_type,
+				],
+			];
+		}
+
+		if ( is_string( $args['post_mime_type'] ) ) {
+			return [
+				'regexp' => array(
+					'post_mime_type' => $args['post_mime_type'] . '.*',
+				),
+			];
+		}
+
+		return [];
+	}
+
+	/**
+	 * Parse the various date-related WP Query args and transform them into ES query clauses.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_date( $args ) {
+		$date_filter = DateQuery::simple_es_date_filter( $args );
+
+		if ( ! empty( $date_filter ) ) {
+			return $date_filter;
+		}
+
+		if ( ! empty( $args['date_query'] ) ) {
+
+			$date_query = new DateQuery( $args['date_query'] );
+
+			$date_filter = $date_query->get_es_filter();
+
+			if ( array_key_exists( 'and', $date_filter ) ) {
+				return $date_filter['and'];
+			}
+		}
+	}
+
+	/**
+	 * Parse all meta queries.
+	 *
+	 * Although the name may be misleading, it handles the `meta_query` argument. There is a `build_meta_query` that handles each "small" query.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_meta_queries( $args ) {
+		/**
+		 * 'meta_query' arg support.
+		 *
+		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
+		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
+		 *
+		 * @since 1.3
+		 */
+		$meta_queries = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
+
+		/**
+		 * Todo: Support meta_type
+		 */
+
+		/**
+		 * Support `meta_key`, `meta_value`, `meta_value_num`, and `meta_compare` query args
+		 */
+		if ( ! empty( $args['meta_key'] ) ) {
+			$meta_query_array = [
+				'key' => $args['meta_key'],
+			];
+
+			if ( isset( $args['meta_value'] ) && '' !== $args['meta_value'] ) {
+				$meta_query_array['value'] = $args['meta_value'];
+			} elseif ( isset( $args['meta_value_num'] ) && '' !== $args['meta_value_num'] ) {
+				$meta_query_array['value'] = $args['meta_value_num'];
+			}
+
+			if ( isset( $args['meta_compare'] ) ) {
+				$meta_query_array['compare'] = $args['meta_compare'];
+			}
+
+			if ( ! empty( $meta_queries ) ) {
+				$meta_queries = [
+					'relation' => 'AND',
+					$meta_query_array,
+					$meta_queries,
+				];
+			} else {
+				$meta_queries = [ $meta_query_array ];
+			}
+		}
+
+		if ( ! empty( $meta_queries ) ) {
+			// get meta query filter
+			$meta_filter = $this->build_meta_query( $meta_queries );
+
+			if ( ! empty( $meta_filter ) ) {
+				return $meta_filter;
+			}
+		}
+
+		return [];
+	}
+
+	/**
+	 * Parse the `post_type` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_type( $args ) {
+		/**
+		 * If not set default to post. If search and not set, default to "any".
+		 */
+		if ( ! empty( $args['post_type'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_type'] ) {
+				$post_types     = (array) $args['post_type'];
+				$terms_map_name = 'terms';
+
+				return [
+					$terms_map_name => [
+						'post_type.raw' => array_values( $post_types ),
+					],
+				];
+			}
+		} elseif ( empty( $args['s'] ) ) {
+			return [
+				'term' => [
+					'post_type.raw' => 'post',
+				],
+			];
+		}
+
+		return [];
+	}
+
+	/**
+	 * Parse the `post_status` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_status( $args ) {
+		/**
+		 * Like WP_Query in search context, if no post_status is specified we default to "any". To
+		 * be safe you should ALWAYS specify the post_status parameter UNLIKE with WP_Query.
+		 *
+		 * @since 2.1
+		 */
+		if ( ! empty( $args['post_status'] ) ) {
+			// should NEVER be "any" but just in case
+			if ( 'any' !== $args['post_status'] ) {
+				$post_status    = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
+				$post_status    = array_map( 'trim', $post_status );
+				$terms_map_name = 'terms';
+				if ( count( $post_status ) < 2 ) {
+					$terms_map_name = 'term';
+					$post_status    = $post_status[0];
+				}
+
+				return [
+					$terms_map_name => [
+						'post_status' => $post_status,
+					],
+				];
+			}
+		} else {
+			$statuses = get_post_stati( array( 'public' => true ) );
+
+			if ( is_admin() ) {
+				/**
+				 * In the admin we will add protected and private post statuses to the default query
+				 * per WP default behavior.
+				 */
+				$statuses = array_merge(
+					$statuses,
+					get_post_stati(
+						array(
+							'protected'              => true,
+							'show_in_admin_all_list' => true,
+						)
+					)
+				);
+
+				if ( is_user_logged_in() ) {
+					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
+				}
+			}
+
+			$statuses = array_values( $statuses );
+
+			$post_status_filter_type = 'terms';
+
+			return [
+				$post_status_filter_type => [
+					'post_status' => $statuses,
+				],
+			];
+		}
+
+		return [];
+	}
+
+	/**
+	 * If in a search context set search fields, otherwise query everything.
+	 *
+	 * @since 4.4.0
+	 * @param array $formatted_args Formatted Elasticsearch query
+	 * @param array $args           WP_Query arguments
+	 * @return array
+	 */
+	protected function maybe_set_search_fields( $formatted_args, $args ) {
+		/**
+		 * Allow for search field specification
+		 *
+		 * @since 1.0
+		 */
+		if ( ! empty( $args['search_fields'] ) ) {
+			$search_field_args = $args['search_fields'];
+			$search_fields     = [];
+
+			if ( ! empty( $search_field_args['taxonomies'] ) ) {
+				$taxes = (array) $search_field_args['taxonomies'];
+
+				foreach ( $taxes as $tax ) {
+					$search_fields[] = 'terms.' . $tax . '.name';
+				}
+
+				unset( $search_field_args['taxonomies'] );
+			}
+
+			if ( ! empty( $search_field_args['meta'] ) ) {
+				$metas = (array) $search_field_args['meta'];
+
+				foreach ( $metas as $meta ) {
+					$search_fields[] = 'meta.' . $meta . '.value';
+				}
+
+				unset( $search_field_args['meta'] );
+			}
+
+			if ( in_array( 'author_name', $search_field_args, true ) ) {
+				$search_fields[] = 'post_author.login';
+
+				$author_name_index = array_search( 'author_name', $search_field_args, true );
+				unset( $search_field_args[ $author_name_index ] );
+			}
+
+			$search_fields = array_merge( $search_field_args, $search_fields );
+		} else {
+			$search_fields = array(
+				'post_title',
+				'post_excerpt',
+				'post_content',
+			);
+		}
+
+		/**
+		 * Filter default post search fields
+		 *
+		 * If you are using the weighting engine, this filter should not be used.
+		 * Instead, you should use the ep_weighting_configuration_for_search filter.
+		 *
+		 * @hook ep_search_fields
+		 * @param  {array} $search_fields Default search fields
+		 * @param  {array} $args WP Query arguments
+		 * @return  {array} New defaults
+		 */
+		$search_fields = apply_filters( 'ep_search_fields', $search_fields, $args );
+
+		$search_text = ( ! empty( $args['s'] ) ) ? $args['s'] : '';
+
+		/**
+		 * We are using ep_integrate instead of ep_match_all. ep_match_all will be
+		 * supported for legacy code but may be deprecated and removed eventually.
+		 *
+		 * @since 1.3
+		 */
+
+		if ( ! empty( $search_text ) ) {
+			add_filter( 'ep_post_formatted_args_query', [ $this, 'adjust_query_fuzziness' ], 100, 4 );
+
+			$search_algorithm        = $this->get_search_algorithm( $search_text, $search_fields, $args );
+			$formatted_args['query'] = $search_algorithm->get_query( 'post', $search_text, $search_fields, $args );
+		} elseif ( ! empty( $args['ep_match_all'] ) || ! empty( $args['ep_integrate'] ) ) {
+			$formatted_args['query']['match_all'] = array(
+				'boost' => 1,
+			);
+		}
+
+		return $formatted_args;
+	}
+
+	/**
+	 * If needed bring sticky posts and order them.
+	 *
+	 * @since 4.4.0
+	 * @param array $formatted_args Formatted Elasticsearch query
+	 * @param array $args           WP_Query arguments
+	 * @return array
+	 */
+	protected function maybe_add_sticky_posts( $formatted_args, $args ) {
+		/**
+		 * Sticky posts support
+		 */
+
+		// Check first if there's sticky posts and show them only in the front page
+		$sticky_posts = get_option( 'sticky_posts' );
+		$sticky_posts = ( is_array( $sticky_posts ) && empty( $sticky_posts ) ) ? false : $sticky_posts;
+
+		/**
+		 * Filter whether to enable sticky posts for this request
+		 *
+		 * @hook ep_enable_sticky_posts
+		 *
+		 * @param {bool}  $allow          Allow sticky posts for this request
+		 * @param {array} $args           Query variables
+		 * @param {array} $formatted_args EP formatted args
+		 *
+		 * @return  {bool} $allow
+		 */
+		$enable_sticky_posts = apply_filters( 'ep_enable_sticky_posts', is_home(), $args, $formatted_args );
+
+		if ( false !== $sticky_posts
+			&& $enable_sticky_posts
+			&& empty( $args['s'] )
+			&& in_array( $args['ignore_sticky_posts'], array( 'false', 0, false ), true ) ) {
+			$new_sort = [
+				[
+					'_score' => [
+						'order' => 'desc',
+					],
+				],
+			];
+
+			$formatted_args['sort'] = array_merge( $new_sort, $formatted_args['sort'] );
+
+			$formatted_args_query                                   = $formatted_args['query'];
+			$formatted_args['query']                                = array();
+			$formatted_args['query']['function_score']['query']     = $formatted_args_query;
+			$formatted_args['query']['function_score']['functions'] = array(
+				// add extra weight to sticky posts to show them on top
+					(object) array(
+						'filter' => array(
+							'terms' => array( '_id' => $sticky_posts ),
+						),
+						'weight' => 20,
+					),
+			);
+		}
+
+		return $formatted_args;
+	}
+
+	/**
+	 * If needed set the `fields` ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $formatted_args Formatted Elasticsearch query
+	 * @param array $args           WP_Query arguments
+	 * @return array
+	 */
+	protected function maybe_set_fields( $formatted_args, $args ) {
+		/**
+		 * Support fields.
+		 */
+		if ( isset( $args['fields'] ) ) {
+			switch ( $args['fields'] ) {
+				case 'ids':
+					$formatted_args['_source'] = array(
+						'includes' => array(
+							'post_id',
+						),
+					);
+					break;
+
+				case 'id=>parent':
+					$formatted_args['_source'] = array(
+						'includes' => array(
+							'post_id',
+							'post_parent',
+						),
+					);
+					break;
+			}
+		}
+
+		return $formatted_args;
+	}
+
+	/**
+	 * If needed set the `aggs` ES query clause.
+	 *
+	 * @since 4.4.0
+	 * @param array $formatted_args Formatted Elasticsearch query.
+	 * @param array $args           WP_Query arguments
+	 * @param array $filters        Filters to be applied to the ES query
+	 * @return array
+	 */
+	protected function maybe_set_aggs( $formatted_args, $args, $filters ) {
+		/**
+		 * Aggregations
+		 */
+		if ( ! empty( $args['aggs'] ) && is_array( $args['aggs'] ) ) {
+			// Check if the array indexes are all numeric.
+			$agg_keys          = array_keys( $args['aggs'] );
+			$agg_num_keys      = array_filter( $agg_keys, 'is_int' );
+			$has_only_num_keys = count( $agg_num_keys ) === count( $args['aggs'] );
+
+			if ( $has_only_num_keys ) {
+				foreach ( $args['aggs'] as $agg ) {
+					$formatted_args = $this->apply_aggregations( $formatted_args, $agg, ! empty( $filters ), $filters );
+				}
+			} else {
+				// Single aggregation.
+				$formatted_args = $this->apply_aggregations( $formatted_args, $args['aggs'], ! empty( $filters ), $filters );
+			}
+		}
+
+		return $formatted_args;
 	}
 }
