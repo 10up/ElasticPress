@@ -1220,7 +1220,7 @@ class WooCommerce extends Feature {
 	public function action_sync_on_woocommerce_sort_single( $sorting_id, $menu_orders ) {
 		/* This filter is documented in /includes/classes/IndexHelper.php */
 		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
-		if ( $documents_per_page_sync > count( $menu_orders ) ) {
+		if ( $documents_per_page_sync < count( $menu_orders ) ) {
 			return;
 		}
 
