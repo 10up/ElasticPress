@@ -1527,6 +1527,22 @@ class TestComment extends BaseTestCase {
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
+
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+			'post_type' => [ 'post', 'page' ],
+		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
+		}
+
+		$this->assertEquals( 4, count( $comments ) );
 	}
 
 	/**
