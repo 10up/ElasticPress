@@ -6005,6 +6005,43 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests the `ep_post_filters` filter
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsEpPostFilter() {
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$test_args  = [];
+		$test_query = new \WP_Query( $test_args );
+
+		$add_es_filter = function( $filters, $args, $query ) use ( $test_query, $test_args ) {
+			$filters['new_filter'] = [
+				'term' => [
+					'my_custom_field.raw' => 'my_custom_value',
+				],
+			];
+
+			// Simple check if the filter additional parameters work.
+			$this->assertSame( $test_query, $query );
+			$this->assertSame( $test_args, $args );
+
+			return $filters;
+		};
+		add_filter( 'ep_post_filters', $add_es_filter, 10, 3 );
+
+		$args = $post->format_args( $test_args, $test_query );
+
+		$this->assertNotEmpty( $args['post_filter']['bool']['must'] );
+
+		$last_filter = end( $args['post_filter']['bool']['must'] );
+		$this->assertSame( [ 'my_custom_field.raw' => 'my_custom_value' ], $last_filter['term'] );
+
+		remove_filter( 'ep_post_filters', $add_es_filter );
+	}
+
+	/**
 	 * Tests additional order by parameters in parse_orderby().
 	 *
 	 * @return void
