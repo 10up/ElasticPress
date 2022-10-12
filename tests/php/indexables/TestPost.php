@@ -62,6 +62,29 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Create posts for date query testing
+	 *
+	 * @since  3.0
+	 */
+	protected function create_date_query_posts() {
+		$post_date = wp_date( 'U', strtotime( 'January 6th, 2012 11:59PM' ) );
+
+		for ( $i = 0; $i <= 10; ++$i ) {
+			$this->ep_factory->post->create(
+				array(
+					'post_title'    => 'post_title ' . $i,
+					'post_content'  => 'findme',
+					'post_date'     => wp_date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ) ),
+					'post_date_gmt' => wp_date( 'Y-m-d H:i:s', strtotime( "-$i days", strtotime( "-$i hours", $post_date ) ), new \DateTimeZone( 'GMT' ) ),
+				)
+			);
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+		}
+	}
+
+
+	/**
 	 * Clean up after each test. Reset our mocks
 	 *
 	 * @since 0.1.0
@@ -88,7 +111,7 @@ class TestPost extends BaseTestCase {
 	public function testPostSync() {
 		add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -107,7 +130,7 @@ class TestPost extends BaseTestCase {
 	public function testPostSyncOnMetaAdd() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$this->fired_actions = array();
 
@@ -132,7 +155,7 @@ class TestPost extends BaseTestCase {
 	public function testPostSyncOnMetaUpdate() {
 		add_action( 'ep_sync_on_meta_update', array( $this, 'action_sync_on_meta_update' ), 10, 0 );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -157,8 +180,8 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testPaginationWithOffset() {
-		Functions\create_and_sync_post( array( 'post_title' => 'one' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'two' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'one' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'two' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -187,11 +210,11 @@ class TestPost extends BaseTestCase {
 	public function testWPQuerySearchContent() {
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post();
-		$post_ids[1] = Functions\create_and_sync_post();
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-		$post_ids[3] = Functions\create_and_sync_post();
-		$post_ids[4] = Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$post_ids[0] = $this->ep_factory->post->create();
+		$post_ids[1] = $this->ep_factory->post->create();
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+		$post_ids[3] = $this->ep_factory->post->create();
+		$post_ids[4] = $this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -237,11 +260,11 @@ class TestPost extends BaseTestCase {
 	public function testWPQuerySearchTitle() {
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post();
-		$post_ids[1] = Functions\create_and_sync_post();
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_title' => 'findme test' ) );
-		$post_ids[3] = Functions\create_and_sync_post( array( 'post_title' => 'findme test2' ) );
-		$post_ids[4] = Functions\create_and_sync_post( array( 'post_title' => 'findme test2' ) );
+		$post_ids[0] = $this->ep_factory->post->create();
+		$post_ids[1] = $this->ep_factory->post->create();
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_title' => 'findme test' ) );
+		$post_ids[3] = $this->ep_factory->post->create( array( 'post_title' => 'findme test2' ) );
+		$post_ids[4] = $this->ep_factory->post->create( array( 'post_title' => 'findme test2' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -267,7 +290,7 @@ class TestPost extends BaseTestCase {
 
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
-		$post_id = Functions\create_and_sync_post(
+		$post_id = $this->ep_factory->post->create(
 			array(
 				'tags_input' => array( 'test-tag', 'test-tag2' ),
 			)
@@ -292,8 +315,7 @@ class TestPost extends BaseTestCase {
 	public function testPostTermSyncSingleLevel() {
 		add_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_disallow_multiple_level_terms_sync' ), 100, 1 );
 
-		$post_id = Functions\create_and_sync_post();
-		$post    = get_post( $post_id );
+		$post = $this->ep_factory->post->create_and_get();
 
 		$tax_name = rand_str( 32 );
 		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
@@ -308,11 +330,11 @@ class TestPost extends BaseTestCase {
 		$term_3_name = rand_str( 32 );
 		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
+		wp_set_object_terms( $post->ID, array( $term3['term_id'] ), $tax_name, true );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post->ID, true );
 
-		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post->ID );
 
 		$terms = $post['terms'];
 		$this->assertTrue( isset( $terms[ $tax_name ] ) );
@@ -343,8 +365,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostTermSyncHierarchyMultipleLevel() {
 
-		$post_id = Functions\create_and_sync_post();
-		$post    = get_post( $post_id );
+		$post = $this->ep_factory->post->create_and_get();
 
 		$tax_name = rand_str( 32 );
 		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
@@ -359,11 +380,11 @@ class TestPost extends BaseTestCase {
 		$term_3_name = rand_str( 32 );
 		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
+		wp_set_object_terms( $post->ID, array( $term3['term_id'] ), $tax_name, true );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post->ID, true );
 
-		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post->ID );
 
 		$terms = $post['terms'];
 		$this->assertTrue( isset( $terms[ $tax_name ] ) );
@@ -387,8 +408,7 @@ class TestPost extends BaseTestCase {
 	public function testPostTermSyncHierarchyMultipleLevelQuery() {
 
 		add_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_disallow_multiple_level_terms_sync' ), 100, 1 );
-		$post_id = Functions\create_and_sync_post( array( 'post_title' => '#findme' ) );
-		$post    = get_post( $post_id );
+		$post = $this->ep_factory->post->create_and_get( array( 'post_title' => '#findme' ) );
 
 		$tax_name = rand_str( 32 );
 		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
@@ -403,9 +423,9 @@ class TestPost extends BaseTestCase {
 		$term_3_name = rand_str( 32 );
 		$term3       = wp_insert_term( $term_3_name, $tax_name, array( 'parent' => $term2['term_id'] ) );
 
-		wp_set_object_terms( $post_id, array( $term3['term_id'] ), $tax_name, true );
+		wp_set_object_terms( $post->ID, array( $term3['term_id'] ), $tax_name, true );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post->ID, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$query = new \WP_Query( array( 's' => '#findme' ) );
@@ -436,8 +456,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostImplicitTaxonomyQueryCustomTax() {
 
-		$post_id = Functions\create_and_sync_post();
-		$post    = get_post( $post_id );
+		$post = $this->ep_factory->post->create_and_get();
 
 		$tax_name = rand_str( 32 );
 		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
@@ -446,14 +465,14 @@ class TestPost extends BaseTestCase {
 		$term_1_name = rand_str( 32 );
 		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
-		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
+		wp_set_object_terms( $post->ID, array( $term1['term_id'] ), $tax_name, true );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post->ID, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			$tax_name => $term_1_name,
-			'ep_integrate' => true
+			$tax_name      => $term_1_name,
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
@@ -471,8 +490,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostImplicitTaxonomyQueryCategoryName() {
 
-		$post_id = Functions\create_and_sync_post();
-		$post    = get_post( $post_id );
+		$post_id = $this->ep_factory->post->create();
 
 		$term_1_name = rand_str( 32 );
 		$term1       = wp_insert_term( $term_1_name, 'category' );
@@ -484,7 +502,7 @@ class TestPost extends BaseTestCase {
 
 		$args = array(
 			'category_name' => $term_1_name,
-			'ep_integrate'  => true
+			'ep_integrate'  => true,
 		);
 
 		$query = new \WP_Query( $args );
@@ -501,8 +519,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostImplicitTaxonomyQueryTag() {
 
-		$post_id = Functions\create_and_sync_post();
-		$post    = get_post( $post_id );
+		$post_id = $this->ep_factory->post->create();
 
 		$term_1_name = rand_str( 32 );
 		$term1       = wp_insert_term( $term_1_name, 'post_tag' );
@@ -533,11 +550,11 @@ class TestPost extends BaseTestCase {
 	public function testWPQuerySearchExcerpt() {
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post();
-		$post_ids[1] = Functions\create_and_sync_post();
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_excerpt' => 'findme test' ) );
-		$post_ids[3] = Functions\create_and_sync_post();
-		$post_ids[4] = Functions\create_and_sync_post();
+		$post_ids[0] = $this->ep_factory->post->create();
+		$post_ids[1] = $this->ep_factory->post->create();
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_excerpt' => 'findme test' ) );
+		$post_ids[3] = $this->ep_factory->post->create();
+		$post_ids[4] = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -560,9 +577,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testPagination() {
-		Functions\create_and_sync_post( array( 'post_excerpt' => 'findme test 1' ) );
-		Functions\create_and_sync_post( array( 'post_excerpt' => 'findme test 2' ) );
-		Functions\create_and_sync_post( array( 'post_excerpt' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_excerpt' => 'findme test 1' ) );
+		$this->ep_factory->post->create( array( 'post_excerpt' => 'findme test 2' ) );
+		$this->ep_factory->post->create( array( 'post_excerpt' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -639,7 +656,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQuerySlug() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -648,8 +665,8 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'tags_input'   => array(
@@ -689,15 +706,15 @@ class TestPost extends BaseTestCase {
 		$cat1 = wp_create_category( 'category one' );
 		$cat2 = wp_create_category( 'category two' );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 1',
 				'tags_input'    => array( 'one', 'two' ),
 				'post_category' => array( $cat1 ),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 3',
 				'tags_input'    => array( 'one', 'three' ),
@@ -738,7 +755,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryTermId() {
-		$post = Functions\create_and_sync_post(
+		$post = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -747,8 +764,8 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'tags_input'   => array(
@@ -814,7 +831,7 @@ class TestPost extends BaseTestCase {
 		$cat2 = wp_create_category( 'category two' );
 		$cat3 = wp_create_category( 'category three' );
 
-		$post = Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 1',
 				'post_category' => array(
@@ -823,8 +840,8 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 3',
 				'post_category' => array(
@@ -861,7 +878,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryWithInvalidTerms() {
-		$post = Functions\create_and_sync_post(
+		$post = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -870,8 +887,8 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'tags_input'   => array(
@@ -953,7 +970,7 @@ class TestPost extends BaseTestCase {
 		$cat_one   = wp_insert_category( array( 'cat_name' => 'one' ) );
 		$cat_two   = wp_insert_category( array( 'cat_name' => 'two' ) );
 		$cat_three = wp_insert_category( array( 'cat_name' => 'three' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 1',
 				'post_category' => array(
@@ -962,8 +979,8 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 3',
 				'post_category' => array(
@@ -996,9 +1013,9 @@ class TestPost extends BaseTestCase {
 	public function testPostInQuery() {
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$post_ids[0] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1023,9 +1040,9 @@ class TestPost extends BaseTestCase {
 	public function testPostNotInQuery() {
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$post_ids[0] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1052,9 +1069,14 @@ class TestPost extends BaseTestCase {
 
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'post_category' => array( $term['term_id'] ) ) );
-		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
+		$post_ids[0] = $this->ep_factory->post->create(
+			array(
+				'post_content'  => 'findme cat not in test 1',
+				'post_category' => array( $term['term_id'] ),
+			)
+		);
+		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme cat not in test 2' ) );
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme cat not in test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1081,15 +1103,20 @@ class TestPost extends BaseTestCase {
 
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 1', 'tags_input' => array( $term['term_id'] ) ) );
-		$post_ids[1] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 2',  ) );
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme cat not in test 3' ) );
+		$post_ids[0] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme cat not in test 1',
+				'tags_input'   => array( $term['term_id'] ),
+			)
+		);
+		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme cat not in test 2' ) );
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme cat not in test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'                => 'findme cat not in test',
-			'tag__not_in'      => array( $term['term_id'] ),
+			's'           => 'findme cat not in test',
+			'tag__not_in' => array( $term['term_id'] ),
 		);
 
 		$query = new \WP_Query( $args );
@@ -1108,14 +1135,14 @@ class TestPost extends BaseTestCase {
 	public function testAuthorIDQuery() {
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_author'  => $user_id,
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_author'  => $user_id,
@@ -1153,14 +1180,14 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_author'  => $user_id,
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_author'  => $user_id,
@@ -1197,14 +1224,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testPostTypeQueryPage() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_type'    => 'page',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_type'    => 'page',
@@ -1233,14 +1260,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testPostTypeQueryPost() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_type'    => 'page',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_type'    => 'page',
@@ -1268,14 +1295,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testNoPostTypeSearchQuery() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_type'    => 'page',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1298,14 +1325,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testPostStatusQueryPublish() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_status'  => 'draft',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_status'  => 'draft',
@@ -1335,14 +1362,14 @@ class TestPost extends BaseTestCase {
 	public function testPostStatusQueryDraft() {
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_status'  => 'draft',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_status'  => 'draft',
@@ -1374,14 +1401,14 @@ class TestPost extends BaseTestCase {
 	public function testPostStatusQueryMulti() {
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_status'  => 'draft',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_status'  => 'draft',
@@ -1441,14 +1468,14 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
 		add_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_type'    => 'attachment',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1476,14 +1503,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testNoPostTypeNonSearchQuery() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_type'    => 'page',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1506,14 +1533,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testAnyPostTypeQuery() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'post_type'    => 'page',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_type'    => 'page',
@@ -1544,7 +1571,12 @@ class TestPost extends BaseTestCase {
 		$object       = new \stdClass();
 		$object->test = 'hello';
 
-		Functions\create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => $object ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content',
+				'meta_input'   => array( 'test_key' => $object ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -1566,9 +1598,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchMetaQuery() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content',
+				'meta_input'   => array( 'test_key' => 'findme' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -1613,9 +1650,9 @@ class TestPost extends BaseTestCase {
 		// TODO write a new test to match the 3.5 functionality.
 		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 
-		$post_id_0 = Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
-		$post_id_1 = Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		$post_id_2 = Functions\create_and_sync_post(
+		$post_id_0 = $this->ep_factory->post->create( array( 'post_content' => 'the post content' ) );
+		$post_id_1 = $this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$post_id_2 = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'findme 2' ),
@@ -1666,9 +1703,9 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_author'  => $user_id,
@@ -1705,36 +1742,36 @@ class TestPost extends BaseTestCase {
 	public function testAdvancedQuery() {
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		Functions\create_and_sync_post( array( 'post_content' => '' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => '' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'post_type'    => 'ep_test',
 			)
 		);
-		Functions\create_and_sync_post(
-			array(
-				'post_content' => 'findme',
-				'post_type'    => 'ep_test',
-				'tags_input'   => array( 'superterm' ),
-			)
-		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'post_type'    => 'ep_test',
 				'tags_input'   => array( 'superterm' ),
-				'post_author'  => $user_id,
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'post_type'    => 'ep_test',
 				'tags_input'   => array( 'superterm' ),
 				'post_author'  => $user_id,
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme',
+				'post_type'    => 'ep_test',
+				'tags_input'   => array( 'superterm' ),
+				'post_author'  => $user_id,
+				'meta_input'   => array( 'test_key' => 'meta value' ),
 			),
-			array( 'test_key' => 'meta value' )
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1772,9 +1809,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostTitleOrderbyQuery() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 333' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 111' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'Ordertest 222' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1801,9 +1838,24 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAsc() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'B' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 333',
+				'meta_input' => array( 'test_key' => 'c' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'Ordertest 222',
+				'meta_input' => array( 'test_key' => 'B' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 111',
+				'meta_input' => array( 'test_key' => 'a' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1830,9 +1882,24 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAscArray() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 'c' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 'B' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 'a' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 333',
+				'meta_input' => array( 'test_key' => 'c' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'Ordertest 222',
+				'meta_input' => array( 'test_key' => 'B' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 111',
+				'meta_input' => array( 'test_key' => 'a' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1860,25 +1927,31 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostMetaStringOrderbyQueryAdvanced() {
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'ordertest 333' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 'c',
-				'test_key2' => 'c',
+				'post_title' => 'ordertest 333',
+				'meta_input' => array(
+					'test_key'  => 'c',
+					'test_key2' => 'c',
+				),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'ordertest 222' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 'f',
-				'test_key2' => 'c',
+				'post_title' => 'ordertest 222',
+				'meta_input' => array(
+					'test_key'  => 'f',
+					'test_key2' => 'c',
+				),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'ordertest 111' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 'd',
-				'test_key2' => 'd',
+				'post_title' => 'ordertest 111',
+				'meta_input' => array(
+					'test_key'  => 'd',
+					'test_key2' => 'd',
+				),
 			)
 		);
 
@@ -1925,19 +1998,19 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'  => 'findme test 1',
 				'post_author' => $al,
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'  => 'findme test 2',
 				'post_author' => $bob,
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'  => 'findme test 3',
 				'post_author' => $jim,
@@ -1990,19 +2063,19 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'  => 'findme test 1',
 				'post_author' => $al,
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'  => 'findme test 2',
 				'post_author' => $bob,
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'  => 'findme test 3',
 				'post_author' => $jim,
@@ -2036,10 +2109,30 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostMetaNumOrderbyQueryAsc() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2 ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 333',
+				'meta_input' => array( 'test_key' => 3 ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 444',
+				'meta_input' => array( 'test_key' => 4 ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'Ordertest 222',
+				'meta_input' => array( 'test_key' => 2 ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 111',
+				'meta_input' => array( 'test_key' => 1 ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2072,25 +2165,25 @@ class TestPost extends BaseTestCase {
 		$cat3 = wp_create_category( 'basic category' );
 		$cat4 = wp_create_category( 'Category 0' );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'ordertest 333',
 				'post_category' => array( $cat4 ),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'ordertest 444',
 				'post_category' => array( $cat1 ),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'Ordertest 222',
 				'post_category' => array( $cat3 ),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'ordertest 111',
 				'post_category' => array( $cat2 ),
@@ -2123,10 +2216,30 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostMetaNumOrderbyQueryDesc() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 333' ), array( 'test_key' => 3 ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 444' ), array( 'test_key' => 4 ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ), array( 'test_key' => 2 ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 111' ), array( 'test_key' => 1 ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 333',
+				'meta_input' => array( 'test_key' => 3 ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 444',
+				'meta_input' => array( 'test_key' => 4 ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'Ordertest 222',
+				'meta_input' => array( 'test_key' => 2 ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'ordertest 111',
+				'meta_input' => array( 'test_key' => 1 ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2154,32 +2267,40 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostMetaNumMultipleOrderbyQuery() {
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'ordertest 444' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 3,
-				'test_key2' => 2,
+				'post_title' => 'ordertest 444',
+				'meta_input' => array(
+					'test_key'  => 3,
+					'test_key2' => 2,
+				),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'ordertest 333' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 3,
-				'test_key2' => 1,
+				'post_title' => 'ordertest 333',
+				'meta_input' => array(
+					'test_key'  => 3,
+					'test_key2' => 1,
+				),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'Ordertest 222' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 2,
-				'test_key2' => 1,
+				'post_title' => 'Ordertest 222',
+				'meta_input' => array(
+					'test_key'  => 2,
+					'test_key2' => 1,
+				),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'ordertest 111' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 1,
-				'test_key2' => 1,
+				'post_title' => 'ordertest 111',
+				'meta_input' => array(
+					'test_key'  => 1,
+					'test_key2' => 1,
+				),
 			)
 		);
 
@@ -2212,13 +2333,13 @@ class TestPost extends BaseTestCase {
 
 		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertesr' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertesr' ) );
 		sleep( 3 );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 111' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 111' ) );
 		sleep( 3 );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'Ordertest 222' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2247,13 +2368,13 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostDateOrderbyQueryEPIntegrate() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 333' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 333' ) );
 		sleep( 3 );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest ordertest order test 111' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest ordertest order test 111' ) );
 		sleep( 3 );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest 222' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'Ordertest 222' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2284,30 +2405,30 @@ class TestPost extends BaseTestCase {
 
 		$posts = array();
 
-		$posts[5] = Functions\create_and_sync_post( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
+		$posts[5] = $this->ep_factory->post->create( array( 'post_title' => 'ordertet with even more lorem ipsum to make a longer field' ) );
 
-		$posts[2] = Functions\create_and_sync_post( array( 'post_title' => 'ordertest ordertet lorem ipsum' ) );
+		$posts[2] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest ordertet lorem ipsum' ) );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'Lorem ipsum' ) );
 
-		$posts[4] = Functions\create_and_sync_post( array( 'post_title' => 'ordertet with some lorem ipsum' ) );
+		$posts[4] = $this->ep_factory->post->create( array( 'post_title' => 'ordertet with some lorem ipsum' ) );
 
-		$posts[1] = Functions\create_and_sync_post( array( 'post_title' => 'ordertest ordertest lorem ipsum' ) );
+		$posts[1] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest ordertest lorem ipsum' ) );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'   => 'Lorem ipsum',
 				'post_content' => 'Some post content filler text.',
 			)
 		);
 
-		$posts[3] = Functions\create_and_sync_post( array( 'post_title' => 'ordertet ordertet lorem ipsum' ) );
+		$posts[3] = $this->ep_factory->post->create( array( 'post_title' => 'ordertet ordertet lorem ipsum' ) );
 
-		$posts[0] = Functions\create_and_sync_post( array( 'post_title' => 'Ordertest ordertest ordertest' ) );
+		$posts[0] = $this->ep_factory->post->create( array( 'post_title' => 'Ordertest ordertest ordertest' ) );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'Lorem ipsum' ) );
 
-		Functions\create_and_sync_post( array( 'post_title' => 'Lorem ipsum' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'Lorem ipsum' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2342,9 +2463,9 @@ class TestPost extends BaseTestCase {
 
 		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertet' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertet' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2371,9 +2492,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSearchPostNameOrderbyQuery() {
-		Functions\create_and_sync_post( array( 'post_title' => 'postname-ordertest-333' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'postname-ordertest-111' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'postname-Ordertest-222' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'postname-ordertest-333' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'postname-ordertest-111' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'postname-Ordertest-222' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2405,9 +2526,9 @@ class TestPost extends BaseTestCase {
 
 		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertet' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_title' => 'Ordertet' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2438,9 +2559,9 @@ class TestPost extends BaseTestCase {
 
 		add_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_title' => 'Ordertest' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertestt' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_title' => 'Ordertest' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertestt' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2467,9 +2588,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testRandOrderby() {
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 1' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 2' ) );
-		Functions\create_and_sync_post( array( 'post_title' => 'ordertest 3' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 1' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 2' ) );
+		$this->ep_factory->post->create( array( 'post_title' => 'ordertest 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2498,7 +2619,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostForceDelete() {
 		add_action( 'ep_delete_post', array( $this, 'action_delete_post' ), 10, 0 );
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -2534,13 +2655,13 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testEmptySearchString() {
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			'ep_integrate' => true
+			'ep_integrate' => true,
 		);
 
 		$query = new \WP_Query( $args );
@@ -2557,9 +2678,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryEquals() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'value' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2586,9 +2712,9 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryNotEquals() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2616,9 +2742,14 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryExists() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'value' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2645,9 +2776,9 @@ class TestPost extends BaseTestCase {
 	 * @since 1.3
 	 */
 	public function testMetaQueryNotExists() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'value' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2674,10 +2805,20 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryGreaterThan() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '100' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '101' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2705,11 +2846,26 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryBetween() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '105' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '110' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '100' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '105' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '110' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2737,10 +2893,20 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryGreaterThanEqual() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '100' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '101' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2768,10 +2934,20 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryLessThan() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '100' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '101' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2799,10 +2975,20 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryLessThanEqual() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '100' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '101' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '100' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '101' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2830,20 +3016,29 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryOrRelation() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key5' => 'value1' ) );
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'the post content findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 'value1',
-				'test_key2' => 'value',
+				'post_content' => 'the post content findme',
+				'meta_input'   => array( 'test_key5' => 'value1' ),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'post content findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key6' => 'value',
-				'test_key2' => 'value2',
-				'test_key3' => 'value',
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value1',
+					'test_key2' => 'value',
+				),
+			),
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key6' => 'value',
+					'test_key2' => 'value2',
+					'test_key3' => 'value',
+				),
 			)
 		);
 
@@ -2872,26 +3067,99 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test an advanced meta filter query with or relation while sorting by Meta key
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testMetaQueryOrRelationWithSort() {
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array( 'test_key' => date('Ymd') - 5 ),
+			),
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => date('Ymd') + 5,
+					'test_key2' => date('Ymd') + 6,
+				),
+			),
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => date('Ymd') + 5,
+					'test_key2' => date('Ymd') + 6,
+				),
+			),
+		);
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			'ep_integrate' => true,
+			'meta_key' => 'test_key',
+			'meta_query' => array(
+				'relation' => 'or',
+				array(
+					'key'     => 'test_key',
+					'value'   => date('Ymd'),
+					'compare' => '<=',
+					'type' => 'NUMERIC',
+				),
+				array(
+					'key'     => 'test_key2',
+					'value'   => date('Ymd'),
+					'compare' => '>=',
+					'type' => 'NUMERIC',
+				),
+			),
+			'orderby' => 'meta_value_num',
+			'order' => 'ASC',
+		);
+
+		$query = new \WP_Query( $args );
+		$args = $post->format_args($args, new \WP_Query() );
+
+		$outer_must = $args['post_filter']['bool']['must'][0]['bool']['must'];
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertSame( 'meta.test_key', $outer_must[0]['exists']['field'] );
+		$this->assertArrayHasKey( 'meta.test_key.long', $outer_must[1]['bool']['should']['bool']['should'][0]['bool']['must'][0]['range'] );
+		$this->assertArrayHasKey( 'meta.test_key2.long', $outer_must[1]['bool']['should']['bool']['should'][1]['bool']['must'][0]['range'] );
+	}
+
+	/**
 	 * Test an advanced meta filter query
 	 *
 	 * @since 1.3
 	 * @group post
 	 */
 	public function testMetaQueryAdvanced() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' ) );
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'the post content findme' ),
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' ) );
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 'value1',
-				'test_key2' => 'value',
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value1',
+					'test_key2' => 'value',
+				),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'post content findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => 'value',
-				'test_key2' => 'value2',
-				'test_key3' => 'value',
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value',
+					'test_key2' => 'value2',
+					'test_key3' => 'value',
+				),
 			)
 		);
 
@@ -2930,11 +3198,26 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryLike() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'ALICE in wonderland' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'alice in melbourne' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'AlicE in america' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2963,9 +3246,24 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryNotLike() {
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'ALICE in wonderland' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'alice in melbourne' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'AlicE in america' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'ALICE in wonderland' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'alice in melbourne' ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'AlicE in america' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -2991,27 +3289,43 @@ class TestPost extends BaseTestCase {
 	 * Test meta queries with multiple keys
 	 */
 	public function testMetaQueryMultipleArray() {
-		Functions\create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme' ), array( 'meta_key_1' => '1' ) );
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'meta_key_1' => '1',
-				'meta_key_2' => '4',
+				'post_content' => 'findme',
+				'meta_input'   => array( 'meta_key_1' => '1' ),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'meta_key_1' => '1',
-				'meta_key_2' => '0',
+				'post_content' => 'findme',
+				'meta_input'   => array( 'meta_key_1' => '1' ),
 			)
 		);
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'meta_key_1' => '1',
-				'meta_key_3' => '4',
+				'post_content' => 'findme',
+				'meta_input'   => array(
+					'meta_key_1' => '1',
+					'meta_key_2' => '4',
+				),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme',
+				'meta_input'   => array(
+					'meta_key_1' => '1',
+					'meta_key_2' => '0',
+				),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme',
+				'meta_input'   => array(
+					'meta_key_1' => '1',
+					'meta_key_3' => '4',
+				),
 			)
 		);
 
@@ -3074,11 +3388,11 @@ class TestPost extends BaseTestCase {
 	public function testExcludeFromSearch() {
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post();
-		$post_ids[1] = Functions\create_and_sync_post();
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-		$post_ids[3] = Functions\create_and_sync_post();
-		$post_ids[4] = Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$post_ids[0] = $this->ep_factory->post->create();
+		$post_ids[1] = $this->ep_factory->post->create();
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+		$post_ids[3] = $this->ep_factory->post->create();
+		$post_ids[4] = $this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		register_post_type(
 			'exclude-me',
@@ -3088,7 +3402,7 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
-		$post_ids[5] = Functions\create_and_sync_post(
+		$post_ids[5] = $this->ep_factory->post->create(
 			array(
 				'post_type'    => 'exclude-me',
 				'post_content' => 'findme',
@@ -3131,11 +3445,11 @@ class TestPost extends BaseTestCase {
 
 		$post_ids = array();
 
-		$post_ids[0] = Functions\create_and_sync_post();
-		$post_ids[1] = Functions\create_and_sync_post();
-		$post_ids[2] = Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-		$post_ids[3] = Functions\create_and_sync_post();
-		$post_ids[4] = Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$post_ids[0] = $this->ep_factory->post->create();
+		$post_ids[1] = $this->ep_factory->post->create();
+		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+		$post_ids[3] = $this->ep_factory->post->create();
+		$post_ids[4] = $this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3164,7 +3478,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testCacheResultsDefaultOff() {
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3185,7 +3499,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testCacheResultsOn() {
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3207,7 +3521,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testCachedResultIsInCache() {
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3234,7 +3548,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testCachedResultIsNotInCache() {
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3272,7 +3586,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostInvalidDateTime() {
 		add_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10, 1 );
-		$post_id = Functions\create_and_sync_post( array( 'post_status' => 'draft' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_status' => 'draft' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3365,7 +3679,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPrepareMeta() {
 
-		$post_id     = Functions\create_and_sync_post();
+		$post_id     = $this->ep_factory->post->create();
 		$post        = get_post( $post_id );
 		$meta_values = array(
 			'value 1',
@@ -3471,14 +3785,14 @@ class TestPost extends BaseTestCase {
 		$default_date_time = array(
 			'date'     => '1970-01-01',
 			'datetime' => '1970-01-01 00:00:01',
-			'time'     => '00:00:01'
+			'time'     => '00:00:01',
 		);
 
 		// Invalid dates
-		$textval           = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 'some text' );
-		$k20_string        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '20.000000' );
-		$bool_false_val    = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, false );
-		$bool_true_val     = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, true );
+		$textval        = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, 'some text' );
+		$k20_string     = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, '20.000000' );
+		$bool_false_val = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, false );
+		$bool_true_val  = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_meta_values( $meta_types, true );
 
 		$this->assertEquals( $default_date_time, $textval );
 		$this->assertEquals( $default_date_time, $k20_string );
@@ -3509,8 +3823,13 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaKeyQuery() {
 
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'test' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'test' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3536,8 +3855,13 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaKeyQueryNum() {
 
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 5 ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 5 ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3562,12 +3886,14 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaKeyQueryMix() {
 
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'post content findme' ),
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
 			array(
-				'test_key'   => 5,
-				'test_key_2' => 'aaa',
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key'   => 5,
+					'test_key_2' => 'aaa',
+				),
 			)
 		);
 
@@ -3600,10 +3926,20 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaValueTypeQueryNumeric() {
 
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 100 ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 101 ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 100 ),
+			)
+		);
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 101 ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3670,10 +4006,20 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaValueTypeQueryDecimal() {
 
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 15.5 ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 16.5 ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 15.5 ),
+			)
+		);
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 16.5 ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3721,10 +4067,20 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaValueTypeQueryChar() {
 
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'abc' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => 'acc' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'abc' ),
+			)
+		);
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => 'acc' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3753,9 +4109,19 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaValueTypeQueryDate() {
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '11/13/15' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '11/15/15' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '11/13/15' ),
+			)
+		);
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '11/15/15' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3801,8 +4167,13 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaValueTypeQueryTime() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '5:00am' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '5:00am' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3847,8 +4218,13 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaValueTypeQueryDatetime() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'post content findme' ), array( 'test_key' => '5:00am 1/2/12' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array( 'test_key' => '5:00am 1/2/12' ),
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
@@ -3910,14 +4286,14 @@ class TestPost extends BaseTestCase {
 	 * @since 2.0
 	 */
 	public function testPostParentQuery() {
-		$parent_post = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		Functions\create_and_sync_post(
+		$parent_post = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'post_parent'  => $parent_post,
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -3940,19 +4316,19 @@ class TestPost extends BaseTestCase {
 	 * @since 3.6.0
 	 */
 	public function testPostNameInQuery() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme name in test 1',
 				'post_name'    => 'findme-name-in',
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 2' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme name in test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme name in test 2' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme name in test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
-			's'             => 'findme name in',
+			's' => 'findme name in',
 		);
 
 		$args['post_name__in'] = 'findme-name-in';
@@ -3980,7 +4356,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryNotIn() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -3989,7 +4365,7 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( 'one' ),
@@ -4046,7 +4422,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryExists() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -4055,13 +4431,13 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( 'one' ),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -4112,7 +4488,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryNotExists() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -4121,13 +4497,13 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( 'one' ),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 3' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -4154,28 +4530,28 @@ class TestPost extends BaseTestCase {
 	 * @since 2.3
 	 */
 	public function testPostMimeTypeQuery() {
-		$attachment_id_1_jpeg = Functions\create_and_sync_post(
+		$attachment_id_1_jpeg = $this->ep_factory->post->create(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/jpeg',
 				'post_status'    => 'inherit',
 			)
 		);
-		$attachment_id_2_jpeg = Functions\create_and_sync_post(
+		$attachment_id_2_jpeg = $this->ep_factory->post->create(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/jpeg',
 				'post_status'    => 'inherit',
 			)
 		);
-		$attachment_id_3_pdf = Functions\create_and_sync_post(
+		$attachment_id_3_pdf  = $this->ep_factory->post->create(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'application/pdf',
 				'post_status'    => 'inherit',
 			)
 		);
-		$attachment_id_4_png = Functions\create_and_sync_post(
+		$attachment_id_4_png  = $this->ep_factory->post->create(
 			array(
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image/png',
@@ -4293,7 +4669,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryOperatorIn() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -4302,7 +4678,7 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( 'one' ),
@@ -4355,7 +4731,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testTaxQueryOperatorAnd() {
 		$this->assertEquals( 1, 1 );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -4364,7 +4740,7 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( 'one' ),
@@ -4401,8 +4777,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testCustomTaxonomyPublic() {
 
-		$post_id = Functions\create_and_sync_post();
-		$post    = get_post( $post_id );
+		$post = $this->ep_factory->post->create_and_get( array( 'post_title' => 'Test Post' ) );
 
 		$tax_name = rand_str( 32 );
 		register_taxonomy(
@@ -4419,9 +4794,9 @@ class TestPost extends BaseTestCase {
 		$term_1_name = rand_str( 32 );
 		$term1       = wp_insert_term( $term_1_name, $tax_name );
 
-		wp_set_object_terms( $post_id, array( $term1['term_id'] ), $tax_name, true );
+		wp_set_object_terms( $post->ID, array( $term1['term_id'] ), $tax_name, true );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post->ID, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
@@ -4450,19 +4825,19 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsIncludedOnHome() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			[
 				'post_title' => 'Normal post 1',
 			]
 		);
-		$sticky_id = Functions\create_and_sync_post(
+		$sticky_id = $this->ep_factory->post->create(
 			[
 				'post_title' => 'Sticky post',
 				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
 			]
 		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			[
 				'post_title' => 'Normal post 2',
 			]
@@ -4484,19 +4859,19 @@ class TestPost extends BaseTestCase {
 	 * @group post-sticky
 	 */
 	public function testStickyPostsExcludedOnNotHome() {
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			[
 				'post_title' => 'Normal post 1',
 			]
 		);
-		$sticky_id = Functions\create_and_sync_post(
+		$sticky_id = $this->ep_factory->post->create(
 			[
 				'post_title' => 'Sticky post',
 				'post_date'  => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
 			]
 		);
 		stick_post( $sticky_id );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			[
 				'post_title' => 'Normal post 2',
 			]
@@ -4519,7 +4894,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSimpleDateMonthNum() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4552,7 +4927,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testSimpleDateDay() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4573,7 +4948,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryBeforeAfter() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4607,7 +4982,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryMultiColumn() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4637,7 +5012,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryMultiColumnInclusive() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4669,7 +5044,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryWorkingHours() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4703,7 +5078,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryMultiColumnNotInclusive() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4734,7 +5109,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQuerySimple() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4872,7 +5247,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryBetween() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4898,7 +5273,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryNotBetween() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4924,7 +5299,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryShortBetween() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -4953,7 +5328,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryCompare() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -5037,7 +5412,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryInclusiveTypeMix() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -5072,7 +5447,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryExclusiveTypeMix() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -5103,7 +5478,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryCompare2() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -5137,7 +5512,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testDateQueryWeekdayRange() {
-		Functions\create_date_query_posts();
+		$this->create_date_query_posts();
 
 		$args = array(
 			's'              => 'findme',
@@ -5196,7 +5571,7 @@ class TestPost extends BaseTestCase {
 		$cat1 = wp_create_category( 'category one' );
 		$cat2 = wp_create_category( 'category two' );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 1',
 				'tags_input'    => array( 'one', 'two' ),
@@ -5204,9 +5579,9 @@ class TestPost extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'  => 'findme test 3',
 				'tags_input'    => array( 'one', 'three' ),
@@ -5255,13 +5630,13 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTagSlugQuery() {
-		$post_id_1 = Functions\create_and_sync_post(
+		$post_id_1 = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array( 'slug1', 'slug2' ),
 			)
 		);
-		$post_id_2 = Functions\create_and_sync_post(
+		$post_id_2 = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( 'slug1', 'slug2', 'slug3', 'slug4' ),
@@ -5302,27 +5677,57 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTagQuery() {
-		$tag1 = wp_insert_category( [ 'cat_name' => 'tag-1', 'taxonomy' => 'post_tag' ] );
-		$tag2 = wp_insert_category( [ 'cat_name' => 'tag-2', 'taxonomy' => 'post_tag' ] );
-		$tag3 = wp_insert_category( [ 'cat_name' => 'tag-3', 'taxonomy' => 'post_tag' ] );
-		$tag4 = wp_insert_category( [ 'cat_name' => 'tag-4', 'taxonomy' => 'post_tag' ] );
-		$tag5 = wp_insert_category( [ 'cat_name' => 'tag-5', 'taxonomy' => 'post_tag' ] );
-		$tag6 = wp_insert_category( [ 'cat_name' => 'tag-6', 'taxonomy' => 'post_tag' ] );
+		$tag1 = wp_insert_category(
+			[
+				'cat_name' => 'tag-1',
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$tag2 = wp_insert_category(
+			[
+				'cat_name' => 'tag-2',
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$tag3 = wp_insert_category(
+			[
+				'cat_name' => 'tag-3',
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$tag4 = wp_insert_category(
+			[
+				'cat_name' => 'tag-4',
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$tag5 = wp_insert_category(
+			[
+				'cat_name' => 'tag-5',
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$tag6 = wp_insert_category(
+			[
+				'cat_name' => 'tag-6',
+				'taxonomy' => 'post_tag',
+			]
+		);
 
-		$post_id_1 = Functions\create_and_sync_post(
+		$post_id_1 = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array( $tag1, $tag2 ),
 			)
 		);
-		$post_id_2 = Functions\create_and_sync_post(
+		$post_id_2 = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 2',
 				'tags_input'   => array( $tag3, $tag4, $tag5, $tag6 ),
 			)
 		);
 
-		$post_id_3 = Functions\create_and_sync_post(
+		$post_id_3 = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'tags_input'   => array( $tag1, $tag2, $tag6 ),
@@ -5372,7 +5777,7 @@ class TestPost extends BaseTestCase {
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'post',
-			'tag__in'    => array( $tag1, $tag3 ),
+			'tag__in'   => array( $tag1, $tag3 ),
 			'fields'    => 'ids',
 		);
 
@@ -5410,7 +5815,7 @@ class TestPost extends BaseTestCase {
 			PHP_INT_MAX
 		);
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
@@ -5441,10 +5846,10 @@ class TestPost extends BaseTestCase {
 	public function testQueryDb() {
 		$indexable_post_object = new \ElasticPress\Indexable\Post\Post();
 
-		$post_id_1 = Functions\create_and_sync_post();
-		$post_id_2 = Functions\create_and_sync_post();
-		$post_id_3 = Functions\create_and_sync_post();
-		$post_id_4 = Functions\create_and_sync_post( [ 'post_password' => '123' ] );
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+		$post_id_3 = $this->ep_factory->post->create();
+		$post_id_4 = $this->ep_factory->post->create( [ 'post_password' => '123' ] );
 
 		// Test the first loop of the indexing.
 		$results = $indexable_post_object->query_db(
@@ -5461,7 +5866,7 @@ class TestPost extends BaseTestCase {
 		// Second loop.
 		$results = $indexable_post_object->query_db(
 			[
-				'per_page' => 1,
+				'per_page'                             => 1,
 				'ep_indexing_last_processed_object_id' => $post_id_3,
 			]
 		);
@@ -5474,7 +5879,7 @@ class TestPost extends BaseTestCase {
 		// A custom upper_limit_object_id was passed in.
 		$results = $indexable_post_object->query_db(
 			[
-				'per_page' => 1,
+				'per_page'                          => 1,
 				'ep_indexing_upper_limit_object_id' => $post_id_1,
 			]
 		);
@@ -5487,9 +5892,9 @@ class TestPost extends BaseTestCase {
 		// Passing custom start and last post IDs. Second loop.
 		$results = $indexable_post_object->query_db(
 			[
-				'per_page' => 1,
-				'ep_indexing_upper_limit_object_id' => $post_id_3,
-				'ep_indexing_lower_limit_object_id' => $post_id_2,
+				'per_page'                             => 1,
+				'ep_indexing_upper_limit_object_id'    => $post_id_3,
+				'ep_indexing_lower_limit_object_id'    => $post_id_2,
 				'ep_indexing_last_processed_object_id' => $post_id_3,
 			]
 		);
@@ -5570,7 +5975,7 @@ class TestPost extends BaseTestCase {
 		$this->assertFalse( $post->prepare_document( null ) );
 
 		// Create a post with invalid data.
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		// Manually update the post with invalid data.
 		$wpdb->update(
@@ -5612,7 +6017,7 @@ class TestPost extends BaseTestCase {
 
 		// We need to create an object that is not a taxonomy to simulate
 		// pre 4.7 behavior.
-		$invalid_taxonomy = new \stdClass();
+		$invalid_taxonomy              = new \stdClass();
 		$invalid_taxonomy->object_type = 'post';
 		$invalid_taxonomy->public      = true;
 
@@ -5637,30 +6042,30 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testFormatArgsRootLevelTaxonomies() {
-		$cat1 = wp_create_category( 'category one' );
-		$cat2 = wp_create_category( 'category two' );
-		$tag1 = wp_insert_category( [ 'cat_name' => 'tag-1', 'taxonomy' => 'post_tag' ] );
-		$tag2 = wp_insert_category( [ 'cat_name' => 'tag-2', 'taxonomy' => 'post_tag' ] );
-		$tag3 = wp_insert_category( [ 'cat_name' => 'tag-3', 'taxonomy' => 'post_tag' ] );
+		$cat1 = $this->factory->category->create( [ 'name' => 'category one' ] );
+		$cat2 = $this->factory->category->create( [ 'name' => 'category two' ] );
+		$tag1 = $this->factory->tag->create( [ 'name' => 'tag-1' ] );
+		$tag2 = $this->factory->tag->create( [ 'name' => 'tag-2' ] );
+		$tag3 = $this->factory->tag->create( [ 'name' => 'tag-3' ] );
 
-		$post1 = Functions\create_and_sync_post(
+		$post1 = $this->ep_factory->post->create(
 			array(
 				'tags_input'    => array( $tag1, $tag2 ),
 				'post_category' => array( $cat1 ),
 			)
 		);
-		$post2 = Functions\create_and_sync_post(
+		$post2 = $this->ep_factory->post->create(
 			array(
 				'tags_input'    => array( $tag1, $tag2, $tag3 ),
 				'post_category' => array( $cat2 ),
 			)
 		);
-		$post3 = Functions\create_and_sync_post(
+		$post3 = $this->ep_factory->post->create(
 			array(
 				'post_category' => array( $cat1 ),
 			)
 		);
-		$post4 = Functions\create_and_sync_post(
+		$post4 = $this->ep_factory->post->create(
 			array(
 				'tags_input' => array( $tag1, $tag3 ),
 			)
@@ -5846,7 +6251,7 @@ class TestPost extends BaseTestCase {
 		global $wp_query;
 
 		// Create a sticky post.
-		$sticky_post_id = Functions\create_and_sync_post();
+		$sticky_post_id = $this->ep_factory->post->create();
 		stick_post( $sticky_post_id );
 
 		$sticky_posts = get_option( 'sticky_posts' );
@@ -5884,7 +6289,7 @@ class TestPost extends BaseTestCase {
 		$post = new \ElasticPress\Indexable\Post\Post();
 
 		// This will include statuses besides publish.
-		$args = $post->format_args( [ ], new \WP_Query() );
+		$args = $post->format_args( [], new \WP_Query() );
 
 		$statuses = $args['post_filter']['bool']['must'][1]['terms']['post_status'];
 
@@ -5940,10 +6345,10 @@ class TestPost extends BaseTestCase {
 				// Triggers $use_filter to be true.
 				'post_status' => 'publish',
 
-				'aggs' => [
-					'name' => 'post_type_stats',
+				'aggs'        => [
+					'name'       => 'post_type_stats',
 					'use-filter' => true,
-					'aggs' => [
+					'aggs'       => [
 						'terms' => [
 							'field' => 'terms.post_type',
 						],
@@ -5977,11 +6382,11 @@ class TestPost extends BaseTestCase {
 				// Triggers $use_filter to be true.
 				'post_status' => 'publish',
 
-				'aggs' => [
+				'aggs'        => [
 					[
-						'name' => 'taxonomies',
+						'name'       => 'taxonomies',
 						'use-filter' => true,
-						'aggs' => [
+						'aggs'       => [
 							'terms' => [
 								'field' => 'terms.category.slug',
 							],
@@ -5993,7 +6398,7 @@ class TestPost extends BaseTestCase {
 								'field' => 'terms.post_type',
 							],
 						],
-					]
+					],
 				],
 			],
 			new \WP_Query()
@@ -6002,6 +6407,43 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( 'publish', $args['aggs']['taxonomies']['filter']['bool']['must'][1]['term']['post_status'] );
 		$this->assertSame( 'terms.category.slug', $args['aggs']['taxonomies']['aggs']['terms']['field'] );
 		$this->assertSame( 'terms.post_type', $args['aggs']['aggregation_name']['terms']['field'] );
+	}
+
+	/**
+	 * Tests the `ep_post_filters` filter
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function testFormatArgsEpPostFilter() {
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		$test_args  = [];
+		$test_query = new \WP_Query( $test_args );
+
+		$add_es_filter = function( $filters, $args, $query ) use ( $test_query, $test_args ) {
+			$filters['new_filter'] = [
+				'term' => [
+					'my_custom_field.raw' => 'my_custom_value',
+				],
+			];
+
+			// Simple check if the filter additional parameters work.
+			$this->assertSame( $test_query, $query );
+			$this->assertSame( $test_args, $args );
+
+			return $filters;
+		};
+		add_filter( 'ep_post_filters', $add_es_filter, 10, 3 );
+
+		$args = $post->format_args( $test_args, $test_query );
+
+		$this->assertNotEmpty( $args['post_filter']['bool']['must'] );
+
+		$last_filter = end( $args['post_filter']['bool']['must'] );
+		$this->assertSame( [ 'my_custom_field.raw' => 'my_custom_value' ], $last_filter['term'] );
+
+		remove_filter( 'ep_post_filters', $add_es_filter );
 	}
 
 	/**
@@ -6095,7 +6537,7 @@ class TestPost extends BaseTestCase {
 		// Post type.
 		$query_args = [
 			'ep_integrate' => true,
-			'tax_query' => [
+			'tax_query'    => [
 				'relation' => 'and',
 				[
 					'relation' => 'or',
@@ -6230,10 +6672,10 @@ class TestPost extends BaseTestCase {
 		$query_integration = new \ElasticPress\Indexable\Post\QueryIntegration();
 
 		// Simulate a WP_Query object.
-		$query = new \stdClass();
+		$query                        = new \stdClass();
 		$query->elasticsearch_success = true;
-		$query->num_posts = 123;
-		$query->query_vars = [ 'ep_integrate' => true ];
+		$query->num_posts             = 123;
+		$query->query_vars            = [ 'ep_integrate' => true ];
 
 		$this->assertSame( 123, $query_integration->found_posts( 10, $query ) );
 	}
@@ -6269,9 +6711,9 @@ class TestPost extends BaseTestCase {
 		remove_filter( 'ep_formatted_args', $assert_callback, 10, 2 );
 
 		$post_ids   = [];
-		$post_ids[] = Functions\create_and_sync_post();
-		$post_ids[] = Functions\create_and_sync_post();
-		$post_ids[] = Functions\create_and_sync_post( [ 'post_parent' => $post_ids[1] ] );
+		$post_ids[] = $this->ep_factory->post->create();
+		$post_ids[] = $this->ep_factory->post->create();
+		$post_ids[] = $this->ep_factory->post->create( [ 'post_parent' => $post_ids[1] ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -6348,9 +6790,9 @@ class TestPost extends BaseTestCase {
 			return;
 		}
 
-		$sites      = get_sites();
-		$blog_1_id  = get_current_blog_id();
-		$blog_2_id  = false;
+		$sites     = get_sites();
+		$blog_1_id = get_current_blog_id();
+		$blog_2_id = false;
 
 		// Create a second site if we need one.
 		if ( count( $sites ) <= 1 ) {
@@ -6369,7 +6811,7 @@ class TestPost extends BaseTestCase {
 
 		$this->assertGreaterThan( 1, $blog_2_id );
 
-		$blog_1_post_id = Functions\create_and_sync_post();
+		$blog_1_post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -6390,7 +6832,7 @@ class TestPost extends BaseTestCase {
 		// Switch to the new blog, create a post.
 		switch_to_blog( $blog_2_id );
 
-		$blog_2_post_id = Functions\create_and_sync_post();
+		$blog_2_post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -6452,7 +6894,7 @@ class TestPost extends BaseTestCase {
 	public function testPostSyncQueueEPKill() {
 
 		// Create a post sync it.
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
 
@@ -6471,7 +6913,12 @@ class TestPost extends BaseTestCase {
 		// an existing post.
 		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
 
-		wp_insert_post( [ 'post_type' => 'ep_test', 'post_status' => 'publish' ] );
+		wp_insert_post(
+			[
+				'post_type'   => 'ep_test',
+				'post_status' => 'publish',
+			]
+		);
 
 		// Make sure sync queue is still empty when a new post is added.
 		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
@@ -6497,7 +6944,7 @@ class TestPost extends BaseTestCase {
 	public function testPostSyncQueuePermissions() {
 
 		// Create a post sync it.
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -6509,7 +6956,7 @@ class TestPost extends BaseTestCase {
 		// to edit the post we created at the top of this function.
 		$map_meta_cap_callback = function( $caps, $cap, $user_id, $args ) use ( $post_id ) {
 
-			if ( 'edit_post' === $cap && is_array( $args ) && ! empty( $args ) &&  $post_id === $args[0] ) {
+			if ( 'edit_post' === $cap && is_array( $args ) && ! empty( $args ) && $post_id === $args[0] ) {
 				$caps = [ 'do_not_allow' ];
 			}
 
@@ -6527,33 +6974,43 @@ class TestPost extends BaseTestCase {
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$this->assertTrue( is_array( $document ) );
-		$this->assertSame( $post_id, $document[ 'post_id' ] );
+		$this->assertSame( $post_id, $document['post_id'] );
 
 		$post_title = $document['post_title'];
 
 		// Try updating the post title.
-		wp_update_post( [ 'ID' => $post_id, 'post_title' => 'New Post Title' ] );
+		wp_update_post(
+			[
+				'ID'         => $post_id,
+				'post_title' => 'New Post Title',
+			]
+		);
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Verify the old title is still there.
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
 		$this->assertTrue( is_array( $document ) );
-		$this->assertSame( $post_title, $document[ 'post_title'] );
+		$this->assertSame( $post_title, $document['post_title'] );
 
 		// Turn off the map_meta_cap filter and verify everything is flowing
 		// through to ES.
 		remove_filter( 'map_meta_cap', $map_meta_cap_callback, 10, 4 );
 
 		// Try updating the post title.
-		wp_update_post( [ 'ID' => $post_id, 'post_title' => 'New Post Title' ] );
+		wp_update_post(
+			[
+				'ID'         => $post_id,
+				'post_title' => 'New Post Title',
+			]
+		);
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Verify the new title is there.
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 
-		$this->assertSame( 'New Post Title', $document[ 'post_title'] );
+		$this->assertSame( 'New Post Title', $document['post_title'] );
 
 		// Delete it, make sure it's gone.
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->action_delete_post( $post_id );
@@ -6572,48 +7029,48 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testPostPrepareDateTerms() {
-		$date = new \DateTime('2021-04-11 23:58:12');
+		$date = new \DateTime( '2021-04-11 23:58:12' );
 
 		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms( $date->format( 'Y-m-d H:i:s' ) );
 
 		$this->assertIsArray( $return_prepare_date_terms );
 
 		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('Y'), $return_prepare_date_terms['year'] );
+		$this->assertEquals( $date->format( 'Y' ), $return_prepare_date_terms['year'] );
 
 		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('m'), $return_prepare_date_terms['month'] );
+		$this->assertEquals( $date->format( 'm' ), $return_prepare_date_terms['month'] );
 
 		$this->assertArrayHasKey( 'week', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('W'), $return_prepare_date_terms['week'] );
+		$this->assertEquals( $date->format( 'W' ), $return_prepare_date_terms['week'] );
 
 		$this->assertArrayHasKey( 'dayofyear', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('z'), $return_prepare_date_terms['dayofyear'] );
+		$this->assertEquals( $date->format( 'z' ), $return_prepare_date_terms['dayofyear'] );
 
 		$this->assertArrayHasKey( 'day', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('d'), $return_prepare_date_terms['day'] );
+		$this->assertEquals( $date->format( 'd' ), $return_prepare_date_terms['day'] );
 
 		$this->assertArrayHasKey( 'dayofweek', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('w'), $return_prepare_date_terms['dayofweek'] );
+		$this->assertEquals( $date->format( 'w' ), $return_prepare_date_terms['dayofweek'] );
 
 		$this->assertArrayHasKey( 'dayofweek_iso', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('N'), $return_prepare_date_terms['dayofweek_iso'] );
+		$this->assertEquals( $date->format( 'N' ), $return_prepare_date_terms['dayofweek_iso'] );
 
 		$this->assertArrayHasKey( 'hour', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('H'), $return_prepare_date_terms['hour'] );
+		$this->assertEquals( $date->format( 'H' ), $return_prepare_date_terms['hour'] );
 
 		$this->assertArrayHasKey( 'minute', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('i'), $return_prepare_date_terms['minute'] );
+		$this->assertEquals( $date->format( 'i' ), $return_prepare_date_terms['minute'] );
 
 		$this->assertArrayHasKey( 'second', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('s'), $return_prepare_date_terms['second'] );
+		$this->assertEquals( $date->format( 's' ), $return_prepare_date_terms['second'] );
 
 		$this->assertArrayHasKey( 'm', $return_prepare_date_terms );
-		$this->assertEquals( $date->format('Ym'), $return_prepare_date_terms['m'] );
+		$this->assertEquals( $date->format( 'Ym' ), $return_prepare_date_terms['m'] );
 
-		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms('');
+		$return_prepare_date_terms = ElasticPress\Indexables::factory()->get( 'post' )->prepare_date_terms( '' );
 
-		$this->assertIsArray($return_prepare_date_terms );
+		$this->assertIsArray( $return_prepare_date_terms );
 
 		$this->assertArrayHasKey( 'year', $return_prepare_date_terms );
 		$this->assertArrayHasKey( 'month', $return_prepare_date_terms );
@@ -6652,8 +7109,8 @@ class TestPost extends BaseTestCase {
 						'terms'    => array( $cat ),
 						'field'    => 'term_id',
 						'operator' => 'in',
-					)
-				)
+					),
+				),
 			],
 			$query
 		);
@@ -6669,19 +7126,23 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testDeleteAllMetadata() {
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'one' ),
+		$this->ep_factory->post->create(
 			array(
-				'common_meta_one' => 'lorem',
-				'common_meta_two' => 'ipsum',
-			)
+				'post_title' => 'one',
+				'meta_input' => array(
+					'common_meta_one' => 'lorem',
+					'common_meta_two' => 'ipsum',
+				),
+			),
 		);
-		Functions\create_and_sync_post(
-			array( 'post_title' => 'two' ),
+		$this->ep_factory->post->create(
 			array(
-				'common_meta_one' => 'lorem',
-				'common_meta_two' => 'ipsum',
-			)
+				'post_title' => 'two',
+				'meta_input' => array(
+					'common_meta_one' => 'lorem',
+					'common_meta_two' => 'ipsum',
+				),
+			),
 		);
 
 		delete_metadata( 'post', null, 'common_meta_one', 'lorem', true );
@@ -6721,27 +7182,35 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
 
-		$query = new \WP_Query( [
-			'ep_integrate' => false
-		] );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => false,
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_Query( [
-			'ep_integrate' => 0
-		] );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => 0,
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_Query( [
-			'ep_integrate' => 'false'
-		] );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => 'false',
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_Query( [
-			's' => 'post'
-		] );
+		$query = new \WP_Query(
+			[
+				's' => 'post',
+			]
+		);
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
@@ -6750,7 +7219,7 @@ class TestPost extends BaseTestCase {
 	 * Test if inserting a post and deleting another one in the thread works as expected.
 	 */
 	public function testInsertPostAndDeleteAnother() {
-		$post_to_be_deleted = Functions\create_and_sync_post( [ 'post_title' => 'To be deleted' ] );
+		$post_to_be_deleted = $this->ep_factory->post->create( [ 'post_title' => 'To be deleted' ] );
 
 		$new_post_id = wp_insert_post(
 			[
@@ -6764,10 +7233,12 @@ class TestPost extends BaseTestCase {
 		\ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 		\ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$query = new \WP_Query( [
-			'ep_integrate' => true,
-			'post__in'     => array( $post_to_be_deleted, $new_post_id ),
-		] );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => array( $post_to_be_deleted, $new_post_id ),
+			]
+		);
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
@@ -6783,9 +7254,14 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testPostDeletedTerm() {
 		$cat = wp_create_category( 'test category' );
-		$tag = wp_insert_category( [ 'taxonomy' => 'post_tag', 'cat_name' => 'test-tag' ] );
+		$tag = wp_insert_category(
+			[
+				'taxonomy' => 'post_tag',
+				'cat_name' => 'test-tag',
+			]
+		);
 
-		$post_id = Functions\create_and_sync_post(
+		$post_id = $this->ep_factory->post->create(
 			array(
 				'tags_input'    => array( $tag ),
 				'post_category' => array( $cat ),
@@ -6819,7 +7295,7 @@ class TestPost extends BaseTestCase {
 	 * @group  post
 	 */
 	public function testPostEditedTerm() {
-		$post_id = Functions\create_and_sync_post(
+		$post_id = $this->ep_factory->post->create(
 			array(
 				'tags_input' => array( 'test-tag' ),
 			)
@@ -6852,9 +7328,8 @@ class TestPost extends BaseTestCase {
 	 */
 	public function testMetaWithoutValue() {
 
-		Functions\create_and_sync_post( array(), array( 'test_key' => '' ) );
-		Functions\create_and_sync_post( array(), array( 'test_key' => '' ) );
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create_many( 2, array( 'meta_input' => array( 'test_key' => '' ) ) );
+		$this->ep_factory->post->create();
 
 		$expected_result = '2';
 
@@ -6963,17 +7438,23 @@ class TestPost extends BaseTestCase {
 	 * @group  is_meta_allowed
 	 */
 	public function testIsMetaAllowed() {
-		$meta_not_protected 		 = 'meta';
+		$meta_not_protected          = 'meta';
 		$meta_not_protected_excluded = 'meta_excluded';
-		$meta_protected 		 	 = '_meta';
-		$meta_protected_allowed 	 = '_meta_allowed';
+		$meta_protected              = '_meta';
+		$meta_protected_allowed      = '_meta_allowed';
 
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', function () use ( $meta_protected_allowed ) {
-			return [ $meta_protected_allowed ];
-		} );
-		add_filter( 'ep_prepare_meta_excluded_public_keys', function () use ( $meta_not_protected_excluded ) {
-			return [ $meta_not_protected_excluded ];
-		} );
+		add_filter(
+			'ep_prepare_meta_allowed_protected_keys',
+			function () use ( $meta_protected_allowed ) {
+				return [ $meta_protected_allowed ];
+			}
+		);
+		add_filter(
+			'ep_prepare_meta_excluded_public_keys',
+			function () use ( $meta_not_protected_excluded ) {
+				return [ $meta_not_protected_excluded ];
+			}
+		);
 
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
@@ -6993,8 +7474,8 @@ class TestPost extends BaseTestCase {
 	public function testGetDistinctMetaFieldKeys() {
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => '' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => '' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => '' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => '' ) ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -7014,12 +7495,12 @@ class TestPost extends BaseTestCase {
 	public function testGetAllDistinctValues() {
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foo' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'bar' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foobar' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foo' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'bar' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foobar' ) ) );
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'lorem' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'ipsum' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'lorem' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'ipsum' ) ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 

@@ -12,6 +12,9 @@
 	<testsuites>
 		<testsuite name="elasticpress">
 			<directory prefix="Test" suffix=".php">./tests/php/</directory>
+      <exclude>./tests/php/indexables/TestCommentMultisite.php</exclude>
+      <exclude>./tests/php/indexables/TestPostMultisite.php</exclude>
+      <exclude>./tests/php/indexables/TestTermMultisite.php</exclude>
 		</testsuite>
 	</testsuites>
 	<filter>

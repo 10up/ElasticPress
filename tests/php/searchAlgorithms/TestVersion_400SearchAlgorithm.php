@@ -100,6 +100,65 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	}
 
 	/**
+	 * Test filters with posts
+	 * 
+	 * As posts also apply the legacy filters, these tests assure code honors the value of the newer filters
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/3033 
+	 * @group searchAlgorithms
+	 */
+	public function testPostFilters() {
+		$basic = new Version_400();
+
+		$search_term   = 'search_term';
+		$search_fields = [ 'post_title', 'post_content' ];
+
+		$test_filter = function() {
+			return 1234;
+		};
+
+		/**
+		 * Test the `ep_post_match_phrase_boost` filter.
+		 */
+		add_filter( 'ep_post_match_phrase_boost', $test_filter );
+
+		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][0]['multi_match']['boost'] );
+
+		remove_filter( 'ep_post_match_phrase_boost', $test_filter );
+
+		/**
+		 * Test the `ep_post_match_boost` filter.
+		 */
+		add_filter( 'ep_post_match_boost', $test_filter );
+
+		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][1]['multi_match']['boost'] );
+
+		remove_filter( 'ep_post_match_boost', $test_filter );
+
+		/**
+		 * Test the `ep_post_match_fuzziness` filter.
+		 */
+		add_filter( 'ep_post_match_fuzziness', $test_filter );
+
+		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][1]['multi_match']['fuzziness'] );
+
+		remove_filter( 'ep_post_match_fuzziness', $test_filter );
+
+		/**
+		 * Test the `ep_post_match_cross_fields_boost` filter.
+		 */
+		add_filter( 'ep_post_match_cross_fields_boost', $test_filter );
+
+		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
+		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['boost'] );
+
+		remove_filter( 'ep_post_match_cross_fields_boost', $test_filter );
+	}
+
+	/**
 	 * Test deprecated/legacy filters
 	 *
 	 * @expectedDeprecated ep_match_phrase_boost
