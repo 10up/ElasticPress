@@ -68,10 +68,6 @@ class SyncManager extends SyncManagerAbstract {
 
 		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
-
-		// WooCommerce Sorting
-		add_action( 'woocommerce_after_single_product_ordering', array( $this, 'action_sync_on_woocommerce_sort_single' ), 999, 2 );
-
 	}
 
 	/**
@@ -658,16 +654,4 @@ class SyncManager extends SyncManagerAbstract {
 
 		return true;
 	}
-
-	/**
-	 * Re-index post when WooCommerce sorting takes place.
-	 *
-	 * @param  {int} $post_id ID of post
-	 * @param  {int} $index menu order
-	 */
-	public function action_sync_on_woocommerce_sort_single( $post_id, $index ) {
-
-		$this->add_to_queue( $post_id );
-	}
-
 }
