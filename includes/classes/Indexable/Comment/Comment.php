@@ -443,8 +443,8 @@ class Comment extends Indexable {
 		 */
 		if ( ! empty( $query_vars['post_type'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
-				'term' => [
-					'comment_post_type.raw' => $query_vars['post_type'],
+				'terms' => [
+					'comment_post_type.raw' => array_values( (array) $query_vars['post_type'] ),
 				],
 			];
 
