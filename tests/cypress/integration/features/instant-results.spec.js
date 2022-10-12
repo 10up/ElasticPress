@@ -18,7 +18,7 @@ describe('Instant Results Feature', () => {
 
 	function maybeEnableProxy() {
 		if (!isEpIo) {
-			cy.activatePlugin('elasticpress-proxy', 'wpCli');
+			cy.activatePlugin('elasticpress-proxy');
 		}
 	}
 
@@ -37,7 +37,7 @@ describe('Instant Results Feature', () => {
 	});
 
 	beforeEach(() => {
-		cy.deactivatePlugin('elasticpress-proxy', 'wpCli');
+		cy.deactivatePlugin('elasticpress-proxy');
 		cy.deactivatePlugin('custom-instant-results-template', 'wpCli');
 		cy.deactivatePlugin('open-instant-results-with-buttons', 'wpCli');
 	});
