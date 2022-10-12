@@ -2159,21 +2159,12 @@ class Post extends Indexable {
 	 */
 	protected function parse_tax_query_field( $field ) : string {
 
-		switch ( $field ) {
-			case 'name':
-				$field = 'name.raw';
-				break;
-			case 'slug':
-				$field = 'slug';
-				break;
-			case 'term_taxonomy_id':
-				$field = 'term_taxonomy_id';
-				break;
-			default:
-				$field = 'term_id';
-				break;
-		}
+		$from_to = [
+			'name'             => 'name.raw',
+			'slug'             => 'slug',
+			'term_taxonomy_id' => 'term_taxonomy_id',
+		];
 
-		return $field;
+		return $from_to[ $field ] ?? 'term_id';
 	}
 }
