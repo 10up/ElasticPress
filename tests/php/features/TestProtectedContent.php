@@ -66,7 +66,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -93,7 +93,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -120,8 +120,8 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_status' => 'draft' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_status' => 'draft' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -154,8 +154,8 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
-		$post_id = Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
+		$post_id = $this->ep_factory->post->create();
 
 		wp_update_post(
 			array(
@@ -194,12 +194,12 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$cat1 = wp_create_category( 'category one' );
-		$cat2 = wp_create_category( 'category two' );
+		$cat1 = $this->factory->category->create( array ( 'name' => 'category one' ) );
+		$cat2 = $this->factory->category->create( array ( 'name' => 'category two' ) );
 
-		Functions\create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
-		Functions\create_and_sync_post( array( 'post_category' => array( $cat2 ) ) );
-		Functions\create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
+		$this->ep_factory->post->create( array( 'post_category' => array( $cat1 ) ) );
+		$this->ep_factory->post->create( array( 'post_category' => array( $cat2 ) ) );
+		$this->ep_factory->post->create( array( 'post_category' => array( $cat1 ) ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -234,7 +234,7 @@ class TestProtectedContent extends BaseTestCase {
 	public function testNoSyncPasswordedPost() {
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
-		$post_id = Functions\create_and_sync_post( array( 'post_password' => 'test' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_password' => 'test' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -259,7 +259,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
-		$post_id = Functions\create_and_sync_post( array( 'post_password' => 'test' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_password' => 'test' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -314,7 +314,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		// Post title is indexed but content is not.
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'findmetitle 123',
 				'post_content'  => 'findmecontent 123',
@@ -367,7 +367,7 @@ class TestProtectedContent extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'findmetitle 123',
 				'post_password' => 'test',

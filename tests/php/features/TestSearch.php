@@ -62,11 +62,9 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$post_ids = array();
-
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -95,9 +93,9 @@ class TestSearch extends BaseTestCase {
 
 		$post_ids = array();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 
@@ -134,7 +132,7 @@ class TestSearch extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -191,7 +189,7 @@ class TestSearch extends BaseTestCase {
 			)
 		);
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
