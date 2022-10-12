@@ -561,6 +561,16 @@ class Facets extends Feature {
 			return $filters;
 		}
 
+		/**
+		 * Filter facet selection filters to be applied to the ES query
+		 *
+		 * @hook  ep_facet_query_filters
+		 * @since 4.4.0
+		 * @param  {array}    $filters Current filters
+		 * @param  {array}    $args    WP Query args
+		 * @param  {WP_Query} $query   WP Query object
+		 * @return {array} New filters
+		 */
 		$facets_filters = apply_filters( 'ep_facet_query_filters', [], $args, $query );
 
 		if ( empty( $facets_filters ) ) {
@@ -592,7 +602,15 @@ class Facets extends Feature {
 			)
 		);
 
-		return $settings['match_type'];
+		/**
+		 * Filter the match type of all facets. Can be 'all' or 'any'.
+		 *
+		 * @hook  ep_facet_match_type
+		 * @since 4.4.0
+		 * @param  {string} $match_type Current selection
+		 * @return {string} New selection
+		 */
+		return apply_filters( 'ep_facet_match_type', $settings['match_type'] );
 	}
 
 	/**
