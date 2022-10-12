@@ -75,7 +75,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$public_taxonomies    = array_keys( get_taxonomies( array( 'public' => true ), 'names' ) );
+		$public_taxonomies    = array_keys( get_taxonomies( array( 'public' => true, 'show_ui' => true ), 'names' ) );
 		$facetable_taxonomies = array_keys( $facet_type->get_facetable_taxonomies() );
 
 		/**
@@ -115,7 +115,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		 * Test default behavior
 		 */
 		$default_cat_agg = [
-			'terms' => [					
+			'terms' => [
 				'size'  => 10000,
 				'field' => 'terms.category.slug',
 			],

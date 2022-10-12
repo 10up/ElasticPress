@@ -120,5 +120,9 @@ tests_add_filter( 'translations_api', __NAMESPACE__ . '\skip_translations_api' )
 
 require_once $_tests_dir . '/includes/bootstrap.php';
 
+require_once __DIR__ . '/includes/classes/factory/PostFactory.php';
+require_once __DIR__ . '/includes/classes/factory/UserFactory.php';
+require_once __DIR__ . '/includes/classes/factory/TermFactory.php';
+require_once __DIR__ . '/includes/classes/factory/CommentFactory.php';
 require_once __DIR__ . '/includes/classes/BaseTestCase.php';
 require_once __DIR__ . '/includes/classes/FeatureTest.php';
