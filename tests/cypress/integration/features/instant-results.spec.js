@@ -100,8 +100,9 @@ describe('Instant Results Feature', () => {
 	 */
 	it('Can see instant results elements, URL changes, reload, and update after changing search term', () => {
 		cy.login();
-		cy.maybeEnableFeature('instant-results');
+
 		maybeEnableProxy();
+		cy.maybeEnableFeature('instant-results');
 
 		cy.intercept('*search=blog*').as('apiRequest');
 
