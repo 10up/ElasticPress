@@ -34,13 +34,12 @@ describe('Instant Results Feature', () => {
 			title: 'Test Post',
 			content: 'This is a sample test post.',
 		});
-
-		cy.deactivatePlugin('open-instant-results-with-buttons', 'wpCli');
-		cy.deactivatePlugin('custom-instant-results-template', 'wpCli');
 	});
 
-	after(() => {
+	beforeEach(() => {
 		cy.deactivatePlugin('elasticpress-proxy');
+		cy.deactivatePlugin('custom-instant-results-template', 'wpCli');
+		cy.deactivatePlugin('open-instant-results-with-buttons', 'wpCli');
 	});
 
 	/**
@@ -180,8 +179,8 @@ describe('Instant Results Feature', () => {
 		 * Instant Results should be open and populated with out search term.
 		 */
 		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
-		cy.wait('@apiRequest');
 		cy.get('searchModal').find('.ep-search-input').should('have.value', 'block');
+		cy.wait('@apiRequest');
 		cy.get('searchModal').find('.ep-search-results__title').should('contain.text', 'block');
 	});
 
