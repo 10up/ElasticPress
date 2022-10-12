@@ -173,16 +173,16 @@ describe('Instant Results Feature', () => {
 		/**
 		 * Click the button.
 		 */
-		cy.intercept('*search=blog*').as('apiRequest');
+		cy.intercept('*search=block*').as('apiRequest');
 		cy.get('.wp-block-button__link').click();
 
 		/**
 		 * Instant Results should be open and populated with out search term.
 		 */
+		cy.wait('@apiRequest');
 		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
 		cy.get('@searchModal').find('.ep-search-input').should('have.value', 'block');
-		cy.wait('@apiRequest');
-		cy.get('searchModal').find('.ep-search-results__title').should('contain.text', 'block');
+		cy.get('@searchModal').find('.ep-search-results__title').should('contain.text', 'block');
 	});
 
 	it('Can filter the result template', () => {
