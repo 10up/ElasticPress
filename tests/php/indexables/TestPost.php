@@ -3073,20 +3073,29 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryOrRelationWithSort() {
-		Functions\create_and_sync_post( array( 'post_content' => 'the post content findme' ), array( 'test_key' => date('Ymd')-5 ) );
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'the post content findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key'  => date('Ymd')+5,
-				'test_key2' => date('Ymd')+6,
-			)
+				'post_content' => 'the post content findme',
+				'meta_input'   => array( 'test_key' => date('Ymd') - 5 ),
+			),
 		);
-		Functions\create_and_sync_post(
-			array( 'post_content' => 'post content findme' ),
+		$this->ep_factory->post->create(
 			array(
-				'test_key' => date('Ymd')+5,
-				'test_key2' => date('Ymd')+6,
-			)
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => date('Ymd') + 5,
+					'test_key2' => date('Ymd') + 6,
+				),
+			),
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => date('Ymd') + 5,
+					'test_key2' => date('Ymd') + 6,
+				),
+			),
 		);
 
 		$post = new \ElasticPress\Indexable\Post\Post();
