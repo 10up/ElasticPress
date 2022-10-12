@@ -1,13 +1,13 @@
 /**
  * Internal depenencies.
  */
-import { useContext, useEffect, useRef, WPElement } from '@wordpress/element';
+import { useEffect, useRef, WPElement } from '@wordpress/element';
 import { _n, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import Context from '../../context';
+import { useInstantResults } from '../../hooks';
 import Pagination from '../results/pagination';
 import Result from '../results/result';
 import Sort from '../tools/sort';
@@ -19,14 +19,13 @@ import Sort from '../tools/sort';
  */
 export default () => {
 	const {
-		state: {
-			args: { offset, per_page },
-			searchResults,
-			searchedTerm,
-			totalResults,
-		},
-		dispatch,
-	} = useContext(Context);
+		args: { offset, per_page },
+		nextPage,
+		previousPage,
+		searchResults,
+		searchedTerm,
+		totalResults,
+	} = useInstantResults();
 
 	const headingRef = useRef();
 
@@ -34,14 +33,14 @@ export default () => {
 	 * Handle clicking next.
 	 */
 	const onNext = () => {
-		dispatch({ type: 'NEXT_PAGE' });
+		nextPage();
 	};
 
 	/**
 	 * Handle clicking previous.
 	 */
 	const onPrevious = () => {
-		dispatch({ type: 'PREVIOUS_PAGE' });
+		previousPage();
 	};
 
 	/**

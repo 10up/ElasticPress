@@ -133,3 +133,30 @@ export const getArgsFromUrlParams = (urlParams, schema, prefix = '', useDefaults
 
 	return args;
 };
+
+/**
+ * Get the current URL, including parameters, with any prefixed parameters
+ * replaced with the given parameters.
+ *
+ * @param {string} paramPrefix Prefix of parameters to replace.
+ * @param {object} params Parameters to add, if any.
+ * @returns {string} URL.
+ */
+export const getUrlWithParams = (paramPrefix, params) => {
+	const url = new URL(window.location.href);
+	const keys = Array.from(url.searchParams.keys());
+
+	for (const key of keys) {
+		if (key.startsWith(paramPrefix)) {
+			url.searchParams.delete(key);
+		}
+	}
+
+	if (params) {
+		params.forEach((value, key) => {
+			url.searchParams.set(key, value);
+		});
+	}
+
+	return url.toString();
+};

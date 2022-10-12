@@ -1,5 +1,15 @@
-import { useCallback, useRef } from '@wordpress/element';
+import { useCallback, useContext, useRef } from '@wordpress/element';
 import { apiEndpoint, apiHost } from './config';
+import Context from './context';
+
+/**
+ * Use the Instant Results context.
+ *
+ * @returns {*} Context value.
+ */
+export const useInstantResults = () => {
+	return useContext(Context);
+};
 
 /**
  * Get debounced version of a function that only runs a given ammount of time
