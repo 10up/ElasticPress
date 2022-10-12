@@ -54,7 +54,7 @@ class TestWooCommerce extends BaseTestCase {
 	}
 
 	/**
-	 * Test products post type query does get integrated when the feature is not active
+	 * Test products post type query does get integrated when the feature is active
 	 *
 	 * @since 2.1
 	 * @group woocommerce
@@ -73,8 +73,6 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$args = array(
 			'post_type' => 'product',
 		);
@@ -84,8 +82,6 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
 	}
 
 	/**
@@ -102,8 +98,6 @@ class TestWooCommerce extends BaseTestCase {
 		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
 			'tax_query' => array(
@@ -235,8 +229,6 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
 
 		$args = array(
 			's'         => 'findme',

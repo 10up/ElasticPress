@@ -447,7 +447,7 @@ class Renderer {
 	 * @param  string $orderby The orderby to sort items from.
 	 * @return array
 	 */
-	private function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
+	protected function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
 		$ordered_terms = [];
 		$terms_by_slug = [];
 

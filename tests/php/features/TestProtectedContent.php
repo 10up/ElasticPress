@@ -70,8 +70,6 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query();
 
 		global $wp_the_query;
@@ -80,7 +78,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$query->query( array() );
 
-		$this->assertTrue( empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertNull( $query->elasticsearch_success );
 	}
 
 	/**
@@ -99,8 +97,6 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query();
 
 		global $wp_the_query;
@@ -109,7 +105,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$wp_the_query->query( array() );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 	}
 
 	/**
@@ -129,8 +125,6 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query();
 
 		global $wp_the_query;
@@ -143,7 +137,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$query->query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -174,8 +168,6 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query();
 
 		global $wp_the_query;
@@ -188,7 +180,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$query->query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -211,8 +203,6 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_action( 'ep_wp_query_search', array( $this, 'action_wp_query_search' ), 10, 0 );
-
 		$query = new \WP_Query();
 
 		global $wp_the_query;
@@ -230,7 +220,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		$query->query( $args );
 
-		$this->assertTrue( ! empty( $this->fired_actions['ep_wp_query_search'] ) );
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
