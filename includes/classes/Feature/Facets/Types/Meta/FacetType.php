@@ -148,11 +148,17 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * Apply the facet selection to the main query.
+	 * DEPRECATED. Apply the facet selection to the main query.
 	 *
 	 * @param WP_Query $query WP Query
 	 */
 	public function facet_query( $query ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Facet selections are now applied directly to the ES Query.' ),
+			'ElasticPress 4.4.0'
+		);
+
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		if ( ! $feature->is_facetable( $query ) ) {

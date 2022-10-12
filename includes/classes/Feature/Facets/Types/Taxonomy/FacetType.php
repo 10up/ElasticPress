@@ -116,13 +116,19 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * We enable ElasticPress facet on all archive/search queries as well as non-static home pages. There is no way to know
+	 * DEPRECATED. We enable ElasticPress facet on all archive/search queries as well as non-static home pages. There is no way to know
 	 * when a facet widget is used before the main query is executed so we enable EP
 	 * everywhere where a facet widget could be used.
 	 *
 	 * @param  WP_Query $query WP Query
 	 */
 	public function facet_query( $query ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Facet selections are now applied directly to the ES Query.' ),
+			'ElasticPress 4.4.0'
+		);
+
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		if ( ! $feature->is_facetable( $query ) ) {
