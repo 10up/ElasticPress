@@ -197,6 +197,77 @@ class TestFacets extends BaseTestCase {
 	}
 
 	/**
+	 * Test apply_facets_filters
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testApplyFacetsFilters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$new_filters = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$this->assertSame( [], $new_filters );
+
+		/**
+		 * Test the `ep_facet_query_filters` filter
+		 */
+		$add_filter = function( $filters, $args, $query ) {
+			$filters[] = [
+				'terms' => [
+					'post_type' => [ 'post', 'page' ],
+				],
+			];
+
+			$this->assertSame( [], $args );
+			$this->assertInstanceOf( '\WP_Query', $query );
+
+			return $filters;
+		};
+		add_filter( 'ep_facet_query_filters', $add_filter, 10, 3 );
+		add_filter( 'ep_is_facetable', '__return_true' );
+
+		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$expected_filter = [
+			'facets' => [
+				'bool' => [
+					'must' => [
+						[
+							'terms' => [
+								'post_type' => [ 'post', 'page' ],
+							],
+						],
+					],
+				],
+			],
+		];
+		$this->assertSame( $expected_filter, $new_filters );
+
+		/**
+		 * Changing the match type should change from `must` to `should`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
+
+		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$expected_filter = [
+			'facets' => [
+				'bool' => [
+					'should' => [
+						[
+							'terms' => [
+								'post_type' => [ 'post', 'page' ],
+							],
+						],
+					],
+				],
+			],
+		];
+		$this->assertSame( $expected_filter, $new_filters );
+	}
+
+	/**
 	 * Utilitary function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.

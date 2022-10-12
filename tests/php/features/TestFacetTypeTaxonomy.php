@@ -152,4 +152,27 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 		remove_filter( 'ep_facet_taxonomies_size', $change_tax_bucket_size );
 	}
+
+	/**
+	 * Test add_query_filters
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testAddQueryFilters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		parse_str( 'ep_filter_taxonomy=dolor', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'terms' => [
+					'terms.taxonomy.slug' => [ 'dolor' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+	}
 }
