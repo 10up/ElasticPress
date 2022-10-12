@@ -18,7 +18,7 @@ describe('Instant Results Feature', () => {
 
 	function maybeEnableProxy() {
 		if (!isEpIo) {
-			cy.activatePlugin('elasticpress-proxy');
+			cy.activatePlugin('elasticpress-proxy', 'wpCli');
 		}
 	}
 
@@ -37,7 +37,7 @@ describe('Instant Results Feature', () => {
 	});
 
 	beforeEach(() => {
-		cy.deactivatePlugin('elasticpress-proxy');
+		cy.deactivatePlugin('elasticpress-proxy', 'wpCli');
 		cy.deactivatePlugin('custom-instant-results-template', 'wpCli');
 		cy.deactivatePlugin('open-instant-results-with-buttons', 'wpCli');
 	});
@@ -148,6 +148,7 @@ describe('Instant Results Feature', () => {
 		/**
 		 * Activate test plugin with JavaScript.
 		 */
+		maybeEnableProxy();
 		cy.maybeEnableFeature('instant-results');
 		cy.activatePlugin('open-instant-results-with-buttons', 'wpCli');
 
@@ -179,7 +180,7 @@ describe('Instant Results Feature', () => {
 		 * Instant Results should be open and populated with out search term.
 		 */
 		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
-		cy.get('searchModal').find('.ep-search-input').should('have.value', 'block');
+		cy.get('@searchModal').find('.ep-search-input').should('have.value', 'block');
 		cy.wait('@apiRequest');
 		cy.get('searchModal').find('.ep-search-results__title').should('contain.text', 'block');
 	});
@@ -188,6 +189,7 @@ describe('Instant Results Feature', () => {
 		/**
 		 * Activate test plugin with filter.
 		 */
+		maybeEnableProxy();
 		cy.maybeEnableFeature('instant-results');
 		cy.activatePlugin('custom-instant-results-template', 'wpCli');
 
@@ -199,7 +201,7 @@ describe('Instant Results Feature', () => {
 		cy.get('.wp-block-search').last().as('searchBlock');
 		cy.get('@searchBlock').find('input[type="search"]').type('blog');
 		cy.get('@searchBlock').find('button').click();
-		cy.get('.ep-search-modal').as('searchModal').should('be.visible');
+		cy.get('.ep-search-modal').should('be.visible');
 		cy.wait('@apiRequest');
 
 		/**
