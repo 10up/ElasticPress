@@ -374,10 +374,11 @@ class Facets extends Feature {
 
 			foreach ( $filter_names as $filter_type => $filter_name ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
-					$facet = str_replace( $filter_name, '', $key );
+					$facet             = str_replace( $filter_name, '', $key );
+					$sanitize_callback = $type_obj->get_sanitize_callback();
 
 					$filters[ $filter_type ][ $facet ] = array(
-						'terms' => array_fill_keys( array_map( 'sanitize_title', explode( ',', trim( $value, ',' ) ) ), true ),
+						'terms' => array_fill_keys( array_map( $sanitize_callback, explode( ',', trim( $value, ',' ) ) ), true ),
 					);
 				}
 			}

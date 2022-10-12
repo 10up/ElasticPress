@@ -34,4 +34,12 @@ abstract class FacetType {
 	 * @return string The filter name.
 	 */
 	abstract public function get_filter_type() : string;
+
+	/**
+	 * Get the facet sanitize function.
+	 *
+	 * @return string The function name.
+	 */
+	abstract public function get_sanitize_callback() : string;
+
 }
