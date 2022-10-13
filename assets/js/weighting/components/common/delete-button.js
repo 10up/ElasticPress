@@ -1,12 +1,12 @@
 /**
  * WordPress dependencies.
  */
-import { RangeControl } from '@wordpress/components';
+import { Button } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { close } from '@wordpress/icons';
 
 /**
- * Weight control component.
+ * Undo button component.
  *
  * @param {object} props Component props.
  * @returns {WPElement} Component element.
@@ -15,5 +15,5 @@ export default (props) => {
 	/**
 	 * Render.
 	 */
-	return <RangeControl label={__('Weight', 'elasticpress')} min={1} max={100} {...props} />;
+	return <Button className="ep-weighting-delete" icon={close} {...props} />;
 };

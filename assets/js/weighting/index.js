@@ -8,36 +8,40 @@ import { cloneDeep, isEqual } from 'lodash';
 /**
  * Internal Dependencies.
  */
-import { weightableFields, weightingConfiguration } from './config';
+import Actions from './components/actions';
 import PostType from './components/post-type';
-import Save from './components/save';
 
 /**
- * component.
+ * Window dependencies.
+ */
+
+/**
+ * Weighting settings app.
  *
+ * @param {object} props Component props.
+ * @param {object} props.weightableFields Weightable fields, indexed by post type.
+ * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
  */
-const App = () => {
-	const [data, setData] = useState(cloneDeep(weightingConfiguration));
-	const [savedData, setSavedData] = useState(cloneDeep(weightingConfiguration));
+const App = ({ weightableFields, weightingConfiguration }) => {
+	const [currentData, setCurrentData] = useState({ ...weightingConfiguration });
+	const [savedData, setSavedData] = useState({ ...weightingConfiguration });
 	const [isBusy, setIsBusy] = useState(false);
 
 	/**
 	 * Is the current data different to the saved data.
 	 */
-	const isChanged = useMemo(() => !isEqual(data, savedData), [data, savedData]);
+	const isChanged = useMemo(() => !isEqual(currentData, savedData), [currentData, savedData]);
 
 	/**
 	 * Handle data change.
 	 *
-	 * @param {Array} value Updated data.
 	 * @param {string} postType Updated post type.
+	 * @param {Array} values Updated data.
 	 * @returns {void}
 	 */
-	const onChangePostType = (value, postType) => {
-		const newData = { ...data, [postType]: value };
-
-		setData(newData);
+	const onChangePostType = (postType, values) => {
+		setCurrentData({ ...currentData, [postType]: values });
 	};
 
 	/**
@@ -49,10 +53,14 @@ const App = () => {
 	const onSubmit = (event) => {
 		event.preventDefault();
 
-		const savedData = cloneDeep(data);
+		const savedData = cloneDeep(currentData);
 
 		setIsBusy(true);
-		setSavedData(savedData);
+
+		setTimeout(() => {
+			setSavedData(savedData);
+			setIsBusy(false);
+		}, 1000);
 	};
 
 	/**
@@ -60,12 +68,13 @@ const App = () => {
 	 *
 	 * @returns {void}
 	 */
-	const onUndo = () => {
-		const data = cloneDeep(savedData);
-
-		setData(data);
+	const onReset = () => {
+		setCurrentData({ ...savedData });
 	};
 
+	/**
+	 * Render.
+	 */
 	return (
 		<form className="weighting-settings" onSubmit={onSubmit}>
 			<h1 className="page-title">{__('Manage Search Fields & Weighting', 'elasticpress')}</h1>
@@ -83,23 +92,35 @@ const App = () => {
 					)}
 				</p>
 			</div>
-
-			{Object.entries(weightableFields).map(([key, groups]) => (
+			{Object.entries(weightableFields).map(([postType, { groups, label }]) => (
 				<PostType
 					groups={groups}
-					key={key}
-					label={key}
-					onChange={(value) => {
-						onChangePostType(value, key);
+					key={postType}
+					label={label}
+					onChange={(values) => {
+						onChangePostType(postType, values);
 					}}
-					originalValues={savedData[key]}
-					values={data[key]}
+					originalValues={savedData[postType]}
+					values={currentData[postType]}
 				/>
 			))}
-
-			<Save isBusy={isBusy} isChanged={isChanged} onReset={onUndo} />
+			<Actions isBusy={isBusy} isChanged={isChanged} onReset={onReset} onSubmit={onSubmit} />
 		</form>
 	);
 };
 
-render(<App />, document.getElementById('ep-weighting-screen'));
+/**
+ * Initialize.
+ *
+ * @returns {void}
+ */
+const init = () => {
+	const { weightableFields, weightingConfiguration } = window.epWeighting;
+
+	render(
+		<App weightingConfiguration={weightingConfiguration} weightableFields={weightableFields} />,
+		document.getElementById('ep-weighting-screen'),
+	);
+};
+
+init();

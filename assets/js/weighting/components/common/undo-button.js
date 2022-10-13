@@ -12,5 +12,8 @@ import { undo } from '@wordpress/icons';
  * @returns {WPElement} Component element.
  */
 export default (props) => {
+	/**
+	 * Render.
+	 */
 	return <Button className="ep-weighting-undo" icon={undo} {...props} />;
 };

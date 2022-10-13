@@ -510,8 +510,9 @@ class Documents extends Feature {
 	public function filter_attachment_post_type_weights( $weights, $post_type ) {
 		if ( 'attachment' === $post_type ) {
 			$weights['attachments.attachment.content'] = [
-				'enabled' => true,
-				'weight'  => 0,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 0,
 			];
 		}
 

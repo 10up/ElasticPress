@@ -1,12 +1,12 @@
 #ep-weighting-screen {
 
 	& .components-panel {
-		margin-bottom: 2rem;
+		margin-bottom: 1rem;
 		max-width: 800px;
 	}
 }
 
-.ep-weighting-property {
+.ep-weighting-field {
 	align-items: center;
 	display: grid;
 	grid-gap: 1em;
@@ -28,27 +28,35 @@
 			margin-bottom: 0;
 		}
 	}
+
+	@media ( max-width: 600px ) {
+
+		& .components-range-control__wrapper {
+			display: none;
+		}
+	}
 }
 
-.ep-weighting-property fieldset {
+.ep-weighting-field fieldset {
 	display: contents;
 }
 
-.ep-weighting-property__name {
+.ep-weighting-field__name {
 
 	& h2 {
 		color: inherit;
-		font-size: 15px;
+		font-size: 14px;
 		margin: 0;
 	}
 }
 
-.ep-weighting-property__undo {
+.ep-weighting-field__undo {
 	grid-column-start: 5;
 	justify-self: end;
 }
 
 
+.ep-weighting-delete,
 .ep-weighting-undo {
 
 	&[disabled] {

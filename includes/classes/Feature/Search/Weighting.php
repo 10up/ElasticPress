@@ -145,7 +145,13 @@ class Weighting {
 		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
 
 		foreach ( $post_types as $post_type ) {
-			$weightable[ $post_type ] = $this->get_weightable_fields_for_post_type( $post_type );
+			$post_type_object = get_post_type_object( $post_type );
+			$post_type_labels = get_post_type_labels( $post_type_object );
+
+			$weightable[ $post_type ] = [
+				'label'  => $post_type_labels->menu_name,
+				'groups' => $this->get_weightable_fields_for_post_type( $post_type ),
+			];
 		}
 
 		return $weightable;
@@ -163,20 +169,24 @@ class Weighting {
 	public function get_post_type_default_settings( $post_type ) {
 		$post_type_defaults = [
 			'post_title'   => [
-				'enabled' => true,
-				'weight'  => 1,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 1,
 			],
 			'post_content' => [
-				'enabled' => true,
-				'weight'  => 1,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 1,
 			],
 			'post_excerpt' => [
-				'enabled' => true,
-				'weight'  => 1,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 1,
 			],
 			'author_name'  => [
-				'enabled' => true,
-				'weight'  => 1,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 1,
 			],
 		];
 
@@ -199,30 +209,11 @@ class Weighting {
 		foreach ( $enabled_by_default as $default_tax ) {
 			if ( in_array( $default_tax, $post_type_taxonomies, true ) ) {
 				$post_type_defaults[ 'terms.' . $default_tax . '.name' ] = [
-					'enabled' => true,
-					'weight'  => 1,
+					'indexable'  => true,
+					'searchable' => true,
+					'weight'     => 1,
 				];
 			}
-		}
-
-		/**
-		 * TODO: Meta keys per post type?
-		 */
-		$indexable = Indexables::factory()->get( 'post' );
-
-		try {
-			$meta_keys = $indexable->get_distinct_meta_field_keys();
-		} catch ( \Throwable $th ) {
-			$meta_keys = [];
-		}
-
-		foreach ( $meta_keys as $meta_key ) {
-			$key = "meta.$meta_key.value";
-
-			$post_type_defaults[ $key ] = [
-				'enabled' => false,
-				'weight'  => 1,
-			];
 		}
 
 		/**
@@ -253,22 +244,21 @@ class Weighting {
 	}
 
 	/**
-	 * Returns the current weighting configuration with defaults for any
-	 * missing properties.
+	 * Returns the default weighting configuration.
 	 *
-	 * @return array Current weighting configuration with defaults.
+	 * @return array Default weighting configuration.
 	 * @since 4.4.0
 	 */
-	public function get_weighting_configuration_with_defaults() {
+	public function get_default_weighting_configuration() {
 		$search     = Features::factory()->get_registered_feature( 'search' );
 		$post_types = $search->get_searchable_post_types();
-		$weighting  = $this->get_weighting_configuration();
+		$weighting  = [];
 
 		foreach ( $post_types as $post_type ) {
-			$config  = isset( $weighting[ $post_type ] ) ? $weighting[ $post_type ] : array();
-			$default = $this->get_post_type_default_settings( $post_type );
-
-			$weighting[ $post_type ] = wp_parse_args( $config, $default );
+			$weighting[ $post_type ] = [
+				'indexable' => true,
+				'fields'    => $this->get_post_type_default_settings( $post_type ),
+			];
 		}
 
 		return $weighting;

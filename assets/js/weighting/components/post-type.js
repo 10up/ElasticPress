@@ -9,7 +9,7 @@ import { isEqual } from 'lodash';
 /**
  * Internal dependencies.
  */
-import Group from './post-type/group';
+import Fields from './post-type/fields';
 import UndoButton from './common/undo-button';
 
 /**
@@ -24,20 +24,62 @@ import UndoButton from './common/undo-button';
  * @returns {WPElement} Component element.
  */
 export default ({ groups, label, onChange, originalValues, values }) => {
-	const isChanged = useMemo(() => !isEqual(originalValues, values), [originalValues, values]);
+	const { fields, indexable = true, ...rest } = values;
+	const {
+		fields: originalFields,
+		indexable: originalIndexable = true,
+		...originalRest
+	} = originalValues;
 
 	/**
-	 * Handle a change to the post type's setttings.
+	 * The fields' values.
 	 *
-	 * @param {Array} values Post type settings.
-	 * @returns {void}
+	 * `fields` and `indexable` are available on >4.4.0, while earlier versions
+	 * will contain the fields data in `rest`.
 	 */
-	const onChangeGroup = (values) => {
-		onChange(values);
+	const fieldsValues = useMemo(() => fields || rest, [fields, rest]);
+
+	/**
+	 * The original fields' values.
+	 *
+	 * `fields` and `indexable` are available on >4.4.0, while earlier versions
+	 * will contain the fields data in `rest`.
+	 */
+	const originalFieldsValues = useMemo(
+		() => originalFields || originalRest,
+		[originalFields, originalRest],
+	);
+
+	/**
+	 * Have any values changed?
+	 */
+	const isChanged = useMemo(
+		() => !(indexable === originalIndexable && isEqual(fieldsValues, originalFieldsValues)),
+		[fieldsValues, indexable, originalIndexable, originalFieldsValues],
+	);
+
+	/**
+	 * Handle change of indexable.
+	 *
+	 * @param {Array} indexable New indexable value.
+	 * @returns {void}}
+	 */
+	const onChangeIndexable = (indexable) => {
+		onChange({ fields: fieldsValues, indexable });
 	};
 
 	/**
-	 * Handle resetting settings for the post type.
+	 * Handle a change to the post type's fields.
+	 *
+	 * @param {Array} fields New field values.
+	 * @returns {void}
+	 */
+	const onChangeGroup = (fields) => {
+		onChange({ fields, indexable });
+	};
+
+	/**
+	 * Handle resetting all data for the post type.
 	 *
 	 * @returns {void}
 	 */
@@ -45,17 +87,24 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 		onChange(originalValues);
 	};
 
+	/**
+	 * Render.
+	 */
 	return (
 		<Panel>
 			<PanelHeader>
-				<div className="ep-weighting-property ep-weighting-property--header">
-					<div className="ep-weighting-property__name">
+				<div className="ep-weighting-field ep-weighting-field--header">
+					<div className="ep-weighting-field__name">
 						<h2>{label}</h2>
 					</div>
-					<div className="ep-weighting-property__checkbox">
-						<CheckboxControl label={__('Index', 'elasticpress')} />
+					<div className="ep-weighting-field__indexable">
+						<CheckboxControl
+							checked={indexable}
+							label={__('Index', 'elasticpress')}
+							onChange={onChangeIndexable}
+						/>
 					</div>
-					<div className="ep-weighting-property__undo">
+					<div className="ep-weighting-field__undo">
 						{isChanged ? (
 							<UndoButton
 								disabled={!isChanged}
@@ -66,19 +115,21 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 					</div>
 				</div>
 			</PanelHeader>
-			{Object.entries(groups)
-				.filter(([, g]) => g.children.length !== 0)
-				.map(([key, { label, children }]) => (
-					<Group
-						isEditable={key === 'meta'}
-						key={key}
-						label={label}
-						onChange={onChangeGroup}
-						originalValues={originalValues}
-						properties={children}
-						values={values}
-					/>
-				))}
+			{indexable
+				? Object.entries(groups)
+						.filter(([, g]) => g.children.length !== 0)
+						.map(([key, { label, children }]) => (
+							<Fields
+								isEditable={key === 'meta'}
+								key={key}
+								label={label}
+								onChange={onChangeGroup}
+								originalValues={originalFieldsValues}
+								fields={children}
+								values={fieldsValues}
+							/>
+						))
+				: null}
 		</Panel>
 	);
 };

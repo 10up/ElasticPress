@@ -769,13 +769,15 @@ class WooCommerce extends Feature {
 			}
 
 			$defaults['meta._sku.value'] = array(
-				'enabled' => true,
-				'weight'  => 1,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 1,
 			);
 
 			$defaults['meta._variations_skus.value'] = array(
-				'enabled' => true,
-				'weight'  => 1,
+				'indexable'  => true,
+				'searchable' => true,
+				'weight'     => 1,
 			);
 		}
 		return $defaults;
@@ -820,7 +822,7 @@ class WooCommerce extends Feature {
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
-		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
+		// add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
