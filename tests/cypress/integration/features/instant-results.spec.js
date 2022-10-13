@@ -97,6 +97,9 @@ describe('Instant Results Feature', () => {
 	 * It can display the number of test results
 	 * It can show the modal in the same state after a reload
 	 * Can change the URL when search term is changed
+	 * Can click outside when instant results are shown
+	 * Can show post type label alongside taxonomies
+	 * Can show counter for each filter
 	 */
 	it('Can see instant results elements, URL changes, reload, and update after changing search term', () => {
 		cy.login();
@@ -141,8 +144,40 @@ describe('Instant Results Feature', () => {
 				cy.url().should('include', 'search=test');
 			});
 
+		// Can click outside when instant results are shown
 		cy.get('#wpadminbar li#wp-admin-bar-debug-bar').click();
 		cy.get('#querylist').should('be.visible');
+
+		// Can show post type label alongside taxonomies
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.get('.ep-feature-instant-results .settings-button').click();
+		cy.get('.ep-feature-instant-results .components-form-token-field__input')
+			.type('category')
+			.first()
+			.click();
+		cy.wait('@apiRequest');
+		cy.get('.ep-feature-instant-results .components-form-token-field__input')
+			.type('category')
+			.first()
+			.click();
+		cy.wait('@apiRequest');
+		cy.get('.ep-feature-instant-results .button-primary').click();
+		cy.visit('/');
+		cy.get('@searchBlock').find('.wp-block-search__input').type('Keyboard navigation');
+		cy.get('@searchBlock').find('.wp-block-search__button').click();
+		cy.get('@searchBlock')
+			.find('.wp-block-search__button')
+			.click()
+			.then(() => {
+				cy.wait('@apiRequest');
+				cy.get('.ep-search-modal .ep-search-sidebar').should(
+					'contain.text',
+					'Category (Posts)',
+				);
+			});
+
+		// Can show counter for each filter
+		cy.get('@searchModal').find('.ep-search-checkbox__count').contains(/\d+/);
 	});
 
 	it('Is possible to manually open Instant Results with a plugin', () => {
