@@ -360,13 +360,15 @@ class Facets extends Feature {
 	public function get_selected() {
 		$allowed_args = $this->get_allowed_query_args();
 
-		$filters      = [];
-		$filter_names = [];
+		$filters            = [];
+		$filter_names       = [];
+		$sanitize_callbacks = [];
 		foreach ( $this->types as $type_obj ) {
 			$filter_type = $type_obj->get_filter_type();
 
-			$filters[ $filter_type ]      = [];
-			$filter_names[ $filter_type ] = $type_obj->get_filter_name();
+			$filters[ $filter_type ]            = [];
+			$filter_names[ $filter_type ]       = $type_obj->get_filter_name();
+			$sanitize_callbacks[ $filter_type ] = $type_obj->get_sanitize_callback();
 		}
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
@@ -375,7 +377,7 @@ class Facets extends Feature {
 			foreach ( $filter_names as $filter_type => $filter_name ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
 					$facet             = str_replace( $filter_name, '', $key );
-					$sanitize_callback = $type_obj->get_sanitize_callback();
+					$sanitize_callback = $sanitize_callbacks[ $filter_type ];
 
 					$filters[ $filter_type ][ $facet ] = array(
 						'terms' => array_fill_keys( array_map( $sanitize_callback, explode( ',', trim( $value, ',' ) ) ), true ),
@@ -426,7 +428,7 @@ class Facets extends Feature {
 			}
 		}
 
-		$query_string = http_build_query( $query_param );
+		$query_string = build_query( $query_param );
 
 		/**
 		 * Filter facet query string
