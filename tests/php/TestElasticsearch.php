@@ -61,8 +61,8 @@ class TestElasticsearch extends BaseTestCase {
 	public function testGetDocuments() {
 
 		$post_ids = array();
-		$post_ids[] = Functions\create_and_sync_post();
-		$post_ids[] = Functions\create_and_sync_post();
+		$post_ids[] = $this->ep_factory->post->create();
+		$post_ids[] = $this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 

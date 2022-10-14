@@ -64,7 +64,7 @@ class TestStats extends BaseTestCase {
 	 * @group stats
 	 */
 	public function testTotals() {
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		ElasticPress\Stats::factory()->build_stats();
@@ -83,7 +83,7 @@ class TestStats extends BaseTestCase {
 	 * @group stats
 	 */
 	public function testHealth() {
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		ElasticPress\Stats::factory()->build_stats();

@@ -1992,7 +1992,19 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_meta_queries( $args ) {
-		$meta_queries = [];
+		/**
+		 * 'meta_query' arg support.
+		 *
+		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
+		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
+		 *
+		 * @since 1.3
+		 */
+		$meta_queries = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
+
+		/**
+		 * Todo: Support meta_type
+		 */
 
 		/**
 		 * Support `meta_key`, `meta_value`, `meta_value_num`, and `meta_compare` query args
@@ -2012,32 +2024,18 @@ class Post extends Indexable {
 				$meta_query_array['compare'] = $args['meta_compare'];
 			}
 
-			$meta_queries[] = $meta_query_array;
-		}
-
-		/**
-		 * Todo: Support meta_type
-		 */
-
-		/**
-		 * 'meta_query' arg support.
-		 *
-		 * Relation supports 'AND' and 'OR'. 'AND' is the default. For each individual query, the
-		 * following 'compare' values are supported: =, !=, EXISTS, NOT EXISTS. '=' is the default.
-		 *
-		 * @since 1.3
-		 */
-		if ( ! empty( $args['meta_query'] ) ) {
-			$meta_queries = array_merge( $meta_queries, $args['meta_query'] );
+			if ( ! empty( $meta_queries ) ) {
+				$meta_queries = [
+					'relation' => 'AND',
+					$meta_query_array,
+					$meta_queries,
+				];
+			} else {
+				$meta_queries = [ $meta_query_array ];
+			}
 		}
 
 		if ( ! empty( $meta_queries ) ) {
-
-			$relation = 'must';
-			if ( ! empty( $args['meta_query'] ) && ! empty( $args['meta_query']['relation'] ) && 'or' === strtolower( $args['meta_query']['relation'] ) ) {
-				$relation = 'should';
-			}
-
 			// get meta query filter
 			$meta_filter = $this->build_meta_query( $meta_queries );
 
