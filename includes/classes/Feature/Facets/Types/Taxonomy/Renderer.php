@@ -94,8 +94,9 @@ class Renderer {
 			apply_filters(
 				'ep_facet_search_get_terms_args',
 				[
-					'taxonomy'   => $taxonomy,
-					'hide_empty' => true,
+					'taxonomy'               => $taxonomy,
+					'hide_empty'             => true,
+					'update_term_meta_cache' => false,
 				],
 				$args,
 				$instance
