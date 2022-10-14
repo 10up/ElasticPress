@@ -828,7 +828,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testTaxQueryInvalidWithInvalidField() {
-		$post = Functions\create_and_sync_post(
+		$post = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 1',
 				'tags_input'   => array(
@@ -837,8 +837,8 @@ class TestPost extends BaseTestCase {
 				),
 			)
 		);
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'tags_input'   => array(
