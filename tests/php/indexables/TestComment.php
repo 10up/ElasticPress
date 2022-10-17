@@ -86,7 +86,7 @@ class TestComment extends BaseTestCase {
 		$parent_comment_id = $child_comment_id = 0;
 		$comment_ids = [];
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		if( $number > 0 ) {
 			for( $i = 1; $i <= $number; $i++ ) {
@@ -133,7 +133,7 @@ class TestComment extends BaseTestCase {
 			}
 		);
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -162,7 +162,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentSyncMeta() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -187,7 +187,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentSyncOnMetaUpdate() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -207,7 +207,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentSyncKill() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$created_comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -426,8 +426,8 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentPostID() {
-		$post_id_1 = Functions\create_and_sync_post();
-		$post_id_2 = Functions\create_and_sync_post();
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
 
 		$comment_ids[] = Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -572,7 +572,7 @@ class TestComment extends BaseTestCase {
 			}
 		);
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -634,7 +634,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorEmail() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -690,7 +690,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorUrl() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -749,7 +749,7 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryUserId() {
 		$current_user_id = get_current_user_id();
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -802,7 +802,7 @@ class TestComment extends BaseTestCase {
 		$current_user_id = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -855,7 +855,7 @@ class TestComment extends BaseTestCase {
 		$current_user_id = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -956,7 +956,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryDateQuery() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$in_range = [];
 		$out_range = [];
 
@@ -1059,7 +1059,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryKarma() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$match = [];
 		$not_match = [];
 
@@ -1114,7 +1114,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryMeta() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$match = [];
 
 		$match[] = Functions\create_and_sync_comment( [
@@ -1166,7 +1166,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryMetaQuery() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$match = [];
 
 		$not_match = Functions\create_and_sync_comment( [
@@ -1280,10 +1280,10 @@ class TestComment extends BaseTestCase {
 		$user_id_2 = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		$user_id_3 = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_author' => $user_id_1 ] );
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_author' => $user_id_1 ] );
-		$post_id_3 = Functions\create_and_sync_post( [ 'post_author' => $user_id_2 ] );
-		$post_id_4 = Functions\create_and_sync_post( [ 'post_author' => $user_id_3 ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_author' => $user_id_1 ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_author' => $user_id_1 ] );
+		$post_id_3 = $this->ep_factory->post->create( [ 'post_author' => $user_id_2 ] );
+		$post_id_4 = $this->ep_factory->post->create( [ 'post_author' => $user_id_3 ] );
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment',
@@ -1427,8 +1427,8 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostStatus() {
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_status' => 'publish' ] );
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_status' => 'draft' ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_status' => 'publish' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_status' => 'draft' ] );
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment',
@@ -1487,9 +1487,9 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostType() {
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_type' => 'page' ] );
-		$post_id_3 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'post' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+		$post_id_3 = $this->ep_factory->post->create( [ 'post_type' => 'post' ] );
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment',
@@ -1527,6 +1527,22 @@ class TestComment extends BaseTestCase {
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
+
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+			'post_type' => [ 'post', 'page' ],
+		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
+		}
+
+		$this->assertEquals( 4, count( $comments ) );
 	}
 
 	/**
@@ -1537,8 +1553,8 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostParent() {
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'page' ]);
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_type' => 'page', 'post_parent' => $post_id_1 ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'page' ]);
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page', 'post_parent' => $post_id_1 ] );
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment',
@@ -1580,7 +1596,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQuerySearch() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -1641,7 +1657,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryStatus() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
 		Functions\create_and_sync_comment( [
@@ -1737,7 +1753,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryType() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',
@@ -1811,11 +1827,11 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostName() {
 
-		$post_id = Functions\create_and_sync_post( [
+		$post_id = $this->ep_factory->post->create( [
 			'post_name' => 'start-here'
 		] );
 
-		$another_post_id = Functions\create_and_sync_post( [
+		$another_post_id = $this->ep_factory->post->create( [
 			'post_name' => 'about-us'
 		] );
 
@@ -1862,7 +1878,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$product_id = Functions\create_and_sync_post(
+		$product_id = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'product 1',
 				'post_type'    => 'product',
@@ -2041,7 +2057,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = Functions\create_and_sync_post([
+		$shop_order_id = $this->ep_factory->post->create([
 			'post_content'   => 'order 1',
 			'post_type'      => 'shop_order',
 			'post_status'    => 'wc-pending',
@@ -2074,7 +2090,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = Functions\create_and_sync_post([
+		$shop_order_id = $this->ep_factory->post->create([
 			'post_content'   => 'order 1',
 			'post_type'      => 'shop_order',
 			'post_status'    => 'wc-pending',
@@ -2109,7 +2125,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		Functions\create_and_sync_comment( [
 			'comment_content' => 'Test comment 1',

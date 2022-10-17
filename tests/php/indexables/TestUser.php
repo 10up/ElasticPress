@@ -78,7 +78,7 @@ class TestUser extends BaseTestCase {
 
 		ElasticPress\Indexables::factory()->get( 'user' )->bulk_index( array_keys( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue ) );
 
-		$user_1 = Functions\create_and_sync_user(
+		$user_1 = $this->ep_factory->user->create(
 			[
 				'user_login'   => 'user1-author',
 				'role'         => 'author',
@@ -87,15 +87,15 @@ class TestUser extends BaseTestCase {
 				'display_name' => 'dave',
 				'user_email'   => 'dave@gmail.com',
 				'user_url'     => 'http://bac.com',
+				'meta_input'   => [
+					'user_1_key' => 'value1',
+					'user_num'   => 5,
+					'long_key'   => 'here is a text field',
+				],
 			],
-			[
-				'user_1_key' => 'value1',
-				'user_num'   => 5,
-				'long_key'   => 'here is a text field',
-			]
 		);
 
-		$user_2 = Functions\create_and_sync_user(
+		$user_2 = $this->ep_factory->user->create(
 			[
 				'user_login'   => 'user2-contributor',
 				'role'         => 'contributor',
@@ -104,13 +104,13 @@ class TestUser extends BaseTestCase {
 				'display_name' => 'Zoey',
 				'user_email'   => 'zoey@gmail.com',
 				'user_url'     => 'http://google.com',
-			],
-			[
-				'user_2_key' => 'value2',
+				'meta_input'   => [
+					'user_2_key' => 'value2',
+				],
 			]
 		);
 
-		$user_3 = Functions\create_and_sync_user(
+		$user_3 = $this->ep_factory->user->create(
 			[
 				'user_login'   => 'user3-editor',
 				'role'         => 'editor',
@@ -119,10 +119,10 @@ class TestUser extends BaseTestCase {
 				'display_name' => 'joe',
 				'user_email'   => 'joe@gmail.com',
 				'user_url'     => 'http://cab.com',
-			],
-			[
-				'user_3_key' => 'value3',
-				'user_num'   => 5,
+				'meta_input'   => [
+					'user_3_key' => 'value3',
+					'user_num'   => 5,
+				],
 			]
 		);
 
@@ -304,15 +304,7 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 1, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
 
-		for ( $i = 1; $i <= 15; $i++ ) {
-			Functions\create_and_sync_user(
-				[
-					'user_login' => 'user' . $i . '-editor',
-					'role'       => 'administrator',
-				]
-			);
-		}
-
+		$this->ep_factory->user->create_many( 15 );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$user_query = new \WP_User_Query(
@@ -325,8 +317,8 @@ class TestUser extends BaseTestCase {
 			$this->assertTrue( $user->elasticsearch );
 		}
 
-		$this->assertEquals( 19, count( $user_query->results ) );
-		$this->assertEquals( 19, $user_query->total_users );
+		$this->assertEquals( 20, count( $user_query->results ) );
+		$this->assertEquals( 20, $user_query->total_users );
 	}
 
 	/**
@@ -1455,7 +1447,7 @@ class TestUser extends BaseTestCase {
 	 */
 	public function testUserSearchLimitedToOneBlog() {
 		// This user does not belong to any blog.
-		Functions\create_and_sync_user(
+		$this->ep_factory->user->create(
 			[
 				'user_login' => 'users-and-blogs-1',
 				'role'       => '',
@@ -1465,7 +1457,7 @@ class TestUser extends BaseTestCase {
 				'user_url'   => 'http://domain.test',
 			]
 		);
-		Functions\create_and_sync_user(
+		$this->ep_factory->user->create(
 			[
 				'user_login' => 'users-and-blogs-2',
 				'role'       => 'contributor',
