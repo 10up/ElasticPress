@@ -1497,4 +1497,210 @@ class TestUser extends BaseTestCase {
 			$this->assertTrue( $user->elasticsearch );
 		}
 	}
+
+	/**
+	 * Test user query search by user login.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testUserQueryUserLogin() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'         => 'contributor',
+				'search_columns' => [ 'user_login' ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
+		$this->assertTrue( $user_query->results[0]->elasticsearch );
+	}
+
+	/**
+	 * Test user query search by user nicename.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testUserQueryUserNiceName() {
+		$this->createAndIndexUsers();
+
+		$user_query = new \WP_User_Query(
+			[
+				'search'         => 'mike',
+				'search_columns' => [ 'user_nicename' ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$this->assertEquals( 1, $user_query->total_users );
+		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
+		$this->assertTrue( $user_query->results[0]->elasticsearch );
+	}
+
+	/**
+	 * Test user query default orderby set to asc.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testUserQueryDefaultOrderBy() {
+		$this->createAndIndexUsers();
+
+		$expected_user_order = [
+			'admin',
+			'test_admin',
+			'user1-author',
+			'user2-contributor',
+			'user3-editor',
+		];
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$user_query = new \WP_User_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => '',
+			]
+		);
+
+		$user_order = array();
+		foreach ( $user_query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+			$user_order[] = $user->user_login;
+		}
+
+		$this->assertEquals( $expected_user_order, $user_order );
+	}
+
+	/**
+	 * Test default order set to the score when orderby is set to empty
+	 *
+	 * @since 4.4.0
+	 */
+	public function testUserQueryDefaultOrder() {
+		$this->createAndIndexUsers();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_action(
+			'pre_http_request',
+			function( $preempt, $parsed_args, $url ) {
+				$body = json_decode( $parsed_args['body'], true );
+
+				$this->assertNotEmpty( $body['sort'][0]['_score'] );
+
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		$user_query = new \WP_User_Query(
+			[
+				'orderby' => '',
+				'search'  => 'user',
+			]
+		);
+
+		foreach ( $user_query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+		}
+
+	}
+
+	/**
+	 * Test protected meta does not index.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testProtectedMetaNotIndex() {
+
+		$user_id = $this->factory->user->create(
+			[
+				'meta_input' => array(
+					'_phone_number' => '1234567890',
+				),
+			]
+		);
+
+		$user = new \ElasticPress\Indexable\User\User();
+
+		$user_args = $user->prepare_document( $user_id );
+
+		$this->assertTrue( empty( $user_args['meta']['_phone_number'] ) );
+	}
+
+	/**
+	 * Test whitelisted meta does index.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testProtectedWhiteListMetaIndex() {
+
+		add_filter(
+			'ep_prepare_user_meta_allowed_protected_keys',
+			function( $meta_keys ) {
+				$meta_keys[] = '_phone_number';
+
+				return $meta_keys;
+			}
+		);
+
+		$user_id = $this->factory->user->create(
+			[
+				'meta_input' => array(
+					'_phone_number' => '1234567890',
+				),
+			]
+		);
+
+		$user      = new \ElasticPress\Indexable\User\User();
+		$user_args = $user->prepare_document( $user_id );
+
+		$this->assertEquals( $user_args['meta']['_phone_number'][0]['value'], '1234567890' );
+	}
+
+	/**
+	 * Test query_db() function.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testQueryDb() {
+
+		$this->createAndIndexUsers();
+		$user_1 = $this->factory->user->create();
+		$user_2 = $this->factory->user->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$user = new \ElasticPress\Indexable\User\User();
+
+		// Test the first loop of the indexing.
+		$results = $user->query_db(
+			[
+				'per_page' => 1,
+			]
+		);
+
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 7, $results['total_objects'] );
+		$this->assertEquals( $user_2, $results['objects'][0]->ID );
+
+		// Test the second loop of the indexing.
+		$results = $user->query_db(
+			[
+				'per_page' => 1,
+				'offset'   => 1,
+			]
+		);
+
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 7, $results['total_objects'] );
+		$this->assertEquals( $user_1, $results['objects'][0]->ID );
+	}
+
 }
