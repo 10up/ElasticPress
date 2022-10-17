@@ -47,7 +47,7 @@ class TestUser extends BaseTestCase {
 				'display_name'  => 'mikey',
 				'user_email'    => 'mikey@gmail.com',
 				'user_nicename' => 'mike',
-				'user_url'      => 'http://abc.com'
+				'user_url'      => 'http://abc.com',
 			]
 		);
 
@@ -86,7 +86,7 @@ class TestUser extends BaseTestCase {
 				'last_name'    => 'Smith',
 				'display_name' => 'dave',
 				'user_email'   => 'dave@gmail.com',
-				'user_url'      => 'http://bac.com'
+				'user_url'     => 'http://bac.com',
 			],
 			[
 				'user_1_key' => 'value1',
@@ -118,7 +118,7 @@ class TestUser extends BaseTestCase {
 				'last_name'    => 'Doe',
 				'display_name' => 'joe',
 				'user_email'   => 'joe@gmail.com',
-				'user_url'      => 'http://cab.com'
+				'user_url'     => 'http://cab.com',
 			],
 			[
 				'user_3_key' => 'value3',
@@ -1390,7 +1390,7 @@ class TestUser extends BaseTestCase {
 			[
 				'ep_integrate' => true,
 				'number'       => $count,
-				'fields' => [ 'ID', 'display_name' ],
+				'fields'       => [ 'ID', 'display_name' ],
 			]
 		);
 
@@ -1415,27 +1415,35 @@ class TestUser extends BaseTestCase {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
 
-		$query = new \WP_User_Query( [
-			'ep_integrate' => false
-		] );
+		$query = new \WP_User_Query(
+			[
+				'ep_integrate' => false,
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_User_Query( [
-			'ep_integrate' => 0
-		] );
+		$query = new \WP_User_Query(
+			[
+				'ep_integrate' => 0,
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_User_Query( [
-			'ep_integrate' => 'false'
-		] );
+		$query = new \WP_User_Query(
+			[
+				'ep_integrate' => 'false',
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_User_Query( [
-			'search' => 'user'
-		] );
+		$query = new \WP_User_Query(
+			[
+				'search' => 'user',
+			]
+		);
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
@@ -1449,31 +1457,33 @@ class TestUser extends BaseTestCase {
 		// This user does not belong to any blog.
 		Functions\create_and_sync_user(
 			[
-				'user_login'   => 'users-and-blogs-1',
-				'role'         => '',
-				'first_name'   => 'No Blog',
-				'last_name'    => 'User',
-				'user_email'   => 'no-blog@test.com',
-				'user_url'     => 'http://domain.test',
+				'user_login' => 'users-and-blogs-1',
+				'role'       => '',
+				'first_name' => 'No Blog',
+				'last_name'  => 'User',
+				'user_email' => 'no-blog@test.com',
+				'user_url'   => 'http://domain.test',
 			]
 		);
 		Functions\create_and_sync_user(
 			[
-				'user_login'   => 'users-and-blogs-2',
-				'role'         => 'contributor',
-				'first_name'   => 'Blog',
-				'last_name'    => 'User',
-				'user_email'   => 'blog@test.com',
-				'user_url'     => 'http://domain.test',
+				'user_login' => 'users-and-blogs-2',
+				'role'       => 'contributor',
+				'first_name' => 'Blog',
+				'last_name'  => 'User',
+				'user_email' => 'blog@test.com',
+				'user_url'   => 'http://domain.test',
 			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Here `blog_id` defaults to `get_current_blog_id()`.
-		$query = new \WP_User_Query( [
-			'search' => 'users-and-blogs'
-		] );
+		$query = new \WP_User_Query(
+			[
+				'search' => 'users-and-blogs',
+			]
+		);
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 		$this->assertEquals( 1, $query->total_users );
@@ -1482,10 +1492,12 @@ class TestUser extends BaseTestCase {
 		}
 
 		// Search accross all blogs.
-		$query = new \WP_User_Query( [
-			'search'  => 'users-and-blogs',
-			'blog_id' => 0,
-		] );
+		$query = new \WP_User_Query(
+			[
+				'search'  => 'users-and-blogs',
+				'blog_id' => 0,
+			]
+		);
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 		$this->assertEquals( 2, $query->total_users );
@@ -1494,13 +1506,17 @@ class TestUser extends BaseTestCase {
 		}
 	}
 
-
+	/**
+	 * Test user query search by user login.
+	 *
+	 * @since 4.4.0
+	 */
 	public function testUserQueryUserLogin() {
 		$this->createAndIndexUsers();
 
 		$user_query = new \WP_User_Query(
 			[
-				'search'       => 'contributor',
+				'search'         => 'contributor',
 				'search_columns' => [ 'user_login' ],
 			]
 		);
@@ -1512,39 +1528,17 @@ class TestUser extends BaseTestCase {
 		$this->assertTrue( $user_query->results[0]->elasticsearch );
 	}
 
-
-
 	/**
-	 * Test basic user search via user url
+	 * Test user query search by user nicename.
 	 *
-	 * @since 3.0
+	 * @since 4.4.0
 	 */
-	public function testBasicUserSearchUserUrlNew() {
-		$this->createAndIndexUsers();
-
-		$user_query = new \WP_User_Query(
-			[
-				'search'        => 'http://google.com',
-				'search_columns' => [ 'user_url' ],
-			]
-		);
-
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
-		$this->assertEquals( 1, $user_query->total_users );
-		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
-	}
-
-
-
 	public function testUserQueryUserNiceName() {
 		$this->createAndIndexUsers();
 
 		$user_query = new \WP_User_Query(
 			[
-				'search'       => 'mike',
+				'search'         => 'mike',
 				'search_columns' => [ 'user_nicename' ],
 			]
 		);
@@ -1556,32 +1550,10 @@ class TestUser extends BaseTestCase {
 		$this->assertTrue( $user_query->results[0]->elasticsearch );
 	}
 
-
-
-
-	public function testUserQueryUserEmail() {
-		$this->createAndIndexUsers();
-
-		$user_query = new \WP_User_Query(
-			[
-				'search'       => 'zoey@gmail.com',
-				'search_columns' => [ 'user_email' ],
-				'ep_integrate' => true,
-			]
-		);
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		$this->assertEquals( 1, $user_query->total_users );
-		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
-		$this->assertTrue( $user_query->results[0]->elasticsearch );
-	}
-
-
 	/**
-	 * Test default order by set to user_login
+	 * Test user query default orderby set to asc.
 	 *
-	 * @return void
+	 * @since 4.4.0
 	 */
 	public function testUserQueryDefaultOrderBy() {
 		$this->createAndIndexUsers();
@@ -1615,26 +1587,30 @@ class TestUser extends BaseTestCase {
 	/**
 	 * Test default order set to the score when orderby is set to empty
 	 *
-	 * @return void
+	 * @since 4.4.0
 	 */
 	public function testUserQueryDefaultOrder() {
 		$this->createAndIndexUsers();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
+		add_action(
+			'pre_http_request',
+			function( $preempt, $parsed_args, $url ) {
+				$body = json_decode( $parsed_args['body'], true );
 
-		add_action( 'pre_http_request', function( $preempt,  $parsed_args, $url ) {
-			$body = json_decode( $parsed_args['body'], true );
+				$this->assertNotEmpty( $body['sort'][0]['_score'] );
 
-			$this->assertIsObject( $body->sort[0]->_score );
-			return $preempt;
-		}, 10, 3  );
-
+				return $preempt;
+			},
+			10,
+			3
+		);
 
 		$user_query = new \WP_User_Query(
 			[
-				'orderby'      => '',
-				'search'       => 'user',
+				'orderby' => '',
+				'search'  => 'user',
 			]
 		);
 
@@ -1644,15 +1620,20 @@ class TestUser extends BaseTestCase {
 
 	}
 
-
+	/**
+	 * Test protected meta does not index.
+	 *
+	 * @since 4.4.0
+	 */
 	public function testProtectedMetaNotIndex() {
 
-
-		$user_id = $this->factory->user->create( array(
-			'meta_input' => array(
-				'_phone_number' => '1234567890'
-			)
-		) );
+		$user_id = $this->factory->user->create(
+			[
+				'meta_input' => array(
+					'_phone_number' => '1234567890',
+				),
+			]
+		);
 
 		$user = new \ElasticPress\Indexable\User\User();
 
@@ -1661,29 +1642,41 @@ class TestUser extends BaseTestCase {
 		$this->assertTrue( empty( $user_args['meta']['_phone_number'] ) );
 	}
 
-
+	/**
+	 * Test whitelisted meta does index.
+	 *
+	 * @since 4.4.0
+	 */
 	public function testProtectedWhiteListMetaIndex() {
 
-		add_filter( 'ep_prepare_user_meta_allowed_protected_keys', function( $meta_keys )  {
-			$meta_keys[] = '_phone_number';
+		add_filter(
+			'ep_prepare_user_meta_allowed_protected_keys',
+			function( $meta_keys ) {
+				$meta_keys[] = '_phone_number';
 
-			return $meta_keys;
-		} );
+				return $meta_keys;
+			}
+		);
 
-
-		$user_id = $this->factory->user->create( array(
-			'meta_input' => array(
-				'_phone_number' => '1234567890'
+		$user_id = $this->factory->user->create(
+			array(
+				'meta_input' => array(
+					'_phone_number' => '1234567890',
+				),
 			)
-		) );
+		);
 
-		$user = new \ElasticPress\Indexable\User\User();
+		$user      = new \ElasticPress\Indexable\User\User();
 		$user_args = $user->prepare_document( $user_id );
 
 		$this->assertEquals( $user_args['meta']['_phone_number'][0]['value'], '1234567890' );
 	}
 
-
+	/**
+	 * Test query_db() function.
+	 *
+	 * @since 4.4.0
+	 */
 	public function testQueryDb() {
 
 		$this->createAndIndexUsers();
@@ -1691,7 +1684,6 @@ class TestUser extends BaseTestCase {
 		$user_2 = $this->factory->user->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
 
 		$user = new \ElasticPress\Indexable\User\User();
 
@@ -1706,7 +1698,6 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 7, $results['total_objects'] );
 		$this->assertEquals( $user_2, $results['objects'][0]->ID );
 
-
 		// Test the second loop of the indexing.
 		$results = $user->query_db(
 			[
@@ -1718,9 +1709,6 @@ class TestUser extends BaseTestCase {
 		$this->assertCount( 1, $results['objects'] );
 		$this->assertEquals( 7, $results['total_objects'] );
 		$this->assertEquals( $user_1, $results['objects'][0]->ID );
-
 	}
-
-
 
 }
