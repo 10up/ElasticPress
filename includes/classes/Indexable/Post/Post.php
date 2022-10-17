@@ -2375,7 +2375,7 @@ class Post extends Indexable {
 	 * @param string $field Field name
 	 * @return string
 	 */
-	protected function parse_tax_query_field( $field ) : string {
+	protected function parse_tax_query_field( string $field ) : string {
 
 		$from_to = [
 			'name'             => 'name.raw',
