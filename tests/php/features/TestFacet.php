@@ -132,16 +132,16 @@ class TestFacets extends BaseTestCase {
 			]
 		];
 
-		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue,consectetur', $facet_feature->build_query_url( $filters ) );
 
 		// test when search parameter is empty.
 		$filters['s'] = '';
-		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur&s=', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue,consectetur&s=', $facet_feature->build_query_url( $filters ) );
 
 		$_SERVER['REQUEST_URI'] = 'test/page/1';
 
 		$filters['s'] = 'dolor';
-		$this->assertEquals( 'test/?ep_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( 'test/?ep_filter_category=augue,consectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
 
 		/**
 		 * Test the `ep_facet_query_string` filter.
@@ -163,7 +163,7 @@ class TestFacets extends BaseTestCase {
 			return 'ep_custom_filter_';
 		};
 		add_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
-		$this->assertEquals( 'test/?ep_custom_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( 'test/?ep_custom_filter_category=augue,consectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
 		remove_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
 	}
 
