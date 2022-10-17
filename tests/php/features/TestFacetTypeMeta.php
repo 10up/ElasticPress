@@ -155,12 +155,12 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foo' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'bar' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foobar' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foo' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'bar' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foobar' ) ) );
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'lorem' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'ipsum' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'lorem' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'ipsum' ) ) );
 
 		\ElasticPress\Elasticsearch::factory()->refresh_indices();
 
