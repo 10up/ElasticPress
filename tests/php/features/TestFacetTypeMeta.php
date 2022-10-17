@@ -211,13 +211,26 @@ class TestFacetTypeMeta extends BaseTestCase {
 	}
 
 	/**
-	 * Test agg_filters
+	 * Test add_query_filters
 	 *
-	 * @since 4.3.0
+	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testAggFilters() {
-		$this->markTestIncomplete();
+	public function testAddQueryFilters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['meta'];
+
+		parse_str( 'ep_meta_filter_my_custom_field=dolor', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'terms' => [
+					'meta.my_custom_field.raw' => [ 'dolor' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
 	}
 
 	/**
@@ -227,16 +240,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testGetFacetsMetaFields() {
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Test facet_query
-	 *
-	 * @since 4.3.0
-	 * @group facets
-	 */
-	public function testFacetQuery() {
 		$this->markTestIncomplete();
 	}
 
