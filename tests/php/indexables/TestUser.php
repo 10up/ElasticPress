@@ -1651,11 +1651,11 @@ class TestUser extends BaseTestCase {
 		);
 
 		$user_id = $this->factory->user->create(
-			array(
+			[
 				'meta_input' => array(
 					'_phone_number' => '1234567890',
 				),
-			)
+			]
 		);
 
 		$user      = new \ElasticPress\Indexable\User\User();
