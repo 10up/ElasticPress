@@ -1,40 +1,16 @@
 /**
  * Internal deendencies.
  */
-import { currencyCode, facets, locale } from './config';
 import { sanitizeArg, sanitizeParam } from './utilities';
-
-/**
- * Clear facet filters from a set of args.
- *
- * @param {object} args Args to clear facets from.
- * @returns {object} Cleared args.
- */
-export const clearFacetsFromArgs = (args) => {
-	const clearedArgs = { ...args };
-
-	facets.forEach(({ name, type }) => {
-		switch (type) {
-			case 'price_range':
-				delete clearedArgs.max_price;
-				delete clearedArgs.min_price;
-				break;
-			default:
-				delete clearedArgs[name];
-				break;
-		}
-	});
-
-	return clearedArgs;
-};
 
 /**
  * Format a date.
  *
  * @param {string} date Date string.
+ * @param {string} locale BCP 47 language tag.
  * @returns {string} Formatted number.
  */
-export const formatDate = (date) => {
+export const formatDate = (date, locale) => {
 	return new Date(date).toLocaleString(locale, { dateStyle: 'long' });
 };
 
@@ -48,7 +24,6 @@ export const formatDate = (date) => {
 export const formatPrice = (number, options) => {
 	const format = new Intl.NumberFormat(navigator.language, {
 		style: 'currency',
-		currency: currencyCode,
 		currencyDisplay: 'narrowSymbol',
 		...options,
 	});

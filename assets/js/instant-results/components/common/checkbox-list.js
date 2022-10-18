@@ -23,6 +23,7 @@ import SmallButton from './small-button';
  *
  * @param    {object}   props          Component props.
  * @param    {boolean}  props.disabled Whether the checkboxes should be disabled.
+ * @param    {string}   props.locale   BCP 47 language tag. Used for sorting.
  * @param    {boolean}  props.label    List label.
  * @param    {Function} props.onChange Checkbox change event callback function.
  * @param    {Option[]} props.options  Checkbox options.
@@ -30,7 +31,7 @@ import SmallButton from './small-button';
  * @param    {string}   props.sortBy   How to sort options.
  * @returns {WPElement} A React element.
  */
-export default ({ disabled, label, options, onChange, selected, sortBy }) => {
+export default ({ disabled, label, locale, options, onChange, selected, sortBy }) => {
 	/**
 	 * Outermost list element.
 	 */
@@ -172,7 +173,7 @@ export default ({ disabled, label, options, onChange, selected, sortBy }) => {
 		}
 
 		if (sortBy === 'name' || comparison === 0) {
-			comparison = a.label.localeCompare(b.label);
+			comparison = a.label.localeCompare(b.label, locale);
 		}
 
 		return comparison;

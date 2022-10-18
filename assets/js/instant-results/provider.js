@@ -6,34 +6,50 @@ import { useCallback, useEffect, useMemo, useRef, useState, WPElement } from '@w
 /**
  * Internal dependencies.
  */
-import { argsSchema, matchType, paramPrefix } from './config';
 import Context from './context';
-import { clearFacetsFromArgs, getUrlParamsFromArgs, getUrlWithParams } from './functions';
+import { getUrlParamsFromArgs, getUrlWithParams } from './functions';
 import { useGetResults } from './hooks';
-
-/**
- * Default search arguments.
- */
-const initialArgs = {
-	highlight: '',
-	offset: 0,
-	orderby: 'relevance',
-	order: 'desc',
-	per_page: 6,
-	relation: matchType === 'all' ? 'and' : 'or',
-	search: '',
-};
 
 /**
  * Instant Results provider component.
  *
  * @param {object} props Component props.
+ * @param {object} props.argsSchema Schema describing supported args.
  * @param {WPElement} props.children Component children.
+ * @param {string} props.currencyCode Currency code.
  * @param {object} props.defaultArgs Default args.
+ * @param {string} props.locale BCP 47 language tag.
+ * @param {'all'|'any'} props.matchType How to match filters.
+ * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
+ * @param {object} props.postTypeLabels Post type labels indexed by post type slug.
  * @returns {WPElement} Component.
  */
-export default ({ defaultArgs, children }) => {
+export default ({
+	argsSchema,
+	defaultArgs,
+	children,
+	currencyCode,
+	locale,
+	matchType,
+	paramPrefix,
+	postTypeLabels,
+}) => {
 	const getResults = useGetResults();
+
+	/**
+	 * Default search arguments, derived from schema.
+	 */
+	const initialArgs = useMemo(
+		() =>
+			Object.entries(argsSchema).reduce((initialArgs, [arg, schema]) => {
+				if (schema.default) {
+					initialArgs[arg] = schema.default;
+				}
+
+				return initialArgs;
+			}, {}),
+		[argsSchema],
+	);
 
 	/**
 	 * State.
@@ -78,12 +94,27 @@ export default ({ defaultArgs, children }) => {
 
 	/**
 	 * Clear applied facet constraints.
+	 *
+	 * Args without default values can be cleared.
+	 *
+	 * @returns {void}
 	 */
-	const clearFacets = useCallback(() => {
-		const clearedArgs = clearFacetsFromArgs(argsRef.current);
+	const clearConstraints = useCallback(() => {
+		const clearedArgs = { ...argsRef.current };
+
+		Object.entries(argsSchema).forEach(([arg, schema]) => {
+			/**
+			 *
+			 */
+			const hasDefault = Object.hasOwnProperty.call(schema, 'default');
+
+			if (!hasDefault) {
+				delete clearedArgs[arg];
+			}
+		});
 
 		setArgs({ ...clearedArgs });
-	}, []);
+	}, [argsSchema]);
 
 	/**
 	 * Set args to get the next page.
@@ -123,7 +154,7 @@ export default ({ defaultArgs, children }) => {
 		} else {
 			window.history.replaceState(state, document.title, window.location.href);
 		}
-	}, []);
+	}, [argsSchema, paramPrefix]);
 
 	/**
 	 * Perform a search.
@@ -152,7 +183,7 @@ export default ({ defaultArgs, children }) => {
 		setTotalResults(totalResults);
 
 		setIsLoading(false);
-	}, [getResults, pushState]);
+	}, [argsSchema, getResults, pushState]);
 
 	/**
 	 * Handle popstate event.
@@ -199,34 +230,25 @@ export default ({ defaultArgs, children }) => {
 	useEffect(handleArgs, [args, doSearch, pushState]);
 	useEffect(handleEvents, [onPopState]);
 
-	const contextValue = useMemo(
-		() => ({
-			aggregations,
-			args,
-			clearFacets,
-			isLoading,
-			newSearch,
-			nextPage,
-			previousPage,
-			search,
-			searchResults,
-			searchedTerm,
-			totalResults,
-		}),
-		[
-			aggregations,
-			args,
-			clearFacets,
-			isLoading,
-			newSearch,
-			nextPage,
-			previousPage,
-			search,
-			searchResults,
-			searchedTerm,
-			totalResults,
-		],
-	);
+	// eslint-disable-next-line react/jsx-no-constructed-context-values
+	const contextValue = {
+		aggregations,
+		args,
+		clearConstraints,
+		currencyCode,
+		isLoading,
+		locale,
+		matchType,
+		newSearch,
+		nextPage,
+		paramPrefix,
+		postTypeLabels,
+		previousPage,
+		search,
+		searchResults,
+		searchedTerm,
+		totalResults,
+	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 };

@@ -13,12 +13,14 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Search field component.
  *
+ * @param {object} props Component props.
+ * @param {string} props.arg Argument to use.
  * @returns {WPElement} Component element.
  */
-export default () => {
+export default ({ arg }) => {
 	const { args, newSearch, searchedTerm } = useInstantResults();
 
-	const [value, setValue] = useState(args.search);
+	const [value, setValue] = useState(args[arg]);
 
 	/**
 	 * Dispatch the change, with debouncing.
@@ -49,13 +51,13 @@ export default () => {
 	 * state.
 	 */
 	const handleSearch = () => {
-		setValue(args.search);
+		setValue(args[arg]);
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleSearch, [args.search]);
+	useEffect(handleSearch, [arg, args]);
 
 	return (
 		<>
