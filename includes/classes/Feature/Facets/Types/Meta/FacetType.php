@@ -134,24 +134,6 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * Get the facet sanitize function.
-	 *
-	 * @return string The sanitize function.
-	 */
-	public function get_sanitize_callback() : string {
-
-		/**
-		 * Filter the facet filter sanitize callback.
-		 *
-		 * @hook ep_facet_meta_sanitize_callback
-		 * @since 4.4.0
-		 * @param   {string} Facet filter sanitize callback
-		 * @return  {string} New facet filter sanitize callback
-		 */
-		return apply_filters( 'ep_facet_meta_sanitize_callback', 'sanitize_text_field' );
-	}
-
-	/**
 	 * Add meta fields to facets aggs
 	 *
 	 * @param array $facet_aggs Facet Aggs array.
