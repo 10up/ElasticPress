@@ -262,4 +262,38 @@ class TestFacetTypeMeta extends BaseTestCase {
 	public function testInvalidateMetaValuesCacheAfterBulk() {
 		$this->markTestIncomplete();
 	}
+
+	/**
+	 * Test get_sanitize_callback method.
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testGetSanitizeCallback() {
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$test_meta     = 'This is s test meta';
+
+		parse_str( "ep_meta_filter_new_meta_key_1={$test_meta}", $_GET );
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs by default on taxonomy facets
+		$expected_result = sanitize_text_field( $test_meta );
+		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
+
+		$sanitize_function = function() {
+			return 'sanitize_title';
+		};
+
+		// modify the sanitize callback.
+		add_filter( 'ep_facet_default_sanitize_callback', $sanitize_function );
+
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs when filter is applied.
+		$expected_result = sanitize_title( $test_meta );
+		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
+
+		remove_filter( 'ep_facet_default_sanitize_callback', $sanitize_function );
+	}
 }
