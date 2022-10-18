@@ -15,8 +15,11 @@ module.exports = defineConfig({
 		// We've imported your old cypress plugins here.
 		// You may want to clean this up later by importing these.
 		async setupNodeEvents(on, config) {
+			/* eslint-disable global-require */
 			const path = require('path');
 			const { readConfig } = require('@wordpress/env/lib/config');
+			/* eslint-enable global-require */
+
 			const wpEnvConfig = await readConfig('wp-env');
 
 			if (wpEnvConfig) {
@@ -29,8 +32,6 @@ module.exports = defineConfig({
 
 			// Account for ElasticPress and elasticpress usages.
 			config.pluginName = path.resolve(`${process.cwd()}../../../`).split('/').pop();
-
-			console.log(config);
 
 			return config;
 		},
