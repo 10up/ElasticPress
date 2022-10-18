@@ -821,6 +821,67 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 *
+	 * Test a taxonomy query with invalid field value and make sure it falls back to term_id.
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testTaxQueryInvalidWithInvalidField() {
+		$post = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array(
+					'one',
+					'two',
+				),
+			)
+		);
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme test 3',
+				'tags_input'   => array(
+					'one',
+					'three',
+				),
+			)
+		);
+
+		$tags   = wp_get_post_tags( $post );
+		$tag_id = 0;
+
+		foreach ( $tags as $tag ) {
+			if ( 'one' === $tag->slug ) {
+				$tag_id = $tag->term_id;
+			}
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'ep_integrate' => false,
+			'tax_query'    => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id ),
+					'field'    => 'invalid_field',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+		$this->assertNull( $query->elasticsearch_success );
+
+		$expected_result = wp_list_pluck( $query->posts, 'ID' );
+
+		$args['ep_integrate'] = true;
+		$query                = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $expected_result, wp_list_pluck( $query->posts, 'ID' ) );
+	}
+
+	/**
 	 * Test a taxonomy query with term name field
 	 *
 	 * @since 1.8

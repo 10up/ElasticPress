@@ -460,6 +460,24 @@ describe('Facets Feature', () => {
 				'ep_meta_filter_meta_field_2=Meta%20Value%20(2)%20-%2020',
 			);
 			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
+			cy.get('@secondBlock')
+				.contains('a[aria-disabled="true"]', 'Meta Value (2) - 19')
+				.should('exist');
+
+			/**
+			 * When Match Type is "any", all options need to be clickable
+			 */
+			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.get('.ep-feature-facets .settings-button').click();
+			cy.get('input[name="settings[match_type]"][value="any"]').check();
+			cy.get('.ep-feature-facets .button-primary').click();
+
+			cy.visit('/');
+			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
+			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 1').click();
+			cy.get('.wp-block-elasticpress-facet a[aria-disabled="true"]').should('not.exist');
+			cy.contains('.site-content article h2', 'Facet By Meta Post 20').should('exist');
+			cy.contains('.site-content article h2', 'Facet By Meta Post 1').should('exist');
 		});
 	});
 });
