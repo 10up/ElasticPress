@@ -58,34 +58,26 @@ describe('Comments Feature', () => {
 		cy.get('#submit').click();
 
 		// start sync and test results.
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--sync').click();
-		cy.get('.ep-sync-panel').first().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', {
-				timeout: Cypress.config('elasticPressIndexTimeout'),
-			})
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
+		cy.wpCli('wp elasticpress index')
+			.its('stdout')
+			.should('contain', `Number of comments indexed: ${defaultApprovedComments}`);
 
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
 		cy.get('.approve a').first().click({ force: true });
 
-		// start sync and test results.
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--sync').click();
-		cy.get('.ep-sync-panel').first().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', {
-				timeout: Cypress.config('elasticPressIndexTimeout'),
-			})
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments + 1}`);
+		// Check the number of comments.
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
 		cy.get('.column-comment .trash a').first().click({ force: true });
+
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments}`);
 	});
 
 	it('Can see ElasticPress - Comment widget in dashboard', () => {
@@ -114,14 +106,14 @@ describe('Comments Feature', () => {
 		cy.get('#comment').type('This is a test review');
 		cy.get('#submit').click();
 
-		// start sync and test results.
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--sync').click();
-		cy.get('.ep-sync-panel').first().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments + 1}`);
+		// Check if the new comment was indexed
+		cy.wpCli('wp elasticpress request localhost8889-comment-1-beb0d86b8d9c/_refresh').then(
+			() => {
+				cy.wpCli('wp elasticpress stats')
+					.its('stdout')
+					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
+			},
+		);
 
 		// trash the review
 		cy.visitAdminPage(
@@ -152,16 +144,13 @@ describe('Comments Feature', () => {
 		cy.get('#comment').type('This is a anonymous comment');
 		cy.get('#submit').click();
 
-		// start sync and test results.
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--sync').click();
-		cy.get('.ep-sync-panel').first().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', {
-				timeout: Cypress.config('elasticPressIndexTimeout'),
-			})
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments + 1}`);
+		cy.wpCli('wp elasticpress request localhost8889-comment-1-beb0d86b8d9c/_refresh').then(
+			() => {
+				cy.wpCli('wp elasticpress stats')
+					.its('stdout')
+					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
+			},
+		);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
