@@ -1,4 +1,8 @@
 describe('Post Search Feature - Weighting Functionality', () => {
+	before(() => {
+		cy.updateWeighting();
+	});
+
 	it("Can't find a post by title if title is not marked as searchable", () => {
 		cy.login();
 
@@ -13,7 +17,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.get('#post-post_title-enabled').click();
 		cy.get('#submit').click();
 
-		cy.get('#post-post_title-enabled').should('be.checked');
+		cy.get('#post-post_title-enabled').should('not.be.checked');
 		cy.screenshot();
 
 		cy.visit('/?s=Test+ElasticPress+1');
