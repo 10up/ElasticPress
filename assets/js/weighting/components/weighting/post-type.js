@@ -64,11 +64,11 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 	 * When disabling manual meta management remove weighting settings for
 	 * metadata.
 	 *
-	 * @param {Array} manageMeta New manage meta value.
+	 * @param {Array} managingMeta New manage meta value.
 	 * @returns {void}}
 	 */
-	const onChangeManageMeta = (manageMeta) => {
-		if (manageMeta === false) {
+	const onChangeManageMeta = (managingMeta) => {
+		if (managingMeta === false) {
 			const keys = Object.keys(groups.meta?.children || {});
 
 			for (const k of keys) {
@@ -76,7 +76,7 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 			}
 		}
 
-		onChange({ ...values, manage_meta: manageMeta });
+		onChange({ ...values, managing_meta: managingMeta });
 	};
 
 	/**
@@ -115,7 +115,7 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 						fields={Object.values(children)}
 						key={key}
 						label={label}
-						manual={key === 'meta' ? values.manage_meta : null}
+						manual={key === 'meta' ? values.managing_meta : null}
 						onChange={onChangeFields}
 						onChangeManual={key === 'meta' ? onChangeManageMeta : null}
 						originalValues={originalValues.fields}

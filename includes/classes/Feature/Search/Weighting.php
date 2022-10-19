@@ -265,8 +265,8 @@ class Weighting {
 				$weighting[ $post_type ]['fields'] = wp_parse_args( $weighting[ $post_type ]['fields'], $defaults );
 			} else {
 				$weighting[ $post_type ] = [
-					'fields'      => $defaults,
-					'manage_meta' => false,
+					'fields'        => $defaults,
+					'managing_meta' => false,
 				];
 			}
 		}

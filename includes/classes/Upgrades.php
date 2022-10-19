@@ -190,7 +190,7 @@ class Upgrades {
 	 * Upgrade routine of v4.4.0.
 	 *
 	 * Migrates weighting settings into a `fields` property of the weighting
-	 * configuration and adds the `manage_meta` setting.
+	 * configuration and adds the `managing_meta` setting.
 	 *
 	 * @since 4.4.0
 	 * @return void
@@ -205,8 +205,8 @@ class Upgrades {
 		foreach ( $weighting_configuration as $post_type => $config ) {
 			if ( ! isset( $config['fields'] ) ) {
 				$weighting_configuration[ $post_type ] = [
-					'fields'      => $config,
-					'manage_meta' => false,
+					'fields'        => $config,
+					'managing_meta' => false,
 				];
 			}
 		}
