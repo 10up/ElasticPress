@@ -50,10 +50,6 @@ describe('Custom Results', () => {
 					// verify the result of the search is in the same position.
 					cy.get(`article:nth-child(-n+${searchResult.length}) .entry-title`).each(
 						(post, index) => {
-							cy.writeFile(
-								`tests/cypress/logs/testing-${index}.log`,
-								post[0].innerText,
-							);
 							expect(post[0].innerText).to.equal(searchResult[index]);
 						},
 					);
@@ -99,7 +95,6 @@ describe('Custom Results', () => {
 				// verify the result of the search is in the same position.
 				cy.get(`article:nth-child(-n+${searchResult.length}) .entry-title`).each(
 					(post, index) => {
-						cy.writeFile(`tests/cypress/logs/testing-${index}.log`, post[0].innerText);
 						expect(post[0].innerText).to.equal(searchResult[index]);
 					},
 				);
