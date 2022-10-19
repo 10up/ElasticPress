@@ -82,9 +82,13 @@ describe('Custom Results', () => {
 				.then((text) => searchResult.push(text));
 		});
 
-		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('#publish').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+
+		/**
+		 * Give Elasticsearch some time to update the posts.
+		 */
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
 
 		cy.visit(`?s=${searchTerm}`);
 
