@@ -10,16 +10,24 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.get('.hentry').should('contain.text', 'Test ElasticPress 1');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('#post-post_title-enabled').click();
-		cy.get('#submit').click();
-
-		cy.visit('/?s=Test+ElasticPress+1');
-		cy.get('.hentry').should('not.exist');
+		cy.get('#post-post_title-enabled')
+			.click()
+			.then(() => {
+				cy.get('#submit')
+					.click()
+					.then(() => {
+						cy.visit('/?s=Test+ElasticPress+1');
+						cy.get('.hentry').should('not.exist');
+					});
+			});
 
 		// Reset setting.
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('#post-post_title-enabled').click();
-		cy.get('#submit').click();
+		cy.get('#post-post_title-enabled')
+			.click()
+			.then(() => {
+				cy.get('#submit').click();
+			});
 	});
 
 	it('Can increase post_title weighting and influence search results', () => {
