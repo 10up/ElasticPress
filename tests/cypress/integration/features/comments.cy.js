@@ -107,13 +107,11 @@ describe('Comments Feature', () => {
 		cy.get('#submit').click();
 
 		// Check if the new comment was indexed
-		cy.wpCli('wp elasticpress request localhost8889-comment-1-beb0d86b8d9c/_refresh').then(
-			() => {
-				cy.wpCli('wp elasticpress stats')
-					.its('stdout')
-					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
-			},
-		);
+		cy.wpCliEval('\\ElasticPress\\Elasticsearch::factory()->refresh_indices();').then(() => {
+			cy.wpCli('wp elasticpress stats')
+				.its('stdout')
+				.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
+		});
 
 		// trash the review
 		cy.visitAdminPage(
@@ -144,13 +142,11 @@ describe('Comments Feature', () => {
 		cy.get('#comment').type('This is a anonymous comment');
 		cy.get('#submit').click();
 
-		cy.wpCli('wp elasticpress request localhost8889-comment-1-beb0d86b8d9c/_refresh').then(
-			() => {
-				cy.wpCli('wp elasticpress stats')
-					.its('stdout')
-					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
-			},
-		);
+		cy.wpCliEval('\\ElasticPress\\Elasticsearch::factory()->refresh_indices();').then(() => {
+			cy.wpCli('wp elasticpress stats')
+				.its('stdout')
+				.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
+		});
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
