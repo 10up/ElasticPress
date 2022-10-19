@@ -67,9 +67,9 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @group related_posts
 	 */
 	public function testFindRelatedPostFilter() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_type'    => 'page',
@@ -105,10 +105,10 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @group related_posts
 	 */
 	public function testGetRelatedQuery() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
 
 		$related_post_title = 'related post test';
-		Functions\create_and_sync_post( array(
+		$this->ep_factory->post->create( array(
 				'post_title'   => $related_post_title,
 				'post_content' => 'findme test 2'
 			)

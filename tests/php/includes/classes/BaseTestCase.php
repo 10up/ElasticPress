@@ -31,6 +31,26 @@ class BaseTestCase extends WP_UnitTestCase {
 	protected $applied_filters = array();
 
 	/**
+	 * Holds the factory object
+	 *
+	 * @var obj
+	 * @since 4.4.0
+	 */
+	protected $ep_factory;
+
+	/**
+	 * Set up the test case.
+	 *
+	 * @var obj
+	 * @since 4.4.0
+	 */
+	public function setup() {
+
+		$this->setup_factory();
+		parent::setup();
+	}
+
+	/**
 	 * Helper function to test whether a post sync has happened
 	 *
 	 * @since 1.0
@@ -46,15 +66,6 @@ class BaseTestCase extends WP_UnitTestCase {
 	 */
 	public function action_delete_post() {
 		$this->fired_actions['ep_delete_post'] = true;
-	}
-
-	/**
-	 * Helper function to test whether a EP search has happened
-	 *
-	 * @since 1.0
-	 */
-	public function action_wp_query_search() {
-		$this->fired_actions['ep_wp_query_search'] = true;
 	}
 
 	/**
@@ -119,5 +130,20 @@ class BaseTestCase extends WP_UnitTestCase {
 	 */
 	public function set_algorithm_34() {
 		return '3.4';
+	}
+
+	/**
+	 * Setup factory
+	 *
+	 * @since 4.4.0
+	 */
+	protected function setup_factory() {
+
+		$this->ep_factory           = new \stdClass();
+		$this->ep_factory->post     = new PostFactory();
+		$this->ep_factory->user     = new UserFactory();
+		$this->ep_factory->term     = new TermFactory();
+		$this->ep_factory->comment  = new CommentFactory();
+		$this->ep_factory->category = new TermFactory( $this, 'category' );
 	}
 }
