@@ -5,20 +5,17 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.updateWeighting();
 
 		cy.publishPost({
-			title: 'Test ElasticPress 1',
+			title: 'supercustomtitle',
 		});
 
-		cy.visit('/?s=Test+ElasticPress+1');
-		cy.get('.hentry').should('contain.text', 'Test ElasticPress 1');
+		cy.visit('/?s=supercustomtitle');
+		cy.get('.hentry').should('contain.text', 'supercustomtitle');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
 		cy.get('#post-post_title-enabled').uncheck();
 		cy.get('#submit').click();
 
-		cy.get('#post-post_title-enabled').should('not.be.checked');
-		cy.screenshot();
-
-		cy.visit('/?s=Test+ElasticPress+1');
+		cy.visit('/?s=supercustomtitle');
 		cy.get('.hentry').should('not.exist');
 
 		// Reset setting.
