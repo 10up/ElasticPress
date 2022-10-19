@@ -10,10 +10,7 @@ module.exports = defineConfig({
 		runMode: 1,
 	},
 	elasticPressIndexTimeout: 100000,
-	pluginName: 'plugins',
 	e2e: {
-		// We've imported your old cypress plugins here.
-		// You may want to clean this up later by importing these.
 		async setupNodeEvents(on, config) {
 			/* eslint-disable global-require */
 			const path = require('path');
@@ -37,6 +34,5 @@ module.exports = defineConfig({
 		},
 		specPattern: 'tests/cypress/integration/**/*.cy.{js,jsx,ts,tsx}',
 		supportFile: 'tests/cypress/support/index.js',
-		baseUrl: 'http://localhost:8889/',
 	},
 });
