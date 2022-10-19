@@ -601,10 +601,9 @@ class SearchOrdering extends Feature {
 	 */
 	public function filter_default_post_type_weights( $post_type_defaults, $post_type ) {
 		$post_type_defaults['terms.ep_custom_result.name'] = [
-			'fuzziness'  => false,
-			'indexable'  => true,
-			'searchable' => true,
-			'weight'     => 9999,
+			'enabled'   => true,
+			'fuzziness' => false,
+			'weight'    => 9999,
 		];
 
 		return $post_type_defaults;

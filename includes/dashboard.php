@@ -510,15 +510,14 @@ function action_admin_enqueue_dashboard_scripts() {
 		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
 
 		$weightable_fields       = $weighting->get_weightable_fields();
-		$weighting_configuration = $weighting->get_weighting_configuration();
-		$weighting_default       = $weighting->get_default_weighting_configuration();
+		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
 
 		wp_localize_script(
 			'ep_weighting_script',
 			'epWeighting',
 			array(
 				'weightableFields'       => $weightable_fields,
-				'weightingConfiguration' => $weighting_configuration ? $weighting_configuration : $weighting_default,
+				'weightingConfiguration' => $weighting_configuration,
 			)
 		);
 	}

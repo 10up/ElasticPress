@@ -1,7 +1,7 @@
 /**
  * Wordpress Dependencies.
  */
-import { CheckboxControl } from '@wordpress/components';
+import { CheckboxControl, RangeControl } from '@wordpress/components';
 import { useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { isEqual } from 'lodash';
@@ -9,9 +9,8 @@ import { isEqual } from 'lodash';
 /**
  * Internal dependencies.
  */
-import DeleteButton from '../common/delete-button';
-import UndoButton from '../common/undo-button';
-import WeightControl from '../common/weight-control';
+import DeleteButton from '../../common/delete-button';
+import UndoButton from '../../common/undo-button';
 
 /**
  * Field settings component.
@@ -25,7 +24,8 @@ import WeightControl from '../common/weight-control';
  * @returns {WPElement} Component element.
  */
 export default ({ label, onChange, onDelete, originalValue, value }) => {
-	const { enabled, indexable, searchable, weight } = value;
+	const { enabled = false, weight = 0 } = value;
+
 	/**
 	 * Is the current value different to the original.
 	 */
@@ -37,21 +37,11 @@ export default ({ label, onChange, onDelete, originalValue, value }) => {
 	/**
 	 * Handle change of indexable.
 	 *
-	 * @param {boolean} indexable New indexable value.
+	 * @param {boolean} enabled New searchable value.
 	 * @returns {void}
 	 */
-	const onChangeIndexable = (indexable) => {
-		onChange({ weight, searchable: false, indexable });
-	};
-
-	/**
-	 * Handle change of indexable.
-	 *
-	 * @param {boolean} searchable New searchable value.
-	 * @returns {void}
-	 */
-	const onChangeSearchable = (searchable) => {
-		onChange({ weight, indexable: true, searchable });
+	const onChangeSearchable = (enabled) => {
+		onChange({ weight, enabled });
 	};
 
 	/**
@@ -61,7 +51,7 @@ export default ({ label, onChange, onDelete, originalValue, value }) => {
 	 * @returns {void}
 	 */
 	const onChangeWeight = (weight) => {
-		onChange({ indexable: true, searchable: true, weight });
+		onChange({ enabled: true, weight });
 	};
 
 	/**
@@ -84,23 +74,19 @@ export default ({ label, onChange, onDelete, originalValue, value }) => {
 		<div className="ep-weighting-field">
 			<fieldset>
 				<legend className="ep-weighting-field__name">{label}</legend>
-				<div className="ep-weighting-field__indexable">
-					<CheckboxControl
-						checked={enabled || indexable}
-						label={__('Index', 'elsaticpress')}
-						onChange={onChangeIndexable}
-					/>
-				</div>
 				<div className="ep-weighting-field__searchable">
 					<CheckboxControl
-						checked={enabled || searchable}
+						checked={enabled}
 						label={__('Searchable', 'elasticpress')}
 						onChange={onChangeSearchable}
 					/>
 				</div>
 				<div className="ep-weighting-field__weighting">
-					<WeightControl
-						disabled={!(enabled || searchable)}
+					<RangeControl
+						disabled={!enabled}
+						label={__('Weight', 'elasticpress')}
+						max={100}
+						min={1}
 						onChange={onChangeWeight}
 						value={weight}
 					/>

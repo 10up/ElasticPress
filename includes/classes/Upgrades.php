@@ -48,6 +48,7 @@ class Upgrades {
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
+			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -183,6 +184,34 @@ class Upgrades {
 		} else {
 			delete_transient( 'ep_es_info' );
 		}
+	}
+
+	/**
+	 * Upgrade routine of v4.4.0.
+	 *
+	 * Migrates weighting settings into a `fields` property of the weighting
+	 * configuration and adds the `manage_meta` setting.
+	 *
+	 * @since 4.4.0
+	 * @return void
+	 */
+	public function upgrade_4_4_0() {
+		$weighting_configuration = get_option( 'elasticpress_weighting', [] );
+
+		if ( empty( $weighting_configuration ) ) {
+			return;
+		}
+
+		foreach ( $weighting_configuration as $post_type => $config ) {
+			if ( ! isset( $config['fields'] ) ) {
+				$weighting_configuration[ $post_type ] = [
+					'fields'      => $config,
+					'manage_meta' => false,
+				];
+			}
+		}
+
+		update_option( 'elasticpress_weighting', $weighting_configuration );
 	}
 
 	/**

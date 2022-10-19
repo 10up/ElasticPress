@@ -100,9 +100,6 @@ class Weighting {
 			}
 		}
 
-		/**
-		 * TODO: Meta keys per post type?
-		 */
 		$fields['meta'] = [
 			'label'    => 'Metadata',
 			'children' => [],
@@ -114,12 +111,22 @@ class Weighting {
 			$meta_keys = [];
 		}
 
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+		$excluded_public_keys   = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
+
 		foreach ( $meta_keys as $meta_key ) {
 			$key = "meta.$meta_key.value";
 
-			$fields['meta']['children'][$key] = [
-				'key'   => $key,
-				'label' => $meta_key,
+			if ( in_array( $key, $excluded_public_keys, true ) ) {
+				continue;
+			}
+
+			$used_by_feature = in_array( $meta_key, $allowed_protected_keys, true );
+
+			$fields['meta']['children'][ $key ] = [
+				'key'             => $key,
+				'label'           => $meta_key,
+				'used_by_feature' => $used_by_feature,
 			];
 		}
 
@@ -169,24 +176,20 @@ class Weighting {
 	public function get_post_type_default_settings( $post_type ) {
 		$post_type_defaults = [
 			'post_title'   => [
-				'indexable'  => true,
-				'searchable' => true,
-				'weight'     => 1,
+				'enabled' => true,
+				'weight'  => 1,
 			],
 			'post_content' => [
-				'indexable'  => true,
-				'searchable' => true,
-				'weight'     => 1,
+				'enabled' => true,
+				'weight'  => 1,
 			],
 			'post_excerpt' => [
-				'indexable'  => true,
-				'searchable' => true,
-				'weight'     => 1,
+				'enabled' => true,
+				'weight'  => 1,
 			],
 			'author_name'  => [
-				'indexable'  => true,
-				'searchable' => true,
-				'weight'     => 1,
+				'enabled' => true,
+				'weight'  => 1,
 			],
 		];
 
@@ -209,9 +212,8 @@ class Weighting {
 		foreach ( $enabled_by_default as $default_tax ) {
 			if ( in_array( $default_tax, $post_type_taxonomies, true ) ) {
 				$post_type_defaults[ 'terms.' . $default_tax . '.name' ] = [
-					'indexable'  => true,
-					'searchable' => true,
-					'weight'     => 1,
+					'enabled' => true,
+					'weight'  => 1,
 				];
 			}
 		}
@@ -244,21 +246,28 @@ class Weighting {
 	}
 
 	/**
-	 * Returns the default weighting configuration.
+	 * Returns the current weighting configuration with defaults for any
+	 * missing fields.
 	 *
-	 * @return array Default weighting configuration.
+	 * @return array Current weighting configuration with defaults.
 	 * @since 4.4.0
 	 */
-	public function get_default_weighting_configuration() {
+	public function get_weighting_configuration_with_defaults() {
 		$search     = Features::factory()->get_registered_feature( 'search' );
 		$post_types = $search->get_searchable_post_types();
-		$weighting  = [];
+		$weighting  = $this->get_weighting_configuration();
 
 		foreach ( $post_types as $post_type ) {
-			$weighting[ $post_type ] = [
-				'indexable' => true,
-				'fields'    => $this->get_post_type_default_settings( $post_type ),
-			];
+			$defaults = $this->get_post_type_default_settings( $post_type );
+
+			if ( isset( $weighting[ $post_type ] ) ) {
+				$weighting[ $post_type ]['fields'] = wp_parse_args( $weighting[ $post_type ]['fields'], $defaults );
+			} else {
+				$weighting[ $post_type ] = [
+					'fields'      => $defaults,
+					'manage_meta' => false,
+				];
+			}
 		}
 
 		return $weighting;
