@@ -105,14 +105,14 @@ class Weighting {
 			'children' => [],
 		];
 
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+		$excluded_public_keys   = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
+
 		try {
 			$meta_keys = Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
 		} catch ( \Throwable $th ) {
 			$meta_keys = [];
 		}
-
-		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
-		$excluded_public_keys   = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
 
 		foreach ( $meta_keys as $meta_key ) {
 			$key = "meta.$meta_key.value";
@@ -340,17 +340,12 @@ class Weighting {
 				$weight         = 0;
 			}
 			?>
-			<fieldset class="field-item">
+			<fieldset>
 				<legend><?php echo esc_html( $field['label'] ); ?></legend>
 
-				<p class="indexable">
-					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-indexable" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}-indexable" ); ?>"><?php esc_html_e( 'Index', 'elasticpress' ); ?></label>
-				</p>
-
 				<p class="searchable">
-					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-searchable" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}-searchable" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
+					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
+					<label for="<?php echo esc_attr( "{$post_type}-{$key}" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
 				</p>
 
 				<p class="weighting">
@@ -362,8 +357,6 @@ class Weighting {
 					</label>
 					<input type="range" min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 				</p>
-
-				<p class="undo-changes"><a href="#"><?php esc_html_e( 'Undo changes', 'elasticpress' ); ?></a></p>
 			</fieldset>
 			<?php
 		endif;
