@@ -11,8 +11,10 @@ describe('Post Search Feature - Weighting Functionality', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
 		cy.get('#post-post_title-enabled').click();
-		cy.screenshot();
 		cy.get('#submit').click();
+
+		cy.get('#post-post_title-enabled').should('be.checked');
+		cy.screenshot();
 
 		cy.visit('/?s=Test+ElasticPress+1');
 		cy.get('.hentry').should('not.exist');
