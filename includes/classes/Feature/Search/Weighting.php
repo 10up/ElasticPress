@@ -37,6 +37,7 @@ class Weighting {
 
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
+		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
 		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
 	}
@@ -299,99 +300,45 @@ class Weighting {
 	}
 
 	/**
-	 * Recursively renders each settings section and its children
+	 * Register REST routes.
 	 *
-	 * @param string $post_type      Current post type we're rendering
-	 * @param array  $field          Current field to render
-	 * @param array  $current_values Current stored weighting values
+	 * @return void
+	 * @since 4.4.0
 	 */
-	public function render_settings_section( $post_type, $field, $current_values ) {
-		if ( isset( $field['children'] ) && ! empty( $field['children'] ) ) :
-			?>
-			<div class="field-group">
-				<h3><?php echo esc_html( $field['label'] ); ?></h3>
-				<div class="fields">
-					<?php
-					foreach ( $field['children'] as $child ) {
-						$this->render_settings_section( $post_type, $child, $current_values );
-					}
-					?>
-				</div>
-			</div>
-			<?php
-		elseif ( isset( $field['key'] ) ) :
-			$key = $field['key'];
-
-			$post_type_settings = isset( $current_values[ $post_type ] ) ? $current_values[ $post_type ] : $this->get_post_type_default_settings( $post_type );
-
-			$weight = isset( $post_type_settings[ $key ] ) && isset( $post_type_settings[ $key ]['weight'] ) ? (int) $post_type_settings[ $key ]['weight'] : 0;
-
-			$range_disabled = '';
-
-			$enabled = (
-				isset( $post_type_settings ) &&
-				isset( $post_type_settings[ $key ] ) &&
-				isset( $post_type_settings[ $key ]['enabled'] )
-			)
-				? boolval( $post_type_settings[ $key ]['enabled'] ) : false;
-
-			if ( ! $enabled ) {
-				$range_disabled = 'disabled="disabled" ';
-				$weight         = 0;
-			}
-			?>
-			<fieldset>
-				<legend><?php echo esc_html( $field['label'] ); ?></legend>
-
-				<p class="searchable">
-					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
-				</p>
-
-				<p class="weighting">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>">
-						<?php esc_html_e( 'Weight: ', 'elasticpress' ); ?>
-						<span class="weighting-value">
-							<?php echo esc_html( $weight ); ?>
-						</span>
-					</label>
-					<input type="range" min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-				</p>
-			</fieldset>
-			<?php
-		endif;
+	public function register_rest_routes() {
+		register_rest_route(
+			'elasticpress/v1',
+			'weighting',
+			[
+				'callback'            => [ $this, 'handle_save' ],
+				'methods'             => 'POST',
+				'permission_callback' => function() {
+					return current_user_can( 'manage_options' );
+				},
+			]
+		);
 	}
 
 	/**
-	 * Handles processing the new weighting values and saving them to the elasticpress.io service
-	 */
-	public function handle_save() {
-		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-weighting-nonce'], 'save-weighting' ) ) {
-			return;
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		$this->save_weighting_configuration( $_POST );
-
-		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
-		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
-
-		$this->redirect( $redirect_url );
-	}
-
-	/**
-	 * We need this method to test handle_save properly.
+	 * Handles processing the new weighting values and saving them to the
+	 * elasticpress.io service.
 	 *
-	 * @param string $redirect_url Redirect URL.
+	 * @param \WP_Rest_Request $request REST API request.
+	 * @return void
 	 */
-	protected function redirect( $redirect_url ) {
-		// @codeCoverageIgnoreStart
-		wp_safe_redirect( $redirect_url );
-		exit();
-		// @codeCoverageIgnoreEnd
+	public function handle_save( $request ) {
+		$json = $request->get_body();
+
+		try {
+			$settings = json_decode( $json, true );
+			$settings = $this->save_weighting_configuration( $settings );
+
+			wp_send_json_success( $settings );
+			exit;
+		} catch ( \Exception $e ) {
+			wp_send_json_error( $e->getMessage() );
+			exit;
+		}
 	}
 
 	/**
@@ -403,50 +350,7 @@ class Weighting {
 	 * @since 3.4.1
 	 */
 	public function save_weighting_configuration( $settings ) {
-		$new_config                = array();
-		$previous_config_formatted = array();
-		$current_config            = $this->get_weighting_configuration();
-
-		foreach ( $current_config as $post_type => $post_type_weighting ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
-			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
-					'enabled' => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
-				];
-			}
-		}
-
-		$search     = Features::factory()->get_registered_feature( 'search' );
-		$post_types = $search->get_searchable_post_types();
-
-		foreach ( $post_types as $post_type ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			/** override default post_type settings while saving */
-			$new_config[ $post_type ] = array();
-
-			if ( isset( $settings['weighting'][ $post_type ] ) ) {
-				foreach ( $settings['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
-					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
-						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
-					];
-				}
-			}
-		}
-
-		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
-
-		update_option( 'elasticpress_weighting', $final_config );
+		update_option( 'elasticpress_weighting', $settings );
 
 		/**
 		 * Fires right after the weighting configuration is saved.
@@ -456,7 +360,7 @@ class Weighting {
 		 */
 		do_action( 'ep_saved_weighting_configuration' );
 
-		return $final_config;
+		return $settings;
 	}
 
 	/**

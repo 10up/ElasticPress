@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies.
  */
+import apiFetch from '@wordpress/api-fetch';
 import { WPElement, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { cloneDeep, isEqual } from 'lodash';
@@ -15,11 +16,12 @@ import PostType from './weighting/post-type';
  * Weighting settings app.
  *
  * @param {object} props Component props.
+ * @param {string} props.apiUrl API URL.
  * @param {object} props.weightableFields Weightable fields, indexed by post type.
  * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
  */
-export default ({ weightableFields, weightingConfiguration }) => {
+export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
 	const [currentData, setCurrentData] = useState({ ...weightingConfiguration });
 	const [savedData, setSavedData] = useState({ ...weightingConfiguration });
 	const [isBusy, setIsBusy] = useState(false);
@@ -55,17 +57,27 @@ export default ({ weightableFields, weightingConfiguration }) => {
 	 * @param {Event} event Submit event.
 	 * @returns {void}
 	 */
-	const onSubmit = (event) => {
+	const onSubmit = async (event) => {
 		event.preventDefault();
 
-		const savedData = cloneDeep(currentData);
+		try {
+			setIsBusy(true);
 
-		setIsBusy(true);
+			const response = await apiFetch({
+				body: JSON.stringify(currentData),
+				method: 'POST',
+				url: apiUrl,
+			});
 
-		setTimeout(() => {
-			setSavedData(savedData);
+			const newCurrentdData = cloneDeep(response.data);
+			const newSavedData = cloneDeep(response.data);
+
+			setCurrentData(newCurrentdData);
+			setSavedData(newSavedData);
 			setIsBusy(false);
-		}, 1000);
+		} catch {
+			setIsBusy(false);
+		}
 	};
 
 	/**

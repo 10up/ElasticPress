@@ -14,10 +14,11 @@ import Weighting from './components/weighting';
  * @returns {void}
  */
 const init = () => {
-	const { weightableFields, weightingConfiguration } = window.epWeighting;
+	const { apiUrl, weightableFields, weightingConfiguration } = window.epWeighting;
 
 	render(
 		<Weighting
+			apiUrl={apiUrl}
 			weightingConfiguration={weightingConfiguration}
 			weightableFields={weightableFields}
 		/>,
