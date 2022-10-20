@@ -19,9 +19,9 @@ class TestAutosuggest extends BaseTestCase {
 	 *
 	 * @since 2.3
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -45,8 +45,8 @@ class TestAutosuggest extends BaseTestCase {
 	 *
 	 * @since 2.3
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
@@ -74,7 +74,7 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
         $output = ob_get_clean();
 
-		$this->assertContains( 'Suggest relevant content as text is entered into the search field', $output );
+		$this->assertStringContainsString( 'Suggest relevant content as text is entered into the search field', $output );
     }
 
     public function testBoxLong() {
@@ -82,7 +82,7 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->output_feature_box_long();
         $output = ob_get_clean();
 
-		$this->assertContains( 'Input fields of type &quot;search&quot;', $output );
+		$this->assertStringContainsString( 'Input fields of type &quot;search&quot;', $output );
     }
 
     public function testOutputFeatureBoxSettings() {
@@ -90,8 +90,8 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->output_feature_box_settings();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Autosuggest Selector', $output );
-		$this->assertContains( 'Google Analytics Events', $output );
+		$this->assertStringContainsString( 'Autosuggest Selector', $output );
+		$this->assertStringContainsString( 'Google Analytics Events', $output );
 	}
 
     public function testMappingES5() {
@@ -206,7 +206,7 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'ep_autosuggest_query_placeholder', $test_placeholder_filter );
 
 		$query = $this->get_feature()->generate_search_query();
-		$this->assertContains( 'lorem-ipsum', $query['body'] );
+		$this->assertStringContainsString( 'lorem-ipsum', $query['body'] );
 
 		remove_filter( 'ep_autosuggest_query_placeholder', $test_placeholder_filter );
 
@@ -220,7 +220,7 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'ep_term_suggest_post_type', $test_post_type_filter );
 
 		$query = $this->get_feature()->generate_search_query();
-		$this->assertContains( 'my-custom-post-type', $query['body'] );
+		$this->assertStringContainsString( 'my-custom-post-type', $query['body'] );
 
 		remove_filter( 'ep_term_suggest_post_type', $test_post_type_filter );
 
@@ -234,7 +234,7 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'ep_term_suggest_post_status', $test_post_status_filter );
 
 		$query = $this->get_feature()->generate_search_query();
-		$this->assertContains( 'trash', $query['body'] );
+		$this->assertStringContainsString( 'trash', $query['body'] );
 
 		remove_filter( 'ep_term_suggest_post_status', $test_post_status_filter );
 
@@ -249,7 +249,7 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'ep_autosuggest_query_args', $test_args_filter );
 
 		$query = $this->get_feature()->generate_search_query();
-		$this->assertContains( '1234', $query['body'] );
+		$this->assertStringContainsString( '1234', $query['body'] );
 
 		remove_filter( 'ep_autosuggest_query_args', $test_args_filter );
     }
@@ -276,7 +276,7 @@ class TestAutosuggest extends BaseTestCase {
     public function testRequirementsStatus() {
         $status = $this->get_feature()->requirements_status();
 
-        $this->assertAttributeEquals( 1, 'code', $status );
+        $this->assertEquals( 1, $status->code );
         $this->assertEquals( 2, count( $status->message ) );
     }
 

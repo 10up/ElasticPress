@@ -26,7 +26,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Prepare npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -54,7 +54,7 @@ jobs:
       run: npm run cypress:run
 
     - name: Make artifacts available
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: cypress-artifact
@@ -77,7 +77,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Prepare npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -107,7 +107,7 @@ jobs:
       run: npm run cypress:run
 
     - name: Make artifacts available
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: cypress-artifact-epio

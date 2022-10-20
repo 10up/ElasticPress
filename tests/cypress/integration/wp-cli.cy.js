@@ -240,6 +240,7 @@ describe('WP-CLI Commands', () => {
 
 		after(() => {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
+			cy.activatePlugin('elasticpress', 'wpCli');
 		});
 
 		it('Can index all blogs in network if user specifies --network-wide argument', () => {
