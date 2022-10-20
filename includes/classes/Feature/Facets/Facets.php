@@ -107,6 +107,7 @@ class Facets extends Feature {
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
 	}
 
 	/**
@@ -161,6 +162,10 @@ class Facets extends Feature {
 			return $args;
 		}
 
+		if ( 'any' === $this->get_match_type() ) {
+			add_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
+		}
+
 		/**
 		 * Filter WP query arguments that will be used to build the aggregations filter.
 		 *
@@ -179,6 +184,8 @@ class Facets extends Feature {
 		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_args, $query );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+
+		remove_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
 
 		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
@@ -287,10 +294,14 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function facet_query( $query ) {
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
-		if ( ! $feature->is_facetable( $query ) ) {
+		if ( ! $this->is_facetable( $query ) ) {
 			return;
+		}
+
+		// If any filter was selected, there is no reason to prepend the list with sticky posts.
+		$selected_filters = $this->get_selected();
+		if ( ! empty( array_filter( $selected_filters ) ) ) {
+			$query->set( 'ignore_sticky_posts', true );
 		}
 
 		/**
@@ -434,7 +445,7 @@ class Facets extends Feature {
 
 		if ( ! empty( $filters ) ) {
 			foreach ( $filters as $filter => $value ) {
-				if ( ! empty( $value ) && in_array( $filter, $allowed_args, true ) ) {
+				if ( in_array( $filter, $allowed_args, true ) ) {
 					$query_param[ $filter ] = $value;
 				}
 			}
@@ -544,6 +555,86 @@ class Facets extends Feature {
 
 		return $this->types['taxonomy']->get_filter_name();
 
+	}
+
+	/**
+	 * Add a new filter to the ES query with selected facets
+	 *
+	 * @since 4.4.0
+	 * @param array    $filters  Current filters
+	 * @param array    $args     WP Query args
+	 * @param WP_Query $query    WP Query object
+	 * @return array
+	 */
+	public function apply_facets_filters( $filters, $args, $query ) {
+		if ( ! $this->is_facetable( $query ) ) {
+			return $filters;
+		}
+
+		/**
+		 * Filter facet selection filters to be applied to the ES query
+		 *
+		 * @hook  ep_facet_query_filters
+		 * @since 4.4.0
+		 * @param  {array}    $filters Current filters
+		 * @param  {array}    $args    WP Query args
+		 * @param  {WP_Query} $query   WP Query object
+		 * @return {array} New filters
+		 */
+		$facets_filters = apply_filters( 'ep_facet_query_filters', [], $args, $query );
+
+		if ( empty( $facets_filters ) ) {
+			return $filters;
+		}
+
+		$es_operator = ( 'any' === $this->get_match_type() ) ? 'should' : 'must';
+
+		$filters['facets'] = [
+			'bool' => [
+				$es_operator => $facets_filters,
+			],
+		];
+
+		return $filters;
+	}
+
+	/**
+	 * Utilitary function to retrieve the match type selected by the user.
+	 *
+	 * @since 4.4.0
+	 * @return string
+	 */
+	public function get_match_type() {
+		$settings = wp_parse_args(
+			$this->get_settings(),
+			array(
+				'match_type' => 'all',
+			)
+		);
+
+		/**
+		 * Filter the match type of all facets. Can be 'all' or 'any'.
+		 *
+		 * @hook  ep_facet_match_type
+		 * @since 4.4.0
+		 * @param  {string} $match_type Current selection
+		 * @return {string} New selection
+		 */
+		return apply_filters( 'ep_facet_match_type', $settings['match_type'] );
+	}
+
+	/**
+	 * Given an array of filters, remove the facets filter.
+	 *
+	 * This is used when the user wants posts matching ANY criteria, so aggregations should not restrict their results.
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Filters to be applied to the ES query
+	 * @return array
+	 */
+	public function remove_facets_filter( $filters ) {
+		unset( $filters['facets'] );
+		return $filters;
 	}
 
 	/**
