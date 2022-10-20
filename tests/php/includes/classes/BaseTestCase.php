@@ -44,10 +44,10 @@ class BaseTestCase extends WP_UnitTestCase {
 	 * @var obj
 	 * @since 4.4.0
 	 */
-	public function setup() {
+	public function set_up() {
 
 		$this->setup_factory();
-		parent::setup();
+		parent::set_up();
 	}
 
 	/**

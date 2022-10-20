@@ -15,6 +15,7 @@ use \ElasticPress\SearchAlgorithm;
  * SearchAlgorithms test class
  */
 class TestSearchAlgorithms extends BaseTestCase {
+
 	/**
 	 * Test registering and getting search algorithms
 	 *
