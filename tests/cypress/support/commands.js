@@ -216,19 +216,11 @@ Cypress.Commands.add('updateWeighting', (newWeightingValues = null) => {
 });
 
 Cypress.Commands.add('maybeEnableFeature', (featureName) => {
-	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-		if (!wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
-			cy.wpCli(`elasticpress activate-feature ${featureName}`);
-		}
-	});
+	cy.wpCli(`elasticpress activate-feature ${featureName}`, true);
 });
 
 Cypress.Commands.add('maybeDisableFeature', (featureName) => {
-	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-		if (wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
-			cy.wpCli(`elasticpress deactivate-feature ${featureName}`);
-		}
-	});
+	cy.wpCli(`elasticpress deactivate-feature ${featureName}`, true);
 });
 
 Cypress.Commands.add('getTotal', (totalNumber) => {
