@@ -247,16 +247,6 @@ class Weighting {
 	}
 
 	/**
-	 * Returns the current meta mode.
-	 *
-	 * @return array
-	 * @since 4.4.0
-	 */
-	public function get_meta_mode() {
-		return get_option( 'ep_meta_mode', 'auto' );
-	}
-
-	/**
 	 * Returns the current weighting configuration with defaults for any
 	 * missing fields.
 	 *
@@ -277,6 +267,16 @@ class Weighting {
 		}
 
 		return $weighting;
+	}
+
+	/**
+	 * Returns the current meta mode.
+	 *
+	 * @return array
+	 * @since 4.4.0
+	 */
+	public function get_meta_mode() {
+		return get_option( 'ep_meta_mode', 'auto' );
 	}
 
 	/**
