@@ -82,7 +82,7 @@ describe('Custom Results', () => {
 
 		// save the posts positions in a list
 		// eslint-disable-next-line jest/valid-expect-in-promise
-		cy.get('.pointers .pointer .title')
+		cy.get('.pointers .pointer:nth-child(-n+5) .title') // 5 being the number of posts per page, as we will check only the first page.
 			.each((post) => {
 				searchResult.push(post[0].innerText);
 			})
