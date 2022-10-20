@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { Panel, PanelHeader } from '@wordpress/components';
+import { Panel, PanelBody, PanelHeader } from '@wordpress/components';
 import { useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { isEqual } from 'lodash';
@@ -9,8 +9,8 @@ import { isEqual } from 'lodash';
 /**
  * Internal dependencies.
  */
+import Fields from './post-type/fields';
 import UndoButton from '../common/undo-button';
-import Group from './post-type/group';
 
 /**
  * Post type weighting settings component.
@@ -20,10 +20,11 @@ import Group from './post-type/group';
  * @param {string} props.label Post type label.
  * @param {Function} props.onChange Data change handler.
  * @param {object} props.originalValues Saved post type settings.
+ * @param {boolean} props.showMeta Whether to show the meta group.
  * @param {object} props.values Current post type settings.
  * @returns {WPElement} Component element.
  */
-export default ({ groups, label, onChange, originalValues, values }) => {
+export default ({ groups, label, onChange, originalValues, showMeta, values }) => {
 	/**
 	 * Have any values changed?
 	 */
@@ -49,37 +50,6 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 	);
 
 	/**
-	 * Handle a change to the post type's fields.
-	 *
-	 * @param {Array} fields New field values.
-	 * @returns {void}
-	 */
-	const onChangeFields = (fields) => {
-		onChange({ ...values, fields });
-	};
-
-	/**
-	 * Handle change in meta management.
-	 *
-	 * When disabling manual meta management remove weighting settings for
-	 * metadata.
-	 *
-	 * @param {Array} managingMeta New manage meta value.
-	 * @returns {void}}
-	 */
-	const onChangeManageMeta = (managingMeta) => {
-		if (managingMeta === false) {
-			const keys = Object.keys(groups.meta?.children || {});
-
-			for (const k of keys) {
-				delete values.fields[k];
-			}
-		}
-
-		onChange({ ...values, managing_meta: managingMeta });
-	};
-
-	/**
 	 * Handle resetting all data for the post type.
 	 *
 	 * @returns {void}
@@ -92,7 +62,7 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 	 * Render.
 	 */
 	return (
-		<Panel>
+		<Panel className="ep-weighting-post-type">
 			<PanelHeader>
 				<div className="ep-weighting-field ep-weighting-field--header">
 					<div className="ep-weighting-field__name">
@@ -110,18 +80,21 @@ export default ({ groups, label, onChange, originalValues, values }) => {
 				</div>
 			</PanelHeader>
 			{fieldGroups.map(({ children, key, label }) => {
-				return (
-					<Group
-						fields={Object.values(children)}
-						key={key}
-						label={label}
-						manual={key === 'meta' ? values.managing_meta : null}
-						onChange={onChangeFields}
-						onChangeManual={key === 'meta' ? onChangeManageMeta : null}
-						originalValues={originalValues.fields}
-						values={values.fields}
-					/>
-				);
+				const isMeta = key === 'meta';
+				const fields = Object.values(children);
+
+				return !isMeta || showMeta ? (
+					<PanelBody key={key} title={label}>
+						<Fields
+							isEditable={isMeta}
+							label={label}
+							onChange={onChange}
+							originalValues={originalValues}
+							fields={fields}
+							values={values}
+						/>
+					</PanelBody>
+				) : null;
 			})}
 		</Panel>
 	);

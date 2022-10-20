@@ -1,0 +1,15 @@
+.ep-weighting-screen {
+	max-width: 800px;
+
+	& .components-panel {
+		margin-bottom: 1rem;
+	}
+
+	& .components-toggle-control__label {
+		max-width: none;
+	}
+
+	& .components-base-control__help {
+		margin-bottom: 0;
+	}
+}

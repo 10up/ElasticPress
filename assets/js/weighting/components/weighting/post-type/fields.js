@@ -174,9 +174,8 @@ export default ({ fields, isEditable, onChange, originalValues, values }) => {
 				</PanelRow>
 			))}
 			{isEditable && availableFields ? (
-				<PanelRow className="ep-weighting-add-meta">
+				<PanelRow className="ep-weighting-add-new">
 					<SelectControl
-						className="ep-weighting-add-meta__select"
 						isSmall
 						labelPosition="side"
 						onChange={onChangeToAdd}

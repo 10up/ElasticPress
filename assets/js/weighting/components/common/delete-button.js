@@ -15,5 +15,11 @@ export default (props) => {
 	/**
 	 * Render.
 	 */
-	return <Button className="ep-weighting-delete" icon={close} {...props} />;
+	return (
+		<Button
+			className="ep-weighting-action ep-weighting-action--delete"
+			icon={close}
+			{...props}
+		/>
+	);
 };

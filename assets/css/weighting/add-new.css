@@ -1,0 +1,7 @@
+.ep-weighting-add-new {
+	justify-content: start;
+
+	& .components-base-control .components-select-control .components-select-control__input {
+		min-height: 36px;
+	}
+}

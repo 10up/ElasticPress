@@ -1,0 +1,50 @@
+.ep-weighting-field {
+	align-items: center;
+	display: grid;
+	grid-gap: 0.5em;
+	grid-template-columns: min(20%, 30ch) max-content auto max-content;
+	width: 100%;
+
+	& .components-base-control__field {
+		margin-bottom: 0;
+	}
+
+	& .components-range-control {
+
+		& .components-base-control__field {
+			align-items: center;
+			display: flex;
+		}
+
+		& .components-base-control__label {
+			margin-bottom: 0;
+		}
+	}
+
+	@media ( max-width: 600px ) {
+		grid-gap: 1em;
+
+		& .components-range-control__wrapper {
+			display: none;
+		}
+	}
+}
+
+.ep-weighting-field fieldset {
+	display: contents;
+}
+
+.ep-weighting-field__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	& h2 {
+		margin: 0;
+	}
+}
+
+.ep-weighting-field__undo {
+	grid-column-start: 4;
+	justify-self: end;
+}

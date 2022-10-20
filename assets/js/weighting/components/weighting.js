@@ -4,12 +4,13 @@
 import apiFetch from '@wordpress/api-fetch';
 import { WPElement, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { cloneDeep, isEqual } from 'lodash';
+import { isEqual } from 'lodash';
 
 /**
  * Internal Dependencies.
  */
 import Actions from './weighting/actions';
+import MetaMode from './weighting/meta-mode';
 import PostType from './weighting/post-type';
 
 /**
@@ -17,19 +18,56 @@ import PostType from './weighting/post-type';
  *
  * @param {object} props Component props.
  * @param {string} props.apiUrl API URL.
+ * @param {'auto'|'manual'} props.metaMode Metadata management mode.
  * @param {object} props.weightableFields Weightable fields, indexed by post type.
  * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
  */
-export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
-	const [currentData, setCurrentData] = useState({ ...weightingConfiguration });
-	const [savedData, setSavedData] = useState({ ...weightingConfiguration });
+export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) => {
+	const [currentMetaMode, setCurrentMetaMode] = useState(metaMode);
+	const [currentWeightingConfiguration, setCurrentWeightingConfiguration] = useState({
+		...weightingConfiguration,
+	});
+
+	const [savedMetaMode, setSavedMetaMode] = useState(metaMode);
+	const [savedWeightingConfiguration, setSavedWeightingConfiguration] = useState({
+		...weightingConfiguration,
+	});
+
 	const [isBusy, setIsBusy] = useState(false);
 
 	/**
 	 * Is the current data different to the saved data.
 	 */
-	const isChanged = useMemo(() => !isEqual(currentData, savedData), [currentData, savedData]);
+	const isChanged = useMemo(
+		() =>
+			!(
+				currentMetaMode === savedMetaMode &&
+				isEqual(currentWeightingConfiguration, savedWeightingConfiguration)
+			),
+		[
+			currentWeightingConfiguration,
+			currentMetaMode,
+			savedWeightingConfiguration,
+			savedMetaMode,
+		],
+	);
+
+	/**
+	 * Whether to show weighting for metadata.
+	 */
+	const showMeta = useMemo(() => currentMetaMode === 'manual', [currentMetaMode]);
+
+	/**
+	 * Handle meta mode change.
+	 *
+	 * @param {boolean} checked Is manual checked?
+	 */
+	const onChangeMetaMode = (checked) => {
+		const metaMode = checked ? 'manual' : 'auto';
+
+		setCurrentMetaMode(metaMode);
+	};
 
 	/**
 	 * Handle data change.
@@ -39,7 +77,7 @@ export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
 	 * @returns {void}
 	 */
 	const onChangePostType = (postType, values) => {
-		setCurrentData({ ...currentData, [postType]: values });
+		setCurrentWeightingConfiguration({ ...currentWeightingConfiguration, [postType]: values });
 	};
 
 	/**
@@ -48,7 +86,8 @@ export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
 	 * @returns {void}
 	 */
 	const onReset = () => {
-		setCurrentData({ ...savedData });
+		setCurrentMetaMode(savedMetaMode);
+		setCurrentWeightingConfiguration({ ...savedWeightingConfiguration });
 	};
 
 	/**
@@ -64,16 +103,21 @@ export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
 			setIsBusy(true);
 
 			const response = await apiFetch({
-				body: JSON.stringify(currentData),
+				body: JSON.stringify({
+					meta_mode: currentMetaMode,
+					weighting_configuration: currentWeightingConfiguration,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
 				method: 'POST',
 				url: apiUrl,
 			});
 
-			const newCurrentdData = cloneDeep(response.data);
-			const newSavedData = cloneDeep(response.data);
+			const { meta_mode, weighting_configuration } = response.data;
 
-			setCurrentData(newCurrentdData);
-			setSavedData(newSavedData);
+			setSavedWeightingConfiguration(weighting_configuration);
+			setSavedMetaMode(meta_mode);
 			setIsBusy(false);
 		} catch {
 			setIsBusy(false);
@@ -84,25 +128,26 @@ export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
 	 * Render.
 	 */
 	return (
-		<form className="weighting-settings" onSubmit={onSubmit}>
+		<form className="ep-weighting-screen" onSubmit={onSubmit}>
 			<h1 className="page-title">{__('Manage Search Fields & Weighting', 'elasticpress')}</h1>
 			<div className="page-description">
 				<p>
 					{__(
-						'Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches. For example, adding more weight to the title attribute will cause search matches on the post title to apear mor prominently.',
+						'Adding more weight to an item will mean it will have more presence during searches.Add more weight to the items that are more important and need more prominence during searches.',
 						'elasticpress',
 					)}
 				</p>
 				<p>
 					{__(
-						'Important: If you enable or disable indexing for a field, you will need to refresh your index after saving your settings',
+						'For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently.',
 						'elasticpress',
 					)}
 				</p>
 			</div>
+			<MetaMode checked={showMeta} onChange={onChangeMetaMode} />
 			{Object.entries(weightableFields).map(([postType, { groups, label }]) => {
-				const originalValues = savedData[postType] || {};
-				const values = currentData[postType] || {};
+				const originalValues = savedWeightingConfiguration[postType] || {};
+				const values = currentWeightingConfiguration[postType] || {};
 
 				return (
 					<PostType
@@ -113,6 +158,7 @@ export default ({ apiUrl, weightableFields, weightingConfiguration }) => {
 							onChangePostType(postType, values);
 						}}
 						originalValues={originalValues}
+						showMeta={showMeta}
 						values={values}
 					/>
 				);

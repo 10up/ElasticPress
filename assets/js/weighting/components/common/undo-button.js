@@ -15,5 +15,7 @@ export default (props) => {
 	/**
 	 * Render.
 	 */
-	return <Button className="ep-weighting-undo" icon={undo} {...props} />;
+	return (
+		<Button className="ep-weighting-action ep-weighting-action--undo" icon={undo} {...props} />
+	);
 };

@@ -247,6 +247,16 @@ class Weighting {
 	}
 
 	/**
+	 * Returns the current meta mode.
+	 *
+	 * @return array
+	 * @since 4.4.0
+	 */
+	public function get_meta_mode() {
+		return get_option( 'ep_meta_mode', 'auto' );
+	}
+
+	/**
 	 * Returns the current weighting configuration with defaults for any
 	 * missing fields.
 	 *
@@ -254,21 +264,16 @@ class Weighting {
 	 * @since 4.4.0
 	 */
 	public function get_weighting_configuration_with_defaults() {
-		$search     = Features::factory()->get_registered_feature( 'search' );
+		$search = Features::factory()->get_registered_feature( 'search' );
+
 		$post_types = $search->get_searchable_post_types();
 		$weighting  = $this->get_weighting_configuration();
 
 		foreach ( $post_types as $post_type ) {
+			$current  = isset( $weighting[ $post_type ] ) ? $weighting[ $post_type ] : [];
 			$defaults = $this->get_post_type_default_settings( $post_type );
 
-			if ( isset( $weighting[ $post_type ] ) ) {
-				$weighting[ $post_type ]['fields'] = wp_parse_args( $weighting[ $post_type ]['fields'], $defaults );
-			} else {
-				$weighting[ $post_type ] = [
-					'fields'        => $defaults,
-					'managing_meta' => false,
-				];
-			}
+			$weighting[ $post_type ] = wp_parse_args( $current, $defaults );
 		}
 
 		return $weighting;
@@ -327,30 +332,11 @@ class Weighting {
 	 * @return void
 	 */
 	public function handle_save( $request ) {
-		$json = $request->get_body();
+		$meta_mode = $request->get_param( 'meta_mode' );
+		$weighting = $request->get_param( 'weighting_configuration' );
 
-		try {
-			$settings = json_decode( $json, true );
-			$settings = $this->save_weighting_configuration( $settings );
-
-			wp_send_json_success( $settings );
-			exit;
-		} catch ( \Exception $e ) {
-			wp_send_json_error( $e->getMessage() );
-			exit;
-		}
-	}
-
-	/**
-	 * Save weighting configuration for each searchable post_type
-	 *
-	 * @param array $settings weighting settings
-	 *
-	 * @return array final settings
-	 * @since 3.4.1
-	 */
-	public function save_weighting_configuration( $settings ) {
-		update_option( 'elasticpress_weighting', $settings );
+		update_option( 'ep_meta_mode', $meta_mode );
+		update_option( 'elasticpress_weighting', $weighting );
 
 		/**
 		 * Fires right after the weighting configuration is saved.
@@ -360,7 +346,14 @@ class Weighting {
 		 */
 		do_action( 'ep_saved_weighting_configuration' );
 
-		return $settings;
+		wp_send_json_success(
+			[
+				'meta_mode'               => $meta_mode,
+				'weighting_configuration' => $weighting,
+			]
+		);
+
+		exit;
 	}
 
 	/**
