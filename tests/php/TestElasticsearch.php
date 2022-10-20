@@ -29,7 +29,7 @@ class TestElasticsearch extends BaseTestCase {
 
 		$status_unindexed = ElasticPress\Elasticsearch::factory()->get_cluster_status();
 
-		$this->setUp();
+		$this->set_up();
 
 		if ( is_array( $status_indexed ) ) {
 

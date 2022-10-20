@@ -55,7 +55,7 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.4'
+        php-version: '8.0'
         coverage: none
 
     - name: Install dependencies
@@ -108,7 +108,7 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.4'
+        php-version: '8.0'
         coverage: none
 
     - name: Install dependencies

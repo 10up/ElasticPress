@@ -17,7 +17,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 */
-	public function setUp() {
+	public function set_up() {
 		/**
 		 * It is too late to use the `ep_facet_types` filter.
 		 *
@@ -29,7 +29,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 			$facet_feature->types['meta']->setup();
 		}
 
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**

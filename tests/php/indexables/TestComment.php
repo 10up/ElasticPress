@@ -25,9 +25,9 @@ class TestComment extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -51,8 +51,8 @@ class TestComment extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		$this->deleteAllComments();
 
@@ -344,7 +344,7 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( 'Test comment 4', 'comment_content', $comments[3] );
+		$this->assertEquals( 'Test comment 4', $comments[3]->comment_content );
 
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
@@ -356,7 +356,7 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( 'Test comment 1', 'comment_content', $comments[3] );
+		$this->assertEquals( 'Test comment 1', $comments[3]->comment_content );
 	}
 
 	/**
@@ -486,7 +486,7 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertContains( $comment, $created_comments['comment_ids'] );
+			$this->assertContains( (int) $comment, $created_comments['comment_ids'] );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -666,7 +666,7 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertAttributeEquals( 'joe@example.com', 'comment_author_email', $comment );
+			$this->assertEquals( 'joe@example.com', $comment->comment_author_email );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -680,7 +680,7 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
-		$this->assertAttributeEquals( 'doe@example.com', 'comment_author_email', $comments[0] );
+		$this->assertEquals( 'doe@example.com', $comments[0]->comment_author_email );
 	}
 
 	/**
@@ -724,7 +724,7 @@ class TestComment extends BaseTestCase {
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		foreach ( $comments as $comment ) {
-			$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comment );
+			$this->assertEquals( 'http://example.com', $comment->comment_author_url );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -737,7 +737,7 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
-		$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comments[0] );
+		$this->assertEquals( 'http://example.com', $comments[0]->comment_author_url );
 	}
 
 	/**
@@ -786,7 +786,7 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertAttributeEquals( $current_user_id, 'user_id', $comment );
+			$this->assertEquals( $current_user_id, $comment->user_id );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -887,7 +887,7 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertAttributeEquals( $current_user_id, 'user_id', $comment );
+			$this->assertEquals( $current_user_id, $comment->user_id );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -1032,9 +1032,9 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[0] );
-		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[1] );
-		$this->assertAttributeEquals( '2020-06-15 00:00:00', 'comment_date', $comments[4] );
+		$this->assertEquals( '2020-05-19 00:00:00', $comments[0]->comment_date );
+		$this->assertEquals( '2020-05-21 00:00:00', $comments[1]->comment_date );
+		$this->assertEquals( '2020-06-15 00:00:00', $comments[4]->comment_date );
 
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
@@ -1046,9 +1046,9 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[4] );
-		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[3] );
-		$this->assertAttributeEquals( '2020-06-15 00:00:00', 'comment_date', $comments[0] );
+		$this->assertEquals( '2020-05-19 00:00:00', $comments[4]->comment_date );
+		$this->assertEquals( '2020-05-21 00:00:00', $comments[3]->comment_date );
+		$this->assertEquals( '2020-06-15 00:00:00', $comments[0]->comment_date );
 	}
 
 	/**
@@ -1729,7 +1729,7 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( '1', 'comment_approved', $comments[0] );
+		$this->assertEquals( '1', $comments[0]->comment_approved );
 
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
@@ -1742,7 +1742,7 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( '1', 'comment_approved', $comments[2] );
+		$this->assertEquals( '1', $comments[2]->comment_approved );
 	}
 
 	/**
@@ -2041,7 +2041,7 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, $results['total_objects'] );
 
 		foreach ( $results['objects'] as $comment ) {
-			$this->assertContains( $comment->comment_ID, [ $post_comment_id, $product_comment_id ] );
+			$this->assertContains( (int) $comment->comment_ID, [ $post_comment_id, $product_comment_id ] );
 		}
 	}
 
