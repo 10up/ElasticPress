@@ -689,6 +689,25 @@ h2.ep-list-features {
 	color: #d84440;
 }
 
+.ep-feature-search .wp-color-result.button {
+	margin-bottom: 10px;
+}
+
+
+.ep-feature.ep-feature-search .settings .wp-picker-input-wrap > label {
+	margin-right: 10px;
+	margin-top: 0;
+}
+
+.ep-feature.ep-feature-search .settings.wp-picker-input-wrap  label {
+	align-items: center;
+	display: flex;
+}
+
+.ep-feature.ep-feature-search .settings .wp-picker-open + .wp-picker-input-wrap {
+	display: flex;
+}
+
 /**
  * Animations
  */
