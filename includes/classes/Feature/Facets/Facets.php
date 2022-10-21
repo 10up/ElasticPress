@@ -51,6 +51,7 @@ class Facets extends Feature {
 
 		$types = [
 			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
+			'meta'     => __NAMESPACE__ . '\Types\Meta\FacetType',
 		];
 
 		/**

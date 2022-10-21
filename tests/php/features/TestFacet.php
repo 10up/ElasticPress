@@ -12,7 +12,7 @@ use ElasticPress\Features as Features;
 /**
  * Facet test class
  */
-class TestFacets extends BaseTestCase {
+class TestFacet extends BaseTestCase {
 	/**
 	 * Test facet type registration
 	 *

@@ -281,7 +281,6 @@ describe('Facets Feature', () => {
 
 	describe('Facet by Meta Block', () => {
 		before(() => {
-			cy.wpCli('plugin activate elasticpress-facet-by-meta');
 			cy.wpCli('post list --meta_key=facet_by_meta_tests --meta_value=1 --format=ids').then(
 				(wpCliResponse) => {
 					if (wpCliResponse.stdout) {
