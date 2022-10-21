@@ -214,12 +214,24 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		}
 
 		$meta_fields = $selected_filters[ $this->get_filter_type() ];
+		$match_type  = $feature->get_match_type();
+
 		foreach ( $meta_fields as $meta_field => $values ) {
-			$filters[] = [
-				'terms' => [
-					'meta.' . $meta_field . '.raw' => array_keys( $values['terms'] ),
-				],
-			];
+			if ( 'any' === $match_type ) {
+				$filters[] = [
+					'terms' => [
+						'meta.' . $meta_field . '.raw' => array_keys( $values['terms'] ),
+					],
+				];
+			} else {
+				foreach ( $values['terms'] as $meta_key => $bool ) {
+					$filters[] = [
+						'term' => [
+							'meta.' . $meta_field . '.raw' => $meta_key,
+						],
+					];
+				}
+			}
 		}
 
 		return $filters;

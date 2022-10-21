@@ -228,14 +228,26 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			}
 		}
 
+		$match_type = $feature->get_match_type();
+
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$taxonomy_slug = $attribute_taxonomies[ $taxonomy ] ?? $taxonomy;
 
-			$filters[] = [
-				'terms' => [
-					'terms.' . $taxonomy_slug . '.slug' => array_keys( $filter['terms'] ),
-				],
-			];
+			if ( 'any' === $match_type ) {
+				$filters[] = [
+					'terms' => [
+						'terms.' . $taxonomy_slug . '.slug' => array_keys( $filter['terms'] ),
+					],
+				];
+			} else {
+				foreach ( $filter['terms'] as $term_slug => $term ) {
+					$filters[] = [
+						'term' => [
+							'terms.' . $taxonomy_slug . '.slug' => $term_slug,
+						],
+					];
+				}
+			}
 		}
 
 		return $filters;
