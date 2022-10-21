@@ -163,13 +163,36 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		parse_str( 'ep_filter_taxonomy=dolor', $_GET );
+		parse_str( 'ep_filter_taxonomy=dolor,amet', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'terms.taxonomy.slug' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'terms.taxonomy.slug' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		/**
+		 * Changing the match type should change from `term` to `terms`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
 
 		$new_filters = $facet_type->add_query_filters( [] );
 		$expected    = [
 			[
 				'terms' => [
-					'terms.taxonomy.slug' => [ 'dolor' ],
+					'terms.taxonomy.slug' => [ 'dolor', 'amet' ],
 				],
 			],
 		];
