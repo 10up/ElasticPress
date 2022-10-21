@@ -736,12 +736,12 @@ class WooCommerce extends Feature {
 				unset( $fields['attributes']['children']['author_name'] );
 			}
 
-			if ( ! empty( $fields['meta']['children']['meta._sku.value'] ) ) {
-				unset( $fields['meta']['children']['meta._sku.value'] );
+			if ( ! empty( $fields['ep_metadata']['children']['meta._sku.value'] ) ) {
+				unset( $fields['ep_metadata']['children']['meta._sku.value'] );
 			}
 
-			if ( ! empty( $fields['meta']['children']['meta._variations_skus.value'] ) ) {
-				unset( $fields['meta']['children']['meta._variations_skus.value'] );
+			if ( ! empty( $fields['ep_metadata']['children']['meta._variations_skus.value'] ) ) {
+				unset( $fields['ep_metadata']['children']['meta._variations_skus.value'] );
 			}
 
 			$sku_key = 'meta._sku.value';

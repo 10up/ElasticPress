@@ -80,7 +80,7 @@ export default ({ groups, label, onChange, originalValues, showMeta, values }) =
 				</div>
 			</PanelHeader>
 			{fieldGroups.map(({ children, key, label }) => {
-				const isMeta = key === 'meta';
+				const isMeta = key === 'ep_metadata';
 				const fields = Object.values(children);
 
 				return !isMeta || showMeta ? (

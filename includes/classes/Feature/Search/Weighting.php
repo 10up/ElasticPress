@@ -101,7 +101,7 @@ class Weighting {
 			}
 		}
 
-		$fields['meta'] = [
+		$fields['ep_metadata'] = [
 			'label'    => 'Metadata',
 			'children' => [],
 		];
@@ -124,7 +124,7 @@ class Weighting {
 
 			$used_by_feature = in_array( $meta_key, $allowed_protected_keys, true );
 
-			$fields['meta']['children'][ $key ] = [
+			$fields['ep_metadata']['children'][ $key ] = [
 				'key'             => $key,
 				'label'           => $meta_key,
 				'used_by_feature' => $used_by_feature,
@@ -336,6 +336,24 @@ class Weighting {
 		$weighting = $request->get_param( 'weighting_configuration' );
 
 		update_option( 'ep_meta_mode', $meta_mode );
+
+		/**
+		 * If metadata is not being managed manually, remove any metadata
+		 * fields that do not belong to the metadata group from the weighting
+		 * configuration.
+		 */
+		if ( 'manual' !== $meta_mode ) {
+			foreach ( $weighting as $post_type => $fields ) {
+				$weightable_fields = $this->get_weightable_fields_for_post_type( $post_type );
+
+				foreach ( $fields as $key => $value ) {
+					if ( isset( $weightable_fields['ep_metadata']['children'][ $key ] ) ) {
+						unset( $weighting[ $post_type ][ $key ] );
+					}
+				}
+			}
+		}
+
 		update_option( 'elasticpress_weighting', $weighting );
 
 		/**
