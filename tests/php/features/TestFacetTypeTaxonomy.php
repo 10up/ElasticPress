@@ -13,6 +13,7 @@ use ElasticPress\Features as Features;
  * Facets\Types\Taxonomy\FacetType test class
  */
 class TestFacetTypeTaxonomy extends BaseTestCase {
+
 	/**
 	 * Test get_filter_name
 	 *
@@ -194,7 +195,10 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$expected_result = sanitize_title( $test_taxonomy );
 		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
 
-		$sanitize_function = function() {
+		$sanitize_function = function( $function ) {
+
+			$this->assertSame( 'sanitize_title', $function );
+
 			return 'sanitize_text_field';
 		};
 

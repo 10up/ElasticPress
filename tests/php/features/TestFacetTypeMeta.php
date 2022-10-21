@@ -272,7 +272,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	public function testGetSanitizeCallback() {
 
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
-		$test_meta     = 'This is s test meta';
+		$test_meta     = 'This is a test meta';
 
 		parse_str( "ep_meta_filter_new_meta_key_1={$test_meta}", $_GET );
 		$selected = $facet_feature->get_selected();
@@ -281,7 +281,10 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$expected_result = sanitize_text_field( $test_meta );
 		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
 
-		$sanitize_function = function() {
+		$sanitize_function = function( $function ) {
+
+			$this->assertSame( 'sanitize_text_field', $function );
+
 			return 'sanitize_title';
 		};
 
