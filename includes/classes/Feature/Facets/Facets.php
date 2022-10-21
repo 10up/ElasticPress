@@ -372,29 +372,28 @@ class Facets extends Feature {
 	public function get_selected() {
 		$allowed_args = $this->get_allowed_query_args();
 
-		$filters      = [];
-		$filter_names = [];
+		$filters            = [];
+		$filter_names       = [];
+		$sanitize_callbacks = [];
 		foreach ( $this->types as $type_obj ) {
 			$filter_type = $type_obj->get_filter_type();
 
-			$filters[ $filter_type ]      = [];
-			$filter_names[ $filter_type ] = $type_obj->get_filter_name();
+			$filters[ $filter_type ]            = [];
+			$filter_names[ $filter_type ]       = $type_obj->get_filter_name();
+			$sanitize_callbacks[ $filter_type ] = $type_obj->get_sanitize_callback();
 		}
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$key = sanitize_key( $key );
-			if ( is_array( $value ) ) {
-				$value = array_map( 'sanitize_text_field', $value );
-			} else {
-				$value = sanitize_text_field( $value );
-			}
 
 			foreach ( $filter_names as $filter_type => $filter_name ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
-					$facet = str_replace( $filter_name, '', $key );
+					$facet             = str_replace( $filter_name, '', $key );
+					$sanitize_callback = $sanitize_callbacks[ $filter_type ];
+					$terms             = explode( ',', trim( $value, ',' ) );
 
 					$filters[ $filter_type ][ $facet ] = array(
-						'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
+						'terms' => array_fill_keys( array_map( $sanitize_callback, $terms ), true ),
 					);
 				}
 			}
@@ -442,7 +441,7 @@ class Facets extends Feature {
 			}
 		}
 
-		$query_string = http_build_query( $query_param );
+		$query_string = build_query( $query_param );
 
 		/**
 		 * Filter facet query string

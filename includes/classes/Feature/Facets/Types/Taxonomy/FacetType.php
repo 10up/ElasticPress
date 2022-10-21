@@ -92,6 +92,24 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
+	 * Get the facet sanitize function.
+	 *
+	 * @return string The function name.
+	 */
+	public function get_sanitize_callback() : string {
+
+		/**
+		 * Filter the facet filter sanitize callback.
+		 *
+		 * @hook ep_facet_meta_sanitize_callback
+		 * @since 4.4.0
+		 * @param   {string} Facet filter sanitize callback
+		 * @return  {string} New facet filter sanitize callback
+		 */
+		return apply_filters( 'ep_facet_sanitize_callback', 'sanitize_title' );
+	}
+
+	/**
 	 * Get all taxonomies that could be selected for a facet.
 	 *
 	 * @return array
