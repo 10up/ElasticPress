@@ -279,6 +279,9 @@ class Weighting {
 	 * @since 4.4.0
 	 */
 	public function get_meta_mode() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			return 'auto';
+		}
 		return get_option( 'ep_meta_mode', 'auto' );
 	}
 
