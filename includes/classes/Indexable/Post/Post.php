@@ -834,7 +834,7 @@ class Post extends Indexable {
 		$filtered_metas = [];
 
 		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
-		if ( $search && 'manual' === $search->weighting->get_meta_mode() ) {
+		if ( $search && ! empty( $search->weighting ) && 'manual' === $search->weighting->get_meta_mode() ) {
 			$filtered_metas = $this->filter_allowed_metas_manual( $metas, $post );
 		} else {
 			$filtered_metas = $this->filter_allowed_metas_auto( $metas, $post );
