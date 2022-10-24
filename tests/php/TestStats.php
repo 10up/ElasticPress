@@ -19,9 +19,9 @@ class TestStats extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -48,8 +48,8 @@ class TestStats extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// Update since we are deleting to test notifications
 		update_site_option( 'ep_host', $this->current_host );
