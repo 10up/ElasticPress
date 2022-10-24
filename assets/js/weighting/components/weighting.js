@@ -118,8 +118,7 @@ export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) 
 
 			setSavedWeightingConfiguration(weighting_configuration);
 			setSavedMetaMode(meta_mode);
-			setIsBusy(false);
-		} catch {
+		} finally {
 			setIsBusy(false);
 		}
 	};
