@@ -490,7 +490,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
+	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
 		wp_enqueue_style( 'wp-edit-post' );
 		wp_enqueue_style(
 			'ep_weighting_styles',
