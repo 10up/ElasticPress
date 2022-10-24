@@ -106,8 +106,11 @@ class Weighting {
 			'children' => [],
 		];
 
-		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
-		$excluded_public_keys   = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
+		$empty_post = new \WP_Post( new \stdClass() );
+		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $empty_post );
+		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $empty_post );
 
 		try {
 			$meta_keys = Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
@@ -305,6 +308,105 @@ class Weighting {
 	}
 
 	/**
+	 * DEPRECATED. Recursively renders each settings section and its children.
+	 *
+	 * @param string $post_type      Current post type we're rendering
+	 * @param array  $field          Current field to render
+	 * @param array  $current_values Current stored weighting values
+	 */
+	public function render_settings_section( $post_type, $field, $current_values ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting sections display are now handled via React components.' ),
+			'ElasticPress 4.4.0'
+		);
+	}
+
+	/**
+	 * DEPRECATED. We need this method to test handle_save properly.
+	 *
+	 * @param string $redirect_url Redirect URL.
+	 */
+	protected function redirect( $redirect_url ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting sections display are now handled via React components.' ),
+			'ElasticPress 4.4.0'
+		);
+	}
+
+	/**
+	 * DEPRECATED. Save weighting configuration for each searchable post_type
+	 *
+	 * @param array $settings weighting settings
+	 *
+	 * @return array final settings
+	 * @since 3.4.1
+	 */
+	public function save_weighting_configuration( $settings ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting sections display are now handled via React components.' ),
+			'ElasticPress 4.4.0'
+		);
+
+		$new_config                = array();
+		$previous_config_formatted = array();
+		$current_config            = $this->get_weighting_configuration();
+
+		foreach ( $current_config as $post_type => $post_type_weighting ) {
+			// This also ensures the string is safe, since this would return false otherwise
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
+			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
+				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+					'weight'  => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
+					'enabled' => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
+				];
+			}
+		}
+
+		$search     = Features::factory()->get_registered_feature( 'search' );
+		$post_types = $search->get_searchable_post_types();
+
+		foreach ( $post_types as $post_type ) {
+			// This also ensures the string is safe, since this would return false otherwise
+			if ( ! post_type_exists( $post_type ) ) {
+				continue;
+			}
+
+			/** override default post_type settings while saving */
+			$new_config[ $post_type ] = array();
+
+			if ( isset( $settings['weighting'][ $post_type ] ) ) {
+				foreach ( $settings['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
+					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
+						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
+						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
+					];
+				}
+			}
+		}
+
+		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
+
+		update_option( 'elasticpress_weighting', $final_config );
+
+		/**
+		 * Fires right after the weighting configuration is saved.
+		 *
+		 * @since  3.5.x
+		 * @hook ep_saved_weighting_configuration
+		 */
+		do_action( 'ep_saved_weighting_configuration' );
+
+		return $final_config;
+	}
+
+	/**
 	 * Register REST routes.
 	 *
 	 * @return void
@@ -331,7 +433,12 @@ class Weighting {
 	 * @param \WP_Rest_Request $request REST API request.
 	 * @return void
 	 */
-	public function handle_save( $request ) {
+	public function handle_save( $request = null ) {
+		if ( ! $request ) {
+			$this->deprecated_handle_save();
+			return;
+		}
+
 		$meta_mode = $request->get_param( 'meta_mode' );
 		$weighting = $request->get_param( 'weighting_configuration' );
 
@@ -671,5 +778,26 @@ class Weighting {
 			$weighted_field = "{$field}^1";
 		}
 		return $weighted_field;
+	}
+
+	/**
+	 * Old function that handled processing weighting values and saving them to the elasticpress.io service.
+	 */
+	final protected function deprecated_handle_save() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting sections display are now handled via React components.' ),
+			'ElasticPress 4.4.0'
+		);
+
+		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-weighting-nonce'], 'save-weighting' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$this->save_weighting_configuration( $_POST );
 	}
 }

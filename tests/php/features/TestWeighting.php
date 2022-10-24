@@ -62,6 +62,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test searchable post_types exist after configuration change
+	 *
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
 	 */
 	function testWeightablePostType() {
 		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
@@ -90,6 +92,8 @@ class TestWeighting extends BaseTestCase {
 
 	/**
 	 * Test settings toggle
+	 *
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
 	 */
 	public function testWeightingConfiguration() {
 
@@ -131,6 +135,7 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 3.6.5
 	 * @group weighting
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
 	 */
 	public function testWeightingDefaultEnabledTaxonomies() {
 		// By default, `post_format` should not be enabled, only `category` and `post_tag`.
@@ -165,7 +170,7 @@ class TestWeighting extends BaseTestCase {
 	public function testGetWeightableFieldsForPostType() {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
 
-		$this->assertEquals( 2, count( $fields ) );
+		$this->assertEquals( 3, count( $fields ) ); // attributes, taxonomies, and ep_metadata
 		$this->assertContains( 'post_title', array_keys( $fields['attributes']['children'] ) );
 		$this->assertContains( 'terms.category.name', array_keys( $fields['taxonomies']['children'] ) );
 		$this->assertContains( 'terms.post_tag.name', array_keys( $fields['taxonomies']['children'] ) );
@@ -191,36 +196,13 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
-		$post_types = $search->get_searchable_post_types();
-
-		$this->assertStringContainsString( 'Manage Search Fields &amp; Weighting', $content );
-
-		foreach ( $post_types as $post_type ) {
-			$post_type_object = get_post_type_object( $post_type );
-			$this->assertStringContainsString( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
-		}
+		$this->assertStringContainsString( 'id="ep-weighting-screen"', $content );
 	}
 
-	public function testRenderSettingsPageSaveSuccess() {
-		$_GET['settings-updated'] = true;
-		ob_start();
-		$this->get_weighting_feature()->render_settings_page();
-		$content = ob_get_clean();
-
-		$this->assertStringContainsString( 'Changes Saved', $content );
-	}
-
-	public function testRenderSettingsPageSaveFailed() {
-		$_GET['settings-updated'] = false;
-		ob_start();
-		$this->get_weighting_feature()->render_settings_page();
-		$content = ob_get_clean();
-
-		$this->assertStringContainsString( 'An error occurred when saving', $content );
-	}
-
-
+	/**
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::deprecated_handle_save
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
+	 */
 	public function testHandleSave() {
 		$weighting_class = $this->getMockBuilder( 'ElasticPress\Feature\Search\Weighting' )
 			->setMethods( [ 'redirect' ] )
@@ -248,10 +230,12 @@ class TestWeighting extends BaseTestCase {
 			],
 		];
 
-		$weighting_class->expects( $this->once() )->method( 'redirect' );
 		$weighting_class->handle_save();
 	}
 
+	/**
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
+	 */
 	public function testSaveWeightingConfigurationInvalidPostType() {
 
 		$weighting_settings = [
@@ -285,6 +269,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'post' ) );
 	}
 
+	/**
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
+	 */
 	public function testPostTypeHasFieldsWithCustomConfig() {
 		// Test with configuration saved for post only, page will return false.
 		$weighting_settings = [
@@ -366,6 +353,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertEquals( 4, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
 
+	/**
+	 * @expectedIncorrectUsage ElasticPress\Feature\Search\Weighting::save_weighting_configuration
+	 */
 	public function testDoWeightingWithCustomConfig() {
 		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
 
