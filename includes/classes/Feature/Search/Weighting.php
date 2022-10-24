@@ -112,11 +112,7 @@ class Weighting {
 		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
 		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $empty_post );
 
-		try {
-			$meta_keys = Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
-		} catch ( \Throwable $th ) {
-			$meta_keys = [];
-		}
+		$meta_keys = Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys_db();
 
 		foreach ( $meta_keys as $meta_key ) {
 			$key = "meta.$meta_key.value";

@@ -2464,4 +2464,16 @@ class Post extends Indexable {
 		}
 		return $filtered_metas;
 	}
+
+	/**
+	 * Return all distinct meta fields in the database.
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys_db() {
+		global $wpdb;
+
+		return $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta}" );
+	}
 }
