@@ -3770,7 +3770,97 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( is_array( $meta_2 ) && array_key_exists( 'test_meta_1', $meta_2 ) && array_key_exists( '_test_private_meta_1', $meta_2 ) );
 		$this->assertTrue( is_array( $meta_3 ) && 1 === count( $meta_3 ) );
 		$this->assertTrue( is_array( $meta_3 ) && array_key_exists( '_test_private_meta_1', $meta_3 ) );
+	}
 
+	/**
+	 * Test to verify meta array is built correctly when meta handling is set as "Manual" in the weighting dashboard.
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testPrepareMetaManual() {
+		if ( $this->is_network_activate() ) {
+			$this->markTestSkipped();
+		}
+
+		$change_meta_mode = function() {
+			return 'manual';
+		};
+		add_filter( 'pre_option_ep_meta_mode', $change_meta_mode );
+
+		$weighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting;
+		$this->assertSame( $weighting->get_meta_mode(), 'manual' );
+
+		// Set default weighting
+		$weighting_default = $weighting->get_weighting_configuration_with_defaults();
+		$set_default_weighting = function() use ( $weighting_default ) {
+			return $weighting_default;
+		};
+		add_filter( 'ep_weighting_configuration', $set_default_weighting );
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_meta_1' => 'value 1',
+					'test_meta_2' => 'value 2',
+					'_test_private_meta_1' => 'private value 1',
+					'_test_private_meta_2' => 'private value 2',
+				]
+			]
+		);
+		$post = get_post( $post_id );
+
+		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+		$this->assertEmpty( $prepared_meta );
+
+		/**
+		 * Test addition via the ep_prepare_meta_allowed_protected_keys filter.
+		 */
+		$add_meta_via_allowed_protected = function( $fields, $post ) {
+			$this->assertInstanceOf( '\WP_Post', $post );
+			$this->assertIsArray( $fields );
+			return [ '_test_private_meta_1' ];
+		};
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', $add_meta_via_allowed_protected, 10, 2 );
+
+		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+		$this->assertSame( [ '_test_private_meta_1' ], array_keys( $prepared_meta ) );
+
+		/**
+		 * Test addition via the ep_prepare_meta_allowed_keys filter.
+		 */
+		$add_meta_via_allowed = function( $fields, $post ) {
+			$this->assertInstanceOf( '\WP_Post', $post );
+			$this->assertIsArray( $fields );
+
+			$fields[] = 'test_meta_1';
+			return $fields;
+		};
+		add_filter( 'ep_prepare_meta_allowed_keys', $add_meta_via_allowed, 10, 2 );
+
+		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+		$this->assertSame( [ 'test_meta_1', '_test_private_meta_1' ], array_keys( $prepared_meta ) );
+
+		// Set changed weighting
+		remove_filter( 'ep_weighting_configuration', $set_default_weighting );
+		$set_changed_weighting = function() use ( $weighting_default ) {
+			$weighting_default['post']['meta.test_meta_2.value']          = [
+				'enabled' => true,
+				'weight'  => 1,
+			];
+			$weighting_default['post']['meta._test_private_meta_2.value'] = [
+				'enabled' => true,
+				'weight'  => 1,
+			];
+			return $weighting_default;
+		};
+		add_filter( 'ep_weighting_configuration', $set_changed_weighting );
+
+		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+		$this->assertSame(
+			[ 'test_meta_1', 'test_meta_2', '_test_private_meta_1', '_test_private_meta_2' ],
+			array_keys( $prepared_meta )
+		);
 	}
 
 	/**
