@@ -833,57 +833,13 @@ class Post extends Indexable {
 	public function filter_allowed_metas( $metas, $post ) {
 		$filtered_metas = [];
 
-		/**
-		 * Filter indexable protected meta keys for posts
-		 *
-		 * @hook ep_prepare_meta_allowed_protected_keys
-		 * @param  {array} $keys Allowed protected keys
-		 * @param  {WP_Post} $post Post object
-		 * @since  1.7
-		 * @return  {array} New keys
-		 */
-		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
-
-		/**
-		 * Filter public keys to exclude from indexed post
-		 *
-		 * @hook ep_prepare_meta_excluded_public_keys
-		 * @param  {array} $keys Excluded protected keys
-		 * @param  {WP_Post} $post Post object
-		 * @since  1.7
-		 * @return  {array} New keys
-		 */
-		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
-
-		foreach ( $metas as $key => $value ) {
-
-			$allow_index = false;
-
-			if ( is_protected_meta( $key ) ) {
-
-				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
-					$allow_index = true;
-				}
-			} else {
-
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
-					$allow_index = true;
-				}
-			}
-
-			/**
-			 * Filter force whitelisting a meta key
-			 *
-			 * @hook ep_prepare_meta_whitelist_key
-			 * @param  {bool} $whitelist True to whitelist key
-			 * @param  {string} $key Meta key
-			 * @param  {WP_Post} $post Post object
-			 * @return  {bool} New whitelist value
-			 */
-			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
-				$filtered_metas[ $key ] = $value;
-			}
+		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		if ( $search && 'manual' === $search->weighting->get_meta_mode() ) {
+			$filtered_metas = $this->filter_allowed_metas_manual( $metas, $post );
+		} else {
+			$filtered_metas = $this->filter_allowed_metas_auto( $metas, $post );
 		}
+
 		return $filtered_metas;
 	}
 
@@ -2384,5 +2340,128 @@ class Post extends Indexable {
 		];
 
 		return $from_to[ $field ] ?? 'term_id';
+	}
+
+	/**
+	 * Filter post meta to only the allowed ones to be send to ES
+	 *
+	 * This function is used when the Weighting dashboard is available and the "manual" option is set in that screen.
+	 *
+	 * @param array   $metas Key => value pairs of post meta
+	 * @param WP_Post $post Post object
+	 * @since 4.4.0
+	 * @return array
+	 */
+	protected function filter_allowed_metas_manual( $metas, $post ) {
+		$filtered_metas = [];
+
+		$weighting = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->get_weighting_configuration();
+		if ( empty( $post->post_type ) || empty( $weighting[ $post->post_type ] ) ) {
+			return $filtered_metas;
+		}
+
+		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+
+		$selected_keys = array_map(
+			function ( $field ) {
+				if ( false === strpos( $field, 'meta.' ) ) {
+					return null;
+				}
+				$field_name_parts = explode( '.', $field );
+				return $field_name_parts[1];
+			},
+			array_keys( $weighting[ $post->post_type ] )
+		);
+		$selected_keys = array_filter( $selected_keys );
+
+		/**
+		 * Filter indexable meta keys for posts
+		 *
+		 * @hook ep_prepare_meta_allowed_keys
+		 * @param {array} $keys Allowed keys
+		 * @param {WP_Post} $post Post object
+		 * @since 4.4.0
+		 * @return {array} New keys
+		 */
+		$allowed_keys = apply_filters( 'ep_prepare_meta_allowed_keys', array_merge( $allowed_protected_keys, $selected_keys ), $post );
+
+		foreach ( $metas as $key => $value ) {
+			if ( ! in_array( $key, $allowed_keys, true ) ) {
+				continue;
+			}
+
+			$filtered_metas[ $key ] = $value;
+		}
+
+		return $filtered_metas;
+	}
+
+	/**
+	 * Filter post meta to only the allowed ones to be send to ES
+	 *
+	 * This function is used when the Weighting dashboard is not available (multisite) or
+	 * when the "auto" option is set in that screen.
+	 *
+	 * @param array   $metas Key => value pairs of post meta
+	 * @param WP_Post $post Post object
+	 * @since 4.4.0
+	 * @return array
+	 */
+	protected function filter_allowed_metas_auto( $metas, $post ) {
+		$filtered_metas = [];
+
+		/**
+		 * Filter indexable protected meta keys for posts
+		 *
+		 * @hook ep_prepare_meta_allowed_protected_keys
+		 * @param  {array} $keys Allowed protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+
+		/**
+		 * Filter public keys to exclude from indexed post
+		 *
+		 * @hook ep_prepare_meta_excluded_public_keys
+		 * @param  {array} $keys Excluded protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
+		 */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
+
+		foreach ( $metas as $key => $value ) {
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
+					$allow_index = true;
+				}
+			} else {
+
+				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
+					$allow_index = true;
+				}
+			}
+
+			/**
+			 * Filter force whitelisting a meta key
+			 *
+			 * @hook ep_prepare_meta_whitelist_key
+			 * @param  {bool} $whitelist True to whitelist key
+			 * @param  {string} $key Meta key
+			 * @param  {WP_Post} $post Post object
+			 * @return  {bool} New whitelist value
+			 */
+			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
+				$filtered_metas[ $key ] = $value;
+			}
+		}
+		return $filtered_metas;
 	}
 }
