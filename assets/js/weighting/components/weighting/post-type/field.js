@@ -1,5 +1,5 @@
 /**
- * Wordpress Dependencies.
+ * WordPress Dependencies.
  */
 import { CheckboxControl, RangeControl } from '@wordpress/components';
 import { useMemo, WPElement } from '@wordpress/element';
