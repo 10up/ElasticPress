@@ -29,6 +29,6 @@
 	"supports": {
 		"html": false
 	},
-	"editorScript": "file:/../../../../../dist/js/facets-meta-block-script.min.js",
-	"style": "file:/../../../../../dist/css/facets-styles.min.css"
+	"editorScript": "file:/../../../../../dist/js/facets-meta-block-script.js",
+	"style": "file:/../../../../../dist/css/facets-styles.css"
 }

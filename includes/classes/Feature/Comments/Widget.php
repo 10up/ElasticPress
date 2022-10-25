@@ -69,7 +69,7 @@ class Widget extends WP_Widget {
 		// Enqueue Script & Styles
 		wp_enqueue_script(
 			'elasticpress-comments',
-			EP_URL . 'dist/js/comments-script.min.js',
+			EP_URL . 'dist/js/comments-script.js',
 			Utils\get_asset_info( 'comments-script', 'dependencies' ),
 			Utils\get_asset_info( 'comments-script', 'version' ),
 			true
@@ -77,7 +77,7 @@ class Widget extends WP_Widget {
 
 		wp_enqueue_style(
 			'elasticpress-comments',
-			EP_URL . 'dist/css/comments-styles.min.css',
+			EP_URL . 'dist/css/comments-styles.css',
 			Utils\get_asset_info( 'comments-styles', 'dependencies' ),
 			Utils\get_asset_info( 'comments-styles', 'version' )
 		);

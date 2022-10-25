@@ -136,7 +136,7 @@ class Sync {
 
 		wp_enqueue_script(
 			'ep_sync_scripts',
-			EP_URL . 'dist/js/sync-script.min.js',
+			EP_URL . 'dist/js/sync-script.js',
 			Utils\get_asset_info( 'sync-script', 'dependencies' ),
 			Utils\get_asset_info( 'sync-script', 'version' ),
 			true
@@ -147,7 +147,7 @@ class Sync {
 
 		wp_enqueue_style(
 			'ep_sync_style',
-			EP_URL . 'dist/css/sync-styles.min.css',
+			EP_URL . 'dist/css/sync-styles.css',
 			Utils\get_asset_info( 'sync-styles', 'dependencies' ),
 			Utils\get_asset_info( 'sync-styles', 'version' )
 		);

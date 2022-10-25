@@ -399,7 +399,7 @@ class Autosuggest extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/js/autosuggest-script.min.js',
+			EP_URL . 'dist/js/autosuggest-script.js',
 			Utils\get_asset_info( 'autosuggest-script', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-script', 'version' ),
 			true
@@ -407,7 +407,7 @@ class Autosuggest extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/css/autosuggest-styles.min.css',
+			EP_URL . 'dist/css/autosuggest-styles.css',
 			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-styles', 'version' )
 		);

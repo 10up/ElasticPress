@@ -415,7 +415,7 @@ class SearchOrdering extends Feature {
 		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && $screen instanceof \WP_Screen && self::POST_TYPE_NAME === $screen->post_type ) {
 			wp_enqueue_script(
 				'ep_ordering_scripts',
-				EP_URL . 'dist/js/ordering-script.min.js',
+				EP_URL . 'dist/js/ordering-script.js',
 				Utils\get_asset_info( 'ordering-script', 'dependencies' ),
 				Utils\get_asset_info( 'ordering-script', 'version' ),
 				true
@@ -423,7 +423,7 @@ class SearchOrdering extends Feature {
 
 			wp_enqueue_style(
 				'ep_ordering_styles',
-				EP_URL . 'dist/css/ordering-styles.min.css',
+				EP_URL . 'dist/css/ordering-styles.css',
 				Utils\get_asset_info( 'ordering-styles', 'dependencies' ),
 				Utils\get_asset_info( 'ordering-styles', 'version' )
 			);
