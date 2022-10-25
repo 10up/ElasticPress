@@ -27,6 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Command extends WP_CLI_Command {
 
+	use DeprecatedCommand;
+
 	/**
 	 * Holds temporary wp_actions when indexing with pagination
 	 *

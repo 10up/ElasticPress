@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI_Command as WP_CLI_Command;
+use \WP_CLI as WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -17,42 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Deprecated CLI Commands for ElasticPress
  */
-class DeprecatedCommand extends WP_CLI_Command {
+trait DeprecatedCommand {
 
 	/**
-	 * Holds CLI command position args.
+	 * DEPRECATED. Return all index names as a JSON object.
 	 *
-	 * Useful to share arguments to methods called by hooks.
-	 *
-	 * @since 4.4.0
-	 * @var array
-	 */
-	protected $args = [];
-
-	/**
-	 * Holds CLI command associative args
-	 *
-	 * Useful to share arguments to methods called by hooks.
-	 *
-	 * @since 4.4.0
-	 * @var array
-	 */
-	protected $assoc_args = [];
-
-	/**
-	 * Create Command
-	 *
-	 * @since  4.4.0
-	 */
-	public function __construct() {
-		/**
-		 * Instance of Command class
-		 */
-		$this->command = new \Elasticpress\Command();
-	}
-
-	/**
-	 * Return all index names as a JSON object.
+	 * This command is deprecated. Please use `get-indices` instead.
 	 *
 	 * ## OPTIONS
 	 *
@@ -60,7 +30,6 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
 	 * @subcommand get-indexes
-	 * @alias get-indices
 	 * @since      3.2, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -69,7 +38,14 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 */
 	public function get_indexes( $args, $assoc_args ) {
 		_deprecated_function( 'get-indexes', '4.4.0', 'get-indices' );
-		return $this->command->get_indices( $args, $assoc_args );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'get-indices'
+			)
+		);
+		return $this->get_indices( $args, $assoc_args );
 	}
 
 	/**
@@ -90,7 +66,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 */
 	public function get_cluster_indexes( $args, $assoc_args ) {
 		_deprecated_function( 'get-cluster-indexes', '4.4.0', 'get-cluster-indices' );
-		return $this->command->get_cluster_indices( $args, $assoc_args );
+		$this->get_cluster_indices( $args, $assoc_args );
 	}
 
 	/**
@@ -161,7 +137,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 */
 	public function index( $args, $assoc_args ) {
 		_deprecated_function( 'index', '4.4.0', 'sync' );
-		return $this->command->sync( $args, $assoc_args );
+		$this->sync( $args, $assoc_args );
 	}
 
 	/**
@@ -175,9 +151,9 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 * @deprecated 4.4.0
 	 * @see Command\clear_sync()
 	 */
-	public function clear_index() {
+	public function clear_index( $args, $assoc_args ) {
 		_deprecated_function( 'clear-index', '4.4.0', 'clear-sync' );
-		return $this->command->clear_sync( $args, $assoc_args );
+		$this->clear_sync( $args, $assoc_args );
 	}
 
 	/**
@@ -204,7 +180,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 */
 	public function get_indexing_status( $args, $assoc_args ) {
 		_deprecated_function( 'get-indexing-status', '4.4.0', 'get-ongoing-sync-status' );
-		return $this->command->get_ongoing_sync_status( $args, $assoc_args );
+		$this->get_ongoing_sync_status( $args, $assoc_args );
 	}
 
 	/**
@@ -228,7 +204,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 */
 	public function get_last_cli_index( $args, $assoc_args ) {
 		_deprecated_function( 'get-last-cli-index', '4.4.0', 'get-last-cli-sync' );
-		return $this->command->get_last_cli_sync( $args, $assoc_args );
+		$this->get_last_cli_sync( $args, $assoc_args );
 	}
 
 	/**
@@ -244,7 +220,7 @@ class DeprecatedCommand extends WP_CLI_Command {
 	 */
 	public function stop_indexing( $args, $assoc_args ) {
 		_deprecated_function( 'stop-indexing', '4.4.0', 'stop-sync' );
-		return $this->command->stop_sync( $args, $assoc_args );
+		$this->stop_sync( $args, $assoc_args );
 	}
 
 }
