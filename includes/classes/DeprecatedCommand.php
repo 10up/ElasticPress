@@ -49,7 +49,9 @@ trait DeprecatedCommand {
 	}
 
 	/**
-	 * Return all indexes from the cluster as a JSON object.
+	 * DEPRECATED. Return all indexes from the cluster as a JSON object.
+	 *
+	 * This command is deprecated. Please use `get-cluster-indices` instead.
 	 *
 	 * ## OPTIONS
 	 *
@@ -57,7 +59,6 @@ trait DeprecatedCommand {
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
 	 * @subcommand get-cluster-indexes
-	 * @alias get-cluster-indices
 	 * @since      3.2, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -66,11 +67,20 @@ trait DeprecatedCommand {
 	 */
 	public function get_cluster_indexes( $args, $assoc_args ) {
 		_deprecated_function( 'get-cluster-indexes', '4.4.0', 'get-cluster-indices' );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'get-cluster-indices'
+			)
+		);
 		$this->get_cluster_indices( $args, $assoc_args );
 	}
 
 	/**
-	 * Index all posts for a site or network wide.
+	 * DEPRECATED. Index all posts for a site or network wide.
+	 *
+	 * This command is deprecated. Please use `sync` instead.
 	 *
 	 * ## OPTIONS
 	 *
@@ -128,7 +138,6 @@ trait DeprecatedCommand {
 	 * [--yes]
 	 * : Skip confirmation needed by `--setup`
 	 *
-	 * @alias sync
 	 * @param array $args Positional CLI args.
 	 * @since 0.1.2
 	 * @param array $assoc_args Associative CLI args.
@@ -137,27 +146,46 @@ trait DeprecatedCommand {
 	 */
 	public function index( $args, $assoc_args ) {
 		_deprecated_function( 'index', '4.4.0', 'sync' );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'sync'
+			)
+		);
 		$this->sync( $args, $assoc_args );
 	}
 
 	/**
-	 * Clear a sync/index process.
+	 * DEPRECATED. Clear a sync/index process.
+	 *
+	 * This command is deprecated. Please use `clear-sync` instead.
 	 *
 	 * If an index was stopped prematurely and won't start again, this will clear this cached data such that a new index can start.
 	 *
 	 * @subcommand clear-index
-	 * @alias clear-sync
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 * @since      3.4
 	 * @deprecated 4.4.0
 	 * @see Command\clear_sync()
 	 */
 	public function clear_index( $args, $assoc_args ) {
 		_deprecated_function( 'clear-index', '4.4.0', 'clear-sync' );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'clear-sync'
+			)
+		);
 		$this->clear_sync( $args, $assoc_args );
 	}
 
 	/**
-	 * Returns the status of an ongoing index operation in JSON array.
+	 * DEPRECATED. Returns the status of an ongoing index operation in JSON array.
+	 *
+	 * This command is deprecated. Please use `get-ongoing-sync-status` instead.
 	 *
 	 * Returns the status of an ongoing index operation in JSON array with the following fields:
 	 * indexing | boolean | True if index operation is ongoing or false
@@ -171,7 +199,6 @@ trait DeprecatedCommand {
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
 	 * @subcommand get-indexing-status
-	 * @alias get-ongoing-sync-status
 	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -180,11 +207,20 @@ trait DeprecatedCommand {
 	 */
 	public function get_indexing_status( $args, $assoc_args ) {
 		_deprecated_function( 'get-indexing-status', '4.4.0', 'get-ongoing-sync-status' );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'get-ongoing-sync-status'
+			)
+		);
 		$this->get_ongoing_sync_status( $args, $assoc_args );
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
+	 * DEPRECATED. Returns a JSON array with the results of the last CLI index (if present) or an empty array.
+	 *
+	 * This command is deprecated. Please use `get-last-cli-sync` instead.
 	 *
 	 * ## OPTIONS
 	 *
@@ -195,7 +231,6 @@ trait DeprecatedCommand {
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
 	 * @subcommand get-last-cli-index
-	 * @alias get-last-cli-sync
 	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -204,14 +239,22 @@ trait DeprecatedCommand {
 	 */
 	public function get_last_cli_index( $args, $assoc_args ) {
 		_deprecated_function( 'get-last-cli-index', '4.4.0', 'get-last-cli-sync' );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'get-last-cli-sync'
+			)
+		);
 		$this->get_last_cli_sync( $args, $assoc_args );
 	}
 
 	/**
-	 * Stop the indexing operation started from the dashboard.
+	 * DEPRECATED. Stop the indexing operation started from the dashboard.
+	 *
+	 * This command is deprecated. Please use `stop-sync` instead.
 	 *
 	 * @subcommand stop-indexing
-	 * @alias stop-sync
 	 * @since      3.5.2
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
@@ -220,6 +263,13 @@ trait DeprecatedCommand {
 	 */
 	public function stop_indexing( $args, $assoc_args ) {
 		_deprecated_function( 'stop-indexing', '4.4.0', 'stop-sync' );
+		WP_CLI::warning(
+			sprintf(
+				/* translators: New command name */
+				esc_html__( 'This command is deprecated. Please use %s instead.', 'elasticpress' ),
+				'stop-sync'
+			)
+		);
 		$this->stop_sync( $args, $assoc_args );
 	}
 
