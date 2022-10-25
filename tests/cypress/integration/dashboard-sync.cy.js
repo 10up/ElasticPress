@@ -31,6 +31,7 @@ describe('Dashboard Sync', () => {
 	afterEach(() => {
 		if (cy.state('test').state === 'failed') {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
+			cy.activatePlugin('elasticpress', 'wpCli');
 			cy.wpCli('wp elasticpress clear-sync', true);
 		}
 	});

@@ -193,6 +193,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Oras Al-Kubaisi (@orasik)](https://github.com/orasik),
 [@nickchomey](https://github.com/nickchomey),
 [@alaa-alshamy](https://github.com/alaa-alshamy),
+[Bogdan Arizancu (@bogdanarizancu)](https://github.com/bogdanarizancu),
+[Stephanie Walters (@PypWalters)](https://github.com/PypWalters),
+[Rafał Całka (@rafaucau)](https://github.com/rafaucau),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

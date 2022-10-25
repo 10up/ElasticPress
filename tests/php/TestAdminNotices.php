@@ -19,9 +19,9 @@ class TestAdminNotices extends BaseTestCase {
 	 *
 	 * @since 2.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -61,8 +61,8 @@ class TestAdminNotices extends BaseTestCase {
 	 *
 	 * @since 2.2
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// Update since we are deleting to test notifications
 		update_site_option( 'ep_host', $this->current_host );
@@ -402,7 +402,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
-		$this->assertContains( $not_available_full_text, $notices['upgrade_sync']['html'] );
+		$this->assertStringContainsString( $not_available_full_text, $notices['upgrade_sync']['html'] );
 
 		// Instant Results available.
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -417,7 +417,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
-		$this->assertContains( $available_full_text, $notices['upgrade_sync']['html'] );
+		$this->assertStringContainsString( $available_full_text, $notices['upgrade_sync']['html'] );
 		remove_filter( 'ep_instant_results_available', '__return_true' );
 
 		// Instant Results available via EP.io.
@@ -425,7 +425,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
-		$this->assertContains( $available_full_text, $notices['upgrade_sync']['html'] );
+		$this->assertStringContainsString( $available_full_text, $notices['upgrade_sync']['html'] );
 	}
 
 	/**

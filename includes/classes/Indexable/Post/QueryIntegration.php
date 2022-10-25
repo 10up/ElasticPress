@@ -275,8 +275,25 @@ class QueryIntegration {
 		if ( count( $new_posts ) < 1 ) {
 
 			$scope = 'current';
+
+			$site__in     = '';
+			$site__not_in = '';
+
 			if ( ! empty( $query_vars['sites'] ) ) {
-				$scope = $query_vars['sites'];
+
+				_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
+				$site__in = (array) $query_vars['sites'];
+				$scope    = 'all' === $query_vars['sites'] ? 'all' : $site__in;
+			}
+
+			if ( ! empty( $query_vars['site__in'] ) ) {
+
+				$site__in = (array) $query_vars['site__in'];
+				$scope    = 'all' === $query_vars['site__in'] ? 'all' : $site__in;
+			}
+
+			if ( ! empty( $query_vars['site__not_in'] ) ) {
+				$site__not_in = (array) $query_vars['site__not_in'];
 			}
 
 			$formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_vars, $query );
@@ -301,12 +318,26 @@ class QueryIntegration {
 
 			if ( 'all' === $scope ) {
 				$index = Indexables::factory()->get( 'post' )->get_network_alias();
-			} elseif ( is_numeric( $scope ) ) {
-				$index = Indexables::factory()->get( 'post' )->get_index_name( (int) $scope );
-			} elseif ( is_array( $scope ) ) {
+			} elseif ( ! empty( $site__in ) ) {
 				$index = [];
 
-				foreach ( $scope as $site_id ) {
+				foreach ( $site__in as $site_id ) {
+					$index[] = Indexables::factory()->get( 'post' )->get_index_name( $site_id );
+				}
+
+				$index = implode( ',', $index );
+			} elseif ( ! empty( $site__not_in ) ) {
+
+				$sites = get_sites(
+					array(
+						'fields'       => 'ids',
+						'site__not_in' => $site__not_in,
+					)
+				);
+				foreach ( $sites as $site_id ) {
+					if ( ! Utils\is_site_indexable( $site_id ) ) {
+						continue;
+					}
 					$index[] = Indexables::factory()->get( 'post' )->get_index_name( $site_id );
 				}
 

@@ -83,6 +83,7 @@ class InstantResults extends Feature {
 			'highlight_tag' => 'mark',
 			'facets'        => 'post_type,category,post_tag',
 			'match_type'    => 'all',
+			'term_count'    => '1',
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -169,6 +170,18 @@ class InstantResults extends Feature {
 					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
 				</label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Term Count', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label>
+					<input name="settings[term_count]" <?php checked( (bool) $this->settings['term_count'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+				</label><br>
+				<label>
+					<input name="settings[term_count]" <?php checked( ! (bool) $this->settings['term_count'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+				</label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 
@@ -281,6 +294,7 @@ class InstantResults extends Feature {
 				'matchType'      => $this->settings['match_type'],
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
+				'termCount'      => $this->settings['term_count'],
 			)
 		);
 	}
@@ -923,4 +937,5 @@ class InstantResults extends Feature {
 		}
 		return $args;
 	}
+
 }

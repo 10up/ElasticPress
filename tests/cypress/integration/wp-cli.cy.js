@@ -151,6 +151,11 @@ describe('WP-CLI Commands', () => {
 			.its('stdout')
 			.should('contain', 'Adding post mapping')
 			.should('contain', 'Mapping sent');
+
+		cy.wpCli('wp elasticpress put-mapping --network-wide')
+			.its('stdout')
+			.should('contain', 'Adding post mapping')
+			.should('contain', 'Mapping sent');
 	});
 
 	it('Can recreate the alias index which points to every index in the network if user runs wp elasticpress recreate-network-alias command', () => {});
@@ -233,6 +238,7 @@ describe('WP-CLI Commands', () => {
 
 		after(() => {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
+			cy.activatePlugin('elasticpress', 'wpCli');
 		});
 
 		it('Can index all blogs in network if user specifies --network-wide argument', () => {

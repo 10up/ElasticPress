@@ -172,8 +172,129 @@ const autosuggestQueryFilter = (query, searchText, input) => {
 
 wp.hooks.addFilter('ep.Autosuggest.query', 'myTheme/autosuggestQueryFilter', autosuggestQueryFilter);
 ```
-
 ## Instant Results
+
+### Customize the Template Used for Results
+
+When ElasticPress Instant Results renders search results it does so using a [React component](https://reactjs.org/docs/components-and-props.html). You can replace this component with your own from within a theme or plugin using the `ep.InstantResults.Result` [JavaScript hook](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-hooks/).
+
+The result component receives the following props that your component can use to render the result:
+
+| prop            | type   | description
+| --------------- | ------ | -----------------------------------------------
+| `averageRating` | number | Average review rating for WooCommerce products.
+| `date`          | string | Localized date.
+| `hit`           | object | Full result from Elasticsearch.
+| `excerpt`       | string | Highlighted excerpt.
+| `id`            | string | Post ID.
+| `priceHtml`     | string | Price HTML for a WooCommerce product.
+| `thumbnail`     | object | Thumbnail image attributes.
+| `title`         | string | Highlighted title.
+| `type`          | string | Post type label.
+| `url`           | string | Post permalink.
+
+This example replaces the result component with a component that renders results as just a simple linked title and date in a div:
+
+**JSX**
+```js
+const CustomResult = ({ date, title, url }) => {
+	return (
+		<div className="my-custom-result">
+			<strong><a href={url}>{title}</a></strong> {date}
+		</div>
+	)
+};
+
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResult', () => CustomResult);
+```
+**Plain**
+```js
+const el = wp.element.createElement;
+
+const CustomResult = ({ date, title, url }) => {
+	return el(
+		'div',
+		{
+			className: 'my-custom-result',
+		},
+		el(
+			'strong',
+			{},
+			el(
+				'a',
+				{ href: url },
+				title
+			),
+		),
+		' ',
+		date
+	);
+};
+
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResult', () => CustomResult);
+```
+
+To conditionally replace the component based on each result you can pass a simple component that checks the result before either rendering the original component or a new custom component. This example renders the custom component from above but only for results with the `post` post type:
+
+**JSX**
+```js
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResultForPosts', (Result) => {
+	return (props) => {
+		if (props.hit._source.post_type === 'post') {
+			return <CustomResult {...props} />;
+		}
+
+		return <Result {...props} />;
+	};
+});
+```
+**Plain**
+```js
+const el = wp.element.createElement;
+
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/customResultForPosts', (Result) => {
+	return (props) => {
+		if (props.hit._source.post_type === 'post') {
+			return el(CustomResult, props);
+		}
+
+		return el(Result, props);
+	};
+});
+```
+
+By returning a new component that wraps the original component you can customize the props that are passed to it. This example uses this approach to remove the post type label from results with the `page` post type:
+
+**JSX**
+```js
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/noTypeLabelsForPages', (Result) => {
+	return (props) => {
+		if (props.hit._source.post_type === 'page') {
+			return <Result {...props} type={null} />;
+		}
+
+		return <Result {...props} />;
+	};
+});
+```
+**Plain**
+```js
+const el = wp.element.createElement;
+
+wp.hooks.addFilter('ep.InstantResults.Result', 'myTheme/noTypeLabelsForPages', (Result) => {
+	return (props) => {
+		if (props.hit._source.post_type === 'page') {
+			return el(Result, {...props, type: null});
+		}
+
+		return el(Result, props);
+	};
+});
+```
+
+**Notes:**
+ - To take advantage of JavaScript hooks, make sure to set `wp-hooks` as a [dependency](https://developer.wordpress.org/reference/functions/wp_enqueue_script/#parameters) of your script.
+ - These examples use [JSX](https://reactjs.org/docs/introducing-jsx.html) to render for readability. Using JSX will require a build tool such as [@wordpress/scripts](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-scripts/) to compile it into a format that can be understood by the browser. To create a component without a build process you will need to use the more verbose `createElement` method of [@wordpress/element](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-element/).
 
 ### Styling Instant Results
 
@@ -212,3 +333,30 @@ The HTML classes used by Instant Results adhere to the BEM syntax and therefore 
 - `.ep-search-pagination-button` This is the component used for the Next and Previous page buttons. By default it will use the theme's default styling for `<button>` elements.
 
 All other components that can be styled, such as those used for layout, can be found by inspecting the markup of Instant Results with a browser's developer tools. New components may be added as more features and customization options are added to Instant Results.
+
+### Open Instant Results on Button Press
+
+By default the Instant Results modal will only be opened by submitting a WordPress search form, but you can manually open Instant Results from your theme or plugin by calling the `window.epInstantResults.openModal()` function. This allows you to open Instant Results in response to other events, such as clicking a button. Additionally, by passing certain parameters to the function you can set the initial search term, sorting and filters.
+
+The following parameters are supported by passing them to the `openModal()` function in an object:
+
+| Parameter                | Type                        | Description
+| ------------------------ | --------------------------- | ---------------------------------------------------------------------
+| search                   | string                      | Search term. Default `''`.
+| per_page                 | integer                     | Maximum number of items to be returned in result set.
+| tax-{$taxonomy}          | number[]                    | Filter results by taxonomy terms. Array of term IDs.
+| order                    | `asc\|desc`                 | Order results in ascending or descending order. Default `desc`.
+| orderby                  | `date\|relevance\|price`    | Order results by attribute. Default `relevance`.
+| post_type                | string                      | Filter results by post type. Comma separated list of post type slugs.
+
+This example uses the function to open the modal with a search for a specific search term when a button is clicked:
+
+```html
+<button id="search-blocks" type="button">Search for "Blocks"</button>
+
+<script>
+document.getElementById('search-blocks').addEventListener('click', () => {
+	window.epInstantResults.openModal({ search: "blocks" });
+});
+</script>
+```
