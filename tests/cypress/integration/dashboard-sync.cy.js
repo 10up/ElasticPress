@@ -32,7 +32,7 @@ describe('Dashboard Sync', () => {
 		if (cy.state('test').state === 'failed') {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 			cy.activatePlugin('elasticpress', 'wpCli');
-			cy.wpCli('wp elasticpress clear-index', true);
+			cy.wpCli('wp elasticpress clear-sync', true);
 		}
 	});
 
@@ -119,7 +119,7 @@ describe('Dashboard Sync', () => {
 		cy.activatePlugin('elasticpress', 'wpCli', 'network');
 
 		// Sync and remove, so EP doesn't think it is a fresh install.
-		cy.wpCli('wp elasticpress index --setup --yes');
+		cy.wpCli('wp elasticpress sync --setup --yes');
 		cy.wpCli('wp elasticpress delete-index --yes --network-wide');
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-health');
@@ -140,7 +140,7 @@ describe('Dashboard Sync', () => {
 			'We could not find any data for your Elasticsearch indices.',
 		);
 
-		cy.wpCli('elasticpress get-indexes').then((wpCliResponse) => {
+		cy.wpCli('elasticpress get-indices').then((wpCliResponse) => {
 			const indexes = JSON.parse(wpCliResponse.stdout);
 			cy.visitAdminPage('network/admin.php?page=elasticpress-health');
 			cy.get('.metabox-holder')
@@ -155,7 +155,7 @@ describe('Dashboard Sync', () => {
 		cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 		cy.activatePlugin('elasticpress', 'wpCli');
 
-		cy.wpCli('wp elasticpress index --setup --yes');
+		cy.wpCli('wp elasticpress sync --setup --yes');
 	});
 
 	it('Can pause the dashboard sync if left the page', () => {
@@ -212,7 +212,7 @@ describe('Dashboard Sync', () => {
 		cy.get('.ep-sync-button--pause').should('be.visible');
 		cy.get('.ep-sync-button--pause').click();
 
-		cy.wpCli('wp elasticpress index', true)
+		cy.wpCli('wp elasticpress sync', true)
 			.its('stderr')
 			.should('contain', 'An index is already occurring');
 
