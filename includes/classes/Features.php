@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils as Utils;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -105,11 +107,7 @@ class Features {
 
 		$original_state = $feature->is_active();
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
 
 		if ( empty( $feature_settings[ $slug ] ) ) {
 			// If doesn't exist, merge with feature defaults
@@ -184,11 +182,7 @@ class Features {
 		 * Save our current requirement statuses for later
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$old_requirement_statuses = get_site_option( 'ep_feature_requirement_statuses', false );
-		} else {
-			$old_requirement_statuses = get_option( 'ep_feature_requirement_statuses', false );
-		}
+		$old_requirement_statuses = Utils\get_option( 'ep_feature_requirement_statuses', false );
 
 		$new_requirement_statuses = [];
 
@@ -211,11 +205,7 @@ class Features {
 		 * If feature settings aren't created, let's create them and finish
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', false );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', false );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', false );
 
 		if ( false === $feature_settings ) {
 			$registered_features = $this->registered_features;

@@ -140,11 +140,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$active_features = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$active_features = get_option( 'ep_feature_settings', [] );
-		}
+		$active_features = Utils\get_option( 'ep_feature_settings', [] );
 
 		$key = array_search( $feature->slug, array_keys( $active_features ), true );
 
@@ -173,11 +169,8 @@ class Command extends WP_CLI_Command {
 	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$features = get_site_option( 'ep_feature_settings', [] );
-			} else {
-				$features = get_option( 'ep_feature_settings', [] );
-			}
+			$features = Utils\get_option( 'ep_feature_settings', [] );
+
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
 			foreach ( array_keys( $features ) as $feature_slug ) {
@@ -1237,11 +1230,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_search_algorithm_version( $args, $assoc_args ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$value = get_site_option( 'ep_search_algorithm_version', '' );
-		} else {
-			$value = get_option( 'ep_search_algorithm_version', '' );
-		}
+		$value = Utils\get_option( 'ep_search_algorithm_version', '' );
 
 		if ( empty( $value ) ) {
 			WP_CLI::line( 'default' );
