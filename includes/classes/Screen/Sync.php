@@ -142,6 +142,8 @@ class Sync {
 			true
 		);
 
+		wp_set_script_translations( 'ep_sync_scripts', 'elasticpress' );
+
 		wp_enqueue_style( 'wp-components' );
 		wp_enqueue_style( 'wp-edit-post' );
 

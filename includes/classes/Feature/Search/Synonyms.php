@@ -140,6 +140,8 @@ class Synonyms {
 			true
 		);
 
+		wp_set_script_translations( 'ep_synonyms_scripts', 'elasticpress' );
+
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(

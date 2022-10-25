@@ -75,6 +75,8 @@ class Widget extends WP_Widget {
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-comments', 'elasticpress' );
+
 		wp_enqueue_style(
 			'elasticpress-comments',
 			EP_URL . 'dist/css/comments-styles.css',

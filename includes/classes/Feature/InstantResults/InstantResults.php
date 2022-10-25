@@ -269,6 +269,8 @@ class InstantResults extends Feature {
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-instant-results', 'elasticpress' );
+
 		/**
 		 * The search API endpoint.
 		 *
@@ -318,6 +320,8 @@ class InstantResults extends Feature {
 			Utils\get_asset_info( 'instant-results-admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results-admin', 'elasticpress' );
 
 		wp_localize_script(
 			'elasticpress-instant-results-admin',

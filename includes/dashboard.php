@@ -466,6 +466,8 @@ function action_admin_enqueue_dashboard_scripts() {
 			true
 		);
 
+		wp_set_script_translations( 'ep_admin_sites_scripts', 'elasticpress' );
+
 		$data = [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( 'epsa' ),
@@ -488,6 +490,8 @@ function action_admin_enqueue_dashboard_scripts() {
 			Utils\get_asset_info( 'admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
@@ -498,6 +502,8 @@ function action_admin_enqueue_dashboard_scripts() {
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'install' ], true ) ) {
@@ -508,6 +514,8 @@ function action_admin_enqueue_dashboard_scripts() {
 			Utils\get_asset_info( 'dashboard-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_dashboard_scripts', 'elasticpress' );
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
@@ -540,6 +548,8 @@ function action_admin_enqueue_dashboard_scripts() {
 			Utils\get_asset_info( 'settings-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_settings_scripts', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
@@ -555,6 +565,8 @@ function action_admin_enqueue_dashboard_scripts() {
 			true
 		);
 
+		wp_set_script_translations( 'ep_stats', 'elasticpress' );
+
 		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
 
@@ -565,6 +577,8 @@ function action_admin_enqueue_dashboard_scripts() {
 		Utils\get_asset_info( 'notice-script', 'version' ),
 		true
 	);
+
+	wp_set_script_translations( 'ep_notice_script', 'elasticpress' );
 
 	wp_localize_script(
 		'ep_notice_script',

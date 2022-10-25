@@ -405,6 +405,8 @@ class Autosuggest extends Feature {
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-autosuggest', 'elasticpress' );
+
 		wp_enqueue_style(
 			'elasticpress-autosuggest',
 			EP_URL . 'dist/css/autosuggest-styles.css',

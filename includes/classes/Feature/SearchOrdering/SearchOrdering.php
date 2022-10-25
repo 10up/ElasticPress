@@ -421,6 +421,8 @@ class SearchOrdering extends Feature {
 				true
 			);
 
+			wp_set_script_translations( 'ep_ordering_scripts', 'elasticpress' );
+
 			wp_enqueue_style(
 				'ep_ordering_styles',
 				EP_URL . 'dist/css/ordering-styles.css',

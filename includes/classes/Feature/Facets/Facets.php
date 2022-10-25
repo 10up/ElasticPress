@@ -216,6 +216,8 @@ class Facets extends Feature {
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-facets', 'elasticpress' );
+
 		wp_register_style(
 			'elasticpress-facets',
 			EP_URL . 'dist/css/facets-styles.css',
