@@ -36,6 +36,7 @@ class AdminNotices {
 		'host_error',
 		'es_below_compat',
 		'es_above_compat',
+		'different_server_type',
 		'need_setup',
 		'no_sync',
 		'upgrade_sync',
@@ -288,12 +289,12 @@ class AdminNotices {
 		}
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you to reindex using WP-CLI.', 'elasticpress' );
+			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you delete all data and start a fresh sync using WP-CLI.', 'elasticpress' );
 		} else {
-			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">run a sync</a>.', 'elasticpress' ), esc_url( $url ) );
+			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">delete all data and start a fresh sync</a>.', 'elasticpress' ), esc_url( $url ) );
 		}
 
-		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the reindex has been performed.', 'elasticpress' );
+		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the full sync has been performed.', 'elasticpress' );
 
 		return [
 			'html'    => '<span class="dashicons dashicons-warning"></span> ' . $html . ' ' . $notice,
@@ -451,10 +452,10 @@ class AdminNotices {
 			return false;
 		}
 
-		// First reduce version to major version i.e. 5.1 not 5.1.1.
+		// First reduce version to major version i.e. 7.10 not 7.10.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
-		// pad a version to have at least two parts (5 -> 5.0)
+		// pad a version to have at least two parts (7 -> 7.0)
 		$parts = explode( '.', $major_es_version );
 
 		if ( 1 === count( $parts ) ) {
@@ -511,7 +512,7 @@ class AdminNotices {
 			return false;
 		}
 
-		// First reduce version to major version i.e. 5.1 not 5.1.1.
+		// First reduce version to major version i.e. 7.10 not 7.10.1.
 		$major_es_version = preg_replace( '#^([0-9]+\.[0-9]+).*#', '$1', $es_version );
 
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
@@ -521,6 +522,53 @@ class AdminNotices {
 				'dismiss' => true,
 			];
 		}
+	}
+
+	/**
+	 * Server software different from Elasticsearch warning.
+	 *
+	 * Type: warning
+	 * Dismiss: Anywhere
+	 * Show: All screens
+	 *
+	 * @since  4.2.1
+	 * @return array|bool
+	 */
+	protected function process_different_server_type_notice() {
+		if ( Utils\is_epio() ) {
+			return false;
+		}
+
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$server_type = Elasticsearch::factory()->get_server_type();
+
+		if ( false === $server_type || 'elasticsearch' === $server_type ) {
+			return false;
+		}
+
+		$dismiss = Utils\get_option( 'ep_hide_different_server_type_notice', false );
+
+		if ( $dismiss ) {
+			return false;
+		}
+
+		$doc_url = 'https://10up.github.io/ElasticPress/tutorial-compatibility.html';
+		$html    = sprintf(
+			/* translator: Document page URL */
+			__( 'Your server software is not supported. To learn more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
+			esc_url( $doc_url )
+		);
+
+		return [
+			'html'    => $html,
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
 	}
 
 	/**

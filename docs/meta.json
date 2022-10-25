@@ -2,6 +2,9 @@
     "install": {
         "title": "Install"
     },
+    "compatibility": {
+        "title": "Compatibility"
+    },
     "features": {
         "title": "Features"
     },
@@ -28,5 +31,8 @@
     },
     "theme-integration": {
         "title": "Theme Integration"
+    },
+    "indexing-process": {
+        "title": "Indexing Process"
     }
 }

@@ -5,8 +5,8 @@ import { debounce } from './utils/helpers';
  * the number of terms exceeds the threshold determined
  * by the ep_facet_search_threshold filter
  *
- * @param {event} event - keyup
- * @param {Node} facetTerms - terms node
+ * @param {event} event      - keyup
+ * @param {Node}  facetTerms - terms node
  */
 const handleFacetSearch = (event, facetTerms) => {
 	const { target } = event;
@@ -28,7 +28,7 @@ const handleFacetSearch = (event, facetTerms) => {
 /**
  * Filter facet choices to match the search field term
  */
-const facets = document.querySelectorAll('.widget_ep-facet');
+const facets = document.querySelectorAll('.widget_ep-facet, .wp-block-elasticpress-facet');
 
 facets.forEach((facet) => {
 	const facetSearchInput = facet.querySelector('.facet-search');

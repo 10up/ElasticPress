@@ -33,11 +33,15 @@ class QueryIntegration {
 	/**
 	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
 	 *
+	 * @param string $indexable_slug Indexable slug. Optional.
+	 *
 	 * @since 0.9
+	 * @since 3.6.0 Added $indexable_slug
 	 */
-	public function __construct() {
+	public function __construct( $indexable_slug = 'post' ) {
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
-		if ( Utils\is_indexing() && ! apply_filters( 'ep_enable_query_integration_during_indexing', false, $this ) ) {
+		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
 			return;
 		}
 
@@ -240,7 +244,9 @@ class QueryIntegration {
 		 * If not search and not set default to post. If not set and is search, use searchable post types
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			if ( empty( $query_vars['s'] ) ) {
+			if ( $query->is_tax() ) {
+				$query_vars['post_type'] = get_taxonomy( $query->get_queried_object()->taxonomy )->object_type;
+			} elseif ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';
 			} else {
 				$query_vars['post_type'] = array_values( get_post_types( array( 'exclude_from_search' => false ) ) );
@@ -306,8 +312,6 @@ class QueryIntegration {
 
 				$index = implode( ',', $index );
 			}
-
-			// VIP: Removed window size check since it lives in query_es() now
 
 			$ep_query = Indexables::factory()->get( 'post' )->query_es( $formatted_args, $query->query_vars, $index, $query );
 

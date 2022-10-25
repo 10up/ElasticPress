@@ -43,6 +43,12 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Dummy implementation of site unsetup method (for now)
+	 */
+	public function tear_down() {
+	}
+
+	/**
 	 * When whitelisted meta is updated/added/deleted, queue the object for reindex
 	 *
 	 * @param  int       $meta_id Meta id.
@@ -72,7 +78,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( ! current_user_can( 'edit_user', $user_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $user_id, 'user' ) ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
 		}
 
@@ -90,7 +96,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( ! current_user_can( 'edit_user', $user_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $user_id, 'user' ) ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
 			return;
 		}
 

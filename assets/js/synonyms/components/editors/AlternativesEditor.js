@@ -1,13 +1,20 @@
-import React, { Fragment, useContext } from 'react';
-import AlternativeEditor from './AlternativeEditor';
+/**
+ * WordPress dependencies.
+ */
+import { Fragment, useContext, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch, State } from '../../context';
+import AlternativeEditor from './AlternativeEditor';
 
 /**
  * Synonyms editor component.
  *
- * @param {Object} props Props.
- * @param {Object[]} props.alternatives Defined alternatives (explicit mappings).
- * @return {React.FC} AlternativesEditor component
+ * @param {object}   props              Props.
+ * @param {object[]} props.alternatives Defined alternatives (explicit mappings).
+ * @returns {WPElement} AlternativesEditor component
  */
 const AlternativesEditor = ({ alternatives }) => {
 	const dispatch = useContext(Dispatch);
@@ -22,7 +29,7 @@ const AlternativesEditor = ({ alternatives }) => {
 	/**
 	 * Handle click.
 	 *
-	 * @param {React.SyntheticEvent} e Event.
+	 * @param {Event} e Event.
 	 */
 	const handleClick = (e) => {
 		const [lastItem] = state.alternatives.slice(-1);

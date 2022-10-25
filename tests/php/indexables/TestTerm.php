@@ -47,6 +47,15 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Get Term feature
+	 *
+	 * @return ElasticPress\Feature\Terms
+	 */
+	protected function get_feature() {
+		return ElasticPress\Features::factory()->get_registered_feature( 'terms' );
+	}
+
+	/**
 	 * Create and index terms for testing
 	 *
 	 * @since 3.3
@@ -97,43 +106,6 @@ class TestTerm extends BaseTestCase {
 		foreach ( $terms as $term ) {
 			wp_delete_term( $term->term_id, $term->taxonomy );
 		}
-	}
-
-	/**
-	 * Test the building of index mappings
-	 * 
-	 * @since 3.6
-	 * @group term
-	 */
-	public function testTermBuildMapping() {
-		$mapping_and_settings = ElasticPress\Indexables::factory()->get( 'term' )->build_mapping();
-
-		// The mapping is currently expected to have both `mappings` and `settings` elements
-		$this->assertArrayHasKey( 'settings', $mapping_and_settings, 'Built mapping is missing settings array' );
-		$this->assertArrayHasKey( 'mappings', $mapping_and_settings, 'Built mapping is missing mapping array' );
-	}
-
-	/**
-	 * Test the building of index settings
-	 * 
-	 * @since 3.6
-	 * @group post
-	 */
-	public function testTermBuildSettings() {
-		$settings = ElasticPress\Indexables::factory()->get( 'term' )->build_settings();
-
-		$expected_keys = array(
-			'index.mapping.total_fields.limit',
-			'index.max_result_window',
-			'index.max_shingle_diff',
-			'analysis',
-		);
-
-		$actual_keys = array_keys( $settings );
-
-		$diff = array_diff( $expected_keys, $actual_keys );
-
-		$this->assertEquals( $diff, array() );
 	}
 
 	/**
@@ -1576,4 +1548,84 @@ class TestTerm extends BaseTestCase {
 		$this->assertTrue( $term_query->elasticsearch_success );
 		$this->assertEquals( 0, $term_query->found_terms );
 	}
+
+	/**
+	 * Test integration with Term Queries.
+	 */
+	public function testIntegrateSearchQueries() {
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
+
+		$query = new \WP_Term_Query( [
+			'ep_integrate' => false
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Term_Query( [
+			'ep_integrate' => 0
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Term_Query( [
+			'ep_integrate' => 'false'
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_Term_Query( [
+			'search' => 'term'
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+	}
+
+	/**
+	 * Tests terms without meta value.
+	 *
+	 * @return void
+	 */
+	public function testMetaWithoutValue() {
+
+		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'category' );
+		update_term_meta( $term_id, 'test_key', 'value' );
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+
+		$term_id = Functions\create_and_sync_term( 'term-name-2', 'term name 2', '', 'category' );
+		update_term_meta( $term_id, 'test_key', 'value' );
+		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
+
+		Functions\create_and_sync_term( 'term-name-3', 'term name 3', '', 'category' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Make sure WP_Term_Query returns only taxonomies for whom meta exists.
+		$args = array(
+			'taxonomy'     => 'category',
+			'meta_key'     => 'test_key',
+			'ep_integrate' => true,
+			'hide_empty'   => false,
+
+		);
+		$query = new \WP_Term_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, count( $query->terms ) );
+
+		// Make sure get_terms returns only taxonomies for whom meta exists.
+		$args  = array(
+			'taxonomy'     => 'category',
+			'hide_empty'   => false,
+			'ep_integrate' => true,
+			'meta_query'   => array(
+				array(
+					'key' => 'test_key',
+				),
+			),
+		);
+		$terms = get_terms( $args );
+		$this->assertTrue( $terms[0]->elasticsearch );
+		$this->assertEquals( 2, count( $terms ) );
+	}
+
 }

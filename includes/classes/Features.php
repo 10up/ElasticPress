@@ -139,6 +139,7 @@ class Features {
 		update_option( 'ep_feature_settings', $sanitize_feature_settings );
 
 		$data = array(
+			'active'  => $sanitize_feature_settings[ $slug ]['active'],
 			'reindex' => false,
 		);
 

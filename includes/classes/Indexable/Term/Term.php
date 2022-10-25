@@ -43,7 +43,7 @@ class Term extends Indexable {
 		];
 
 		$this->sync_manager      = new SyncManager( $this->slug );
-		$this->query_integration = new QueryIntegration();
+		$this->query_integration = new QueryIntegration( $this->slug );
 	}
 
 	/**
@@ -478,7 +478,7 @@ class Term extends Indexable {
 				'key' => $query_vars['meta_key'],
 			];
 
-			if ( isset( $query_vars['meta_value'] ) ) {
+			if ( isset( $query_vars['meta_value'] ) && '' !== $query_vars['meta_value'] ) {
 				$meta_query_array['value'] = $query_vars['meta_value'];
 			}
 
@@ -579,24 +579,12 @@ class Term extends Indexable {
 	}
 
 	/**
-	 * Put mapping for terms
+	 * Generate the mapping array
 	 *
-	 * @since  3.1
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->build_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
-
-	/**
-	 * Build mapping for terms
-	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return array
 	 */
-	public function build_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -632,18 +620,6 @@ class Term extends Indexable {
 		$mapping = apply_filters( 'ep_term_mapping', $mapping );
 
 		return $mapping;
-	}
-
-	/**
-	 * Build settings for an index
-	 *
-	 * @since  3.6
-	 * @return array
-	 */
-	public function build_settings() {
-		$mapping_and_settings = $this->build_mapping();
-
-		return $mapping_and_settings['settings'];
 	}
 
 	/**
@@ -1032,10 +1008,6 @@ class Term extends Indexable {
 					$es_field_name = 'meta.' . $args['meta_key'] . '.long';
 				}
 
-				break;
-
-			case 'description':
-				$es_field_name = 'description.sortable';
 				break;
 
 			case 'parent':

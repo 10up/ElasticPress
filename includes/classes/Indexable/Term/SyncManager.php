@@ -46,6 +46,22 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Un-setup actions and filters (for multisite).
+	 *
+	 * @since 4.0
+	 */
+	public function tear_down() {
+		remove_action( 'created_term', [ $this, 'action_sync_on_update' ] );
+		remove_action( 'edited_terms', [ $this, 'action_sync_on_update' ] );
+		remove_action( 'added_term_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'deleted_term_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'updated_term_meta', [ $this, 'action_queue_meta_sync' ] );
+		remove_action( 'pre_delete_term', [ $this, 'action_queue_children_sync' ] );
+		remove_action( 'pre_delete_term', [ $this, 'action_sync_on_delete' ] );
+		remove_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ] );
+	}
+
+	/**
 	 * Sync ES index with changes to the term being saved
 	 *
 	 * @param int $term_id Term ID.
@@ -56,7 +72,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( ! current_user_can( 'edit_term', $term_id ) && ! apply_filters( 'ep_sync_insert_permissions_bypass', false, $term_id, 'term' ) ) {
+		if ( ! current_user_can( 'edit_term', $term_id ) ) {
 			return;
 		}
 
@@ -173,7 +189,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		if ( ! current_user_can( 'delete_term', $term_id ) && ! apply_filters( 'ep_sync_delete_permissions_bypass', false, $term_id, 'term' ) ) {
+		if ( ! current_user_can( 'delete_term', $term_id ) ) {
 			return;
 		}
 

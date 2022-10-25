@@ -134,7 +134,7 @@ class User extends Indexable {
 
 			// If there are no specific roles named, make sure the user is a member of the site.
 			if ( empty( $query_vars['role'] ) && empty( $query_vars['role__in'] ) && empty( $query_vars['role__not_in'] ) ) {
-				$filter['bool']['must'][]     = array(
+				$filter['bool']['must'][] = array(
 					'exists' => array(
 						'field' => 'capabilities.' . $blog_id . '.roles',
 					),
@@ -170,8 +170,6 @@ class User extends Indexable {
 							'capabilities.' . $blog_id . '.roles' => $roles_in,
 						),
 					);
-
-					$use_filters = true;
 				}
 
 				if ( ! empty( $query_vars['role__not_in'] ) ) {
@@ -226,8 +224,13 @@ class User extends Indexable {
 		 * Support `fields` query var.
 		 */
 		if ( isset( $query_vars['fields'] ) && 'all' !== $query_vars['fields'] && 'all_with_meta' !== $query_vars['fields'] ) {
+			$fields      = (array) $query_vars['fields'];
+			$id_position = array_search( 'id', $fields, true );
+			if ( false !== $id_position ) {
+				$fields[ $id_position ] = 'ID';
+			}
 			$formatted_args['_source'] = [
-				'includes' => (array) $query_vars['fields'],
+				'includes' => $fields,
 			];
 		}
 
@@ -612,7 +615,6 @@ class User extends Indexable {
 		 * include
 		 * login__in
 		 * nicename__in
-		 * user_registered registered
 		 * post_count
 		 */
 
@@ -621,6 +623,12 @@ class User extends Indexable {
 		}
 
 		$sort = [];
+
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
+
+		$unsupported_clauses = [ 'rand', 'include', 'login__in', 'nicename__in', 'post_count' ];
 
 		foreach ( $orderby as $key => $value ) {
 			if ( is_string( $key ) ) {
@@ -631,73 +639,72 @@ class User extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
-				if ( 'relevance' === $orderby_clause ) {
-					$sort[] = array(
-						'_score' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_login' === $orderby_clause || 'login' === $orderby_clause ) {
-					$sort[] = array(
-						'user_login.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'ID' === $orderby_clause ) {
-					$sort[] = array(
-						'ID' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'display_name' === $orderby_clause || 'name' === $orderby_clause ) {
-					$sort[] = array(
-						'display_name.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_nicename' === $orderby_clause || 'nicename' === $orderby_clause ) {
-					$sort[] = array(
-						'user_nicename.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_email' === $orderby_clause || 'email' === $orderby_clause ) {
-					$sort[] = array(
-						'user_email.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_url' === $orderby_clause || 'url' === $orderby_clause ) {
-					$sort[] = array(
-						'user_url.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'meta_value' === $orderby_clause ) {
-					if ( ! empty( $query_vars['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.raw' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} elseif ( 'meta_value_num' === $orderby_clause ) {
-					if ( ! empty( $query_vars['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.long' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} else {
-					$sort[] = array(
-						$orderby_clause => array(
-							'order' => $order,
-						),
-					);
-				}
+			if ( empty( $orderby_clause ) || in_array( $orderby_clause, $unsupported_clauses, true ) ) {
+				continue;
 			}
+
+			switch ( $orderby_clause ) {
+				case 'relevance':
+					$orderby_field = '_score';
+					break;
+
+				case 'user_login':
+				case 'login':
+					$orderby_field = 'user_login.raw';
+					break;
+
+				case 'ID':
+				case 'id':
+					$orderby_field = 'ID';
+					break;
+
+				case 'display_name':
+				case 'name':
+					$orderby_field = 'display_name.sortable';
+					break;
+
+				case 'nicename':
+				case 'user_nicename':
+					$orderby_field = 'user_nicename.raw';
+					break;
+
+				case 'user_email':
+				case 'email':
+					$orderby_field = 'user_email.raw';
+					break;
+
+				case 'user_url':
+				case 'url':
+					$orderby_field = 'user_url.raw';
+					break;
+
+				case 'user_registered':
+				case 'registered':
+					$orderby_field = 'user_registered';
+					break;
+
+				case 'meta_value':
+					if ( ! empty( $query_vars['meta_key'] ) ) {
+						$orderby_field = 'meta.' . $query_vars['meta_key'] . '.raw';
+					}
+					break;
+
+				case 'meta_value_num':
+					if ( ! empty( $query_vars['meta_key'] ) ) {
+						$orderby_field = 'meta.' . $query_vars['meta_key'] . '.long';
+					}
+					break;
+
+				default:
+					$orderby_field = $orderby_clause;
+					break;
+			}
+
+			$sort[] = array(
+				$orderby_field => array(
+					'order' => $order,
+				),
+			);
 		}
 
 		return $sort;
@@ -757,24 +764,12 @@ class User extends Indexable {
 	}
 
 	/**
-	 * Put mapping for users
+	 * Generate the mapping array
 	 *
-	 * @since  3.0
-	 * @return boolean
-	 */
-	public function put_mapping() {
-		$mapping = $this->build_mapping();
-
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
-	}
-
-	/**
-	 * Build mapping for users
-	 *
-	 * @since  3.6
+	 * @since  3.6.0
 	 * @return array
 	 */
-	public function build_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 		if ( empty( $es_version ) ) {
 			/**
@@ -816,18 +811,6 @@ class User extends Indexable {
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
 
 		return $mapping;
-	}
-
-	/**
-	 * Build settings for an index
-	 *
-	 * @since  3.6
-	 * @return array
-	 */
-	public function build_settings() {
-		$mapping_and_settings = $this->build_mapping();
-
-		return $mapping_and_settings['settings'];
 	}
 
 	/**

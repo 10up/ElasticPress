@@ -60,6 +60,15 @@ class TestUser extends BaseTestCase {
 	}
 
 	/**
+	 * Get User feature
+	 *
+	 * @return ElasticPress\Feature\Users
+	 */
+	protected function get_feature() {
+		return ElasticPress\Features::factory()->get_registered_feature( 'users' );
+	}
+
+	/**
 	 * Create and index users for testing
 	 *
 	 * @since 3.0
@@ -133,46 +142,6 @@ class TestUser extends BaseTestCase {
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
-	}
-
-	/**
-	 * Test the building of index mappings
-	 *
-	 * @since 3.6
-	 * @group user
-	 */
-	public function testUserBuildMapping() {
-		$mapping_and_settings = ElasticPress\Indexables::factory()->get( 'user' )->build_mapping();
-
-		// The mapping is currently expected to have both `mappings` and `settings` elements
-		$this->assertArrayHasKey( 'settings', $mapping_and_settings, 'Built mapping is missing settings array' );
-		$this->assertArrayHasKey( 'mappings', $mapping_and_settings, 'Built mapping is missing mapping array' );
-	}
-
-	/**
-	 * Test the building of index settings
-	 *
-	 * @since 3.6
-	 * @group post
-	 */
-	public function testUserBuildSettings() {
-		$settings = ElasticPress\Indexables::factory()->get( 'user' )->build_settings();
-
-		$expected_keys = array(
-			'index.number_of_shards',
-			'index.number_of_replicas',
-			'index.mapping.total_fields.limit',
-			'index.max_shingle_diff',
-			'index.max_result_window',
-			'index.mapping.ignore_malformed',
-			'analysis',
-		);
-
-		$actual_keys = array_keys( $settings );
-
-		$diff = array_diff( $expected_keys, $actual_keys );
-
-		$this->assertEquals( $diff, array() );
 	}
 
 	/**
@@ -1436,6 +1405,92 @@ class TestUser extends BaseTestCase {
 		for ( $i = 0; $i < 5; $i++ ) {
 			$this->assertSame( absint( $users[ $i ]->ID ), absint( $ep_users[ $i ]->ID ) );
 			$this->assertSame( $users[ $i ]->display_name, $ep_users[ $i ]->display_name );
+		}
+	}
+
+	/**
+	 * Test integration with User Queries.
+	 */
+	public function testIntegrateSearchQueries() {
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
+
+		$query = new \WP_User_Query( [
+			'ep_integrate' => false
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_User_Query( [
+			'ep_integrate' => 0
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_User_Query( [
+			'ep_integrate' => 'false'
+		] );
+
+		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
+
+		$query = new \WP_User_Query( [
+			'search' => 'user'
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+	}
+
+	/**
+	 * Test users that does not belong to any blog.
+	 *
+	 * @since 4.1.0
+	 */
+	public function testUserSearchLimitedToOneBlog() {
+		// This user does not belong to any blog.
+		Functions\create_and_sync_user(
+			[
+				'user_login'   => 'users-and-blogs-1',
+				'role'         => '',
+				'first_name'   => 'No Blog',
+				'last_name'    => 'User',
+				'user_email'   => 'no-blog@test.com',
+				'user_url'     => 'http://domain.test',
+			]
+		);
+		Functions\create_and_sync_user(
+			[
+				'user_login'   => 'users-and-blogs-2',
+				'role'         => 'contributor',
+				'first_name'   => 'Blog',
+				'last_name'    => 'User',
+				'user_email'   => 'blog@test.com',
+				'user_url'     => 'http://domain.test',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Here `blog_id` defaults to `get_current_blog_id()`.
+		$query = new \WP_User_Query( [
+			'search' => 'users-and-blogs'
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+		$this->assertEquals( 1, $query->total_users );
+		foreach ( $query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
+		}
+
+		// Search accross all blogs.
+		$query = new \WP_User_Query( [
+			'search'  => 'users-and-blogs',
+			'blog_id' => 0,
+		] );
+
+		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
+		$this->assertEquals( 2, $query->total_users );
+		foreach ( $query->results as $user ) {
+			$this->assertTrue( $user->elasticsearch );
 		}
 	}
 }

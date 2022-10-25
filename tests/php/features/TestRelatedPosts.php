@@ -90,7 +90,40 @@ class TestRelatedPosts extends BaseTestCase {
 		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id );
 		$this->assertEquals( 2, count( $related ) );
 		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
+
+		// Make sure it will use the number of posts to be returned.
+		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, 1 );
+		$this->assertEquals( 1, count( $related ) );
+		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
+
 		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
+	}
+
+	/**
+	 * Test for related posts query
+	 *
+	 * @group related_posts
+	 */
+	public function testGetRelatedQuery() {
+		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+
+		$related_post_title = 'related post test';
+		Functions\create_and_sync_post( array(
+				'post_title'   => $related_post_title,
+				'post_content' => 'findme test 2'
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		ElasticPress\Features::factory()->activate_feature( 'related_posts' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$query = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->get_related_query( $post_id, 1 );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNotEmpty( $query->posts );
+		$this->assertEquals( '1', $query->post_count );
+		$this->assertEquals( $related_post_title, $query->posts[0]->post_title );
 	}
 
 	/**

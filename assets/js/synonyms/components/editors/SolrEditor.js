@@ -1,10 +1,17 @@
-import React, { useContext } from 'react';
+/**
+ * WordPress dependencies.
+ */
+import { useContext, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { State, Dispatch } from '../../context';
 
 /**
  * Synonym Inspector
  *
- * @return {React.FC} SolrEditor Component
+ * @returns {WPElement} SolrEditor Component
  */
 const SolrEditor = () => {
 	const state = useContext(State);

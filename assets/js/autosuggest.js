@@ -1,4 +1,8 @@
 /* eslint-disable camelcase, no-underscore-dangle, no-use-before-define */
+
+/**
+ * Internal dependencies.
+ */
 import {
 	findAncestorByClass,
 	escapeDoubleQuotes,
@@ -6,9 +10,6 @@ import {
 	debounce,
 	domReady,
 } from './utils/helpers';
-import 'element-closest';
-import 'promise-polyfill/src/polyfill';
-import 'whatwg-fetch';
 
 const { epas } = window;
 
@@ -39,7 +40,7 @@ function submitSearchForm(input) {
  * Set the expanded aria state on the input
  *
  * @param {boolean} haveOptions - whether or not the autosuggest list contains results
- * @param {Node} input - search input
+ * @param {Node}    input       - search input
  */
 function toggleInputAria(haveOptions, input) {
 	input.setAttribute('aria-expanded', haveOptions);
@@ -48,8 +49,8 @@ function toggleInputAria(haveOptions, input) {
 /**
  * Set the active descendant aria attribute input
  *
- * @param {string} id - id of the currently selected element
- * @param {Node} input - search input
+ * @param {string} id    - id of the currently selected element
+ * @param {Node}   input - search input
  */
 function setInputActiveDescendant(id, input) {
 	input.setAttribute('aria-activedescendant', id);
@@ -58,8 +59,8 @@ function setInputActiveDescendant(id, input) {
 /**
  * Take selected item and fill the search input
  *
- * @param {Node} input - input element
- * @param {string} text - new input value
+ * @param {Node}   input - input element
+ * @param {string} text  - new input value
  */
 function selectAutosuggestItem(input, text) {
 	input.value = text; // eslint-disable-line no-param-reassign
@@ -69,7 +70,7 @@ function selectAutosuggestItem(input, text) {
  * Fires events when autosuggest results are clicked,
  * and if GA tracking is activated
  *
- * @param {Object} detail - value to pass on to the Custom Event
+ * @param {object} detail - value to pass on to the Custom Event
  */
 function triggerAutosuggestEvent(detail) {
 	const event = new CustomEvent('ep-autosuggest-click', { detail });
@@ -95,7 +96,7 @@ function triggerAutosuggestEvent(detail) {
  * event hook for JS customizations, like GA
  *
  * @param {string} searchTerm - user defined search term
- * @param {string} url - post url from dataset in search result
+ * @param {string} url        - post url from dataset in search result
  */
 function goToAutosuggestItem(searchTerm, url) {
 	const detail = {
@@ -112,9 +113,9 @@ function goToAutosuggestItem(searchTerm, url) {
  * If epas.action is set to "navigate" (the default), redirects the browser to the URL of the selected item
  * If epas.action is set to any other value (such as "search"), fill in the value and perform the search
  *
- * @param {Node} input - search input
+ * @param {Node} input   - search input
  * @param {Node} element - search term result item
- * @return {Function} calls the submitSearchForm function
+ * @returns {Function} calls the submitSearchForm function
  */
 function selectItem(input, element) {
 	if (epas.action === 'navigate') {
@@ -129,7 +130,7 @@ function selectItem(input, element) {
  * Build the search query from the search text - the query is generated in PHP
  * and passed into the front end as window.epas = { "query...
  *
- * @return {string} json string
+ * @returns {string} json string
  */
 function getJsonQuery() {
 	if (typeof window.epas === 'undefined') {
@@ -146,11 +147,11 @@ function getJsonQuery() {
 /**
  * Build the search query from the search text
  *
- * @param {string} searchText - user search string
- * @param {string} placeholder - placeholder text to replace
- * @param {Object} options - Autosuggest settings
+ * @param {string} searchText    - user search string
+ * @param {string} placeholder   - placeholder text to replace
+ * @param {object} options       - Autosuggest settings
  * @param {string} options.query - JSON query string to pass to ElasticSearch
- * @return {string} json representation of search query
+ * @returns {string} json representation of search query
  */
 function buildSearchQuery(searchText, placeholder, { query }) {
 	const newQuery = replaceGlobally(query, placeholder, searchText);
@@ -160,9 +161,9 @@ function buildSearchQuery(searchText, placeholder, { query }) {
 /**
  * Build the ajax request
  *
- * @param {string} query - json string
+ * @param {string} query      - json string
  * @param {string} searchTerm - user search term
- * @return {Object} AJAX object request
+ * @returns {object} AJAX object request
  */
 async function esSearch(query, searchTerm) {
 	const fetchConfig = {
@@ -186,7 +187,8 @@ async function esSearch(query, searchTerm) {
 	}
 
 	try {
-		const response = await window.fetch(epas.endpointUrl, fetchConfig);
+		const response = await fetch(epas.endpointUrl, fetchConfig);
+
 		if (!response.ok) {
 			throw Error(response.statusText);
 		}
@@ -210,9 +212,9 @@ async function esSearch(query, searchTerm) {
 /**
  * Update the auto suggest box with new options or hide if none
  *
- * @param {Array} options - search results
- * @param {string} input - search string
- * @return {boolean} return true
+ * @param {Array}  options - search results
+ * @param {string} input   - search string
+ * @returns {boolean} return true
  */
 function updateAutosuggestBox(options, input) {
 	let i;
@@ -296,7 +298,7 @@ function updateAutosuggestBox(options, input) {
 /**
  * Hide the auto suggest box
  *
- * @return {boolean} returns true
+ * @returns {boolean} returns true
  */
 function hideAutosuggestBox() {
 	const lists = document.querySelectorAll('.autosuggest-list');
@@ -321,9 +323,9 @@ function hideAutosuggestBox() {
 /**
  * Checks for any manually ordered posts and puts them in the correct place
  *
- * @param {Array} hits - ES results
+ * @param {Array}  hits       - ES results
  * @param {string} searchTerm - user search term
- * @return {Object} formatted hits
+ * @returns {object} formatted hits
  */
 function checkForOrderedPosts(hits, searchTerm) {
 	const toInsert = {};
@@ -370,7 +372,7 @@ function checkForOrderedPosts(hits, searchTerm) {
  * Add class to the form element while suggestions are being loaded
  *
  * @param {boolean} isLoading - whether suggestions are loading
- * @param {Node} input - search input field
+ * @param {Node}    input     - search input field
  */
 function setFormIsLoading(isLoading, input) {
 	const form = input.closest('form');
@@ -425,7 +427,7 @@ function init() {
 		/**
 		 * helper function to get the currently selected result
 		 *
-		 * @return {number} index of the selected search result
+		 * @returns {number} index of the selected search result
 		 */
 		const getSelectedResultIndex = () => {
 			const resultsArr = Array.from(results);
@@ -478,7 +480,7 @@ function init() {
 				}
 				break;
 			case 13: // Enter
-				if (results[currentIndex].classList.contains('selected')) {
+				if (results[currentIndex]?.classList.contains('selected')) {
 					// navigate to the item defined in the span's data-url attribute
 					selectItem(input, results[currentIndex].querySelector('.autosuggest-link'));
 				}
@@ -506,7 +508,7 @@ function init() {
 	 * Get the searched post types from the search form.
 	 *
 	 * @param {HTMLFormElement} form - form containing the search input field
-	 * @return {Array} - post types
+	 * @returns {Array} - post types
 	 * @since 3.6.0
 	 */
 	function getPostTypesFromForm(form) {
@@ -615,7 +617,7 @@ function init() {
 	 * Wrap an element with an autosuggest container.
 	 *
 	 * @param {Element} element Element to wrap.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const wrapInAutosuggestContainer = (element) => {
 		const epContainer = document.createElement('div');
@@ -631,7 +633,7 @@ function init() {
 	 * Insert an autosuggest list after an element.
 	 *
 	 * @param {Element} element Element to add the autosuggest list after.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const insertAutosuggestElement = (element) => {
 		if (!autosuggestElement) {
@@ -655,7 +657,7 @@ function init() {
 	 * Prepare an input for Autosuggest.
 	 *
 	 * @param {Element} input Input to prepare.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const prepareInputForAutosuggest = (input) => {
 		/**
@@ -709,7 +711,7 @@ function init() {
 	 * Find inputs within an element and prepare them for Autosuggest.
 	 *
 	 * @param {Element} element Element to find inputs within.
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const findAndPrepareInputsForAutosuggest = (element) => {
 		const inputs = element.querySelectorAll(selectors);
@@ -723,7 +725,7 @@ function init() {
 	 * Observe the document for new potential Autosuggest inputs, and add
 	 * Autosuggest to any found inputs.
 	 *
-	 * @return {void}
+	 * @returns {void}
 	 */
 	const observeDocumentForInputs = () => {
 		const target = document.body;

@@ -26,6 +26,7 @@ class Weighting {
 		 * Filter to disable loading of Search weighting engine.
 		 *
 		 * @hook ep_disable_search_weighting
+		 * @since 4.0
 		 * @param bool Whether to disable search weighting engine. Defaults to false.
 		 * @return bool Whether to disable search weighting engine.
 		 */
@@ -36,6 +37,7 @@ class Weighting {
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
 		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
+		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
 	}
 
 	/**
@@ -544,15 +546,17 @@ class Weighting {
 			$weights = $weight_config[ $post_type ];
 		}
 
-		$weights = array_diff_key( $weights, $ignore_keys );
+		$fields = array_diff_key( $weights, $ignore_keys );
 
-		$found_enabled = array_search( true, array_column( $weights, 'enabled' ), true );
-
-		if ( false !== $found_enabled ) {
-			return true;
+		$found_enabled = false;
+		foreach ( $fields as $field ) {
+			if ( filter_var( $field['enabled'], FILTER_VALIDATE_BOOLEAN ) ) {
+				$found_enabled = true;
+				break;
+			}
 		}
 
-		return false;
+		return $found_enabled;
 	}
 
 	/**
@@ -591,7 +595,7 @@ class Weighting {
 		 * Filter whether to enable weighting configuration
 		 *
 		 * @hook ep_enable_do_weighting
-		 * @since 4.3.0
+		 * @since 4.2.2
 		 * @param  {bool}  Whether to enable weight config, defaults to true for search requests that are public or REST
 		 * @param  {array} $weight_config Current weight config
 		 * @param  {array} $args WP Query arguments
@@ -608,7 +612,7 @@ class Weighting {
 	/**
 	 * Applies weighting based on ES args
 	 *
-	 * @since 4.3.0
+	 * @since 4.2.2
 	 * @param array $formatted_args Formatted ES args
 	 * @param array $args WP_Query args
 	 * @param array $weight_config Weight configuration to apply
@@ -703,5 +707,23 @@ class Weighting {
 		do_action( 'ep_weighting_added', $formatted_args, $args );
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Adjust weighting when the type is cross_fields, as it just works with weight = 1.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param string $weighted_field The field and its weight as used in the ES query.
+	 * @param string $field          Field name
+	 * @param string $weight         Weight value
+	 * @param array  $fieldset       Current subset of formatted ES args
+	 * @return array New weighted field string
+	 */
+	public function adjust_weight_for_cross_fields( $weighted_field, $field, $weight, $fieldset ) {
+		if ( ! empty( $fieldset['type'] ) && 'cross_fields' === $fieldset['type'] ) {
+			$weighted_field = "{$field}^1";
+		}
+		return $weighted_field;
 	}
 }

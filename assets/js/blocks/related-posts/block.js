@@ -1,9 +1,16 @@
+/**
+ * WordPress dependencies.
+ */
+import { registerBlockType } from '@wordpress/blocks';
+import { __ } from '@wordpress/i18n';
+
+/**
+ * Internal dependencies.
+ */
 import Edit from './Edit';
 
-const { registerBlockType } = wp.blocks;
-
 registerBlockType('elasticpress/related-posts', {
-	title: 'Related Posts (ElasticPress)',
+	title: __('Related Posts (ElasticPress)', 'elasticpress'),
 	supports: {
 		align: true,
 	},
@@ -18,12 +25,13 @@ registerBlockType('elasticpress/related-posts', {
 			default: 5,
 		},
 	},
+	usesContext: ['postId'],
 
 	/**
 	 * Handle edit
 	 *
-	 * @param {Object} props Component properties
-	 * @return {Object} <Edit {...props} />
+	 * @param {object} props Component properties
+	 * @returns {object} <Edit {...props} />
 	 */
 	edit(props) {
 		return <Edit {...props} />;
@@ -32,7 +40,7 @@ registerBlockType('elasticpress/related-posts', {
 	/**
 	 * Handle save
 	 *
-	 * @return {void}
+	 * @returns {void}
 	 */
 	save() {
 		return null;

@@ -173,13 +173,11 @@ class TestUtils extends BaseTestCase {
 	public function testIsIndexing() {
 
 		// VIP: Removed test for network site block since we use per-site block
-		update_option( 'ep_index_meta', [] );
-		set_transient( 'ep_wpcli_sync', true, 900 );
+		update_option( 'ep_index_meta', [ 'method' => 'test' ] );
 
 		$this->assertTrue( ElasticPress\Utils\is_indexing() );
 
 		delete_option( 'ep_index_meta' );
-		delete_transient( 'ep_wpcli_sync' );
 
 		$this->assertFalse( ElasticPress\Utils\is_indexing() );
 	}

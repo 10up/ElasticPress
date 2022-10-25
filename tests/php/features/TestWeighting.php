@@ -303,6 +303,45 @@ class TestWeighting extends BaseTestCase {
 		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'page' ) );
 	}
 
+	/**
+	 * Check if `post_type_has_fields()` behaves correctly when using the `ep_weighting_configuration_for_search` filter.
+	 *
+	 * @since 4.1.0
+	 */
+	public function testPostTypeHasFieldsWithCustomConfigViaFilter() {
+		$function = function() {
+			return [
+				'page' => [],
+				'post' => [
+					'post_title' => [
+						'enabled' => 'on',
+						'weight'  => 1
+					]
+				],
+				'test' => [
+					'post_title' => [
+						'enabled' => true,
+						'weight'  => 1
+					]
+				],
+				'test-2' => [
+					'post_title' => [
+						'enabled' => 10, // This is not considered a "truthy" value
+						'weight'  => 1
+					]
+				],
+			];
+		};
+		add_filter( 'ep_weighting_configuration_for_search', $function );
+
+		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'post' ) );
+		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'page' ) );
+		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'test' ) );
+		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'test-2' ) );
+
+		remove_filter( 'ep_weighting_configuration_for_search', $function );
+	}
+
 	public function testDoWeightingWithQueryContainsSearchFields() {
 		// Test search fields are set on the query.
 		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['search_fields' => [ 'post_title' ] ] ) );

@@ -8,6 +8,8 @@
 
 namespace ElasticPress\Utils;
 
+use ElasticPress\IndexHelper;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -107,7 +109,7 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return preg_match( '#elasticpress\.io#i', get_host() );
+	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
 }
 
 /**
@@ -159,11 +161,6 @@ function sanitize_credentials( $credentials ) {
  * @return boolean
  */
 function is_indexing() {
-	// VIP: Removed network site block and use per-site block instead to
-	// be able to index multiple sites on a network
-	$index_meta = get_option( 'ep_index_meta', false );
-	$wpcli_sync = get_transient( 'ep_wpcli_sync' );
-
 	/**
 	 * Filter whether an index is occurring in dashboard or CLI
 	 *
@@ -172,7 +169,7 @@ function is_indexing() {
 	 * @param  {bool} $indexing True for indexing
 	 * @return {bool} New indexing value
 	 */
-	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) || ! empty( $wpcli_sync ) ) );
+	return apply_filters( 'ep_is_indexing', ! empty( IndexHelper::factory()->get_index_meta() ) );
 }
 
 /**
@@ -182,34 +179,17 @@ function is_indexing() {
  * @return boolean
  */
 function is_indexing_wpcli() {
-	// VIP: Removed network site block and use per-site block instead to
-	// be able to index multiple sites on a network
-	$is_indexing = get_transient( 'ep_wpcli_sync', false );
+	$index_meta = IndexHelper::factory()->get_index_meta();
 
 	/**
-	 * Filter whether a CLI sync is occuring
+	 * Filter whether a CLI sync is occurring
 	 *
 	 * @since  3.0
 	 * @hook ep_is_indexing_wpcli
 	 * @param  {bool} $indexing True for indexing
 	 * @return {bool} New indexing value
 	 */
-	return (bool) apply_filters( 'ep_is_indexing_wpcli', $is_indexing );
-}
-
-/**
- * Get the timestamp of the last sync, if any
- *
- * @return {int} Unix timestamp representing the last full sync time, or false
- */
-function get_last_sync() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$last_sync = get_site_option( 'ep_last_sync', false );
-	} else {
-		$last_sync = get_option( 'ep_last_sync', false );
-	}
-
-	return apply_filters( 'ep_last_sync', $last_sync );
+	return apply_filters( 'ep_is_indexing_wpcli', ( ! empty( $index_meta ) && 'cli' === $index_meta['method'] ) );
 }
 
 /**
@@ -373,7 +353,9 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				$terms_map[ $term->term_id ] = $term;
 			}
 
-			if ( empty( $term->parent ) || ! term_exists( $term->parent, $term->taxonomy ) ) {
+			$parent_term = get_term( $term->parent, $term->taxonomy );
+
+			if ( empty( $term->parent ) || is_wp_error( $parent_term ) || ! $parent_term ) {
 				$term->level = 0;
 
 				if ( empty( $orderby ) ) {
@@ -494,45 +476,77 @@ function get_indexing_status() {
 
 	$index_status = false;
 
-	$dashboard_syncing = get_option( 'ep_index_meta', false );
-	$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
+	$index_meta = IndexHelper::factory()->get_index_meta();
 
-	if ( $dashboard_syncing || $wpcli_syncing ) {
+	if ( ! empty( $index_meta ) ) {
+		$index_status = $index_meta;
 
-		if ( $dashboard_syncing ) {
+		$index_status['indexing'] = true;
 
-			$index_status = $dashboard_syncing;
+		if ( ! empty( $index_meta['current_sync_item'] ) ) {
+			$index_status['items_indexed'] = $index_meta['current_sync_item']['synced'];
+			$index_status['url']           = $index_meta['current_sync_item']['url'] ?? ''; // Global indexables won't have a url.
+			$index_status['total_items']   = $index_meta['current_sync_item']['total'];
+			$index_status['slug']          = $index_meta['current_sync_item']['indexable'];
+		}
 
+		// Change method name for retrocompatibility.
+		// `dashboard` is used mainly because hooks names depend on that.
+		if ( ! empty( $index_status['method'] ) && 'dashboard' === $index_status['method'] ) {
+			$index_status['method'] = 'web';
+		}
+
+		if ( ! empty( $index_status['method'] ) && 'web' === $index_status['method'] ) {
 			$should_interrupt_sync = filter_var(
 				get_transient( 'ep_sync_interrupted' ),
 				FILTER_VALIDATE_BOOLEAN
 			);
 
 			$index_status['should_interrupt_sync'] = $should_interrupt_sync;
-		} else {
-			$index_status = array(
-				'indexing'      => false,
-				'method'        => 'none',
-				'items_indexed' => 0,
-				'total_items'   => -1,
-				'url'           => $url,
-			);
-
-			$index_status['indexing'] = true;
-
-			$index_status['method'] = 'cli';
-
-			if ( is_array( $wpcli_syncing ) ) {
-
-				$index_status['items_indexed'] = $wpcli_syncing[0];
-				$index_status['total_items']   = $wpcli_syncing[1];
-				$index_status['slug']          = $wpcli_syncing[2];
-			}
 		}
 	}
 
 	return $index_status;
 
+}
+
+/**
+ * Use the correct update option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option   Name of the option to update.
+ * @param mixed  $value    Option value.
+ * @param mixed  $autoload Whether to load the option when WordPress starts up.
+ * @return bool
+ */
+function update_option( $option, $value, $autoload = null ) {
+	// VIP: Each site should have its own option
+	return \update_option( $option, $value, $autoload );
+}
+
+/**
+ * Use the correct get option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option        Name of the option to get.
+ * @param mixed  $default_value Default value.
+ * @return bool
+ */
+function get_option( $option, $default_value = false ) {
+	// VIP: Each site should have its own option.
+	return \get_option( $option, $default_value );
+}
+
+/**
+ * Use the correct delete option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option Name of the option to delete.
+ * @return bool
+ */
+function delete_option( $option ) {
+	// VIP: Each site should have its own option
+	return \delete_option( $option );
 }
 
 /**
@@ -629,4 +643,27 @@ function is_integrated_request( $context, $types = [] ) {
 	 * @since 3.6.2
 	 */
 	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
+}
+
+/**
+ * Get asset info from extracted asset files
+ *
+ * @param string $slug Asset slug as defined in build/webpack configuration
+ * @param string $attribute Optional attribute to get. Can be version or dependencies
+ * @return string|array
+ */
+function get_asset_info( $slug, $attribute = null ) {
+	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.min.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/js/' . $slug . '.min.asset.php';
+	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.min.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/css/' . $slug . '.min.asset.php';
+	} else {
+		return null;
+	}
+
+	if ( ! empty( $attribute ) && isset( $asset[ $attribute ] ) ) {
+		return $asset[ $attribute ];
+	}
+
+	return $asset;
 }

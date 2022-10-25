@@ -1,12 +1,11 @@
-const { __ } = wp.i18n;
-
-const { AlignmentToolbar, BlockControls, InspectorControls } = wp.editor;
-
-const { PanelBody, Placeholder, Spinner, QueryControls } = wp.components;
-
-const { Fragment, Component, RawHTML } = wp.element;
-
-const { addQueryArgs } = wp.url;
+/**
+ * WordPress dependencies.
+ */
+import { AlignmentToolbar, BlockControls, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
+import { Fragment, Component, RawHTML } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import { addQueryArgs } from '@wordpress/url';
 
 /**
  * Edit component
@@ -15,7 +14,7 @@ class Edit extends Component {
 	/**
 	 * Setup class
 	 *
-	 * @param {Object} props Component properties
+	 * @param {object} props Component properties
 	 */
 	constructor(props) {
 		super(props);
@@ -34,12 +33,11 @@ class Edit extends Component {
 		};
 
 		// Use 0 if in the Widgets Screen
-		const postId = wp.data.select('core/editor').getCurrentPostId() ?? 0;
+		const { context: { postId = 0 } = {} } = this.props;
 
-		this.fetchRequest = wp
-			.apiFetch({
-				path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
-			})
+		wp.apiFetch({
+			path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
+		})
 			.then((posts) => {
 				this.setState({ posts });
 			})
@@ -67,7 +65,7 @@ class Edit extends Component {
 					/>
 				</BlockControls>
 				<InspectorControls>
-					<PanelBody title={__('Related Post Settings')}>
+					<PanelBody title={__('Related Post Settings', 'elasticpress')}>
 						<QueryControls
 							numberOfItems={number}
 							onNumberOfItemsChange={(value) => setAttributes({ number: value })}
@@ -77,8 +75,12 @@ class Edit extends Component {
 
 				<div className={className}>
 					{displayPosts === false || displayPosts.length === 0 ? (
-						<Placeholder icon="admin-post" label={__('Related Posts')}>
-							{posts === false ? <Spinner /> : __('No related posts yet.')}
+						<Placeholder icon="admin-post" label={__('Related Posts', 'elasticpress')}>
+							{posts === false ? (
+								<Spinner />
+							) : (
+								__('No related posts yet.', 'elasticpress')
+							)}
 						</Placeholder>
 					) : (
 						<ul style={{ textAlign: alignment }}>
