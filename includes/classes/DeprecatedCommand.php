@@ -45,7 +45,7 @@ trait DeprecatedCommand {
 				'get-indices'
 			)
 		);
-		return $this->get_indices( $args, $assoc_args );
+		$this->get_indices( $args, $assoc_args );
 	}
 
 	/**
