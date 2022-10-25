@@ -25,9 +25,9 @@ class TestTerm extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -62,13 +62,29 @@ class TestTerm extends BaseTestCase {
 	 */
 	public function createAndIndexTerms() {
 
-		$term_1 = Functions\create_and_sync_term( 'apple', 'Big Apple', 'The apple fruit term', 'post_tag' );
+		$this->ep_factory->term->create( array(
+			'slug' => 'apple',
+			'name' => 'Big Apple',
+			'description' => 'The apple fruit term',
+		) );
 
-		$term_2 = Functions\create_and_sync_term( 'banana', 'Yellow Banana', 'The banana fruit term', 'post_tag' );
+		$this->ep_factory->term->create( array(
+			'slug' => 'banana',
+			'name' => 'Yellow Banana',
+			'description' => 'The banana fruit term',
+		) );
 
-		$term_3 = Functions\create_and_sync_term( 'mango', 'Green Mango', 'The mango fruit term', 'post_tag' );
+		$this->ep_factory->term->create( array(
+			'slug' => 'mango',
+			'name' => 'Green Mango',
+			'description' => 'The mango fruit term',
+		) );
 
-		$term_4 = Functions\create_and_sync_term( 'orange', 'Orange', 'The orange fruit term.', 'post_tag' );
+		$this->ep_factory->term->create( array(
+			'slug' => 'orange',
+			'name' => 'Orange',
+			'description' => 'The orange fruit term',
+		) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
@@ -78,8 +94,8 @@ class TestTerm extends BaseTestCase {
 	 *
 	 * @since 3.3
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		$this->deleteAllTerms();
 
@@ -392,7 +408,7 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderName() {
 		$this->createAndIndexTerms();
 
-		$term_id = Functions\create_and_sync_term( 'aaa', 'aaa', '', 'post_tag' );
+		$term_id = $this->ep_factory->term->create( array( 'name' => 'aaa' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -437,7 +453,7 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderSlug() {
 		$this->createAndIndexTerms();
 
-		$term_id = Functions\create_and_sync_term( 'aaa', 'aaa', '', 'post_tag' );
+		$term_id = $this->ep_factory->term->create( array( 'name' => 'aaa' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -484,8 +500,8 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderDescription() {
 		$this->createAndIndexTerms();
 
-		$term_id_1 = Functions\create_and_sync_term( 'ff', 'ff', 'aaa', 'post_tag' );
-		$term_id_2 = Functions\create_and_sync_term( 'yff', 'ff', 'bbb', 'post_tag' );
+		$term_id_1 = $this->ep_factory->term->create( array( 'description' => 'aaa' ) );
+		$term_id_2 = $this->ep_factory->term->create( array( 'description' => 'bbb' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -707,8 +723,8 @@ class TestTerm extends BaseTestCase {
 	 * @group term
 	 */
 	public function testTermQueryParent() {
-		$parent_term_id = Functions\create_and_sync_term( 'parent-term-no-post', 'Parent Category', 'Parent/Child Terms', 'category' );
-		$child_term_id  = Functions\create_and_sync_term( 'child-term-post', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
+		$parent_term_id = $this->ep_factory->category->create();
+		$child_term_id  = $this->ep_factory->category->create( [ 'parent' => $parent_term_id ] );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$term_query = new \WP_Term_Query(
@@ -756,7 +772,7 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'post_tag' );
+		$term_id = $this->ep_factory->term->create();
 
 		wp_set_object_terms( $post, $term_id, 'post_tag', true );
 
@@ -904,15 +920,29 @@ class TestTerm extends BaseTestCase {
 		// formatting of the hierarchical args. Now we will validate
 		// we're only getting terms that have non-empty children.
 		// This term is childless and assigned to the post.
-		$childless_term_id = Functions\create_and_sync_term( 'childless-term-post', 'Childless Category', 'The parent category without children', 'category' );
+		$childless_term_id = $this->ep_factory->category->create( [
+			'name' =>  'Childless Category',
+			'description' => 'The parent category without children'
+		] );
 
 		// This parent term is not assigned, but the child term is.
-		$parent_term_id = Functions\create_and_sync_term( 'parent-term-no-post', 'Parent Category', 'Parent/Child Terms', 'category' );
-		$child_term_id  = Functions\create_and_sync_term( 'child-term-post', 'Child Category', 'Parent/Child Terms', 'category', [], $parent_term_id );
+		$parent_term_id = $this->ep_factory->category->create( [
+			'name' =>  'Parent Category',
+			'description' => 'Parent/Child Terms'
+		] );
+
+		$child_term_id  = $this->ep_factory->category->create( [
+			'parent' => $parent_term_id,
+			'name' =>  'Child Category',
+			'description' => 'Parent/Child Terms'
+		] );
+
 
 		// These two parent/child terms are created, but not assigned to the post.
-		$parent_term_id_2 = Functions\create_and_sync_term( 'parent-term-2-no-post', 'Parent Category 2', 'Parent/Child Terms', 'category' );
-		$child_term_id_2  = Functions\create_and_sync_term( 'child-term-2-no-post', 'Child Category 2', 'Parent/Child Terms', 'category', [], $parent_term_id_2 );
+		$parent_term_id_2 = $this->ep_factory->category->create();
+		$child_term_id_2  = $this->ep_factory->category->create( [
+			'parent' => $parent_term_id_2
+		] );
 
 		// Assign the parent term, and the standalone childless term.
 		$post_args = [
@@ -921,7 +951,7 @@ class TestTerm extends BaseTestCase {
 			'post_category' => [ $child_term_id, $childless_term_id ],
 		];
 
-		Functions\create_and_sync_post( $post_args );
+		$this->ep_factory->post->create( $post_args );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->index_sync_queue();
@@ -1359,7 +1389,7 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertTrue( is_protected_meta( '_custom_protected_key' ) );
 
-		$term_id = Functions\create_and_sync_term( 'protected-meta', 'Protected Meta', '', 'category' );
+		$term_id = $this->ep_factory->category->create();
 		update_term_meta( $term_id, '_custom_protected_key', 123 );
 
 		add_filter( 'ep_prepare_term_meta_allowed_protected_keys', $callback );
@@ -1517,7 +1547,7 @@ class TestTerm extends BaseTestCase {
 	 * @group term
 	 */
 	public function testDeleteTerm() {
-		$term_id = Functions\create_and_sync_term( 'test-delete-term', 'Test Delete Term', 'Test', 'category' );
+		$term_id = $this->ep_factory->category->create();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$term_query = new \WP_Term_Query(
@@ -1588,15 +1618,15 @@ class TestTerm extends BaseTestCase {
 	 */
 	public function testMetaWithoutValue() {
 
-		$term_id = Functions\create_and_sync_term( 'term-name', 'term name', '', 'category' );
+		$term_id = $this->ep_factory->category->create();
 		update_term_meta( $term_id, 'test_key', 'value' );
 		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
 
-		$term_id = Functions\create_and_sync_term( 'term-name-2', 'term name 2', '', 'category' );
+		$term_id = $this->ep_factory->category->create();
 		update_term_meta( $term_id, 'test_key', 'value' );
 		ElasticPress\Indexables::factory()->get( 'term' )->index( $term_id, true );
 
-		Functions\create_and_sync_term( 'term-name-3', 'term name 3', '', 'category' );
+		$this->ep_factory->category->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1628,4 +1658,44 @@ class TestTerm extends BaseTestCase {
 		$this->assertEquals( 2, count( $terms ) );
 	}
 
+	/**
+	 * Test term query for non-public taxonomies.
+	 *
+	 * @return void
+	 */
+	public function testQueryForNonPublicTaxonomies() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'public' => false,
+			)
+		);
+
+		$this->ep_factory->term->create_many( '2', array( 'taxonomy' => 'wptests_tax' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => 'wptests_tax',
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+			]
+		);
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$this->assertEquals( 2, count( $term_query->terms ) );
+
+		$this->ep_factory->term->create_many( '2', array( 'taxonomy' => 'post_tag' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$term_query = new \WP_Term_Query(
+			[
+				'taxonomy'     => array( 'wptests_tax', 'post_tag' ),
+				'ep_integrate' => true,
+				'hide_empty'   => false,
+			]
+		);
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$this->assertEquals( 4, count( $term_query->terms ) );
+	}
 }

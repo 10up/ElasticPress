@@ -51,7 +51,13 @@ describe('Facets Feature', () => {
 		cy.openBlockSettingsSidebar();
 		cy.get('.block-editor-block-inspector select').select('post_tag');
 		cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
+
+		// Make sure it waits for the correct request.
+		cy.intercept('/wp-json/elasticpress/v1/facets/block-preview*orderby=name&order=asc*').as(
+			'blockPreview1',
+		);
 		cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+		cy.wait('@blockPreview1');
 
 		/**
 		 * Verify the block has the expected output in the editor based on the
@@ -275,7 +281,6 @@ describe('Facets Feature', () => {
 
 	describe('Facet by Meta Block', () => {
 		before(() => {
-			cy.wpCli('plugin activate elasticpress-facet-by-meta');
 			cy.wpCli('post list --meta_key=facet_by_meta_tests --meta_value=1 --format=ids').then(
 				(wpCliResponse) => {
 					if (wpCliResponse.stdout) {
@@ -321,7 +326,12 @@ describe('Facets Feature', () => {
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 1',
 			);
+
+			cy.intercept(
+				'/wp-json/elasticpress/v1/facets/meta/block-preview*facet=meta_field_1*',
+			).as('blockPreview1');
 			cy.get('.block-editor-block-inspector select').select('meta_field_1');
+			cy.wait('@blockPreview1');
 
 			/**
 			 * Verify that the blocks are inserted into the editor, and contain the
@@ -345,7 +355,12 @@ describe('Facets Feature', () => {
 			);
 			cy.get('.block-editor-block-inspector select').select('meta_field_2');
 			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
+
+			cy.intercept(
+				'/wp-json/elasticpress/v1/facets/meta/block-preview*orderby=name&order=asc*',
+			).as('blockPreview2');
 			cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+			cy.wait('@blockPreview2');
 
 			/**
 			 * Verify the block has the expected output in the editor based on the
@@ -395,7 +410,7 @@ describe('Facets Feature', () => {
 			 * item as checked, and all articles being displayed should have the
 			 * selected category.
 			 */
-			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
 			cy.get('@firstBlock')
 				.contains('.term', 'Meta Value (1) - 20')
 				.find('.ep-checkbox')
@@ -419,8 +434,8 @@ describe('Facets Feature', () => {
 			 * should be filtered by both selections.
 			 */
 			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
-			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
-			cy.url().should('include', 'ep_meta_filter_meta_field_2=Meta+Value+%282%29+-+20');
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
+			cy.url().should('include', 'ep_meta_filter_meta_field_2=Meta%20Value%20(2)%20-%2020');
 			cy.url().should('not.include', 'page/2');
 			cy.get('@firstBlock')
 				.contains('.term', 'Meta Value (1) - 20')
@@ -439,8 +454,29 @@ describe('Facets Feature', () => {
 			 * facets active.
 			 */
 			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
-			cy.url().should('not.include', 'ep_meta_filter_meta_field_2=Meta+Value+%282%29+-+20');
-			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+			cy.url().should(
+				'not.include',
+				'ep_meta_filter_meta_field_2=Meta%20Value%20(2)%20-%2020',
+			);
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
+			cy.get('@secondBlock')
+				.contains('a[aria-disabled="true"]', 'Meta Value (2) - 19')
+				.should('exist');
+
+			/**
+			 * When Match Type is "any", all options need to be clickable
+			 */
+			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.get('.ep-feature-facets .settings-button').click();
+			cy.get('input[name="settings[match_type]"][value="any"]').check();
+			cy.get('.ep-feature-facets .button-primary').click();
+
+			cy.visit('/');
+			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
+			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 1').click();
+			cy.get('.wp-block-elasticpress-facet a[aria-disabled="true"]').should('not.exist');
+			cy.contains('.site-content article h2', 'Facet By Meta Post 20').should('exist');
+			cy.contains('.site-content article h2', 'Facet By Meta Post 1').should('exist');
 		});
 	});
 });

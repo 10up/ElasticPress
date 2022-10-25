@@ -94,8 +94,9 @@ class Renderer {
 			apply_filters(
 				'ep_facet_search_get_terms_args',
 				[
-					'taxonomy'   => $taxonomy,
-					'hide_empty' => true,
+					'taxonomy'               => $taxonomy,
+					'hide_empty'             => true,
+					'update_term_meta_cache' => false,
 				],
 				$args,
 				$instance
@@ -122,6 +123,38 @@ class Renderer {
 		}
 
 		/**
+		 * Filter the taxonomy facet terms.
+		 *
+		 * Example of usage, to hide unavailable category terms:
+		 * ```
+		 * add_filter(
+		 *     'ep_facet_taxonomy_terms',
+		 *     function ( $terms, $taxonomy ) {
+		 *         if ( 'category' !== $taxonomy ) {
+		 *             return $terms;
+		 *         }
+		 *
+		 *         return array_filter(
+		 *              $terms,
+		 *              function ( $term ) {
+		 *                  return $term->count > 0;
+		 *              }
+		 *         );
+		 *      },
+		 *      10,
+		 *      2
+		 * );
+		 * ```
+		 *
+		 * @since 4.3.1
+		 * @hook ep_facet_taxonomy_terms
+		 * @param {array} $terms Terms
+		 * @param {string} $taxonomy Taxonomy name
+		 * @return {array} New terms
+		 */
+		$terms_by_slug = apply_filters( 'ep_facet_taxonomy_terms', $terms_by_slug, $taxonomy );
+
+		/**
 		 * Check to make sure all terms exist before proceeding
 		 */
 		if ( ! empty( $selected_filters['taxonomies'][ $taxonomy ] ) && ! empty( $selected_filters['taxonomies'][ $taxonomy ]['terms'] ) ) {
@@ -138,7 +171,7 @@ class Renderer {
 		$orderby = isset( $instance['orderby'] ) ? $instance['orderby'] : 'count';
 		$order   = isset( $instance['order'] ) ? $instance['order'] : 'count';
 
-		$terms = Utils\get_term_tree( $terms, $orderby, $order, true );
+		$terms = Utils\get_term_tree( $terms_by_slug, $orderby, $order, true );
 
 		$outputted_terms = array();
 
@@ -208,8 +241,8 @@ class Renderer {
 							 * Get top of tree
 							 */
 							while ( true && $i < 10 ) {
-								if ( ! empty( $term->parent_slug ) ) {
-									$top_of_tree = $terms_by_slug[ $term->parent_slug ];
+								if ( ! empty( $term->parent_term->slug ) ) {
+									$top_of_tree = $terms_by_slug[ $term->parent_term->slug ];
 								} else {
 									break;
 								}
@@ -415,7 +448,7 @@ class Renderer {
 	 * @param  string $orderby The orderby to sort items from.
 	 * @return array
 	 */
-	private function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
+	protected function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
 		$ordered_terms = [];
 		$terms_by_slug = [];
 

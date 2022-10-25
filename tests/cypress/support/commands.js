@@ -216,19 +216,11 @@ Cypress.Commands.add('updateWeighting', (newWeightingValues = null) => {
 });
 
 Cypress.Commands.add('maybeEnableFeature', (featureName) => {
-	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-		if (!wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
-			cy.wpCli(`elasticpress activate-feature ${featureName}`);
-		}
-	});
+	cy.wpCli(`elasticpress activate-feature ${featureName}`, true);
 });
 
 Cypress.Commands.add('maybeDisableFeature', (featureName) => {
-	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-		if (wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
-			cy.wpCli(`elasticpress deactivate-feature ${featureName}`);
-		}
-	});
+	cy.wpCli(`elasticpress deactivate-feature ${featureName}`, true);
 });
 
 Cypress.Commands.add('getTotal', (totalNumber) => {
@@ -413,4 +405,39 @@ Cypress.Commands.add('createAutosavePost', (postData) => {
 	// eslint-disable-next-line cypress/no-unnecessary-waiting
 	cy.wait(5000);
 	cy.deactivatePlugin('shorten-autosave', 'wpCli');
+});
+
+Cypress.Commands.add('logout', () => {
+	cy.visit('/wp-admin');
+	cy.get('body').then(($body) => {
+		if ($body.find('#wpadminbar').length !== 0) {
+			cy.get('#wp-admin-bar-my-account').invoke('addClass', 'hover');
+			cy.get('#wp-admin-bar-logout > a').click();
+		}
+	});
+});
+
+Cypress.Commands.add('createUser', (userData) => {
+	const newUserDate = {
+		username: 'testuser',
+		password: 'password',
+		email: 'testuser@example.com',
+		role: 'subscriber',
+		login: false,
+		...userData,
+	};
+
+	// delete the user.
+	cy.wpCli(`wp user delete ${newUserDate.username} --yes --network`, true);
+
+	// create the user
+	cy.wpCli(
+		`wp user create ${newUserDate.username} ${newUserDate.email} --user_pass=${newUserDate.password} --role=${newUserDate.role}`,
+	);
+
+	if (newUserDate.login) {
+		cy.visit('wp-login.php');
+		cy.get('#user_login').clear().type(newUserDate.username);
+		cy.get('#user_pass').clear().type(`${newUserDate.password}{enter}`);
+	}
 });

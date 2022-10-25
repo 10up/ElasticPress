@@ -1018,8 +1018,16 @@ h2 .nav-tab.ep-credentials-tab {
 		width: auto;
 	}
 
-	.ep-credentials .form-table td {
+	.ep-credentials .form-table td,
+	.ep-credentials-general .form-table td {
 		padding-left: 0;
+	}
+
+	.ep-credentials .form-table td input,
+	.ep-credentials .form-table td select,
+	.ep-credentials-general .form-table td input,
+	.ep-credentials-general .form-table td select {
+		width: 250px;
 	}
 }
 
