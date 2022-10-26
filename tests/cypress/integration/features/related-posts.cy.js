@@ -13,13 +13,15 @@ describe('Related Posts Feature', () => {
 	 */
 	beforeEach(() => {
 		cy.emptyWidgets();
-		cy.deactivatePlugin('classic-widgets', 'wpCli');
-		cy.wpCli('post list --s="Test related posts" --ep_integrate=false --format=ids').then(
-			(wpCliResponse) => {
-				if (wpCliResponse.stdout) {
-					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
-				}
-			},
+		cy.wpCliEval(
+			`
+			WP_CLI::runcommand( 'plugin deactivate classic-widgets', [ 'return' => true ] );
+
+			$posts_ids = WP_CLI::runcommand( 'post list --s="Test related posts" --ep_integrate=false --format=ids', [ 'return' => true ] );
+			if ( $posts_ids ) {
+				WP_CLI::runcommand( "post delete {$posts_ids} --force" );
+			}
+			`,
 		);
 	});
 
@@ -30,12 +32,24 @@ describe('Related Posts Feature', () => {
 		/**
 		 * Create some posts that will be related.
 		 */
-		for (let i = 0; i < 4; i++) {
-			cy.publishPost({
-				title: `Test related posts block #${i + 1}`,
-				content: 'Inceptos tristique class ac eleifend leo.',
-			});
-		}
+		cy.wpCliEval(
+			`
+			for ( $i = 1; $i <= 4; $i++ ) {
+				wp_insert_post(
+					[
+						'post_title'   => "Test related posts block #{$i}",
+						'post_content' => 'Inceptos tristique class ac eleifend leo',
+						'post_status'  => 'publish',
+					]
+				);
+			}
+			`,
+		);
+
+		cy.publishPost({
+			title: `Test related posts block #5`,
+			content: 'Inceptos tristique class ac eleifend leo.',
+		});
 
 		/**
 		 * On the last post insert a Related Posts block.
@@ -116,17 +130,27 @@ describe('Related Posts Feature', () => {
 		/**
 		 * Create some posts that will be related and view the last post.
 		 */
-		for (let i = 0; i < 4; i++) {
-			const viewPost = i === 3;
+		cy.wpCliEval(
+			`
+			for ( $i = 1; $i <= 2; $i++ ) {
+				wp_insert_post(
+					[
+						'post_title'   => "Test related posts widget #{$i}",
+						'post_content' => 'Inceptos tristique class ac eleifend leo',
+						'post_status'  => 'publish',
+					]
+				);
+			}
+			`,
+		);
 
-			cy.publishPost(
-				{
-					title: `Test related posts widget #${i + 1}`,
-					content: 'Inceptos tristique class ac eleifend leo.',
-				},
-				viewPost,
-			);
-		}
+		cy.publishPost(
+			{
+				title: `Test related posts widget #3`,
+				content: 'Inceptos tristique class ac eleifend leo.',
+			},
+			true,
+		);
 
 		/**
 		 * Verify the widget has the expected output on the front-end based on
