@@ -256,18 +256,20 @@ class InstantResults extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-instant-results',
-			EP_URL . 'dist/css/instant-results-styles.min.css',
+			EP_URL . 'dist/css/instant-results-styles.css',
 			Utils\get_asset_info( 'instant-results-styles', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-styles', 'version' )
 		);
 
 		wp_enqueue_script(
 			'elasticpress-instant-results',
-			EP_URL . 'dist/js/instant-results-script.min.js',
+			EP_URL . 'dist/js/instant-results-script.js',
 			Utils\get_asset_info( 'instant-results-script', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results', 'elasticpress' );
 
 		/**
 		 * The search API endpoint.
@@ -313,11 +315,13 @@ class InstantResults extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-instant-results-admin',
-			EP_URL . 'dist/js/instant-results-admin-script.min.js',
+			EP_URL . 'dist/js/instant-results-admin-script.js',
 			Utils\get_asset_info( 'instant-results-admin-script', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results-admin', 'elasticpress' );
 
 		wp_localize_script(
 			'elasticpress-instant-results-admin',

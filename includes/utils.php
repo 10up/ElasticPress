@@ -657,10 +657,10 @@ function is_integrated_request( $context, $types = [] ) {
  * @return string|array
  */
 function get_asset_info( $slug, $attribute = null ) {
-	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.min.asset.php' ) ) {
-		$asset = require EP_PATH . 'dist/js/' . $slug . '.min.asset.php';
-	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.min.asset.php' ) ) {
-		$asset = require EP_PATH . 'dist/css/' . $slug . '.min.asset.php';
+	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/js/' . $slug . '.asset.php';
+	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/css/' . $slug . '.asset.php';
 	} else {
 		return null;
 	}
