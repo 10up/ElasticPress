@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils as Utils;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -31,11 +33,7 @@ class Upgrades {
 	 * Initialize class
 	 */
 	public function setup() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$this->old_version = get_site_option( 'ep_version', false );
-		} else {
-			$this->old_version = get_option( 'ep_version', false );
-		}
+		$this->old_version = Utils\get_option( 'ep_version', false );
 
 		/**
 		 * An array with the upgrades routines.
@@ -250,11 +248,7 @@ class Upgrades {
 			return;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', 'never' );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', 'never' );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', 'never' );
 
 		// No need to upgrade since we've never synced.
 		if ( empty( $last_sync ) || 'never' === $last_sync ) {

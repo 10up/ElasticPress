@@ -11,6 +11,7 @@
 namespace ElasticPress;
 
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -162,11 +163,7 @@ abstract class Feature {
 	 * @return array|bool
 	 */
 	public function get_settings() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
 
 		return ( ! empty( $feature_settings[ $this->slug ] ) ) ? $feature_settings[ $this->slug ] : false;
 	}
@@ -178,11 +175,7 @@ abstract class Feature {
 	 * @return boolean
 	 */
 	public function is_active() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
 
 		$active = false;
 

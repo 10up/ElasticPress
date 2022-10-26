@@ -31,7 +31,7 @@ export const ActiveContraint = ({ label, onClick }) => {
 	return createPortal(
 		<SmallButton
 			aria-label={sprintf(
-				/* translators: %s: Constraint label. */
+				/* translators: %s: Filter term name. */
 				__('Remove filter: %s', 'elasticpress'),
 				label,
 			)}

@@ -460,11 +460,13 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_enqueue_script(
 			'ep_admin_sites_scripts',
-			EP_URL . 'dist/js/sites-admin-script.min.js',
+			EP_URL . 'dist/js/sites-admin-script.js',
 			Utils\get_asset_info( 'sites-admin-script', 'dependencies' ),
 			Utils\get_asset_info( 'sites-admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_admin_sites_scripts', 'elasticpress' );
 
 		$data = [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
@@ -477,31 +479,33 @@ function action_admin_enqueue_dashboard_scripts() {
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync' ], true ) ) {
 		wp_enqueue_style(
 			'ep_admin_styles',
-			EP_URL . 'dist/css/dashboard-styles.min.css',
+			EP_URL . 'dist/css/dashboard-styles.css',
 			Utils\get_asset_info( 'dashboard-styles', 'dependencies' ),
 			Utils\get_asset_info( 'dashboard-styles', 'version' )
 		);
 		wp_enqueue_script(
 			'ep_admin_script',
-			EP_URL . 'dist/js/admin-script.min.js',
+			EP_URL . 'dist/js/admin-script.js',
 			Utils\get_asset_info( 'admin-script', 'dependencies' ),
 			Utils\get_asset_info( 'admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
 	}
 
 	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
 		wp_enqueue_style( 'wp-edit-post' );
 		wp_enqueue_style(
 			'ep_weighting_styles',
-			EP_URL . 'dist/css/weighting-styles.min.css',
+			EP_URL . 'dist/css/weighting-styles.css',
 			Utils\get_asset_info( 'weighting-styles', 'dependencies' ),
 			Utils\get_asset_info( 'weighting-styles', 'version' )
 		);
 
 		wp_enqueue_script(
 			'ep_weighting_script',
-			EP_URL . 'dist/js/weighting-script.min.js',
+			EP_URL . 'dist/js/weighting-script.js',
 			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
@@ -524,16 +528,20 @@ function action_admin_enqueue_dashboard_scripts() {
 				'weightingConfiguration' => $weighting_configuration,
 			)
 		);
+
+		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'install' ], true ) ) {
 		wp_enqueue_script(
 			'ep_dashboard_scripts',
-			EP_URL . 'dist/js/dashboard-script.min.js',
+			EP_URL . 'dist/js/dashboard-script.js',
 			Utils\get_asset_info( 'dashboard-script', 'dependencies' ),
 			Utils\get_asset_info( 'dashboard-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_dashboard_scripts', 'elasticpress' );
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
@@ -561,11 +569,13 @@ function action_admin_enqueue_dashboard_scripts() {
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'settings' ], true ) ) {
 		wp_enqueue_script(
 			'ep_settings_scripts',
-			EP_URL . 'dist/js/settings-script.min.js',
+			EP_URL . 'dist/js/settings-script.js',
 			Utils\get_asset_info( 'settings-script', 'dependencies' ),
 			Utils\get_asset_info( 'settings-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_settings_scripts', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
@@ -575,22 +585,26 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_enqueue_script(
 			'ep_stats',
-			EP_URL . 'dist/js/stats-script.min.js',
+			EP_URL . 'dist/js/stats-script.js',
 			Utils\get_asset_info( 'stats-script', 'dependencies' ),
 			Utils\get_asset_info( 'stats-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_stats', 'elasticpress' );
 
 		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
 
 	wp_register_script(
 		'ep_notice_script',
-		EP_URL . 'dist/js/notice-script.min.js',
+		EP_URL . 'dist/js/notice-script.js',
 		Utils\get_asset_info( 'notice-script', 'dependencies' ),
 		Utils\get_asset_info( 'notice-script', 'version' ),
 		true
 	);
+
+	wp_set_script_translations( 'ep_notice_script', 'elasticpress' );
 
 	wp_localize_script(
 		'ep_notice_script',
