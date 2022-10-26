@@ -8,6 +8,7 @@
 
 use ElasticPress\Stats as Stats;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -15,12 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/header.php';
 
+$index_meta = Utils\get_option( 'ep_index_meta', [] );
+
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$index_meta = get_site_option( 'ep_index_meta', false );
-	$sync_url   = network_admin_url( 'admin.php?page=elasticpress-sync' );
+	$sync_url = network_admin_url( 'admin.php?page=elasticpress-sync' );
 } else {
-	$index_meta = get_option( 'ep_index_meta', false );
-	$sync_url   = admin_url( 'admin.php?page=elasticpress-sync' );
+	$sync_url = admin_url( 'admin.php?page=elasticpress-sync' );
 }
 
 Stats::factory()->build_stats();

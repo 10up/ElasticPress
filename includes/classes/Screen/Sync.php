@@ -154,13 +154,12 @@ class Sync {
 
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 		$index_meta = Utils\get_indexing_status();
+		$last_sync  = Utils\get_option( 'ep_last_sync', false );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_option( 'ep_last_sync', false );
 		}
 
 		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification

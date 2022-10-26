@@ -202,8 +202,6 @@ function get_host() {
 
 	if ( defined( 'EP_HOST' ) && EP_HOST ) {
 		$host = EP_HOST;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$host = get_site_option( 'ep_host', false );
 	} else {
 		$host = get_option( 'ep_host', false );
 	}
