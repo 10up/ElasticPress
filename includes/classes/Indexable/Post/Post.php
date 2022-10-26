@@ -2471,9 +2471,34 @@ class Post extends Indexable {
 	 * @since 4.4.0
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db() {
+	public function get_distinct_meta_field_keys_db() : array {
 		global $wpdb;
 
-		return $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta}" );
+		/**
+		 * Short-circuits the process of getting distinct meta keys from the database.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_pre_meta_keys_db
+		 * @param {null} $meta_keys Distinct meta keys array
+		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
+		 */
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db', null );
+		if ( null !== $pre_meta_keys ) {
+			return $pre_meta_keys;
+		}
+
+		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+
+		/**
+		 * Filter the distinct meta keys fetched from the database.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db
+		 * @param {null} $meta_keys Distinct meta keys array
+		 * @return {array} New distinct meta keys array
+		 */
+		return (array) apply_filters( 'ep_post_meta_keys_db', $meta_keys );
 	}
 }
