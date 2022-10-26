@@ -25,6 +25,6 @@
 	"supports": {
 		"html": false
 	},
-	"editorScript": "file:/../../../../../dist/js/facets-block-script.js",
+	"editorScript": "ep-facets-block-script",
 	"style": "file:/../../../../../dist/css/facets-styles.css"
 }
