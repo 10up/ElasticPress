@@ -12,16 +12,26 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.get('.hentry').should('contain.text', 'supercustomtitle');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('#post-post_title-enabled').uncheck();
-		cy.get('#submit').click();
+
+		cy.contains('.ep-weighting-post-type', 'Posts')
+			.contains('.ep-weighting-field', 'Title')
+			.find('input[type="checkbox"]')
+			.as('postTitleCheckbox');
+
+		cy.get('@postTitleCheckbox').uncheck();
+
+		cy.intercept('/wp-json/elasticpress/v1/weighting*').as('apiRequest');
+		cy.get('button.is-primary').click();
+		cy.wait('@apiRequest');
 
 		cy.visit('/?s=supercustomtitle');
 		cy.get('.hentry').should('not.exist');
 
 		// Reset setting.
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('#post-post_title-enabled').check();
-		cy.get('#submit').click();
+		cy.get('@postTitleCheckbox').check();
+		cy.get('button.is-primary').click();
+		cy.wait('@apiRequest');
 	});
 
 	it('Can increase post_title weighting and influence search results', () => {
@@ -48,8 +58,17 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('input[name="weighting[post][post_title][weight]"]').invoke('attr', 'value', '20');
-		cy.get('#submit').click();
+
+		cy.contains('.ep-weighting-post-type', 'Posts')
+			.contains('.ep-weighting-field', 'Title')
+			.find('input[type="number"]')
+			.as('postTitleWeight');
+
+		cy.get('@postTitleWeight').clearThenType('20');
+
+		cy.intercept('/wp-json/elasticpress/v1/weighting*').as('apiRequest');
+		cy.get('button.is-primary').click();
+		cy.wait('@apiRequest');
 
 		cy.visit('/?s=findbyweighting');
 		cy.contains(
@@ -59,7 +78,10 @@ describe('Post Search Feature - Weighting Functionality', () => {
 
 		// Reset setting.
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('input[name="weighting[post][post_title][weight]"]').invoke('attr', 'value', '1');
-		cy.get('#submit').click();
+		cy.get('@postTitleWeight').clearThenType('1');
+
+		cy.intercept('/wp-json/elasticpress/v1/weighting*').as('apiRequest');
+		cy.get('button.is-primary').click();
+		cy.wait('@apiRequest');
 	});
 });
