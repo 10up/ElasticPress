@@ -59,11 +59,7 @@ class Installer {
 	 * @since 3.0
 	 */
 	public function calculate_install_status() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$skip_install = get_site_option( 'ep_skip_install', false );
-		} else {
-			$skip_install = get_option( 'ep_skip_install', false );
-		}
+		$skip_install = Utils\get_option( 'ep_skip_install', false );
 
 		if ( $skip_install ) {
 			$this->install_status = true;
@@ -71,26 +67,24 @@ class Installer {
 			return;
 		}
 
-		$host      = Utils\get_host();
-		$last_sync = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_last_sync', false ) : get_option( 'ep_last_sync', false );
-
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 		if ( ! empty( $last_sync ) ) {
 			$this->install_status = true;
 
 			return;
 		}
 
-		if ( empty( $host ) ) {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) && empty( $_POST['ep_host'] ) ) { // phpcs:ignore
 			$this->install_status = 2;
 
-			if ( ! empty( $_POST['ep_host'] ) ) { // phpcs:ignore
-				$this->install_status = 3;
-			}
-
 			return;
-		} else {
-			$this->install_status = 3;
 		}
+
+		$this->install_status = 3;
+
+		$this->maybe_set_features();
 	}
 
 	/**
@@ -116,6 +110,32 @@ class Installer {
 	}
 
 	/**
+	 * Check if it should use the features selected during the install to update the settings.
+	 */
+	public function maybe_set_features() {
+		if ( empty( $_POST['ep_install_page_nonce'] ) || ! wp_verify_nonce( $_POST['ep_install_page_nonce'], 'ep_install_page' ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['features'] ) || ! is_array( $_POST['features'] ) ) {
+			return;
+		}
+
+		$registered_features = \ElasticPress\Features::factory()->registered_features;
+		$activation_features = wp_list_filter( $registered_features, array( 'available_during_installation' => true ) );
+
+		foreach ( $activation_features as $slug => $feature ) {
+			if ( in_array( $slug, $_POST['features'], true ) ) {
+				\ElasticPress\Features::factory()->activate_feature( $slug );
+			} else {
+				\ElasticPress\Features::factory()->deactivate_feature( $slug );
+			}
+		}
+
+		$this->install_status = 4;
+	}
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return self
@@ -132,4 +152,3 @@ class Installer {
 		return $instance;
 	}
 }
-

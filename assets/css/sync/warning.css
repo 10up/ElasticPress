@@ -1,0 +1,10 @@
+.ep-sync-warning {
+	display: grid;
+	grid-gap: 0.5rem;
+	grid-template-columns: min-content auto;
+
+	& svg {
+		fill: var(--ep-sync-color-warning);
+		margin-top: -3px;
+	}
+}

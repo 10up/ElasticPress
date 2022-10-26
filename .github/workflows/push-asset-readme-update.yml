@@ -2,13 +2,13 @@ name: Plugin asset/readme update
 on:
   push:
     branches:
-    - master
+    - trunk
 jobs:
-  master:
-    name: Push to master
+  trunk:
+    name: Push to trunk
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
     - name: WordPress.org plugin asset/readme update
       uses: 10up/action-wordpress-plugin-asset-update@stable
       env:

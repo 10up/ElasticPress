@@ -12,6 +12,7 @@ use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Features;
 use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -35,6 +36,11 @@ class SearchOrdering extends Feature {
 	const TAXONOMY_NAME = 'ep_custom_result';
 
 	/**
+	 * Capability required to manage.
+	 */
+	const CAPABILITY = 'manage_options';
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -44,8 +50,11 @@ class SearchOrdering extends Feature {
 
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
+		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
+
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [];
 
 		parent::__construct();
 	}
@@ -177,15 +186,6 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Output feature box summary
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Insert specific posts into search results for specific search queries.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Output feature box long
 	 */
 	public function output_feature_box_long() {
@@ -215,7 +215,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			'manage_options',
+			self::CAPABILITY,
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -385,17 +385,21 @@ class SearchOrdering extends Feature {
 				'post_type' => 'any',
 				'post__in'  => $post_ids,
 				'count'     => count( $post_ids ),
+				'orderby'   => 'post__in',
 			]
 		);
 
-		$final_posts = [];
+		$final_posts       = [];
+		$filtered_pointers = [];
 
 		foreach ( $query->posts as $post ) {
 			$final_posts[ $post->ID ] = $post;
+			// Add the post to filtered array. By doing this, we removed the posts that don't exist anymore.
+			$filtered_pointers[] = $pointers[ array_search( $post->ID, $post_ids, true ) ];
 		}
 
 		return [
-			'pointers' => $pointers,
+			'pointers' => $filtered_pointers,
 			'posts'    => $final_posts,
 		];
 	}
@@ -409,8 +413,22 @@ class SearchOrdering extends Feature {
 		$screen = get_current_screen();
 
 		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && $screen instanceof \WP_Screen && self::POST_TYPE_NAME === $screen->post_type ) {
-			wp_enqueue_script( 'ep_ordering_scripts', EP_URL . 'dist/js/ordering-script.min.js', [ 'jquery' ], EP_VERSION, true );
-			wp_enqueue_style( 'ep_ordering_styles', EP_URL . 'dist/css/ordering-styles.min.css', [], EP_VERSION );
+			wp_enqueue_script(
+				'ep_ordering_scripts',
+				EP_URL . 'dist/js/ordering-script.js',
+				Utils\get_asset_info( 'ordering-script', 'dependencies' ),
+				Utils\get_asset_info( 'ordering-script', 'version' ),
+				true
+			);
+
+			wp_set_script_translations( 'ep_ordering_scripts', 'elasticpress' );
+
+			wp_enqueue_style(
+				'ep_ordering_styles',
+				EP_URL . 'dist/css/ordering-styles.css',
+				Utils\get_asset_info( 'ordering-styles', 'dependencies' ),
+				Utils\get_asset_info( 'ordering-styles', 'version' )
+			);
 
 			$pointer_data = $this->get_pointer_data_for_localize();
 
@@ -639,7 +657,7 @@ class SearchOrdering extends Feature {
 				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
 					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
 						if ( strtolower( $current_term['name'] ) === $search_query ) {
-							$to_inject[ $current_term['term_order'] ] = $post->ID;
+							$to_inject[ $current_term['term_order'] ] = $post;
 
 							unset( $posts[ $key ] );
 
@@ -657,7 +675,7 @@ class SearchOrdering extends Feature {
 
 			if ( ! empty( $to_inject ) ) {
 				foreach ( $to_inject as $position => $newpost ) {
-					array_splice( $posts, $position - 1, 0, $newpost );
+					array_splice( $posts, $position - 1, 0, array( $newpost ) );
 				}
 			}
 
@@ -678,7 +696,9 @@ class SearchOrdering extends Feature {
 			[
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_search' ],
-				'permission_callback' => '__return_true',
+				'permission_callback' => function() {
+					return current_user_can( self::CAPABILITY );
+				},
 				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {
@@ -696,7 +716,9 @@ class SearchOrdering extends Feature {
 			[
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_preview' ],
-				'permission_callback' => '__return_true',
+				'permission_callback' => function() {
+					return current_user_can( self::CAPABILITY );
+				},
 				'args'                => [
 					's' => [
 						'validate_callback' => function ( $param ) {

@@ -25,9 +25,9 @@ class TestComment extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -51,8 +51,8 @@ class TestComment extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		$this->deleteAllComments();
 
@@ -86,11 +86,11 @@ class TestComment extends BaseTestCase {
 		$parent_comment_id = $child_comment_id = 0;
 		$comment_ids = [];
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		if( $number > 0 ) {
 			for( $i = 1; $i <= $number; $i++ ) {
-				$comment_ids[] = Functions\create_and_sync_comment( [
+				$comment_ids[] = $this->ep_factory->comment->create( [
 					'comment_content' => 'Test comment ' . $i,
 					'comment_post_ID' => $post_id
 				] );
@@ -98,11 +98,11 @@ class TestComment extends BaseTestCase {
 		}
 
 		if( $has_child ) {
-			$parent_comment_id = Functions\create_and_sync_comment( [
+			$parent_comment_id = $this->ep_factory->comment->create( [
 				'comment_content' => 'Test parent comment ',
 				'comment_post_ID' => $post_id
 			] );
-			$child_comment_id  = Functions\create_and_sync_comment( [
+			$child_comment_id  = $this->ep_factory->comment->create( [
 				'comment_content' => 'Test child comment ',
 				'comment_post_ID' => $post_id,
 				'comment_parent' => $parent_comment_id,
@@ -133,7 +133,7 @@ class TestComment extends BaseTestCase {
 			}
 		);
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -162,7 +162,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentSyncMeta() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -187,7 +187,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentSyncOnMetaUpdate() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -207,7 +207,7 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentSyncKill() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$created_comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -243,22 +243,22 @@ class TestComment extends BaseTestCase {
 		$this->createComments( 3 );
 
 		// First try without ES and make sure everything is right.
-		$comments = (new \WP_Comment_Query())->query( [] );
+		$comments_query = new \WP_Comment_Query( [] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( empty( $comment->elasticsearch ) );
-		}
+		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $comments_query );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
 		// Now try with Elasticsearch.
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -270,9 +270,13 @@ class TestComment extends BaseTestCase {
 		add_filter( 'ep_max_results_window', $return_2 );
 
 		// Now try with Elasticsearch.
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 
@@ -288,14 +292,14 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryNumber() {
 		$this->createComments();
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'number' => 2,
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 	}
@@ -309,14 +313,14 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOffset() {
 		$this->createComments( 6 );
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'offset' => 3,
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 	}
@@ -335,22 +339,24 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_content',
 			'order' => 'ASC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
-		$this->assertAttributeEquals( 'Test comment 4', 'comment_content', $comments[3] );
+		$this->assertEquals( 'Test comment 4', $comments[3]->comment_content );
 
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_content',
 			'order' => 'DESC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( 'Test comment 1', 'comment_content', $comments[3] );
+		$this->assertEquals( 'Test comment 1', $comments[3]->comment_content );
 	}
 
 	/**
@@ -370,10 +376,7 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
+		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertNotEmpty( $comments );
 	}
 
@@ -386,25 +389,29 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOrderCommentID() {
 		$this->createComments();
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby'      => 'comment_ID',
 		] );
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$ids = wp_list_pluck( $comments, 'comment_ID' );
 		$this->assertGreaterThan( $ids[1], $ids[0] );
 		$this->assertGreaterThan( $ids[2], $ids[1] );
 		$this->assertGreaterThan( $ids[3], $ids[2] );
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby'      => 'comment_ID',
 			'order'        => 'ASC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$ids = wp_list_pluck( $comments, 'comment_ID' );
 		$this->assertLessThan( $ids[1], $ids[0] );
@@ -419,33 +426,41 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryOrderCommentPostID() {
-		$post_id_1 = Functions\create_and_sync_post();
-		$post_id_2 = Functions\create_and_sync_post();
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
 
-		$comment_ids[] = Functions\create_and_sync_comment( [
+		$comment_ids[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id_1,
 		] );
-		$comment_ids[] = Functions\create_and_sync_comment( [
+		$comment_ids[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id_2
 		] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby'      => 'comment_post_ID',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 'Test comment 2', $comments[0]->comment_content );
 		$this->assertEquals( 'Test comment 1', $comments[1]->comment_content );
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby'      => 'comment_post_ID',
 			'order'        => 'ASC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 'Test comment 2', $comments[1]->comment_content );
 		$this->assertEquals( 'Test comment 1', $comments[0]->comment_content );
@@ -461,13 +476,17 @@ class TestComment extends BaseTestCase {
 
 		$created_comments = $this->createComments( 3 );
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'fields' => 'ids',
 		] );
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
+
 		foreach ( $comments as $comment ) {
-			$this->assertContains( $comment, $created_comments['comment_ids'] );
+			$this->assertContains( (int) $comment, $created_comments['comment_ids'] );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -483,10 +502,14 @@ class TestComment extends BaseTestCase {
 
 		$this->createComments( 3 );
 
-		$comments = (new \WP_Comment_Query())->query( [
+		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'fields' => 'count',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, $comments );
 	}
@@ -505,6 +528,8 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 		] );
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
@@ -515,6 +540,8 @@ class TestComment extends BaseTestCase {
 			'hierarchical' => 'flat',
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
@@ -545,7 +572,7 @@ class TestComment extends BaseTestCase {
 			}
 		);
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
 		$comment_id = wp_insert_comment( [
 			'comment_content' => 'Test comment',
@@ -596,10 +623,7 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
+		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertEquals( 3, count( $comments ) );
 	}
 
@@ -610,21 +634,21 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorEmail() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'comment_author_email' => 'joe@example.com',
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'comment_author_email' => 'doe@example.com',
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'comment_author_email' => 'joe@example.com',
@@ -637,11 +661,12 @@ class TestComment extends BaseTestCase {
 			'author_email' => 'joe@example.com',
 		] );
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-			$this->assertAttributeEquals( 'joe@example.com', 'comment_author_email', $comment );
+			$this->assertEquals( 'joe@example.com', $comment->comment_author_email );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -654,10 +679,8 @@ class TestComment extends BaseTestCase {
 
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-		$this->assertAttributeEquals( 'doe@example.com', 'comment_author_email', $comments[0] );
+		$this->assertTrue( $comments_query->elasticsearch_success );
+		$this->assertEquals( 'doe@example.com', $comments[0]->comment_author_email );
 	}
 
 	/**
@@ -667,23 +690,23 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorUrl() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'comment_author_email' => 'joe@example.com',
 			'comment_author_url' => 'http://example.com',
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'comment_author_email' => 'doe@example.com',
 			'comment_author_url' => 'http://example.com',
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'comment_author_email' => 'hoe@example.com',
@@ -698,9 +721,10 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-			$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comment );
+			$this->assertEquals( 'http://example.com', $comment->comment_author_url );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -712,11 +736,8 @@ class TestComment extends BaseTestCase {
 		] );
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
-		$this->assertAttributeEquals( 'http://example.com', 'comment_author_url', $comments[0] );
+		$this->assertTrue( $comments_query->elasticsearch_success );
+		$this->assertEquals( 'http://example.com', $comments[0]->comment_author_url );
 	}
 
 	/**
@@ -728,27 +749,27 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryUserId() {
 		$current_user_id = get_current_user_id();
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 4',
 			'comment_post_ID' => $post_id,
 		] );
@@ -759,11 +780,13 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'user_id' => $current_user_id,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-			$this->assertAttributeEquals( $current_user_id, 'user_id', $comment );
+			$this->assertEquals( $current_user_id, $comment->user_id );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -779,27 +802,27 @@ class TestComment extends BaseTestCase {
 		$current_user_id = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'user_id' => $another_author_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 4',
 			'comment_post_ID' => $post_id,
 		] );
@@ -810,10 +833,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'author__in' => [ $current_user_id, $another_author_id ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->user_id, [ $current_user_id, $another_author_id ] ) );
 		}
 
@@ -830,21 +855,21 @@ class TestComment extends BaseTestCase {
 		$current_user_id = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'user_id' => $current_user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'user_id' => $another_author_id,
@@ -856,11 +881,13 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'author__not_in' => [ $another_author_id ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-			$this->assertAttributeEquals( $current_user_id, 'user_id', $comment );
+			$this->assertEquals( $current_user_id, $comment->user_id );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -882,10 +909,12 @@ class TestComment extends BaseTestCase {
 			'comment__in' => $test_comments,
 			'number' => 2,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $test_comments ) );
 		}
 
@@ -907,10 +936,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'comment__not_in' => $test_comments,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertFalse( in_array( $comment->comment_ID, $test_comments ) );
 		}
 
@@ -925,39 +956,39 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryDateQuery() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$in_range = [];
 		$out_range = [];
 
-		$in_range[] = Functions\create_and_sync_comment( [
+		$in_range[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_date_gmt' => '2020-05-21',
 			'comment_date' => '2020-05-21',
 		] );
 
-		$out_range[] = Functions\create_and_sync_comment( [
+		$out_range[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_date_gmt' => '2020-05-19',
 			'comment_date' => '2020-05-19',
 		] );
 
-		$in_range[] = Functions\create_and_sync_comment( [
+		$in_range[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_date_gmt' => '2020-05-25',
 			'comment_date' => '2020-05-25',
 		] );
 
-		$out_range[] = Functions\create_and_sync_comment( [
+		$out_range[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_date_gmt' => '2020-05-29',
 			'comment_date' => '2020-05-29',
 		] );
 
-		$out_range[] = Functions\create_and_sync_comment( [
+		$out_range[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_date_gmt' => '2020-06-15',
@@ -979,10 +1010,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'date_query' => $date_query,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $in_range ) );
 			$this->assertFalse( in_array( $comment->comment_ID, $out_range ) );
 		}
@@ -994,26 +1027,28 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_date',
 			'order' => 'ASC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
-		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[0] );
-		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[1] );
-		$this->assertAttributeEquals( '2020-06-15 00:00:00', 'comment_date', $comments[4] );
+		$this->assertEquals( '2020-05-19 00:00:00', $comments[0]->comment_date );
+		$this->assertEquals( '2020-05-21 00:00:00', $comments[1]->comment_date );
+		$this->assertEquals( '2020-06-15 00:00:00', $comments[4]->comment_date );
 
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 			'orderby' => 'comment_date',
 			'order' => 'DESC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
-		$this->assertAttributeEquals( '2020-05-19 00:00:00', 'comment_date', $comments[4] );
-		$this->assertAttributeEquals( '2020-05-21 00:00:00', 'comment_date', $comments[3] );
-		$this->assertAttributeEquals( '2020-06-15 00:00:00', 'comment_date', $comments[0] );
+		$this->assertEquals( '2020-05-19 00:00:00', $comments[4]->comment_date );
+		$this->assertEquals( '2020-05-21 00:00:00', $comments[3]->comment_date );
+		$this->assertEquals( '2020-06-15 00:00:00', $comments[0]->comment_date );
 	}
 
 	/**
@@ -1024,29 +1059,29 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryKarma() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$match = [];
 		$not_match = [];
 
-		$match[] = Functions\create_and_sync_comment( [
+		$match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_karma' => 9,
 		] );
 
-		$not_match[] = Functions\create_and_sync_comment( [
+		$not_match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_karma' => 3,
 		] );
 
-		$match[] = Functions\create_and_sync_comment( [
+		$match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_karma' => 9,
 		] );
 
-		$not_match[] = Functions\create_and_sync_comment( [
+		$not_match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_karma' => 1,
@@ -1058,10 +1093,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'karma' => 9,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
 			$this->assertFalse( in_array( $comment->comment_ID, $not_match ) );
 		}
@@ -1077,10 +1114,10 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryMeta() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$match = [];
 
-		$match[] = Functions\create_and_sync_comment( [
+		$match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_meta' => [
@@ -1088,12 +1125,12 @@ class TestComment extends BaseTestCase {
 			]
 		] );
 
-		$not_match = Functions\create_and_sync_comment( [
+		$not_match = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 		] );
 
-		$match[] = Functions\create_and_sync_comment( [
+		$match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_meta' => [
@@ -1108,10 +1145,12 @@ class TestComment extends BaseTestCase {
 			'meta_key' => 'test_meta',
 			'meta_value' => 'test_value',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
 			$this->assertNotEquals( $comment->comment_ID, $not_match );
 		}
@@ -1127,10 +1166,10 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryMetaQuery() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$match = [];
 
-		$not_match = Functions\create_and_sync_comment( [
+		$not_match = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_meta' => [
@@ -1138,7 +1177,7 @@ class TestComment extends BaseTestCase {
 			]
 		] );
 
-		$match[] = Functions\create_and_sync_comment( [
+		$match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_meta' => [
@@ -1146,7 +1185,7 @@ class TestComment extends BaseTestCase {
 			]
 		] );
 
-		$match[] = Functions\create_and_sync_comment( [
+		$match[] = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id,
 			'comment_meta' => [
@@ -1166,10 +1205,12 @@ class TestComment extends BaseTestCase {
 				]
 			]
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
 			$this->assertNotEquals( $comment->comment_ID, $not_match );
 		}
@@ -1190,10 +1231,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'parent__in' => [ $created_comments['parent_comment_id'] ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $created_comments['child_comment_id'], $comment->comment_ID );
 		}
 
@@ -1213,10 +1256,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'parent__not_in' => [ $created_comments['parent_comment_id'] ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertNotEquals( $created_comments['child_comment_id'], $comment->comment_ID );
 		}
 
@@ -1235,37 +1280,37 @@ class TestComment extends BaseTestCase {
 		$user_id_2 = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		$user_id_3 = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_author' => $user_id_1 ] );
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_author' => $user_id_1 ] );
-		$post_id_3 = Functions\create_and_sync_post( [ 'post_author' => $user_id_2 ] );
-		$post_id_4 = Functions\create_and_sync_post( [ 'post_author' => $user_id_3 ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_author' => $user_id_1 ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_author' => $user_id_1 ] );
+		$post_id_3 = $this->ep_factory->post->create( [ 'post_author' => $user_id_2 ] );
+		$post_id_4 = $this->ep_factory->post->create( [ 'post_author' => $user_id_3 ] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_3,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_4,
 		] );
@@ -1276,10 +1321,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_author' => $user_id_1,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2 ] ) );
 		}
 
@@ -1289,10 +1336,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_author__in' => [ $user_id_1, $user_id_2 ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
 		}
 
@@ -1302,10 +1351,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_author__not_in' => [ $user_id_1 ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_3, $post_id_4 ] ) );
 		}
 
@@ -1326,10 +1377,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_id' => $created_comments['post_id'],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $created_comments['comment_ids'] ) );
 		}
 
@@ -1339,10 +1392,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post__in' => [ $created_comments['post_id'] ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_ID, $created_comments['comment_ids'] ) );
 		}
 
@@ -1352,10 +1407,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post__not_in' => [ $created_comments['post_id'] ],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertFalse( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
 		}
 
@@ -1370,25 +1427,25 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostStatus() {
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_status' => 'publish' ] );
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_status' => 'draft' ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_status' => 'publish' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_status' => 'draft' ] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
@@ -1399,10 +1456,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_status' => 'publish',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $comment->comment_post_ID, $post_id_1  );
 		}
 
@@ -1412,11 +1471,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_status' => [ 'draft', 'publish' ],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 4, count( $comments ) );
 	}
@@ -1429,26 +1487,26 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostType() {
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_type' => 'page' ] );
-		$post_id_3 = Functions\create_and_sync_post( [ 'post_type' => 'post' ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'post' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+		$post_id_3 = $this->ep_factory->post->create( [ 'post_type' => 'post' ] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_3,
 		] );
@@ -1459,14 +1517,32 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_type' => 'post',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_3 ] ) );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
+
+
+		$comments_query = new \WP_Comment_Query( [
+			'ep_integrate' => true,
+			'post_type' => [ 'post', 'page' ],
+		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
+
+		foreach ( $comments as $comment ) {
+			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
+		}
+
+		$this->assertEquals( 4, count( $comments ) );
 	}
 
 	/**
@@ -1477,20 +1553,20 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostParent() {
 
-		$post_id_1 = Functions\create_and_sync_post( [ 'post_type' => 'page' ]);
-		$post_id_2 = Functions\create_and_sync_post( [ 'post_type' => 'page', 'post_parent' => $post_id_1 ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'page' ]);
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page', 'post_parent' => $post_id_1 ] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment',
 			'comment_post_ID' => $post_id_2,
 		] );
@@ -1501,10 +1577,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_parent' => $post_id_1,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $post_id_2, $comment->comment_post_ID );
 		}
 
@@ -1518,19 +1596,19 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQuerySearch() {
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 		] );
 
-		$comment_id = Functions\create_and_sync_comment( [
+		$comment_id = $this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 		] );
@@ -1544,11 +1622,10 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( [
 			'search' => 'test comment',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -1560,10 +1637,12 @@ class TestComment extends BaseTestCase {
 				]
 			],
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $comment_id, $comment->comment_ID );
 		}
 
@@ -1578,23 +1657,23 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryStatus() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'comment_approved' => 1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'comment_approved' => 0,
 			'user_id' => $user_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'comment_approved' => 0,
@@ -1607,11 +1686,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'status' => 'approve',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 
@@ -1619,11 +1697,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'status' => 'hold',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 
@@ -1635,11 +1712,10 @@ class TestComment extends BaseTestCase {
 				$user_id,
 			],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -1648,13 +1724,12 @@ class TestComment extends BaseTestCase {
 			'status' => 'all',
 			'orderby' => 'comment_approved',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
-		$this->assertAttributeEquals( '1', 'comment_approved', $comments[0] );
+		$this->assertEquals( '1', $comments[0]->comment_approved );
 
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
@@ -1662,13 +1737,12 @@ class TestComment extends BaseTestCase {
 			'orderby' => 'comment_approved',
 			'order' => 'ASC',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
-
-		$this->assertAttributeEquals( '1', 'comment_approved', $comments[2] );
+		$this->assertEquals( '1', $comments[2]->comment_approved );
 	}
 
 	/**
@@ -1679,20 +1753,20 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryType() {
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'comment_type' => 'pingback',
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $post_id,
 			'comment_type' => 'trackback',
@@ -1704,11 +1778,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type' => 'comment',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 
@@ -1716,11 +1789,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type' => 'trackback,pingback',
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
 
@@ -1728,11 +1800,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type__in' => [ 'trackback', 'pingback', 'comment' ],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
@@ -1740,11 +1811,10 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'type__not_in' => [ 'trackback', 'pingback' ],
 		] );
-		$comments = $comments_query->get_comments();
 
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
+		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 1, count( $comments ) );
 	}
@@ -1757,25 +1827,25 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostName() {
 
-		$post_id = Functions\create_and_sync_post( [
+		$post_id = $this->ep_factory->post->create( [
 			'post_name' => 'start-here'
 		] );
 
-		$another_post_id = Functions\create_and_sync_post( [
+		$another_post_id = $this->ep_factory->post->create( [
 			'post_name' => 'about-us'
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 3',
 			'comment_post_ID' => $another_post_id,
 		] );
@@ -1786,10 +1856,12 @@ class TestComment extends BaseTestCase {
 			'ep_integrate' => true,
 			'post_name' => 'start-here',
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $post_id, $comment->comment_post_ID );
 		}
 
@@ -1806,14 +1878,14 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$product_id = Functions\create_and_sync_post(
+		$product_id = $this->ep_factory->post->create(
 			array(
 				'post_content' => 'product 1',
 				'post_type'    => 'product',
 			)
 		);
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test review',
 			'comment_post_ID' => $product_id,
 			'comment_type'    => 'review'
@@ -1824,10 +1896,12 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
 			$this->assertEquals( $product_id, $comment->comment_post_ID );
 			$this->assertEquals( 'Test review', $comment->comment_content );
 			$this->assertEquals( 'review', $comment->comment_type );
@@ -1967,7 +2041,7 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 2, $results['total_objects'] );
 
 		foreach ( $results['objects'] as $comment ) {
-			$this->assertContains( $comment->comment_ID, [ $post_comment_id, $product_comment_id ] );
+			$this->assertContains( (int) $comment->comment_ID, [ $post_comment_id, $product_comment_id ] );
 		}
 	}
 
@@ -1983,7 +2057,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = Functions\create_and_sync_post([
+		$shop_order_id = $this->ep_factory->post->create([
 			'post_content'   => 'order 1',
 			'post_type'      => 'shop_order',
 			'post_status'    => 'wc-pending',
@@ -2016,7 +2090,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = Functions\create_and_sync_post([
+		$shop_order_id = $this->ep_factory->post->create([
 			'post_content'   => 'order 1',
 			'post_type'      => 'shop_order',
 			'post_status'    => 'wc-pending',
@@ -2051,15 +2125,15 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$post_id = Functions\create_and_sync_post();
+		$post_id = $this->ep_factory->post->create();
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 1',
 			'comment_post_ID' => $post_id,
 			'comment_approved' => 1,
 		] );
 
-		Functions\create_and_sync_comment( [
+		$this->ep_factory->comment->create( [
 			'comment_content' => 'Test comment 2',
 			'comment_post_ID' => $post_id,
 			'comment_approved' => 0,
@@ -2070,12 +2144,11 @@ class TestComment extends BaseTestCase {
 		$comments_query = new \WP_Comment_Query( [
 			'ep_integrate' => true,
 		] );
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+
 		$comments = $comments_query->get_comments();
 
 		$this->assertCount( 2, $comments );
-
-		foreach ( $comments as $comment ) {
-			$this->assertTrue( $comment->elasticsearch );
-		}
 	}
 }

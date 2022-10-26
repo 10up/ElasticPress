@@ -19,9 +19,9 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 3.4.1
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -42,8 +42,8 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
@@ -124,6 +124,44 @@ class TestWeighting extends BaseTestCase {
 
 	}
 
+	/**
+	 * Test the `ep_weighting_default_enabled_taxonomies` filter.
+	 *
+	 * This filter should affect the weighting dashboard only if it was not saved yet.
+	 *
+	 * @since 3.6.5
+	 * @group weighting
+	 */
+	public function testWeightingDefaultEnabledTaxonomies() {
+		// By default, `post_format` should not be enabled, only `category` and `post_tag`.
+		$post_default_config = $this->get_weighting_feature()->get_post_type_default_settings( 'post' );
+		$this->assertArrayNotHasKey( 'terms.post_format.name', $post_default_config );
+		$this->assertTrue( $post_default_config['terms.category.name']['enabled'] );
+		$this->assertTrue( $post_default_config['terms.post_tag.name']['enabled'] );
+
+
+		add_filter(
+			'ep_weighting_default_enabled_taxonomies',
+			function ( $taxs, $post_type ) {
+				if ( 'post' === $post_type ) {
+					$taxs[] = 'post_format';
+				}
+				return $taxs;
+			},
+			10,
+			2
+		);
+
+		$post_default_config = $this->get_weighting_feature()->get_post_type_default_settings( 'post' );
+		$this->assertTrue( $post_default_config['terms.post_format.name']['enabled'] );
+
+		// `$this->weighting_settings` does not have post_format. So, once saved, the configuration should not have it enabled too.
+		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
+		$weighting_configuration = $this->get_weighting_feature()->get_weighting_configuration();
+		$this->assertArrayNotHasKey( 'post_format', $weighting_configuration['post'] );
+		$this->assertArrayNotHasKey( 'terms.post_format.name', $weighting_configuration['post'] );
+	}
+
 	public function testGetWeightableFieldsForPostType() {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
 
@@ -156,11 +194,11 @@ class TestWeighting extends BaseTestCase {
 		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 		$post_types = $search->get_searchable_post_types();
 
-		$this->assertContains( 'Manage Search Fields &amp; Weighting', $content );
+		$this->assertStringContainsString( 'Manage Search Fields &amp; Weighting', $content );
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
-			$this->assertcontains( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
+			$this->assertStringContainsString( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
 		}
 	}
 
@@ -170,7 +208,7 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$this->assertcontains( 'Changes Saved', $content );
+		$this->assertStringContainsString( 'Changes Saved', $content );
 	}
 
 	public function testRenderSettingsPageSaveFailed() {
@@ -179,7 +217,7 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$this->assertcontains( 'An error occurred when saving', $content );
+		$this->assertStringContainsString( 'An error occurred when saving', $content );
 	}
 
 
@@ -263,6 +301,45 @@ class TestWeighting extends BaseTestCase {
 
 		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'post' ) );
 		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'page' ) );
+	}
+
+	/**
+	 * Check if `post_type_has_fields()` behaves correctly when using the `ep_weighting_configuration_for_search` filter.
+	 *
+	 * @since 4.1.0
+	 */
+	public function testPostTypeHasFieldsWithCustomConfigViaFilter() {
+		$function = function() {
+			return [
+				'page' => [],
+				'post' => [
+					'post_title' => [
+						'enabled' => 'on',
+						'weight'  => 1
+					]
+				],
+				'test' => [
+					'post_title' => [
+						'enabled' => true,
+						'weight'  => 1
+					]
+				],
+				'test-2' => [
+					'post_title' => [
+						'enabled' => 10, // This is not considered a "truthy" value
+						'weight'  => 1
+					]
+				],
+			];
+		};
+		add_filter( 'ep_weighting_configuration_for_search', $function );
+
+		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'post' ) );
+		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'page' ) );
+		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'test' ) );
+		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'test-2' ) );
+
+		remove_filter( 'ep_weighting_configuration_for_search', $function );
 	}
 
 	public function testDoWeightingWithQueryContainsSearchFields() {

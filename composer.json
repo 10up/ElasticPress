@@ -5,6 +5,7 @@
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
   "license": ["GPL-2.0-only"],
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "authors": [
     {
       "name": "Taylor Lovett",
@@ -27,24 +28,31 @@
     }
   ],
   "require": {
-    "php": ">=5.6"
+    "php": ">=7.0"
   },
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^7",
-    "10up/wpacceptance": "dev-master"
+    "phpunit/phpunit": "^9.5",
+    "phpcompatibility/phpcompatibility-wp": "*",
+    "yoast/phpunit-polyfills": "^1.0"
   },
   "scripts": {
-    "lint": "phpcs elasticpress.php includes",
+    "lint": "phpcs elasticpress.php includes --runtime-set testVersion 7.0-",
     "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",
-    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql trunk true"
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true"
   },
   "extra": {
     "installer-paths": {
           "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
       }
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }

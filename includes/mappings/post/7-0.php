@@ -64,8 +64,24 @@ return array(
 			'analyzer'   => array(
 				'default'          => array(
 					'tokenizer'   => 'standard',
-					'filter'      => array( 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-					'char_filter' => array( 'html_strip' ),
+					/**
+					 * Filter Elasticsearch default analyzer's filters
+					 *
+					 * @since 3.6.2
+					 * @hook ep_default_analyzer_filters
+					 * @param  {array<string>} $filters Default filters
+					 * @return {array<string>} New filters
+					 */
+					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
+					/**
+					 * Filter Elasticsearch default analyzer's char_filter
+					 *
+					 * @since 4.2.2
+					 * @hook ep_default_analyzer_char_filters
+					 * @param  {array<string>} $char_filters Default filter
+					 * @return {array<string>} New filters
+					 */
+					'char_filter' => apply_filters( 'ep_default_analyzer_char_filters', array( 'html_strip' ) ),
 					/**
 					 * Filter Elasticsearch default language in mapping
 					 *
@@ -94,7 +110,7 @@ return array(
 					'max_shingle_size' => 5,
 				),
 				'ewp_word_delimiter' => array(
-					'type'              => 'word_delimiter',
+					'type'              => 'word_delimiter_graph',
 					'preserve_original' => true,
 				),
 				'ewp_snowball'       => array(
@@ -113,7 +129,7 @@ return array(
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				),
 			),
 			'normalizer' => array(
@@ -125,6 +141,9 @@ return array(
 		),
 	),
 	'mappings' => array(
+		'_meta'             => array(
+			'mapping_version' => '7-0.php',
+		),
 		'date_detection'    => false,
 		'dynamic_templates' => array(
 			array(
@@ -132,7 +151,6 @@ return array(
 					'path_match' => 'post_meta.*',
 					'mapping'    => array(
 						'type'   => 'text',
-						'path'   => 'full',
 						'fields' => array(
 							'{name}' => array(
 								'type' => 'text',
@@ -150,7 +168,6 @@ return array(
 					'path_match' => 'meta.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'value'    => array(
 								'type'   => 'text',
@@ -200,7 +217,6 @@ return array(
 					'path_match' => 'terms.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'name'             => array(
 								'type'   => 'text',
@@ -317,6 +333,9 @@ return array(
 			'post_excerpt'          => array(
 				'type' => 'text',
 			),
+			'post_password'         => array(
+				'type' => 'text',
+			),
 			'post_content'          => array(
 				'type' => 'text',
 			),
@@ -413,6 +432,26 @@ return array(
 					),
 					'second'        => array( // Second (0 to 59).
 						'type' => 'integer',
+					),
+				),
+			),
+			'thumbnail'             => array(
+				'type'       => 'object',
+				'properties' => array(
+					'ID'     => array(
+						'type' => 'long',
+					),
+					'src'    => array(
+						'type' => 'text',
+					),
+					'width'  => array(
+						'type' => 'integer',
+					),
+					'height' => array(
+						'type' => 'integer',
+					),
+					'alt'    => array(
+						'type' => 'text',
 					),
 				),
 			),

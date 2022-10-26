@@ -8,16 +8,13 @@
 
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Features as Features;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$index_meta = get_site_option( 'ep_index_meta', false );
-} else {
-	$index_meta = get_option( 'ep_index_meta', false );
-}
+$index_meta = Utils\get_option( 'ep_index_meta', [] );
 ?>
 
 <?php require_once __DIR__ . '/header.php'; ?>
@@ -68,7 +65,7 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				<div class="postbox">
 					<h2 class="hndle">
 						<span><?php echo esc_html( $feature->title ); ?></span>
-						<a class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></a>
+						<button aria-expanded="false" type="button" class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></button>
 					</h2>
 
 					<div class="description inside">

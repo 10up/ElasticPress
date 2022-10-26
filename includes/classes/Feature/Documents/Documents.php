@@ -11,6 +11,7 @@ use ElasticPress\Feature as Feature;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\Utils as Utils;
 
 /**
  * Documents feature class.
@@ -25,6 +26,10 @@ class Documents extends Feature {
 		$this->slug = 'documents';
 
 		$this->title = esc_html__( 'Documents', 'elasticpress' );
+
+		$this->summary = __( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#documents', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
 
@@ -114,7 +119,7 @@ class Documents extends Feature {
 	 * @since  2.3
 	 */
 	public function setup_document_search( $query ) {
-		if ( is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'public', 'ajax' ] ) ) {
 			return;
 		}
 
@@ -188,6 +193,7 @@ class Documents extends Feature {
 		if ( 'attachment' === $post['post_type'] ) {
 			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
 				$index = Indexables::factory()->get( 'post' )->get_index_name();
+
 				/**
 				 * Filter documents pipeline ID
 				 *
@@ -195,7 +201,13 @@ class Documents extends Feature {
 				 * @param  {string} $id Pipeline ID
 				 * @return  {string} new ID
 				 */
-				$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+				$pipeline_id = apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+
+				if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+					$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+				} else {
+					$path = trailingslashit( $index ) . '_doc/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+				}
 			}
 		}
 
@@ -335,17 +347,6 @@ class Documents extends Feature {
 		}
 
 		return $status;
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since  2.3
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
@@ -517,5 +518,3 @@ class Documents extends Feature {
 		return $weights;
 	}
 }
-
-

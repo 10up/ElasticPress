@@ -45,6 +45,13 @@ class Elasticsearch {
 	public $elasticsearch_version = null;
 
 	/**
+	 * Server type (elasticsearch, opensearch, etc.)
+	 *
+	 * @var string
+	 */
+	public $server_type = 'elasticsearch';
+
+	/**
 	 * Return singleton instance of class
 	 *
 	 * @return object
@@ -221,6 +228,28 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get server type. We cache this so we don't have to do it every time.
+	 *
+	 * @param  bool $force Bust cache or not.
+	 * @since  4.2.1
+	 * @return string|bool
+	 */
+	public function get_server_type( $force = false ) {
+
+		$info = $this->get_elasticsearch_info( $force );
+
+		/**
+		 * Filter server type
+		 *
+		 * @hook ep_server_type
+		 * @param  {string} $type Type (elasticsearch, opensearch, others)
+		 * @return {string} New type
+		 * @since  4.2.1
+		 */
+		return apply_filters( 'ep_server_type', $info['server_type'] );
+	}
+
+	/**
 	 * Get Elasticsearch plugins. We cache this so we don't have to do it every time.
 	 *
 	 * @param  bool $force Force cache refresh or not.
@@ -335,7 +364,7 @@ class Elasticsearch {
 			(
 				Utils\is_epio() &&
 				! empty( $query_args['s'] ) &&
-				! is_admin() &&
+				Utils\is_integrated_request( 'search' ) &&
 				! isset( $_GET['post_type'] ) // phpcs:ignore WordPress.Security.NonceVerification
 			),
 			$query_args
@@ -345,6 +374,22 @@ class Elasticsearch {
 		if ( $send_ep_search_term_header ) {
 			$request_args['headers']['EP-Search-Term'] = rawurlencode( $query_args['s'] );
 		}
+
+		/**
+		 * Filter Elasticsearch query request arguments
+		 *
+		 * @hook ep_query_request_args
+		 * @since 3.6.4
+		 * @param {array}  $request_args Request arguments
+		 * @param {string} $path         Request path
+		 * @param {string} $index        Index name
+		 * @param {string} $type         Index type
+		 * @param {array}  $query        Prepared Elasticsearch query
+		 * @param {array}  $query_args   Query arguments
+		 * @param {mixed}  $query_object Could be WP_Query, WP_User_Query, etc.
+		 * @return {array} New request arguments
+		 */
+		$request_args = apply_filters( 'ep_query_request_args', $request_args, $path, $index, $type, $query, $query_args, $query_object );
 
 		$request = $this->remote_request( $path, $request_args, $query_args, 'query' );
 
@@ -408,7 +453,7 @@ class Elasticsearch {
 			$documents = [];
 
 			foreach ( $hits as $hit ) {
-				$document            = $hit['_source'];
+				$document            = isset( $hit['_source'] ) ? $hit['_source'] : array();
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
 				if ( ! empty( $hit['highlight'] ) ) {
@@ -443,6 +488,7 @@ class Elasticsearch {
 				[
 					'found_documents' => $total_hits,
 					'documents'       => $documents,
+					'aggregations'    => $response['aggregations'] ?? [],
 				],
 				$response,
 				$query,
@@ -685,7 +731,7 @@ class Elasticsearch {
 		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
 		} else {
-			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/_mget', $document_ids, $type );
+			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_mget', $document_ids, $type );
 		}
 
 		$request_args = [
@@ -914,21 +960,16 @@ class Elasticsearch {
 			'timeout' => 30,
 		];
 
-		$closed = false;
 		if ( $close_first ) {
-			$closed = $this->close_index( $index );
+			$this->close_index( $index );
 		}
 
-		if ( ! $close_first || $closed ) {
-			$settings = trailingslashit( $index ) . '_settings';
-			$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
-		} else {
-			return false;
-		}
+		$settings = trailingslashit( $index ) . '_settings';
+		$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
 
 		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
 
-		if ( $closed ) {
+		if ( $close_first ) {
 			$opened = $this->open_index( $index );
 			return ( $updated && $opened );
 		}
@@ -1089,6 +1130,19 @@ class Elasticsearch {
 
 		$args['headers'] = array_merge( $existing_headers, $new_headers );
 
+		/**
+		 * Filter Elasticsearch args prior to remote request
+		 *
+		 * @hook ep_pre_request_args
+		 * @since 3.6.4
+		 * @param {array}       $args       Request args
+		 * @param {string}      $path       Site URL to retrieve
+		 * @param {array}       $query_args The query args originally passed to WP_Query.
+		 * @param {string|null} $type       Type of request, used for debugging.
+		 * @return {array} New request args
+		 */
+		$args = apply_filters( 'ep_pre_request_args', $args, $path, $query_args, $type );
+
 		$query = array(
 			'time_start'   => microtime( true ),
 			'time_finish'  => false,
@@ -1144,13 +1198,16 @@ class Elasticsearch {
 				 * Filter intercepted request
 				 *
 				 * @hook ep_do_intercept_request
+				 * @since 3.2.2
+				 * @since 3.6.5 added $type
 				 * @param {array} $request New remote request response
 				 * @param  {array} $query Remote request arguments
 				 * @param  {args} $args Request arguments
 				 * @param  {int} $failures Number of failures
+				 * @param  {string} $type Type of request
 				 * @return {array} New request
 				 */
-				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures );
+				$request = apply_filters( 'ep_do_intercept_request', new WP_Error( 400, 'No Request defined' ), $query, $args, $failures, $type );
 			} else {
 				$request = wp_remote_request( $query['url'], $args ); // try the existing host to avoid unnecessary calls.
 			}
@@ -1259,122 +1316,153 @@ class Elasticsearch {
 	}
 
 	/**
-	 * Get ES plugins and version, cache everything
+	 * Set ES plugins and version, detect server type, and cache everything
 	 *
-	 * @param  bool $force Bust cache or not.
+	 * @since 4.2.1
+	 * @param bool $force Bust cache or not.
+	 * @return array
+	 */
+	public function set_elasticsearch_info( $force = false ) {
+		if ( empty( Utils\get_host() ) ) {
+			return;
+		}
+
+		if ( ! $force && null !== $this->elasticsearch_version && null !== $this->elasticsearch_plugins ) {
+			return;
+		}
+
+		// Get ES info from cache if available. If we are forcing, then skip cache check.
+		if ( ! $force ) {
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				$es_info = get_site_transient( 'ep_es_info' );
+			} else {
+				$es_info = get_transient( 'ep_es_info' );
+			}
+			if ( ! empty( $es_info ) ) {
+				$this->elasticsearch_version = $es_info['version'];
+				$this->elasticsearch_plugins = $es_info['plugins'];
+				$this->server_type           = $es_info['server_type'];
+				return;
+			}
+		}
+
+		$path = '_nodes/plugins';
+
+		$request = $this->remote_request( $path, array( 'method' => 'GET' ) );
+
+		if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
+			$this->elasticsearch_version = false;
+			$this->elasticsearch_plugins = false;
+
+			/**
+			 * Try a different endpoint in case the plugins url is restricted
+			 *
+			 * @since 2.2.1
+			 */
+
+			$request = $this->remote_request( '', array( 'method' => 'GET' ) );
+
+			if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
+				$response_body = wp_remote_retrieve_body( $request );
+				$response      = json_decode( $response_body, true );
+
+				try {
+					$this->elasticsearch_version = $response['version']['number'];
+					if ( ! empty( $response['version']['distribution'] ) ) {
+						$this->server_type = $response['version']['distribution'];
+					}
+				} catch ( \Exception $e ) {
+					// Do nothing.
+				}
+			}
+			return;
+		}
+
+		$response = json_decode( wp_remote_retrieve_body( $request ), true );
+
+		$this->elasticsearch_plugins = [];
+		$this->elasticsearch_version = false;
+
+		if ( isset( $response['nodes'] ) ) {
+			$node = end( $response['nodes'] );
+			// Save version of last node. We assume all nodes are same version.
+			$this->elasticsearch_version = $node['version'];
+
+			if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
+				foreach ( $node['plugins'] as $plugin ) {
+					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+				}
+			}
+			if ( isset( $node['modules'] )
+				&& is_array( $node['modules'] )
+				&& ! empty( $node['modules'] )
+				&& ! empty( $node['modules'][0]['opensearch_version'] )
+			) {
+				$this->server_type = 'opensearch';
+			}
+		}
+
+		/**
+		 * Cache ES info
+		 *
+		 * @since  2.3.1
+		 */
+		$this->cache_elasticsearch_info();
+	}
+
+	/**
+	 * Return ES plugins, version and type.
+	 *
+	 * This function also sets those values in the object instance, getting it from cache
+	 * or not, according to `$force` value.
+	 *
+	 * @param bool $force Bust cache or not.
 	 * @since 2.2
 	 * @return array
 	 */
 	public function get_elasticsearch_info( $force = false ) {
+		$this->set_elasticsearch_info( $force );
+		return [
+			'plugins'     => $this->elasticsearch_plugins,
+			'version'     => $this->elasticsearch_version,
+			'server_type' => $this->server_type,
+		];
+	}
 
-		if ( $force || null === $this->elasticsearch_version || null === $this->elasticsearch_plugins ) {
-
-			// Get ES info from cache if available. If we are forcing, then skip cache check.
-			if ( $force ) {
-				$es_info = false;
-			} else {
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					$es_info = get_site_transient( 'ep_es_info' );
-				} else {
-					$es_info = get_transient( 'ep_es_info' );
-				}
-			}
-
-			if ( ! empty( $es_info ) ) {
-				// Set ES info from cache.
-				$this->elasticsearch_version = $es_info['version'];
-				$this->elasticsearch_plugins = $es_info['plugins'];
-			} else {
-				$path = '_nodes/plugins';
-
-				$request = $this->remote_request( $path, array( 'method' => 'GET' ) );
-
-				if ( is_wp_error( $request ) || 200 !== wp_remote_retrieve_response_code( $request ) ) {
-					$this->elasticsearch_version = false;
-					$this->elasticsearch_plugins = false;
-
-					/**
-					 * Try a different endpoint in case the plugins url is restricted
-					 *
-					 * @since 2.2.1
-					 */
-
-					$request = $this->remote_request( '', array( 'method' => 'GET' ) );
-
-					if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-						$response_body = wp_remote_retrieve_body( $request );
-						$response      = json_decode( $response_body, true );
-
-						try {
-							$this->elasticsearch_version = $response['version']['number'];
-						} catch ( Exception $e ) {
-							// Do nothing.
-						}
-					}
-				} else {
-					$response = json_decode( wp_remote_retrieve_body( $request ), true );
-
-					$this->elasticsearch_plugins = [];
-					$this->elasticsearch_version = false;
-
-					if ( isset( $response['nodes'] ) ) {
-
-						foreach ( $response['nodes'] as $node ) {
-							// Save version of last node. We assume all nodes are same version.
-							$this->elasticsearch_version = $node['version'];
-
-							if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
-
-								foreach ( $node['plugins'] as $plugin ) {
-
-									$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
-								}
-
-								break;
-							}
-						}
-					}
-				}
-
-				/**
-				 * Cache ES info
-				 *
-				 * @since  2.3.1
-				 */
-
-				/**
-				 * Filter elasticsearch info cache expiration
-				 *
-				 * @hook ep_es_info_cache_expiration
-				 * @param {int} $time Cache time in seconds
-				 * @return {int} New cache time
-				 */
-				if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-					set_site_transient(
-						'ep_es_info',
-						array(
-							'version' => $this->elasticsearch_version,
-							'plugins' => $this->elasticsearch_plugins,
-						),
-						apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
-					);
-				} else {
-					set_transient(
-						'ep_es_info',
-						array(
-							'version' => $this->elasticsearch_version,
-							'plugins' => $this->elasticsearch_plugins,
-						),
-						apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
-					);
-				}
-			}
+	/**
+	 * Cache the ES info.
+	 *
+	 * @since 4.2.1
+	 */
+	protected function cache_elasticsearch_info() {
+		/**
+		 * Filter elasticsearch info cache expiration
+		 *
+		 * @hook ep_es_info_cache_expiration
+		 * @param {int} $time Cache time in seconds
+		 * @return {int} New cache time
+		 */
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			set_site_transient(
+				'ep_es_info',
+				array(
+					'version'     => $this->elasticsearch_version,
+					'plugins'     => $this->elasticsearch_plugins,
+					'server_type' => $this->server_type,
+				),
+				apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
+			);
+		} else {
+			set_transient(
+				'ep_es_info',
+				array(
+					'version'     => $this->elasticsearch_version,
+					'plugins'     => $this->elasticsearch_plugins,
+					'server_type' => $this->server_type,
+				),
+				apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) )
+			);
 		}
-
-		return array(
-			'plugins' => $this->elasticsearch_plugins,
-			'version' => $this->elasticsearch_version,
-		);
 	}
 
 	/**

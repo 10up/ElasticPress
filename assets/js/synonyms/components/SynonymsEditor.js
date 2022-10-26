@@ -1,15 +1,22 @@
-import React, { useContext, useEffect } from 'react';
+/**
+ * WordPress dependencies.
+ */
+import { useContext, useEffect, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { State, Dispatch } from '../context';
-import SetsEditor from './editors/SetsEditor';
 import AlterativesEditor from './editors/AlternativesEditor';
+import SetsEditor from './editors/SetsEditor';
 import SolrEditor from './editors/SolrEditor';
 
 /**
  * Synonyms editor component.
  *
- * @returns {React.FC}
+ * @returns {WPElement} Synonyms component
  */
-export default function SynonymsEditor() {
+const SynonymsEditor = () => {
 	const state = useContext(State);
 	const dispatch = useContext(Dispatch);
 	const { alternatives, sets, isSolrEditable, isSolrVisible, dirty, submit } = state;
@@ -31,7 +38,7 @@ export default function SynonymsEditor() {
 	 * Checks if the form is valid.
 	 *
 	 * @param {object} _state Current state.
-	 * @returns {boolean}
+	 * @returns {boolean} If the form is valid
 	 */
 	const isValid = (_state) => {
 		return [..._state.sets, ..._state.alternatives].reduce((valid, item) => {
@@ -43,7 +50,12 @@ export default function SynonymsEditor() {
 	 * Handles submitting the form.
 	 */
 	const handleSubmit = () => {
+		if (isSolrEditable) {
+			dispatch({ type: 'REDUCE_SOLR_TO_STATE' });
+		}
+
 		dispatch({ type: 'VALIDATE_ALL' });
+		dispatch({ type: 'REDUCE_STATE_TO_SOLR' });
 		dispatch({ type: 'SUBMIT' });
 	};
 
@@ -51,6 +63,12 @@ export default function SynonymsEditor() {
 	 * Handle toggling the editor type.
 	 */
 	const handleToggleAdvance = () => {
+		if (isSolrEditable) {
+			dispatch({ type: 'REDUCE_SOLR_TO_STATE' });
+		} else {
+			dispatch({ type: 'REDUCE_STATE_TO_SOLR' });
+		}
+
 		dispatch({ type: 'SET_SOLR_EDITABLE', data: !isSolrEditable });
 	};
 
@@ -58,7 +76,7 @@ export default function SynonymsEditor() {
 		if (submit && !dirty && isValid(state)) {
 			document.querySelector('.wrap form').submit();
 		}
-	}, [submit, dirty]);
+	}, [submit, dirty, state]);
 
 	return (
 		<>
@@ -104,4 +122,6 @@ export default function SynonymsEditor() {
 			</div>
 		</>
 	);
-}
+};
+
+export default SynonymsEditor;

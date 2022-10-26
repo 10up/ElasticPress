@@ -1,15 +1,23 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import LinkedMultiInput from '../shared/LinkedMultiInput';
+/**
+ * WordPress dependencies.
+ */
+import { useContext, useEffect, useMemo, useRef, useState, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch } from '../../context';
+import LinkedMultiInput from '../shared/LinkedMultiInput';
 
 /**
  * Alternative Editor
  *
  * @param {object} props Props.
- * @returns {React.FC}
+ * @returns {WPElement} AlternativeEditor component
  */
-export default function AlternativeEditor(props) {
-	const primary = props.synonyms.find((item) => item.primary);
+const AlternativeEditor = (props) => {
+	const { id, synonyms, removeAction, updateAction } = props;
+	const primary = synonyms.find((item) => item.primary);
 	const [primaryTerm, setPrimaryTerm] = useState(primary ? primary.value : '');
 	const dispatch = useContext(Dispatch);
 	const primaryRef = useRef(null);
@@ -18,7 +26,7 @@ export default function AlternativeEditor(props) {
 	 * Create primary token
 	 *
 	 * @param {string} label Label.
-	 * @returns {object}
+	 * @returns {object} Primary token
 	 */
 	const createPrimaryToken = (label) => {
 		return {
@@ -31,7 +39,7 @@ export default function AlternativeEditor(props) {
 	/**
 	 * Handle key down.
 	 *
-	 * @param {React.SyntheticEvent} event Keydown event.
+	 * @param {Event} event Keydown event.
 	 */
 	const handleKeyDown = (event) => {
 		switch (event.key) {
@@ -45,13 +53,17 @@ export default function AlternativeEditor(props) {
 	useEffect(() => {
 		dispatch({
 			type: 'UPDATE_ALTERNATIVE_PRIMARY',
-			data: { id: props.id, token: createPrimaryToken(primaryTerm) },
+			data: { id, token: createPrimaryToken(primaryTerm) },
 		});
-	}, [primaryTerm]);
+	}, [primaryTerm, id, dispatch]);
 
 	useEffect(() => {
 		primaryRef.current.focus();
 	}, [primaryRef]);
+
+	const memoizedSynonyms = useMemo(() => {
+		return synonyms.filter((item) => !item.primary);
+	}, [synonyms]);
 
 	return (
 		<>
@@ -64,9 +76,13 @@ export default function AlternativeEditor(props) {
 				ref={primaryRef}
 			/>
 			<LinkedMultiInput
-				{...props}
-				synonyms={props.synonyms.filter((item) => !item.primary)}
+				id={id}
+				updateAction={updateAction}
+				removeAction={removeAction}
+				synonyms={memoizedSynonyms}
 			/>
 		</>
 	);
-}
+};
+
+export default AlternativeEditor;

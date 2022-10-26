@@ -1,17 +1,25 @@
-name: Deploy to WordPress.org
+name: Publish New Release
+
+env:
+  SLUG: "elasticpress"
+
 on:
-  push:
-    tags:
-    - "*"
+  release:
+    types: [published]
+
 jobs:
   tag:
-    name: New tag
+    name: New release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: WordPress Plugin Deploy
+      if: "! github.event.release.prerelease"
+      id: deploy
       uses: 10up/action-wordpress-plugin-deploy@stable
       env:
-        SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-        SLUG: elasticpress
+        SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        SLUG: ${{ env.SLUG }}

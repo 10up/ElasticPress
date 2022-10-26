@@ -53,6 +53,15 @@ abstract class SyncManager {
 		add_action( 'shutdown', [ $this, 'index_sync_queue' ] );
 		add_filter( 'wp_redirect', [ $this, 'index_sync_queue_on_redirect' ], 10, 1 );
 
+		/**
+		 * Actions for multisite
+		 */
+		add_action( 'delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_delete_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'make_spam_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'archive_blog', array( $this, 'action_delete_blog_from_index' ) );
+		add_action( 'deactivate_blog', array( $this, 'action_delete_blog_from_index' ) );
+
 		// Implemented by children.
 		$this->setup();
 	}
@@ -192,8 +201,9 @@ abstract class SyncManager {
 	 * @return boolean
 	 */
 	public function can_index_site() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			return Utils\is_site_indexable();
+		if ( ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) && ! Utils\is_site_indexable() ) {
+			$this->tear_down();
+			return false;
 		}
 
 		return true;
@@ -224,9 +234,50 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Remove blog from index when a site is deleted, archived, or deactivated
+	 *
+	 * @param int $blog_id WP Blog ID.
+	 */
+	public function action_delete_blog_from_index( $blog_id ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		// Don't delete global indexes
+		if ( $indexable->global ) {
+			return;
+		}
+
+		/**
+		 * Filter to whether to keep index on site deletion
+		 *
+		 * @hook ep_keep_index
+		 * @since 3.0
+		 * @since 3.6.2 Moved from Post\SyncManager to the main SyncManager class
+		 * @since 3.6.5 Added `$blog_id` and `$indexable_slug`
+		 * @param {bool}   $keep           True means don't delete index
+		 * @param {int}    $blog_id        WP Blog ID
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false, $blog_id, $this->indexable_slug ) ) {
+			$indexable->delete_index( $blog_id );
+		}
+	}
+
+	/**
 	 * Implementation should setup hooks/filters
 	 *
 	 * @since 3.0
 	 */
 	abstract public function setup();
+
+	/**
+	 * Implementation (for multisite) should un-setup hooks/filters if applicable.
+	 *
+	 * @since 4.0
+	 */
+	abstract public function tear_down();
 }

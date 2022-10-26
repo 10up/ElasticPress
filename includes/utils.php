@@ -8,6 +8,8 @@
 
 namespace ElasticPress\Utils;
 
+use ElasticPress\IndexHelper;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -107,7 +109,7 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return preg_match( '#elasticpress\.io#i', get_host() );
+	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
 }
 
 /**
@@ -159,14 +161,6 @@ function sanitize_credentials( $credentials ) {
  * @return boolean
  */
 function is_indexing() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$index_meta = get_site_option( 'ep_index_meta', false );
-		$wpcli_sync = get_site_transient( 'ep_wpcli_sync' );
-	} else {
-		$index_meta = get_option( 'ep_index_meta', false );
-		$wpcli_sync = get_transient( 'ep_wpcli_sync' );
-	}
-
 	/**
 	 * Filter whether an index is occurring in dashboard or CLI
 	 *
@@ -175,7 +169,7 @@ function is_indexing() {
 	 * @param  {bool} $indexing True for indexing
 	 * @return {bool} New indexing value
 	 */
-	return apply_filters( 'ep_is_indexing', ( ! empty( $index_meta ) || ! empty( $wpcli_sync ) ) );
+	return apply_filters( 'ep_is_indexing', ! empty( IndexHelper::factory()->get_index_meta() ) );
 }
 
 /**
@@ -185,21 +179,17 @@ function is_indexing() {
  * @return boolean
  */
 function is_indexing_wpcli() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$is_indexing = (bool) get_site_transient( 'ep_wpcli_sync' );
-	} else {
-		$is_indexing = (bool) get_transient( 'ep_wpcli_sync', false );
-	}
+	$index_meta = IndexHelper::factory()->get_index_meta();
 
 	/**
-	 * Filter whether a CLI sync is occuring
+	 * Filter whether a CLI sync is occurring
 	 *
 	 * @since  3.0
 	 * @hook ep_is_indexing_wpcli
 	 * @param  {bool} $indexing True for indexing
 	 * @return {bool} New indexing value
 	 */
-	return apply_filters( 'ep_is_indexing_wpcli', $is_indexing );
+	return apply_filters( 'ep_is_indexing_wpcli', ( ! empty( $index_meta ) && 'cli' === $index_meta['method'] ) );
 }
 
 /**
@@ -212,8 +202,6 @@ function get_host() {
 
 	if ( defined( 'EP_HOST' ) && EP_HOST ) {
 		$host = EP_HOST;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$host = get_site_option( 'ep_host', false );
 	} else {
 		$host = get_option( 'ep_host', false );
 	}
@@ -363,7 +351,9 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				$terms_map[ $term->term_id ] = $term;
 			}
 
-			if ( empty( $term->parent ) ) {
+			$parent_term = get_term( $term->parent, $term->taxonomy );
+
+			if ( empty( $term->parent ) || is_wp_error( $parent_term ) || ! $parent_term ) {
 				$term->level = 0;
 
 				if ( empty( $orderby ) ) {
@@ -484,56 +474,200 @@ function get_indexing_status() {
 
 	$index_status = false;
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+	$index_meta = IndexHelper::factory()->get_index_meta();
 
-		$dashboard_syncing = get_site_option( 'ep_index_meta', false );
-		$wpcli_syncing     = get_site_transient( 'ep_wpcli_sync' );
+	if ( ! empty( $index_meta ) ) {
+		$index_status = $index_meta;
 
-		if ( $wpcli_syncing ) {
-			$site = \get_site();
-			$url  = $site->domain . $site->path;
+		$index_status['indexing'] = true;
+
+		if ( ! empty( $index_meta['current_sync_item'] ) ) {
+			$index_status['items_indexed'] = $index_meta['current_sync_item']['synced'];
+			$index_status['url']           = $index_meta['current_sync_item']['url'] ?? ''; // Global indexables won't have a url.
+			$index_status['total_items']   = $index_meta['current_sync_item']['total'];
+			$index_status['slug']          = $index_meta['current_sync_item']['indexable'];
 		}
-	} else {
 
-		$dashboard_syncing = get_option( 'ep_index_meta', false );
-		$wpcli_syncing     = get_transient( 'ep_wpcli_sync' );
+		// Change method name for retrocompatibility.
+		// `dashboard` is used mainly because hooks names depend on that.
+		if ( ! empty( $index_status['method'] ) && 'dashboard' === $index_status['method'] ) {
+			$index_status['method'] = 'web';
+		}
 
-	}
-
-	if ( $dashboard_syncing || $wpcli_syncing ) {
-
-		if ( $dashboard_syncing ) {
-
-			$index_status = $dashboard_syncing;
-
+		if ( ! empty( $index_status['method'] ) && 'web' === $index_status['method'] ) {
 			$should_interrupt_sync = filter_var(
 				get_transient( 'ep_sync_interrupted' ),
 				FILTER_VALIDATE_BOOLEAN
 			);
 
 			$index_status['should_interrupt_sync'] = $should_interrupt_sync;
-		} else {
-			$index_status = array(
-				'indexing'      => false,
-				'method'        => 'none',
-				'items_indexed' => 0,
-				'total_items'   => -1,
-				'url'           => $url,
-			);
-
-			$index_status['indexing'] = true;
-
-			$index_status['method'] = 'cli';
-
-			if ( is_array( $wpcli_syncing ) ) {
-
-				$index_status['items_indexed'] = $wpcli_syncing[0];
-				$index_status['total_items']   = $wpcli_syncing[1];
-				$index_status['slug']          = $wpcli_syncing[2];
-			}
 		}
 	}
 
 	return $index_status;
 
+}
+
+/**
+ * Use the correct update option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option   Name of the option to update.
+ * @param mixed  $value    Option value.
+ * @param mixed  $autoload Whether to load the option when WordPress starts up.
+ * @return bool
+ */
+function update_option( $option, $value, $autoload = null ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \update_site_option( $option, $value );
+	}
+	return \update_option( $option, $value, $autoload );
+}
+
+/**
+ * Use the correct get option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option        Name of the option to get.
+ * @param mixed  $default_value Default value.
+ * @return bool
+ */
+function get_option( $option, $default_value = false ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \get_site_option( $option, $default_value );
+	}
+	return \get_option( $option, $default_value );
+}
+
+/**
+ * Use the correct delete option function depending on the context (multisite or not)
+ *
+ * @since 3.6.0
+ * @param string $option Name of the option to delete.
+ * @return bool
+ */
+function delete_option( $option ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \delete_site_option( $option );
+	}
+	return \delete_option( $option );
+}
+
+/**
+ * Check if queries for the current request are going to be integrated with
+ * ElasticPress.
+ *
+ * Public requests and REST API requests are integrated by default, but admin
+ * requests will only be integrated in if the `ep_admin_wp_query_integration`
+ * filter returns `true`, and and admin-ajax.php requests will only be
+ * integrated if the `ep_ajax_wp_query_integration` filter returns `true`.
+ *
+ * If specific types of requests are passed, true will only be returned if the
+ * current request also matches one of the passed types.
+ *
+ * This function is used by features to determine whether they should hook into
+ * the current request.
+ *
+ * @param string   $context Slug of the feature that is performing the check.
+ *                          Passed to the `ep_is_integrated_request` filter.
+ * @param string[] $types   Which types of request to check. Any of 'admin',
+ *                          'ajax', 'public', and 'rest'. Defaults to all
+ *                          types.
+ * @return bool Whether the current request supports ElasticPress integration
+ *              and is of a given type.
+ *
+ * @since 3.6.0
+ */
+function is_integrated_request( $context, $types = [] ) {
+	if ( empty( $types ) ) {
+		$types = [ 'admin', 'ajax', 'public', 'rest' ];
+	}
+
+	$is_admin_request             = is_admin();
+	$is_ajax_request              = defined( 'DOING_AJAX' ) && DOING_AJAX;
+	$is_rest_request              = defined( 'REST_REQUEST' ) && REST_REQUEST;
+	$is_integrated_admin_request  = false;
+	$is_integrated_ajax_request   = false;
+	$is_integrated_public_request = false;
+	$is_integrated_rest_request   = false;
+
+	if ( $is_admin_request && ! $is_ajax_request && in_array( 'admin', $types, true ) ) {
+
+		/**
+		 * Filter whether to integrate with admin queries.
+		 *
+		 * @hook ep_admin_wp_query_integration
+		 * @param bool $integrate True to integrate.
+		 * @return bool New value.
+		 */
+		$is_integrated_admin_request = apply_filters( 'ep_admin_wp_query_integration', false );
+	}
+
+	if ( $is_ajax_request && in_array( 'ajax', $types, true ) ) {
+
+		/**
+		 * Filter to integrate with admin ajax queries.
+		 *
+		 * @hook ep_ajax_wp_query_integration
+		 * @param bool $integrate True to integrate.
+		 * @return bool New value.
+		 */
+		$is_integrated_ajax_request = apply_filters( 'ep_ajax_wp_query_integration', false );
+	}
+
+	if ( $is_rest_request && in_array( 'rest', $types, true ) ) {
+		$is_integrated_rest_request = true;
+	}
+
+	if ( ! $is_admin_request && ! $is_ajax_request && ! $is_rest_request && in_array( 'public', $types, true ) ) {
+		$is_integrated_public_request = true;
+	}
+
+	/**
+	 * Is the current request any of the supported requests.
+	 */
+	$is_integrated = (
+		$is_integrated_admin_request ||
+		$is_integrated_ajax_request ||
+		$is_integrated_public_request ||
+		$is_integrated_rest_request
+	);
+
+	/**
+	 * Filter whether the queries for the current request should be integrated.
+	 *
+	 * @hook ep_is_integrated_request
+	 * @param bool   $is_integrated Whether queries for the request will be
+	 *                              integrated.
+	 * @param string $context       Context for the original check. Usually the
+	 *                              slug of the feature doing the check.
+	 * @param array  $types         Which requests types are being checked.
+	 * @return bool Whether queries for the request will be integrated.
+	 *
+	 * @since 3.6.2
+	 */
+	return apply_filters( 'ep_is_integrated_request', $is_integrated, $context, $types );
+}
+
+/**
+ * Get asset info from extracted asset files
+ *
+ * @param string $slug Asset slug as defined in build/webpack configuration
+ * @param string $attribute Optional attribute to get. Can be version or dependencies
+ * @return string|array
+ */
+function get_asset_info( $slug, $attribute = null ) {
+	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/js/' . $slug . '.asset.php';
+	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/css/' . $slug . '.asset.php';
+	} else {
+		return null;
+	}
+
+	if ( ! empty( $attribute ) && isset( $asset[ $attribute ] ) ) {
+		return $asset[ $attribute ];
+	}
+
+	return $asset;
 }

@@ -19,9 +19,9 @@ class TestUtils extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -48,8 +48,8 @@ class TestUtils extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// Update since we are deleting to test notifications
 		update_site_option( 'ep_host', $this->current_host );
@@ -173,21 +173,17 @@ class TestUtils extends BaseTestCase {
 	public function testIsIndexing() {
 
 		if ( is_multisite() ) {
-			update_site_option( 'ep_index_meta', [] );
-			set_site_transient( 'ep_wpcli_sync', true, 900 );
+			update_site_option( 'ep_index_meta', [ 'method' => 'test' ] );
 		} else {
-			update_option( 'ep_index_meta', [] );
-			set_transient( 'ep_wpcli_sync', true, 900 );
+			update_option( 'ep_index_meta', [ 'method' => 'test' ] );
 		}
 
 		$this->assertTrue( ElasticPress\Utils\is_indexing() );
 
 		if ( is_multisite() ) {
 			delete_site_option( 'ep_index_meta' );
-			delete_site_transient( 'ep_wpcli_sync' );
 		} else {
 			delete_option( 'ep_index_meta' );
-			delete_transient( 'ep_wpcli_sync' );
 		}
 
 		$this->assertFalse( ElasticPress\Utils\is_indexing() );

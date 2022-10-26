@@ -1,15 +1,22 @@
-import React, { useContext, Fragment } from 'react';
-import LinkedMultiInput from '../shared/LinkedMultiInput';
+/**
+ * WordPress dependencies.
+ */
+import { Fragment, useContext, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch, State } from '../../context';
+import LinkedMultiInput from '../shared/LinkedMultiInput';
 
 /**
  * Synonyms editor component.
  *
- * @param {object} props Props
+ * @param {object}   props      Props
  * @param {object[]} props.sets Defined sets (equivalent synonyms).
- * @returns {React.FC}
+ * @returns {WPElement} SetsEditor component
  */
-export default function SetsEditor({ sets }) {
+const SetsEditor = ({ sets }) => {
 	const dispatch = useContext(Dispatch);
 	const state = useContext(State);
 	const { setsInputHeading, setsAddButtonText, setsErrorMessage } = window.epSynonyms.i18n;
@@ -17,7 +24,7 @@ export default function SetsEditor({ sets }) {
 	/**
 	 * Handle click.
 	 *
-	 * @param {React.SyntheticEvent} e Event
+	 * @param {Event} e Event
 	 */
 	const handleClick = (e) => {
 		const [lastSet] = state.sets.slice(-1);
@@ -48,11 +55,13 @@ export default function SetsEditor({ sets }) {
 							)}
 						</Fragment>
 					))}
-					<button className="button button-secondary" onClick={handleClick}>
+					<button type="button" className="button button-secondary" onClick={handleClick}>
 						{setsAddButtonText}
 					</button>
 				</div>
 			</div>
 		</div>
 	);
-}
+};
+
+export default SetsEditor;

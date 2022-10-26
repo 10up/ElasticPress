@@ -24,8 +24,14 @@ class Terms extends Feature {
 	 * @since 3.1
 	 */
 	public function __construct() {
-		$this->slug                     = 'terms';
-		$this->title                    = esc_html__( 'Terms', 'elasticpress' );
+		$this->slug = 'terms';
+
+		$this->title = esc_html__( 'Terms', 'elasticpress' );
+
+		$this->summary = __( 'Improve WP_Term_Query relevancy and query performance. This feature is only needed if you are using WP_Term_Query directly.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#terms', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		parent::__construct();
@@ -49,17 +55,7 @@ class Terms extends Feature {
 	 */
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.1
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Improve WP_Term_Query relevancy and query performance. This feature is only needed if you are using WP_Term_Query directly.', 'elasticpress' ); ?></p>
-		<?php
+		add_filter( 'ep_term_fuzziness_arg', [ $this, 'set_admin_terms_search_fuzziness' ] );
 	}
 
 	/**
@@ -86,7 +82,7 @@ class Terms extends Feature {
 			return $enabled;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		} elseif ( ! empty( $query->query_vars['search'] ) ) {
 			$enabled = true;
@@ -105,6 +101,20 @@ class Terms extends Feature {
 		$status = new FeatureRequirementsStatus( 1 );
 
 		return $status;
+	}
+
+	/**
+	 * Change fuzziness level for terms search in admin
+	 *
+	 * @param  {int} $fuzziness Amount of fuzziness to factor into search
+	 * @since  3.6.4
+	 * @return int
+	 */
+	public function set_admin_terms_search_fuzziness( $fuzziness ) {
+		if ( is_admin() ) {
+			$fuzziness = 0;
+		}
+		return $fuzziness;
 	}
 
 }

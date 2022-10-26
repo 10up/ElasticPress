@@ -43,7 +43,7 @@ class Term extends Indexable {
 		];
 
 		$this->sync_manager      = new SyncManager( $this->slug );
-		$this->query_integration = new QueryIntegration();
+		$this->query_integration = new QueryIntegration( $this->slug );
 	}
 
 	/**
@@ -140,8 +140,8 @@ class Term extends Indexable {
 		 */
 		if ( ! empty( $query_vars['object_ids'] ) ) {
 			$filter['bool']['must'][]['bool']['must'][] = [
-				'match_phrase' => [
-					'object_ids.value' => $query_vars['object_ids'],
+				'terms' => [
+					'object_ids.value' => (array) $query_vars['object_ids'],
 				],
 			];
 
@@ -157,21 +157,6 @@ class Term extends Indexable {
 			$query_vars['hide_empty']   = false;
 			$query_vars['hierarchical'] = false;
 			$query_vars['pad_counts']   = false;
-		}
-
-		/**
-		 * Support `hide_empty` query var
-		 */
-		if ( ! empty( $query_vars['hide_empty'] ) ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'count' => [
-						'gte' => 1,
-					],
-				],
-			];
-
-			$use_filters = true;
 		}
 
 		/**
@@ -236,6 +221,12 @@ class Term extends Indexable {
 		 * Support `slug` query var
 		 */
 		if ( ! empty( $query_vars['slug'] ) ) {
+			if ( ! is_array( $query_vars['slug'] ) ) {
+				$query_vars['slug'] = array( $query_vars['slug'] );
+			}
+
+			$query_vars['slug'] = array_map( 'sanitize_title', $query_vars['slug'] );
+
 			$filter['bool']['must'][] = [
 				'terms' => [
 					'slug.raw' => (array) $query_vars['slug'],
@@ -259,17 +250,53 @@ class Term extends Indexable {
 		}
 
 		/**
-		 * Support `hierarchical` query var
+		 * Support `hierarchical` and `hide_empty` query var
+		 *
+		 * `hierarchical` needs to work in conjunction with `hide_empty`, as per WP docs:
+		 * > `hierarchical`: Whether to include terms that have non-empty descendants (even if $hide_empty is set to true).
+		 *
+		 * In summary:
+		 * - hide_empty AND hierarchical: count > 1 OR hierarchy.children > 1
+		 * - hide_empty AND NOT hierarchical: count > 1 (ignore hierarchy.children)
+		 * - NOT hide_empty (AND hierarchical): there is no need to limit the query
+		 *
+		 * @see https://developer.wordpress.org/reference/classes/WP_Term_Query/__construct/
 		 */
 		$hide_empty = isset( $query_vars['hide_empty'] ) ? $query_vars['hide_empty'] : '';
-		if ( true === $hide_empty ) {
-			$filter['bool']['must'][] = [
-				'range' => [
-					'hierarchy.children.count' => [
-						'gte' => 1,
+		if ( $hide_empty ) {
+			$hierarchical = isset( $query_vars['hierarchical'] ) ? $query_vars['hierarchical'] : '';
+
+			if ( $hierarchical ) {
+				$filter_clause = [ 'bool' => [ 'should' => [] ] ];
+
+				$filter_clause['bool']['should'][] = [
+					'range' => [
+						'count' => [
+							'gte' => 1,
+						],
 					],
-				],
-			];
+				];
+
+				$filter_clause['bool']['should'][] = [
+					'range' => [
+						'hierarchy.children.count' => [
+							'gte' => 1,
+						],
+					],
+				];
+
+				$filter['bool']['must'][] = $filter_clause;
+
+				$use_filters = true;
+			} else {
+				$filter['bool']['must'][] = [
+					'range' => [
+						'count' => [
+							'gte' => 1,
+						],
+					],
+				];
+			}
 
 			$use_filters = true;
 		}
@@ -333,75 +360,8 @@ class Term extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_term_search_fields', $prepared_search_fields, $query_vars );
 
-			$query = [
-				'bool' => [
-					'should' => [
-						[
-							'multi_match' => [
-								'query'  => $search,
-								'type'   => 'phrase',
-								'fields' => $prepared_search_fields,
-								/**
-								 * Filter term match phrase boost amount
-								 *
-								 * @hook ep_term_match_phrase_boost
-								 * @param  {int} $boos Boost amount for match phrase
-								 * @param  {array} $query_vars Query variables
-								 * @since  3.4
-								 * @return {int} New boost amount
-								 */
-								'boost'  => apply_filters( 'ep_term_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
-							],
-						],
-						[
-							'multi_match' => [
-								'query'     => $search,
-								'fields'    => $prepared_search_fields,
-								/**
-								 * Filter term match boost amount
-								 *
-								 * @hook ep_term_match_boost
-								 * @param  {int} $boost Boost amount for match
-								 * @param  {array} $query_vars Query variables
-								 * @since  3.4
-								 * @return {int} New boost amount
-								 */
-								'boost'     => apply_filters( 'ep_term_match_boost', 2, $prepared_search_fields, $query_vars ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							],
-						],
-						[
-							'multi_match' => [
-								'fields'    => $prepared_search_fields,
-								'query'     => $search,
-								/**
-								 * Filter term fuzziness amount
-								 *
-								 * @hook ep_term_fuzziness_arg
-								 * @param  {int} $fuzziness Amount of fuziness to factor into search
-								 * @param  {array} $query_vars Query variables
-								 * @since  3.4
-								 * @return {int} New boost amount
-								 */
-								'fuzziness' => apply_filters( 'ep_term_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
-							],
-						],
-					],
-				],
-			];
-
-			/**
-			 * Filter Elasticsearch query used for Terms indexable
-			 *
-			 * @hook ep_term_formatted_args_query
-			 * @param  {array} $query Elasticsearch query
-			 * @param  {array} $query_vars Query variables
-			 * @since  3.4
-			 * @return {array} New query
-			 */
-			$formatted_args['query'] = apply_filters( 'ep_term_formatted_args_query', $query, $query_vars );
-
+			$search_algorithm        = $this->get_search_algorithm( $search, $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'term', $search, $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
@@ -424,7 +384,7 @@ class Term extends Indexable {
 		/**
 		 * Support `parent` query var.
 		 */
-		if ( ! empty( $query_vars['parent'] ) ) {
+		if ( isset( $query_vars['parent'] ) && '' !== $query_vars['parent'] ) {
 			$filter['bool']['must'][]['bool']['must'] = [
 				'term' => [
 					'parent' => (int) $query_vars['parent'],
@@ -457,7 +417,7 @@ class Term extends Indexable {
 				'key' => $query_vars['meta_key'],
 			];
 
-			if ( isset( $query_vars['meta_value'] ) ) {
+			if ( isset( $query_vars['meta_value'] ) && '' !== $query_vars['meta_value'] ) {
 				$meta_query_array['value'] = $query_vars['meta_value'];
 			}
 
@@ -558,12 +518,12 @@ class Term extends Indexable {
 	}
 
 	/**
-	 * Put mapping for terms
+	 * Generate the mapping array
 	 *
-	 * @since  3.1
-	 * @return boolean
+	 * @since  3.6.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -598,7 +558,7 @@ class Term extends Indexable {
 		 */
 		$mapping = apply_filters( 'ep_term_mapping', $mapping );
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return $mapping;
 	}
 
 	/**
@@ -947,83 +907,37 @@ class Term extends Indexable {
 	protected function parse_orderby( $orderby, $order, $args ) {
 		$sort = [];
 
-		if ( ! empty( $orderby ) ) {
-			if ( 'name' === $orderby ) {
-				$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
 
-				if ( version_compare( $es_version, '7.0', '>=' ) ) {
-					$sort[] = array(
-						'name.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} else {
-					$sort[] = array(
-						'name.raw' => array(
-							'order' => $order,
-						),
-					);
-				}
-			} elseif ( 'slug' === $orderby ) {
-				$sort[] = array(
-					'slug.raw' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_group' === $orderby ) {
-				$sort[] = array(
-					'term_group.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'term_id' === $orderby || 'id' === $orderby ) {
-				$sort[] = array(
-					'term_id.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'description' === $orderby ) {
-				$sort[] = array(
-					'description.sortable' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'parent' === $orderby ) {
-				$sort[] = array(
-					'parent.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'count' === $orderby ) {
-				$sort[] = array(
-					'count.long' => array(
-						'order' => $order,
-					),
-				);
-			} elseif ( 'meta_value' === $orderby ) {
-				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.value' => array(
-							'order' => $order,
-						),
-					);
-				}
-			} elseif ( 'meta_value_num' === $orderby ) {
-				if ( ! empty( $args['meta_key'] ) ) {
-					$sort[] = array(
-						'meta.' . $args['meta_key'] . '.long' => array(
-							'order' => $order,
-						),
-					);
-				}
+		$from_to = [
+			'slug'        => 'slug.raw',
+			'id'          => 'term_id',
+			'description' => 'description.sortable',
+		];
+
+		if ( in_array( $orderby, [ 'meta_value', 'meta_value_num' ], true ) ) {
+			if ( empty( $args['meta_key'] ) ) {
+				return $sort;
 			} else {
-				$sort[] = array(
-					$orderby => array(
-						'order' => $order,
-					),
-				);
+				$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.value';
+				$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
 			}
 		}
+
+		if ( 'name' === $orderby ) {
+			$es_version      = Elasticsearch::factory()->get_elasticsearch_version();
+			$from_to['name'] = version_compare( $es_version, '7.0', '<' ) ? 'name.raw' : 'name.sortable';
+		}
+
+		$orderby = $from_to[ $orderby ] ?? $orderby;
+
+		$sort[] = array(
+			$orderby => array(
+				'order' => $order,
+			),
+		);
 
 		return $sort;
 	}

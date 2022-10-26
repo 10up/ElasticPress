@@ -19,15 +19,24 @@ class TestAdminNotices extends BaseTestCase {
 	 *
 	 * @since 2.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		grant_super_admin( $admin_id );
 
 		wp_set_current_user( $admin_id );
+
+		$this->real_es_version = ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
+
+		add_filter(
+			'ep_elasticsearch_version',
+			function() {
+				return (int) EP_ES_VERSION_MAX - 1;
+			}
+		);
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
@@ -37,6 +46,10 @@ class TestAdminNotices extends BaseTestCase {
 		$this->setup_test_post_type();
 
 		$this->current_host = get_option( 'ep_host' );
+
+		// always ensure mappings line up to avoid false positive notices,
+		// even if the ES version changes.
+		add_filter( 'ep_post_mapping_version_determined', [ $this, 'ep_post_mapping_version_determined' ] );
 
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
@@ -48,8 +61,8 @@ class TestAdminNotices extends BaseTestCase {
 	 *
 	 * @since 2.2
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// Update since we are deleting to test notifications
 		update_site_option( 'ep_host', $this->current_host );
@@ -367,6 +380,59 @@ class TestAdminNotices extends BaseTestCase {
 	 *
 	 * - In admin
 	 * - Host set
+	 * - Old version of ElasticPress
+	 * - Upgrade sync is needed
+	 * - Elasticsearch version within bounds
+	 *
+	 * Do: Show upgrade sync with complement related to Instant Results
+	 *
+	 * @group admin-notices
+	 * @since 4.0.0
+	 */
+	public function testUpgradeSyncNoticeAndInstantResultsInAdmin() {
+		update_site_option( 'ep_last_sync', time() );
+		update_site_option( 'ep_need_upgrade_sync', true );
+		update_site_option( 'ep_version', '3.6.6' );
+		delete_site_option( 'ep_feature_auto_activated_sync' );
+
+		ElasticPress\Screen::factory()->set_current_screen( null );
+
+		// Instant Results not available.
+		$not_available_full_text = '<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to <a href="https://elasticpress.zendesk.com/hc/en-us/articles/4413938931853-Considerations-for-self-hosted-Elasticsearch-setups">install and configure a PHP proxy</a>.';
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
+		$this->assertStringContainsString( $not_available_full_text, $notices['upgrade_sync']['html'] );
+
+		// Instant Results available.
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$features_url = admin_url( 'network/admin.php?page=elasticpress' );
+		} else {
+			$features_url = admin_url( 'admin.php?page=elasticpress' );
+		}
+		$available_full_text = '<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click <a href="' . $features_url . '">here</a> to activate the feature and start your sync.';
+
+		// Instant Results available via custom proxy.
+		add_filter( 'ep_instant_results_available', '__return_true' );
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
+		$this->assertStringContainsString( $available_full_text, $notices['upgrade_sync']['html'] );
+		remove_filter( 'ep_instant_results_available', '__return_true' );
+
+		// Instant Results available via EP.io.
+		update_site_option( 'ep_host', 'https://prefix.elasticpress.io/' );
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
+		$this->assertStringContainsString( $available_full_text, $notices['upgrade_sync']['html'] );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Host set
 	 * - Sync has occurred
 	 * - No upgrade sync is needed
 	 * - Feature auto activate sync is needed
@@ -391,5 +457,110 @@ class TestAdminNotices extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['auto_activate_sync'] ) );
+	}
+
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Host set
+	 * - Sync has occurred
+	 * - No upgrade sync is needed
+	 * - Feature auto activate sync is not needed
+	 * - Elasticsearch version within bounds
+	 * - Autosuggest not active
+	 * - Mapping version equals determined mapping version
+	 *
+	 * Do: Show no notice
+	 *
+	 * @group admin-notices
+	 * @since 3.6.2
+	 */
+	public function testValidMappingNoticeInAdmin() {
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		update_site_option( 'ep_feature_auto_activated_sync', false );
+
+		// We need to do a proper sync with real version to ensure the index is in place
+		// and we do not get a 404 when requesting the mapping version.
+		$es_version = $this->real_es_version;
+		add_filter(
+			'ep_elasticsearch_version',
+			function() use ( $es_version ) {
+				return $es_version;
+			}
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+
+		ElasticPress\Screen::factory()->set_current_screen( null );
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertCount( 0, $notices );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - In admin
+	 * - Host set
+	 * - Sync has occurred
+	 * - No upgrade sync is needed
+	 * - Feature auto activate sync is not needed
+	 * - Elasticsearch version within bounds
+	 * - Autosuggest not active
+	 * - ES Mapping Version <> Determined mapping
+	 *
+	 * Do: Show mapping notice
+	 *
+	 * @group admin-notices
+	 * @since 3.6.2
+	 */
+	public function testInvalidMappingNoticeInAdmin() {
+		update_site_option( 'ep_last_sync', time() );
+		delete_site_option( 'ep_need_upgrade_sync' );
+		update_site_option( 'ep_feature_auto_activated_sync', false );
+
+		// We need to do a proper sync with real version to ensure the index is in place
+		// and we do not get a 404 when requesting the mapping version.
+		$es_version = $this->real_es_version;
+		add_filter(
+			'ep_elasticsearch_version',
+			function() use ( $es_version ) {
+				return $es_version;
+			}
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+
+		$mapping = function() {
+			return 'idonotmatch';
+		};
+		add_filter( 'ep_post_mapping_version_determined', $mapping );
+
+		ElasticPress\Screen::factory()->set_current_screen( null );
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertCount( 1, $notices );
+		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
+	}
+
+	/**
+	 * Utilitary function to set `ep_post_mapping_version_determined`
+	 * as the wanted Mapping version.
+	 *
+	 * @return string
+	 */
+	public function ep_post_mapping_version_determined() {
+		return ElasticPress\Indexables::factory()->get( 'post' )->get_mapping_name();
 	}
 }

@@ -22,13 +22,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 class QueryIntegration {
 
 	/**
-	 * Sets up the appropriate actions and filters.
+	 * Checks to see if we should be integrating and if so, sets up the appropriate actions and filters.
+	 *
+	 * @param string $indexable_slug Indexable slug. Optional.
 	 *
 	 * @since 3.1
+	 * @since 3.6.0 Added $indexable_slug
 	 */
-	public function __construct() {
-		// Check if we are currently indexing
-		if ( Utils\is_indexing() ) {
+	public function __construct( $indexable_slug = 'term' ) {
+		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
+		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
 			return;
 		}
 
@@ -75,14 +79,34 @@ class QueryIntegration {
 			return $results;
 		}
 
+		if ( ! $this->is_searchable( $query ) ) {
+			return $results;
+		}
+
 		$new_terms = apply_filters( 'ep_wp_query_cached_terms', null, $query );
 
 		if ( null === $new_terms ) {
 			$formatted_args = $indexable->format_args( $query->query_vars );
 
 			$scope = 'current';
+
+			$site__in     = [];
+			$site__not_in = [];
+
 			if ( ! empty( $query->query_vars['sites'] ) ) {
-				$scope = $query->query_vars['sites'];
+
+				_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
+				$site__in = (array) $query->query_vars['sites'];
+				$scope    = 'all' === $query->query_vars['sites'] ? 'all' : $site__in;
+			}
+
+			if ( ! empty( $query->query_vars['site__in'] ) ) {
+				$site__in = (array) $query->query_vars['site__in'];
+				$scope    = 'all' === $query->query_vars['site__in'] ? 'all' : $site__in;
+			}
+
+			if ( ! empty( $query->query_vars['site__not_in'] ) ) {
+				$site__not_in = (array) $query->query_vars['site__not_in'];
 			}
 
 			/**
@@ -103,15 +127,28 @@ class QueryIntegration {
 
 			if ( 'all' === $scope ) {
 				$index = $indexable->get_network_alias();
-			} elseif ( is_numeric( $scope ) ) {
-				$index = $indexable->get_index_name( (int) $scope );
-			} elseif ( is_array( $scope ) ) {
+			} elseif ( ! empty( $site__in ) ) {
 				$index = [];
 
-				foreach ( $scope as $site_id ) {
+				foreach ( $site__in as $site_id ) {
 					$index[] = $indexable->get_index_name( $site_id );
 				}
 
+				$index = implode( ',', $index );
+			} elseif ( ! empty( $site__not_in ) ) {
+
+				$sites = get_sites(
+					array(
+						'fields'       => 'ids',
+						'site__not_in' => $site__not_in,
+					)
+				);
+				foreach ( $sites as $site_id ) {
+					if ( ! Utils\is_site_indexable( $site_id ) ) {
+						continue;
+					}
+					$index[] = Indexables::factory()->get( 'term' )->get_index_name( $site_id );
+				}
 				$index = implode( ',', $index );
 			}
 
@@ -122,11 +159,27 @@ class QueryIntegration {
 				return $results;
 			}
 
-			$query->found_terms           = $ep_query['found_documents'];
+			/**
+			 * Elasticsearch 5 will return found_documents as a number,
+			 * ES 7+ will return it as an object with `value`. If any of that is found,
+			 * fallback to a simple count of returned documents.
+			 *
+			 * @since 3.6.3
+			 */
+			if ( is_integer( $ep_query['found_documents'] ) ) {
+				$query->found_terms = $ep_query['found_documents'];
+			} elseif ( is_array( $ep_query['found_documents'] ) && isset( $ep_query['found_documents']['value'] ) ) {
+				$query->found_terms = $ep_query['found_documents']['value'];
+			} else {
+				$query->found_terms = count( $ep_query['documents'] );
+			}
+
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
 			$fields = $query->query_vars['fields'];
+
+			$new_terms = [];
 
 			switch ( $fields ) {
 				case 'all_with_object_id':
@@ -222,6 +275,8 @@ class QueryIntegration {
 
 			$term->elasticsearch = true; // Super useful for debugging.
 
+			$term = new \WP_Term( $term ); // Necessary for WordPress actions that expect WP_Term as the object type.
+
 			if ( $term ) {
 				$new_terms[] = $term;
 			}
@@ -309,6 +364,23 @@ class QueryIntegration {
 		}
 
 		return $new_terms;
+	}
+
+	/**
+	 * Determine whether ES should be used for the query if all taxonomies are indexable.
+	 *
+	 * @param \WP_Term_Query $query The WP_Term_Query object.
+	 * @return boolean
+	 */
+	protected function is_searchable( $query ) {
+
+		$taxonomies = $query->query_vars['taxonomy'];
+		if ( ! $taxonomies ) {
+			return true;
+		}
+
+		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
+		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
 
 }

@@ -1,15 +1,22 @@
-import React, { Fragment, useContext } from 'react';
-import AlternativeEditor from './AlternativeEditor';
+/**
+ * WordPress dependencies.
+ */
+import { Fragment, useContext, WPElement } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
 import { Dispatch, State } from '../../context';
+import AlternativeEditor from './AlternativeEditor';
 
 /**
  * Synonyms editor component.
  *
- * @param {object} props Props.
+ * @param {object}   props              Props.
  * @param {object[]} props.alternatives Defined alternatives (explicit mappings).
- * @returns {React.FC}
+ * @returns {WPElement} AlternativesEditor component
  */
-export default function AlterativesEditor({ alternatives }) {
+const AlternativesEditor = ({ alternatives }) => {
 	const dispatch = useContext(Dispatch);
 	const state = useContext(State);
 	const {
@@ -22,7 +29,7 @@ export default function AlterativesEditor({ alternatives }) {
 	/**
 	 * Handle click.
 	 *
-	 * @param {React.SyntheticEvent} e Event.
+	 * @param {Event} e Event.
 	 */
 	const handleClick = (e) => {
 		const [lastItem] = state.alternatives.slice(-1);
@@ -58,11 +65,13 @@ export default function AlterativesEditor({ alternatives }) {
 							)}
 						</Fragment>
 					))}
-					<button className="button button-secondary" onClick={handleClick}>
+					<button type="button" className="button button-secondary" onClick={handleClick}>
 						{alternativesAddButtonText}
 					</button>
 				</div>
 			</div>
 		</div>
 	);
-}
+};
+
+export default AlternativesEditor;

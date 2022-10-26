@@ -48,7 +48,15 @@ return array(
 			'analyzer' => array(
 				'default'          => array(
 					'tokenizer' => 'standard',
-					'filter'    => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
+					/**
+					 * Filter Elasticsearch default analyzer's filters
+					 *
+					 * @since 3.6.2
+					 * @hook ep_default_analyzer_filters
+					 * @param  {array<string>} $filters Default filters
+					 * @return {array<string>} New filters
+					 */
+					'filter'    => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
 					/**
 					 * Filter Elasticsearch default language in mapping
 					 *
@@ -103,6 +111,9 @@ return array(
 	),
 	'mappings' => array(
 		'post' => array(
+			'_meta'             => array(
+				'mapping_version' => '5-0.php',
+			),
 			'date_detection'    => false,
 			'dynamic_templates' => array(
 				array(
@@ -387,6 +398,26 @@ return array(
 						'second'        => array( // Second (0 to 59).
 							'type' => 'integer',
 						),
+					),
+				),
+			),
+			'thumbnail'         => array(
+				'type'       => 'object',
+				'properties' => array(
+					'ID'     => array(
+						'type' => 'long',
+					),
+					'src'    => array(
+						'type' => 'text',
+					),
+					'width'  => array(
+						'type' => 'integer',
+					),
+					'height' => array(
+						'type' => 'integer',
+					),
+					'alt'    => array(
+						'type' => 'text',
 					),
 				),
 			),

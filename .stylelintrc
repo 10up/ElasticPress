@@ -1,0 +1,17 @@
+{
+  "extends": [
+    "@10up/stylelint-config"
+  ],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      "/color/",
+      {
+        "ignoreValues": ["currentColor", "inherit", "initial", "transparent", "unset"],
+        "severity": "warning"
+      }
+    ],
+    "font-family-no-missing-generic-family-keyword": null,
+    "declaration-property-unit-allowed-list": null
+  }
+
+}

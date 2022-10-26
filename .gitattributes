@@ -1,20 +1,24 @@
-/.wordpress-org export-ignore
+/.git export-ignore
 /.github export-ignore
+/.wordpress-org export-ignore
 /bin export-ignore
 /config export-ignore
 /docs export-ignore
 /gulp-tasks export-ignore
 /lang export-ignore
 /tests export-ignore
+/vendor/ export-ignore
+/node_modules export-ignore
 
 /.babelrc export-ignore
 /.browserslistrc export-ignore
 /.editorconfig export-ignore
 /.eslintignore export-ignore
-/.eslintrc export-ignore
+/.eslintrc.js export-ignore
 /.gitattributes export-ignore
 /.gitignore export-ignore
-/.travis.yml export-ignore
+/.stylelintrc export-ignore
+/.wp-env.json export-ignore
 /CHANGELOG.md export-ignore
 /CODE_OF_CONDUCT.md export-ignore
 /composer.json export-ignore
@@ -31,7 +35,5 @@
 /postcss.config.js export-ignore
 /README.md export-ignore
 /SECURITY.md export-ignore
-/run-wpacceptance.sh export-ignore
 /single-site.xml.dist export-ignore
-/webpack.config.babel.js export-ignore
-/wpacceptance.json export-ignore
+/webpack.config.js export-ignore

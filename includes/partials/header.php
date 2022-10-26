@@ -13,7 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'network/admin.php?page=' ) : admin_url( 'admin.php?page=' );
+$base_url     = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'network/admin.php?page=' ) : admin_url( 'admin.php?page=' );
+$is_sync_page = 'sync' === Screen::factory()->get_current_screen();
 ?>
 
 <div class="ep-header-menu">
@@ -21,16 +22,23 @@ $base_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? admin_url( 'networ
 
 	<div class="icons">
 		<span class="sync-status"></span>
-		<?php if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'health' ], true ) ) : ?>
-			<a class="dashicons pause-sync dashicons-controls-pause"></a>
-			<a class="dashicons resume-sync dashicons-controls-play"></a>
-			<a class="dashicons cancel-sync dashicons-no"></a>
-			<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC ) : ?>
-				<a class="dashicons start-sync dashicons-update"></a>
-			<?php endif; ?>
+		<?php if ( $is_sync_page ) : ?>
+
+			<a class="dashicons resume-sync dashicons-controls-play" title ="<?php esc_attr_e( 'Resume Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Resume Sync', 'elasticpress' ); ?>"></a>
+			<a class="dashicons cancel-sync dashicons-no" title="<?php esc_attr_e( 'Cancel Sync', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Cancel Sync', 'elasticpress' ); ?>"></a>
 		<?php endif; ?>
-		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic"></a>
+		<?php if ( Elasticsearch::factory()->get_elasticsearch_version() && defined( 'EP_DASHBOARD_SYNC' ) && EP_DASHBOARD_SYNC && ! $is_sync_page ) : ?>
+			<a
+				class="dashicons start-sync dashicons-update"
+				title="<?php esc_attr_e( 'Sync Page', 'elasticpress' ); ?>"
+				aria-label="<?php esc_attr_e( 'Sync Page', 'elasticpress' ); ?>"
+				<?php echo ( $is_sync_page ) ? '' : 'href="' . esc_url( $base_url . 'elasticpress-sync' ) . '"'; ?>
+			></a>
+		<?php endif; ?>
+		<a href="<?php echo esc_url( $base_url . 'elasticpress-settings' ); ?>" class="dashicons dashicons-admin-generic" title="<?php esc_attr_e( 'Settings Page', 'elasticpress' ); ?>" aria-label="<?php esc_attr_e( 'Settings Page', 'elasticpress' ); ?>"></a>
 	</div>
 
 	<div class="progress-bar"></div>
 </div>
+
+<hr id="ep-wp-header-end" class="wp-header-end">

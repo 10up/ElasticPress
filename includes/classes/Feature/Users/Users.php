@@ -24,8 +24,14 @@ class Users extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug                     = 'users';
-		$this->title                    = esc_html__( 'Users', 'elasticpress' );
+		$this->slug = 'users';
+
+		$this->title = esc_html__( 'Users', 'elasticpress' );
+
+		$this->summary = __( 'Improve user search relevancy and query performance.', 'elasticpress' );
+
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#users', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		parent::__construct();
@@ -49,17 +55,6 @@ class Users extends Feature {
 	 */
 	public function search_setup() {
 		add_filter( 'ep_elasticpress_enabled', [ $this, 'integrate_search_queries' ], 10, 2 );
-	}
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 3.0
-	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Improve user search relevancy and query performance.', 'elasticpress' ); ?></p>
-		<?php
 	}
 
 	/**
@@ -87,7 +82,7 @@ class Users extends Feature {
 			return $enabled;
 		}
 
-		if ( isset( $query->query_vars['ep_integrate'] ) && false === $query->query_vars['ep_integrate'] ) {
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$enabled = false;
 		} elseif ( ! empty( $query->query_vars['search'] ) ) {
 			$enabled = true;

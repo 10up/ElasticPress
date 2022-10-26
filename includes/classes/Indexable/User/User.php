@@ -129,7 +129,25 @@ class User extends Indexable {
 		 * Support `role` query arg
 		 */
 		if ( ! empty( $blog_id ) ) {
-			if ( ! empty( $query_vars['role'] ) ) {
+			// If a blog id is set, we will apply at least one filter for roles.
+			$use_filters = true;
+
+			// If there are no specific roles named, make sure the user is a member of the site.
+			if ( empty( $query_vars['role'] ) && empty( $query_vars['role__in'] ) && empty( $query_vars['role__not_in'] ) ) {
+				$filter['bool']['must'][] = array(
+					'exists' => array(
+						'field' => 'capabilities.' . $blog_id . '.roles',
+					),
+				);
+				/**
+				 * EP versions prior to 4.1.0 set non-existent roles as `0`.
+				 */
+				$filter['bool']['must_not'][] = array(
+					'term' => array(
+						'capabilities.' . $blog_id . '.roles' => 0,
+					),
+				);
+			} elseif ( ! empty( $query_vars['role'] ) ) {
 				$roles = (array) $query_vars['role'];
 
 				foreach ( $roles as $role ) {
@@ -141,8 +159,6 @@ class User extends Indexable {
 						),
 					);
 				}
-
-				$use_filters = true;
 			} else {
 				if ( ! empty( $query_vars['role__in'] ) ) {
 					$roles_in = (array) $query_vars['role__in'];
@@ -154,8 +170,6 @@ class User extends Indexable {
 							'capabilities.' . $blog_id . '.roles' => $roles_in,
 						),
 					);
-
-					$use_filters = true;
 				}
 
 				if ( ! empty( $query_vars['role__not_in'] ) ) {
@@ -170,8 +184,6 @@ class User extends Indexable {
 							),
 						);
 					}
-
-					$use_filters = true;
 				}
 			}
 		}
@@ -214,8 +226,13 @@ class User extends Indexable {
 		 * Support `fields` query var.
 		 */
 		if ( isset( $query_vars['fields'] ) && 'all' !== $query_vars['fields'] && 'all_with_meta' !== $query_vars['fields'] ) {
+			$fields      = (array) $query_vars['fields'];
+			$id_position = array_search( 'id', $fields, true );
+			if ( false !== $id_position ) {
+				$fields[ $id_position ] = 'ID';
+			}
 			$formatted_args['_source'] = [
-				'includes' => (array) $query_vars['fields'],
+				'includes' => $fields,
 			];
 		}
 
@@ -460,78 +477,8 @@ class User extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_user_search_fields', $prepared_search_fields, $query_vars );
 
-			$query = array(
-				'bool' => array(
-					'should' => array(
-						array(
-							'multi_match' => array(
-								'query'  => $query_vars['search'],
-								'type'   => 'phrase',
-								'fields' => $prepared_search_fields,
-								/**
-								 * Filter boost for user match phrase query
-								 *
-								 * @hook ep_user_match_phrase_boost
-								 * @param  {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @since  3.0
-								 * @return  {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_user_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
-							),
-						),
-						array(
-							'multi_match' => array(
-								'query'     => $query_vars['search'],
-								'fields'    => $prepared_search_fields,
-								/**
-								 * Filter boost for user match query
-								 *
-								 * @hook ep_user_match_boost
-								 * @param  {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @since  3.0
-								 * @return  {int} New boost
-								 */
-								'boost'     => apply_filters( 'ep_user_match_boost', 2, $prepared_search_fields, $query_vars ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							),
-						),
-						array(
-							'multi_match' => array(
-								'fields'    => $prepared_search_fields,
-								'query'     => $query_vars['search'],
-								/**
-								 * Filter fuzziness for user query
-								 *
-								 * @hook ep_user_fuzziness_arg
-								 * @param  {int} $fuzziness Fuzziness
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @since  3.0
-								 * @return  {int} New fuzziness
-								 */
-								'fuzziness' => apply_filters( 'ep_user_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
-							),
-						),
-					),
-				),
-			);
-
-			/**
-			 * Filter formatted Elasticsearch user query (only contains query part)
-			 *
-			 * @hook ep_user_formatted_args_query
-			 * @param {array} $query Current query
-			 * @param {array} $query_vars Query variables
-			 * @since  3.0
-			 * @return  {array} New query
-			 */
-			$formatted_args['query'] = apply_filters( 'ep_user_formatted_args_query', $query, $query_vars );
-
+			$search_algorithm        = $this->get_search_algorithm( $query_vars['search'], $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'user', $query_vars['search'], $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
@@ -600,7 +547,6 @@ class User extends Indexable {
 		 * include
 		 * login__in
 		 * nicename__in
-		 * user_registered registered
 		 * post_count
 		 */
 
@@ -608,7 +554,29 @@ class User extends Indexable {
 			$orderby = explode( ' ', $orderby );
 		}
 
+		$from_to = [
+			'relevance'     => '_score',
+			'user_login'    => 'user_login.raw',
+			'login'         => 'user_login.raw',
+			'id'            => 'ID',
+			'display_name'  => 'display_name.sortable',
+			'name'          => 'display_name.sortable',
+			'nicename'      => 'user_nicename.raw',
+			'user_nicename' => 'user_nicename.raw',
+			'user_email'    => 'user_email.raw',
+			'email'         => 'user_email.raw',
+			'user_url'      => 'user_url.raw',
+			'url'           => 'user_url.raw',
+			'registered'    => 'user_registered',
+		];
+
 		$sort = [];
+
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
+
+		$unsupported_clauses = [ 'rand', 'include', 'login__in', 'nicename__in', 'post_count' ];
 
 		foreach ( $orderby as $key => $value ) {
 			if ( is_string( $key ) ) {
@@ -619,73 +587,26 @@ class User extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( ! empty( $orderby_clause ) && 'rand' !== $orderby_clause ) {
-				if ( 'relevance' === $orderby_clause ) {
-					$sort[] = array(
-						'_score' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_login' === $orderby_clause || 'login' === $orderby_clause ) {
-					$sort[] = array(
-						'user_login.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'ID' === $orderby_clause ) {
-					$sort[] = array(
-						'ID' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'display_name' === $orderby_clause || 'name' === $orderby_clause ) {
-					$sort[] = array(
-						'display_name.sortable' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_nicename' === $orderby_clause || 'nicename' === $orderby_clause ) {
-					$sort[] = array(
-						'user_nicename.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_email' === $orderby_clause || 'email' === $orderby_clause ) {
-					$sort[] = array(
-						'user_email.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'user_url' === $orderby_clause || 'url' === $orderby_clause ) {
-					$sort[] = array(
-						'user_url.raw' => array(
-							'order' => $order,
-						),
-					);
-				} elseif ( 'meta_value' === $orderby_clause ) {
-					if ( ! empty( $query_vars['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.raw' => array(
-								'order' => $order,
-							),
-						);
-					}
-				} elseif ( 'meta_value_num' === $orderby_clause ) {
-					if ( ! empty( $query_vars['meta_key'] ) ) {
-						$sort[] = array(
-							'meta.' . $query_vars['meta_key'] . '.long' => array(
-								'order' => $order,
-							),
-						);
-					}
+			if ( empty( $orderby_clause ) || in_array( $orderby_clause, $unsupported_clauses, true ) ) {
+				continue;
+			}
+
+			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
+				if ( empty( $args['meta_key'] ) ) {
+					continue;
 				} else {
-					$sort[] = array(
-						$orderby_clause => array(
-							'order' => $order,
-						),
-					);
+					$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
+					$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
 				}
 			}
+
+			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
+
+			$sort[] = array(
+				$orderby_clause => array(
+					'order' => $order,
+				),
+			);
 		}
 
 		return $sort;
@@ -728,11 +649,15 @@ class User extends Indexable {
 			$args['order'] = 'desc';
 		}
 
+		$orderby_args = sanitize_sql_orderby( "{$args['orderby']} {$args['order']}" );
+		$orderby      = $orderby_args ? sprintf( 'ORDER BY %s', $orderby_args ) : '';
+
 		/**
 		 * WP_User_Query doesn't let us get users across all blogs easily. This is the best
 		 * way to do that.
 		 */
-		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} ORDER BY %s %s LIMIT %d, %d", $args['orderby'], $args['orderby'], (int) $args['offset'], (int) $args['number'] ) );
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$objects = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS ID FROM {$wpdb->users} {$orderby} LIMIT %d, %d", (int) $args['offset'], (int) $args['number'] ) );
 
 		return [
 			'objects'       => $objects,
@@ -741,12 +666,12 @@ class User extends Indexable {
 	}
 
 	/**
-	 * Put mapping for users
+	 * Generate the mapping array
 	 *
-	 * @since  3.0
-	 * @return boolean
+	 * @since  3.6.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 		if ( empty( $es_version ) ) {
 			/**
@@ -787,7 +712,7 @@ class User extends Indexable {
 		 */
 		$mapping = apply_filters( 'ep_user_mapping', $mapping );
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return $mapping;
 	}
 
 	/**
@@ -860,7 +785,7 @@ class User extends Indexable {
 
 			if ( ! empty( $roles ) ) {
 				$prepared_roles[ (int) $site['blog_id'] ] = [
-					'roles' => array_keys( $roles ),
+					'roles' => array_keys( (array) $roles ),
 				];
 			}
 		}

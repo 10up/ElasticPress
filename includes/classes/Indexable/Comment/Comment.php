@@ -85,6 +85,9 @@ class Comment extends Indexable {
 		 */
 		if ( isset( $query_vars['offset'] ) ) {
 			$formatted_args['from'] = (int) $query_vars['offset'];
+			if ( empty( $query_vars['number'] ) ) {
+				$formatted_args['size'] -= (int) $formatted_args['from'];
+			}
 		}
 
 		/**
@@ -440,8 +443,8 @@ class Comment extends Indexable {
 		 */
 		if ( ! empty( $query_vars['post_type'] ) ) {
 			$filter['bool']['must'][]['bool']['must'] = [
-				'term' => [
-					'comment_post_type.raw' => $query_vars['post_type'],
+				'terms' => [
+					'comment_post_type.raw' => array_values( (array) $query_vars['post_type'] ),
 				],
 			];
 
@@ -526,84 +529,8 @@ class Comment extends Indexable {
 			 */
 			$prepared_search_fields = apply_filters( 'ep_comment_search_fields', $prepared_search_fields, $query_vars );
 
-			$query = [
-				'bool' => [
-					'should' => [
-						[
-							'multi_match' => [
-								'query'  => $search,
-								'type'   => 'phrase',
-								'fields' => $prepared_search_fields,
-								/**
-								 * Filter boost for comment match phrase query
-								 *
-								 * @hook ep_comment_match_phrase_boost
-								 * @since 3.6.0
-								 * @param {int} $boost Phrase boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return {int} New phrase boost
-								 */
-								'boost'  => apply_filters( 'ep_comment_match_phrase_boost', 4, $prepared_search_fields, $query_vars ),
-							],
-						],
-						[
-							'multi_match' => [
-								'query'     => $search,
-								'fields'    => $prepared_search_fields,
-								/**
-								 * Filter boost for comment match query
-								 *
-								 * @hook ep_comment_match_boost
-								 * @param {int} $boost Boost
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return {int} New boost
-								 */
-								'boost'     => apply_filters( 'ep_comment_match_boost', 2, $prepared_search_fields, $query_vars ),
-								'fuzziness' => 0,
-								'operator'  => 'and',
-							],
-						],
-						[
-							'multi_match' => [
-								'fields'    => $prepared_search_fields,
-								'query'     => $search,
-								/**
-								 * Filter fuzziness for post query
-								 *
-								 * @hook ep_comment_fuzziness_arg
-								 * @since 3.6.0
-								 * @param {int} $fuzziness Fuzziness
-								 * @param {array} $prepared_search_fields Search fields
-								 * @param {array} $query_vars Query variables
-								 * @return {int} New fuzziness
-								 */
-								'fuzziness' => apply_filters( 'ep_comment_fuzziness_arg', 1, $prepared_search_fields, $query_vars ),
-							],
-						],
-					],
-				],
-			];
-
-			/**
-			 * Filter formatted Elasticsearch post query (only contains query part)
-			 *
-			 * @hook ep_comment_formatted_args_query
-			 * @since 3.6.0
-			 * @param {array}  $query         Current query
-			 * @param {array}  $query_vars    Query variables
-			 * @param {string} $search_text   Search text
-			 * @param {array}  $search_fields Search fields
-			 * @return {array} New query
-			 */
-			$formatted_args['query'] = apply_filters(
-				'ep_comment_formatted_args_query',
-				$query,
-				$query_vars,
-				$search,
-				$prepared_search_fields
-			);
+			$search_algorithm        = $this->get_search_algorithm( $search, $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'comment', $search, $prepared_search_fields, $query_vars );
 		} else {
 			$formatted_args['query']['match_all'] = [
 				'boost' => 1,
@@ -747,12 +674,12 @@ class Comment extends Indexable {
 	}
 
 	/**
-	 * Put mapping for comments
+	 * Generate the mapping array
 	 *
-	 * @since  3.6.0
-	 * @return boolean
+	 * @since 4.1.0
+	 * @return array
 	 */
-	public function put_mapping() {
+	public function generate_mapping() {
 		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
 
 		if ( empty( $es_version ) ) {
@@ -794,7 +721,7 @@ class Comment extends Indexable {
 		 */
 		$mapping = apply_filters( 'ep_comment_mapping', $mapping );
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return $mapping;
 	}
 
 	/**
@@ -879,18 +806,17 @@ class Comment extends Indexable {
 
 		unset( $all_query_args['number'] );
 		unset( $all_query_args['offset'] );
+		$all_query_args['count'] = true;
 
 		/**
-		 * Filter database arguments for term count query
+		 * Filter database arguments for comment count query
 		 *
 		 * @hook ep_comment_all_query_db_args
 		 * @param  {array} $args Query arguments based to WP_Comment_Query
 		 * @since  3.6.0
 		 * @return {array} New arguments
 		 */
-		$all_query = new WP_Comment_Query( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
-
-		$total_objects = count( $all_query->comments );
+		$total_objects = get_comments( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
 
 		if ( ! empty( $args['offset'] ) ) {
 			if ( (int) $args['offset'] >= $total_objects ) {
@@ -1117,95 +1043,34 @@ class Comment extends Indexable {
 			return $sort;
 		}
 
-		switch ( $orderby ) {
-			case 'comment_agent':
-				$orderby_field = 'comment_agent.raw';
-				break;
+		$from_to = [
+			'comment_agent'        => 'comment_agent.raw',
+			'comment_approved'     => 'comment_approved.raw',
+			'comment_author'       => 'comment_author.raw',
+			'comment_author_email' => 'comment_author_email.raw',
+			'comment_author_IP'    => 'comment_author_IP.raw',
+			'comment_author_url'   => 'comment_author_url.raw',
+			'comment_content'      => 'comment_content.raw',
+			'comment_type'         => 'comment_type.raw',
+			'comment_post_type'    => 'comment_post_type.raw',
+		];
 
-			case 'comment_approved':
-				$orderby_field = 'comment_approved.raw';
-				break;
-
-			case 'comment_author':
-				$orderby_field = 'comment_author.raw';
-				break;
-
-			case 'comment_author_email':
-				$orderby_field = 'comment_author_email.raw';
-				break;
-
-			case 'comment_author_IP':
-				$orderby_field = 'comment_author_IP.raw';
-				break;
-
-			case 'comment_author_url':
-				$orderby_field = 'comment_author_url.raw';
-				break;
-
-			case 'comment_content':
-				$orderby_field = 'comment_content.raw';
-				break;
-
-			case 'comment_date':
-				$orderby_field = 'comment_date';
-				break;
-
-			case 'comment_date_gmt':
-				$orderby_field = 'comment_date_gmt';
-				break;
-
-			case 'comment_ID':
-				$orderby_field = 'comment_ID';
-				break;
-
-			case 'comment_karma':
-				$orderby_field = 'comment_karma';
-				break;
-
-			case 'comment_parent':
-				$orderby_field = 'comment_parent';
-				break;
-
-			case 'comment_post_ID':
-				$orderby_field = 'comment_post_ID';
-				break;
-
-			case 'comment_type':
-				$orderby_field = 'comment_type.raw';
-				break;
-
-			case 'comment_post_type':
-				$orderby_field = 'comment_post_type.raw';
-				break;
-
-			case 'user_id':
-				$orderby_field = 'user_id';
-				break;
-
-			case 'meta_value':
-				if ( ! empty( $args['meta_key'] ) ) {
-					$orderby_field = 'meta.' . $args['meta_key'] . '.value';
-				}
-				break;
-
-			case 'meta_value_num':
-				if ( ! empty( $args['meta_key'] ) ) {
-					$orderby_field = 'meta.' . $args['meta_key'] . '.long';
-				}
-				break;
-
-			default:
-				$orderby_field = $orderby;
-				break;
+		if ( in_array( $orderby, [ 'meta_value', 'meta_value_num' ], true ) ) {
+			if ( empty( $args['meta_key'] ) ) {
+				return $sort;
+			} else {
+				$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
+				$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
+			}
 		}
 
-		if ( ! empty( $orderby_field ) ) {
-			$sort[] = [
-				$orderby_field => [
-					'order' => $order,
-				],
-			];
-		}
+		$orderby = $from_to[ $orderby ] ?? $orderby;
+
+		$sort[] = array(
+			$orderby => array(
+				'order' => $order,
+			),
+		);
 
 		return $sort;
 	}

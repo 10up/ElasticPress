@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 1,
+	"title": "Related Posts (ElasticPress)",
+	"textdomain": "elasticpress",
+	"name": "elasticpress/related-posts",
+	"category": "widgets",
+	"attributes": {
+		"alignment": {
+			"type": "string",
+			"default": "none"
+		},
+		"number": {
+			"type": "number",
+			"default": 5
+		}
+	},
+	"supports": {
+		"align": true
+	},
+	"usesContext": ["postId"],
+	"editorScript": "ep-related-posts-block-script",
+	"style": "file:/../../../../dist/css/related-posts-block-styles.css"
+}

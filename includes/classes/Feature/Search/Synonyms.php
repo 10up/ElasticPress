@@ -12,6 +12,7 @@ use ElasticPress\Features;
 use ElasticPress\Indexables;
 use ElasticPress\Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -131,8 +132,26 @@ class Synonyms {
 			return;
 		}
 
-		wp_enqueue_script( 'ep_synonyms_scripts', EP_URL . 'dist/js/synonyms-script.min.js', [], EP_VERSION, true );
-		wp_enqueue_style( 'ep_synonyms_styles', EP_URL . 'dist/css/synonyms-styles.min.css', [], EP_VERSION, 'all' );
+		wp_enqueue_script(
+			'ep_synonyms_scripts',
+			EP_URL . 'dist/js/synonyms-script.js',
+			Utils\get_asset_info( 'synonyms-script', 'dependencies' ),
+			Utils\get_asset_info( 'synonyms-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep_synonyms_scripts', 'elasticpress' );
+
+		wp_enqueue_style( 'wp-edit-post' );
+
+		wp_enqueue_style(
+			'ep_synonyms_styles',
+			EP_URL . 'dist/css/synonyms-styles.css',
+			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
+			Utils\get_asset_info( 'synonyms-styles', 'version' ),
+			'all'
+		);
+
 		wp_localize_script(
 			'ep_synonyms_scripts',
 			'epSynonyms',
@@ -187,7 +206,7 @@ class Synonyms {
 			return;
 		}
 
-		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_STRING );
+		$update = filter_input( INPUT_GET, 'ep_synonym_update', FILTER_SANITIZE_SPECIAL_CHARS );
 
 		if ( ! in_array( $update, [ 'success', 'error-update-post', 'error-update-index' ], true ) ) {
 			return;
@@ -253,10 +272,11 @@ class Synonyms {
 					'post_type'      => self::POST_TYPE_NAME,
 					'posts_per_page' => 1,
 					'orderby'        => 'modified',
+					'post_status'    => 'any',
 				)
 			);
 
-			$this->synonym_post_id = 1 === $query_synonym_post->post_count ? $query_synonym_post->posts[0] : false;
+			$this->synonym_post_id = ( $query_synonym_post->post_count >= 1 ) ? $query_synonym_post->posts[0] : false;
 
 			if ( ! $this->synonym_post_id ) {
 				$this->synonym_post_id = $this->insert_default_synonym_post();
@@ -326,7 +346,7 @@ class Synonyms {
 			return false;
 		}
 
-		return filter_var( trim( $synonym ), FILTER_SANITIZE_STRING );
+		return sanitize_text_field( $synonym, true );
 	}
 
 	/**
@@ -385,13 +405,13 @@ class Synonyms {
 	 * @return void
 	 */
 	public function handle_update_synonyms() {
-		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_STRING );
-		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_STRING );
+		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
+		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		$post_id = false;
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
-			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_SANITIZE_STRING );
-			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_STRING );
+			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_CALLBACK, [ 'options' => 'wp_strip_all_tags' ] );
+			$mode     = filter_input( INPUT_POST, 'synonyms_editor_mode', FILTER_SANITIZE_SPECIAL_CHARS );
 			$content  = trim( sanitize_textarea_field( $synonyms ) );
 
 			// Content can't be empty.
@@ -529,7 +549,7 @@ class Synonyms {
 		return apply_filters(
 			'ep_synonyms_filter',
 			[
-				'type'     => 'synonym',
+				'type'     => 'synonym_graph',
 				'lenient'  => true,
 				'synonyms' => $this->get_synonyms(),
 			]
@@ -633,32 +653,34 @@ class Synonyms {
 	 */
 	public function get_localized_strings() {
 		return array(
-			'pageHeading'                => __( 'Manage Synonyms', 'elasticpress' ),
-			'pageDescription'            => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
-			'pageToggleAdvanceText'      => __( 'Switch to Advanced Text Editor', 'elasticpress' ),
-			'pageToggleSimpleText'       => __( 'Switch to Visual Editor', 'elasticpress' ),
+			'pageHeading'                  => __( 'Manage Synonyms', 'elasticpress' ),
+			'pageDescription'              => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
+			'pageToggleAdvanceText'        => __( 'Switch to Advanced Text Editor', 'elasticpress' ),
+			'pageToggleSimpleText'         => __( 'Switch to Visual Editor', 'elasticpress' ),
 
-			'setsTitle'                  => __( 'Sets', 'elasticpress' ),
-			'setsDescription'            => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
-			'setsInputHeading'           => __( 'Comma separated list of terms', 'elasticpress' ),
-			'setsAddButtonText'          => __( 'Add Set', 'elasticpress' ),
-			'setsErrorMessage'           => __( 'This set must contain at least 2 terms.', 'elasticpress' ),
+			'setsTitle'                    => __( 'Sets', 'elasticpress' ),
+			'setsDescription'              => __( 'Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners.', 'elasticpress' ),
+			'setsInputHeading'             => __( 'Comma separated list of terms', 'elasticpress' ),
+			'setsAddButtonText'            => __( 'Add Set', 'elasticpress' ),
+			'setsErrorMessage'             => __( 'This set must contain at least 2 terms.', 'elasticpress' ),
 
-			'alternativesTitle'          => __( 'Alternatives', 'elasticpress' ),
-			'alternativesDescription'    => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
-			'alternativesPrimaryHeading' => __( 'Primary term', 'elasticpress' ),
-			'alternativesInputHeading'   => __( 'Comma separated list of alternatives', 'elasticpress' ),
-			'alternativesAddButtonText'  => __( 'Add Alternative', 'elasticpress' ),
-			'alternativesErrorMessage'   => __( 'You must enter both a primary term and at least one alternative term.', 'elasticpress' ),
+			'alternativesTitle'            => __( 'Alternatives', 'elasticpress' ),
+			'alternativesDescription'      => __( 'Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels.', 'elasticpress' ),
+			'alternativesPrimaryHeading'   => __( 'Primary term', 'elasticpress' ),
+			'alternativesInputHeading'     => __( 'Comma separated list of alternatives', 'elasticpress' ),
+			'alternativesAddButtonText'    => __( 'Add Alternative', 'elasticpress' ),
+			'alternativesErrorMessage'     => __( 'You must enter both a primary term and at least one alternative term.', 'elasticpress' ),
 
-			'solrTitle'                  => __( 'Advanced Synonym Editor', 'elasticpress' ),
-			'solrDescription'            => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
-			'solrInputHeading'           => __( 'SolrSynonym Text', 'elasticpress' ),
+			'solrTitle'                    => __( 'Advanced Synonym Editor', 'elasticpress' ),
+			'solrDescription'              => __( 'When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site\'s synonyms for use on another site.', 'elasticpress' ),
+			'solrInputHeading'             => __( 'SolrSynonym Text', 'elasticpress' ),
+			'solrAlternativesErrorMessage' => __( 'Alternatives must have both a primary term and at least one alternative term.', 'elasticpress' ),
+			'solrSetsErrorMessage'         => __( 'Sets must contain at least 2 terms.', 'elasticpress' ),
 
-			'removeItemText'             => __( 'Remove', 'elasticpress' ),
-			'submitText'                 => __( 'Update Synonyms', 'elasticpress' ),
+			'removeItemText'               => __( 'Remove', 'elasticpress' ),
+			'submitText'                   => __( 'Update Synonyms', 'elasticpress' ),
 
-			'synonymsTextareaInputName'  => $this->get_synonym_field(),
+			'synonymsTextareaInputName'    => $this->get_synonym_field(),
 		);
 	}
 
