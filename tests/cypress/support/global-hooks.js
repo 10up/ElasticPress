@@ -24,7 +24,7 @@ before(() => {
 
 		$index_names = WP_CLI::runcommand('elasticpress get-indices', [ 'return' => true ] );
 
-		echo wp_json_encode( [ 'indexNames' => $index_names, 'isEpIo' => $is_epio ] );
+		echo wp_json_encode( [ 'indexNames' => json_decode( $index_names ), 'isEpIo' => $is_epio ] );
 		`,
 	).then((wpCliResponse) => {
 		const wpCliRespObj = JSON.parse(wpCliResponse.stdout);
