@@ -102,8 +102,10 @@ class Command extends WP_CLI_Command {
 		$status = $feature->requirements_status();
 
 		if ( 2 === $status->code ) {
+			/* translators: Error message */
 			WP_CLI::error( sprintf( esc_html__( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		} elseif ( 1 === $status->code ) {
+			/* translators: Warning message */
 			WP_CLI::warning( sprintf( esc_html__( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		}
 
@@ -270,6 +272,7 @@ class Command extends WP_CLI_Command {
 						continue;
 					}
 
+					/* translators: 1. Indexable; 2. Site ID */
 					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
@@ -305,6 +308,7 @@ class Command extends WP_CLI_Command {
 					continue;
 				}
 
+				/* translators: Indexable label */
 				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
@@ -341,6 +345,7 @@ class Command extends WP_CLI_Command {
 				continue;
 			}
 
+			/* translators: Indexable label */
 			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_index();
@@ -515,7 +520,7 @@ class Command extends WP_CLI_Command {
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
-
+					/* translators: 1. Indexable label; 2. Site ID */
 					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $indexable->delete_index();
@@ -531,6 +536,7 @@ class Command extends WP_CLI_Command {
 			}
 		} else {
 			foreach ( $non_global_indexable_objects as $indexable ) {
+				/* translators: Index Label (plural) */
 				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 				$result = $indexable->delete_index();
@@ -544,6 +550,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		foreach ( $global_indexable_objects as $indexable ) {
+			/* translators: Index Label (plural) */
 			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 			$result = $indexable->delete_index();
@@ -577,6 +584,7 @@ class Command extends WP_CLI_Command {
 		$indexables = Indexables::factory()->get_all( false );
 
 		foreach ( $indexables as $indexable ) {
+			/* translators: Index Label */
 			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_network_alias();
