@@ -17,7 +17,6 @@ describe('Instant Results Feature', () => {
 	}
 
 	before(() => {
-		cy.login();
 		createSearchWidget();
 
 		// Create some sample posts
@@ -36,6 +35,7 @@ describe('Instant Results Feature', () => {
 			'custom-instant-results-template open-instant-results-with-buttons',
 			'wpCli',
 		);
+		cy.login();
 	});
 
 	/**
