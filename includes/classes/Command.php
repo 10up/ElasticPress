@@ -1198,17 +1198,9 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $assoc_args['default'] ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				delete_site_option( 'ep_search_algorithm_version' );
-			} else {
-				delete_option( 'ep_search_algorithm_version' );
-			}
+			Utils\delete_option( 'ep_search_algorithm_version' );
 		} else {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_search_algorithm_version', $assoc_args['version'] );
-			} else {
-				update_option( 'ep_search_algorithm_version', $assoc_args['version'], false );
-			}
+			Utils\update_option( 'ep_search_algorithm_version', $assoc_args['version'] );
 		}
 
 		/**

@@ -203,11 +203,10 @@ function maybe_skip_install() {
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$redirect_url = network_admin_url( 'admin.php?page=elasticpress' );
-		update_site_option( 'ep_skip_install', true );
 	} else {
 		$redirect_url = admin_url( 'admin.php?page=elasticpress' );
-		update_option( 'ep_skip_install', true );
 	}
+	Utils\update_option( 'ep_skip_install', true );
 
 	wp_safe_redirect( $redirect_url );
 	exit;
@@ -439,11 +438,7 @@ function action_wp_ajax_ep_save_feature() {
 
 	// Since we deactivated, delete auto activate notice.
 	if ( empty( $_POST['settings']['active'] ) ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_option( 'ep_feature_auto_activated_sync' );
-		} else {
-			delete_option( 'ep_feature_auto_activated_sync' );
-		}
+		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 	}
 
 	wp_send_json_success( $data );
@@ -604,16 +599,16 @@ function action_admin_init() {
 		check_admin_referer( 'elasticpress-options' );
 
 		$language = sanitize_text_field( $_POST['ep_language'] );
-		update_site_option( 'ep_language', $language );
+		Utils\update_option( 'ep_language', $language );
 
 		if ( isset( $_POST['ep_host'] ) ) {
 			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
-			update_site_option( 'ep_host', $host );
+			Utils\update_option( 'ep_host', $host );
 		}
 
 		if ( isset( $_POST['ep_prefix'] ) ) {
 			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-			update_site_option( 'ep_prefix', $prefix );
+			Utils\update_option( 'ep_prefix', $prefix );
 		}
 
 		if ( isset( $_POST['ep_credentials'] ) ) {
@@ -622,11 +617,11 @@ function action_admin_init() {
 				'token'    => '',
 			];
 
-			update_site_option( 'ep_credentials', $credentials );
+			Utils\update_option( 'ep_credentials', $credentials );
 		}
 
 		if ( isset( $_POST['ep_bulk_setting'] ) ) {
-			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+			Utils\update_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
 		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
