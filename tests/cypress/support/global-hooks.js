@@ -29,7 +29,7 @@ before(() => {
 	).then((wpCliResponse) => {
 		const wpCliRespObj = JSON.parse(wpCliResponse.stdout);
 		window.indexNames = wpCliRespObj.indexNames;
-		window.isEpIo = wpCliRespObj.isEpIo === '1';
+		window.isEpIo = wpCliRespObj.isEpIo === 1;
 	});
 });
 
