@@ -10,7 +10,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils;
+use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
@@ -91,11 +91,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -107,11 +103,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_using_autosuggest_defaults_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_using_autosuggest_defaults_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_using_autosuggest_defaults_notice', false );
 
 		if ( $dismiss ) {
 			return false;
@@ -147,32 +139,20 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_auto_activate_sync_notice() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
-		} else {
-			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
-		}
+		$need_upgrade_sync = Utils\get_option( 'ep_need_upgrade_sync', false );
 
 		// need_upgrade_sync takes priority over this notice
 		if ( $need_upgrade_sync ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
-		} else {
-			$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
-		}
+		$auto_activate_sync = Utils\get_option( 'ep_feature_auto_activated_sync', false );
 
 		if ( ! $auto_activate_sync ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -184,11 +164,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_auto_activate_sync_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_auto_activate_sync_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_auto_activate_sync_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -236,21 +212,13 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_upgrade_sync_notice() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
-		} else {
-			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
-		}
+		$need_upgrade_sync = Utils\get_option( 'ep_need_upgrade_sync', false );
 
 		if ( ! $need_upgrade_sync ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -262,11 +230,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_upgrade_sync_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_upgrade_sync_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_upgrade_sync_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -288,13 +252,9 @@ class AdminNotices {
 			$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
 		}
 
-		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you delete all data and start a fresh sync using WP-CLI.', 'elasticpress' );
-		} else {
-			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">delete all data and start a fresh sync</a>.', 'elasticpress' ), esc_url( $url ) );
-		}
+		$html = '';
 
-		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the full sync has been performed.', 'elasticpress' );
+		$notice = '';
 
 		return [
 			'html'    => '<span class="dashicons dashicons-warning"></span> ' . $html . ' ' . $notice,
@@ -314,11 +274,7 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_no_sync_notice() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( ! empty( $last_sync ) ) {
 			return false;
@@ -330,11 +286,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_no_sync_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_no_sync_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_no_sync_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -386,11 +338,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_need_setup_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_need_setup_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_need_setup_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -442,11 +390,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_es_below_compat_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_es_below_compat_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_es_below_compat_notice', false );
 
 		if ( $dismiss ) {
 			return false;
@@ -502,11 +446,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_es_above_compat_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_es_above_compat_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_es_above_compat_notice', false );
 
 		if ( $dismiss ) {
 			return false;
@@ -602,11 +542,7 @@ class AdminNotices {
 
 		// Only dismissable on non-EP screens
 		if ( ! in_array( $screen, [ 'settings', 'dashboard' ], true ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$dismiss = get_site_option( 'ep_hide_host_error_notice', false );
-			} else {
-				$dismiss = get_option( 'ep_hide_host_error_notice', false );
-			}
+			$dismiss = Utils\get_option( 'ep_hide_host_error_notice', false );
 
 			if ( $dismiss ) {
 				return false;
@@ -660,11 +596,7 @@ class AdminNotices {
 		}
 
 		// we might have this dismissed
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
 
 		// we need a host
 		$host = Utils\get_host();
@@ -680,11 +612,7 @@ class AdminNotices {
 		}
 
 		// we also likely need a sync to have a mapping
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -737,21 +665,13 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_yellow_health_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -805,11 +725,7 @@ class AdminNotices {
 		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
 			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
 		}
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_hide_' . $notice . '_notice', $value );
-		} else {
-			update_option( 'ep_hide_' . $notice . '_notice', $value );
-		}
+		Utils\update_option( 'ep_hide_' . $notice . '_notice', $value );
 	}
 
 	/**

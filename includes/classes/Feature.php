@@ -11,6 +11,7 @@
 namespace ElasticPress;
 
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -162,8 +163,8 @@ abstract class Feature {
 	 * @return array|bool
 	 */
 	public function get_settings() {
-		// VIP: Every site should have its own option, rather than a network one.
-		$feature_settings = get_option( 'ep_feature_settings', [] );
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
+		// VIP: Backfill option
 		if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
 			$feature_settings = \vip_maybe_backfill_ep_option( $feature_settings, 'ep_feature_settings' );
 		}
@@ -178,8 +179,8 @@ abstract class Feature {
 	 * @return boolean
 	 */
 	public function is_active() {
-		// VIP: Every site should have its own option, rather than a network one.
-		$feature_settings = get_option( 'ep_feature_settings', [] );
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
+		// VIP: Backfill option
 		if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
 			$feature_settings = \vip_maybe_backfill_ep_option( $feature_settings, 'ep_feature_settings' );
 		}

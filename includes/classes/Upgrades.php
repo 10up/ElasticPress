@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils as Utils;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -31,11 +33,7 @@ class Upgrades {
 	 * Initialize class
 	 */
 	public function setup() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$this->old_version = get_site_option( 'ep_version', false );
-		} else {
-			$this->old_version = get_option( 'ep_version', false );
-		}
+		$this->old_version = Utils\get_option( 'ep_version', false );
 
 		/**
 		 * An array with the upgrades routines.
@@ -62,11 +60,7 @@ class Upgrades {
 		 * Note: if a upgrade routine method is hooked to some action,
 		 * this code will be executed *earlier* than the routine method.
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		} else {
-			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		}
+		Utils\update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 
 		add_filter( 'ep_admin_notices', [ $this, 'resync_notice_4_0_0_instant_results' ] );
 	}
@@ -250,11 +244,7 @@ class Upgrades {
 			return;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', 'never' );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', 'never' );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', 'never' );
 
 		// No need to upgrade since we've never synced.
 		if ( empty( $last_sync ) || 'never' === $last_sync ) {
@@ -295,11 +285,7 @@ class Upgrades {
 		}
 
 		if ( $need_upgrade_sync ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_need_upgrade_sync', true );
-			} else {
-				update_option( 'ep_need_upgrade_sync', true );
-			}
+			Utils\update_option( 'ep_need_upgrade_sync', true );
 		}
 	}
 

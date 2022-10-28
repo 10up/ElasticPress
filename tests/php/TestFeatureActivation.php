@@ -62,8 +62,8 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testNoActiveFeatures() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
 		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->setup_features();
@@ -80,8 +80,8 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testAutoActivated() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
 		delete_option( 'ep_feature_settings' );
 
 		$this->handle_feature_activation();
@@ -110,14 +110,15 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testRequirementStatuses() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
+		delete_option( 'ep_feature_settings' );
 
 		$this->handle_feature_activation();
 		ElasticPress\Features::factory()->setup_features();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( 0, $requirements_statuses['search'] );
 		$this->assertEquals( 1, $requirements_statuses['protected_content'] );
@@ -133,9 +134,9 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testAutoActivateWithSimpleFeature() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
+		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
@@ -156,9 +157,9 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testAutoDeactivateWithFeature() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
+		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
@@ -167,17 +168,20 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->handle_feature_activation();
 		ElasticPress\Features::factory()->setup_features();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 
-		update_site_option( 'ep_test_feature_on', 2 );
+		// VIP: Use per-site option
+		update_option( 'ep_test_feature_on', 2 );
 
 		$this->handle_feature_activation();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 2, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
@@ -192,30 +196,34 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testAutoActivateWithFeature() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
 		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
 		);
 
-		update_site_option( 'ep_test_feature_on', 2 );
+		// VIP: Use per-site option
+		update_option( 'ep_test_feature_on', 2 );
 
 		$this->handle_feature_activation();
 		ElasticPress\Features::factory()->setup_features();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 2, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 2, $requirements_statuses['test'] );
 
-		update_site_option( 'ep_test_feature_on', 0 );
+		// VIP: Use per-site option
+		update_option( 'ep_test_feature_on', 0 );
 
 		$this->handle_feature_activation();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
@@ -230,30 +238,34 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @since  2.2
 	 */
 	public function testReqChangeNothingWithFeature() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-		delete_option( 'ep_feature_settings' ); // VIP: Since we changed to per-site option, we need to fix the failing test.
+		// VIP: Use per-site option
+		delete_option( 'ep_feature_requirement_statuses' );
+		delete_option( 'ep_feature_settings' );
 
 		ElasticPress\Features::factory()->register_feature(
 			new FeatureTest()
 		);
 
-		update_site_option( 'ep_test_feature_on', 0 );
+		// VIP: Use per-site option
+		update_option( 'ep_test_feature_on', 0 );
 
 		$this->handle_feature_activation();
 		ElasticPress\Features::factory()->setup_features();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 
-		update_site_option( 'ep_test_feature_on', 1 );
+		// VIP: Use per-site option
+		update_option( 'ep_test_feature_on', 1 );
 
 		$this->handle_feature_activation();
 
-		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
+		// VIP: Use per-site option
+		$requirements_statuses = get_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );

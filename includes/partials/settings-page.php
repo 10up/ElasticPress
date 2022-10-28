@@ -15,11 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $action = 'options.php';
 
+$index_meta = Utils\get_option( 'ep_index_meta', [] );
+
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$index_meta = get_site_option( 'ep_index_meta', false );
-	$action     = '';
-} else {
-	$index_meta = get_option( 'ep_index_meta', false );
+	$action = '';
 }
 
 $version = Elasticsearch::factory()->get_elasticsearch_version();
@@ -29,11 +28,7 @@ $is_epio     = Utils\is_epio();
 $credentials = Utils\get_epio_credentials();
 $wpconfig    = defined( 'EP_HOST' ) && EP_HOST;
 
-if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$bulk_setting = get_site_option( 'ep_bulk_setting', 350 );
-} else {
-	$bulk_setting = get_option( 'ep_bulk_setting', 350 );
-}
+$bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 ?>
 
 <?php require_once __DIR__ . '/header.php'; ?>
