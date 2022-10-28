@@ -132,7 +132,7 @@ export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) 
 			<div className="page-description">
 				<p>
 					{__(
-						'Adding more weight to an item will mean it will have more presence during searches.Add more weight to the items that are more important and need more prominence during searches.',
+						'This dashboard enables you to select which fields ElasticPress should sync, whether to use those fields in searches, and how heavily to weight fields in the search algorithm. In general, increasing the Weight of a field will increase the relevancy score of a post that has matching text in that field.',
 						'elasticpress',
 					)}
 				</p>

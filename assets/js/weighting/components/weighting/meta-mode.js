@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { CheckboxControl, Panel, PanelBody, PanelRow } from '@wordpress/components';
-import { WPElement } from '@wordpress/element';
+import { WPElement, createInterpolateElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -23,10 +23,17 @@ export default ({ checked, onChange }) => {
 				<PanelRow>
 					<CheckboxControl
 						checked={checked}
-						help={__(
-							'Enable the manual management of metadata to take control over what meta fields are indexed and searchable. If manual management is not enabled ElasticPress will automatically index all meta fields with a _ prefix and any metadata required by the active Features, but meta fields will not be searchable.',
+						help={createInterpolateElement(
+							__(
+								'Checking this box will enable full control over what metadata ElasticPress syncs with {ElasticPress.io/Elasticsearch}. Only metadata listed below will be synced and available for searches or queries.<br />If you leave this box unchecked, ElasticPress will index all public meta (i.e. meta that does not begin with <code>_</code>).',
+							),
+							// eslint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label
+							{ br: <br />, code: <code /> },
 						)}
-						label={__('Manually manage metadata', 'elasticpress')}
+						label={__(
+							'Customize meta sync and search (may require re-sync)',
+							'elasticpress',
+						)}
 						onChange={onChange}
 					/>
 				</PanelRow>
