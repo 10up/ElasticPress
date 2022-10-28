@@ -104,6 +104,10 @@ class Search extends Feature {
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
 		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
+
+		add_action( 'init', [ $this, 'register_meta' ], 20 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'add_admin_scripts' ] );
+		add_action( 'pre_get_posts', [ $this, 'exclude_posts_from_search' ] );
 	}
 
 
@@ -676,4 +680,70 @@ class Search extends Feature {
 
 		<?php
 	}
+
+	/**
+	 * Registers post meta for exclude from search feature.
+	 */
+	public function register_meta() {
+		register_post_meta(
+			'',
+			'ep_exclude_from_search',
+			[
+				'show_in_rest'  => true,
+				'single'        => true,
+				'type'          => 'boolean',
+				'auth_callback' => function() {
+					return current_user_can( 'edit_posts' );
+				},
+			]
+		);
+	}
+
+	/**
+	 * Enqueue scripts.
+	 *
+	 * @param string $page The current admin page.
+	 */
+	public function add_admin_scripts( $page ) {
+
+		if ( 'post.php' !== $page && 'post-new.php' !== $page ) {
+			return;
+		}
+
+		wp_enqueue_script( 'ep-exclude-search', EP_URL . '/dist/js/exclude-search-script.js', Utils\get_asset_info( 'exclude-search-script', 'dependencies' ), Utils\get_asset_info( 'exclude-search-script', 'version' ), true );
+	}
+
+	/**
+	 * Exclude posts based on ep_exclude_from_search post meta.
+	 *
+	 * @param WP_Query $query WP Query
+	 */
+	public function exclude_posts_from_search( $query ) {
+
+		if ( ! $query->is_search() || $query->is_admin() ) {
+			return;
+		}
+
+		// Get any meta query that's being added before.
+		$meta_query = $query->get( 'meta_query' );
+
+		if ( ! empty( $meta_query ) ) {
+			$meta_query[] = array(
+				'key'     => 'ep_exclude_from_search',
+				'value'   => '1',
+				'compare' => '!=',
+			);
+		} else {
+			$meta_query = array(
+				array(
+					'key'     => 'ep_exclude_from_search',
+					'value'   => '1',
+					'compare' => '!=',
+				),
+			);
+		}
+
+		$query->set( 'meta_query', $meta_query );
+	}
+
 }

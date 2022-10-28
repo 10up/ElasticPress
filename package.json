@@ -65,6 +65,7 @@
       "synonyms-script": "./assets/js/synonyms/index.js",
       "admin-script": "./assets/js/admin.js",
       "weighting-script": "./assets/js/weighting.js",
+      "exclude-search-script": "./assets/js/exclude-search.js",
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",
