@@ -19,6 +19,6 @@
 		"align": true
 	},
 	"usesContext": ["postId"],
-	"editorScript": "file:/../../../../dist/js/related-posts-block-script.min.js",
-	"style": "file:/../../../../dist/css/related-posts-block-styles.min.css"
+	"editorScript": "ep-related-posts-block-script",
+	"style": "file:/../../../../dist/css/related-posts-block-styles.css"
 }

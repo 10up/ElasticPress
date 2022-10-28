@@ -20,7 +20,7 @@ before(() => {
 
 		update_option( 'ep_feature_settings', $features );
 
-		WP_CLI::runcommand('elasticpress get-indexes');
+		WP_CLI::runcommand('elasticpress get-indices');
 		`,
 	).then((wpCliResponse) => {
 		window.indexNames = JSON.parse(wpCliResponse.stdout);

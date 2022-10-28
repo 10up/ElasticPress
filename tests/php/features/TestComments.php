@@ -20,9 +20,9 @@ class TestComments extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -46,8 +46,8 @@ class TestComments extends BaseTestCase {
 	 *
 	 * @since 3.6.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
@@ -93,7 +93,7 @@ class TestComments extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
         $output = ob_get_clean();
 
-		$this->assertContains( 'Improve comment search relevancy and query performance.', $output );
+		$this->assertStringContainsString( 'Improve comment search relevancy and query performance.', $output );
     }
 
 	/**
@@ -107,7 +107,7 @@ class TestComments extends BaseTestCase {
 		$this->get_feature()->output_feature_box_long();
         $output = ob_get_clean();
 
-		$this->assertContains( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.', $output );
+		$this->assertStringContainsString( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.', $output );
 	}
 
 	/**
@@ -154,6 +154,6 @@ class TestComments extends BaseTestCase {
     public function testRequirementsStatus() {
         $status = $this->get_feature()->requirements_status();
 
-        $this->assertAttributeEquals( 1, 'code', $status );
+		$this->assertEquals( 1, $status->code );
     }
 }

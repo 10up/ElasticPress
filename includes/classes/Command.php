@@ -27,6 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Command extends WP_CLI_Command {
 
+	use DeprecatedCommand;
+
 	/**
 	 * Holds temporary wp_actions when indexing with pagination
 	 *
@@ -102,8 +104,10 @@ class Command extends WP_CLI_Command {
 		$status = $feature->requirements_status();
 
 		if ( 2 === $status->code ) {
+			/* translators: Error message */
 			WP_CLI::error( sprintf( esc_html__( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		} elseif ( 1 === $status->code ) {
+			/* translators: Warning message */
 			WP_CLI::warning( sprintf( esc_html__( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
 		}
 
@@ -138,11 +142,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$active_features = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$active_features = get_option( 'ep_feature_settings', [] );
-		}
+		$active_features = Utils\get_option( 'ep_feature_settings', [] );
 
 		$key = array_search( $feature->slug, array_keys( $active_features ), true );
 
@@ -171,11 +171,8 @@ class Command extends WP_CLI_Command {
 	public function list_features( $args, $assoc_args ) {
 
 		if ( empty( $assoc_args['all'] ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$features = get_site_option( 'ep_feature_settings', [] );
-			} else {
-				$features = get_option( 'ep_feature_settings', [] );
-			}
+			$features = Utils\get_option( 'ep_feature_settings', [] );
+
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
 			foreach ( array_keys( $features ) as $feature_slug ) {
@@ -270,6 +267,7 @@ class Command extends WP_CLI_Command {
 						continue;
 					}
 
+					/* translators: 1. Indexable; 2. Site ID */
 					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
@@ -305,6 +303,7 @@ class Command extends WP_CLI_Command {
 					continue;
 				}
 
+				/* translators: Indexable label */
 				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
@@ -341,6 +340,7 @@ class Command extends WP_CLI_Command {
 				continue;
 			}
 
+			/* translators: Indexable label */
 			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_index();
@@ -395,19 +395,19 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Return all indexes from the cluster as a JSON object.
+	 * Return all indices from the cluster as a JSON object.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-cluster-indexes
-	 * @since      3.2, `--pretty` introduced in 4.1.0
+	 * @subcommand get-cluster-indices
+	 * @since      4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_cluster_indexes( $args, $assoc_args ) {
+	public function get_cluster_indices( $args, $assoc_args ) {
 		$path = '_cat/indices?format=json';
 
 		$response = Elasticsearch::factory()->remote_request( $path );
@@ -423,12 +423,12 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-indexes
-	 * @since      3.2, `--pretty` introduced in 4.1.0
+	 * @subcommand get-indices
+	 * @since      4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_indexes( $args, $assoc_args ) {
+	public function get_indices( $args, $assoc_args ) {
 		$index_names = $this->get_index_names();
 
 		$this->pretty_json_encode( $index_names, ! empty( $assoc_args['pretty'] ) );
@@ -515,7 +515,7 @@ class Command extends WP_CLI_Command {
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
-
+					/* translators: 1. Indexable label; 2. Site ID */
 					WP_CLI::line( sprintf( esc_html__( 'Deleting %1$s index for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$result = $indexable->delete_index();
@@ -531,6 +531,7 @@ class Command extends WP_CLI_Command {
 			}
 		} else {
 			foreach ( $non_global_indexable_objects as $indexable ) {
+				/* translators: Index Label (plural) */
 				WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 				$result = $indexable->delete_index();
@@ -544,6 +545,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		foreach ( $global_indexable_objects as $indexable ) {
+			/* translators: Index Label (plural) */
 			WP_CLI::line( sprintf( esc_html__( 'Deleting index for %s…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['plural'] ) ) ) );
 
 			$result = $indexable->delete_index();
@@ -577,6 +579,7 @@ class Command extends WP_CLI_Command {
 		$indexables = Indexables::factory()->get_all( false );
 
 		foreach ( $indexables as $indexable ) {
+			/* translators: Index Label */
 			WP_CLI::line( sprintf( esc_html__( 'Recreating %s network alias…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_network_alias();
@@ -711,10 +714,10 @@ class Command extends WP_CLI_Command {
 	 * : Skip confirmation needed by `--setup`
 	 *
 	 * @param array $args Positional CLI args.
-	 * @since 0.1.2
+	 * @since 4.4.0
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function index( $args, $assoc_args ) {
+	public function sync( $args, $assoc_args ) {
 		global $wp_actions;
 
 		$setup_option = isset( $assoc_args['setup'] ) ? $assoc_args['setup'] : false;
@@ -970,13 +973,13 @@ class Command extends WP_CLI_Command {
 	 *
 	 * If an index was stopped prematurely and won't start again, this will clear this cached data such that a new index can start.
 	 *
-	 * @subcommand clear-index
+	 * @subcommand clear-sync
 	 * @alias delete-transient
-	 * @since      3.4
+	 * @since      4.4.0
 	 */
-	public function clear_index() {
+	public function clear_sync() {
 		/**
-		 * Fires before the CLI `clear-index` command is executed.
+		 * Fires before the CLI `clear-sync` command is executed.
 		 *
 		 * @hook ep_cli_before_clear_index
 		 *
@@ -987,7 +990,7 @@ class Command extends WP_CLI_Command {
 		$this->delete_transient();
 
 		/**
-		 * Fires after the CLI `clear-index` command is executed.
+		 * Fires after the CLI `clear-sync` command is executed.
 		 *
 		 * @hook ep_cli_after_clear_index
 		 *
@@ -1012,12 +1015,12 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-indexing-status
+	 * @subcommand get-ongoing-sync-status
 	 * @since 3.5.1, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_indexing_status( $args, $assoc_args ) {
+	public function get_ongoing_sync_status( $args, $assoc_args ) {
 		$indexing_status = Utils\get_indexing_status();
 
 		if ( empty( $indexing_status ) ) {
@@ -1053,7 +1056,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Returns a JSON array with the results of the last CLI index (if present) or an empty array.
+	 * Returns a JSON array with the results of the last CLI sync (if present) or an empty array.
 	 *
 	 * ## OPTIONS
 	 *
@@ -1063,12 +1066,12 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
-	 * @subcommand get-last-cli-index
-	 * @since 3.5.1, `--pretty` introduced in 4.1.0
+	 * @subcommand get-last-cli-sync
+	 * @since 4.4.0, `--pretty` introduced in 4.1.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function get_last_cli_index( $args, $assoc_args ) {
+	public function get_last_cli_sync( $args, $assoc_args ) {
 		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
@@ -1132,14 +1135,14 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Stop the indexing operation started from the dashboard.
+	 * Stop the Sync operation started from the dashboard.
 	 *
-	 * @subcommand stop-indexing
-	 * @since      3.5.2
+	 * @subcommand stop-sync
+	 * @since      4.4.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
-	public function stop_indexing( $args, $assoc_args ) {
+	public function stop_sync( $args, $assoc_args ) {
 		$indexing_status = \ElasticPress\Utils\get_indexing_status();
 
 		if ( empty( \ElasticPress\Utils\get_indexing_status() ) ) {
@@ -1195,17 +1198,9 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! empty( $assoc_args['default'] ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				delete_site_option( 'ep_search_algorithm_version' );
-			} else {
-				delete_option( 'ep_search_algorithm_version' );
-			}
+			Utils\delete_option( 'ep_search_algorithm_version' );
 		} else {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_search_algorithm_version', $assoc_args['version'] );
-			} else {
-				update_option( 'ep_search_algorithm_version', $assoc_args['version'], false );
-			}
+			Utils\update_option( 'ep_search_algorithm_version', $assoc_args['version'] );
 		}
 
 		/**
@@ -1235,11 +1230,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_search_algorithm_version( $args, $assoc_args ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$value = get_site_option( 'ep_search_algorithm_version', '' );
-		} else {
-			$value = get_option( 'ep_search_algorithm_version', '' );
-		}
+		$value = Utils\get_option( 'ep_search_algorithm_version', '' );
 
 		if ( empty( $value ) ) {
 			WP_CLI::line( 'default' );

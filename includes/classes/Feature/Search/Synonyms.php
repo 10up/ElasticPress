@@ -134,17 +134,19 @@ class Synonyms {
 
 		wp_enqueue_script(
 			'ep_synonyms_scripts',
-			EP_URL . 'dist/js/synonyms-script.min.js',
+			EP_URL . 'dist/js/synonyms-script.js',
 			Utils\get_asset_info( 'synonyms-script', 'dependencies' ),
 			Utils\get_asset_info( 'synonyms-script', 'version' ),
 			true
 		);
 
+		wp_set_script_translations( 'ep_synonyms_scripts', 'elasticpress' );
+
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_synonyms_styles',
-			EP_URL . 'dist/css/synonyms-styles.min.css',
+			EP_URL . 'dist/css/synonyms-styles.css',
 			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
 			Utils\get_asset_info( 'synonyms-styles', 'version' ),
 			'all'

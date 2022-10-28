@@ -10,33 +10,6 @@ namespace ElasticPressTest\Functions;
 use ElasticPress;
 
 /**
- * Create and sync a comment
- *
- * @param  string $comment Comment content.
- * @param  int    $post_id Post ID.
- * @param  int    $parent  Parent comment ID.
- *
- * @since  3.6
- *
- * @return int Comment ID.
- */
-function create_and_sync_comment( $args = [] ) {
-
-	$args = array_merge(
-		[
-			'comment_content' => 'Test comment'
-		],
-		$args
-	);
-
-	$comment_id = wp_insert_comment( $args );
-
-	ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id, true );
-
-	return (int) $comment_id;
-}
-
-/**
  * Get all sites, count indexes
  *
  * @return array total index count with last blog id to manipulate blog with an index

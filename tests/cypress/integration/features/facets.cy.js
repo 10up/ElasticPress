@@ -281,7 +281,6 @@ describe('Facets Feature', () => {
 
 	describe('Facet by Meta Block', () => {
 		before(() => {
-			cy.wpCli('plugin activate elasticpress-facet-by-meta');
 			cy.wpCli('post list --meta_key=facet_by_meta_tests --meta_value=1 --format=ids').then(
 				(wpCliResponse) => {
 					if (wpCliResponse.stdout) {
@@ -411,7 +410,7 @@ describe('Facets Feature', () => {
 			 * item as checked, and all articles being displayed should have the
 			 * selected category.
 			 */
-			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
 			cy.get('@firstBlock')
 				.contains('.term', 'Meta Value (1) - 20')
 				.find('.ep-checkbox')
@@ -435,8 +434,8 @@ describe('Facets Feature', () => {
 			 * should be filtered by both selections.
 			 */
 			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
-			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
-			cy.url().should('include', 'ep_meta_filter_meta_field_2=Meta+Value+%282%29+-+20');
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
+			cy.url().should('include', 'ep_meta_filter_meta_field_2=Meta%20Value%20(2)%20-%2020');
 			cy.url().should('not.include', 'page/2');
 			cy.get('@firstBlock')
 				.contains('.term', 'Meta Value (1) - 20')
@@ -455,8 +454,11 @@ describe('Facets Feature', () => {
 			 * facets active.
 			 */
 			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
-			cy.url().should('not.include', 'ep_meta_filter_meta_field_2=Meta+Value+%282%29+-+20');
-			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta+Value+%281%29+-+20');
+			cy.url().should(
+				'not.include',
+				'ep_meta_filter_meta_field_2=Meta%20Value%20(2)%20-%2020',
+			);
+			cy.url().should('include', 'ep_meta_filter_meta_field_1=Meta%20Value%20(1)%20-%2020');
 			cy.get('@secondBlock')
 				.contains('a[aria-disabled="true"]', 'Meta Value (2) - 19')
 				.should('exist');

@@ -13,6 +13,7 @@ use ElasticPress\Features as Features;
  * Facets\Types\Taxonomy\FacetType test class
  */
 class TestFacetTypeTaxonomy extends BaseTestCase {
+
 	/**
 	 * Test get_filter_name
 	 *
@@ -163,16 +164,76 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		parse_str( 'ep_filter_taxonomy=dolor', $_GET );
+		parse_str( 'ep_filter_taxonomy=dolor,amet', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'terms.taxonomy.slug' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'terms.taxonomy.slug' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		/**
+		 * Changing the match type should change from `term` to `terms`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
 
 		$new_filters = $facet_type->add_query_filters( [] );
 		$expected    = [
 			[
 				'terms' => [
-					'terms.taxonomy.slug' => [ 'dolor' ],
+					'terms.taxonomy.slug' => [ 'dolor', 'amet' ],
 				],
 			],
 		];
 		$this->assertSame( $expected, $new_filters );
+	}
+
+	/**
+	 * Test get_sanitize_callback method.
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testGetSanitizeCallback() {
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$test_taxonomy = 'This is a test taxonomy';
+
+		parse_str( "ep_filter_taxonomy={$test_taxonomy}", $_GET );
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_title runs by default on taxonomy facets
+		$expected_result = sanitize_title( $test_taxonomy );
+		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
+
+		$sanitize_function = function( $function ) {
+
+			$this->assertSame( 'sanitize_title', $function );
+
+			return 'sanitize_text_field';
+		};
+
+		// modify the sanitize callback.
+		add_filter( 'ep_facet_sanitize_callback', $sanitize_function );
+
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs when filter is applied.
+		$expected_result = sanitize_text_field( $test_taxonomy );
+		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
+
+		remove_filter( 'ep_facet_sanitize_callback', $sanitize_function );
 	}
 }
