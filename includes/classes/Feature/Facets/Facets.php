@@ -589,7 +589,7 @@ class Facets extends Feature {
 			return $filters;
 		}
 
-		$es_operator = ( 'any' === $this->get_match_type() ) ? 'should' : 'must';
+		$es_operator = ( 'any' === $this->get_match_type_between() ) ? 'should' : 'must';
 
 		$filters['facets'] = [
 			'bool' => [
@@ -623,6 +623,31 @@ class Facets extends Feature {
 		 * @return {string} New selection
 		 */
 		return apply_filters( 'ep_facet_match_type', $settings['match_type'] );
+	}
+
+	/**
+	 * Utilitary function to retrieve the match type between different facet selected by the user.
+	 *
+	 * @since 4.4.0
+	 * @return string
+	 */
+	public function get_match_type_between() : string {
+		$settings = wp_parse_args(
+			$this->get_settings(),
+			array(
+				'match_type_between' => 'all',
+			)
+		);
+
+		/**
+		 * Filter the match type between facets. Can be 'all' or 'any'.
+		 *
+		 * @hook  ep_facet_match_type_between
+		 * @since 4.4.0
+		 * @param  {string} $match_type Current selection
+		 * @return {string} New selection
+		 */
+		return apply_filters( 'ep_facet_match_type_between', $settings['match_type_between'] );
 	}
 
 	/**
