@@ -7,10 +7,10 @@ All notable changes to this project will be documented in this file, per [the Ke
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
 
 ElasticPress 4.4.0 release highlights:
-* Instant Results template customization
-* Facets by Meta available by default. Users should delete the 1-file plugin released with 4.3.0
+* Instant Results template customization ([#2959](https://github.com/10up/ElasticPress/pull/2959))
+* Facets by Meta available by default. Users should delete the 1-file plugin released with 4.3.0 ([#3071](https://github.com/10up/ElasticPress/pull/3071))
 * New meta field control via Weighting Dashboard ([#3068](https://github.com/10up/ElasticPress/pull/3068) to be merged)
-* WP-CLI commands rename?
+* Renamed some WP-CLI commands and added deprecation notices for the old versions (see table below)
 
 ### Added
 - New `elasticpress.InstantResults.Result` JavaScript filter for filtering the component used for Instant Results search results. Props [@JakePT](https://github.com/JakePT) via [#2959](https://github.com/10up/ElasticPress/pull/2959).
