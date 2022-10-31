@@ -12,4 +12,17 @@
 	& .components-base-control__help {
 		margin-bottom: 0;
 	}
+
+	& .components-notice {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+	& .components-notice__dismiss {
+		align-self: center;
+	}
+
+	& .components-button {
+		vertical-align: top;
+	}
 }

@@ -2,6 +2,7 @@
  * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
+import { withNotices } from '@wordpress/components';
 import { WPElement, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { isEqual } from 'lodash';
@@ -19,11 +20,20 @@ import PostType from './weighting/post-type';
  * @param {object} props Component props.
  * @param {string} props.apiUrl API URL.
  * @param {'auto'|'manual'} props.metaMode Metadata management mode.
+ * @param {object} props.noticeOperations Notice operations from withNotices.
+ * @param {WPElement} props.noticeUI Notice UI from withNotices.
  * @param {object} props.weightableFields Weightable fields, indexed by post type.
  * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
  */
-export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) => {
+const Weighting = ({
+	apiUrl,
+	metaMode,
+	noticeOperations,
+	noticeUI,
+	weightableFields,
+	weightingConfiguration,
+}) => {
 	const [currentMetaMode, setCurrentMetaMode] = useState(metaMode);
 	const [currentWeightingConfiguration, setCurrentWeightingConfiguration] = useState({
 		...weightingConfiguration,
@@ -77,7 +87,10 @@ export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) 
 	 * @returns {void}
 	 */
 	const onChangePostType = (postType, values) => {
-		setCurrentWeightingConfiguration({ ...currentWeightingConfiguration, [postType]: values });
+		setCurrentWeightingConfiguration({
+			...currentWeightingConfiguration,
+			[postType]: values,
+		});
 	};
 
 	/**
@@ -118,7 +131,19 @@ export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) 
 
 			setSavedWeightingConfiguration(weighting_configuration);
 			setSavedMetaMode(meta_mode);
+
+			noticeOperations.createNotice({
+				content: __('Search fields & weighting saved.', 'elasticpress'),
+				status: 'success',
+			});
+		} catch {
+			noticeOperations.createNotice({
+				content: __('Whoops! Something went wrong. Please try again.', 'elasticpress'),
+				status: 'error',
+			});
 		} finally {
+			document.body.scrollIntoView({ behavior: 'smooth' });
+
 			setIsBusy(false);
 		}
 	};
@@ -129,6 +154,7 @@ export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) 
 	return (
 		<form className="ep-weighting-screen" onSubmit={onSubmit}>
 			<h1 className="page-title">{__('Manage Search Fields & Weighting', 'elasticpress')}</h1>
+			{noticeUI}
 			<div className="page-description">
 				<p>
 					{__(
@@ -166,3 +192,5 @@ export default ({ apiUrl, metaMode, weightableFields, weightingConfiguration }) 
 		</form>
 	);
 };
+
+export default withNotices(Weighting);
