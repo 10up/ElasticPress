@@ -10,7 +10,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils;
+use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
@@ -772,11 +772,7 @@ class AdminNotices {
 		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
 			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
 		}
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_hide_' . $notice . '_notice', $value );
-		} else {
-			update_option( 'ep_hide_' . $notice . '_notice', $value );
-		}
+		Utils\update_option( 'ep_hide_' . $notice . '_notice', $value );
 	}
 
 	/**

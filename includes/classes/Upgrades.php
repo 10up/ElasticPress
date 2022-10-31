@@ -60,11 +60,7 @@ class Upgrades {
 		 * Note: if a upgrade routine method is hooked to some action,
 		 * this code will be executed *earlier* than the routine method.
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		} else {
-			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		}
+		Utils\update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 
 		add_filter( 'ep_admin_notices', [ $this, 'resync_notice_4_0_0_instant_results' ] );
 	}
@@ -289,11 +285,7 @@ class Upgrades {
 		}
 
 		if ( $need_upgrade_sync ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_need_upgrade_sync', true );
-			} else {
-				update_option( 'ep_need_upgrade_sync', true );
-			}
+			Utils\update_option( 'ep_need_upgrade_sync', true );
 		}
 	}
 
