@@ -17,13 +17,13 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -65,12 +65,12 @@ class TestTermMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 
 		ElasticPress\Indexables::factory()->get( 'term' )->delete_network_alias();
 	}

@@ -17,7 +17,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 */
-	public function setUp() {
+	public function set_up() {
 		/**
 		 * It is too late to use the `ep_facet_types` filter.
 		 *
@@ -29,7 +29,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 			$facet_feature->types['meta']->setup();
 		}
 
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**
@@ -211,13 +211,49 @@ class TestFacetTypeMeta extends BaseTestCase {
 	}
 
 	/**
-	 * Test agg_filters
+	 * Test add_query_filters
 	 *
-	 * @since 4.3.0
+	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testAggFilters() {
-		$this->markTestIncomplete();
+	public function testAddQueryFilters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['meta'];
+
+		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		/**
+		 * Changing the match type should change from `term` to `terms`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'terms' => [
+					'meta.my_custom_field.raw' => [ 'dolor', 'amet' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
 	}
 
 	/**
@@ -227,16 +263,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testGetFacetsMetaFields() {
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Test facet_query
-	 *
-	 * @since 4.3.0
-	 * @group facets
-	 */
-	public function testFacetQuery() {
 		$this->markTestIncomplete();
 	}
 
@@ -258,5 +284,42 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 */
 	public function testInvalidateMetaValuesCacheAfterBulk() {
 		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test get_sanitize_callback method.
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testGetSanitizeCallback() {
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$test_meta     = 'This is a test meta';
+
+		parse_str( "ep_meta_filter_new_meta_key_1={$test_meta}", $_GET );
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs by default on taxonomy facets
+		$expected_result = sanitize_text_field( $test_meta );
+		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
+
+		$sanitize_function = function( $function ) {
+
+			$this->assertSame( 'sanitize_text_field', $function );
+
+			return 'sanitize_title';
+		};
+
+		// modify the sanitize callback.
+		add_filter( 'ep_facet_default_sanitize_callback', $sanitize_function );
+
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs when filter is applied.
+		$expected_result = sanitize_title( $test_meta );
+		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
+
+		remove_filter( 'ep_facet_default_sanitize_callback', $sanitize_function );
 	}
 }

@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils as Utils;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -105,11 +107,7 @@ class Features {
 
 		$original_state = $feature->is_active();
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
 
 		if ( empty( $feature_settings[ $slug ] ) ) {
 			// If doesn't exist, merge with feature defaults
@@ -135,11 +133,7 @@ class Features {
 
 		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
-		} else {
-			update_option( 'ep_feature_settings', $sanitize_feature_settings );
-		}
+		Utils\update_option( 'ep_feature_settings', $sanitize_feature_settings );
 
 		$data = array(
 			'active'  => $sanitize_feature_settings[ $slug ]['active'],
@@ -184,11 +178,7 @@ class Features {
 		 * Save our current requirement statuses for later
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$old_requirement_statuses = get_site_option( 'ep_feature_requirement_statuses', false );
-		} else {
-			$old_requirement_statuses = get_option( 'ep_feature_requirement_statuses', false );
-		}
+		$old_requirement_statuses = Utils\get_option( 'ep_feature_requirement_statuses', false );
 
 		$new_requirement_statuses = [];
 
@@ -200,22 +190,14 @@ class Features {
 		$is_wp_cli = defined( 'WP_CLI' ) && \WP_CLI;
 
 		if ( $is_wp_cli || is_admin() ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
-			} else {
-				update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
-			}
+			Utils\update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
 		}
 
 		/**
 		 * If feature settings aren't created, let's create them and finish
 		 */
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', false );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', false );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', false );
 
 		if ( false === $feature_settings ) {
 			$registered_features = $this->registered_features;
@@ -252,11 +234,7 @@ class Features {
 						$this->activate_feature( $slug );
 
 						if ( $feature->requires_install_reindex ) {
-							if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-								update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-							} else {
-								update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-							}
+							Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 						}
 					}
 				} else {
@@ -269,11 +247,7 @@ class Features {
 
 							// Need to activate and maybe set a sync notice
 							if ( $feature->requires_install_reindex ) {
-								if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-									update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-								} else {
-									update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-								}
+								Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 							}
 						} elseif ( $feature->is_active() && ! $active ) {
 							// Just deactivate, don't force

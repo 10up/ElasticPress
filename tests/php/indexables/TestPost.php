@@ -26,9 +26,9 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -89,8 +89,8 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// Unset current_screen so is_admin() is reset.
 		if ( isset( $GLOBALS['current_screen'] ) ) {
@@ -818,6 +818,67 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 *
+	 * Test a taxonomy query with invalid field value and make sure it falls back to term_id.
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testTaxQueryInvalidWithInvalidField() {
+		$post = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme test 1',
+				'tags_input'   => array(
+					'one',
+					'two',
+				),
+			)
+		);
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme test 3',
+				'tags_input'   => array(
+					'one',
+					'three',
+				),
+			)
+		);
+
+		$tags   = wp_get_post_tags( $post );
+		$tag_id = 0;
+
+		foreach ( $tags as $tag ) {
+			if ( 'one' === $tag->slug ) {
+				$tag_id = $tag->term_id;
+			}
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'ep_integrate' => false,
+			'tax_query'    => array(
+				array(
+					'taxonomy' => 'post_tag',
+					'terms'    => array( $tag_id ),
+					'field'    => 'invalid_field',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+		$this->assertNull( $query->elasticsearch_success );
+
+		$expected_result = wp_list_pluck( $query->posts, 'ID' );
+
+		$args['ep_integrate'] = true;
+		$query                = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $expected_result, wp_list_pluck( $query->posts, 'ID' ) );
 	}
 
 	/**

@@ -35,6 +35,8 @@ The `develop` branch is the development branch which means it contains the next 
 1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 1. Readme updates: Make any other readme changes as necessary. `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content. The two are slightly different.
 1. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
+1. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file.
+1. Release date: Double check the release date in both changelog files.
 1. Merge: Merge the release branch/PR into `develop`, then make a non-fast-forward merge from `develop` into `trunk` (`git checkout trunk && git merge --no-ff develop`). `trunk` contains the stable development version.
 1. Test: While still on the `trunk` branch, test for functionality locally.
 1. Push: Push your `trunk` branch to GitHub (e.g. `git push origin trunk`).
@@ -56,6 +58,8 @@ Pre-releases are different from normal versions because (1) they are not publish
 1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 1. Readme updates: Make any other readme changes as necessary. `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content.  The two are slightly different.
 1. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
+1. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file.
+1. Release date: Double check the release date in both changelog files.
 1. Merge: Merge the release branch/PR into the next version branch (`4.x.x`, for example).
 1. Test: Checkout the next version branch locally and build assets like the GitHub Action will do (see `.github/workflows/push-deploy.yml`)
 1. Release: Create a [new pre-release](https://github.com/10up/elasticpress/releases/new), naming the tag and the release with the new version number, and targeting the next version branch branch.  Paste the release changelog from `CHANGELOG.md` into the body of the release and include a link to the closed issues on the [milestone](https://github.com/10up/elasticpress/milestone/#?closed=1). **ATTENTION**: Make sure to check the `This is a pre-release` checkbox, so the release is not published on WordPress.org.
@@ -74,6 +78,8 @@ There may be cases where we have an urgent/important fix that ideally gets into 
 1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 1. Readme updates: Make any other readme changes as necessary.  `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content.  The two are slightly different.
 1. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
+1. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file.
+1. Release date: Double check the release date in both changelog files.
 1. Merge: Merge the release branch/PR into `trunk`.  `trunk` contains the stable development version.
 1. Test: While still on the `trunk` branch, test for functionality locally.
 1. Push: Push your `trunk` branch to GitHub (e.g. `git push origin trunk`).

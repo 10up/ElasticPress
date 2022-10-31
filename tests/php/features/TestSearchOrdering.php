@@ -19,9 +19,9 @@ class TestSearchOrdering extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -46,8 +46,8 @@ class TestSearchOrdering extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		$this->fired_actions = array();
 
@@ -91,7 +91,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Insert specific posts into search results for specific search queries.', $output );
+		$this->assertStringContainsString( 'Insert specific posts into search results for specific search queries.', $output );
 	}
 
 	public function testOutputFeatureBoxLong() {
@@ -99,7 +99,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_long();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Selected posts will be inserted into search results in the specified position.', $output );
+		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
 	}
 
 	public function testAdminMenu() {
@@ -170,7 +170,7 @@ class TestSearchOrdering extends BaseTestCase {
 		ob_start();
 		$this->get_feature()->render_meta_box( $post );
 		$output = ob_get_clean();
-		$this->assertContains( 'ordering-app', $output );
+		$this->assertStringContainsString( 'ordering-app', $output );
 	}
 
 	public function testGetPointerData() {
