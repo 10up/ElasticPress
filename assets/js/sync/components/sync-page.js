@@ -43,7 +43,8 @@ export default ({
 	indexStats,
 	...props
 }) => {
-	const isInitialSync = props.lastSyncDateTime === null || indexStats.docs === 0;
+	const isInitialSync =
+		props.lastSyncDateTime === null || indexStats.docs === 0 || indexStats.length === 0;
 
 	return (
 		<>

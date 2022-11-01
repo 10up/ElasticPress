@@ -12,6 +12,7 @@ use ElasticPress\IndexHelper;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
 use ElasticPress\Stats as Stats;
+use ElasticPress\ElasticSearch as ElasticSearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -155,9 +156,10 @@ class Sync {
 			Utils\get_asset_info( 'sync-styles', 'version' )
 		);
 
-		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
-		$index_meta = Utils\get_indexing_status();
-		$last_sync  = Utils\get_option( 'ep_last_sync', false );
+		$data        = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
+		$index_meta  = Utils\get_indexing_status();
+		$last_sync   = Utils\get_option( 'ep_last_sync', false );
+		$index_stats = array();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
@@ -175,7 +177,11 @@ class Sync {
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
 		// Get the stats of the current index
-		$index_stats = Stats::factory()->get_totals();
+		$index_names     = ElasticSearch::factory()->get_index_names();
+		$cluster_indices = ElasticSearch::factory()->get_cluster_indices();
+		if ( count( $index_names ) === count( $cluster_indices ) ) {
+			$index_stats = Stats::factory()->get_totals();
+		}
 
 		if ( ! empty( $ep_last_index ) ) {
 			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
