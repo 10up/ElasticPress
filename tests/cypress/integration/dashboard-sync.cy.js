@@ -99,7 +99,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -129,7 +129,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -164,7 +164,7 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.ep-sync-button--pause').should('be.visible');
 
@@ -186,7 +186,7 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
@@ -206,7 +206,7 @@ describe('Dashboard Sync', () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		cy.get('.ep-sync-button--pause').should('be.visible');
