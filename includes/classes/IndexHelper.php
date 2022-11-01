@@ -4,7 +4,7 @@
  *
  * @since 4.0.0
  * @see docs/indexing-process.md
- * @see http://10up.github.io/ElasticPress/tutorial-indexing-process.html
+ * @see https://10up.github.io/ElasticPress/tutorial-indexing-process.html
  * @package elasticpress
  */
 
