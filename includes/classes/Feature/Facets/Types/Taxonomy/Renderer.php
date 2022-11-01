@@ -473,14 +473,14 @@ class Renderer {
 				uasort(
 					$ordered_terms,
 					function( $a, $b ) {
-						return $a->count > $b->count;
+						return $a->count <=> $b->count;
 					}
 				);
 			} else {
 				uasort(
 					$ordered_terms,
 					function( $a, $b ) {
-						return $a->count < $b->count;
+						return $b->count <=> $a->count;
 					}
 				);
 			}
