@@ -561,6 +561,9 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		// If we have more items to update than the number set as Content Items per Index Cycle, skip it.
+		$should_skip = count( $object_ids ) > IndexHelper::factory()->get_index_default_per_page();
+
 		/**
 		 * Filter to allow skipping this action in case of custom handling
 		 *
@@ -572,7 +575,7 @@ class SyncManager extends SyncManagerAbstract {
 		 * @param {array}  $object_ids IDs of the objects attached to the term id.
 		 * @return {bool}  New value of whether to skip running action_edited_term or not
 		 */
-		if ( apply_filters( 'ep_skip_action_edited_term', false, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
+		if ( apply_filters( 'ep_skip_action_edited_term', $should_skip, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
 			return;
 		}
 
