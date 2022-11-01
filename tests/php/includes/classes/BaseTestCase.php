@@ -44,12 +44,10 @@ class BaseTestCase extends WP_UnitTestCase {
 	 * @var obj
 	 * @since 4.4.0
 	 */
-	public function setup() {
+	public function set_up() {
 
-		$this->ep_factory           = new \stdClass();
-		$this->ep_factory->category = new CategoryFactory();
-		$this->ep_factory->comment  = new CommentFactory();
-		parent::setup();
+		$this->setup_factory();
+		parent::set_up();
 	}
 
 	/**
@@ -132,5 +130,20 @@ class BaseTestCase extends WP_UnitTestCase {
 	 */
 	public function set_algorithm_34() {
 		return '3.4';
+	}
+
+	/**
+	 * Setup factory
+	 *
+	 * @since 4.4.0
+	 */
+	protected function setup_factory() {
+
+		$this->ep_factory           = new \stdClass();
+		$this->ep_factory->post     = new PostFactory();
+		$this->ep_factory->user     = new UserFactory();
+		$this->ep_factory->term     = new TermFactory();
+		$this->ep_factory->comment  = new CommentFactory();
+		$this->ep_factory->category = new TermFactory( $this, 'category' );
 	}
 }

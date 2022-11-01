@@ -137,31 +137,32 @@ class Sync {
 
 		wp_enqueue_script(
 			'ep_sync_scripts',
-			EP_URL . 'dist/js/sync-script.min.js',
+			EP_URL . 'dist/js/sync-script.js',
 			Utils\get_asset_info( 'sync-script', 'dependencies' ),
 			Utils\get_asset_info( 'sync-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_sync_scripts', 'elasticpress' );
 
 		wp_enqueue_style( 'wp-components' );
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_sync_style',
-			EP_URL . 'dist/css/sync-styles.min.css',
+			EP_URL . 'dist/css/sync-styles.css',
 			Utils\get_asset_info( 'sync-styles', 'dependencies' ),
 			Utils\get_asset_info( 'sync-styles', 'version' )
 		);
 
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 		$index_meta = Utils\get_indexing_status();
+		$last_sync  = Utils\get_option( 'ep_last_sync', false );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_option( 'ep_last_sync', false );
 		}
 
 		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification

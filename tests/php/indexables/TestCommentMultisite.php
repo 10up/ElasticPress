@@ -16,13 +16,13 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -64,12 +64,12 @@ class TestCommentMultisite extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 		ElasticPress\Indexables::factory()->get( 'comment' )->delete_network_alias();
 	}
 
@@ -89,7 +89,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -127,7 +127,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -164,7 +164,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -201,7 +201,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
@@ -244,7 +244,7 @@ class TestCommentMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 			$this->ep_factory->comment->create( array( 'comment_post_ID' => $post_id ) );
