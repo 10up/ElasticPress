@@ -408,6 +408,7 @@ class Synonyms {
 		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
 		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		$post_id = false;
+		$update  = false;
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
 			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_CALLBACK, [ 'options' => 'wp_strip_all_tags' ] );
