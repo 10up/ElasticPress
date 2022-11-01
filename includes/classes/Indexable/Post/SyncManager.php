@@ -11,6 +11,8 @@ namespace ElasticPress\Indexable\Post;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\SyncManager as SyncManagerAbstract;
+use ElasticPress\Utils;
+use ElasticPress\IndexHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -61,13 +63,17 @@ class SyncManager extends SyncManagerAbstract {
 		// Called just because we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
 		add_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
-		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
-		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 
 		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+
+		// Conditionally update posts associated with terms
+		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_edit_single_term' ] );
+		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_term_list_screen' ] );
+		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
+		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
+		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 	}
 
 	/**
@@ -357,6 +363,88 @@ class SyncManager extends SyncManagerAbstract {
 				$this->add_to_queue( $post_id );
 			}
 		}
+	}
+
+	/**
+	 * Depending on the number of posts associated with the term display an admin notice
+	 *
+	 * @since 4.4.0
+	 * @param array $notices Current ElasticPress admin notices
+	 * @return array
+	 */
+	public function maybe_display_notice_edit_single_term( $notices ) {
+		global $pagenow, $tag;
+
+		/**
+		 * Make sure we're on a term-related page in the admin dashboard.
+		 */
+		if ( ! is_admin() || 'term.php' !== $pagenow || ! $tag instanceof \WP_Term ) {
+			return $notices;
+		}
+
+		if ( IndexHelper::factory()->get_index_default_per_page() >= $tag->count ) {
+			return $notices;
+		}
+
+		$notices['edited_single_term'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Due to the number of posts associated with this term, you will need to <a href="%s">resync</a> after editing it.', 'elasticpress' ),
+				Utils\get_sync_url()
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
+	}
+
+	/**
+	 * Depending on the number of posts display an admin notice in the Dashboard Terms List Screen
+	 *
+	 * @since 4.4.0
+	 * @param array $notices Current ElasticPress admin notices
+	 * @return array
+	 */
+	public function maybe_display_notice_term_list_screen( $notices ) {
+		global $pagenow, $tax;
+
+		/**
+		 * Make sure we're on a term-related page in the admin dashboard.
+		 */
+		if ( ! is_admin() || 'edit-tags.php' !== $pagenow || ! $tax instanceof \WP_Taxonomy ) {
+			return $notices;
+		}
+
+		$max_count = get_terms(
+			[
+				'taxonomy' => $tax->name,
+				'orderby'  => 'count',
+				'order'    => 'DESC',
+				'number'   => 1,
+				'count'    => true,
+			]
+		);
+
+		if ( ! is_array( $max_count ) || ! $max_count[0] instanceof \WP_Term || ! is_integer( $max_count[0]->count ) ) {
+			return $notices;
+		}
+
+		if ( IndexHelper::factory()->get_index_default_per_page() >= $max_count[0]->count ) {
+			return $notices;
+		}
+
+		$notices['too_many_posts_on_term'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Depending on the number of posts associated with a term, you may need to <a href="%s">resync</a> after editing it.', 'elasticpress' ),
+				Utils\get_sync_url()
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
 	}
 
 	/**
