@@ -26,6 +26,7 @@
 
 import 'cypress-file-upload';
 import './commands/block-editor';
+import '@4tw/cypress-drag-drop';
 
 Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.visit(`/wp-admin`);

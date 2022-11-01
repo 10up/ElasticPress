@@ -1200,7 +1200,7 @@ class WooCommerce extends Feature {
 		$notices['woocommerce_custom_sort'] = [
 			'html'    => sprintf(
 				/* translators: Sync Page URL */
-				__( 'Due to the number of products in the site, you will need to <a href="%s">resync</a> after applying a custom order.', 'elasticpress' ),
+				__( 'Due to the number of products in the site, you will need to <a href="%s">resync</a> after applying a custom sort order.', 'elasticpress' ),
 				Utils\get_sync_url()
 			),
 			'type'    => 'warning',

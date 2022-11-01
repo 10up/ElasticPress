@@ -98,11 +98,16 @@ describe('WooCommerce Feature', () => {
 	});
 
 	context('Dashboard', () => {
+		function setPerIndexCycle(number = null) {
+			const newValue = number || 350;
+			cy.wpCli(`option set ep_bulk_setting ${newValue}`);
+		}
 		before(() => {
 			cy.login();
 			cy.maybeEnableFeature('protected_content');
 			cy.maybeEnableFeature('woocommerce');
 			cy.activatePlugin('woocommerce');
+			setPerIndexCycle();
 		});
 
 		it('Can fetch orders and products from Elasticsearch', () => {
@@ -236,6 +241,43 @@ describe('WooCommerce Feature', () => {
 				'contain.text',
 				`${userData.firstName} ${userData.lastName}`,
 			);
+		});
+		it('Can show the correct order of products after custom sort order', () => {
+			const dataTransfer = new DataTransfer();
+			// Content Items per Index Cycle is greater than number of products
+			cy.visitAdminPage('edit.php?post_type=product&orderby=menu_order+title&order=ASC');
+
+			cy.get('#the-list #post-1837').trigger('dragstart', dataTransfer);
+			cy.get('#the-list #post-1969').trigger('dragover');
+			cy.get('#the-list #post-1969').trigger('drop', dataTransfer);
+			cy.get('#the-list #post-1837').trigger('dragend');
+
+			cy.reload();
+			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+				'contain.text',
+				'Query Response Code: HTTP 200',
+			);
+			cy.get('#the-list tr').should('have.id', 'post-1969');
+
+			// Content Items per Index Cycle is greater than number of products
+			setPerIndexCycle(20);
+			cy.visitAdminPage('edit.php?post_type=product&orderby=menu_order+title&order=ASC');
+
+			cy.get('#the-list #post-1969').trigger('dragstart', dataTransfer);
+			cy.get('#the-list #post-1837').trigger('dragover');
+			cy.get('#the-list #post-1837').trigger('drop', dataTransfer);
+			cy.get('#the-list #post-1969').trigger('dragend');
+
+			cy.wpCli('elasticpress index --setup --yes');
+
+			cy.visitAdminPage('edit.php?post_type=product&orderby=menu_order+title&order=ASC');
+			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
+				'contain.text',
+				'Query Response Code: HTTP 200',
+			);
+			cy.get('#the-list tr').should('have.id', 'post-1969');
+
+			setPerIndexCycle();
 		});
 	});
 });
