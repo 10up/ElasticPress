@@ -79,16 +79,6 @@ describe('Dashboard Sync', () => {
 			.should('contain.text', 'If you are still having issues with your search results');
 	});
 
-	it('Can index content and see indexes names in the Health Screen', () => {
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--delete').click();
-		cy.get('.ep-sync-progress strong', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
-
-		canSeeIndexesNames();
-	});
-
 	it('Can sync via Dashboard when activated in single site', () => {
 		cy.wpCli('wp elasticpress delete-index --yes');
 
@@ -114,8 +104,6 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can sync via Dashboard when activated in multisite', () => {
-		cy.wpCli('wp elasticpress delete-index --yes');
-
 		cy.activatePlugin('elasticpress', 'wpCli', 'network');
 
 		// Sync and remove, so EP doesn't think it is a fresh install.
@@ -154,70 +142,39 @@ describe('Dashboard Sync', () => {
 
 		cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
 		cy.activatePlugin('elasticpress', 'wpCli');
-
-		cy.wpCli('wp elasticpress sync --setup --yes');
 	});
 
-	it('Can pause the dashboard sync if left the page', () => {
+	it('Can pause the dashboard sync, can not activate a feature during sync nor perform a sync via WP-CLI', () => {
 		setPerIndexCycle(20);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
+		// Start sync via dashboard and pause it
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('.ep-sync-button--delete').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.ep-sync-button--pause').should('be.visible');
 
-		cy.visitAdminPage('index.php');
+		// Can not activate a feature.
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.get('.error-overlay').should('have.class', 'syncing');
 
+		// Can not start a sync via WP-CLI
+		cy.wpCli('wp elasticpress sync', true)
+			.its('stderr')
+			.should('contain', 'An index is already occurring');
+
+		// Check if it is paused
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.get('.ep-sync-button--resume').should('be.visible');
 		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync paused');
 
 		resumeAndWait();
-
-		setPerIndexCycle();
-
 		canSeeIndexesNames();
-	});
 
-	it("Can't activate features during a sync", () => {
-		setPerIndexCycle(20);
-
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--delete').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.error-overlay').should('have.class', 'syncing');
-
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		resumeAndWait();
-
+		// Features should be accessible again
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
-
-		setPerIndexCycle();
-	});
-
-	it("Can't index via WP-CLI if indexing via Dashboard", () => {
-		setPerIndexCycle(20);
-
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--delete').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-
-		cy.get('.ep-sync-button--pause').should('be.visible');
-		cy.get('.ep-sync-button--pause').click();
-
-		cy.wpCli('wp elasticpress sync', true)
-			.its('stderr')
-			.should('contain', 'An index is already occurring');
-
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		resumeAndWait();
 
 		setPerIndexCycle();
 	});
