@@ -584,7 +584,7 @@ class Command extends WP_CLI_Command {
 
 			$indexable->delete_network_alias();
 
-			$create_result = $this->create_network_alias_helper( $indexable );
+			$create_result = $this->create_network_alias_helper($indexable);
 
 			if ( $create_result ) {
 				WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
