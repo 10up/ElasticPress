@@ -108,6 +108,8 @@ class Search extends Feature {
 		add_action( 'init', [ $this, 'register_meta' ], 20 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'add_admin_scripts' ] );
 		add_action( 'pre_get_posts', [ $this, 'exclude_posts_from_search' ] );
+		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
+		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
 	}
 
 
@@ -746,4 +748,47 @@ class Search extends Feature {
 		$query->set( 'meta_query', $meta_query );
 	}
 
+	/**
+	 * Outputs the checkbox to exclude a post from search.
+	 *
+	 * @param WP_POST $post Post object.
+	 */
+	public function output_exclude_from_search_setting( $post ) {
+
+		$searchable_post_types = $this->get_searchable_post_types();
+		if ( ! in_array( $post->post_type, $searchable_post_types, true ) ) {
+			return;
+		}
+		?>
+		<div class="misc-pub-section">
+			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ), true ); ?>>
+			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from Search', 'elasticpress' ); ?></label>
+			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Saves exclude from search meta.
+	 *
+	 * @param int     $post_id The post ID.
+	 * @param WP_Post $post Post object.
+	 */
+	public function save_exclude_from_search_meta( $post_id, $post ) {
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['ep-exclude-from-search-nonce'] ) ), 'save-exclude-from-search' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : '';
+		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
+	}
 }
