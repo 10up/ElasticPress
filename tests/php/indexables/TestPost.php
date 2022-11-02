@@ -7590,4 +7590,24 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( 'lorem', $distinct_values_2 );
 		$this->assertContains( 'ipsum', $distinct_values_2 );
 	}
+
+	/**
+	 * Tests query doesn't return the post if `ep_exclude_from_search` meta is set.
+	 */
+	public function testExcludeFromSearchQuery() {
+
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_content' => 'exlcude from search', 'meta_input' => array( 'ep_exclude_from_search' => true ) ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's' => 'exlcude',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
+	}
 }
