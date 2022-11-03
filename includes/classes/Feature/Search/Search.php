@@ -731,17 +731,9 @@ class Search extends Feature {
 
 		if ( ! empty( $meta_query ) ) {
 			$meta_query[] = array(
-				'relation' => 'OR',
-					array(
-						'key'     => 'ep_exclude_from_search',
-						'value'   => '1',
-						'compare' => '!=',
-					),
-					array(
-						'key'     => 'ep_exclude_from_search',
-						'compare' => 'EXISTS',
-					)
-
+				'key'     => 'ep_exclude_from_search',
+				'value'   => '1',
+				'compare' => '!=',
 			);
 		} else {
 			$meta_query = array(
