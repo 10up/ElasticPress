@@ -731,9 +731,17 @@ class Search extends Feature {
 
 		if ( ! empty( $meta_query ) ) {
 			$meta_query[] = array(
-				'key'     => 'ep_exclude_from_search',
-				'value'   => '1',
-				'compare' => '!=',
+				'relation' => 'OR',
+					array(
+						'key'     => 'ep_exclude_from_search',
+						'value'   => '1',
+						'compare' => '!=',
+					),
+					array(
+						'key'     => 'ep_exclude_from_search',
+						'compare' => 'EXISTS',
+					)
+
 			);
 		} else {
 			$meta_query = array(
@@ -780,7 +788,7 @@ class Search extends Feature {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['ep-exclude-from-search-nonce'] ) ), 'save-exclude-from-search' ) ) {
+		if ( ! isset( $_POST['ep-exclude-from-search-nonce'] ) || ! wp_verify_nonce( $_POST['ep-exclude-from-search-nonce'], 'save-exclude-from-search' ) ) {
 			return;
 		}
 

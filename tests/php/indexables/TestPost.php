@@ -7653,4 +7653,46 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 0, $query->post_count );
 	}
 
+	/**
+	 * Test exclude from search when meta query is set.
+	 */
+	public function testExcludeFromSearchQueryWithMetaQuery() {
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array(
+					'ep_exclude_from_search' => true,
+					'test_key'               => 'test',
+				),
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array(
+					'ep_exclude_from_search' => false,
+					'test_key'               => 'test',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's'          => 'test',
+			'meta_query' => array(
+				array(
+					'key'   => 'test_key',
+					'value' => 'test',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+
+	}
 }
