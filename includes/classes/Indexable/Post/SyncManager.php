@@ -389,7 +389,7 @@ class SyncManager extends SyncManagerAbstract {
 		$notices['edited_single_term'] = [
 			'html'    => sprintf(
 				/* translators: Sync Page URL */
-				__( 'Due to the number of posts associated with this term, you will need to <a href="%s">resync</a> after editing it.', 'elasticpress' ),
+				__( 'Due to the number of posts associated with this term, you will need to <a href="%s">resync</a> after editing or deleting it.', 'elasticpress' ),
 				Utils\get_sync_url()
 			),
 			'type'    => 'warning',
@@ -437,7 +437,7 @@ class SyncManager extends SyncManagerAbstract {
 		$notices['too_many_posts_on_term'] = [
 			'html'    => sprintf(
 				/* translators: Sync Page URL */
-				__( 'Depending on the number of posts associated with a term, you may need to <a href="%s">resync</a> after editing it.', 'elasticpress' ),
+				__( 'Depending on the number of posts associated with a term, you may need to <a href="%s">resync</a> after editing or deleting it.', 'elasticpress' ),
 				Utils\get_sync_url()
 			),
 			'type'    => 'warning',
@@ -578,8 +578,6 @@ class SyncManager extends SyncManagerAbstract {
 		if ( apply_filters( 'ep_skip_action_edited_term', $should_skip, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
 			return;
 		}
-
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
 
 		// Add all of them to the queue
 		foreach ( $object_ids as $post_id ) {
@@ -743,6 +741,10 @@ class SyncManager extends SyncManagerAbstract {
 			return false;
 		}
 
-		return true;
+		// If we have more items to update than the number set as Content Items per Index Cycle, skip it to avoid a timeout.
+		$single_ids_queued   = array_unique( array_keys( $this->sync_queue ) );
+		$has_too_many_queued = count( $single_ids_queued ) > IndexHelper::factory()->get_index_default_per_page();
+
+		return ! $has_too_many_queued;
 	}
 }
