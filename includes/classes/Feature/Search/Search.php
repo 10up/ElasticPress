@@ -730,11 +730,31 @@ class Search extends Feature {
 		$meta_query = $query->get( 'meta_query' );
 
 		if ( ! empty( $meta_query ) ) {
-			$meta_query[] = array(
-				'key'     => 'ep_exclude_from_search',
-				'value'   => '1',
-				'compare' => '!=',
-			);
+
+			$relation = isset( $meta_query['relation'] ) ? $meta_query['relation'] : 'AND';
+
+			if ( count( $meta_query ) > 1 && 'OR' === strtoupper( $relation ) ) {
+
+				$meta_query[] = array(
+					'relation' => 'AND',
+					array(
+						'key'     => 'ep_exclude_from_search',
+						'compare' => 'EXISTS',
+					),
+					array(
+						'key'     => 'ep_exclude_from_search',
+						'value'   => '1',
+						'compare' => '!=',
+					),
+
+				);
+			} else {
+				$meta_query[] = array(
+					'key'     => 'ep_exclude_from_search',
+					'value'   => '1',
+					'compare' => '!=',
+				);
+			}
 		} else {
 			$meta_query = array(
 				array(
@@ -788,7 +808,11 @@ class Search extends Feature {
 			return;
 		}
 
-		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : '';
-		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
+		if ( isset( $_POST['ep_exclude_from_search'] ) ) {
+			update_post_meta( $post_id, 'ep_exclude_from_search', true );
+		} else {
+			delete_post_meta( $post_id, 'ep_exclude_from_search' );
+		}
+
 	}
 }

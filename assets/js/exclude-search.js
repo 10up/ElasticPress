@@ -12,10 +12,13 @@ const ExcludeFromSearch = () => {
 	const [excludeFromSearch, setExcludeFromSearch] = useState(ep_exclude_from_search);
 
 	useEffect(() => {
-		const newMeta = {
-			...meta,
-			ep_exclude_from_search: excludeFromSearch,
-		};
+		const newMeta = { ...meta };
+
+		if (excludeFromSearch) {
+			newMeta.ep_exclude_from_search = true;
+		} else {
+			delete newMeta.ep_exclude_from_search;
+		}
 
 		dispatch('core/editor').editPost({
 			meta: newMeta,
