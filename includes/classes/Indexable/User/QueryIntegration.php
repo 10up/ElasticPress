@@ -91,11 +91,12 @@ class QueryIntegration {
 			 *
 			 * $query->elasticsearch_success = true;
 			 */
+			$query->query_vars['elasticsearch_success'] = true;
 
 			$fields    = $query->get( 'fields' );
 			$new_users = [];
 
-			if ( 'all_with_meta' === $fields ) {
+			if ( in_array( $fields, [ 'all', 'all_with_meta' ], true ) ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document['ID'];
 				}
@@ -115,7 +116,7 @@ class QueryIntegration {
 
 					$new_users[] = $user;
 				}
-			} elseif ( is_string( $fields ) && ! empty( $fields ) && 'all' !== $fields ) {
+			} elseif ( is_string( $fields ) && ! empty( $fields ) ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document[ $fields ];
 				}

@@ -146,6 +146,11 @@ describe('Instant Results Feature', () => {
 		});
 
 		it('Is possible to manually open Instant Results with a plugin', () => {
+			Cypress.on(
+				'uncaught:exception',
+				(err) => !err.message.includes('ResizeObserver loop limit exceeded'),
+			);
+
 			/**
 			 * Activate test plugin with JavaScript.
 			 */
