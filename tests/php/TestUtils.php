@@ -199,12 +199,11 @@ class TestUtils extends BaseTestCase {
 		 * Test without the $do_sync parameter
 		 */
 		$sync_url = ElasticPress\Utils\get_sync_url();
+		$this->assertStringNotContainsString( '&do_sync', $sync_url );
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$this->assertStringContainsString( 'wp-admin/network/admin.php?page=elasticpress-sync', $sync_url );
-			$this->assertStringNotContainsString( '&do_sync', $sync_url );
 		} else {
 			$this->assertStringContainsString( 'wp-admin/admin.php?page=elasticpress-sync', $sync_url );
-			$this->assertStringNotContainsString( '&do_sync', $sync_url );
 		}
 
 		/**
