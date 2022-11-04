@@ -1,11 +1,11 @@
 describe('Facets Feature', () => {
 	/**
-	 * Ensure the feature is active, perform an index, and remove test posts
+	 * Ensure the feature is active, perform a sync, and remove test posts
 	 * before running tests.
 	 */
 	before(() => {
 		cy.maybeEnableFeature('facets');
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 		cy.wpCli('post list --s="A new" --ep_integrate=false --format=ids').then(
 			(wpCliResponse) => {
 				if (wpCliResponse.stdout) {
@@ -269,7 +269,7 @@ describe('Facets Feature', () => {
 			);
 			if ( $movie_id ) {
 				wp_set_object_terms( $movie_id, 'action', 'genre' );
-				WP_CLI::runcommand( 'elasticpress index --include=' . $movie_id );
+				WP_CLI::runcommand( 'elasticpress sync --include=' . $movie_id );
 				WP_CLI::runcommand( 'rewrite flush' );
 			}
 			`,

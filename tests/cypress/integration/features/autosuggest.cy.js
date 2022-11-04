@@ -1,6 +1,6 @@
 describe('Autosuggest Feature', () => {
 	before(() => {
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
 	it('Can see autosuggest list', () => {

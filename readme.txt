@@ -4,7 +4,7 @@ Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregatio
 Tested up to: 6.0
 Stable tag:   4.3.1
 License:      GPLv2 or later
-License URI:  http://www.gnu.org/licenses/gpl-2.0.html
+License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
 A fast and flexible search and query engine for WordPress.
 

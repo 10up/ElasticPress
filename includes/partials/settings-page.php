@@ -57,7 +57,7 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 			<fieldset class="<?php if ( $wpconfig ) { ?>predefined<?php } ?>">
 				<?php if ( $is_epio || ! $wpconfig ) : ?>
 					<p class="ep-legend ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
-						<a href="http://elasticpress.io/" target="_blank" rel="noreferrer noopener">ElasticPress.io</a> is a hosted Elasticsearch service built for ElasticPress, powered by <a href="https://10up.com/" target="_blank" rel="noreferrer noopener">10up</a>.
+						<a href="https://elasticpress.io/" target="_blank" rel="noreferrer noopener">ElasticPress.io</a> is a hosted Elasticsearch service built for ElasticPress, powered by <a href="https://10up.com/" target="_blank" rel="noreferrer noopener">10up</a>.
 					</p>
 				<?php endif; ?>
 				<table class="form-table">
@@ -85,7 +85,7 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 								$disabled  = $wpconfig || ! $show_host;
 								$value     = $show_host ? esc_url( $host ) : __( '••••••••••••••••', 'elasticpress' );
 								?>
-								<input <?php disabled( $disabled, true, true ); ?> placeholder="http://" type="text" value="<?php echo esc_attr( $value ); ?>" name="ep_host" id="ep_host">
+								<input <?php disabled( $disabled, true, true ); ?> placeholder="https://" type="text" value="<?php echo esc_attr( $value ); ?>" name="ep_host" id="ep_host">
 								<?php if ( $show_host ) : ?>
 									<?php if ( $wpconfig ) : ?>
 										<p class="description ep-host-legend"><?php esc_html_e( 'Host already defined in wp-config.php.', 'elasticpress' ); ?></p>

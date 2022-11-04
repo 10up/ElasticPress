@@ -1,6 +1,6 @@
 describe('Post Search Feature', () => {
 	before(() => {
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
 	it('Can use Elasticsearch for the default WP search', () => {
