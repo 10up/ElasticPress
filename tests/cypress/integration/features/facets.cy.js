@@ -152,6 +152,21 @@ describe('Facets Feature', () => {
 		cy.get('@secondBlock').contains('.term', 'template').click();
 		cy.url().should('not.include', 'ep_filter_post_tag=template');
 		cy.url().should('include', 'ep_filter_category=classic');
+
+		/**
+		 * Set the Match Type Between Facet to "Any" and verify that the results are more than 1.
+		 */
+		cy.visitAdminPage('admin.php?page=elasticpress');
+
+		cy.get('.ep-feature-facets .settings-button').click();
+		cy.get("input[name='settings[match_type_between]'").check('any');
+		cy.get('.ep-feature-facets .button-primary').click();
+
+		cy.visit('/');
+		cy.get('@firstBlock').contains('.term', 'Uncategorized').click();
+		cy.get('@secondBlock').contains('.term', 'read more').click();
+		cy.url().should('include', 'ep_filter_category=uncategorized&ep_filter_post_tag=read-more');
+		cy.get('.entry-title').its('length').should('be.gte', 1);
 	});
 
 	/**
