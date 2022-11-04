@@ -1,19 +1,18 @@
 describe('Post Indexable', () => {
 	it('Can conditionally update posts when a term is edited', () => {
 		/**
-		 * Using the default content here:
-		 * - the `Classic` (ID 29) term has 37 posts
-		 * - the `Block` (ID 54) term has 11 posts
+		 * At this point, using the default content:
+		 * - the `Classic` (ID 29) term has 36 posts
+		 * - the `Block` (ID 54) term has 7 posts
 		 * Important: There is no post with both categories, as that would skew results.
 		 */
 		cy.setPerIndexCycle();
 		cy.visitAdminPage('edit-tags.php?taxonomy=category');
 		cy.get('div[data-ep-notice="too_many_posts_on_term"]').should('not.exist');
 
-		cy.setPerIndexCycle(36);
+		cy.setPerIndexCycle(35);
 		cy.visitAdminPage('edit-tags.php?taxonomy=category&orderby=count&order=desc');
 		cy.get('div[data-ep-notice="too_many_posts_on_term"]').should('exist');
-		cy.screenshot();
 
 		// Change the `Classic` term, should not index
 		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=29');
