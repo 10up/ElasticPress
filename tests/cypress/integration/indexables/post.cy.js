@@ -11,8 +11,9 @@ describe('Post Indexable', () => {
 		cy.get('div[data-ep-notice="too_many_posts_on_term"]').should('not.exist');
 
 		cy.setPerIndexCycle(36);
-		cy.visitAdminPage('edit-tags.php?taxonomy=category');
+		cy.visitAdminPage('edit-tags.php?taxonomy=category&orderby=count&order=desc');
 		cy.get('div[data-ep-notice="too_many_posts_on_term"]').should('exist');
+		cy.screenshot();
 
 		// Change the `Classic` term, should not index
 		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=29');
