@@ -14,12 +14,20 @@ import { WPElement } from '@wordpress/element';
  * @returns {WPElement} Component element.
  */
 export default ({ count, id, label, ...props }) => {
+	let labelHTML = label;
+	if (count) {
+		labelHTML += ` <span class="ep-search-checkbox__count">${count}</span>`;
+	}
 	return (
 		<div className="ep-search-checkbox">
-			<input className="ep-search-checkbox__input" id={id} type="checkbox" {...props} />{' '}
-			<label className="ep-search-checkbox__label" htmlFor={id}>
-				{label} {count && <span className="ep-search-checkbox__count">{count}</span>}
-			</label>
+			<input className="ep-search-checkbox__input" id={id} type="checkbox" {...props} />
+			{/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+			<label
+				className="ep-search-checkbox__label"
+				htmlFor={id}
+				// eslint-disable-next-line react/no-danger
+				dangerouslySetInnerHTML={{ __html: labelHTML }}
+			/>
 		</div>
 	);
 };
