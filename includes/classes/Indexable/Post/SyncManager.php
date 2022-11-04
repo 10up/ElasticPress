@@ -416,21 +416,7 @@ class SyncManager extends SyncManagerAbstract {
 			return $notices;
 		}
 
-		$max_count = get_terms(
-			[
-				'taxonomy' => $tax->name,
-				'orderby'  => 'count',
-				'order'    => 'DESC',
-				'number'   => 1,
-				'count'    => true,
-			]
-		);
-
-		if ( ! is_array( $max_count ) || ! $max_count[0] instanceof \WP_Term || ! is_integer( $max_count[0]->count ) ) {
-			return $notices;
-		}
-
-		if ( IndexHelper::factory()->get_index_default_per_page() >= $max_count[0]->count ) {
+		if ( ! $this->is_tax_max_count_bigger_than_items_per_cycle( $tax ) ) {
 			return $notices;
 		}
 
@@ -746,5 +732,49 @@ class SyncManager extends SyncManagerAbstract {
 		$has_too_many_queued = count( $single_ids_queued ) > IndexHelper::factory()->get_index_default_per_page();
 
 		return ! $has_too_many_queued;
+	}
+
+	/**
+	 * Given a taxonomy, check if the term with most posts is under or above the number set as Content Items per Index Cycle.
+	 *
+	 * The result will be cached in a transient. Its TTL will depend on the result:
+	 * If it is determined we have a term with more posts, cache it for more time.
+	 *
+	 * @since 4.4.0
+	 * @param \WP_Taxonomy $tax The taxonomy object
+	 * @return boolean
+	 */
+	protected function is_tax_max_count_bigger_than_items_per_cycle( \WP_Taxonomy $tax ) : bool {
+		$transient_name   = "ep_term_max_count_{$tax->name}";
+		$cached_max_count = get_transient( $transient_name );
+
+		if ( is_integer( $cached_max_count ) ) {
+			return $cached_max_count > IndexHelper::factory()->get_index_default_per_page();
+		}
+
+		$max_count = get_terms(
+			[
+				'taxonomy' => $tax->name,
+				'orderby'  => 'count',
+				'order'    => 'DESC',
+				'number'   => 1,
+				'count'    => true,
+			]
+		);
+
+		if ( ! is_array( $max_count ) || ! $max_count[0] instanceof \WP_Term || ! is_integer( $max_count[0]->count ) ) {
+			set_transient( $transient_name, 0, HOUR_IN_SECONDS );
+			return false;
+		}
+
+		$is_max_count_bigger = $max_count[0]->count > IndexHelper::factory()->get_index_default_per_page();
+
+		set_transient(
+			$transient_name,
+			$max_count[0]->count,
+			$is_max_count_bigger ? DAY_IN_SECONDS : HOUR_IN_SECONDS
+		);
+
+		return $is_max_count_bigger;
 	}
 }
