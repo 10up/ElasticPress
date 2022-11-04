@@ -1,11 +1,6 @@
 /* global indexNames */
 
 describe('Dashboard Sync', () => {
-	function setPerIndexCycle(number = null) {
-		const newValue = number || 350;
-		cy.wpCli(`option set ep_bulk_setting ${newValue}`);
-	}
-
 	function canSeeIndexesNames() {
 		cy.visitAdminPage('admin.php?page=elasticpress-health');
 		cy.get('.metabox-holder')
@@ -145,7 +140,7 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Can pause the dashboard sync, can not activate a feature during sync nor perform a sync via WP-CLI', () => {
-		setPerIndexCycle(20);
+		cy.setPerIndexCycle(20);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
@@ -176,6 +171,6 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
 
-		setPerIndexCycle();
+		cy.setPerIndexCycle();
 	});
 });

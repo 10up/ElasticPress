@@ -107,11 +107,7 @@ describe('Comments Feature', () => {
 		cy.get('#submit').click();
 
 		// Check if the new comment was indexed
-		cy.wpCliEval(
-			`
-			$comments_index = \\ElasticPress\\Indexables::factory()->get( "comment" )->get_index_name();
-			WP_CLI::runcommand("elasticpress request {$comments_index}/_refresh --method=POST");`,
-		).then(() => {
+		cy.refreshIndex('comment').then(() => {
 			cy.wpCli('wp elasticpress stats')
 				.its('stdout')
 				.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
