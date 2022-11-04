@@ -679,7 +679,7 @@ function get_asset_info( $slug, $attribute = null ) {
  * @param boolean $do_sync Whether the link should or should not start a resync.
  * @return string
  */
-function get_sync_url( $do_sync = false ) {
+function get_sync_url( bool $do_sync = false ) : string {
 	$page = 'admin.php?page=elasticpress-sync';
 	if ( $do_sync ) {
 		$page .= '&do_sync';
