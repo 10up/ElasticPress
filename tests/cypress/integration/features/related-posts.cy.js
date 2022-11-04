@@ -195,6 +195,7 @@ describe('Related Posts Feature', () => {
 		 * Check that the block's settings match the widget's.
 		 */
 		cy.get('@block').click();
+		cy.get('.edit-widgets-header__actions button[aria-label="Settings"]').click();
 		cy.get('input[type="number"][aria-label="Number of items"]').should('have.value', '2');
 	});
 });
