@@ -196,6 +196,10 @@ Thank you to all the people who have already contributed to this repository via 
 [Bogdan Arizancu (@bogdanarizancu)](https://github.com/bogdanarizancu),
 [Stephanie Walters (@PypWalters)](https://github.com/PypWalters),
 [Rafał Całka (@rafaucau)](https://github.com/rafaucau),
+[@jakgsl](https://github.com/jakgsl),
+[@marc-tt](https://github.com/marc-tt),
+[@Greygooo](https://github.com/Greygooo),
+[Miguel A. Estrada (@mae829)](https://github.com/mae829),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
