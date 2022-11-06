@@ -217,6 +217,38 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
+	
+	/**
+	 * Test search integration is on for shop subscriptions
+	 *
+	 * @since 4.3
+	 * @group woocommerce
+	 */
+	public function testSearchOnShopSubscriptionAdmin() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		Functions\create_and_sync_post(
+			array(
+				'post_content' => 'findme',
+				'post_type'    => 'shop_subscription',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			's'         => 'findme',
+			'post_type' => 'shop_subscription',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
 
 	/**
 	 * Test search integration is on in general for product searches
