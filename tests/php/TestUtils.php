@@ -188,4 +188,32 @@ class TestUtils extends BaseTestCase {
 
 		$this->assertFalse( ElasticPress\Utils\is_indexing() );
 	}
+
+	/**
+	 * Test the get_sync_url method
+	 *
+	 * @since 4.4.0
+	 */
+	public function testGetSyncUrl() {
+		/**
+		 * Test without the $do_sync parameter
+		 */
+		$sync_url = ElasticPress\Utils\get_sync_url();
+		$this->assertStringNotContainsString( '&do_sync', $sync_url );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$this->assertStringContainsString( 'wp-admin/network/admin.php?page=elasticpress-sync', $sync_url );
+		} else {
+			$this->assertStringContainsString( 'wp-admin/admin.php?page=elasticpress-sync', $sync_url );
+		}
+
+		/**
+		 * Test with the $do_sync parameter
+		 */
+		$sync_url = ElasticPress\Utils\get_sync_url( true );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$this->assertStringContainsString( 'wp-admin/network/admin.php?page=elasticpress-sync&do_sync', $sync_url );
+		} else {
+			$this->assertStringContainsString( 'wp-admin/admin.php?page=elasticpress-sync&do_sync', $sync_url );
+		}
+	}
 }

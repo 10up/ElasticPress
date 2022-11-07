@@ -81,7 +81,7 @@ describe('WooCommerce Feature', () => {
 				},
 			},
 		}).then(() => {
-			cy.wpCli('elasticpress index --setup --yes').then(() => {
+			cy.wpCli('elasticpress sync --setup --yes').then(() => {
 				/**
 				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
 				 *
@@ -115,7 +115,7 @@ describe('WooCommerce Feature', () => {
 			 * Orders
 			 */
 			// this is required to sync the orders to Elasticsearch.
-			cy.wpCli('elasticpress index --setup --yes');
+			cy.wpCli('elasticpress sync --setup --yes');
 
 			cy.visitAdminPage('edit.php?post_type=shop_order');
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(

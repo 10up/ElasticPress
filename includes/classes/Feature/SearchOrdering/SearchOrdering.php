@@ -155,7 +155,7 @@ class SearchOrdering extends Feature {
 			9  => sprintf(
 				// translators: Scheduled date.
 				esc_html__( 'Custom result scheduled for: %1$s.', 'elasticpress' ),
-				// translators: Publish box date format, see http://php.net/date
+				// translators: Publish box date format, see https://php.net/date
 				date_i18n( esc_html__( 'M j, Y @ G:i', 'elasticpress' ), strtotime( $post->post_date ) )
 			),
 			10 => esc_html__( 'Custom result draft updated.', 'elasticpress' ),
