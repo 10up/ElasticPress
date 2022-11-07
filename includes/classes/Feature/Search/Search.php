@@ -296,6 +296,7 @@ class Search extends Feature {
 			$text = apply_filters( 'the_content', $text );
 			$text = str_replace( '\]\]\>', ']]&gt;', $text );
 			$text = strip_tags( $text, '<' . esc_html( $settings['highlight_tag'] ) . '>' );
+
 			// use the defined length, if already applied...
 			$excerpt_length = apply_filters( 'excerpt_length', 55 );
 
