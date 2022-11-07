@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ElasticPress 4.4.0 release highlights:
 * Instant Results template customization ([#2959](https://github.com/10up/ElasticPress/pull/2959))
 * Facets by Meta available by default. Users should delete the 1-file plugin released with 4.3.0 ([#3071](https://github.com/10up/ElasticPress/pull/3071))
-* New meta field control via Weighting Dashboard ([#3068](https://github.com/10up/ElasticPress/pull/3068) to be merged)
+* New option to exclude posts from search ([#3100](https://github.com/10up/ElasticPress/pull/3100) to be merged)
 * Renamed some WP-CLI commands and added deprecation notices for the old versions (see table below)
 
 ### Added
@@ -26,15 +26,20 @@ ElasticPress 4.4.0 release highlights:
 ### Changed
 - Facets by Meta available by default. Props [@burhandodhy](https://github.com/burhandodhy) via [#3071](https://github.com/10up/ElasticPress/pull/3071).
 - `Renderer::order_by_selected` visibility. Props [@burhandodhy](https://github.com/burhandodhy) via [#3009](https://github.com/10up/ElasticPress/pull/3009).
+- After editing a term, only sync posts if it is associated with fewer posts than the Content Items per Index Cycle number. Props [@felipeelia](https://github.com/felipeelia), [@cmcandrew](https://github.com/cmcandrew) and [@DenisFlorin](https://github.com/DenisFlorin) via [#3106](https://github.com/10up/ElasticPress/pull/3106).
 - The `meta_query` clause when using the `meta_key` parameter. Props [@felipeelia](https://github.com/felipeelia), [@MARQAS](https://github.com/MARQAS) and [@Greygooo](https://github.com/Greygooo) via [#2997](https://github.com/10up/ElasticPress/pull/2997).
 - Facets filters are not applied in the WP Query level anymore. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3045](https://github.com/10up/ElasticPress/pull/3045) and  [#3076](https://github.com/10up/ElasticPress/pull/3076).
+- To be compatible with WordPress 6.1, when passing `'all'` as the `fields` parameter of `WP_User_Query` only user IDs will be returned. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3109](https://github.com/10up/ElasticPress/pull/3109).
 - `update_term_meta_cache` parameter set as false while getting terms for Facets. Props [@mae829](https://github.com/mae829) via [#3060](https://github.com/10up/ElasticPress/pull/3060).
 - Small refactor of Indexables' `parse_orderby` to make it easier to read. Props [@felipeelia](https://github.com/felipeelia) via [#3042](https://github.com/10up/ElasticPress/pull/3042).
 - Search algorithms descriptions. Props [@felipeelia](https://github.com/felipeelia) via [#3051](https://github.com/10up/ElasticPress/pull/3051).
 - Hide taxonomies from facet block whose `show_ui` is set to false. Props [@burhandodhy](https://github.com/burhandodhy) via [#2958](https://github.com/10up/ElasticPress/pull/2958).
-- Updated code to use Utils\get_option() when possible. Props [@rebeccahum](https://github.com/rebeccahum) via [#3078](https://github.com/10up/ElasticPress/pull/3078).
+- Use `Utils\*_option()` when possible. Props [@rebeccahum](https://github.com/rebeccahum) via [#3078](https://github.com/10up/ElasticPress/pull/3078) and [#3081](https://github.com/10up/ElasticPress/pull/3081).
+- Remove unnecessary check from `allow_excerpt_html`. Props [@burhandodhy](https://github.com/burhandodhy) via [#3093](https://github.com/10up/ElasticPress/pull/3093).
 - Updated Cypress (version 9 to 10). Props [@felipeelia](https://github.com/felipeelia) via [#3066](https://github.com/10up/ElasticPress/pull/3066).
 - Use factory to create comments for tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#3074](https://github.com/10up/ElasticPress/pull/3074).
+- Improved e2e tests performance. Props [@felipeelia](https://github.com/felipeelia) via [#3085](https://github.com/10up/ElasticPress/pull/3085).
+- GitHub Action used by PHPCS. Props [@felipeelia](https://github.com/felipeelia) via [#3104](https://github.com/10up/ElasticPress/pull/3104).
 
 ### Deprecated
 - The following WP-CLI commands were deprecated via [#3028](https://github.com/10up/ElasticPress/pull/3028). They will still work but with a warning.
@@ -55,6 +60,7 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 
 ### Removed
 - Legacy hook from unit tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#3050](https://github.com/10up/ElasticPress/pull/3050).
+- Time average box in the Index Health page. Props [@felipeelia](https://github.com/felipeelia) and [@alaa-alshamy](https://github.com/alaa-alshamy) via [#3115](https://github.com/10up/ElasticPress/pull/3115).
 
 ### Fixed
 - Clicking on the Facet Term redirect to Homepage. Props [@burhandodhy](https://github.com/burhandodhy) via [#3032](https://github.com/10up/ElasticPress/pull/3032).
@@ -63,9 +69,15 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 - Deprecated filters for search algorithms do not overwrite values set with the newer filters. Props [@felipeelia](https://github.com/felipeelia) and [@marc-tt](https://github.com/marc-tt) via [#3037](https://github.com/10up/ElasticPress/pull/3037).
 - No posts returned when an invalid value was passed to the tax_query parameter. Props [@burhandodhy](https://github.com/burhandodhy) via [#3030](https://github.com/10up/ElasticPress/pull/3030).
 - Facet returns no result for a term having accent characters. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3031](https://github.com/10up/ElasticPress/pull/3031).
+- An issue where some characters in taxonomy terms would appear encoded when displayed in Instant Results. Props [@JakePT](https://github.com/JakePT) via [#3113](https://github.com/10up/ElasticPress/pull/3113).
+- An issue that caused Autosuggest filter functions to no longer work. Props [@JakePT](https://github.com/JakePT) via [#3110](https://github.com/10up/ElasticPress/pull/3110).
+- An issue that prevented clicking Autosuggest suggestions if they had been customized with additional markup. Props [@JakePT](https://github.com/JakePT) via [#3110](https://github.com/10up/ElasticPress/pull/3110).
+- WooCommerce custom product sort order. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#2965](https://github.com/10up/ElasticPress/pull/2965).
 - `put-mapping --network-wide` throws error when plugin is not activated on network. Props [@burhandodhy](https://github.com/burhandodhy) via [#3041](https://github.com/10up/ElasticPress/pull/3041).
 - Internationalization of strings in JavaScript files. Props [@felipeelia](https://github.com/felipeelia) via [#3079](https://github.com/10up/ElasticPress/pull/3079).
 - Warning if `_source` is not returned in query hit. Props [@pschoffer](https://github.com/pschoffer) via [#2992](https://github.com/10up/ElasticPress/pull/2992).
+- Undefined variable `$update` on synonyms page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3102](https://github.com/10up/ElasticPress/pull/3102).
+- PHP 8 deprecation warning related to `uasort()` usage. Props [@burhandodhy](https://github.com/burhandodhy) via [#3091](https://github.com/10up/ElasticPress/pull/3091).
 - Cypress intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3053](https://github.com/10up/ElasticPress/pull/3053).
 - Fix PHP Unit Tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3073](https://github.com/10up/ElasticPress/pull/3073).
 
