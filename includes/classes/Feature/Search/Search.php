@@ -106,7 +106,7 @@ class Search extends Feature {
 		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
 
 		add_action( 'init', [ $this, 'register_meta' ], 20 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'add_admin_scripts' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
 		add_action( 'pre_get_posts', [ $this, 'exclude_posts_from_search' ] );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
 		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
@@ -702,17 +702,16 @@ class Search extends Feature {
 	}
 
 	/**
-	 * Enqueue scripts.
-	 *
-	 * @param string $page The current admin page.
+	 * Enqueue block editor assets.
 	 */
-	public function add_admin_scripts( $page ) {
-
-		if ( 'post.php' !== $page && 'post-new.php' !== $page ) {
-			return;
-		}
-
-		wp_enqueue_script( 'ep-exclude-search', EP_URL . '/dist/js/exclude-search-script.js', Utils\get_asset_info( 'exclude-search-script', 'dependencies' ), Utils\get_asset_info( 'exclude-search-script', 'version' ), true );
+	public function enqueue_block_editor_assets( $page ) {
+		wp_enqueue_script(
+			'ep-search-editor',
+			EP_URL . '/dist/js/search-editor-script.js',
+			Utils\get_asset_info( 'search-editor-script', 'dependencies' ),
+			Utils\get_asset_info( 'search-editor-script', 'version' ),
+			true
+		);
 	}
 
 	/**
