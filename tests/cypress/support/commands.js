@@ -444,3 +444,15 @@ Cypress.Commands.add('createUser', (userData) => {
 		cy.get('#user_pass').clear().type(`${newUserDate.password}{enter}`);
 	}
 });
+
+Cypress.Commands.add('setPerIndexCycle', (number = 350) => {
+	cy.wpCli(`option set ep_bulk_setting ${number}`);
+});
+
+Cypress.Commands.add('refreshIndex', (indexable) => {
+	cy.wpCliEval(
+		`
+		$index = \\ElasticPress\\Indexables::factory()->get( "${indexable}" )->get_index_name();
+		WP_CLI::runcommand("elasticpress request {$index}/_refresh --method=POST");`,
+	);
+});
