@@ -99,7 +99,7 @@ describe('Comments Feature', () => {
 		cy.get('@allInput').clearThenType('these tests');
 		cy.wait('@commentsRest');
 		cy.get('@allBlock').find('li').should('contain', 'These tests are amazing!');
-		cy.get('@allInput').clearThenType('Contributor comment');
+		cy.get('@allInput').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@allBlock').find('li').should('contain', 'Contributor comment.');
 
@@ -115,7 +115,7 @@ describe('Comments Feature', () => {
 		cy.get('@postsInput').clearThenType('these tests');
 		cy.wait('@commentsRest');
 		cy.get('@postsBlock').find('li').should('contain', 'These tests are amazing!');
-		cy.get('@postsInput').clearThenType('Contributor comment');
+		cy.get('@postsInput').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@postsBlock').find('li').should('not.contain', 'Contributor comment.');
 
@@ -131,7 +131,7 @@ describe('Comments Feature', () => {
 		cy.get('@pagesInput').clearThenType('these tests');
 		cy.wait('@commentsRest');
 		cy.get('@pagesBlock').find('li').should('not.contain', 'These tests are amazing!');
-		cy.get('@pagesInput').clearThenType('Contributor comment');
+		cy.get('@pagesInput').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@pagesBlock').find('li').should('contain', 'Contributor comment.');
 
@@ -147,7 +147,7 @@ describe('Comments Feature', () => {
 		cy.get('@bothInput').clearThenType('these tests');
 		cy.wait('@commentsRest');
 		cy.get('@bothBlock').find('li').should('contain', 'These tests are amazing!');
-		cy.get('@bothInput').clearThenType('Contributor comment');
+		cy.get('@bothInput').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@bothBlock').find('li').should('contain', 'Contributor comment.');
 	});
@@ -186,7 +186,7 @@ describe('Comments Feature', () => {
 		cy.get('@input').clearThenType('these tests');
 		cy.wait('@commentsRest');
 		cy.get('@widget').find('li').should('not.contain', 'These tests are amazing!');
-		cy.get('@input').clearThenType('Contributor comment');
+		cy.get('@input').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@widget').find('li').should('contain', 'Contributor comment.');
 
