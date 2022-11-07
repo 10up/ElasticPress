@@ -722,22 +722,33 @@ class Search extends Feature {
 		}
 
 		// Get any meta query that's being added before.
-		$meta_query = $query->get( 'meta_query' );
+		$meta_query = (array) $query->get( 'meta_query' );
 
-		if ( ! empty( $meta_query ) ) {
-			$meta_query[] = array(
+		$exclude_from_search_query = [
+			'relation' => 'or',
+			[
+				'key'     => 'ep_exclude_from_search',
+				'compare' => 'NOT EXISTS',
+			],
+			[
 				'key'     => 'ep_exclude_from_search',
 				'value'   => '1',
 				'compare' => '!=',
-			);
+			],
+		];
+
+		/**
+		 * If the current meta query only has an `OR` clause, wrap it with an `AND`
+		 * so the criteria here is not made "optional".
+		 */
+		if ( empty( $meta_query ) || empty( $meta_query['relation'] ) || 'and' === $meta_query['relation'] ) {
+			$meta_query[] = $exclude_from_search_query;
 		} else {
-			$meta_query = array(
-				array(
-					'key'     => 'ep_exclude_from_search',
-					'value'   => '1',
-					'compare' => '!=',
-				),
-			);
+			$meta_query = [
+				'relation' => 'and',
+				$exclude_from_search_query,
+				$meta_query,
+			];
 		}
 
 		$query->set( 'meta_query', $meta_query );
@@ -756,7 +767,7 @@ class Search extends Feature {
 		}
 		?>
 		<div class="misc-pub-section">
-			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ), true ); ?>>
+			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ) ); ?>>
 			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from Search', 'elasticpress' ); ?></label>
 			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
 		</div>
