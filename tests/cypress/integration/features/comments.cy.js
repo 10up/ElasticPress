@@ -297,12 +297,6 @@ describe('Comments Feature', () => {
 			.should('contain', `Documents:  ${defaultApprovedComments}`);
 	});
 
-	it('Can see ElasticPress - Comment widget in dashboard', () => {
-		cy.maybeEnableFeature('comments');
-		cy.visitAdminPage('widgets.php');
-		cy.get('.widget-title h3').should('contain', 'ElasticPress - Comments');
-	});
-
 	it('Can sync woocommerce reviews', () => {
 		cy.login();
 		cy.activatePlugin('woocommerce');
