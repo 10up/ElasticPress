@@ -690,8 +690,8 @@ class Search extends Feature {
 				'show_in_rest'  => true,
 				'single'        => true,
 				'type'          => 'boolean',
-				'auth_callback' => function( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ) {
-					return user_can( $user_can, 'edit_post_meta', $object_id, $meta_key );
+				'auth_callback' => function( $allowed, $meta_key, $object_id, $user_id ) {
+					return user_can( $user_id, 'edit_post_meta', $object_id, $meta_key );
 				},
 			]
 		);
@@ -700,7 +700,7 @@ class Search extends Feature {
 	/**
 	 * Enqueue block editor assets.
 	 */
-	public function enqueue_block_editor_assets( $page ) {
+	public function enqueue_block_editor_assets() {
 		wp_enqueue_script(
 			'ep-search-editor',
 			EP_URL . '/dist/js/search-editor-script.js',
