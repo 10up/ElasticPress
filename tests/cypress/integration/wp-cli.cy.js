@@ -27,9 +27,9 @@ describe('WP-CLI Commands', () => {
 			});
 	}
 
-	context('wp elasticpress index', () => {
+	context('wp elasticpress sync', () => {
 		it('Can index all the posts of the current blog', () => {
-			cy.wpCli('wp elasticpress index')
+			cy.wpCli('wp elasticpress sync')
 				.its('stdout')
 				.should('contain', 'Indexing posts')
 				.should('contain', 'Number of posts indexed');
@@ -38,7 +38,7 @@ describe('WP-CLI Commands', () => {
 		});
 
 		it('Can clear the index in Elasticsearch, put the mapping again and then index all the posts if user specifies --setup argument', () => {
-			cy.wpCli('wp elasticpress index --setup --yes')
+			cy.wpCli('wp elasticpress sync --setup --yes')
 				.its('stdout')
 				.should('contain', 'Mapping sent')
 				.should('contain', 'Indexing posts')
@@ -53,7 +53,7 @@ describe('WP-CLI Commands', () => {
 		});
 
 		it('Can process that many posts in bulk index per round if user specifies --per-page parameter', () => {
-			cy.wpCli('wp elasticpress index --per-page=20')
+			cy.wpCli('wp elasticpress sync --per-page=20')
 				.its('stdout')
 				.should('contain', 'Indexing posts')
 				.should('contain', '20 of')
@@ -62,7 +62,7 @@ describe('WP-CLI Commands', () => {
 		});
 
 		it('Can index one post at a time if user specifies --nobulk parameter', () => {
-			cy.wpCli('wp elasticpress index --nobulk')
+			cy.wpCli('wp elasticpress sync --nobulk')
 				.its('stdout')
 				.should('contain', 'Indexing posts')
 				.should('contain', '1 of')
@@ -74,7 +74,7 @@ describe('WP-CLI Commands', () => {
 
 		it('Can skip X posts and index the remaining if user specifies --offset parameter', () => {
 			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli('wp elasticpress index --offset=10').then((wpCliResponse) => {
+			cy.wpCli('wp elasticpress sync --offset=10').then((wpCliResponse) => {
 				expect(wpCliResponse.stdout).to.contains('Indexing posts');
 				expect(wpCliResponse.stdout).to.contains('Skipping 10');
 
@@ -94,7 +94,7 @@ describe('WP-CLI Commands', () => {
 			let indexTotal = 0;
 
 			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli('wp elasticpress index --post-type=post').then((wpCliResponse) => {
+			cy.wpCli('wp elasticpress sync --post-type=post').then((wpCliResponse) => {
 				expect(wpCliResponse.stdout).to.contains('Indexing posts');
 
 				const match = wpCliResponse.stdout.match(
@@ -104,7 +104,7 @@ describe('WP-CLI Commands', () => {
 			});
 
 			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli('wp elasticpress index').then((wpCliResponse) => {
+			cy.wpCli('wp elasticpress sync').then((wpCliResponse) => {
 				expect(wpCliResponse.stdout).to.contains('Indexing posts');
 
 				const match = wpCliResponse.stdout.match(
@@ -119,7 +119,7 @@ describe('WP-CLI Commands', () => {
 		it('Can index without using dynamic bulk requests if user specifies --static-bulk parameter', () => {
 			cy.activatePlugin('fake-log-messages');
 
-			cy.wpCli('wp elasticpress index --static-bulk')
+			cy.wpCli('wp elasticpress sync --static-bulk')
 				.its('stdout')
 				.should('contain', 'Index command with --static-bulk flag completed')
 				.should('contain', 'Done');
@@ -210,7 +210,7 @@ describe('WP-CLI Commands', () => {
 	});
 
 	it('Can return a string indicating the index is not running', () => {
-		cy.wpCli('wp elasticpress get-indexing-status')
+		cy.wpCli('wp elasticpress get-ongoing-sync-status')
 			.its('stdout')
 			.should(
 				'contain',
@@ -218,33 +218,32 @@ describe('WP-CLI Commands', () => {
 			);
 	});
 
-	it('Can return a string indicating with the appropriate fields if user runs wp elasticpress get-last-cli-index command', () => {
-		cy.wpCli('wp elasticpress index');
+	it('Can return a string indicating with the appropriate fields if user runs wp elasticpress get-last-cli-sync command', () => {
+		cy.wpCli('wp elasticpress sync');
 
-		cy.wpCli('wp elasticpress get-last-cli-index --clear')
+		cy.wpCli('wp elasticpress get-last-cli-sync --clear')
 			.its('stdout')
 			.should('contain', '"total_time"');
 
-		cy.wpCli('wp elasticpress get-last-cli-index --clear')
-			.its('stdout')
-			.should('contain', '[]');
+		cy.wpCli('wp elasticpress get-last-cli-sync --clear').its('stdout').should('contain', '[]');
 	});
 
 	context('multisite parameters', () => {
 		before(() => {
 			cy.activatePlugin('elasticpress', 'wpCli', 'network');
-			cy.wpCli('elasticpress get-indexes').then((wpCliResponse) => {
+			cy.wpCli('elasticpress get-indices').then((wpCliResponse) => {
 				indexAllSitesNames = JSON.parse(wpCliResponse.stdout);
 			});
 		});
 
 		after(() => {
 			cy.deactivatePlugin('elasticpress', 'wpCli', 'network');
+			cy.activatePlugin('elasticpress', 'wpCli');
 		});
 
 		it('Can index all blogs in network if user specifies --network-wide argument', () => {
 			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli('wp elasticpress index --network-wide')
+			cy.wpCli('wp elasticpress sync --network-wide')
 				.its('stdout')
 				.then((output) => {
 					expect((output.match(/Indexing posts on site/g) || []).length).to.equal(2);
@@ -259,7 +258,7 @@ describe('WP-CLI Commands', () => {
 
 		it('Can index only current site if user does not specify --network-wide argument', () => {
 			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli(`wp elasticpress index`)
+			cy.wpCli(`wp elasticpress sync`)
 				.its('stdout')
 				.then((output) => {
 					expect((output.match(/Indexing posts on site/g) || []).length).to.equal(1);
@@ -274,7 +273,7 @@ describe('WP-CLI Commands', () => {
 
 		it('Can index only site in the --url parameter if user does not specify --network-wide argument', () => {
 			// eslint-disable-next-line jest/valid-expect-in-promise
-			cy.wpCli(`wp elasticpress index --url=${Cypress.config('baseUrl')}/second-site`)
+			cy.wpCli(`wp elasticpress sync --url=${Cypress.config('baseUrl')}/second-site`)
 				.its('stdout')
 				.then((output) => {
 					expect((output.match(/Indexing posts on site/g) || []).length).to.equal(1);
@@ -332,30 +331,30 @@ describe('WP-CLI Commands', () => {
 		cy.wpCli('wp elasticpress get-mapping').its('stdout').should('contain', 'mapping_version');
 	});
 
-	it('Can get the cluster indexes information', () => {
-		cy.wpCli('wp elasticpress get-cluster-indexes').its('stdout').should('contain', 'health');
+	it('Can get the cluster indices information', () => {
+		cy.wpCli('wp elasticpress get-cluster-indices').its('stdout').should('contain', 'health');
 	});
 
-	it('Can get the indexes names', () => {
-		cy.wpCli('wp elasticpress get-indexes').its('code').should('equal', 0);
+	it('Can get the indices names', () => {
+		cy.wpCli('wp elasticpress get-indices').its('code').should('equal', 0);
 
-		cy.wpCli('wp elasticpress get-indexes --pretty').its('stdout').should('contain', '\n');
+		cy.wpCli('wp elasticpress get-indices --pretty').its('stdout').should('contain', '\n');
 	});
 
 	it('Can stop the sync operation and clear it', () => {
-		// if no index is running, this will fail.
-		cy.wpCli('wp elasticpress stop-indexing')
+		// if no sync process is running, this will fail.
+		cy.wpCli('wp elasticpress stop-sync')
 			.its('stderr')
 			.should('contain', 'There is no indexing operation running');
 
-		// mock the indexing process
+		// mock the sync process
 		cy.wpCliEval(
 			`update_option('ep_index_meta', true); set_transient('ep_sync_interrupted', true);`,
 		);
 
-		cy.wpCli('wp elasticpress stop-indexing').its('stdout').should('contain', 'Done');
+		cy.wpCli('wp elasticpress stop-sync').its('stdout').should('contain', 'Done');
 
-		cy.wpCli('wp elasticpress clear-index').its('stdout').should('contain', 'Index cleared');
+		cy.wpCli('wp elasticpress clear-sync').its('stdout').should('contain', 'Index cleared');
 	});
 
 	it('can send an HTTP request to Elasticsearch', () => {

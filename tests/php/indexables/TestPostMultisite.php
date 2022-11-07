@@ -21,13 +21,13 @@ class TestPostMultisite extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -73,12 +73,12 @@ class TestPostMultisite extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function tearDown() {
+	public function tear_down() {
 		if ( ! is_multisite() ) {
 			return;
 		}
 
-		parent::tearDown();
+		parent::tear_down();
 
 		$this->fired_actions = array();
 
@@ -150,7 +150,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			add_action( 'ep_sync_on_transition', array( $this, 'action_sync_on_transition' ), 10, 0 );
 
-			$post_id = Functions\create_and_sync_post();
+			$post_id = $this->ep_factory->post->create();
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -184,9 +184,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -255,9 +255,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -295,9 +295,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -336,9 +336,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -378,9 +378,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -435,8 +435,8 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -477,10 +477,10 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post();
+			$this->ep_factory->post->create();
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_excerpt' => 'findme' ) );
+				$this->ep_factory->post->create( array( 'post_excerpt' => 'findme' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -523,7 +523,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post(
+			$this->ep_factory->post->create(
 				array(
 					'post_content' => 'findme',
 					'tags_input'   => array(
@@ -534,7 +534,7 @@ class TestPostMultisite extends BaseTestCase {
 			);
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$this->ep_factory->post->create(
 					array(
 						'post_content' => 'findme',
 						'tags_input'   => array(
@@ -592,10 +592,10 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$this->ep_factory->post->create(
 					array(
 						'post_content' => 'findme',
 						'post_type'    => 'page',
@@ -644,7 +644,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post(
+			$this->ep_factory->post->create(
 				array(
 					'post_content' => 'findme',
 					'post_type'    => 'page',
@@ -652,7 +652,7 @@ class TestPostMultisite extends BaseTestCase {
 			);
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+				$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -696,7 +696,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post(
+			$this->ep_factory->post->create(
 				array(
 					'post_content' => 'findme',
 					'post_type'    => 'page',
@@ -704,7 +704,7 @@ class TestPostMultisite extends BaseTestCase {
 			);
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+				$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -747,7 +747,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post(
+			$this->ep_factory->post->create(
 				array(
 					'post_content' => 'findme',
 					'post_type'    => 'page',
@@ -755,7 +755,7 @@ class TestPostMultisite extends BaseTestCase {
 			);
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+				$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -805,10 +805,10 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$this->ep_factory->post->create(
 					array(
 						'post_content' => 'findme',
 						'post_author'  => $user_id,
@@ -866,10 +866,10 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$this->ep_factory->post->create(
 					array(
 						'post_content' => 'findme',
 						'post_author'  => $user_id,
@@ -922,10 +922,15 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_ids[] = Functions\create_and_sync_post( array( 'post_content' => 'post content' ) );
+			$post_ids[] = $this->ep_factory->post->create( array( 'post_content' => 'post content' ) );
 
 			if ( $i > 0 ) {
-				$post_ids[] = Functions\create_and_sync_post( array( 'post_content' => 'post content' ), array( 'test_key' => 'findme' ) );
+				$post_ids[] = $this->ep_factory->post->create(
+					array(
+						'post_content' => 'post content',
+						'meta_input'   => array( 'test_key' => 'findme' ),
+					)
+				);
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -987,23 +992,27 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$post_id = Functions\create_and_sync_post(
-				array( 'post_content' => 'post content findme' ),
+			$post_id = $this->ep_factory->post->create(
 				array(
-					'test_key'  => 'findme',
-					'test_key2' => 'findme3',
+					'post_content' => 'post content findme',
+					'meta_input'   => array(
+						'test_key'  => 'findme',
+						'test_key2' => 'findme3',
+					),
 				)
 			);
 
 			$this->assertNotFalse( $post_id );
 
 			if ( $i > 0 ) {
-				$post_id = Functions\create_and_sync_post(
-					array( 'post_content' => 'post content findme' ),
+				$post_id = $this->ep_factory->post->create(
 					array(
-						'test_key2' => 'findme',
-						'test_key'  => 'value2',
-						'test_key3' => 'findme',
+						'post_content' => 'post content findme',
+						'meta_input'   => array(
+							'test_key2' => 'findme',
+							'test_key'  => 'value2',
+							'test_key3' => 'findme',
+						),
 					)
 				);
 			}
@@ -1066,10 +1075,10 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'post content' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'post content' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$this->ep_factory->post->create(
 					array(
 						'post_content' => 'post content',
 						'tags_input'   => array( 'findme 2' ),
@@ -1135,10 +1144,10 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'post content' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'post content' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post(
+				$this->ep_factory->post->create(
 					array(
 						'post_content' => 'post content',
 						'post_author'  => $user_id,
@@ -1198,7 +1207,7 @@ class TestPostMultisite extends BaseTestCase {
 
 		switch_to_blog( $sites[0]['blog_id'] );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'term' ),
@@ -1211,7 +1220,7 @@ class TestPostMultisite extends BaseTestCase {
 
 		switch_to_blog( $sites[1]['blog_id'] );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'term' ),
@@ -1225,14 +1234,14 @@ class TestPostMultisite extends BaseTestCase {
 
 		switch_to_blog( $sites[2]['blog_id'] );
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'post content',
 				'tags_input'   => array( 'term' ),
 				'post_author'  => $user_id,
 				'post_type'    => 'ep_test',
-			),
-			array( 'test_key' => 'findme' )
+				'meta_input'   => array( 'test_key' => 'findme' ),
+			)
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1278,8 +1287,8 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1350,9 +1359,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
-			Functions\create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'notfirstblog' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1412,11 +1421,11 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+				$this->ep_factory->post->create( array( 'post_title' => 'notfirstblog' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1479,13 +1488,13 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+				$this->ep_factory->post->create( array( 'post_title' => 'notfirstblog' ) );
 			} elseif ( 0 === $i ) {
-				Functions\create_and_sync_post( array( 'post_title' => 'firstblog' ) );
+				$this->ep_factory->post->create( array( 'post_title' => 'firstblog' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1558,13 +1567,13 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
-			Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
 
 			if ( $i > 0 ) {
-				Functions\create_and_sync_post( array( 'post_title' => 'notfirstblog' ) );
+				$this->ep_factory->post->create( array( 'post_title' => 'notfirstblog' ) );
 			} elseif ( 0 === $i ) {
-				Functions\create_and_sync_post( array( 'post_title' => 'firstblog' ) );
+				$this->ep_factory->post->create( array( 'post_title' => 'firstblog' ) );
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1613,7 +1622,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post(
+			$this->ep_factory->post->create(
 				array(
 					'post_title'   => 'findme',
 					'post_author'  => $user_id,
@@ -1621,7 +1630,7 @@ class TestPostMultisite extends BaseTestCase {
 					'menu_order'   => $site['blog_id'],
 				)
 			);
-			Functions\create_and_sync_post(
+			$this->ep_factory->post->create(
 				array(
 					'post_title'   => 'findme',
 					'post_author'  => $user_id,
@@ -1783,9 +1792,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1826,9 +1835,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1867,9 +1876,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1939,9 +1948,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post();
+			$this->ep_factory->post->create_many( 3 );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1978,9 +1985,9 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
-			Functions\create_and_sync_post();
-			Functions\create_and_sync_post( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 

@@ -125,7 +125,7 @@ class Search extends Feature {
 
 		wp_enqueue_style(
 			'searchterm-highlighting',
-			EP_URL . 'dist/css/highlighting-styles.min.css',
+			EP_URL . 'dist/css/highlighting-styles.css',
 			Utils\get_asset_info( 'highlighting-styles', 'dependencies' ),
 			Utils\get_asset_info( 'highlighting-styles', 'version' )
 		);
@@ -253,10 +253,6 @@ class Search extends Feature {
 	 */
 	public function allow_excerpt_html() {
 		if ( ! Utils\is_integrated_request( 'highlighting', [ 'public' ] ) ) {
-			return;
-		}
-
-		if ( empty( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 

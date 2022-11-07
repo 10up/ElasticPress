@@ -20,9 +20,9 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 2.1
 	 * @group woocommerce
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -45,8 +45,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 2.1
 	 * @group woocommerce
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
@@ -63,8 +63,8 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'product 1',
 				'post_type'    => 'product',
@@ -95,7 +95,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -125,7 +125,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'post_type'    => 'shop_order',
@@ -157,7 +157,7 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = Functions\create_and_sync_post(
+		$shop_order_id = $this->ep_factory->post->create(
 			array(
 				'post_type' => 'shop_order',
 			)

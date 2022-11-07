@@ -31,7 +31,7 @@ describe('Documents Feature', () => {
 	}
 
 	before(() => {
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 		cy.exec(
 			'npm run env run tests-wordpress "chown -R www-data:www-data /var/www/html/wp-content/uploads"',
 		);
@@ -47,7 +47,7 @@ describe('Documents Feature', () => {
 		cy.get('body').should('contain.text', 'pdf-file');
 
 		// Check if the file is still searchable after a reindex.
-		cy.wpCli('elasticpress index --setup --yes --show-errors').then(() => {
+		cy.wpCli('elasticpress sync --setup --yes --show-errors').then(() => {
 			/**
 			 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
 			 *

@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
 use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -112,6 +113,21 @@ class Block {
 	 * Register the block.
 	 */
 	public function register_block() {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
+		wp_register_script(
+			'ep-facets-block-script',
+			EP_URL . 'dist/js/facets-block-script.js',
+			Utils\get_asset_info( 'facets-block-script', 'dependencies' ),
+			Utils\get_asset_info( 'facets-block-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep-facets-block-script', 'elasticpress' );
+
 		register_block_type_from_metadata(
 			EP_PATH . 'assets/js/blocks/facets/taxonomy',
 			[

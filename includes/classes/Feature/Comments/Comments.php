@@ -311,15 +311,17 @@ class Comments extends Feature {
 	public function frontend_scripts() {
 		wp_register_script(
 			'elasticpress-comments',
-			EP_URL . 'dist/js/comments-script.min.js',
+			EP_URL . 'dist/js/comments-script.js',
 			Utils\get_asset_info( 'comments-script', 'dependencies' ),
 			Utils\get_asset_info( 'comments-script', 'version' ),
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-comments', 'elasticpress' );
+
 		wp_register_style(
 			'elasticpress-comments',
-			EP_URL . 'dist/css/comments-styles.min.css',
+			EP_URL . 'dist/css/comments-styles.css',
 			Utils\get_asset_info( 'comments-styles', 'dependencies' ),
 			Utils\get_asset_info( 'comments-styles', 'version' )
 		);

@@ -1,29 +1,31 @@
+<?xml version="1.0"?>
 <phpunit
-	bootstrap="tests/php/bootstrap.php"
-	backupGlobals="false"
-	colors="true"
-	convertErrorsToExceptions="true"
-	convertNoticesToExceptions="true"
-	convertWarningsToExceptions="true"
-	>
-	<php>
-		<ini name="error_reporting" value="24575" />
-	</php>
-	<testsuites>
-		<testsuite name="elasticpress">
-			<directory prefix="Test" suffix=".php">./tests/php/</directory>
+  xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+  bootstrap="tests/php/bootstrap.php"
+  backupGlobals="false"
+  colors="true"
+  convertErrorsToExceptions="true"
+  convertNoticesToExceptions="true"
+  convertWarningsToExceptions="true"
+  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+  <coverage>
+    <include>
+      <directory suffix=".php">./includes</directory>
+    </include>
+    <exclude>
+      <directory suffix=".php">./includes/partials</directory>
+      <directory suffix=".php">./includes/mappings</directory>
+    </exclude>
+  </coverage>
+  <php>
+    <ini name="error_reporting" value="24575"/>
+  </php>
+  <testsuites>
+    <testsuite name="elasticpress">
+      <directory prefix="Test" suffix=".php">./tests/php/</directory>
       <exclude>./tests/php/indexables/TestCommentMultisite.php</exclude>
       <exclude>./tests/php/indexables/TestPostMultisite.php</exclude>
       <exclude>./tests/php/indexables/TestTermMultisite.php</exclude>
-		</testsuite>
-	</testsuites>
-	<filter>
-		<whitelist>
-			<directory suffix=".php">./includes</directory>
-			<exclude>
-				<directory suffix=".php">./includes/partials</directory>
-				<directory suffix=".php">./includes/mappings</directory>
-			</exclude>
-		</whitelist>
-	</filter>
+    </testsuite>
+  </testsuites>
 </phpunit>

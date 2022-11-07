@@ -19,9 +19,9 @@ class TestSearchOrdering extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -46,8 +46,8 @@ class TestSearchOrdering extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		$this->fired_actions = array();
 
@@ -79,8 +79,8 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testFilterUpdatedMessages() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$GLOBALS['post'] = get_post( $post_id );
+		$post = $this->ep_factory->post->create_and_get();
+		$GLOBALS['post'] = $post;
 		$messages = $this->get_feature()->filter_updated_messages([]);
 
 		$this->assertArrayHasKey( 'ep-pointer', $messages );
@@ -91,7 +91,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Insert specific posts into search results for specific search queries.', $output );
+		$this->assertStringContainsString( 'Insert specific posts into search results for specific search queries.', $output );
 	}
 
 	public function testOutputFeatureBoxLong() {
@@ -99,7 +99,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_long();
 		$output = ob_get_clean();
 
-		$this->assertContains( 'Selected posts will be inserted into search results in the specified position.', $output );
+		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
 	}
 
 	public function testAdminMenu() {
@@ -165,18 +165,18 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testRenderMetaBox() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post = $this->ep_factory->post->create_and_get();
 
 		ob_start();
-		$this->get_feature()->render_meta_box( get_post( $post_id ) );
+		$this->get_feature()->render_meta_box( $post );
 		$output = ob_get_clean();
-		$this->assertContains( 'ordering-app', $output );
+		$this->assertStringContainsString( 'ordering-app', $output );
 	}
 
 	public function testGetPointerData() {
-		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		$pointer_id = Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+		$post_id_1  = $this->ep_factory->post->create();
+		$post_id_2  = $this->ep_factory->post->create();
+		$pointer_id = $this->ep_factory->post->create();
 
 		update_post_meta( $pointer_id, 'pointers', [
 			[ 'ID' => $post_id_1, 'order' => 1 ],
@@ -205,7 +205,7 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testSavePostEarlyReturn() {
-		$pointer_id = Functions\create_and_sync_post( array( 'post_title' => 'findme' ) );
+		$pointer_id = $this->ep_factory->post->create( array( 'post_title' => 'findme' ) );
 		$return = $this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
 		$this->assertNull( $return );
 
@@ -218,8 +218,8 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testSavePost() {
-		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_id_1  = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
 
 		$_POST = [
@@ -244,8 +244,8 @@ class TestSearchOrdering extends BaseTestCase {
 		/**
 		 * Test change search term.
 		 */
-		$post_id_3  = Functions\create_and_sync_post( array( 'post_content' => '10up test 1' ) );
-		$post_id_4  = Functions\create_and_sync_post( array( 'post_content' => '10up test 2' ) );
+		$post_id_3  = $this->ep_factory->post->create( array( 'post_content' => '10up test 1' ) );
+		$post_id_4  = $this->ep_factory->post->create( array( 'post_content' => '10up test 2' ) );
 		$_POST = [
 			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
 			'ordered_posts' => json_encode( [
@@ -267,8 +267,8 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testSaveUnpublishedPost() {
-		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
-		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
+		$post_id_1  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
 		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'draft', 'post_type' => 'ep-pointer' ] );
 
 		$_POST = [
@@ -288,9 +288,9 @@ class TestSearchOrdering extends BaseTestCase {
 
 	public function testSavePostMaxCustomResults() {
 		update_option( 'posts_per_page', 2 );
-		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
-		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
-		$post_id_3  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 3' ] );
+		$post_id_1  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
+		$post_id_3  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 3' ] );
 		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
 
 		$_POST = [
@@ -395,9 +395,9 @@ class TestSearchOrdering extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
-		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
-		$post_id_3  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 3' ] );
+		$post_id_1  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
+		$post_id_3  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 3' ] );
 
 
 		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
@@ -528,8 +528,8 @@ class TestSearchOrdering extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$post_id_1  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 1' ] );
-		$post_id_2  = Functions\create_and_sync_post( [ 'post_content' => 'findme test 2' ] );
+		$post_id_1  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -545,8 +545,8 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testHandlePostTrash() {
-		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_id_1  = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
 
 		// Test non ep-pointer post type.
@@ -572,8 +572,8 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testHandlePostUntrash() {
-		$post_id_1  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		$post_id_2  = Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
+		$post_id_1  = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$post_id_2  = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 		$pointer_id = wp_insert_post( [ 'post_title' => 'findme', 'post_status' => 'publish', 'post_type' => 'ep-pointer' ] );
 
 		$_POST = [

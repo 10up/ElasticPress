@@ -19,9 +19,9 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 3.4.1
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -42,8 +42,8 @@ class TestWeighting extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
@@ -194,11 +194,11 @@ class TestWeighting extends BaseTestCase {
 		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 		$post_types = $search->get_searchable_post_types();
 
-		$this->assertContains( 'Manage Search Fields &amp; Weighting', $content );
+		$this->assertStringContainsString( 'Manage Search Fields &amp; Weighting', $content );
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
-			$this->assertcontains( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
+			$this->assertStringContainsString( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
 		}
 	}
 
@@ -208,7 +208,7 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$this->assertcontains( 'Changes Saved', $content );
+		$this->assertStringContainsString( 'Changes Saved', $content );
 	}
 
 	public function testRenderSettingsPageSaveFailed() {
@@ -217,7 +217,7 @@ class TestWeighting extends BaseTestCase {
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$this->assertcontains( 'An error occurred when saving', $content );
+		$this->assertStringContainsString( 'An error occurred when saving', $content );
 	}
 
 
