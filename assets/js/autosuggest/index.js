@@ -311,17 +311,13 @@ function updateAutosuggestBox(options, input) {
 	// append list items to the list
 	suggestList.innerHTML = listHTML;
 
-	const autosuggestItems = Array.from(document.querySelectorAll('.autosuggest-link'));
-
 	suggestList.addEventListener('click', (event) => {
 		event.preventDefault();
-		const target =
-			event.target.tagName === epas.highlightingTag?.toUpperCase()
-				? event.target.parentElement
-				: event.target;
 
-		if (autosuggestItems.includes(target)) {
-			selectItem(input, target);
+		const element = event.target.closest('.autosuggest-link');
+
+		if (suggestList.contains(element)) {
+			selectItem(input, element);
 		}
 	});
 
