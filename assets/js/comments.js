@@ -138,7 +138,7 @@ function setIsLoading(isLoading, inputElement) {
 function fetchResults(inputElement) {
 	if (hasMinimumLength(inputElement)) {
 		const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
-		const postTypeElement = widget.querySelector('#ep-widget-search-comments-post-type');
+		const postTypeElement = widget.querySelector('.ep-widget-search-comments-post-type');
 		const postTypeQueryParameter = postTypeElement?.value
 			? `&post_type=${postTypeElement.value.trim()}`
 			: '';

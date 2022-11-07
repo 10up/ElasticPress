@@ -389,7 +389,7 @@ class Comments extends Feature {
 
 		$post_types_input = ! empty( $attributes['postTypes'] )
 			? sprintf(
-				'<input type="hidden" id="%1$s-post-type" value="%2$s">',
+				'<input class="ep-widget-search-comments-post-type" type="hidden" id="%1$s-post-type" value="%2$s">',
 				esc_attr( $wrapper_id ),
 				esc_attr( implode( ',', $attributes['postTypes'] ) )
 			)

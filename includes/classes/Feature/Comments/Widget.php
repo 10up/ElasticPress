@@ -59,6 +59,7 @@ class Widget extends WP_Widget {
 			if ( ! empty( $instance['post_type'] ) ) {
 				?>
 				<input
+					class="ep-widget-search-comments-post-type"
 					type="hidden"
 					id="<?php echo esc_attr( $wrapper_id ); ?>-post-type"
 					value="<?php echo esc_attr( implode( ',', $instance['post_type'] ) ); ?>"

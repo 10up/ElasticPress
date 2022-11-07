@@ -16,7 +16,7 @@
 			"type": "array"
 		}
 	},
-	"editorScript": "file:/../../../../dist/js/comments-block-script.min.js",
+	"editorScript": "file:/../../../../dist/js/comments-block-script.js",
 	"script": "elasticpress-comments",
 	"style": "elasticpress-comments"
 }
