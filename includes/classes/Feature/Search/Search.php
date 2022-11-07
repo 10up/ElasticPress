@@ -262,10 +262,6 @@ class Search extends Feature {
 			return;
 		}
 
-		if ( empty( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			return;
-		}
-
 		$settings = $this->get_settings();
 
 		if ( ! $settings ) {

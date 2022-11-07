@@ -671,3 +671,20 @@ function get_asset_info( $slug, $attribute = null ) {
 
 	return $asset;
 }
+
+/**
+ * Return the Sync Page URL.
+ *
+ * @since 4.4.0
+ * @param boolean $do_sync Whether the link should or should not start a resync.
+ * @return string
+ */
+function get_sync_url( bool $do_sync = false ) : string {
+	$page = 'admin.php?page=elasticpress-sync';
+	if ( $do_sync ) {
+		$page .= '&do_sync';
+	}
+	return ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+		network_admin_url( $page ) :
+		admin_url( $page );
+}
