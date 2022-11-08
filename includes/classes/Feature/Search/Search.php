@@ -741,7 +741,7 @@ class Search extends Feature {
 		 * If the current meta query only has an `OR` clause, wrap it with an `AND`
 		 * so the criteria here is not made "optional".
 		 */
-		if ( empty( $meta_query ) || empty( $meta_query['relation'] ) || 'and' === $meta_query['relation'] ) {
+		if ( empty( $meta_query ) || empty( $meta_query['relation'] ) || 'and' === strtolower( $meta_query['relation'] ) ) {
 			$meta_query[] = $exclude_from_search_query;
 		} else {
 			$meta_query = [
