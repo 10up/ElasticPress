@@ -46,7 +46,7 @@ if [ -z $EP_HOST ]; then
 	else
 		echo "Running tests on $(uname)"
 		# 172.17.0.1 is the IP Address of host when using Linux
-		EP_HOST="http://172.23.144.1:8890/"
+		EP_HOST="http://172.17.0.1:8890/"
 	fi
 fi
 ./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_HOST ${EP_HOST}"
