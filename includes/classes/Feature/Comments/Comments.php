@@ -262,6 +262,7 @@ class Comments extends Feature {
 	 *
 	 * @param string $post_type Post type name,
 	 * @return boolean Whether the post type supports comments.
+	 * @since 4.4.0
 	 */
 	public static function post_type_supports_comments( $post_type ) {
 		return post_type_supports( $post_type, 'comments' );
@@ -270,7 +271,8 @@ class Comments extends Feature {
 	/**
 	 * Get a list of searchable post types that support comments.
 	 *
-	 * @return array Array of post type kabeks keyed by post type.
+	 * @return array Array of post type labels keyed by post type.
+	 * @since 4.4.0
 	 */
 	public static function get_searchable_post_types() {
 		$searchable_post_types = array();

@@ -88,7 +88,7 @@ describe('Comments Feature', () => {
 		cy.intercept('/wp-json/elasticpress/v1/comments*').as('commentsRest');
 
 		/**
-		 * Verify the all comments block has the exdpected markup and returns
+		 * Verify the all comments block has the expected markup and returns
 		 * the expected results.
 		 */
 		cy.get('.wp-block-elasticpress-comments').eq(0).as('allBlock');
@@ -104,7 +104,7 @@ describe('Comments Feature', () => {
 		cy.get('@allBlock').find('li').should('contain', 'Contributor comment.');
 
 		/**
-		 * Verify the post comments block has the exdpected markup and returns
+		 * Verify the post comments block has the expected markup and returns
 		 * the expected results.
 		 */
 		cy.get('.wp-block-elasticpress-comments').eq(1).as('postsBlock');
@@ -120,7 +120,7 @@ describe('Comments Feature', () => {
 		cy.get('@postsBlock').find('li').should('not.contain', 'Contributor comment.');
 
 		/**
-		 * Verify the page comments block has the exdpected markup and returns
+		 * Verify the page comments block has the expected markup and returns
 		 * the expected results.
 		 */
 		cy.get('.wp-block-elasticpress-comments').eq(2).as('pagesBlock');
@@ -136,7 +136,7 @@ describe('Comments Feature', () => {
 		cy.get('@pagesBlock').find('li').should('contain', 'Contributor comment.');
 
 		/**
-		 * Verify the post and page comments block has the exdpected markup
+		 * Verify the post and page comments block has the expected markup
 		 * and returns the expected results.
 		 */
 		cy.get('.wp-block-elasticpress-comments').eq(3).as('bothBlock');
