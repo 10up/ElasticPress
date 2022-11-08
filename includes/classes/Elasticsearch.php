@@ -924,10 +924,10 @@ class Elasticsearch {
 	 * Get index settings.
 	 *
 	 * @param string $index Index name.
-	 * @since  4.3.2
-	 * @return array Raw ES response from the $index/_settings?flat_settings=true endpoint
+	 * @since  4.4.0
+	 * @return array|WP_Error Raw ES response from the $index/_settings?flat_settings=true endpoint
 	 */
-	public function get_index_settings( $index ) {
+	public function get_index_settings( string $index ) {
 		$endpoint = trailingslashit( $index ) . '_settings?flat_settings=true';
 		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
 
