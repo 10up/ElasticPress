@@ -26,6 +26,7 @@
 
 import 'cypress-file-upload';
 import './commands/block-editor';
+import '@4tw/cypress-drag-drop';
 
 Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.visit(`/wp-admin`);
@@ -122,7 +123,6 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 		const welcomeGuide = $body.find(
 			'.edit-post-welcome-guide .components-modal__header button',
 		);
-		cy.log(welcomeGuide);
 		if (welcomeGuide.length) {
 			welcomeGuide.click();
 		}
@@ -324,12 +324,16 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 });
 
 Cypress.Commands.add('emptyWidgets', () => {
-	cy.wpCli('widget reset --all');
-	cy.wpCli('widget list wp_inactive_widgets --format=ids').then((wpCliResponse) => {
-		if (wpCliResponse.stdout) {
-			cy.wpCli(`widget delete ${wpCliResponse.stdout}`);
+	cy.wpCliEval(
+		`
+		WP_CLI::runcommand('widget reset --all');
+		
+		$inactive_widgets = WP_CLI::runcommand('widget list wp_inactive_widgets --format=ids', [ 'return' => true ] );
+		if ( $inactive_widgets ) {
+			WP_CLI::runcommand("widget delete {$inactive_widgets}" );
 		}
-	});
+		`,
+	);
 });
 
 // Command to drag and drop React DnD element. Original code from: https://github.com/cypress-io/cypress/issues/3942#issuecomment-485648100
@@ -440,4 +444,16 @@ Cypress.Commands.add('createUser', (userData) => {
 		cy.get('#user_login').clear().type(newUserDate.username);
 		cy.get('#user_pass').clear().type(`${newUserDate.password}{enter}`);
 	}
+});
+
+Cypress.Commands.add('setPerIndexCycle', (number = 350) => {
+	cy.wpCli(`option set ep_bulk_setting ${number}`);
+});
+
+Cypress.Commands.add('refreshIndex', (indexable) => {
+	cy.wpCliEval(
+		`
+		$index = \\ElasticPress\\Indexables::factory()->get( "${indexable}" )->get_index_name();
+		WP_CLI::runcommand("elasticpress request {$index}/_refresh --method=POST");`,
+	);
 });
