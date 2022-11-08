@@ -200,6 +200,8 @@ Thank you to all the people who have already contributed to this repository via 
 [@marc-tt](https://github.com/marc-tt),
 [@Greygooo](https://github.com/Greygooo),
 [Miguel A. Estrada (@mae829)](https://github.com/mae829),
+[@cmcandrew](https://github.com/cmcandrew),
+[@DenisFlorin](https://github.com/DenisFlorin),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
