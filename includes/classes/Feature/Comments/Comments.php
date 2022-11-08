@@ -47,7 +47,7 @@ class Comments extends Feature {
 	public function setup() {
 		Indexables::factory()->register( new Indexable\Comment\Comment() );
 
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'editor_scripts' ] );
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'init', [ $this, 'search_setup' ] );
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
@@ -293,7 +293,9 @@ class Comments extends Feature {
 	 *
 	 * @since 4.4.0
 	 */
-	public function admin_scripts() {
+	public function editor_scripts() {
+		wp_set_script_translations( 'elasticpress-comments-editor-script', 'elasticpress' );
+
 		wp_localize_script(
 			'elasticpress-comments-editor-script',
 			'epComments',
