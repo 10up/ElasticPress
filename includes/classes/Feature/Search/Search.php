@@ -275,10 +275,10 @@ class Search extends Feature {
 	 * Called by allow_excerpt_html
 	 * logic for the excerpt filter allowing the currently selected tag.
 	 *
-	 * @param string  $text - excerpt string
-	 * @param WP_POST $post - Post Object.
+	 * @param string  $text excerpt string
+	 * @param WP_Post $post Post Object
 	 *
-	 * @return string $text - the new excerpt
+	 * @return string $text the new excerpt
 	 */
 	public function ep_highlight_excerpt( $text, $post ) {
 
