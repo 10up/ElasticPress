@@ -466,6 +466,7 @@ class Elasticsearch {
 				[
 					'found_documents' => $total_hits,
 					'documents'       => $documents,
+					'aggregations'    => $response['aggregations'] ?? [],
 				],
 				$response,
 				$query,
@@ -917,6 +918,28 @@ class Elasticsearch {
 		$request = $this->remote_request( $open, $request_args, [], 'open_index' );
 
 		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Get index settings.
+	 *
+	 * @param string $index Index name.
+	 * @since  4.4.0
+	 * @return array|WP_Error Raw ES response from the $index/_settings?flat_settings=true endpoint
+	 */
+	public function get_index_settings( string $index ) {
+		$endpoint = trailingslashit( $index ) . '_settings?flat_settings=true';
+		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$settings = json_decode( $response_body, true );
+
+		return $settings;
 	}
 
 	/**
