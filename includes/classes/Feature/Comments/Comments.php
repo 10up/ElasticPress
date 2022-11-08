@@ -47,7 +47,6 @@ class Comments extends Feature {
 	public function setup() {
 		Indexables::factory()->register( new Indexable\Comment\Comment() );
 
-		add_action( 'enqueue_block_editor_assets', [ $this, 'editor_scripts' ] );
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'init', [ $this, 'search_setup' ] );
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
@@ -291,23 +290,6 @@ class Comments extends Feature {
 	}
 
 	/**
-	 * Enqueue admin scripts.
-	 *
-	 * @since 4.4.0
-	 */
-	public function editor_scripts() {
-		wp_set_script_translations( 'elasticpress-comments-editor-script', 'elasticpress' );
-
-		wp_localize_script(
-			'elasticpress-comments-editor-script',
-			'epComments',
-			[
-				'searchablePostTypes' => self::get_searchable_post_types(),
-			]
-		);
-	}
-
-	/**
 	 * Enqueue frontend scripts.
 	 *
 	 * @since 4.4.0
@@ -359,6 +341,29 @@ class Comments extends Feature {
 	 * @since 4.4.0
 	 */
 	public function register_block() {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
+		wp_register_script(
+			'elasticpress-comments-editor-script',
+			EP_URL . 'dist/js/comments-block-script.js',
+			Utils\get_asset_info( 'comments-block-script', 'dependencies' ),
+			Utils\get_asset_info( 'comments-block-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'elasticpress-comments-editor-script', 'elasticpress' );
+
+		wp_localize_script(
+			'elasticpress-comments-editor-script',
+			'epComments',
+			[
+				'searchablePostTypes' => self::get_searchable_post_types(),
+			]
+		);
+
 		register_block_type_from_metadata(
 			EP_PATH . 'assets/js/blocks/comments',
 			[
