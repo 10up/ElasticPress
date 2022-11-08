@@ -176,13 +176,12 @@ class Sync {
 		}
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
-		// Get all the available indices
-		$get_all_indices         = Elasticsearch::factory()->get_index_names();
-		// Get the available data from the cluster
+		// Get all the indices that should exist
+		$get_all_indices = Elasticsearch::factory()->get_index_names();
+		// Get the available indices from the cluster
 		$get_all_cluster_indices = Elasticsearch::factory()->get_cluster_indices();
 		$cluster_indices         = json_decode( wp_remote_retrieve_body( $get_all_cluster_indices ), true );
 		if ( is_array( $cluster_indices ) ) {
-			// Get the names of the indices from the cluster to match against available indices
 			$cluster_indices = wp_list_pluck( $cluster_indices, 'index' );
 
 			$index_names = array_intersect( $get_all_indices, $cluster_indices );
