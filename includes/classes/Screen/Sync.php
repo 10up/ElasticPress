@@ -11,7 +11,7 @@ namespace ElasticPress\Screen;
 use ElasticPress\IndexHelper;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
-use ElasticPress\Stats as Stats;
+use ElasticPress\Stats;
 use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -184,9 +184,10 @@ class Sync {
 			$cluster_indices = wp_list_pluck( $cluster_indices, 'index' );
 
 			$index_names = array_intersect( $get_all_indices, $cluster_indices );
-		}
-		if ( $index_names !== $get_all_indices ) {
-			$full_sync = true;
+
+			if ( $index_names !== $get_all_indices ) {
+				$full_sync = true;
+			}
 		}
 
 		if ( ! empty( $ep_last_index ) ) {

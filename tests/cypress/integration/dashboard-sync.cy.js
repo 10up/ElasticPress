@@ -175,12 +175,30 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Should only display a single sync option if index is deleted', () => {
+		// Enable Terms
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.get('.ep-feature-terms .settings-button').click();
+		cy.get('.ep-feature-terms [name="settings[active]"][value="1"]').click();
+		cy.get('.ep-feature-terms .button-primary').click();
+		cy.on('window:confirm', () => {
+			return true;
+		});
+
+		cy.get('.ep-sync-panel').last().as('syncPanel');
+		cy.get('@syncPanel').find('.components-form-toggle').click();
+		cy.get('@syncPanel')
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete');
 		/**
-		 * Reset settings.
+		 * Delete one index.
 		 */
 		cy.wpCli('elasticpress get-indices').then((wpCliResponse) => {
-			const indexes = JSON.parse(wpCliResponse.stdout);
-			cy.wpCli(`wp elasticpress delete-index --index-name=${indexes[0]} --yes`);
+			const indices = JSON.parse(wpCliResponse.stdout);
+			cy.wpCliEval(
+				`
+				\\ElasticPress\\Elasticsearch::factory()->delete_index( "${indices[0]}" );`,
+			);
 		});
 
 		/**

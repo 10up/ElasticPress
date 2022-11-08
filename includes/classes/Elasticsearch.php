@@ -9,7 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils as Utils;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexables;
 use \WP_Error as WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
