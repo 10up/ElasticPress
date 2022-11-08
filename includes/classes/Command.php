@@ -408,9 +408,8 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_cluster_indices( $args, $assoc_args ) {
-		$path = '_cat/indices?format=json';
 
-		$response = Elasticsearch::factory()->remote_request( $path );
+		$response = Elasticsearch::factory()->get_cluster_indices();
 
 		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
 	}
@@ -441,27 +440,7 @@ class Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	protected function get_index_names() {
-		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
-
-		$all_indexables = Indexables::factory()->get_all();
-
-		$global_indexes     = [];
-		$non_global_indexes = [];
-		foreach ( $all_indexables as $indexable ) {
-			if ( $indexable->global ) {
-				$global_indexes[] = $indexable->get_index_name();
-				continue;
-			}
-
-			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
-			}
-		}
-
-		return array_merge( $non_global_indexes, $global_indexes );
+		return Elasticsearch::factory()->get_index_names();
 	}
 
 	/**

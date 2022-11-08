@@ -1655,9 +1655,10 @@ class Elasticsearch {
 	public function get_cluster_indices() {
 		$path = '_cat/indices?format=json';
 
-		$response = self::factory()->remote_request( $path );
+		$response = $this->remote_request( $path );
 
-		return json_decode( $response['body'], true );
+		return $response;
+
 	}
 
 }

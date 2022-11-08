@@ -8,17 +8,8 @@ const {
 	is_epio: isEpio,
 	ep_last_sync_date: lastSyncDateTime = null,
 	ep_last_sync_failed: lastSyncFailed = false,
-	index_stats: indexStats = null,
+	full_sync: fullSync,
 	nonce,
 } = window.epDash;
 
-export {
-	autoIndex,
-	ajaxUrl,
-	indexMeta,
-	isEpio,
-	lastSyncDateTime,
-	lastSyncFailed,
-	indexStats,
-	nonce,
-};
+export { autoIndex, ajaxUrl, indexMeta, isEpio, lastSyncDateTime, lastSyncFailed, fullSync, nonce };
