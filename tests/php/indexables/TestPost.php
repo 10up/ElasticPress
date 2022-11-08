@@ -3137,15 +3137,15 @@ class TestPost extends BaseTestCase {
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
-				'meta_input'   => array( 'test_key' => date('Ymd') - 5 ),
+				'meta_input'   => array( 'test_key' => date( 'Ymd' ) - 5 ),
 			),
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
 				'meta_input'   => array(
-					'test_key'  => date('Ymd') + 5,
-					'test_key2' => date('Ymd') + 6,
+					'test_key'  => date( 'Ymd' ) + 5,
+					'test_key2' => date( 'Ymd' ) + 6,
 				),
 			),
 		);
@@ -3153,8 +3153,8 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_content' => 'the post content findme',
 				'meta_input'   => array(
-					'test_key'  => date('Ymd') + 5,
-					'test_key2' => date('Ymd') + 6,
+					'test_key'  => date( 'Ymd' ) + 5,
+					'test_key2' => date( 'Ymd' ) + 6,
 				),
 			),
 		);
@@ -3163,28 +3163,28 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
 			'ep_integrate' => true,
-			'meta_key' => 'test_key',
-			'meta_query' => array(
+			'meta_key'     => 'test_key',
+			'meta_query'   => array(
 				'relation' => 'or',
 				array(
 					'key'     => 'test_key',
-					'value'   => date('Ymd'),
+					'value'   => date( 'Ymd' ),
 					'compare' => '<=',
-					'type' => 'NUMERIC',
+					'type'    => 'NUMERIC',
 				),
 				array(
 					'key'     => 'test_key2',
-					'value'   => date('Ymd'),
+					'value'   => date( 'Ymd' ),
 					'compare' => '>=',
-					'type' => 'NUMERIC',
+					'type'    => 'NUMERIC',
 				),
 			),
-			'orderby' => 'meta_value_num',
-			'order' => 'ASC',
+			'orderby'      => 'meta_value_num',
+			'order'        => 'ASC',
 		);
 
 		$query = new \WP_Query( $args );
-		$args = $post->format_args($args, new \WP_Query() );
+		$args  = $post->format_args( $args, new \WP_Query() );
 
 		$outer_must = $args['post_filter']['bool']['must'][0]['bool']['must'];
 
@@ -7592,6 +7592,48 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests search term wrapped in html tags.
+	 */
+	public function testHighlightTags() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test content',
+				'post_title'   => 'test title',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_content );
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_title );
+
+		// bypass the highlighting the search term
+		add_filter( 'ep_highlight_should_add_clause', '__return_false' );
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 'test content', $query->posts[0]->post_content );
+		$this->assertEquals( 'test title', $query->posts[0]->post_title );
+
+		remove_filter( 'ep_highlight_should_add_clause', '__return_false' );
+
+	}
+
+	/**
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
 	 */
 	public function testExcludeFromSearchQuery() {
@@ -7619,6 +7661,159 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
+	 * Tests search term is wrapped in html tag with custom class
+	 */
+	public function testHighlightTagsWithCustomClass() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test content',
+				'post_title'   => 'test title',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_highlighting_class',
+			function( $class ) {
+				return 'my-custom-class';
+			}
+		);
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertStringContainsString( '<mark class=\'my-custom-class\'>test</mark>', $query->posts[0]->post_content );
+		$this->assertStringContainsString( '<mark class=\'my-custom-class\'>test</mark>', $query->posts[0]->post_title );
+
+	}
+
+	/**
+	 * Tests search term is wrapped in html tag only for tite.
+	 */
+	public function testHighlightTagsOnlyForTitle() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test content',
+				'post_title'   => 'test title',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_highlighting_fields',
+			function( $fields ) {
+				return array( 'post_title' );
+			}
+		);
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_title );
+		$this->assertStringNotContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_content );
+	}
+
+	/**
+	 * Test get_the_excerpt() has HTML tags when highlight_excerpt is enabled.
+	 */
+	public function testExcerptHasHiglightHTMLTags() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+				'highlight_excerpt' => true,
+			)
+		);
+
+		$this->ep_factory->post->create( array( 'post_excerpt' => 'test excerpt' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$expected_result = '<mark class=\'ep-highlight\'>test</mark> excerpt';
+		$this->assertEquals( $expected_result, $query->posts[0]->post_excerpt );
+		$this->assertEquals( $expected_result, get_the_excerpt( $query->posts[0] ) );
+
+		// test post without excerpt
+		$this->ep_factory->post->create( array( 'post_content' => 'new post', 'post_excerpt' => '' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'new',
+		);
+		$query = new \WP_Query( $args );
+
+		// using StringContainsString because the_content filter adds the break line.
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>new</mark> post', get_the_excerpt( $query->posts[0] ) );
+	}
+
+	/**
+	 * Tests highlight parameters are not added to the query when search term is empty.
+	 */
+	public function testHighlightTagsNotSetWhenSearchIsEmpty() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create( array( 'post_content' => 'test content' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_action(
+			'pre_http_request',
+			function( $preempt, $parsed_args, $url ) {
+
+				$body = json_decode( $parsed_args['body'], true );
+				$this->assertArrayNotHasKey( 'highlight', $body );
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		$args = array(
+			's'            => '',
+			'ep_integrate' => true,
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
 	}
 
 	/**

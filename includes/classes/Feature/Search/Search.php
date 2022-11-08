@@ -272,7 +272,7 @@ class Search extends Feature {
 
 		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
-			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
+			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
 			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
 		}
 	}
@@ -281,10 +281,12 @@ class Search extends Feature {
 	 * Called by allow_excerpt_html
 	 * logic for the excerpt filter allowing the currently selected tag.
 	 *
-	 * @param string $text - excerpt string
-	 * @return string $text - the new excerpt
+	 * @param string  $text excerpt string
+	 * @param WP_Post $post Post Object
+	 *
+	 * @return string $text the new excerpt
 	 */
-	public function ep_highlight_excerpt( $text ) {
+	public function ep_highlight_excerpt( $text, $post ) {
 
 		$settings = $this->get_settings();
 
@@ -296,7 +298,7 @@ class Search extends Feature {
 
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
-			$text = get_the_content( '' );
+			$text = get_the_content( '', false, $post );
 			$text = apply_filters( 'the_content', $text );
 			$text = str_replace( '\]\]\>', ']]&gt;', $text );
 			$text = strip_tags( $text, '<' . esc_html( $settings['highlight_tag'] ) . '>' );
@@ -593,17 +595,6 @@ class Search extends Feature {
 
 		if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 			$enabled = true;
-
-			/**
-			 * WordPress have to be version 4.6 or newer to have "fields" support
-			 * since it requires the "posts_pre_query" filter.
-			 *
-			 * @see WP_Query::get_posts
-			 */
-			$fields = $query->get( 'fields' );
-			if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ! empty( $fields ) ) {
-				$enabled = false;
-			}
 		}
 
 		/**

@@ -762,7 +762,7 @@ class SyncManager extends SyncManagerAbstract {
 			]
 		);
 
-		if ( ! is_array( $max_count ) || ! $max_count[0] instanceof \WP_Term || ! is_integer( $max_count[0]->count ) ) {
+		if ( ! is_array( $max_count ) || ! count( $max_count ) || ! $max_count[0] instanceof \WP_Term || ! is_integer( $max_count[0]->count ) ) {
 			set_transient( $transient_name, 0, HOUR_IN_SECONDS );
 			return false;
 		}
