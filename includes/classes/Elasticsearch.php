@@ -1650,7 +1650,7 @@ class Elasticsearch {
 	 * Return all indices from the cluster.
 	 *
 	 * @since 4.4.0
-	 * @return array
+	 * @return WP_Error|array WP_Error on failure or The response
 	 */
 	public function get_cluster_indices() {
 		$path = '_cat/indices?format=json';
