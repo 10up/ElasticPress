@@ -4,6 +4,7 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
+    "@4tw/cypress-drag-drop": "^2.2.1",
     "@wordpress/env": "^5.0.0",
     "10up-toolkit": "^3.0.0",
     "classnames": "^2.3.1",

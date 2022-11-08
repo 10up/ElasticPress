@@ -2,6 +2,7 @@
  * WordPress dependencies.
  */
 import { useCallback, useContext, useMemo, WPElement } from '@wordpress/element';
+import { decodeEntities } from '@wordpress/html-entities';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -68,7 +69,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 				checked: selectedTerms.includes(term_id),
 				count: doc_count,
 				id: `ep-search-${name}-${term_id}`,
-				label,
+				label: decodeEntities(label),
 				parent: parent.toString(),
 				order: term_order,
 				value: term_id.toString(),
