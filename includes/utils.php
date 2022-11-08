@@ -202,8 +202,6 @@ function get_host() {
 
 	if ( defined( 'EP_HOST' ) && EP_HOST ) {
 		$host = EP_HOST;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$host = get_site_option( 'ep_host', false );
 	} else {
 		$host = get_option( 'ep_host', false );
 	}
@@ -659,10 +657,10 @@ function is_integrated_request( $context, $types = [] ) {
  * @return string|array
  */
 function get_asset_info( $slug, $attribute = null ) {
-	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.min.asset.php' ) ) {
-		$asset = require EP_PATH . 'dist/js/' . $slug . '.min.asset.php';
-	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.min.asset.php' ) ) {
-		$asset = require EP_PATH . 'dist/css/' . $slug . '.min.asset.php';
+	if ( file_exists( EP_PATH . 'dist/js/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/js/' . $slug . '.asset.php';
+	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/css/' . $slug . '.asset.php';
 	} else {
 		return null;
 	}
@@ -672,4 +670,21 @@ function get_asset_info( $slug, $attribute = null ) {
 	}
 
 	return $asset;
+}
+
+/**
+ * Return the Sync Page URL.
+ *
+ * @since 4.4.0
+ * @param boolean $do_sync Whether the link should or should not start a resync.
+ * @return string
+ */
+function get_sync_url( bool $do_sync = false ) : string {
+	$page = 'admin.php?page=elasticpress-sync';
+	if ( $do_sync ) {
+		$page .= '&do_sync';
+	}
+	return ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+		network_admin_url( $page ) :
+		admin_url( $page );
 }

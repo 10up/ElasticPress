@@ -94,8 +94,9 @@ class Renderer {
 			apply_filters(
 				'ep_facet_search_get_terms_args',
 				[
-					'taxonomy'   => $taxonomy,
-					'hide_empty' => true,
+					'taxonomy'               => $taxonomy,
+					'hide_empty'             => true,
+					'update_term_meta_cache' => false,
 				],
 				$args,
 				$instance
@@ -447,7 +448,7 @@ class Renderer {
 	 * @param  string $orderby The orderby to sort items from.
 	 * @return array
 	 */
-	private function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
+	protected function order_by_selected( $terms, $selected_terms, $order = false, $orderby = false ) {
 		$ordered_terms = [];
 		$terms_by_slug = [];
 
@@ -472,14 +473,14 @@ class Renderer {
 				uasort(
 					$ordered_terms,
 					function( $a, $b ) {
-						return $a->count > $b->count;
+						return $a->count <=> $b->count;
 					}
 				);
 			} else {
 				uasort(
 					$ordered_terms,
 					function( $a, $b ) {
-						return $a->count < $b->count;
+						return $b->count <=> $a->count;
 					}
 				);
 			}

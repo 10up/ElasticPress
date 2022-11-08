@@ -4,7 +4,7 @@
  *
  * @since 4.0.0
  * @see docs/indexing-process.md
- * @see http://10up.github.io/ElasticPress/tutorial-indexing-process.html
+ * @see https://10up.github.io/ElasticPress/tutorial-indexing-process.html
  * @package elasticpress
  */
 
@@ -465,15 +465,7 @@ class IndexHelper {
 		 */
 		do_action( "ep_pre_{$this->args['method']}_index", $this->index_meta, ( $this->index_meta['start'] ? 'start' : false ), $indexable );
 
-		/**
-		 * Filter number of items to index per cycle in the dashboard
-		 *
-		 * @since  2.1
-		 * @hook ep_index_default_per_page
-		 * @param  {int} Entries per cycle
-		 * @return  {int} New number of entries
-		 */
-		$per_page = apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		$per_page = $this->get_index_default_per_page();
 
 		if ( ! empty( $this->args['per_page'] ) ) {
 			$per_page = $this->args['per_page'];
@@ -1217,6 +1209,24 @@ class IndexHelper {
 				$error['message']
 			)
 		);
+	}
+
+	/**
+	 * Return the default number of documents to be sent to Elasticsearch on each batch.
+	 *
+	 * @since 4.4.0
+	 * @return integer
+	 */
+	public function get_index_default_per_page() : int {
+		/**
+		 * Filter number of items to index per cycle in the dashboard
+		 *
+		 * @since  2.1
+		 * @hook ep_index_default_per_page
+		 * @param  {int} Entries per cycle
+		 * @return  {int} New number of entries
+		 */
+		return (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
 	}
 
 	/**

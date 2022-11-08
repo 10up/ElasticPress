@@ -1,6 +1,6 @@
 describe('WordPress basic actions', () => {
 	before(() => {
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
 	it('Has <title> tag', () => {

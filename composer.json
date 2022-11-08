@@ -13,12 +13,12 @@
     },
     {
       "name": "10up",
-      "homepage": "http://10up.com"
+      "homepage": "https://10up.com"
     },
     {
       "name": "Aaron Holbrook",
       "email": "aaron@10up.com",
-      "homepage": "http://aaronjholbrook.com"
+      "homepage": "https://aaronjholbrook.com"
     }
   ],
   "repositories": [
@@ -33,9 +33,9 @@
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^7",
+    "phpunit/phpunit": "^9.5",
     "phpcompatibility/phpcompatibility-wp": "*",
-    "yoast/phpunit-polyfills": "1.x-dev"
+    "yoast/phpunit-polyfills": "^1.0"
   },
   "scripts": {
     "lint": "phpcs elasticpress.php includes --runtime-set testVersion 7.0-",

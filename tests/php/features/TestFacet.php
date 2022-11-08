@@ -12,7 +12,7 @@ use ElasticPress\Features as Features;
 /**
  * Facet test class
  */
-class TestFacets extends BaseTestCase {
+class TestFacet extends BaseTestCase {
 	/**
 	 * Test facet type registration
 	 *
@@ -82,6 +82,18 @@ class TestFacets extends BaseTestCase {
 		$this->assertSelectedTax( [ 'dolor' => true ], 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
 		$this->assertSame( 'posttype', $selected['post_type'] );
+
+		// test for a term having accents characters in it.
+		$term = $this->factory->category->create_and_get(
+			array(
+				'name' => 'غير-مصنف',
+			)
+		);
+		parse_str( "post_type=posttype&ep_filter_taxonomy={$term->slug}", $_GET );
+		$selected = $facet_feature->get_selected();
+		$this->assertSelectedTax( array( $term->slug => true ), 'taxonomy', $selected );
+		$this->assertArrayHasKey( 'post_type', $selected );
+		$this->assertSame( 'posttype', $selected['post_type'] );
 	}
 
 	/**
@@ -120,16 +132,16 @@ class TestFacets extends BaseTestCase {
 			]
 		];
 
-		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue,consectetur', $facet_feature->build_query_url( $filters ) );
 
 		// test when search parameter is empty.
 		$filters['s'] = '';
-		$this->assertEquals( '/?ep_filter_category=augue%2Cconsectetur&s=', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( '/?ep_filter_category=augue,consectetur&s=', $facet_feature->build_query_url( $filters ) );
 
 		$_SERVER['REQUEST_URI'] = 'test/page/1';
 
 		$filters['s'] = 'dolor';
-		$this->assertEquals( 'test/?ep_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( 'test/?ep_filter_category=augue,consectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
 
 		/**
 		 * Test the `ep_facet_query_string` filter.
@@ -151,7 +163,7 @@ class TestFacets extends BaseTestCase {
 			return 'ep_custom_filter_';
 		};
 		add_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
-		$this->assertEquals( 'test/?ep_custom_filter_category=augue%2Cconsectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
+		$this->assertEquals( 'test/?ep_custom_filter_category=augue,consectetur&s=dolor', $facet_feature->build_query_url( $filters ) );
 		remove_filter( 'ep_facet_filter_name', $change_ep_facet_filter_name );
 	}
 
@@ -194,6 +206,77 @@ class TestFacets extends BaseTestCase {
 		$formatted_args_with_args = $facet_feature->set_agg_filters( $formatted_args, $query_args, $query );
 
 		$this->assertSame( $formatted_args['post_filter'], $formatted_args_with_args['aggs']['terms']['filter'] );
+	}
+
+	/**
+	 * Test apply_facets_filters
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testApplyFacetsFilters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$new_filters = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$this->assertSame( [], $new_filters );
+
+		/**
+		 * Test the `ep_facet_query_filters` filter
+		 */
+		$add_filter = function( $filters, $args, $query ) {
+			$filters[] = [
+				'terms' => [
+					'post_type' => [ 'post', 'page' ],
+				],
+			];
+
+			$this->assertSame( [], $args );
+			$this->assertInstanceOf( '\WP_Query', $query );
+
+			return $filters;
+		};
+		add_filter( 'ep_facet_query_filters', $add_filter, 10, 3 );
+		add_filter( 'ep_is_facetable', '__return_true' );
+
+		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$expected_filter = [
+			'facets' => [
+				'bool' => [
+					'must' => [
+						[
+							'terms' => [
+								'post_type' => [ 'post', 'page' ],
+							],
+						],
+					],
+				],
+			],
+		];
+		$this->assertSame( $expected_filter, $new_filters );
+
+		/**
+		 * Changing the match type should change from `must` to `should`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
+
+		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$expected_filter = [
+			'facets' => [
+				'bool' => [
+					'should' => [
+						[
+							'terms' => [
+								'post_type' => [ 'post', 'page' ],
+							],
+						],
+					],
+				],
+			],
+		];
+		$this->assertSame( $expected_filter, $new_filters );
 	}
 
 	/**

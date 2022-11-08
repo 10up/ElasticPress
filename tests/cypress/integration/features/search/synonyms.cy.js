@@ -138,7 +138,7 @@ describe('Post Search Feature - Synonyms Functionality', () => {
 		cy.get('#ep-synonym-input').clearThenType('foo => bar{enter}list,of,words');
 		cy.get('#synonym-root .button-primary').click();
 
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 
 		cy.visitAdminPage('admin.php?page=elasticpress-synonyms');
 		cy.get('#ep-synonym-input')

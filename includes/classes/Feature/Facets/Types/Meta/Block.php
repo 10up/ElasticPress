@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Facets\Types\Meta;
 
 use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -99,6 +100,21 @@ class Block {
 	 * Register the block.
 	 */
 	public function register_block() {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
+		wp_register_script(
+			'ep-facets-meta-block-script',
+			EP_URL . 'dist/js/facets-meta-block-script.js',
+			Utils\get_asset_info( 'facets-meta-block-script', 'dependencies' ),
+			Utils\get_asset_info( 'facets-meta-block-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep-facets-meta-block-script', 'elasticpress' );
+
 		register_block_type_from_metadata(
 			EP_PATH . 'assets/js/blocks/facets/meta',
 			[
@@ -112,7 +128,7 @@ class Block {
 			$sync_url = admin_url( 'admin.php?page=elasticpress-sync' );
 		}
 
-		wp_localize_script( 'elasticpress-facet-meta-editor-script', 'facetMetaBlock', [ 'syncUrl' => $sync_url ] );
+		wp_localize_script( 'ep-facets-meta-block-script', 'facetMetaBlock', [ 'syncUrl' => $sync_url ] );
 	}
 
 	/**

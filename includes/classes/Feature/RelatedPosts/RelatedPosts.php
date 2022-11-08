@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\RelatedPosts;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Utils;
 use ElasticPress\Post\Post as Post;
 use \WP_Query as WP_Query;
 
@@ -248,6 +249,21 @@ class RelatedPosts extends Feature {
 	 * @since  3.2
 	 */
 	public function register_block() {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
+		wp_register_script(
+			'ep-related-posts-block-script',
+			EP_URL . 'dist/js/related-posts-block-script.js',
+			Utils\get_asset_info( 'related-posts-block-script.js', 'dependencies' ),
+			Utils\get_asset_info( 'related-posts-block-script.js', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep-related-posts-block-script', 'elasticpress' );
+
 		register_block_type_from_metadata(
 			EP_PATH . 'assets/js/blocks/related-posts',
 			[

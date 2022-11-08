@@ -824,6 +824,10 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
+
+		// Custom product ordering
+		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
+		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
 	}
 
 	/**
@@ -1090,6 +1094,19 @@ class WooCommerce extends Feature {
 			];
 			$query->set( 'meta_query', $meta_query );
 		}
+
+		// Sets the meta query for `stock_status` if needed.
+		$stock_status_query   = $query->get( 'stock_status', '' );
+		$stock_status_url     = ! empty( $_GET['stock_status'] ) ? sanitize_text_field( $_GET['stock_status'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$allowed_stock_status = [ 'instock', 'outofstock', 'onbackorder' ];
+		if ( empty( $stock_status_query ) && ! empty( $stock_status_url ) && in_array( $stock_status_url, $allowed_stock_status, true ) ) {
+			$meta_query   = $query->get( 'meta_query', [] );
+			$meta_query[] = [
+				'key'   => '_stock_status',
+				'value' => $stock_status_url,
+			];
+			$query->set( 'meta_query', $meta_query );
+		}
 	}
 
 	/**
@@ -1155,5 +1172,61 @@ class WooCommerce extends Feature {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Depending on the number of products display an admin notice in the custom sort screen for WooCommerce Products
+	 *
+	 * @since 4.4.0
+	 * @param array $notices Current ElasticPress admin notices
+	 * @return array
+	 */
+	public function maybe_display_notice_about_product_ordering( $notices ) {
+		global $pagenow, $wp_query;
+
+		/**
+		 * Make sure we're on edit.php in admin dashboard.
+		 */
+		if ( ! is_admin() || 'edit.php' !== $pagenow || empty( $wp_query->query['orderby'] ) || 'menu_order title' !== $wp_query->query['orderby'] ) {
+			return $notices;
+		}
+
+		/* This filter is documented in /includes/classes/IndexHelper.php */
+		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		if ( $documents_per_page_sync >= $wp_query->found_posts ) {
+			return $notices;
+		}
+
+		$notices['woocommerce_custom_sort'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Due to the number of products in the site, you will need to <a href="%s">resync</a> after applying a custom sort order.', 'elasticpress' ),
+				Utils\get_sync_url()
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
+	}
+
+	/**
+	 * Conditionally resync products after applying a custom order.
+	 *
+	 * @since 4.4.0
+	 * @param int   $sorting_id  ID of post dragged and dropped
+	 * @param array $menu_orders Post IDs and their new menu_order value
+	 */
+	public function action_sync_on_woocommerce_sort_single( $sorting_id, $menu_orders ) {
+		/* This filter is documented in /includes/classes/IndexHelper.php */
+		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		if ( $documents_per_page_sync < count( $menu_orders ) ) {
+			return;
+		}
+
+		$sync_manager = Indexables::factory()->get( 'post' )->sync_manager;
+		foreach ( $menu_orders as $post_id => $order ) {
+			$sync_manager->add_to_queue( $post_id );
+		}
 	}
 }

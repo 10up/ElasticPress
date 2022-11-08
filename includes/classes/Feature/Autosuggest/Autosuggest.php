@@ -399,15 +399,17 @@ class Autosuggest extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/js/autosuggest-script.min.js',
+			EP_URL . 'dist/js/autosuggest-script.js',
 			Utils\get_asset_info( 'autosuggest-script', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-script', 'version' ),
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-autosuggest', 'elasticpress' );
+
 		wp_enqueue_style(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/css/autosuggest-styles.min.css',
+			EP_URL . 'dist/css/autosuggest-styles.css',
 			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-styles', 'version' )
 		);
@@ -552,13 +554,36 @@ class Autosuggest extends Feature {
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
-		$search = new \WP_Query(
-			[
-				'post_type'    => $post_type,
-				'post_status'  => $post_status,
-				's'            => $placeholder,
-				'ep_integrate' => true,
-			]
+		new \WP_Query(
+			/**
+			 * Filter WP Query args of the autosuggest query template.
+			 *
+			 * If you want to display 20 posts in autosuggest:
+			 *
+			 * ```
+			 * add_filter(
+			 *     'ep_autosuggest_query_args',
+			 *     function( $args ) {
+			 *         $args['posts_per_page'] = 20;
+			 *         return $args;
+			 *     }
+			 * );
+			 * ```
+			 *
+			 * @since 4.4.0
+			 * @hook ep_autosuggest_query_args
+			 * @param {array} $args Query args
+			 * @return {array} New query args
+			 */
+			apply_filters(
+				'ep_autosuggest_query_args',
+				[
+					'post_type'    => $post_type,
+					'post_status'  => $post_status,
+					's'            => $placeholder,
+					'ep_integrate' => true,
+				]
+			)
 		);
 
 		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );
@@ -873,6 +898,7 @@ class Autosuggest extends Feature {
 							wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 							wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
 							wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
+							/* translators: List of files allowed to be returned wrapped by var_export() */
 							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ), // phpcs:ignore
 						];
 

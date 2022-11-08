@@ -41,7 +41,7 @@ describe('Protected Content Feature', () => {
 			}
 		});
 
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 
 		cy.publishPost({
 			title: 'Test ElasticPress Draft',
@@ -64,7 +64,7 @@ describe('Protected Content Feature', () => {
 			}
 		});
 
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 
 		cy.createAutosavePost();
 
