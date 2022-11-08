@@ -102,7 +102,7 @@ describe('WooCommerce Feature', () => {
 			cy.login();
 			cy.maybeEnableFeature('protected_content');
 			cy.maybeEnableFeature('woocommerce');
-			cy.activatePlugin('woocommerce');
+			cy.activatePlugin('woocommerce', 'wpCli');
 		});
 
 		it('Can fetch orders and products from Elasticsearch', () => {
@@ -236,6 +236,63 @@ describe('WooCommerce Feature', () => {
 				'contain.text',
 				`${userData.firstName} ${userData.lastName}`,
 			);
+		});
+
+		it('Can show the correct order of products after custom sort order', () => {
+			// Content Items per Index Cycle is greater than number of products
+			cy.setPerIndexCycle();
+			cy.visitAdminPage('edit.php?post_type=product&orderby=menu_order+title&order=ASC');
+			cy.get('div[data-ep-notice="woocommerce_custom_sort"]').should('not.exist');
+
+			let thirdProductId = '';
+			cy.get('#the-list tr:eq(2)')
+				.as('thirdProduct')
+				.invoke('attr', 'id')
+				.then((id) => {
+					thirdProductId = id;
+				});
+
+			cy.get('@thirdProduct')
+				.drag('#the-list tr:eq(0)', { force: true })
+				.then(() => {
+					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
+
+					cy.refreshIndex('post').then(() => {
+						cy.reload();
+						cy.get(
+							'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug',
+						).should('contain.text', 'Query Response Code: HTTP 200');
+						cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
+					});
+				});
+
+			// Content Items per Index Cycle is lower than number of products
+			cy.setPerIndexCycle(20);
+			cy.visitAdminPage('edit.php?post_type=product&orderby=menu_order+title&order=ASC');
+			cy.get('div[data-ep-notice="woocommerce_custom_sort"]').should('exist');
+
+			cy.get('#the-list tr:eq(2)')
+				.as('thirdProduct')
+				.invoke('attr', 'id')
+				.then((id) => {
+					thirdProductId = id;
+				});
+
+			cy.get('@thirdProduct')
+				.drag('#the-list tr:eq(0)', { force: true })
+				.then(() => {
+					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
+
+					cy.refreshIndex('post').then(() => {
+						cy.reload();
+						cy.get(
+							'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug',
+						).should('contain.text', 'Query Response Code: HTTP 200');
+						cy.get('#the-list tr:eq(0)').should('have.not.id', thirdProductId);
+					});
+				});
+
+			cy.setPerIndexCycle();
 		});
 	});
 });
