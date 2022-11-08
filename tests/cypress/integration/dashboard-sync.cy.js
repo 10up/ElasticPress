@@ -226,7 +226,10 @@ describe('Dashboard Sync', () => {
 		/**
 		 * Reset settings.
 		 */
-		cy.wpCli('wp elasticpress delete-index --yes');
+		cy.wpCli('elasticpress get-indices').then((wpCliResponse) => {
+			const indexes = JSON.parse(wpCliResponse.stdout);
+			cy.wpCli(`wp elasticpress delete-index --index-name=${indexes[0]} --yes`);
+		});
 
 		/**
 		 * If the index is deleted the sync page should only show a
@@ -243,15 +246,9 @@ describe('Dashboard Sync', () => {
 		 */
 		cy.get('@syncPanel').find('.ep-sync-button').click();
 
-		/**
-		 * The sync log should indicate that the sync completed and that
-		 * posts are indexed.
-		 */
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Indexing posts')
-			.should('contain.text', 'Sync complete');
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(200);
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
 		/**
 		 * After the initial sync is complete there should be 2 sync panels
