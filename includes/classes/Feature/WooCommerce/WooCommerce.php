@@ -1058,13 +1058,22 @@ class WooCommerce extends Feature {
 			$query->set( 's', sanitize_text_field( $search_term ) ); // phpcs:ignore WordPress.Security.NonceVerification
 
 			/**
-			 * Filter to skip integration with WooCommerce Admin Product List.
+			 * Filter the fields used in WooCommerce Admin Product Search.
+			 *
+			 * ```
+			 * add_filter(
+			 *     'ep_woocommerce_admin_products_list_search_fields',
+			 *     function ( $wc_admin_search_fields ) {
+			 *         $wc_admin_search_fields['meta'][] = 'custom_field';
+			 *         return $wc_admin_search_fields;
+			 *     }
+			 * );
+			 * ```
 			 *
 			 * @hook ep_woocommerce_admin_products_list_search_fields
 			 * @since 4.2.0
-			 * @param {bool}  $integrate  True to integrate, false to preserve original behavior. Defaults to true.
-			 * @param {array} $query_vars Query vars.
-			 * @return {bool} New integrate value
+			 * @param {array} $wc_admin_search_fields Fields to be used in the WooCommerce Admin Product Search
+			 * @return {array} New fields
 			 */
 			$search_fields = apply_filters(
 				'ep_woocommerce_admin_products_list_search_fields',
