@@ -177,17 +177,9 @@ describe('Dashboard Sync', () => {
 	it('Should only display a single sync option if index is deleted', () => {
 		// Enable Terms
 		cy.wpCli('wp elasticpress activate-feature terms', true);
-		/**
-		 * Delete one index.
-		 */
-		cy.wpCliEval(
-			`
-			$indices = \\ElasticPress\\Elasticsearch::factory()->get_index_names();
-			\\ElasticPress\\Elasticsearch::factory()->delete_index( $indices[1] );`,
-		);
 
 		/**
-		 * If the index is deleted the sync page should only show a
+		 * The sync page should only show a
 		 * single sync panel.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
