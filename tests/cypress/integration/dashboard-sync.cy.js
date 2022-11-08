@@ -245,15 +245,20 @@ describe('Dashboard Sync', () => {
 		 * Perform an initial sync.
 		 */
 		cy.get('@syncPanel').find('.ep-sync-button').click();
-
-		// eslint-disable-next-line cypress/no-unnecessary-waiting
-		cy.wait(200);
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		/**
+		 * The sync log should indicate that the sync completed and that
+		 * mapping was sent.
+		 */
+		cy.get('@syncPanel').find('.components-form-toggle').click();
+		cy.get('@syncPanel')
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Sync complete');
 
 		/**
 		 * After the initial sync is complete there should be 2 sync panels
 		 * and the second should contain the delete & sync option.
 		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 		cy.get('.ep-sync-panel')
 			.should('have.length', 2)
 			.last()
