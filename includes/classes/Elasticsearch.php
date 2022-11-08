@@ -921,6 +921,28 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get index settings.
+	 *
+	 * @param string $index Index name.
+	 * @since  4.3.2
+	 * @return array Raw ES response from the $index/_settings?flat_settings=true endpoint
+	 */
+	public function get_index_settings( $index ) {
+		$endpoint = trailingslashit( $index ) . '_settings?flat_settings=true';
+		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$settings = json_decode( $response_body, true );
+
+		return $settings;
+	}
+
+	/**
 	 * Update index settings.
 	 *
 	 * @param  string  $index       Index name.
