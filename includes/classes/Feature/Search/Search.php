@@ -678,12 +678,9 @@ class Search extends Feature {
 			'',
 			'ep_exclude_from_search',
 			[
-				'show_in_rest'  => true,
-				'single'        => true,
-				'type'          => 'boolean',
-				'auth_callback' => function( $allowed, $meta_key, $object_id, $user_id ) {
-					return user_can( $user_id, 'edit_post_meta', $object_id, $meta_key );
-				},
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'boolean',
 			]
 		);
 	}
