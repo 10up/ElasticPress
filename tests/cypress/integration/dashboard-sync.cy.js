@@ -84,7 +84,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -112,7 +112,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -146,7 +146,7 @@ describe('Dashboard Sync', () => {
 
 		// Start sync via dashboard and pause it
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--delete').click();
+		cy.get('.ep-sync-button--sync').click();
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.ep-sync-button--pause').should('be.visible');
 
@@ -172,5 +172,33 @@ describe('Dashboard Sync', () => {
 		cy.get('.error-overlay').should('not.have.class', 'syncing');
 
 		cy.setPerIndexCycle();
+	});
+
+	it('Should only display a single sync option if index is deleted', () => {
+		// Enable Terms
+		cy.wpCli('wp elasticpress activate-feature terms', true);
+
+		/**
+		 * The sync page should only show a
+		 * single sync panel.
+		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-sync-panel')
+			.should('have.length', 1)
+			.as('syncPanel')
+			.should('contain.text', 'Run a sync to index your existing content');
+
+		// Send mapping of the deleted index
+		cy.wpCli('wp elasticpress put-mapping --indexables=term');
+
+		/**
+		 * After the mapping is sent there should be 2 sync panels
+		 * and the second should contain the delete & sync option.
+		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.get('.ep-sync-panel')
+			.should('have.length', 2)
+			.last()
+			.should('contain.text', 'If you are still having issues with your search results');
 	});
 });

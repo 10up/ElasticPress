@@ -26,6 +26,7 @@
 
 import 'cypress-file-upload';
 import './commands/block-editor';
+import '@4tw/cypress-drag-drop';
 
 Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.visit(`/wp-admin`);
@@ -301,7 +302,7 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 		.last()
 		.within(() => {
 			for (const setting of settings) {
-				cy.get(`[name$="[${setting.name}]"]`).as('control');
+				cy.get(`[name*="[${setting.name}]"]`).as('control');
 
 				switch (setting.type) {
 					case 'select':
