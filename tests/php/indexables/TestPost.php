@@ -7634,6 +7634,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
+	 */
+	public function testExcludeFromSearchQuery() {
+
+		$this->ep_factory->post->create_many(
+			2,
+			array(
+				'post_content' => 'find me in search',
+				'meta_input'   => array( 'ep_exclude_from_search' => false ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
 	 * Tests search term is wrapped in html tag with custom class
 	 */
 	public function testHighlightTagsWithCustomClass() {
@@ -7786,4 +7816,78 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 	}
 
+	/**
+	 * Tests exclude from search only works on the search query.
+	 */
+	public function testExcludeFromSearchOnlyRunOnSearchQuery() {
+
+		$this->ep_factory->post->create_many(
+			5,
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'ep_integrate' => true,
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
+	}
+
+	/**
+	 * Test exclude from search when meta query is set.
+	 */
+	public function testExcludeFromSearchQueryWithMetaQuery() {
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array(
+					'ep_exclude_from_search' => true,
+					'test_key'               => 'test',
+				),
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array(
+					'ep_exclude_from_search' => false,
+					'test_key'               => 'test',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's'          => 'test',
+			'meta_query' => array(
+				array(
+					'key'   => 'test_key',
+					'value' => 'test',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+
+	}
 }
