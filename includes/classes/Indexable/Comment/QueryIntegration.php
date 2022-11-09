@@ -113,6 +113,8 @@ class QueryIntegration {
 			return $new_comments;
 		}
 
+		$new_comments = [];
+
 		$formatted_args = $this->indexable->format_args( $query->query_vars );
 
 		$scope = 'current';
