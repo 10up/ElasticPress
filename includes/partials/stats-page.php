@@ -8,6 +8,7 @@
 
 use ElasticPress\Stats as Stats;
 use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -15,12 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/header.php';
 
+$index_meta = Utils\get_option( 'ep_index_meta', [] );
+
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$index_meta = get_site_option( 'ep_index_meta', false );
-	$sync_url   = network_admin_url( 'admin.php?page=elasticpress-sync' );
+	$sync_url = network_admin_url( 'admin.php?page=elasticpress-sync' );
 } else {
-	$index_meta = get_option( 'ep_index_meta', false );
-	$sync_url   = admin_url( 'admin.php?page=elasticpress-sync' );
+	$sync_url = admin_url( 'admin.php?page=elasticpress-sync' );
 }
 
 Stats::factory()->build_stats();
@@ -75,14 +76,6 @@ $totals       = Stats::factory()->get_totals();
 					<div class="ep-totals-column inside">
 						<p class="ep-totals-title"><?php esc_html_e( 'Total Memory', 'elasticpress' ); ?></p>
 						<p class="ep-totals-data"><?php echo esc_html( Stats::factory()->convert_to_readable_size( $totals['memory'] ) ); ?></p>
-					</div>
-				</div>
-			</div>
-			<div class="stats-queries postbox">
-				<h2 class="hndle"><?php esc_html_e( 'Queries & Indexing Time', 'elasticpress' ); ?></h2>
-				<div class="ep-qchart-container">
-					<div class="inside">
-						<canvas id="queriesTimeChart" width="400" height="400"></canvas>
 					</div>
 				</div>
 			</div>

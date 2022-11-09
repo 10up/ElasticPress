@@ -5,10 +5,12 @@ const widgetSearchComments = document.querySelectorAll('.ep-widget-search-commen
 let selectedResultIndex;
 
 widgetSearchComments.forEach((element) => {
+	const { id } = element;
 	const input = document.createElement('input');
 	input.setAttribute('autocomplete', 'off');
 	input.setAttribute('type', 'search');
 	input.setAttribute('class', 'ep-widget-search-comments-input');
+	input.setAttribute('id', `${id}-s`);
 
 	const resultList = document.createElement('ul');
 	resultList.setAttribute('class', 'ep-widget-search-comments-results');
@@ -136,7 +138,7 @@ function setIsLoading(isLoading, inputElement) {
 function fetchResults(inputElement) {
 	if (hasMinimumLength(inputElement)) {
 		const widget = findAncestorByClass(inputElement, 'ep-widget-search-comments');
-		const postTypeElement = widget.querySelector('#ep-widget-search-comments-post-type');
+		const postTypeElement = widget.querySelector('.ep-widget-search-comments-post-type');
 		const postTypeQueryParameter = postTypeElement?.value
 			? `&post_type=${postTypeElement.value.trim()}`
 			: '';
