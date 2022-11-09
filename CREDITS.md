@@ -202,6 +202,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Miguel A. Estrada (@mae829)](https://github.com/mae829),
 [@cmcandrew](https://github.com/cmcandrew),
 [@DenisFlorin](https://github.com/DenisFlorin),
+[Mike Hemberger (@JiveDig)](https://github.com/JiveDig),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
