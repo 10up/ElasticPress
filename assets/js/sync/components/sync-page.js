@@ -29,12 +29,11 @@ import SyncPanel from './sync/panel';
  * @param {Function} props.onResume Callback for clicking resume.
  * @param {Function} props.onStop Callback for clicking stop.
  * @param {Function} props.onSync Callback for clicking sync.
- * @param {boolean} props.fullSync If it requires full sync.
  * @param {string} props.syncStartDateTime Date and time of current sync in ISO 8601.
  * @returns {WPElement} Sync page component.
  */
-export default ({ isCli, isComplete, isDeleting, isEpio, isSyncing, log, fullSync, ...props }) => {
-	const isInitialSync = props.lastSyncDateTime === null || fullSync;
+export default ({ isCli, isComplete, isDeleting, isEpio, isSyncing, log, ...props }) => {
+	const isInitialSync = props.lastSyncDateTime === null;
 
 	return (
 		<>
@@ -62,7 +61,7 @@ export default ({ isCli, isComplete, isDeleting, isEpio, isSyncing, log, fullSyn
 				isDisabled={(isSyncing && isDeleting) || (isSyncing && isCli)}
 				isSyncing={isSyncing && !isDeleting}
 				logMessages={log.filter((m) => !m.isDeleting)}
-				showLastSync={!isInitialSync}
+				showLastSync
 				showProgress={!isDeleting && (isSyncing || isComplete)}
 				showSync
 				{...props}

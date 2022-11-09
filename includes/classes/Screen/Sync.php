@@ -159,7 +159,6 @@ class Sync {
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 		$index_meta = Utils\get_indexing_status();
 		$last_sync  = Utils\get_option( 'ep_last_sync', false );
-		$full_sync  = false;
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
@@ -176,22 +175,22 @@ class Sync {
 		}
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
-		// Get all the indices that should exist
-		$get_all_indices = Elasticsearch::factory()->get_index_names();
-		// Get the available indices from the cluster
-		$get_all_cluster_indices = Elasticsearch::factory()->get_cluster_indices();
-		$cluster_indices         = json_decode( wp_remote_retrieve_body( $get_all_cluster_indices ), true );
+
+		$sync_required   = false;
+		$all_index_names = Elasticsearch::factory()->get_index_names();
+		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
+		$cluster_indices = json_decode( wp_remote_retrieve_body( $cluster_indices ), true );
+
 		if ( is_array( $cluster_indices ) ) {
-			$cluster_indices = wp_list_pluck( $cluster_indices, 'index' );
+			$cluster_index_names = wp_list_pluck( $cluster_indices, 'index' );
+			$synced_index_names  = array_intersect( $all_index_names, $cluster_index_names );
 
-			$index_names = array_intersect( $get_all_indices, $cluster_indices );
-
-			if ( $index_names !== $get_all_indices ) {
-				$full_sync = true;
+			if ( $synced_index_names !== $all_index_names ) {
+				$sync_required = true;
 			}
 		}
 
-		if ( ! empty( $ep_last_index ) ) {
+		if ( ! empty( $ep_last_index ) && ! $sync_required ) {
 			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
 			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) ? true : false;
 		}
@@ -237,7 +236,6 @@ class Sync {
 		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
 		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
 		$data['is_epio']              = Utils\is_epio();
-		$data['full_sync']            = $full_sync;
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
 	}
