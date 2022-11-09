@@ -302,7 +302,7 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 		.last()
 		.within(() => {
 			for (const setting of settings) {
-				cy.get(`[name$="[${setting.name}]"]`).as('control');
+				cy.get(`[name*="[${setting.name}]"]`).as('control');
 
 				switch (setting.type) {
 					case 'select':
