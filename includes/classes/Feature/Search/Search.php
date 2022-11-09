@@ -785,11 +785,8 @@ class Search extends Feature {
 			return;
 		}
 
-		if ( isset( $_POST['ep_exclude_from_search'] ) ) {
-			update_post_meta( $post_id, 'ep_exclude_from_search', true );
-		} else {
-			delete_post_meta( $post_id, 'ep_exclude_from_search' );
-		}
+		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : false;
 
+		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
 	}
 }
