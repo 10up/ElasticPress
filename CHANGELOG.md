@@ -24,6 +24,7 @@ ElasticPress 4.4.0 release highlights:
 - New `ep_autosuggest_query_args` filter, to change WP Query args of the autosuggest query template. Props [@felipeelia](https://github.com/felipeelia) via [#3038](https://github.com/10up/ElasticPress/pull/3038).
 - New `ep_post_filters` filter and refactor of the `Post::format_args` method. Props [@felipeelia](https://github.com/felipeelia) via [#3044](https://github.com/10up/ElasticPress/pull/3044).
 - New `get_index_settings()` method to retrieve index settings. Props [@rebeccahum](https://github.com/rebeccahum) via [#3126](https://github.com/10up/ElasticPress/pull/3126).
+- New `ep_woocommerce_default_supported_post_types` and `ep_woocommerce_admin_searchable_post_types` filters. Props [@ecaron](https://github.com/ecaron) via [#3029](https://github.com/10up/ElasticPress/pull/3029).
 - Add test factories for Post, User and Term. Props [@burhandodhy](https://github.com/burhandodhy) via [#3048](https://github.com/10up/ElasticPress/pull/3048).
 - Unit tests to check access to custom results endpoints. Props [@burhandodhy](https://github.com/burhandodhy) via [#3022](https://github.com/10up/ElasticPress/pull/3022).
 - New unit tests for the user feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3061](https://github.com/10up/ElasticPress/pull/3061).
