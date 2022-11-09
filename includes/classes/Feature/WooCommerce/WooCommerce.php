@@ -211,10 +211,12 @@ class WooCommerce extends Feature {
 	public function disallow_duplicated_query( $value, $query ) {
 		global $pagenow;
 
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
 		/**
 		 * Make sure we're on edit.php in admin dashboard.
 		 */
-		if ( 'edit.php' !== $pagenow || ! is_admin() || 'shop_order' !== $query->get( 'post_type' ) ) {
+		if ( 'edit.php' !== $pagenow || ! is_admin() || ! in_array( $query->get( 'post_type' ), $searchable_post_types, true ) ) {
 			return $value;
 		}
 
@@ -306,13 +308,25 @@ class WooCommerce extends Feature {
 		$post_type = $query->get( 'post_type', false );
 
 		// Act only on a defined subset of all indexable post types here
+		$post_types = array(
+			'product',
+			'shop_order',
+			'shop_order_refund',
+			'product_variation',
+		);
+
+		/**
+		 * Expands or contracts the post_types eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_default_supported_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
+
 		$supported_post_types = array_intersect(
-			array(
-				'product',
-				'shop_order',
-				'shop_order_refund',
-				'product_variation',
-			),
+			$supported_post_types,
 			Indexables::factory()->get( 'post' )->get_indexable_post_types()
 		);
 
@@ -390,8 +404,10 @@ class WooCommerce extends Feature {
 		$query->query['ep_integrate']      = true;
 
 		if ( ! empty( $s ) ) {
-			// Search query
-			if ( 'shop_order' === $post_type ) {
+
+			$searchable_post_types = $this->get_admin_searchable_post_types();
+
+			if ( in_array( $post_type, $searchable_post_types, true ) ) {
 				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
 				if ( ctype_digit( $s ) ) {
 					$default_search_fields[] = 'ID';
@@ -579,6 +595,27 @@ class WooCommerce extends Feature {
 		return 'date';
 	}
 
+
+	/**
+	 * Returns the WooCommerce-oriented post types in admin that EP will search
+	 *
+	 * @since 4.4.0
+	 * @return mixed|void
+	 */
+	public function get_admin_searchable_post_types() {
+		$searchable_post_types = array( 'shop_order' );
+
+		/**
+		 * Filter admin searchable WooCommerce post types
+		 *
+		 * @hook ep_woocommerce_admin_searchable_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		return apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+	}
+
 	/**
 	 * Make search coupons don't go through ES
 	 *
@@ -604,7 +641,9 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function bypass_order_permissions_check( $override, $post_id ) {
-		if ( 'shop_order' === get_post_type( $post_id ) ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		if ( in_array( get_post_type( $post_id ), $searchable_post_types, true ) ) {
 			return true;
 		}
 
@@ -622,11 +661,19 @@ class WooCommerce extends Feature {
 	 * @param \WP_Query $query Current query
 	 */
 	public function maybe_hook_woocommerce_search_fields( $query ) {
-		global $pagenow, $wp, $wc_list_table;
+		global $pagenow, $wp, $wc_list_table, $wp_filter;
 
 		if ( ! $this->should_integrate_with_query( $query ) ) {
 			return;
 		}
+
+		/**
+		 * Determines actions to be applied, or removed, if doing a WooCommerce serarch
+		 *
+		 * @hook ep_woocommerce_hook_search_fields
+		 * @since  4.4.0
+		 */
+		do_action( 'ep_woocommerce_hook_search_fields' );
 
 		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['s'] ) || 'shop_order' !== $wp->query_vars['post_type'] || ! isset( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
@@ -651,7 +698,10 @@ class WooCommerce extends Feature {
 		}
 
 		global $pagenow;
-		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
+
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || ! in_array( $wp->query_vars['post_type'], $searchable_post_types, true ) ||
 			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 			return;
 		}
@@ -676,8 +726,10 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
 		// Make sure it is only WooCommerce orders we touch.
-		if ( 'shop_order' !== $post_args['post_type'] ) {
+		if ( ! in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
 			return $post_args;
 		}
 
@@ -951,7 +1003,9 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function keep_order_fields( $skip, $post_args ) {
-		if ( 'shop_order' === $post_args['post_type'] ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		if ( in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
 			return true;
 		}
 
