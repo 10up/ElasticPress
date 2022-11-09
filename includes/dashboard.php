@@ -606,20 +606,12 @@ function action_admin_init() {
 			Utils\update_option( 'ep_host', $host );
 		}
 
-		if ( isset( $_POST['ep_prefix'] ) ) {
-			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-			Utils\update_option( 'ep_prefix', $prefix );
-		}
-
 		if ( isset( $_POST['ep_credentials'] ) ) {
 			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
 				'username' => '',
 				'token'    => '',
 			];
 
-			// Update prefix with username as both are same
-			$prefix = sanitize_text_field( wp_unslash( $credentials['username'] ) );
-			Utils\update_option( 'ep_prefix', $prefix );
 			Utils\update_option( 'ep_credentials', $credentials );
 		}
 

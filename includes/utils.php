@@ -77,14 +77,15 @@ function get_shield_credentials() {
  * @return string|bool
  */
 function get_index_prefix() {
-	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-		$prefix = EP_INDEX_PREFIX;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
-		$prefix = get_site_option( 'ep_prefix', false );
+	if ( defined( 'EP_INDEX_PREFIX' ) && \EP_INDEX_PREFIX ) {
+		$prefix = \EP_INDEX_PREFIX;
 	} elseif ( is_epio() ) {
-		$prefix = get_option( 'ep_prefix', false );
-
-		if ( '-' !== substr( $prefix, - 1 ) ) {
+		$credentials = get_epio_credentials();
+		$prefix      = $credentials['username'];
+		if (
+			( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) &&
+			( '-' !== substr( $prefix, - 1 ) )
+		) {
 			$prefix .= '-';
 		}
 	} else {

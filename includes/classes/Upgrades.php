@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -46,6 +46,7 @@ class Upgrades {
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
+			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -177,6 +178,17 @@ class Upgrades {
 		} else {
 			delete_transient( 'ep_es_info' );
 		}
+	}
+
+	/**
+	 * Upgrade routine of v4.4.0.
+	 *
+	 * Delete the ep_prefix option, as that is now obtained via ep_credentials
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2739
+	 */
+	public function upgrade_4_4_0() {
+		Utils\delete_option( 'ep_prefix' );
 	}
 
 	/**

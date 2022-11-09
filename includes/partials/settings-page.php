@@ -90,9 +90,9 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 									<?php if ( $wpconfig ) : ?>
 										<p class="description ep-host-legend"><?php esc_html_e( 'Host already defined in wp-config.php.', 'elasticpress' ); ?></p>
 									<?php elseif ( $is_epio ) : ?>
-										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your ElasticPress.io server here!', 'elasticpress' ); ?></p>
+										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your ElasticPress.io server here.', 'elasticpress' ); ?></p>
 									<?php else : ?>
-										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></p>
+										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your Elasticsearch server here.', 'elasticpress' ); ?></p>
 									<?php endif; ?>
 								<?php endif; ?>
 							</td>
@@ -101,7 +101,7 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 
 							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
 								<th scope="row">
-									<label for="ep_username"><?php esc_html_e( 'Subscription Username', 'elasticpress' ); ?></label>
+									<label for="ep_username"><?php esc_html_e( 'Subscription ID', 'elasticpress' ); ?></label>
 								</th>
 								<td>
 									<?php
@@ -117,9 +117,9 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( $credentials['username'] ); ?>" name="ep_credentials[username]" id="ep_username">
 									<?php endif ?>
 									<?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>
-										<p class="description"><?php esc_html_e( 'Your Subscription Username is set in wp-config.php', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Your Subscription ID is set in wp-config.php', 'elasticpress' ); ?></p>
 									<?php else : ?>
-										<p class="description"><?php esc_html_e( 'Enter your subscription username(or subscription id) here.', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Plug in your subscription ID (or subscription name) here.', 'elasticpress' ); ?></p>
 									<?php endif; ?>
 								</td>
 							</tr>
