@@ -257,17 +257,6 @@ class Comments extends Feature {
 	}
 
 	/**
-	 * Check whether a post type supports comments.
-	 *
-	 * @param string $post_type Post type name,
-	 * @return boolean Whether the post type supports comments.
-	 * @since 4.4.0
-	 */
-	public static function post_type_supports_comments( $post_type ) {
-		return post_type_supports( $post_type, 'comments' );
-	}
-
-	/**
 	 * Get a list of searchable post types that support comments.
 	 *
 	 * @return array Array of post type labels keyed by post type.
@@ -277,7 +266,9 @@ class Comments extends Feature {
 		$searchable_post_types = array();
 
 		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
-		$post_types = array_filter( $post_types, 'self::post_type_supports_comments' );
+		$post_types = array_filter( $post_types, function( $post_type ) {
+			return post_type_supports( $post_type, 'comments' );
+		} );
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
