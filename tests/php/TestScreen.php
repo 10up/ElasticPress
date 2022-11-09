@@ -13,14 +13,15 @@ use ElasticPress;
  * Screen test class
  */
 class TestScreen extends BaseTestCase {
+
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -47,8 +48,8 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// phpcs:disable
 		if ( isset( $_GET['page'] ) ) {
@@ -88,8 +89,13 @@ class TestScreen extends BaseTestCase {
 
 		ElasticPress\Screen::factory()->determine_screen();
 
-		// VIP: We changed logic for determine_screen() to load, so do not test for multisite
-		$this->assertSame( 'install', ElasticPress\Screen::factory()->get_current_screen() );
+		// This will be 'install' for single site, but null for multisite.
+		if ( is_multisite() ) {
+			// VIP: It doesn't matter whether it's multisite or not.
+			$this->assertSame( 'install', ElasticPress\Screen::factory()->get_current_screen() );
+		} else {
+			$this->assertSame( 'install', ElasticPress\Screen::factory()->get_current_screen() );
+		}
 	}
 
 	/**

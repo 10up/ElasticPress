@@ -25,9 +25,9 @@ class TestUser extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		ElasticPress\Features::factory()->activate_feature( 'users' );
@@ -78,7 +78,7 @@ class TestUser extends BaseTestCase {
 
 		ElasticPress\Indexables::factory()->get( 'user' )->bulk_index( array_keys( ElasticPress\Indexables::factory()->get( 'user' )->sync_manager->sync_queue ) );
 
-		$user_1 = Functions\create_and_sync_user(
+		$user_1 = $this->ep_factory->user->create(
 			[
 				'user_login'   => 'user1-author',
 				'role'         => 'author',
@@ -95,7 +95,7 @@ class TestUser extends BaseTestCase {
 			],
 		);
 
-		$user_2 = Functions\create_and_sync_user(
+		$user_2 = $this->ep_factory->user->create(
 			[
 				'user_login'   => 'user2-contributor',
 				'role'         => 'contributor',
@@ -110,7 +110,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		$user_3 = Functions\create_and_sync_user(
+		$user_3 = $this->ep_factory->user->create(
 			[
 				'user_login'   => 'user3-editor',
 				'role'         => 'editor',
@@ -136,8 +136,8 @@ class TestUser extends BaseTestCase {
 	 *
 	 * @since 0.1.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
@@ -298,15 +298,7 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 1, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
 
-		for ( $i = 1; $i <= 15; $i++ ) {
-			Functions\create_and_sync_user(
-				[
-					'user_login' => 'user' . $i . '-editor',
-					'role'       => 'administrator',
-				]
-			);
-		}
-
+		$this->ep_factory->user->create_many( 15 );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$user_query = new \WP_User_Query(
@@ -316,8 +308,8 @@ class TestUser extends BaseTestCase {
 		);
 
 		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
-		$this->assertEquals( 19, count( $user_query->results ) );
-		$this->assertEquals( 19, $user_query->total_users );
+		$this->assertEquals( 20, count( $user_query->results ) );
+		$this->assertEquals( 20, $user_query->total_users );
 	}
 
 	/**
@@ -1360,7 +1352,7 @@ class TestUser extends BaseTestCase {
 	 */
 	public function testUserSearchLimitedToOneBlog() {
 		// This user does not belong to any blog.
-		Functions\create_and_sync_user(
+		$this->ep_factory->user->create(
 			[
 				'user_login' => 'users-and-blogs-1',
 				'role'       => '',
@@ -1370,7 +1362,7 @@ class TestUser extends BaseTestCase {
 				'user_url'   => 'http://domain.test',
 			]
 		);
-		Functions\create_and_sync_user(
+		$this->ep_factory->user->create(
 			[
 				'user_login' => 'users-and-blogs-2',
 				'role'       => 'contributor',
@@ -1406,5 +1398,4 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( 2, $query->total_users );
 		$this->assertTrue( $query->query_vars['elasticsearch_success'] );
 	}
-
 }

@@ -202,10 +202,6 @@ class Features {
 		 */
 
 		$feature_settings = Utils\get_option( 'ep_feature_settings', false );
-		// VIP: Backfill option
-		if ( function_exists( 'vip_maybe_backfill_ep_option' ) ) { // TODO: Remove
-			$feature_settings = \vip_maybe_backfill_ep_option( $feature_settings, 'ep_feature_settings' );
-		}
 
 		if ( false === $feature_settings ) {
 			$registered_features = $this->registered_features;
