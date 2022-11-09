@@ -211,17 +211,7 @@ class WooCommerce extends Feature {
 	public function disallow_duplicated_query( $value, $query ) {
 		global $pagenow;
 
-		$searchable_post_types = array( 'shop_order' );
-
-		/**
-		 * Expands or contracts the types of admin EP permits for WooCommerce.
-		 *
-		 * @hook ep_woocommerce_admin_searchable_post_types
-		 * @since 4.4.0
-		 * @param  {array} $post_types Post types
-		 * @return  {array} New post types
-		 */
-		$searchable_post_types = apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		/**
 		 * Make sure we're on edit.php in admin dashboard.
@@ -326,14 +316,14 @@ class WooCommerce extends Feature {
 		);
 
 		/**
-		 * Expands or contracts the post_types eligible for indexing..
+		 * Expands or contracts the post_types eligible for indexing.
 		 *
-		 * @hook ep_default_supported_post_types
+		 * @hook ep_woocommerce_default_supported_post_types
 		 * @since 4.4.0
 		 * @param  {array} $post_types Post types
 		 * @return  {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_default_supported_post_types', $post_types );
+		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
@@ -414,18 +404,8 @@ class WooCommerce extends Feature {
 		$query->query['ep_integrate']      = true;
 
 		if ( ! empty( $s ) ) {
-			// Search query
-			$searchable_post_types = array( 'shop_order' );
 
-			/**
-			 * Expands or contracts the types of admin searches EP permits for WooCommerce.
-			 *
-			 * @hook ep_woocommerce_admin_searchable_post_types
-			 * @since 4.4.0
-			 * @param  {array} $post_types Post types
-			 * @return  {array} New post types
-			 */
-			$searchable_post_types = apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+			$searchable_post_types = $this->get_admin_searchable_post_types();
 
 			if ( in_array( $post_type, $searchable_post_types, true ) ) {
 				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
@@ -615,6 +595,27 @@ class WooCommerce extends Feature {
 		return 'date';
 	}
 
+
+	/**
+	 * Returns the WooCommerce-oriented post types in admin that EP will search
+	 *
+	 * @since 4.4.0
+	 * @return mixed|void
+	 */
+	public function get_admin_searchable_post_types() {
+		$searchable_post_types = array( 'shop_order' );
+
+		/**
+		 * Filter admin searchable WooCommerce post types
+		 *
+		 * @hook ep_woocommerce_admin_searchable_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		return apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+	}
+
 	/**
 	 * Make search coupons don't go through ES
 	 *
@@ -640,17 +641,7 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function bypass_order_permissions_check( $override, $post_id ) {
-		$searchable_post_types = array( 'shop_order' );
-
-		/**
-		 * Expands or contracts the types of admin EP permits for WooCommerce.
-		 *
-		 * @hook ep_woocommerce_admin_searchable_post_types
-		 * @since 4.4.0
-		 * @param  {array} $post_types Post types
-		 * @return  {array} New post types
-		 */
-		$searchable_post_types = apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		if ( in_array( get_post_type( $post_id ), $searchable_post_types, true ) ) {
 			return true;
@@ -680,6 +671,7 @@ class WooCommerce extends Feature {
 		 * Determines actions to be applied, or removed, if doing a WooCommerce serarch
 		 *
 		 * @hook ep_woocommerce_hook_search_fields
+		 * @since  4.4.0
 		 */
 		do_action( 'ep_woocommerce_hook_search_fields' );
 
@@ -707,17 +699,7 @@ class WooCommerce extends Feature {
 
 		global $pagenow;
 
-		$searchable_post_types = array( 'shop_order' );
-
-		/**
-		 * Expands or contracts the types of admin EP permits for WooCommerce.
-		 *
-		 * @hook ep_woocommerce_admin_searchable_post_types
-		 * @since 4.4.0
-		 * @param  {array} $post_types Post types
-		 * @return  {array} New post types
-		 */
-		$searchable_post_types = apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || ! in_array( $wp->query_vars['post_type'], $searchable_post_types, true ) ||
 			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
@@ -744,17 +726,7 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
-		$searchable_post_types = array( 'shop_order' );
-
-		/**
-		 * Expands or contracts the types of admin EP permits for WooCommerce.
-		 *
-		 * @hook ep_woocommerce_admin_searchable_post_types
-		 * @since 4.4.0
-		 * @param  {array} $post_types Post types
-		 * @return  {array} New post types
-		 */
-		$searchable_post_types = apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		// Make sure it is only WooCommerce orders we touch.
 		if ( ! in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
@@ -1027,17 +999,7 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function keep_order_fields( $skip, $post_args ) {
-		$searchable_post_types = array( 'shop_order' );
-
-		/**
-		 * Expands or contracts the types of admin EP permits for WooCommerce.
-		 *
-		 * @hook ep_woocommerce_admin_searchable_post_types
-		 * @since 4.4.0
-		 * @param  {array} $post_types Post types
-		 * @return  {array} New post types
-		 */
-		$searchable_post_types = apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		if ( in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
 			return true;
