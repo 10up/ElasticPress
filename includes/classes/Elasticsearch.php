@@ -9,6 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils as Utils;
+use ElasticPress\Indexables;
 use \WP_Error as WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -1635,6 +1636,51 @@ class Elasticsearch {
 		 * @param {array} $query Query to log
 		 */
 		do_action( 'ep_add_query_log', $query );
+	}
+
+	/**
+	 * Get all index names.
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	public function get_index_names() {
+		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
+
+		$all_indexables = Indexables::factory()->get_all();
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
+		}
+
+		return array_merge( $non_global_indexes, $global_indexes );
+	}
+
+	/**
+	 * Return all indices from the cluster.
+	 *
+	 * @since 4.4.0
+	 * @return WP_Error|array WP_Error on failure or The response
+	 */
+	public function get_cluster_indices() {
+		$path = '_cat/indices?format=json';
+
+		$response = $this->remote_request( $path );
+
+		return $response;
+
 	}
 
 }
