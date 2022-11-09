@@ -4,9 +4,9 @@ The following acknowledges the Maintainers for this repository, those who have C
 
 ## Maintainers
 
-The following individuals are responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen.
+The following individual is responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen:
 
-[Taylor Lovett (@tlovett1)](https://github.com/tlovett1) and [Vasken Hauri (@brandwaffle)](https://github.com/brandwaffle).
+[Vasken Hauri (@brandwaffle)](https://github.com/brandwaffle).
 
 ## Contributors
 
