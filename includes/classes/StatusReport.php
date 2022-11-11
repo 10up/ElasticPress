@@ -24,7 +24,11 @@ class StatusReport {
 	 * @return array
 	 */
 	public function get_reports() : array {
-		$reports = [];
+		$reports = [
+			'es_server' => new \ElasticPress\StatusReport\ElasticsearchServer(),
+			'post_meta' => new \ElasticPress\StatusReport\PostMeta(),
+			'last_sync' => new \ElasticPress\StatusReport\LastSync(),
+		];
 
 		$features = array_filter(
 			Features::factory()->registered_features,
@@ -36,9 +40,6 @@ class StatusReport {
 		foreach ( $features as $feature ) {
 			$reports[ 'feature_' . $feature->slug ] = new \ElasticPress\StatusReport\Feature( $feature );
 		}
-
-		$reports['post_meta'] = new \ElasticPress\StatusReport\PostMeta();
-		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
 
 		return $reports;
 	}
@@ -68,7 +69,7 @@ class StatusReport {
 									<?php
 									echo is_array( $value ) ?
 										'<pre>' . esc_html( var_export( $value, true ) ) . '</pre>' : // phpcs:ignore WordPress.PHP.DevelopmentFunctions
-										esc_html( $value );
+										wp_kses_post( $value );
 									?>
 								</td>
 							</tr>
