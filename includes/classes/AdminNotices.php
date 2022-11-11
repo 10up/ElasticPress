@@ -44,6 +44,7 @@ class AdminNotices {
 		'using_autosuggest_defaults',
 		'maybe_wrong_mapping',
 		'yellow_health',
+		'too_many_fields',
 	];
 
 	/**
@@ -741,6 +742,70 @@ class AdminNotices {
 				),
 			];
 		}
+	}
+
+	/**
+	 * Too many fields notification. Shows when the site has potentially more fields than ES could handle.
+	 *
+	 * Type: warning|error
+	 * Dismiss: Anywhere
+	 * Show: Sync and Install page
+	 *
+	 * @since  3.2
+	 * @return array|bool
+	 */
+	protected function process_too_many_fields_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$dismiss = Utils\get_option( 'ep_hide_too_many_fields_notice', false );
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'install', 'sync' ], true ) || $dismiss ) {
+			return false;
+		}
+
+		$post_indexable   = Indexables::factory()->get( 'post' );
+		$empty_post       = new \WP_Post( (object) [] );
+		$indexable_fields = array_filter(
+			$post_indexable->get_distinct_meta_field_keys_db(),
+			function( $meta ) use ( $post_indexable, $empty_post ) {
+				return $post_indexable->is_meta_allowed( $meta, $empty_post );
+			}
+		);
+		$count_fields_db  = count( $indexable_fields );
+
+		$index_name     = $post_indexable->get_index_name();
+		$index_settings = Elasticsearch::factory()->get_index_settings( $index_name );
+		if ( is_wp_error( $index_settings ) || empty( $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'] ) ) {
+			$es_field_limit = apply_filters( 'ep_total_field_limit', 5000 );
+		} else {
+			$es_field_limit = $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'];
+		}
+
+		$predicted_es_field_count = $count_fields_db * 8;
+
+		if ( $predicted_es_field_count > $es_field_limit ) {
+			return [
+				'type'    => 'error',
+				'dismiss' => true,
+				'html'    => __( 'You definitely have more fields than ES will support.', 'elasticpress' ),
+			];
+		}
+
+		if ( $predicted_es_field_count * 1.2 > $es_field_limit ) {
+			return [
+				'type'    => 'warning',
+				'dismiss' => true,
+				'html'    => __( 'You may have more fields than ES will support.', 'elasticpress' ),
+			];
+		}
+
+		return false;
 	}
 
 	/**
