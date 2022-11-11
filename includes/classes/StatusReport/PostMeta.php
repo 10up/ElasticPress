@@ -49,6 +49,8 @@ class PostMeta extends Report {
 			];
 		}
 
+		sort( $all_keys );
+
 		$meta_keys['total-all-post-types'] = [
 			'label' => __( 'Total distinct meta keys', 'elasticpress' ),
 			'value' => count( array_unique( $all_keys ) ) . "<br>\n" . \wp_sprintf( '%l', $all_keys ),

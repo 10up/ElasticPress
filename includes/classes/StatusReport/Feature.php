@@ -8,6 +8,8 @@
 
 namespace ElasticPress\StatusReport;
 
+use \ElasticPress\Feature as EP_Feature;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -18,11 +20,20 @@ defined( 'ABSPATH' ) || exit;
 class Feature extends Report {
 
 	/**
+	 * The feature being processed
+	 *
+	 * @var EP_Feature
+	 */
+	protected $feature;
+
+	/**
 	 * Class constructor
 	 *
-	 * @param \ElasticPress\Feature $feature The feature to be processed
+	 * @param EP_Feature $feature The feature to be processed
 	 */
-	public function __construct( protected \ElasticPress\Feature $feature ) {}
+	public function __construct( EP_Feature $feature ) {
+		$this->feature = $feature;
+	}
 
 	/**
 	 * Return the report title
