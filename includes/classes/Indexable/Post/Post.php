@@ -2422,4 +2422,64 @@ class Post extends Indexable {
 		 */
 		return (array) apply_filters( 'ep_post_meta_keys_db', $meta_keys );
 	}
+
+	/**
+	 * Return all distinct meta fields in the database per post type.
+	 *
+	 * @since 4.4.0
+	 * @param string $post_type Post type slug
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type ) : array {
+		global $wpdb;
+
+		/**
+		 * Short-circuits the process of getting distinct meta keys from the database per post type.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_pre_meta_keys_db_per_post_type
+		 * @param {null} $meta_keys Distinct meta keys array
+		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
+		 */
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db_per_post_type', null );
+		if ( null !== $pre_meta_keys ) {
+			return $pre_meta_keys;
+		}
+
+		$meta_keys = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON pm.post_id = p.ID WHERE p.post_type = %s ORDER BY meta_key",
+				$post_type
+			)
+		);
+
+		/**
+		 * Filter the distinct meta keys fetched from the database per post type.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db_per_post_type
+		 * @param {null} $meta_keys Distinct meta keys array
+		 * @return {array} New distinct meta keys array
+		 */
+		return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $meta_keys );
+	}
+
+	/**
+	 * Return all distinct meta fields in the database per post type.
+	 *
+	 * @since 4.4.0
+	 * @param string $post_type Post type slug
+	 * @return array
+	 */
+	public function get_indexable_meta_keys_per_post_type( string $post_type ) : array {
+		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
+		return array_filter(
+			$this->get_distinct_meta_field_keys_db_per_post_type( $post_type ),
+			function ( $meta_key ) use ( $mock_post ) {
+				return $this->is_meta_allowed( $meta_key, $mock_post );
+			}
+		);
+	}
 }

@@ -104,6 +104,10 @@ class Screen {
 				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
 					$this->screen = 'sync';
 				}
+			} elseif ( 'elasticpress-status-report' === $_GET['page'] ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+					$this->screen = 'status-report';
+				}
 			}
 		}
 		// phpcs:enable WordPress.Security.NonceVerification
@@ -132,6 +136,9 @@ class Screen {
 				break;
 			case 'sync':
 				require_once __DIR__ . '/../partials/sync-page.php';
+				break;
+			case 'status-report':
+				require_once __DIR__ . '/../partials/status-report-page.php';
 				break;
 		}
 	}
