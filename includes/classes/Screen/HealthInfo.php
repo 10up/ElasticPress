@@ -20,7 +20,7 @@ class HealthInfo {
 	 * Initialize class.
 	 */
 	public function setup() {
-		add_action( 'debug_information', [ $this, 'last_sync_health_info' ] );
+		add_filter( 'debug_information', [ $this, 'last_sync_health_info' ] );
 		add_filter( 'debug_information', [ $this, 'epio_autosuggest_health_check_info' ] );
 	}
 
@@ -31,7 +31,7 @@ class HealthInfo {
 	 * @return array The debug info for site health screen.
 	 */
 	public function last_sync_health_info( $debug_info ) {
-		$debug_info['ep_last_sync'] = array(
+		$debug_info['ep-last-sync'] = array(
 			'label'  => esc_html__( 'ElasticPress - Last Sync', 'elasticpress' ),
 			'fields' => [],
 		);
@@ -39,7 +39,7 @@ class HealthInfo {
 		$sync_info = IndexHelper::factory()->get_last_index();
 
 		if ( empty( $sync_info ) ) {
-			$debug_info['ep_last_sync']['fields']['not_available'] = [
+			$debug_info['ep-last-sync']['fields']['not_available'] = [
 				'label'   => esc_html__( 'Last Sync', 'elasticpress' ),
 				'value'   => esc_html__( 'Last sync info not available.', 'elasticpress' ),
 				'private' => true,
@@ -108,10 +108,9 @@ class HealthInfo {
 		$sync_info = $ordered_sync_info + $sync_info;
 
 		foreach ( $sync_info as $label => $value ) {
-			$debug_info['ep_last_sync']['fields'][ sanitize_title( $label ) ] = [
-				'label'   => $labels[ $label ] ?? $label,
-				'value'   => $value,
-				'private' => true,
+			$debug_info['ep-last-sync']['fields'][ sanitize_title( $label ) ] = [
+				'label' => $labels[ $label ] ?? $label,
+				'value' => $value,
 			];
 		}
 
@@ -130,7 +129,7 @@ class HealthInfo {
 			return $debug_info;
 		}
 
-		$debug_info['epio_autosuggest'] = array(
+		$debug_info['epio-autosuggest'] = array(
 			'label'  => esc_html__( 'ElasticPress.io - Autosuggest', 'elasticpress' ),
 			'fields' => [],
 		);
@@ -160,10 +159,9 @@ class HealthInfo {
 		];
 
 		foreach ( $fields as $label => $value ) {
-			$debug_info['epio_autosuggest']['fields'][ sanitize_title( $label ) ] = [
-				'label'   => $label,
-				'value'   => $value,
-				'private' => true,
+			$debug_info['epio-autosuggest']['fields'][ sanitize_title( $label ) ] = [
+				'label' => $label,
+				'value' => $value,
 			];
 		}
 
