@@ -64,7 +64,13 @@ class StatusReport {
 							?>
 							<tr>
 								<td><?php echo esc_html( $label ); ?></td>
-								<td><?php echo is_array( $value ) ? '<pre>' . esc_html( var_export( $value, true ) ) . '</pre>' : esc_html( $value ); ?></td>
+								<td>
+									<?php
+									echo is_array( $value ) ?
+										'<pre>' . esc_html( var_export( $value, true ) ) . '</pre>' : // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+										esc_html( $value );
+									?>
+								</td>
 							</tr>
 							<?php
 						}
