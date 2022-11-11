@@ -17,7 +17,7 @@ require_once __DIR__ . '/header.php';
 
 <div class="wrap metabox-holder">
 	<h1><?php esc_html_e( 'Status Report', 'elasticpress' ); ?></h1>
-	<div>
+	<div class="ep-status-report">
 		<?php
 		$reports = $status_report->get_reports();
 		foreach ( $reports as $report ) {
