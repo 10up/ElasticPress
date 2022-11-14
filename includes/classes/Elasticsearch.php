@@ -1672,15 +1672,32 @@ class Elasticsearch {
 	 * Return all indices from the cluster.
 	 *
 	 * @since 4.4.0
-	 * @return WP_Error|array WP_Error on failure or The response
+	 * @return array Array of indices in Elasticsearch
 	 */
 	public function get_cluster_indices() {
 		$path = '_cat/indices?format=json';
 
 		$response = $this->remote_request( $path );
 
-		return $response;
+		return json_decode( wp_remote_retrieve_body( $response ), true );
+	}
 
+	/**
+	 * Given an index return its total fields limit
+	 *
+	 * @since 4.4.0
+	 * @param string $index_name The index name
+	 * @return int|null
+	 */
+	public function get_index_total_fields_limit( $index_name ) {
+		$index_settings = $this->get_index_settings( $index_name );
+		if ( is_wp_error( $index_settings ) || empty( $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'] ) ) {
+			return null;
+		}
+
+		$es_field_limit = $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'];
+
+		return (int) $es_field_limit;
 	}
 
 }

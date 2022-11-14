@@ -31,7 +31,7 @@ class PostMeta extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_fields() : array {
+	public function get_groups() : array {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
@@ -56,6 +56,11 @@ class PostMeta extends Report {
 			'value' => count( array_unique( $all_keys ) ) . "<br>\n" . \wp_sprintf( '%l', $all_keys ),
 		];
 
-		return $meta_keys;
+		return [
+			[
+				'title'  => __( 'Meta Keys', 'elasticpress' ),
+				'fields' => $meta_keys,
+			],
+		];
 	}
 }

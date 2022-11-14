@@ -33,7 +33,7 @@ class ElasticsearchServer extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_fields() : array {
+	public function get_groups() : array {
 		$is_epio = Utils\is_epio();
 
 		$fields = [];
@@ -58,6 +58,11 @@ class ElasticsearchServer extends Report {
 			'value' => \ElasticPress\IndexHelper::factory()->get_index_default_per_page(),
 		];
 
-		return $fields;
+		return [
+			[
+				'title'  => __( 'Basic ES Info', 'elasticpress' ),
+				'fields' => $fields,
+			],
+		];
 	}
 }

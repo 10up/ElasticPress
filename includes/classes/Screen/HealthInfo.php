@@ -32,9 +32,11 @@ class HealthInfo {
 	public function last_sync_health_info( $debug_info ) {
 		$last_sync_report = new \ElasticPress\StatusReport\LastSync();
 
+		$first_group = reset( $last_sync_report->get_groups() );
+
 		$debug_info['ep-last-sync'] = [
 			'label'  => esc_html__( 'ElasticPress - Last Sync', 'elasticpress' ),
-			'fields' => $last_sync_report->get_fields(),
+			'fields' => $first_group['fields'],
 		];
 
 		return $debug_info;

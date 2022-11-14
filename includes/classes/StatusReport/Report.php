@@ -25,9 +25,9 @@ abstract class Report {
 	abstract public function get_title() : string;
 
 	/**
-	 * Return the report fields
+	 * Return the report group(s) of fields
 	 *
 	 * @return array
 	 */
-	abstract public function get_fields() : array;
+	abstract public function get_groups() : array;
 }

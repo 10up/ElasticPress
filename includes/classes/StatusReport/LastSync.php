@@ -31,7 +31,7 @@ class LastSync extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_fields() : array {
+	public function get_groups() : array {
 		$fields = [];
 
 		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
@@ -111,6 +111,11 @@ class LastSync extends Report {
 			];
 		}
 
-		return $fields;
+		return [
+			[
+				'title'  => __( 'Last Sync', 'elasticpress' ),
+				'fields' => $fields,
+			],
+		];
 	}
 }
