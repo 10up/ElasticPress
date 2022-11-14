@@ -100,39 +100,29 @@ class StatusReport {
 	public function render_html_report( string $title, array $groups ) : string {
 		ob_start();
 		?>
-		<h3 class="hndle"><?php echo esc_html( $title ); ?></h3>
+		<h2><?php echo esc_html( $title ); ?></h2>
 		<?php
 		foreach ( $groups as $group ) {
 			?>
-			<div class="postbox posts-info">
-				<div class="postbox-header">
-					<h2 class="hndle"><?php echo esc_html( $group['title'] ); ?></h2>
-				</div>
-				<div class="inside">
-					<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
-						<tbody>
-							<?php
-							foreach ( $group['fields'] as $slug => $field ) {
-								$label = $field['label'] ?? $slug;
-								$value = $field['value'] ?? '';
-								?>
-								<tr>
-									<td><?php echo esc_html( $label ); ?></td>
-									<td>
-										<?php
-										echo is_array( $value ) ?
-											'<pre>' . esc_html( var_export( $value, true ) ) . '</pre>' : // phpcs:ignore WordPress.PHP.DevelopmentFunctions
-											wp_kses_post( $value );
-										?>
-									</td>
-								</tr>
-								<?php
-							}
-							?>
-						</tbody>
-					</table>
-				</div>
-			</div>
+			<h3><?php echo esc_html( $group['title'] ); ?></h3>
+			<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
+				<tbody>
+					<?php
+					foreach ( $group['fields'] as $slug => $field ) {
+						$label = $field['label'] ?? $slug;
+						$value = $field['value'] ?? '';
+						?>
+						<tr>
+							<td><?php echo esc_html( $label ); ?></td>
+							<td>
+								<?php echo wp_kses_post( $this->render_value( $value ) ); ?>
+							</td>
+						</tr>
+						<?php
+					}
+					?>
+				</tbody>
+			</table>
 			<?php
 		}
 
@@ -155,14 +145,30 @@ class StatusReport {
 				$value = $field['value'] ?? '';
 
 				$output .= "{$slug}: ";
-				$output .= is_array( $value ) ?
-					var_export( $value, true ) : // phpcs:ignore WordPress.PHP.DevelopmentFunctions
-					$value;
+				$output .= $this->render_value( $value );
 				$output .= "\n";
 			}
 			$output .= "\n";
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Render a value based on its type
+	 *
+	 * @param mixed $value The value
+	 * @return string
+	 */
+	protected function render_value( $value ) {
+		if ( is_array( $value ) || is_object( $value ) ) {
+			return var_export( $value, true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+		}
+
+		if ( is_bool( $value ) ) {
+			return $value ? 'true' : 'false';
+		}
+
+		return (string) $value;
 	}
 }

@@ -1,6 +1,12 @@
 .ep-status-report {
 	max-width: 1200px;
 
+	& h2 {
+		color: #1d2327;
+		font-size: 1.5em;
+		margin-top: 1.5em;
+	}
+
 	& table tr td:first-of-type {
 		min-width: 50px;
 		width: 25%;
