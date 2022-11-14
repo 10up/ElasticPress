@@ -547,15 +547,6 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_set_script_translations( 'ep_settings_scripts', 'elasticpress' );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'status-report' ], true ) ) {
-		wp_enqueue_style(
-			'ep_status_report_styles',
-			EP_URL . 'dist/css/status-report-styles.css',
-			Utils\get_asset_info( 'status-report-styles', 'dependencies' ),
-			Utils\get_asset_info( 'status-report-styles', 'version' )
-		);
-	}
-
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
 		Stats::factory()->build_stats();
 

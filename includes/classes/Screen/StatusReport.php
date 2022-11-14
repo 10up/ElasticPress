@@ -44,6 +44,13 @@ class StatusReport {
 			Utils\get_asset_info( 'status-report-script', 'version' ),
 			true
 		);
+
+		wp_enqueue_style(
+			'ep_status_report_styles',
+			EP_URL . 'dist/css/status-report-styles.css',
+			Utils\get_asset_info( 'status-report-styles', 'dependencies' ),
+			Utils\get_asset_info( 'status-report-styles', 'version' )
+		);
 	}
 
 	/**
