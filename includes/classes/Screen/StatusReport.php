@@ -82,6 +82,7 @@ class StatusReport {
 		}
 
 		?>
+		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
 		<button class="button" type="button" id="ep-copy-report" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>"><?php esc_html_e( 'Copy Status Report', 'elasticpress' ); ?></button>
 		<div id="ep-copy-success">
 			<span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Report Copied!', 'elasticpress' ); ?>
