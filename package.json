@@ -64,6 +64,7 @@
       "sync-script": "./assets/js/sync/index.js",
       "sites-admin-script": "./assets/js/sites-admin.js",
       "stats-script": "./assets/js/stats.js",
+      "status-report-script": "./assets/js/status-report.js",
       "synonyms-script": "./assets/js/synonyms/index.js",
       "admin-script": "./assets/js/admin.js",
       "weighting-script": "./assets/js/weighting.js",

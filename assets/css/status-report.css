@@ -5,4 +5,8 @@
 		min-width: 50px;
 		width: 25%;
 	}
+
+	& #ep-copy-success {
+		display: none;
+	}
 }

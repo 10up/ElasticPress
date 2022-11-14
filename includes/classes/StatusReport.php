@@ -8,8 +8,6 @@
 
 namespace ElasticPress;
 
-use \ElasticPress\StatusReport\Report;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -37,15 +35,54 @@ class StatusReport {
 	}
 
 	/**
-	 * Render a report
-	 *
-	 * @param Report $report Report array
+	 * Render all reports (HTML and Copy & Paste button)
 	 */
-	public function render_report( Report $report ) {
+	public function render_reports() {
+		$reports = $this->get_reports();
+
+		$html_output       = [];
+		$copy_paste_output = [];
+
+		foreach ( $reports as $report ) {
+			$title  = $report->get_title();
+			$groups = $report->get_groups();
+
+			$html_output[]       = $this->render_html_report( $title, $groups );
+			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
+		}
+
 		?>
-		<h3 class="hndle"><?php echo esc_html( $report->get_title() ); ?></h3>
+		<button class="button" type="button" id="ep-copy-report" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>"><?php esc_html_e( 'Copy Status Report', 'elasticpress' ); ?></button>
+		<div id="ep-copy-success">
+			<span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Report Copied!', 'elasticpress' ); ?>
+		</div>
 		<?php
-		foreach ( $report->get_groups() as $group ) {
+		echo wp_kses_post( implode( '', $html_output ) );
+
+		$script_deps = Utils\get_asset_info( 'status-report-script', 'dependencies' );
+
+		wp_enqueue_script(
+			'ep_admin_status_report_scripts',
+			EP_URL . 'dist/js/status-report-script.js',
+			array_merge( $script_deps, [ 'clipboard' ] ),
+			Utils\get_asset_info( 'status-report-script', 'version' ),
+			true
+		);
+	}
+
+	/**
+	 * Render the HTML of a report
+	 *
+	 * @param string $title  Report title
+	 * @param array  $groups Report groups
+	 * @return string
+	 */
+	public function render_html_report( string $title, array $groups ) : string {
+		ob_start();
+		?>
+		<h3 class="hndle"><?php echo esc_html( $title ); ?></h3>
+		<?php
+		foreach ( $groups as $group ) {
 			?>
 			<div class="postbox posts-info">
 				<div class="postbox-header">
@@ -78,5 +115,34 @@ class StatusReport {
 			</div>
 			<?php
 		}
+
+		return ob_get_clean();
+	}
+
+	/**
+	 * Render the copy & paste report
+	 *
+	 * @param string $title  Report title
+	 * @param array  $groups Report groups
+	 * @return string
+	 */
+	protected function render_copy_paste_report( string $title, array $groups ) : string {
+		$output = "## {$title} ##\n\n";
+
+		foreach ( $groups as $group ) {
+			$output .= "### {$group['title']} ###\n";
+			foreach ( $group['fields'] as $slug => $field ) {
+				$value = $field['value'] ?? '';
+
+				$output .= "{$slug}: ";
+				$output .= is_array( $value ) ?
+					var_export( $value, true ) : // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+					$value;
+				$output .= "\n";
+			}
+			$output .= "\n";
+		}
+
+		return $output;
 	}
 }
