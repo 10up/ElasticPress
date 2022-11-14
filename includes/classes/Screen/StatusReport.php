@@ -6,7 +6,9 @@
  * @package elasticpress
  */
 
-namespace ElasticPress;
+namespace ElasticPress\Screen;
+
+use \ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,6 +18,34 @@ defined( 'ABSPATH' ) || exit;
  * @package ElasticPress
  */
 class StatusReport {
+	/**
+	 * Initialize class
+	 */
+	public function setup() {
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+	}
+
+	/**
+	 * Enqueue script.
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( 'status-report' !== \ElasticPress\Screen::factory()->get_current_screen() ) {
+			return;
+		}
+
+		$script_deps = Utils\get_asset_info( 'status-report-script', 'dependencies' );
+
+		wp_enqueue_script(
+			'ep_admin_status_report_scripts',
+			EP_URL . 'dist/js/status-report-script.js',
+			array_merge( $script_deps, [ 'clipboard' ] ),
+			Utils\get_asset_info( 'status-report-script', 'version' ),
+			true
+		);
+	}
+
 	/**
 	 * Return all reports available
 	 *
@@ -58,16 +88,6 @@ class StatusReport {
 		</div>
 		<?php
 		echo wp_kses_post( implode( '', $html_output ) );
-
-		$script_deps = Utils\get_asset_info( 'status-report-script', 'dependencies' );
-
-		wp_enqueue_script(
-			'ep_admin_status_report_scripts',
-			EP_URL . 'dist/js/status-report-script.js',
-			array_merge( $script_deps, [ 'clipboard' ] ),
-			Utils\get_asset_info( 'status-report-script', 'version' ),
-			true
-		);
 	}
 
 	/**

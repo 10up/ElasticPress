@@ -6,7 +6,7 @@
  * @package elasticpress
  */
 
-use ElasticPress\StatusReport;
+use ElasticPress\Screen\StatusReport;
 
 defined( 'ABSPATH' ) || exit;
 
