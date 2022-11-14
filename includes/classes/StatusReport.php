@@ -25,6 +25,7 @@ class StatusReport {
 	 */
 	public function get_reports() : array {
 		$reports = [
+			'wordpress' => new \ElasticPress\StatusReport\WordPress(),
 			'es_server' => new \ElasticPress\StatusReport\ElasticsearchServer(),
 			'indices'   => new \ElasticPress\StatusReport\Indices(),
 			'post_meta' => new \ElasticPress\StatusReport\PostMeta(),

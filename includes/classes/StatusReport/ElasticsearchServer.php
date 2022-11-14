@@ -58,6 +58,11 @@ class ElasticsearchServer extends Report {
 			'value' => \ElasticPress\IndexHelper::factory()->get_index_default_per_page(),
 		];
 
+		$fields['network_active'] = [
+			'label' => __( 'Network Active', 'elasticpress' ),
+			'value' => is_multisite() && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK,
+		];
+
 		return [
 			[
 				'title'  => __( 'Basic ES Info', 'elasticpress' ),
