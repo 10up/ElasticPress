@@ -751,7 +751,7 @@ class AdminNotices {
 	 * Dismiss: Anywhere
 	 * Show: Sync and Install page
 	 *
-	 * @since  3.2
+	 * @since 4.4.0
 	 * @return array|bool
 	 */
 	protected function process_too_many_fields_notice() {
@@ -781,7 +781,7 @@ class AdminNotices {
 
 		$index_name     = $post_indexable->get_index_name();
 		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
-		$es_field_limit = $index_settings ?? apply_filters( 'ep_total_field_limit', 5000 );
+		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
 
 		$predicted_es_field_count = $count_fields_db * 8;
 
