@@ -32,7 +32,8 @@ class HealthInfo {
 	public function last_sync_health_info( $debug_info ) {
 		$last_sync_report = new \ElasticPress\StatusReport\LastSync();
 
-		$first_group = reset( $last_sync_report->get_groups() );
+		$groups      = $last_sync_report->get_groups();
+		$first_group = reset( $groups );
 
 		$debug_info['ep-last-sync'] = [
 			'label'  => esc_html__( 'ElasticPress - Last Sync', 'elasticpress' ),
@@ -54,41 +55,15 @@ class HealthInfo {
 			return $debug_info;
 		}
 
-		$debug_info['epio-autosuggest'] = array(
+		$autosuggest_report = new \ElasticPress\StatusReport\Autosuggest();
+
+		$groups      = $autosuggest_report->get_groups();
+		$first_group = reset( $groups );
+
+		$debug_info['epio-autosuggest'] = [
 			'label'  => esc_html__( 'ElasticPress.io - Autosuggest', 'elasticpress' ),
-			'fields' => [],
-		);
-
-		$autosuggest_feature = Features::factory()->get_registered_feature( 'autosuggest' );
-		$allowed_params      = $autosuggest_feature->epio_autosuggest_set_and_get();
-
-		if ( empty( $allowed_params ) ) {
-			return $debug_info;
-		}
-
-		$allowed_params = wp_parse_args(
-			$allowed_params,
-			[
-				'postTypes'    => [],
-				'postStatus'   => [],
-				'searchFields' => [],
-				'returnFields' => '',
-			]
-		);
-
-		$fields = [
-			'Post Types'      => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postTypes'] ),
-			'Post Status'     => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postStatus'] ),
-			'Search Fields'   => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['searchFields'] ),
-			'Returned Fields' => wp_sprintf( esc_html( var_export( $allowed_params['returnFields'], true ) ) ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
+			'fields' => $first_group['fields'],
 		];
-
-		foreach ( $fields as $label => $value ) {
-			$debug_info['epio-autosuggest']['fields'][ sanitize_title( $label ) ] = [
-				'label' => $label,
-				'value' => $value,
-			];
-		}
 
 		return $debug_info;
 	}
