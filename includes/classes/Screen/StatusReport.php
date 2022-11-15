@@ -71,7 +71,7 @@ class StatusReport {
 		$reports['indices']   = new \ElasticPress\StatusReport\Indices();
 		$reports['post_meta'] = new \ElasticPress\StatusReport\PostMeta();
 		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
-		$reports['features'] = new \ElasticPress\StatusReport\Features();
+		$reports['features']  = new \ElasticPress\StatusReport\Features();
 
 		/**
 		 * Filter the reports executed in the Status Report page.
