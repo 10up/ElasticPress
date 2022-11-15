@@ -108,6 +108,11 @@ class WordPress extends Report {
 			'value' => wp_sprintf( '%l', $plugins ),
 		];
 
+		$fields['revisions'] = [
+			'label' => __( 'Revisions allowed', 'elasticpress' ),
+			'value' => WP_POST_REVISIONS === true ? 'all' : (int) WP_POST_REVISIONS,
+		];
+
 		return [
 			'title'  => __( 'WordPress Basic Info', 'elasticpress' ),
 			'fields' => $fields,
@@ -125,6 +130,16 @@ class WordPress extends Report {
 		$fields['php_version'] = [
 			'label' => __( 'PHP Version', 'elasticpress' ),
 			'value' => phpversion(),
+		];
+
+		$fields['memory_limit'] = [
+			'label' => __( 'Memory Limit', 'elasticpress' ),
+			'value' => WP_MEMORY_LIMIT,
+		];
+
+		$fields['timeout'] = [
+			'label' => __( 'Maximum Execution Time', 'elasticpress' ),
+			'value' => (int) ini_get( 'max_execution_time' ),
 		];
 
 		return [
