@@ -61,17 +61,17 @@ class StatusReport {
 	public function get_reports() : array {
 		$reports = [];
 
-		$reports['wordpress']   = new \ElasticPress\StatusReport\WordPress();
-		$reports['es_server']   = new \ElasticPress\StatusReport\ElasticsearchServer();
+		$reports['wordpress'] = new \ElasticPress\StatusReport\WordPress();
+		$reports['es_server'] = new \ElasticPress\StatusReport\ElasticsearchServer();
 
 		if ( Utils\is_epio() ) {
 			$reports['autosuggest'] = new \ElasticPress\StatusReport\Autosuggest();
 		}
 
-		$reports['indices']     = new \ElasticPress\StatusReport\Indices();
-		$reports['post_meta']   = new \ElasticPress\StatusReport\PostMeta();
-		$reports['last_sync']   = new \ElasticPress\StatusReport\LastSync();
-		$reports['features']    = new \ElasticPress\StatusReport\Features();
+		$reports['indices']   = new \ElasticPress\StatusReport\Indices();
+		$reports['post_meta'] = new \ElasticPress\StatusReport\PostMeta();
+		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
+		$reports['features'] = new \ElasticPress\StatusReport\Features();
 
 		return $reports;
 	}
