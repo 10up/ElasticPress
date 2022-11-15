@@ -113,6 +113,9 @@ class StatusReport {
 		foreach ( $groups as $group ) {
 			?>
 			<h3><?php echo esc_html( $group['title'] ); ?></h3>
+			<?php if ( ! empty( $group['description'] ) ) { ?>
+				<p><?php echo esc_html( $group['description'] ); ?></p>
+			<?php } ?>
 			<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
 				<tbody>
 					<?php

@@ -2431,8 +2431,6 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type ) : array {
-		global $wpdb;
-
 		/**
 		 * Short-circuits the process of getting distinct meta keys from the database per post type.
 		 *
@@ -2448,12 +2446,13 @@ class Post extends Indexable {
 			return $pre_meta_keys;
 		}
 
-		$meta_keys = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON pm.post_id = p.ID WHERE p.post_type = %s ORDER BY meta_key",
-				$post_type
-			)
-		);
+		$meta_keys        = [];
+		$post_ids_batches = $this->get_lazy_post_type_ids( $post_type );
+		foreach ( $post_ids_batches as $post_ids ) {
+			$new_meta_keys = $this->get_meta_keys_from_post_ids( $post_ids );
+
+			$meta_keys = array_unique( array_merge( $meta_keys, $new_meta_keys ) );
+		}
 
 		/**
 		 * Filter the distinct meta keys fetched from the database per post type.
@@ -2481,5 +2480,67 @@ class Post extends Indexable {
 				return $this->is_meta_allowed( $meta_key, $mock_post );
 			}
 		);
+	}
+
+	/**
+	 * Given a post type, *yields* their Post IDs.
+	 *
+	 * If post IDs are found, this function will return a PHP Generator. To avoid timeout, it will yield 5 groups or 10,000 IDs.
+	 *
+	 * @since 4.4.0
+	 * @see https://www.php.net/manual/en/language.generators.overview.php
+	 * @param string $post_type The post type slug
+	 * @return iterator
+	 */
+	protected function get_lazy_post_type_ids( string $post_type ) {
+		global $wpdb;
+
+		$total = $wpdb->get_var( $wpdb->prepare( "SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
+
+		if ( ! $total ) {
+			return [];
+		}
+
+		$per_page = 10000;
+		$pages    = min( ceil( $total / $per_page ), 8 );
+
+		for ( $page = 0; $page < $pages; $page++ ) {
+			$start = $per_page * $page;
+			$ids   = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s LIMIT %d, %d",
+					$post_type,
+					$start,
+					$per_page
+				)
+			);
+			yield $ids;
+		}
+	}
+
+	/**
+	 * Given a set of post IDs, return distinct meta keys associated with them.
+	 *
+	 * @since 4.4.0
+	 * @param array $post_ids Set of post IDs
+	 * @return array
+	 */
+	protected function get_meta_keys_from_post_ids( array $post_ids ) : array {
+		global $wpdb;
+
+		if ( empty( $post_ids ) ) {
+			return [];
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+		$meta_keys    = $wpdb->get_col(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ( {$placeholders} )",
+				$post_ids
+			)
+		);
+
+		return $meta_keys;
 	}
 }

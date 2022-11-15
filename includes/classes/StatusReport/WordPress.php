@@ -168,7 +168,7 @@ class WordPress extends Report {
 		}
 
 		return [
-			'title'  => __( 'Post Count Per Status', 'elasticpress' ),
+			'title'  => __( 'Post Count Per Type', 'elasticpress' ),
 			'fields' => $fields,
 		];
 	}

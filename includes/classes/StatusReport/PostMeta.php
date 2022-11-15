@@ -35,6 +35,8 @@ class PostMeta extends Report {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
+		$limited = false;
+
 		$meta_keys = [];
 		$all_keys  = [];
 		foreach ( $post_types as $post_type ) {
@@ -43,23 +45,44 @@ class PostMeta extends Report {
 			$meta_keys_post_type = $post_indexable->get_indexable_meta_keys_per_post_type( $post_type );
 			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
 
+			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
+			$limited    = $limited || ( $post_count > 80000 );
+
 			$meta_keys[ $post_type ] = [
 				'label' => $post_type_obj ? $post_type_obj->labels->singular_name : $post_type,
 				'value' => count( $meta_keys_post_type ),
 			];
 		}
 
-		sort( $all_keys );
+		if ( $limited ) {
+			$title       = __( 'Meta Keys (Limited)', 'elasticpress' );
+			$description = __( 'Due to the number of posts in the site, the result set per post type is limited.', 'elasticpress' );
+
+			$empty_post = new \WP_Post( (object) [] );
+			$all_keys   = array_filter(
+				$post_indexable->get_distinct_meta_field_keys_db(),
+				function( $meta ) use ( $post_indexable, $empty_post ) {
+					return $post_indexable->is_meta_allowed( $meta, $empty_post );
+				}
+			);
+		} else {
+			$title       = __( 'Meta Keys', 'elasticpress' );
+			$description = '';
+
+			$all_keys = array_unique( $all_keys );
+			sort( $all_keys );
+		}
 
 		$meta_keys['total-all-post-types'] = [
 			'label' => __( 'Total distinct meta keys', 'elasticpress' ),
-			'value' => count( array_unique( $all_keys ) ) . "<br>\n" . \wp_sprintf( '%l', $all_keys ),
+			'value' => count( $all_keys ) . "<br>\n" . \wp_sprintf( '%l', $all_keys ),
 		];
 
 		return [
 			[
-				'title'  => __( 'Meta Keys', 'elasticpress' ),
-				'fields' => $meta_keys,
+				'title'       => $title,
+				'description' => $description,
+				'fields'      => $meta_keys,
 			],
 		];
 	}
