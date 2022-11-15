@@ -975,6 +975,16 @@ class Elasticsearch {
 			return ( $updated && $opened );
 		}
 
+		/**
+		 * Fires after updating an index settings
+		 *
+		 * @hook ep_update_index_settings
+		 * @since 4.4.0
+		 * @param {string} $index    Index name
+		 * @param {array}  $settings Setting update array
+		 */
+		do_action( 'ep_update_index_settings', $index, $settings );
+
 		return $updated;
 	}
 
@@ -1690,12 +1700,30 @@ class Elasticsearch {
 	 * @return int|null
 	 */
 	public function get_index_total_fields_limit( $index_name ) {
+		$cache_key = 'ep_total_fields_limit_' . $index_name;
+
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		if ( $is_network ) {
+			$cached = get_site_transient( $cache_key );
+		} else {
+			$cached = get_transient( $cache_key );
+		}
+		if ( ! empty( $cached ) ) {
+			return $cached;
+		}
+
 		$index_settings = $this->get_index_settings( $index_name );
 		if ( is_wp_error( $index_settings ) || empty( $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'] ) ) {
 			return null;
 		}
 
 		$es_field_limit = $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'];
+
+		if ( $is_network ) {
+			set_site_transient( $cache_key, $es_field_limit, DAY_IN_SECONDS );
+		} else {
+			set_transient( $cache_key, $es_field_limit, DAY_IN_SECONDS );
+		}
 
 		return (int) $es_field_limit;
 	}
