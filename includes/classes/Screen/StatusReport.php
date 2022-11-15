@@ -73,7 +73,15 @@ class StatusReport {
 		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
 		$reports['features'] = new \ElasticPress\StatusReport\Features();
 
-		return $reports;
+		/**
+		 * Filter the reports executed in the Status Report page.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_status_report_reports
+		 * @param {array<Report>} $reports Array of reports
+		 * @return {array<Report>} New array of reports
+		 */
+		return apply_filters( 'ep_status_report_reports', $reports );
 	}
 
 	/**
