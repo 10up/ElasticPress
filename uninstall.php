@@ -130,6 +130,21 @@ class EP_Uninstaller {
 	}
 
 	/**
+	 * Delete all transients of the total fields limit.
+	 */
+	protected function delete_total_fields_limit_transients() {
+		global $wpdb;
+
+		$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_total_fields_limit_%'" );
+
+		foreach ( $related_posts_transients as $related_posts_transient ) {
+			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
+			delete_site_transient( $related_posts_transient );
+			delete_transient( $related_posts_transient );
+		}
+	}
+
+	/**
 	 * Cleanup options and transients
 	 *
 	 * Deletes ElasticPress options and transients.
@@ -153,6 +168,7 @@ class EP_Uninstaller {
 				$this->delete_options();
 				$this->delete_transients();
 				$this->delete_related_posts_transients();
+				$this->delete_total_fields_limit_transients();
 
 				restore_current_blog();
 			}
@@ -160,6 +176,7 @@ class EP_Uninstaller {
 			$this->delete_options();
 			$this->delete_transients();
 			$this->delete_related_posts_transients();
+			$this->delete_total_fields_limit_transients();
 		}
 	}
 
