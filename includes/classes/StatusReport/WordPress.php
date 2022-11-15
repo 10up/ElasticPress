@@ -103,11 +103,6 @@ class WordPress extends Report {
 			'value' => wp_sprintf( '%l', $plugins ),
 		];
 
-		$fields['plugins'] = [
-			'label' => __( 'Active Plugins', 'elasticpress' ),
-			'value' => wp_sprintf( '%l', $plugins ),
-		];
-
 		$fields['revisions'] = [
 			'label' => __( 'Revisions allowed', 'elasticpress' ),
 			'value' => WP_POST_REVISIONS === true ? 'all' : (int) WP_POST_REVISIONS,
