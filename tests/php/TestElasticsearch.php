@@ -95,4 +95,31 @@ class TestElasticsearch extends BaseTestCase {
 		$this->assertIsArray( $documents );
 		$this->assertEmpty( $documents );
 	}
+
+	/**
+	 * Test update_index_settings
+	 *
+	 * @since 4.4.0
+	 * @group elasticsearch
+	 */
+	public function testUpdateIndexSettings() {
+		$index_name = 'lorem-ipsum';
+		$settings   = [ 'test' ];
+
+		add_action(
+			'ep_update_index_settings',
+			function( $index_name, $settings ) {
+				$this->assertSame( $index_name, 'lorem-ipsum' );
+				$this->assertSame( $settings, [ 'test' ] );
+			},
+			10,
+			2
+		);
+
+		ElasticPress\Elasticsearch::factory()->update_index_settings( $index_name, $settings );
+
+		$this->assertSame( 1, did_action( 'ep_update_index_settings' ) );
+
+		$this->markTestIncomplete( 'This test should also test the index settings update.' );
+	}
 }

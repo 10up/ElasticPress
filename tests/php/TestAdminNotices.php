@@ -555,6 +555,68 @@ class TestAdminNotices extends BaseTestCase {
 	}
 
 	/**
+	 * Conditions:
+	 *
+	 * - Depending on the number of meta fields display a warning or an error
+	 *
+	 * Do: Show too many fields notice
+	 *
+	 * @group admin-notices
+	 * @since 4.4.0
+	 */
+	public function testTooManyFieldsNoticeInAdmin() {
+		add_filter(
+			'ep_total_field_limit',
+			function() {
+				return 24;
+			}
+		);
+		ElasticPress\Screen::factory()->set_current_screen( 'install' );
+		
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function() {
+				return [ 'meta_key_1', 'meta_key_2' ];
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 0, $notices );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function( $values ) {
+				$values[] = 'meta_key_3';
+				return $values;
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_fields', $notices );
+		$this->assertSame( 'warning', $notices['too_many_fields']['type'] );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function( $values ) {
+				$values[] = 'meta_key_4';
+				return $values;
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_fields', $notices );
+		$this->assertSame( 'error', $notices['too_many_fields']['type'] );
+	}
+
+	/**
 	 * Utilitary function to set `ep_post_mapping_version_determined`
 	 * as the wanted Mapping version.
 	 *

@@ -965,15 +965,10 @@ class Elasticsearch {
 			$this->close_index( $index );
 		}
 
-		$settings = trailingslashit( $index ) . '_settings';
-		$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
+		$settings_url = trailingslashit( $index ) . '_settings';
+		$request      = $this->remote_request( $settings_url, $request_args, [], 'update_index_settings' );
 
 		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
-
-		if ( $close_first ) {
-			$opened = $this->open_index( $index );
-			return ( $updated && $opened );
-		}
 
 		/**
 		 * Fires after updating an index settings
@@ -984,6 +979,11 @@ class Elasticsearch {
 		 * @param {array}  $settings Setting update array
 		 */
 		do_action( 'ep_update_index_settings', $index, $settings );
+
+		if ( $close_first ) {
+			$opened = $this->open_index( $index );
+			return ( $updated && $opened );
+		}
 
 		return $updated;
 	}
