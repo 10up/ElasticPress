@@ -10,7 +10,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
@@ -780,18 +780,34 @@ class AdminNotices {
 		$predicted_es_field_count = $count_fields_db * 8;
 
 		if ( $predicted_es_field_count > $es_field_limit ) {
+			$message = sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">that limit</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
+				Utils\is_epio() ?  __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+
 			return [
 				'type'    => 'error',
 				'dismiss' => true,
-				'html'    => __( 'You definitely have more fields than ES will support.', 'elasticpress' ),
+				'html'    => $message,
 			];
 		}
 
-		if ( $predicted_es_field_count * 1.2 > $es_field_limit ) {
+		if ( true || $predicted_es_field_count * 1.2 > $es_field_limit ) {
+			$message = sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">that limit</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
+				Utils\is_epio() ?  __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+
 			return [
 				'type'    => 'warning',
 				'dismiss' => true,
-				'html'    => __( 'You may have more fields than ES will support.', 'elasticpress' ),
+				'html'    => $message,
 			];
 		}
 
