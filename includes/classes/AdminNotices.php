@@ -769,35 +769,29 @@ class AdminNotices {
 			return false;
 		}
 
-		$post_indexable = Indexables::factory()->get( 'post' );
-
 		$has_error   = false;
 		$has_warning = false;
 
-		$indexable_sites = wp_list_pluck( Utils\get_indexable_sites(), 'blog_id' );
-		foreach ( $indexable_sites as $site_id ) {
-			switch_to_blog( $site_id );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
 
-			$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
-			$count_fields_db  = count( $indexable_fields );
+				switch_to_blog( $site['blog_id'] );
 
-			$index_name     = $post_indexable->get_index_name();
-			$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
-			$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+				list( $has_error, $site_has_warning ) = $this->check_field_count();
 
-			$predicted_es_field_count = $count_fields_db * 8;
-
-			if ( $predicted_es_field_count > $es_field_limit ) {
-				$has_error = true;
 				restore_current_blog();
-				break;
-			}
 
-			if ( $predicted_es_field_count * 1.2 > $es_field_limit ) {
-				$has_warning = true;
+				$has_warning = $has_warning || $site_has_warning;
+				if ( $has_error ) {
+					break;
+				}
 			}
-
-			restore_current_blog();
+		} else {
+			list( $has_error, $has_warning ) = $this->check_field_count();
 		}
 
 		if ( $has_error ) {
@@ -881,5 +875,29 @@ class AdminNotices {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Compare the number of fields in the site and the number of allowed fields in ES
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	protected function check_field_count() {
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
+		$count_fields_db  = count( $indexable_fields );
+
+		$index_name     = $post_indexable->get_index_name();
+		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
+		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+
+		$predicted_es_field_count = $count_fields_db * 8;
+
+		return [
+			$predicted_es_field_count > $es_field_limit,
+			$predicted_es_field_count * 1.2 > $es_field_limit,
+		];
 	}
 }

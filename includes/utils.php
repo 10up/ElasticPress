@@ -286,30 +286,6 @@ function get_sites( $limit = 0 ) {
 	return apply_filters( 'ep_indexable_sites', $sites );
 }
 
-
-/**
- * Return the array of all indexable sites
- *
- * @since 4.4.0
- * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
- * @return array
- */
-function get_indexable_sites( $limit = 0 ) {
-	if ( ! is_multisite() || ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
-		$site = get_site( get_current_blog_id() );
-		return [ $site ];
-	}
-
-	$sites = array_filter(
-		get_sites( $limit ),
-		function ( $site ) {
-			return is_site_indexable( $site['blog_id'] );
-		}
-	);
-
-	return $sites;
-}
-
 /**
  * Whether plugin is network activated
  *
