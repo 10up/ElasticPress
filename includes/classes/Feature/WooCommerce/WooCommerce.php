@@ -1025,7 +1025,11 @@ class WooCommerce extends Feature {
 			return $post_meta;
 		}
 
-		$product        = wc_get_product( $post );
+		$product = wc_get_product( $post );
+		if ( ! $product ) {
+			return $post_meta;
+		}
+
 		$variations_ids = $product->get_children();
 
 		$post_meta['_variations_skus'] = array_reduce(
