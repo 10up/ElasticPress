@@ -295,7 +295,7 @@ function get_sites( $limit = 0 ) {
  * @return array
  */
 function get_indexable_sites( $limit = 0 ) {
-	if ( ! is_multisite() ) {
+	if ( ! is_multisite() || ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
 		$site = get_site( get_current_blog_id() );
 		return [ $site ];
 	}
