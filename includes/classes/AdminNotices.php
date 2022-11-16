@@ -770,13 +770,7 @@ class AdminNotices {
 		}
 
 		$post_indexable   = Indexables::factory()->get( 'post' );
-		$empty_post       = new \WP_Post( (object) [] );
-		$indexable_fields = array_filter(
-			$post_indexable->get_distinct_meta_field_keys_db(),
-			function( $meta ) use ( $post_indexable, $empty_post ) {
-				return $post_indexable->is_meta_allowed( $meta, $empty_post );
-			}
-		);
+		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
 		$count_fields_db  = count( $indexable_fields );
 
 		$index_name     = $post_indexable->get_index_name();
