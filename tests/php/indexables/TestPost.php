@@ -7913,6 +7913,7 @@ class TestPost extends BaseTestCase {
 		};
 		add_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
 
+		// It should not send any new SQL query
 		$num_queries = $wpdb->num_queries;
 		$this->assertGreaterThan( 0, $num_queries );
 
@@ -7930,5 +7931,68 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_post_meta_keys_db', $return_custom_array );
 
 		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db() );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys_db_per_post_type
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetDistinctMetaFieldKeysDbPerPostType() {
+		global $wpdb;
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'test_key_1' => 'meta value 1',
+					'test_key_2' => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
+
+		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON pm.post_id = p.ID WHERE post_type = 'ep_test'" );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db_per_post_type` filter
+		 */
+		$return_custom_array = function( $meta_keys, $post_type ) {
+			$this->assertSame( $post_type, 'ep_test' );
+			return [ 'totally_custom_key' ];
+		};
+		add_filter( 'ep_post_pre_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
+
+		// It should not send any new SQL query
+		$num_queries = $wpdb->num_queries;
+		$this->assertGreaterThan( 0, $num_queries );
+
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		remove_filter( 'ep_post_pre_meta_keys_db_per_post_type', $return_custom_array );
+
+		/**
+		 * Test the `ep_post_meta_keys_db_per_post_type` filter
+		 */
+		$return_custom_array = function( $meta_keys, $post_type ) {
+			$this->assertSame( $post_type, 'ep_test' );
+			return array_merge( $meta_keys, [ 'custom_key' ] );
+		};
+		add_filter( 'ep_post_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
+
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
 	}
 }

@@ -2417,7 +2417,7 @@ class Post extends Indexable {
 		 *
 		 * @since 4.4.0
 		 * @hook ep_post_meta_keys_db
-		 * @param {null} $meta_keys Distinct meta keys array
+		 * @param {array} $meta_keys Distinct meta keys array
 		 * @return {array} New distinct meta keys array
 		 */
 		return (array) apply_filters( 'ep_post_meta_keys_db', $meta_keys );
@@ -2438,10 +2438,11 @@ class Post extends Indexable {
 		 *
 		 * @since 4.4.0
 		 * @hook ep_post_pre_meta_keys_db_per_post_type
-		 * @param {null} $meta_keys Distinct meta keys array
+		 * @param {null}   $meta_keys Distinct meta keys array
+		 * @param {string} $post_type Post type slug
 		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
 		 */
-		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db_per_post_type', null );
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db_per_post_type', null, $post_type );
 		if ( null !== $pre_meta_keys ) {
 			return $pre_meta_keys;
 		}
@@ -2459,10 +2460,11 @@ class Post extends Indexable {
 		 *
 		 * @since 4.4.0
 		 * @hook ep_post_meta_keys_db_per_post_type
-		 * @param {null} $meta_keys Distinct meta keys array
+		 * @param {array}  $meta_keys Distinct meta keys array
+		 * @param {string} $post_type Post type slug
 		 * @return {array} New distinct meta keys array
 		 */
-		return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $meta_keys );
+		return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $meta_keys, $post_type );
 	}
 
 	/**
