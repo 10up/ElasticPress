@@ -7890,4 +7890,45 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->post_count );
 
 	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys_db
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetDistinctMetaFieldKeysDb() {
+		global $wpdb;
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db() );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db` filter
+		 */
+		$return_custom_array = function() {
+			return [ 'totally_custom_key' ];
+		};
+		add_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
+
+		$num_queries = $wpdb->num_queries;
+		$this->assertGreaterThan( 0, $num_queries );
+
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		remove_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db` filter
+		 */
+		$return_custom_array = function( $meta_keys ) {
+			return array_merge( $meta_keys, [ 'custom_key' ] );
+		};
+		add_filter( 'ep_post_meta_keys_db', $return_custom_array );
+
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db() );
+	}
 }
