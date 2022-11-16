@@ -110,7 +110,7 @@ describe('WordPress can perform standard ElasticPress actions', () => {
 		cy.login();
 		cy.visitAdminPage('site-health.php?tab=debug');
 		cy.get('[aria-controls="health-check-accordion-block-ep-last-sync"]').click();
-		cy.get('#health-check-accordion-block-ep_last_sync .health-check-table').as('syncTable');
+		cy.get('#health-check-accordion-block-ep-last-sync .health-check-table').as('syncTable');
 		cy.get('@syncTable').get('tr:nth-child(1) td').should('contain.text', 'Method');
 		cy.get('@syncTable').get('tr:nth-child(2) td').should('contain.text', 'Start Date Time');
 		cy.get('@syncTable').get('tr:nth-child(3) td').should('contain.text', 'End Date Time');
