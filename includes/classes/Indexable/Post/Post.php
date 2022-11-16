@@ -2427,10 +2427,11 @@ class Post extends Indexable {
 	 * Return all distinct meta fields in the database per post type.
 	 *
 	 * @since 4.4.0
-	 * @param string $post_type Post type slug
+	 * @param string $post_type     Post type slug
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type ) : array {
+	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ) : array {
 		/**
 		 * Short-circuits the process of getting distinct meta keys from the database per post type.
 		 *
@@ -2447,6 +2448,16 @@ class Post extends Indexable {
 			return $pre_meta_keys;
 		}
 
+		$cache_key = 'ep_meta_field_keys_' . $post_type;
+
+		if ( ! $force_refresh ) {
+			$cached = get_transient( $cache_key );
+			if ( false !== $cached ) {
+				/* this filter is documented below */
+				return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $cached, $post_type );
+			}
+		}
+
 		$meta_keys        = [];
 		$post_ids_batches = $this->get_lazy_post_type_ids( $post_type );
 		foreach ( $post_ids_batches as $post_ids ) {
@@ -2454,6 +2465,8 @@ class Post extends Indexable {
 
 			$meta_keys = array_unique( array_merge( $meta_keys, $new_meta_keys ) );
 		}
+
+		set_transient( $cache_key, $meta_keys, DAY_IN_SECONDS );
 
 		/**
 		 * Filter the distinct meta keys fetched from the database per post type.
@@ -2472,11 +2485,12 @@ class Post extends Indexable {
 	 *
 	 * @since 4.4.0
 	 * @param string $post_type Post type slug
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_indexable_meta_keys_per_post_type( string $post_type ) : array {
+	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ) : array {
 		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
-		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type );
+		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type, $force_refresh );
 
 		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
 		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $mock_post );

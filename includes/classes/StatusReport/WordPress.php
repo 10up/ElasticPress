@@ -192,14 +192,15 @@ class WordPress extends Report {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
-		$limited = false;
+		$limited       = false;
+		$force_refresh = ! empty( $_GET['force_refresh'] ); // phpcs:ignore WordPress.Security.NonceVerification
 
 		$meta_keys = [];
 		$all_keys  = [];
 		foreach ( $post_types as $post_type ) {
 			$post_type_obj = get_post_type_object( $post_type );
 
-			$meta_keys_post_type = $post_indexable->get_indexable_meta_keys_per_post_type( $post_type );
+			$meta_keys_post_type = $post_indexable->get_indexable_meta_keys_per_post_type( $post_type, $force_refresh );
 			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
 
 			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
