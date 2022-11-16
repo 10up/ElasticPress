@@ -769,17 +769,38 @@ class AdminNotices {
 			return false;
 		}
 
-		$post_indexable   = Indexables::factory()->get( 'post' );
-		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
-		$count_fields_db  = count( $indexable_fields );
+		$post_indexable = Indexables::factory()->get( 'post' );
 
-		$index_name     = $post_indexable->get_index_name();
-		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
-		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+		$has_error   = false;
+		$has_warning = false;
 
-		$predicted_es_field_count = $count_fields_db * 8;
+		$indexable_sites = wp_list_pluck( Utils\get_indexable_sites(), 'blog_id' );
+		foreach ( $indexable_sites as $site_id ) {
+			switch_to_blog( $site_id );
 
-		if ( $predicted_es_field_count > $es_field_limit ) {
+			$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
+			$count_fields_db  = count( $indexable_fields );
+
+			$index_name     = $post_indexable->get_index_name();
+			$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
+			$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+
+			$predicted_es_field_count = $count_fields_db * 8;
+
+			if ( $predicted_es_field_count > $es_field_limit ) {
+				$has_error = true;
+				restore_current_blog();
+				break;
+			}
+
+			if ( $predicted_es_field_count * 1.2 > $es_field_limit ) {
+				$has_warning = true;
+			}
+
+			restore_current_blog();
+		}
+
+		if ( $has_error ) {
 			$message = sprintf(
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">that limit</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
@@ -795,7 +816,7 @@ class AdminNotices {
 			];
 		}
 
-		if ( $predicted_es_field_count * 1.2 > $es_field_limit ) {
+		if ( $has_warning ) {
 			$message = sprintf(
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">that limit</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
