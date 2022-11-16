@@ -133,7 +133,7 @@ class TestElasticsearch extends BaseTestCase {
 		$index_name = 'test-index';
 		$cache_key  = 'ep_total_fields_limit_' . $index_name;
 
-		$transient_filter_name = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'pre_site_transient_' . $cache_key : 'pre_site_' . $cache_key;
+		$transient_filter_name = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'pre_site_transient_' . $cache_key : 'pre_transient_' . $cache_key;
 
 		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\Elasticsearch::class )
 			->setMethods( [ 'get_index_settings' ] )
