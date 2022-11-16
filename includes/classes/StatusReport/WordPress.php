@@ -205,8 +205,12 @@ class WordPress extends Report {
 			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
 			$limited    = $limited || ( $post_count > 80000 );
 
+			$post_type_label = $post_type_obj ?
+				sprintf( '%s (%s)', $post_type_obj->labels->singular_name, $post_type ) :
+				$post_type;
+
 			$meta_keys[ $post_type ] = [
-				'label' => $post_type_obj ? $post_type_obj->labels->singular_name : $post_type,
+				'label' => $post_type_label,
 				'value' => count( $meta_keys_post_type ),
 			];
 		}
@@ -215,13 +219,7 @@ class WordPress extends Report {
 			$title       = __( 'Meta Key Counts (Limited)', 'elasticpress' );
 			$description = __( 'Due to the number of posts in the site, the result set per post type is limited.', 'elasticpress' );
 
-			$empty_post = new \WP_Post( (object) [] );
-			$all_keys   = array_filter(
-				$post_indexable->get_distinct_meta_field_keys_db(),
-				function( $meta ) use ( $post_indexable, $empty_post ) {
-					return $post_indexable->is_meta_allowed( $meta, $empty_post );
-				}
-			);
+			$all_keys = $post_indexable->get_predicted_indexable_meta_keys();
 		} else {
 			$title       = __( 'Meta Key Counts', 'elasticpress' );
 			$description = '';

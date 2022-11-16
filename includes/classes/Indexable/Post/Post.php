@@ -2474,12 +2474,47 @@ class Post extends Indexable {
 	 */
 	public function get_indexable_meta_keys_per_post_type( string $post_type ) : array {
 		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
+		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type );
+
+		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
+		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $mock_post );
+
 		return array_filter(
-			$this->get_distinct_meta_field_keys_db_per_post_type( $post_type ),
+			array_keys( $filtered_meta ),
 			function ( $meta_key ) use ( $mock_post ) {
 				return $this->is_meta_allowed( $meta_key, $mock_post );
 			}
 		);
+	}
+
+	/**
+	 * Return the meta keys that will (possibly) be indexed.
+	 *
+	 * This function gets all the meta keys in the database, creates a fake post without a type and with all the meta fields,
+	 * runs the `ep_prepare_meta_data` filter against it and checks if meta keys are allowed or not.
+	 * Although it provides a good indicator, it is not 100% correct as developers could create code using the
+	 * `ep_prepare_meta_data` filter that would depend on "real" data.
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	public function get_predicted_indexable_meta_keys() : array {
+		$empty_post = new \WP_Post( (object) [] );
+		$meta_keys  = $this->get_distinct_meta_field_keys_db();
+
+		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
+		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $empty_post );
+
+		$all_keys = array_filter(
+			array_keys( $filtered_meta ),
+			function( $meta_key ) use ( $empty_post ) {
+				return $this->is_meta_allowed( $meta_key, $empty_post );
+			}
+		);
+
+		sort( $all_keys );
+
+		return $all_keys;
 	}
 
 	/**
