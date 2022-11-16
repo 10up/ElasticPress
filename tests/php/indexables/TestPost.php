@@ -7948,8 +7948,9 @@ class TestPost extends BaseTestCase {
 			[
 				'post_type'    => 'ep_test',
 				'meta_input'   => [
-					'test_key_1' => 'meta value 1',
-					'test_key_2' => 'meta value 2.1',
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
 				],
 			],
 		);
@@ -7963,7 +7964,7 @@ class TestPost extends BaseTestCase {
 			],
 		);
 
-		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} pm LEFT JOIN {$wpdb->posts} p ON pm.post_id = p.ID WHERE post_type = 'ep_test'" );
+		$meta_keys = [ '_private_key', 'test_key_1', 'test_key_2' ];
 		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
 
 		/**
@@ -7994,5 +7995,87 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_post_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
 
 		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+	}
+
+	/**
+	 * Tests get_indexable_meta_keys_per_post_type
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetIndexableMetaKeysPerPostType() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
+
+		$meta_keys = [ 'test_key_1', 'test_key_2' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
+
+		$change_allowed_meta = function () {
+			return [ 'test_key_1' => 'meta value 1' ];
+		};
+		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
+
+		$meta_keys = [ 'test_key_1' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
+	}
+
+	/**
+	 * Tests get_predicted_indexable_meta_keys
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetPredictedIndexableMetaKeys() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
+
+		$meta_keys = [ 'test_key_1', 'test_key_2', 'test_key_3' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+
+		$change_allowed_meta = function () {
+			return [ 'test_key_1' => 'meta value 1' ];
+		};
+		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
+
+		$meta_keys = [ 'test_key_1' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
 	}
 }
