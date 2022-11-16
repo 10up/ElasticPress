@@ -122,4 +122,81 @@ class TestElasticsearch extends BaseTestCase {
 
 		$this->markTestIncomplete( 'This test should also test the index settings update.' );
 	}
+
+	/**
+	 * Test get_index_total_fields_limit
+	 *
+	 * @since 4.4.0
+	 * @group elasticsearch
+	 */
+	public function testGetIndexTotalFieldsLimit() {
+		$index_name = 'test-index';
+		$cache_key  = 'ep_total_fields_limit_' . $index_name;
+
+		$transient_filter_name = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'pre_site_transient_' . $cache_key : 'pre_site_' . $cache_key;
+
+		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\Elasticsearch::class )
+			->setMethods( [ 'get_index_settings' ] )
+			->getMock();
+
+
+		$wrong_settings = [ '' ];
+		$right_settings = [
+			$index_name => [
+				'settings' => [
+					'index.mapping.total_fields.limit' => 123,
+				],
+			],
+		];
+
+		/**
+		 * We call get_index_total_fields_limit 4 times:
+		 * 1. Fake cache, so get_index_settings is not called
+		 * 2. get_index_settings returns a WP_Error
+		 * 3. get_index_settings returns a settings array that does not match what we expect
+		 * 4. get_index_settings returns what we expect
+		 */
+		$elasticsearch_mock->expects( $this->exactly( 3 ) )
+             ->method( 'get_index_settings' )
+			 ->willReturnOnConsecutiveCalls(
+				[ new \WP_Error() ],
+				$wrong_settings,
+				$right_settings
+			 );
+
+		/**
+		 * Test when cached
+		 */
+		$set_cached_value = function() {
+			return 'cached';
+		};
+		add_filter( $transient_filter_name, $set_cached_value );
+		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
+		$this->assertSame( 'cached', $limit );
+
+		remove_filter( $transient_filter_name, $set_cached_value );
+
+		/**
+		 * Test when the request errors out
+		 */
+		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
+		$this->assertNull( $limit );
+
+		/**
+		 * Test when the request returns something we do not expect
+		 */
+		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
+		$this->assertNull( $limit );
+
+		/**
+		 * Test when the request returns something we do expect
+		 */
+		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
+		$this->assertSame( 123, $limit );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$this->assertSame( 123, get_site_transient( $cache_key ) );
+		} else {
+			$this->assertSame( 123, get_transient( $cache_key ) );
+		}
+	}
 }
