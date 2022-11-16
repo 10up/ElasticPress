@@ -2432,6 +2432,27 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+		$allowed_screen = 'status-report' === \ElasticPress\Screen::factory()->get_current_screen();
+
+		/**
+		 * Filter if the current screen is allowed or not to use the function.
+		 *
+		 * This method can be too resource intensive, use it with caution.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db_per_post_type_allowed_screen
+		 * @param {bool} $allowed_screen Whether this is an allowed screen or not.
+		 * @return {bool} New value of $allowed_screen
+		 */
+		if ( ! apply_filters( 'ep_post_meta_keys_db_per_post_type_allowed_screen', $allowed_screen ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'This method should not be called outside specific pages. Use the `ep_post_meta_keys_db_per_post_type_allowed_screen` filter if you need to use it in your custom screen.' ),
+				'ElasticPress 4.4.0'
+			);
+			return [];
+		}
+
 		/**
 		 * Short-circuits the process of getting distinct meta keys from the database per post type.
 		 *

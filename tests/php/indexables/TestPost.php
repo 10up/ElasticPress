@@ -7938,11 +7938,17 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 4.4.0
 	 * @group post
+	 * @expectedIncorrectUsage ElasticPress\Indexable\Post\Post::get_distinct_meta_field_keys_db_per_post_type
 	 */
 	public function testGetDistinctMetaFieldKeysDbPerPostType() {
 		global $wpdb;
 
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		// Without setting the correct screen, this should throw a _doing_it_wrong
+		$this->assertSame( [], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
 
 		$this->ep_factory->post->create(
 			[
@@ -8004,6 +8010,8 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testGetIndexableMetaKeysPerPostType() {
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
 		$this->ep_factory->post->create(
