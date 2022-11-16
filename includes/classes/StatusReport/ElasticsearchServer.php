@@ -65,7 +65,7 @@ class ElasticsearchServer extends Report {
 
 		return [
 			[
-				'title'  => __( 'Basic ES Info', 'elasticpress' ),
+				'title'  => __( 'Elasticsearch Environment', 'elasticpress' ),
 				'fields' => $fields,
 			],
 		];

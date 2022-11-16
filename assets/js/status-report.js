@@ -5,16 +5,34 @@
  */
 import domReady from '@wordpress/dom-ready';
 
-domReady(() => {
+/**
+ * Status report copy button.
+ *
+ * @returns {void}
+ */
+const init = () => {
 	const clipboard = new ClipboardJS('#ep-copy-report');
-	clipboard.on('success', function (e) {
-		const copySuccess = document.getElementById('ep-copy-success');
-		setTimeout(function () {
-			copySuccess.style.display = 'inline-block';
-		}, 300);
-		setTimeout(function () {
-			copySuccess.style.display = 'none';
-		}, 5000);
-		e.clearSelection();
-	});
-});
+
+	/**
+	 * Handle successful copy.
+	 *
+	 * @param {Event} event Copy event.
+	 * @returns {void}
+	 */
+	const onSuccess = (event) => {
+		event.trigger.nextElementSibling.style.display = 'initial';
+
+		setTimeout(() => {
+			event.trigger.nextElementSibling.style.display = 'none';
+		}, 3000);
+
+		event.clearSelection();
+	};
+
+	/**
+	 * Bind events.
+	 */
+	clipboard.on('success', onSuccess);
+};
+
+domReady(init);

@@ -25,7 +25,7 @@ class Features extends Report {
 	 * @return string
 	 */
 	public function get_title() : string {
-		return __( 'Features', 'elasticpress' );
+		return __( 'Settings', 'elasticpress' );
 	}
 
 	/**

@@ -63,13 +63,12 @@ class StatusReport {
 
 		$reports['wordpress'] = new \ElasticPress\StatusReport\WordPress();
 		$reports['es_server'] = new \ElasticPress\StatusReport\ElasticsearchServer();
+		$reports['indices']   = new \ElasticPress\StatusReport\Indices();
 
 		if ( Utils\is_epio() ) {
 			$reports['autosuggest'] = new \ElasticPress\StatusReport\Autosuggest();
 		}
 
-		$reports['indices']   = new \ElasticPress\StatusReport\Indices();
-		$reports['post_meta'] = new \ElasticPress\StatusReport\PostMeta();
 		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
 		$reports['features']  = new \ElasticPress\StatusReport\Features();
 
@@ -103,10 +102,14 @@ class StatusReport {
 
 		?>
 		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
-		<button class="button" type="button" id="ep-copy-report" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>"><?php esc_html_e( 'Copy Status Report', 'elasticpress' ); ?></button>
-		<div id="ep-copy-success">
-			<span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Report Copied!', 'elasticpress' ); ?>
-		</div>
+		<p class="ep-copy-button-wrapper">
+			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button" >
+				<?php esc_html_e( 'Copy status report to clipboard', 'elasticpress' ); ?>
+			</button>
+			<span class="ep-copy-button-wrapper__success">
+				<?php esc_html_e( 'Copied!', 'elasticpress' ); ?>
+			</span>
+		</p>
 		<?php
 		echo wp_kses_post( implode( '', $html_output ) );
 	}
@@ -122,14 +125,17 @@ class StatusReport {
 		ob_start();
 		?>
 		<h2><?php echo esc_html( $title ); ?></h2>
-		<?php
-		foreach ( $groups as $group ) {
-			?>
-			<h3><?php echo esc_html( $group['title'] ); ?></h3>
-			<?php if ( ! empty( $group['description'] ) ) { ?>
-				<p><?php echo esc_html( $group['description'] ); ?></p>
-			<?php } ?>
-			<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
+		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
+			<?php foreach ( $groups as $group ) : ?>
+				<?php if ( isset( $group['title'] ) ) : ?>
+					<thead>
+						<tr>
+							<th colspan="2">
+								<?php echo esc_html( $group['title'] ); ?>
+							</th>
+						</tr>
+					</thead>
+				<?php endif; ?>
 				<tbody>
 					<?php
 					foreach ( $group['fields'] as $slug => $field ) {
@@ -146,10 +152,9 @@ class StatusReport {
 					}
 					?>
 				</tbody>
-			</table>
-			<?php
-		}
-
+			<?php endforeach; ?>
+		</table>
+		<?php
 		return ob_get_clean();
 	}
 

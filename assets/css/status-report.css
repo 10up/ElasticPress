@@ -2,17 +2,37 @@
 	max-width: 1200px;
 
 	& h2 {
-		color: #1d2327;
-		font-size: 1.5em;
-		margin-top: 1.5em;
+		margin-top: 20px;
 	}
 
-	& table tr td:first-of-type {
-		min-width: 50px;
-		width: 25%;
-	}
+	& table {
 
-	& #ep-copy-success {
-		display: none;
+		& thead {
+
+			& th {
+				font-weight: 600;
+			}
+
+			&:not(:first-child) th {
+				border-top: 1px solid #c3c4c7;
+			}
+		}
+
+		& tr td:first-of-type {
+			min-width: 50px;
+			width: 30%;
+		}
 	}
+}
+
+.ep-copy-button-wrapper {
+	align-items: center;
+	display: inline-flex;
+	margin: 0.5rem 0 1rem;
+}
+
+.ep-copy-button-wrapper__success {
+	color: #008a20;
+	display: none;
+	margin-left: 0.5rem;
 }

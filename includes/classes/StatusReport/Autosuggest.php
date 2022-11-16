@@ -23,7 +23,7 @@ class Autosuggest extends Report {
 	 * @return string
 	 */
 	public function get_title() : string {
-		return __( 'ElasticPress.io - Autosuggest', 'elasticpress' );
+		return __( 'ElasticPress.io', 'elasticpress' );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class Autosuggest extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
-		$title = __( 'Allowed parameters', 'elasticpress' );
+		$title = __( 'Allowed Autosuggest Parameters', 'elasticpress' );
 
 		$autosuggest_feature = \ElasticPress\Features::factory()->get_registered_feature( 'autosuggest' );
 		$allowed_params      = $autosuggest_feature->epio_autosuggest_set_and_get();

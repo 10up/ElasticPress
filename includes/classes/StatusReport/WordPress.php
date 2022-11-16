@@ -36,6 +36,7 @@ class WordPress extends Report {
 			$this->get_wp_basic_group(),
 			$this->get_server_group(),
 			$this->get_post_count_group(),
+			$this->get_post_meta_group(),
 		];
 	}
 
@@ -109,7 +110,7 @@ class WordPress extends Report {
 		];
 
 		return [
-			'title'  => __( 'WordPress Basic Info', 'elasticpress' ),
+			'title'  => __( 'WordPress Environment', 'elasticpress' ),
 			'fields' => $fields,
 		];
 	}
@@ -138,7 +139,7 @@ class WordPress extends Report {
 		];
 
 		return [
-			'title'  => __( 'Server Info', 'elasticpress' ),
+			'title'  => __( 'Server Environment', 'elasticpress' ),
 			'fields' => $fields,
 		];
 	}
@@ -178,8 +179,71 @@ class WordPress extends Report {
 		}
 
 		return [
-			'title'  => __( 'Post Count Per Type', 'elasticpress' ),
+			'title'  => __( 'Post Type Counts', 'elasticpress' ),
 			'fields' => $fields,
+		];
+	}
+	/**
+	 * Process the count of meta keys.
+	 *
+	 * @return array
+	 */
+	protected function get_post_meta_group() : array {
+		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+		$post_types     = $post_indexable->get_indexable_post_types();
+
+		$limited = false;
+
+		$meta_keys = [];
+		$all_keys  = [];
+		foreach ( $post_types as $post_type ) {
+			$post_type_obj = get_post_type_object( $post_type );
+
+			$meta_keys_post_type = $post_indexable->get_indexable_meta_keys_per_post_type( $post_type );
+			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
+
+			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
+			$limited    = $limited || ( $post_count > 80000 );
+
+			$meta_keys[ $post_type ] = [
+				'label' => $post_type_obj ? $post_type_obj->labels->singular_name : $post_type,
+				'value' => count( $meta_keys_post_type ),
+			];
+		}
+
+		if ( $limited ) {
+			$title       = __( 'Meta Key Counts (Limited)', 'elasticpress' );
+			$description = __( 'Due to the number of posts in the site, the result set per post type is limited.', 'elasticpress' );
+
+			$empty_post = new \WP_Post( (object) [] );
+			$all_keys   = array_filter(
+				$post_indexable->get_distinct_meta_field_keys_db(),
+				function( $meta ) use ( $post_indexable, $empty_post ) {
+					return $post_indexable->is_meta_allowed( $meta, $empty_post );
+				}
+			);
+		} else {
+			$title       = __( 'Meta Key Counts', 'elasticpress' );
+			$description = '';
+
+			$all_keys = array_unique( $all_keys );
+			sort( $all_keys );
+		}
+
+		$meta_keys['total-all-post-types'] = [
+			'label' => __( 'Total Distinct Meta Keys', 'elasticpress' ),
+			'value' => count( $all_keys ),
+		];
+
+		$meta_keys['distinct-meta-keys'] = [
+			'label' => __( 'Distinct Meta Keys', 'elasticpress' ),
+			'value' => wp_sprintf( '%l', $all_keys ),
+		];
+
+		return [
+			'title'       => $title,
+			'description' => $description,
+			'fields'      => $meta_keys,
 		];
 	}
 }
