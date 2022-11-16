@@ -795,7 +795,7 @@ class AdminNotices {
 			];
 		}
 
-		if ( true || $predicted_es_field_count * 1.2 > $es_field_limit ) {
+		if ( $predicted_es_field_count * 1.2 > $es_field_limit ) {
 			$message = sprintf(
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">that limit</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
