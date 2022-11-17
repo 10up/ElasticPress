@@ -32,6 +32,7 @@ class LastSync extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
+		$title  = __( 'Last Sync', 'elasticpress' );
 		$fields = [];
 
 		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
@@ -41,7 +42,13 @@ class LastSync extends Report {
 				'label' => esc_html__( 'Last Sync', 'elasticpress' ),
 				'value' => esc_html__( 'Last sync info not available.', 'elasticpress' ),
 			];
-			return $fields;
+
+			return [
+				[
+					'title'  => $title,
+					'fields' => $fields,
+				],
+			];
 		}
 
 		if ( ! empty( $sync_info['end_time_gmt'] ) ) {
@@ -113,7 +120,7 @@ class LastSync extends Report {
 
 		return [
 			[
-				'title'  => __( 'Last Sync', 'elasticpress' ),
+				'title'  => $title,
 				'fields' => $fields,
 			],
 		];

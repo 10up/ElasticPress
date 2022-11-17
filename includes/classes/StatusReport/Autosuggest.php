@@ -38,9 +38,16 @@ class Autosuggest extends Report {
 		$allowed_params      = $autosuggest_feature->epio_autosuggest_set_and_get();
 
 		if ( empty( $allowed_params ) ) {
+			$fields['not_available'] = [
+				'label' => __( 'Allowed Autosuggest Parameters', 'elasticpress' ),
+				'value' => __( 'Allowed autosuggest parameters info not available.', 'elasticpress' ),
+			];
+
 			return [
-				'title'  => $title,
-				'fields' => [],
+				[
+					'title'  => $title,
+					'fields' => $fields,
+				],
 			];
 		}
 
