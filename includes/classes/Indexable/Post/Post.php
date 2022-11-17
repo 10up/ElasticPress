@@ -2390,9 +2390,10 @@ class Post extends Indexable {
 	 * Return all distinct meta fields in the database.
 	 *
 	 * @since 4.4.0
+	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db() : array {
+	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ) : array {
 		global $wpdb;
 
 		/**
@@ -2410,7 +2411,29 @@ class Post extends Indexable {
 			return $pre_meta_keys;
 		}
 
+		$cache_key = 'ep_meta_field_keys';
+
+		if ( ! $force_refresh ) {
+			$cached = get_transient( $cache_key );
+			if ( false !== $cached ) {
+				$cached = (array) json_decode( (string) $cached );
+				/* this filter is documented below */
+				return (array) apply_filters( 'ep_post_meta_keys_db', $cached );
+			}
+		}
+
 		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+
+		// Make sure the size of the transient will not be bigger than 1MB
+		do {
+			$transient_size = strlen( wp_json_encode( $meta_keys ) );
+			if ( $transient_size >= MB_IN_BYTES ) {
+				array_pop( $meta_keys );
+			} else {
+				break;
+			}
+		} while ( true );
+		set_transient( $cache_key, wp_json_encode( $meta_keys ), DAY_IN_SECONDS );
 
 		/**
 		 * Filter the distinct meta keys fetched from the database.
@@ -2543,11 +2566,12 @@ class Post extends Indexable {
 	 * `ep_prepare_meta_data` filter that would depend on "real" data.
 	 *
 	 * @since 4.4.0
+	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_predicted_indexable_meta_keys() : array {
+	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ) : array {
 		$empty_post = new \WP_Post( (object) [] );
-		$meta_keys  = $this->get_distinct_meta_field_keys_db();
+		$meta_keys  = $this->get_distinct_meta_field_keys_db( $force_refresh );
 
 		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
 		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $empty_post );

@@ -176,7 +176,7 @@ class IndexableContent extends Report {
 		}
 
 		if ( $limited ) {
-			$all_keys = $post_indexable->get_predicted_indexable_meta_keys();
+			$all_keys = $post_indexable->get_predicted_indexable_meta_keys( $force_refresh );
 		} else {
 			$all_keys = array_unique( $all_keys );
 		}
