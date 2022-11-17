@@ -718,7 +718,7 @@ class SyncManager extends SyncManagerAbstract {
 	public function clear_meta_keys_db_per_post_type_cache_by_post_id( $post_id ) {
 		$post_type = get_post_type( $post_id );
 		if ( $post_type ) {
-			$this->clear_meta_keys_db_per_post_type_cache( $post_type );
+			$this->clear_meta_keys_db_cache( $post_type );
 		}
 	}
 
@@ -732,7 +732,7 @@ class SyncManager extends SyncManagerAbstract {
 	public function clear_meta_keys_db_per_post_type_cache_by_meta( $meta_id, $post_id ) {
 		$post_type = get_post_type( $post_id );
 		if ( $post_type ) {
-			$this->clear_meta_keys_db_per_post_type_cache( $post_type );
+			$this->clear_meta_keys_db_cache( $post_type );
 		}
 	}
 
@@ -742,7 +742,8 @@ class SyncManager extends SyncManagerAbstract {
 	 * @param string $post_type The post type
 	 * @since 4.4.0
 	 */
-	public function clear_meta_keys_db_per_post_type_cache( $post_type ) {
+	protected function clear_meta_keys_db_cache( $post_type ) {
+		delete_transient( 'ep_meta_field_keys' );
 		delete_transient( 'ep_meta_field_keys_' . $post_type );
 	}
 
