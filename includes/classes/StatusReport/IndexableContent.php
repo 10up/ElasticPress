@@ -8,6 +8,8 @@
 
 namespace ElasticPress\StatusReport;
 
+use ElasticPress\Utils;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -43,18 +45,21 @@ class IndexableContent extends Report {
 	protected function get_indexable_content_groups() : array {
 		$groups = [];
 
-		if ( is_multisite() ) {
-			$sites = get_sites( [ 'fields' => 'ids' ] );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
 
-			foreach ( $sites as $site_id ) {
-				switch_to_blog( $site_id );
+				switch_to_blog( $site['blog_id'] );
 
 				$groups[] = $this->get_indexable_content_group();
-			}
 
-			restore_current_blog();
+				restore_current_blog();
+			}
 		} else {
-			$groups = $this->get_indexable_content_group();
+			$groups = [ $this->get_indexable_content_group() ];
 		}
 
 		return $groups;
