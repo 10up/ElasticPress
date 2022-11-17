@@ -2474,6 +2474,7 @@ class Post extends Indexable {
 		if ( ! $force_refresh ) {
 			$cached = get_transient( $cache_key );
 			if ( false !== $cached ) {
+				$cached = (array) json_decode( (string) $cached );
 				/* this filter is documented below */
 				return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $cached, $post_type );
 			}
@@ -2487,7 +2488,16 @@ class Post extends Indexable {
 			$meta_keys = array_unique( array_merge( $meta_keys, $new_meta_keys ) );
 		}
 
-		set_transient( $cache_key, $meta_keys, DAY_IN_SECONDS );
+		// Make sure the size of the transient will not be bigger than 1MB
+		do {
+			$transient_size = strlen( wp_json_encode( $meta_keys ) );
+			if ( $transient_size >= MB_IN_BYTES ) {
+				array_pop( $meta_keys );
+			} else {
+				break;
+			}
+		} while ( true );
+		set_transient( $cache_key, wp_json_encode( $meta_keys ), DAY_IN_SECONDS );
 
 		/**
 		 * Filter the distinct meta keys fetched from the database per post type.

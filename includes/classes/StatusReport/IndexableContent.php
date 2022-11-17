@@ -133,11 +133,11 @@ class IndexableContent extends Report {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
-		$limited       = false;
 		$force_refresh = ! empty( $_GET['force_refresh'] ); // phpcs:ignore WordPress.Security.NonceVerification
 
-		$fields   = [];
-		$all_keys = [];
+		$fields           = [];
+		$all_keys         = [];
+		$post_count_limit = 80000;
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_obj = get_post_type_object( $post_type );
@@ -146,22 +146,33 @@ class IndexableContent extends Report {
 			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
 
 			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
-			$limited    = $post_count > 80000;
+			$limited    = $post_count > $post_count_limit;
 
 			$post_type_label = $post_type_obj ?
 				sprintf( '%s (%s) Meta Keys', $post_type_obj->labels->singular_name, $post_type ) :
 				$post_type;
 
+			$value = count( $meta_keys_post_type );
+
+			$description = $limited
+				? sprintf(
+					/* translators: %1$s: Post count limit. %2$s: Post type name. */
+					__( 'For performance reasons the reported count is based on the first %1$s %2$s only. The actual number may be higher.', 'ep' ),
+					number_format( $post_count_limit ),
+					_n( $post_type_obj->labels->singular_name, $post_type_obj->labels->name, $post_count_limit )
+				) : '';
+
 			$fields[ $post_type . '_meta_keys' ] = [
 				'label'       => $post_type_label,
-				'description' => $limited
-					? sprintf(
-						/* translators: %s: Post type name. */
-						__( 'For performance reasons the reported count is based on the first 80,000 %s only. The actual number may be higher.', 'ep' ),
-						$post_type_obj->labels->name
-					) : '',
-				'value' => count( $meta_keys_post_type ),
+				'description' => $description,
+				'value'       => $value,
 			];
+		}
+
+		if ( $limited ) {
+			$all_keys = $post_indexable->get_predicted_indexable_meta_keys();
+		} else {
+			$all_keys = array_unique( $all_keys );
 		}
 
 		$fields['total-all-post-types'] = [
