@@ -136,8 +136,9 @@ class IndexableContent extends Report {
 		$limited       = false;
 		$force_refresh = ! empty( $_GET['force_refresh'] ); // phpcs:ignore WordPress.Security.NonceVerification
 
-		$fields   = [];
-		$all_keys = [];
+		$fields           = [];
+		$all_keys         = [];
+		$post_count_limit = 80000;
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_obj = get_post_type_object( $post_type );
@@ -146,15 +147,25 @@ class IndexableContent extends Report {
 			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
 
 			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
-			$limited    = $limited || ( $post_count > 80000 );
+			$limited    = $limited || ( $post_count > $post_count_limit );
 
 			$post_type_label = $post_type_obj ?
 				sprintf( '%s (%s) Meta Keys', $post_type_obj->labels->singular_name, $post_type ) :
 				$post_type;
 
+			$value = count( $meta_keys_post_type );
+			if ( $post_count > $post_count_limit ) {
+				$value = sprintf(
+					/* translators: 1. Number of meta fields; 2. Limit of posts analysed */
+					__( '%1$d (To avoid performance problems, this number is limited to the meta fields found in the first %2$d posts.)' ),
+					$value,
+					$post_count_limit
+				);
+			}
+
 			$fields[ $post_type . '_meta_keys' ] = [
 				'label' => $post_type_label,
-				'value' => count( $meta_keys_post_type ),
+				'value' => $value,
 			];
 		}
 
