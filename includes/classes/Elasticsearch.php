@@ -1684,12 +1684,12 @@ class Elasticsearch {
 	 * @since 4.4.0
 	 * @return array Array of indices in Elasticsearch
 	 */
-	public function get_cluster_indices() {
+	public function get_cluster_indices() : array {
 		$path = '_cat/indices?format=json';
 
 		$response = $this->remote_request( $path );
 
-		return json_decode( wp_remote_retrieve_body( $response ), true );
+		return (array) json_decode( wp_remote_retrieve_body( $response ), true );
 	}
 
 	/**
