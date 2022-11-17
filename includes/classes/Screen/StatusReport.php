@@ -62,6 +62,7 @@ class StatusReport {
 		$reports = [];
 
 		$reports['wordpress'] = new \ElasticPress\StatusReport\WordPress();
+		$reports['indexable'] = new \ElasticPress\StatusReport\IndexableContent();
 		$reports['es_server'] = new \ElasticPress\StatusReport\ElasticsearchServer();
 		$reports['indices']   = new \ElasticPress\StatusReport\Indices();
 

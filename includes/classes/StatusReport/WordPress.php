@@ -35,8 +35,6 @@ class WordPress extends Report {
 		return [
 			$this->get_wp_basic_group(),
 			$this->get_server_group(),
-			$this->get_post_count_group(),
-			$this->get_post_meta_group(),
 		];
 	}
 
@@ -141,108 +139,6 @@ class WordPress extends Report {
 		return [
 			'title'  => __( 'Server Environment', 'elasticpress' ),
 			'fields' => $fields,
-		];
-	}
-
-	/**
-	 * Process the count of all indexable post types and status
-	 *
-	 * @return array
-	 */
-	protected function get_post_count_group() : array {
-		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
-		$post_types     = $post_indexable->get_indexable_post_types();
-
-		$post_stati = $post_indexable->get_indexable_post_status();
-
-		foreach ( $post_types as $post_type ) {
-			$post_type_obj   = get_post_type_object( $post_type );
-			$post_type_label = $post_type_obj ? $post_type_obj->labels->singular_name : $post_type;
-
-			$post_count = (array) wp_count_posts( $post_type );
-
-			$post_count = array_reduce(
-				array_keys( $post_count ),
-				function ( $count, $post_status ) use ( $post_count, $post_stati ) {
-					if ( in_array( $post_status, $post_stati, true ) ) {
-						$count += $post_count[ $post_status ];
-					}
-					return $count;
-				},
-				0
-			);
-
-			$fields[ $post_type ] = [
-				'label' => sprintf( '%s (%s)', $post_type_label, $post_type ),
-				'value' => $post_count,
-			];
-		}
-
-		return [
-			'title'  => __( 'Post Type Counts', 'elasticpress' ),
-			'fields' => $fields,
-		];
-	}
-	/**
-	 * Process the count of meta keys.
-	 *
-	 * @return array
-	 */
-	protected function get_post_meta_group() : array {
-		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
-		$post_types     = $post_indexable->get_indexable_post_types();
-
-		$limited       = false;
-		$force_refresh = ! empty( $_GET['force_refresh'] ); // phpcs:ignore WordPress.Security.NonceVerification
-
-		$meta_keys = [];
-		$all_keys  = [];
-		foreach ( $post_types as $post_type ) {
-			$post_type_obj = get_post_type_object( $post_type );
-
-			$meta_keys_post_type = $post_indexable->get_indexable_meta_keys_per_post_type( $post_type, $force_refresh );
-			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
-
-			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
-			$limited    = $limited || ( $post_count > 80000 );
-
-			$post_type_label = $post_type_obj ?
-				sprintf( '%s (%s)', $post_type_obj->labels->singular_name, $post_type ) :
-				$post_type;
-
-			$meta_keys[ $post_type ] = [
-				'label' => $post_type_label,
-				'value' => count( $meta_keys_post_type ),
-			];
-		}
-
-		if ( $limited ) {
-			$title       = __( 'Meta Key Counts (Limited)', 'elasticpress' );
-			$description = __( 'Due to the number of posts in the site, the result set per post type is limited.', 'elasticpress' );
-
-			$all_keys = $post_indexable->get_predicted_indexable_meta_keys();
-		} else {
-			$title       = __( 'Meta Key Counts', 'elasticpress' );
-			$description = '';
-
-			$all_keys = array_unique( $all_keys );
-			sort( $all_keys );
-		}
-
-		$meta_keys['total-all-post-types'] = [
-			'label' => __( 'Total Distinct Meta Keys', 'elasticpress' ),
-			'value' => count( $all_keys ),
-		];
-
-		$meta_keys['distinct-meta-keys'] = [
-			'label' => __( 'Distinct Meta Keys', 'elasticpress' ),
-			'value' => wp_sprintf( '%l', $all_keys ),
-		];
-
-		return [
-			'title'       => $title,
-			'description' => $description,
-			'fields'      => $meta_keys,
 		];
 	}
 }
