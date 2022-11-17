@@ -38,11 +38,14 @@ class Indices extends Report {
 		$indices_in_es         = $elasticsearch->get_cluster_indices();
 		$indices_in_es_by_name = [];
 
-		foreach ( $indices_in_es as $index ) {
-			$indices_in_es_by_name[ $index['index'] ] = $index;
+		if ( ! empty( $indices_in_es ) ) {
+			foreach ( $indices_in_es as $index ) {
+				$indices_in_es_by_name[ $index['index'] ] = $index;
+			}
 		}
 
 		$groups = [];
+
 		foreach ( $should_have_indices as $index_name ) {
 			if ( empty( $indices_in_es_by_name[ $index_name ] ) ) {
 				$groups[] = [
