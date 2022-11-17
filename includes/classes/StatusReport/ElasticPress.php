@@ -40,6 +40,11 @@ class ElasticPress extends Report {
 		];
 	}
 
+	/**
+	 * Process ElasticPress's basic settings.
+	 *
+	 * @return array
+	 */
 	protected function get_basic_settings() : array {
 		$is_epio = Utils\is_epio();
 
@@ -76,6 +81,11 @@ class ElasticPress extends Report {
 		];
 	}
 
+	/**
+	 * Process ElasticPress timeouts.
+	 *
+	 * @return array
+	 */
 	protected function get_timeouts() {
 		$default_request_timeout   = 5;
 		$fields['request_timeout'] = [
