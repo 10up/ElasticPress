@@ -140,11 +140,17 @@ class StatusReport {
 				<tbody>
 					<?php
 					foreach ( $group['fields'] as $slug => $field ) {
-						$label = $field['label'] ?? $slug;
-						$value = $field['value'] ?? '';
+						$label       = $field['label'] ?? $slug;
+						$description = $field['description'] ?? '';
+						$value       = $field['value'] ?? '';
 						?>
 						<tr>
-							<td><?php echo esc_html( $label ); ?></td>
+							<td>
+								<?php echo esc_html( $label ); ?>
+								<?php if ( $description ) : ?>
+									<small><?php echo esc_html( $description ); ?></small>
+								<?php endif; ?>
+							</td>
 							<td>
 								<?php echo wp_kses_post( $this->render_value( $value ) ); ?>
 							</td>

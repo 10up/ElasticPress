@@ -22,6 +22,10 @@
 			min-width: 50px;
 			width: 30%;
 		}
+
+		& small {
+			display: block;
+		}
 	}
 }
 

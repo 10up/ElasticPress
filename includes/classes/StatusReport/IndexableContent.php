@@ -146,14 +146,20 @@ class IndexableContent extends Report {
 			$all_keys            = array_merge( $all_keys, $meta_keys_post_type );
 
 			$post_count = array_sum( (array) wp_count_posts( $post_type ) );
-			$limited    = $limited || ( $post_count > 80000 );
+			$limited    = $post_count > 80000;
 
 			$post_type_label = $post_type_obj ?
 				sprintf( '%s (%s) Meta Keys', $post_type_obj->labels->singular_name, $post_type ) :
 				$post_type;
 
 			$fields[ $post_type . '_meta_keys' ] = [
-				'label' => $post_type_label,
+				'label'       => $post_type_label,
+				'description' => $limited
+					? sprintf(
+						/* translators: %s: Post type name. */
+						__( 'For performance reasons the reported count is based on the first 80,000 %s only. The actual number may be higher.', 'ep' ),
+						$post_type_obj->labels->name
+					) : '',
 				'value' => count( $meta_keys_post_type ),
 			];
 		}
