@@ -156,9 +156,15 @@ class IndexableContent extends Report {
 
 			$description = $limited
 				? sprintf(
-					/* translators: %1$s: Post count limit. %2$s: Post type name. */
-					__( 'For performance reasons the reported count is based on the first %1$s %2$s only. The actual number may be higher.', 'ep' ),
-					number_format( $post_count_limit ),
+					/* translators: %1$s: Post count limit (defaults to 80,000). %2$s: Post type name. */
+					_n(
+						'For performance reasons the reported count is based on the first %1$s %2$s only. The actual number may be higher.',
+						'For performance reasons the reported count is based on the first %1$s %2$s only. The actual number may be higher.',
+						$post_count_limit,
+						'elasticpress'
+					),
+					number_format_i18n( $post_count_limit ),
+					// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
 					_n( $post_type_obj->labels->singular_name, $post_type_obj->labels->name, $post_count_limit )
 				) : '';
 
