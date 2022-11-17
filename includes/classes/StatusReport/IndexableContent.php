@@ -158,6 +158,12 @@ class IndexableContent extends Report {
 			];
 		}
 
+		if ( $limited ) {
+			$all_keys = $post_indexable->get_predicted_indexable_meta_keys();
+		} else {
+			$all_keys = array_unique( $all_keys );
+		}
+
 		$fields['total-all-post-types'] = [
 			'label' => __( 'Total Distinct Meta Keys', 'elasticpress' ),
 			'value' => count( $all_keys ),
