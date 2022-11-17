@@ -117,7 +117,7 @@ class IndexableContent extends Report {
 
 			$fields[ $post_type . '_count' ] = [
 				'label' => sprintf( '%s (%s)', $post_type_label, $post_type ),
-				'value' => $post_count,
+				'value' => number_format_i18n( $post_count ),
 			];
 		}
 
@@ -137,7 +137,7 @@ class IndexableContent extends Report {
 
 		$fields           = [];
 		$all_keys         = [];
-		$post_count_limit = 80000;
+		$post_count_limit = 88000;
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_obj = get_post_type_object( $post_type );
@@ -171,7 +171,7 @@ class IndexableContent extends Report {
 			$fields[ $post_type . '_meta_keys' ] = [
 				'label'       => $post_type_label,
 				'description' => $description,
-				'value'       => $value,
+				'value'       => number_format_i18n( $value ),
 			];
 		}
 
