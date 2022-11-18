@@ -8,9 +8,9 @@
 
 namespace ElasticPress\StatusReport;
 
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Feature\InstantResults as InstantResults;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Indexables;
+use ElasticPress\Feature\InstantResults;
+use ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
