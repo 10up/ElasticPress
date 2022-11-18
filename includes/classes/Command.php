@@ -1306,7 +1306,7 @@ class Command extends WP_CLI_Command {
 				break;
 
 			case 'error':
-				$this->clear_index();
+				$this->clear_sync();
 				WP_CLI::error( $message['message'] );
 				break;
 
