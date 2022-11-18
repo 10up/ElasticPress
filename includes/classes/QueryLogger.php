@@ -65,7 +65,17 @@ class QueryLogger {
 	 * @return boolean
 	 */
 	public function is_bulk_index_error( $query ) {
-		if ( $this->is_query_error( $query ) ) {
+		if ( is_wp_error( $query['request'] ) ) {
+			return true;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $query['request'] );
+		// Bulk index dynamically will eventually fire a 413 (too big) request but will recover from it
+		if ( 413 === $response_code && false !== strpos( wp_debug_backtrace_summary(), 'bulk_index_dynamically' ) ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_wp_debug_backtrace_summary
+			return false;
+		}
+
+		if ( $response_code < 200 || $response_code > 299 ) {
 			return true;
 		}
 
@@ -153,17 +163,23 @@ class QueryLogger {
 				$body = $query['args']['body'];
 			}
 		}
+		// If the body is too big, trim it down to avoid storing a too big log entry
+		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
+			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
+		}
 
+		$status = wp_remote_retrieve_response_code( $query['request'] );
 		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
 
 		return [
-			'wp_url'     => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
-			'es_req'     => $query['args']['method'] . ' ' . $query['url'],
-			'timestamp'  => current_time( 'timestamp' ),
-			'query_time' => $query_time,
-			'wp_args'    => $query['query_args'] ?? [],
-			'body'       => $body,
-			'result'     => $result,
+			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
+			'es_req'      => $query['args']['method'] . ' ' . $query['url'],
+			'timestamp'   => current_time( 'timestamp' ),
+			'query_time'  => $query_time,
+			'wp_args'     => $query['query_args'] ?? [],
+			'status_code' => $status,
+			'body'        => $body,
+			'result'      => $result,
 		];
 	}
 
@@ -222,7 +238,11 @@ class QueryLogger {
 	 * Clear the stored logs
 	 */
 	public function clear_logs() {
-		$this->update_logs( [] );
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( self::CACHE_KEY );
+		} else {
+			delete_transient( self::CACHE_KEY );
+		}
 	}
 
 	/**
@@ -251,7 +271,6 @@ class QueryLogger {
 				'delete_network_alias' => array( $this, 'is_query_error' ),
 				'create_network_alias' => array( $this, 'is_query_error' ),
 				'bulk_index'           => array( $this, 'is_bulk_index_error' ),
-				'bulk_index_posts'     => array( $this, 'is_query_error' ),
 				'delete_index'         => array( $this, 'maybe_log_delete_index' ),
 				'create_pipeline'      => array( $this, 'is_query_error' ),
 				'get_pipeline'         => array( $this, 'is_query_error' ),

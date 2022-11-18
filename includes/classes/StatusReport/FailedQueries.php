@@ -54,13 +54,14 @@ class FailedQueries extends Report {
 		$logs = $this->query_logger->get_logs();
 
 		$labels = [
-			'wp_url'     => esc_html__( 'Page URL', 'elasticpress' ),
-			'es_req'     => esc_html__( 'Elasticsearch Request', 'elasticpress' ),
-			'timestamp'  => esc_html__( 'Time', 'elasticpress' ),
-			'query_time' => esc_html__( 'Time Spent (ms)', 'elasticpress' ),
-			'wp_args'    => esc_html__( 'WP Query Args', 'elasticpress' ),
-			'body'       => esc_html__( 'Query Body', 'elasticpress' ),
-			'result'     => esc_html__( 'Query Result', 'elasticpress' ),
+			'wp_url'      => esc_html__( 'Page URL', 'elasticpress' ),
+			'es_req'      => esc_html__( 'Elasticsearch Request', 'elasticpress' ),
+			'timestamp'   => esc_html__( 'Time', 'elasticpress' ),
+			'query_time'  => esc_html__( 'Time Spent (ms)', 'elasticpress' ),
+			'wp_args'     => esc_html__( 'WP Query Args', 'elasticpress' ),
+			'status_code' => esc_html__( 'HTTP Status Code', 'elasticpress' ),
+			'body'        => esc_html__( 'Query Body', 'elasticpress' ),
+			'result'      => esc_html__( 'Query Result', 'elasticpress' ),
 		];
 
 		$groups = [];
