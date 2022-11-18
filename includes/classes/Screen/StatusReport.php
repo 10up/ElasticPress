@@ -127,6 +127,10 @@ class StatusReport {
 		?>
 		<h2><?php echo esc_html( $title ); ?></h2>
 		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
+			<colgroup>
+				<col>
+				<col>
+			</colgroup>
 			<?php foreach ( $groups as $group ) : ?>
 				<?php if ( isset( $group['title'] ) ) : ?>
 					<thead>
