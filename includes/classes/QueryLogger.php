@@ -28,6 +28,7 @@ class QueryLogger {
 	 */
 	public function setup() {
 		add_action( 'ep_remote_request', [ $this, 'log_query' ], 10, 2 );
+		add_filter( 'ep_admin_notices', [ $this, 'maybe_add_notice' ] );
 	}
 
 	/**
@@ -41,11 +42,11 @@ class QueryLogger {
 		$logs = $this->get_logs();
 		$keep = 5;
 
-		if ( $keep > 0 && count( $logs ) > $keep ) {
+		if ( $keep > 0 && count( $logs ) >= $keep ) {
 			return;
 		}
 
-		if ( ! $this->should_log_query_type( $query, $type ) ) {
+		if ( ! $this->should_log_query_type( $query, (string) $type ) ) {
 			return;
 		}
 
@@ -155,7 +156,7 @@ class QueryLogger {
 
 		return [
 			'wp_url'     => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
-			'es_url'     => $query['args']['method'] . ' ' . $query['url'],
+			'es_req'     => $query['args']['method'] . ' ' . $query['url'],
 			'timestamp'  => current_time( 'timestamp' ),
 			'query_time' => $query_time,
 			'wp_args'    => $query['query_args'] ?? [],
@@ -177,6 +178,42 @@ class QueryLogger {
 		} else {
 			set_transient( self::CACHE_KEY, $logs, DAY_IN_SECONDS );
 		}
+	}
+
+	/**
+	 * Conditionally display a notice in the admin
+	 *
+	 * @param array $notices Current EP notices
+	 * @return array
+	 */
+	public function maybe_add_notice( array $notices ) : array {
+		$current_ep_screen = \ElasticPress\Screen::factory()->get_current_screen();
+		if ( 'status-report' === $current_ep_screen ) {
+			return $notices;
+		}
+
+		$logs = $this->get_logs();
+		if ( empty( $logs ) ) {
+			return $notices;
+		}
+
+		$page = 'admin.php?page=elasticpress-status-report';
+
+		$status_report_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+			network_admin_url( $page ) :
+			admin_url( $page );
+
+		$notices['has_failed_queries'] = [
+			'html'    => sprintf(
+				/* translators: Status Report URL */
+				__( 'Some ElasticPress queries failed in the last 24 hours. Please visit the <a href="%s">Status Report page</a> for more details.', 'elasticpress' ),
+				$status_report_url . '#failed-queries'
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
 	}
 
 	/**

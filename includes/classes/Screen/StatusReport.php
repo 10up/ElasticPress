@@ -132,7 +132,7 @@ class StatusReport {
 	public function render_html_report( string $title, array $groups ) : string {
 		ob_start();
 		?>
-		<h2><?php echo esc_html( $title ); ?></h2>
+		<h2 id="<?php echo esc_attr( sanitize_title( $title ) ); ?>"><?php echo esc_html( $title ); ?></h2>
 		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
 			<colgroup>
 				<col>

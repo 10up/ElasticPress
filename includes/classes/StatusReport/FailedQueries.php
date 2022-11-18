@@ -9,6 +9,7 @@
 namespace ElasticPress\StatusReport;
 
 use \ElasticPress\QueryLogger;
+use \ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -54,7 +55,7 @@ class FailedQueries extends Report {
 
 		$labels = [
 			'wp_url'     => esc_html__( 'Page URL', 'elasticpress' ),
-			'es_url'     => esc_html__( 'Elasticsearch URL', 'elasticpress' ),
+			'es_req'     => esc_html__( 'Elasticsearch Request', 'elasticpress' ),
 			'timestamp'  => esc_html__( 'Time', 'elasticpress' ),
 			'query_time' => esc_html__( 'Time Spent (ms)', 'elasticpress' ),
 			'wp_args'    => esc_html__( 'WP Query Args', 'elasticpress' ),
@@ -64,9 +65,25 @@ class FailedQueries extends Report {
 
 		$groups = [];
 		foreach ( $logs as $log ) {
-			$fields = [];
+			list( $error, $solution ) = $this->analyze_log( $log );
+
+			$fields = [
+				[
+					'label' => __( 'Error', 'elasticpress' ),
+					'value' => $error,
+				],
+				[
+					'label' => __( 'Recommended Solution', 'elasticpress' ),
+					'value' => $solution,
+				],
+			];
 
 			foreach ( $log as $field => $value ) {
+				// Already outputted in the title
+				if ( in_array( $field, [ 'wp_url', 'timestamp' ], true ) ) {
+					continue;
+				}
+
 				$fields[ $field ] = [
 					'label' => $labels[ $field ] ?? $field,
 					'value' => $value,
@@ -80,5 +97,42 @@ class FailedQueries extends Report {
 		}
 
 		return $groups;
+	}
+
+	/**
+	 * Given a log, try to find the error and its solution
+	 *
+	 * @param array $log The log
+	 * @return array The error in index 0, solution in index 1
+	 */
+	protected function analyze_log( $log ) {
+		$error    = '';
+		$solution = '';
+
+		if ( ! empty( $log['result']['error'] ) && ! empty( $log['result']['error']['reason'] ) ) {
+			$error    = $log['result']['error']['reason'];
+			$solution = $this->maybe_suggest_solution_for_es( $error );
+		}
+
+		return [ $error, $solution ];
+	}
+
+	/**
+	 * Given an Elasticsearch error, try to suggest a solution
+	 *
+	 * @param string $error The error
+	 * @return string
+	 */
+	protected function maybe_suggest_solution_for_es( $error ) {
+		if ( preg_match( '/no such index \[(.*?)\]/', $error, $matches ) ) {
+			return sprintf(
+				/* translators: 1. Index name; 2. Sync Page URL */
+				__( 'It seems the %1$s index is missing. Run a <a href="%2$s">full sync</a> to fix the issue.', 'elasticpress' ),
+				'<code>' . $matches[1] . '</code>',
+				Utils\get_sync_url()
+			);
+		}
+
+		return '';
 	}
 }
