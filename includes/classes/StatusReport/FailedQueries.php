@@ -109,8 +109,8 @@ class FailedQueries extends Report {
 		$error    = '';
 		$solution = '';
 
-		if ( ! empty( $log['result']['error'] ) && ! empty( $log['result']['error']['reason'] ) ) {
-			$error    = $log['result']['error']['reason'];
+		if ( ! empty( $log['result']['error'] ) && ! empty( $log['result']['error']['root_cause'][0]['reason'] ) ) {
+			$error    = $log['result']['error']['root_cause'][0]['reason'];
 			$solution = $this->maybe_suggest_solution_for_es( $error );
 		}
 
@@ -127,7 +127,25 @@ class FailedQueries extends Report {
 		if ( preg_match( '/no such index \[(.*?)\]/', $error, $matches ) ) {
 			return sprintf(
 				/* translators: 1. Index name; 2. Sync Page URL */
-				__( 'It seems the %1$s index is missing. Run a <a href="%2$s">full sync</a> to fix the issue.', 'elasticpress' ),
+				__( 'It seems the %1$s index is missing. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
+				'<code>' . $matches[1] . '</code>',
+				Utils\get_sync_url()
+			);
+		}
+
+		if ( preg_match( '/No mapping found for \[(.*?)\] in order to sort on/', $error, $matches ) ) {
+			return sprintf(
+				/* translators: 1. Index name; 2. Sync Page URL */
+				__( 'The field %1$s was not found. Make sure it is added to the list of indexed fields and run <a href="%2$s">a new sync</a> to fix the issue.', 'elasticpress' ),
+				'<code>' . $matches[1] . '</code>',
+				Utils\get_sync_url()
+			);
+		}
+
+		if ( false !== strpos( 'Fielddata is disabled on text fields by default. Set fielddata=true on [post_date] in order to load fielddata in memory by uninverting the inverted index. Note that this can however use significant memory. Alternatively use a keyword field instead.', $error ) ) {
+			return sprintf(
+				/* translators: 1. Index name; 2. Sync Page URL */
+				__( 'It seems you saved a post without doing a full sync first. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
 				'<code>' . $matches[1] . '</code>',
 				Utils\get_sync_url()
 			);

@@ -29,6 +29,8 @@ class QueryLogger {
 	public function setup() {
 		add_action( 'ep_remote_request', [ $this, 'log_query' ], 10, 2 );
 		add_filter( 'ep_admin_notices', [ $this, 'maybe_add_notice' ] );
+
+		add_action( 'ep_sync_start_index', [ $this, 'clear_logs' ] );
 	}
 
 	/**
@@ -214,6 +216,13 @@ class QueryLogger {
 		];
 
 		return $notices;
+	}
+
+	/**
+	 * Clear the stored logs
+	 */
+	public function clear_logs() {
+		$this->update_logs( [] );
 	}
 
 	/**
