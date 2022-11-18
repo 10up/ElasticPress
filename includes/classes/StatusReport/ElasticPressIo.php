@@ -1,6 +1,6 @@
 <?php
 /**
- * Autosuggest report class
+ * ElasticPress.io report class
  *
  * @since 4.4.0
  * @package elasticpress
@@ -8,14 +8,18 @@
 
 namespace ElasticPress\StatusReport;
 
+use ElasticPress\Indexables;
+use ElasticPress\Feature\InstantResults;
+use ElasticPress\Utils;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Autosuggest report class
+ * ElasticPressIo report class
  *
  * @package ElasticPress
  */
-class Autosuggest extends Report {
+class ElasticPressIo extends Report {
 
 	/**
 	 * Return the report title
@@ -32,6 +36,18 @@ class Autosuggest extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
+		return [
+			$this->get_autosuggest_group(),
+			$this->get_instant_results_group(),
+		];
+	}
+
+	/**
+	 * Process the ElasticPress.io Autosuggest allowed parameters.
+	 *
+	 * @return array
+	 */
+	protected function get_autosuggest_group() : array {
 		$title = __( 'Allowed Autosuggest Parameters', 'elasticpress' );
 
 		$autosuggest_feature = \ElasticPress\Features::factory()->get_registered_feature( 'autosuggest' );
@@ -78,9 +94,73 @@ class Autosuggest extends Report {
 		}
 
 		return [
-			[
-				'title'  => $title,
-				'fields' => $formatted_fields,
+			'title'  => $title,
+			'fields' => $formatted_fields,
+		];
+	}
+
+	/**
+	 * Process the ElasticPress.io Instant Results templates.
+	 *
+	 * @return array
+	 */
+	protected function get_instant_results_group() : array {
+		$title  = __( 'Instant Results Template', 'elasticpress' );
+		$fields = [];
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
+				switch_to_blog( $site['blog_id'] );
+
+				$field  = $this->get_instant_results_field();
+				$fields = array_merge( $fields, $field );
+
+				restore_current_blog();
+			}
+		} else {
+			$fields = $this->get_instant_results_field();
+		}
+
+		return [
+			'title'  => $title,
+			'fields' => $fields,
+		];
+	}
+
+	/**
+	 * Process the ElasticPress.io Instant Results template.
+	 *
+	 * @return array|null
+	 */
+	protected function get_instant_results_field() : array {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
+		if ( ! $index ) {
+			return [];
+		}
+
+		$feature  = new InstantResults\InstantResults();
+		$template = $feature->get_saved_search_template();
+
+		if ( is_wp_error( $template ) ) {
+			return [
+				$index => [
+					'title' => $index,
+					'value' => $template->get_error_message(),
+				],
+			];
+		}
+
+		return [
+			$index => [
+				'title' => $index,
+				'value' => $template,
 			],
 		];
 	}

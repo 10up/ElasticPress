@@ -55,9 +55,8 @@ class HealthInfo {
 			return $debug_info;
 		}
 
-		$autosuggest_report = new \ElasticPress\StatusReport\Autosuggest();
-
-		$groups      = $autosuggest_report->get_groups();
+		$epio_report = new \ElasticPress\StatusReport\ElasticPressIo();
+		$groups      = $epio_report->get_groups();
 		$first_group = reset( $groups );
 
 		$debug_info['epio-autosuggest'] = [

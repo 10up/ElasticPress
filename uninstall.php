@@ -62,6 +62,7 @@ class EP_Uninstaller {
 		'ep_wpcli_sync',
 		'ep_es_info',
 		'ep_autosuggest_query_request_cache',
+		'ep_meta_field_keys',
 	];
 
 	/**

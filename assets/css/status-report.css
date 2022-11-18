@@ -6,6 +6,11 @@
 	}
 
 	& table {
+		table-layout: fixed;
+
+		& col:first-of-type {
+			width: 30%;
+		}
 
 		& thead {
 
@@ -16,11 +21,6 @@
 			&:not(:first-child) th {
 				border-top: 1px solid #c3c4c7;
 			}
-		}
-
-		& tr td:first-of-type {
-			min-width: 50px;
-			width: 30%;
 		}
 
 		& small {

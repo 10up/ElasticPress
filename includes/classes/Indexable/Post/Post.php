@@ -2607,7 +2607,7 @@ class Post extends Indexable {
 			return [];
 		}
 
-		$per_page = 10000;
+		$per_page = 11000;
 		$pages    = min( ceil( $total / $per_page ), 8 );
 
 		for ( $page = 0; $page < $pages; $page++ ) {

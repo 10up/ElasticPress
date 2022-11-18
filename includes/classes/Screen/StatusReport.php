@@ -67,7 +67,7 @@ class StatusReport {
 		$reports['indices']      = new \ElasticPress\StatusReport\Indices();
 
 		if ( Utils\is_epio() ) {
-			$reports['autosuggest'] = new \ElasticPress\StatusReport\Autosuggest();
+			$reports['autosuggest'] = new \ElasticPress\StatusReport\ElasticPressIo();
 		}
 
 		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
@@ -127,6 +127,10 @@ class StatusReport {
 		?>
 		<h2><?php echo esc_html( $title ); ?></h2>
 		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
+			<colgroup>
+				<col>
+				<col>
+			</colgroup>
 			<?php foreach ( $groups as $group ) : ?>
 				<?php if ( isset( $group['title'] ) ) : ?>
 					<thead>
