@@ -67,7 +67,7 @@ class StatusReport {
 		$reports['indices']      = new \ElasticPress\StatusReport\Indices();
 
 		if ( Utils\is_epio() ) {
-			$reports['autosuggest'] = new \ElasticPress\StatusReport\Autosuggest();
+			$reports['autosuggest'] = new \ElasticPress\StatusReport\ElasticPressIo();
 		}
 
 		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();

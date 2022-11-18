@@ -15,11 +15,11 @@ use ElasticPress\Utils as Utils;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Autosuggest report class
+ * ElasticPressIo report class
  *
  * @package ElasticPress
  */
-class Autosuggest extends Report {
+class ElasticPressIo extends Report {
 
 	/**
 	 * Return the report title
