@@ -189,12 +189,42 @@ class QueryLogger {
 	 * @param array $logs New logs array
 	 */
 	public function update_logs( array $logs ) {
-		$logs = wp_json_encode( $logs );
+		$max_cache_size = MB_IN_BYTES;
+
+		$logs_json_str      = wp_json_encode( $logs );
+		$logs_json_str_size = strlen( $logs_json_str );
+
+		// If the logs size is too big, remove older entries (except the newest one)
+		if ( $logs_json_str_size >= $max_cache_size ) {
+			$logs_count = count( $logs );
+			for ( $i = 0; $i < ( $logs_count - 1 ); $i++ ) {
+				array_pop( $logs );
+
+				$logs_json_str      = wp_json_encode( $logs );
+				$logs_json_str_size = strlen( $logs_json_str );
+
+				if ( $logs_json_str_size < $max_cache_size ) {
+					break;
+				}
+			}
+		}
+
+		// If even removing older entries, it is still too big, try to limit some of its info
+		if ( $logs_json_str_size >= $max_cache_size ) {
+			$logs[0]['body'] = '(removed due to its size)';
+
+			$logs_json_str      = wp_json_encode( $logs );
+			$logs_json_str_size = strlen( $logs_json_str );
+
+			if ( $logs_json_str_size >= $max_cache_size ) {
+				$logs[0]['result'] = '(removed due to its size)';
+			}
+		}
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			set_site_transient( self::CACHE_KEY, $logs, DAY_IN_SECONDS );
+			set_site_transient( self::CACHE_KEY, $logs_json_str, DAY_IN_SECONDS );
 		} else {
-			set_transient( self::CACHE_KEY, $logs, DAY_IN_SECONDS );
+			set_transient( self::CACHE_KEY, $logs_json_str, DAY_IN_SECONDS );
 		}
 	}
 
