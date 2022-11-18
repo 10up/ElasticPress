@@ -64,7 +64,14 @@ class StatusReport {
 		$reports['wordpress']    = new \ElasticPress\StatusReport\WordPress();
 		$reports['indexable']    = new \ElasticPress\StatusReport\IndexableContent();
 		$reports['elasticpress'] = new \ElasticPress\StatusReport\ElasticPress();
-		$reports['indices']      = new \ElasticPress\StatusReport\Indices();
+
+		/* this filter is documented in elasticpress.php */
+		$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+		if ( $query_logger ) {
+			$reports['failed_queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
+		}
+
+		$reports['indices'] = new \ElasticPress\StatusReport\Indices();
 
 		if ( Utils\is_epio() ) {
 			$reports['autosuggest'] = new \ElasticPress\StatusReport\ElasticPressIo();
