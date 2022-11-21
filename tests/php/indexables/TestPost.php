@@ -7948,27 +7948,7 @@ class TestPost extends BaseTestCase {
 		// Without setting the correct screen, this should throw a _doing_it_wrong
 		$this->assertSame( [], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
 
-		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
-
-		$this->ep_factory->post->create(
-			[
-				'post_type'    => 'ep_test',
-				'meta_input'   => [
-					'_private_key' => 'private-meta',
-					'test_key_1'   => 'meta value 1',
-					'test_key_2'   => 'meta value 2.1',
-				],
-			],
-		);
-		$this->ep_factory->post->create(
-			[
-				'post_type'    => 'ep_test_2',
-				'meta_input'   => [
-					'test_key_2' => 'meta value 2.2',
-					'test_key_3' => 'meta value 3',
-				],
-			],
-		);
+		$this->setupDistinctMetaFieldKeysDbPerPostType();
 
 		$meta_keys = [ '_private_key', 'test_key_1', 'test_key_2' ];
 		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
@@ -8001,6 +7981,39 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_post_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
 
 		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+	}
+
+
+	/**
+	 * Tests the filters in get_lazy_post_type_ids
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetLazyPostTypeIdsFilters() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->setupDistinctMetaFieldKeysDbPerPostType();
+
+		/**
+		 * Test the `ep_post_meta_by_type_ids_per_page` and `ep_post_meta_by_type_number_of_pages` filters
+		 */
+		$custom_number_of_ids = function( $per_page, $post_type ) {
+			$this->assertSame( 11000, $per_page );
+			$this->assertSame( $post_type, 'ep_test' );
+			return 1;
+		};
+		add_filter( 'ep_post_meta_by_type_ids_per_page', $custom_number_of_ids, 10, 2 );
+
+		$custom_number_of_pages = function( $pages, $per_page, $post_type ) {
+			$this->assertSame( 1, $per_page );
+			$this->assertSame( $post_type, 'ep_test' );
+			return 1;
+		};
+		add_filter( 'ep_post_meta_by_type_number_of_pages', $custom_number_of_pages, 10, 3 );
+
+		// All meta keys from the first post
+		$this->assertCount( 3, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
 	}
 
 	/**
@@ -8085,5 +8098,34 @@ class TestPost extends BaseTestCase {
 
 		$meta_keys = [ 'test_key_1' ];
 		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+	}
+
+	/**
+	 * Utilitary function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
+	 *
+	 * @return void
+	 */
+	protected function setupDistinctMetaFieldKeysDbPerPostType() {
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
 	}
 }
