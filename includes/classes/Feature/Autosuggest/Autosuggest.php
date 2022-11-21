@@ -399,15 +399,17 @@ class Autosuggest extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/js/autosuggest-script.min.js',
+			EP_URL . 'dist/js/autosuggest-script.js',
 			Utils\get_asset_info( 'autosuggest-script', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-script', 'version' ),
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-autosuggest', 'elasticpress' );
+
 		wp_enqueue_style(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/css/autosuggest-styles.min.css',
+			EP_URL . 'dist/css/autosuggest-styles.css',
 			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-styles', 'version' )
 		);
@@ -896,6 +898,7 @@ class Autosuggest extends Feature {
 							wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 							wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
 							wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
+							/* translators: List of files allowed to be returned wrapped by var_export() */
 							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ), // phpcs:ignore
 						];
 

@@ -20,9 +20,9 @@ class TestSynonyms extends BaseTestCase {
 	 *
 	 * @since 3.5
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -43,8 +43,8 @@ class TestSynonyms extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );

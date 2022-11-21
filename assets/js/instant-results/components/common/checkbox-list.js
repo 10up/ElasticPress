@@ -9,6 +9,7 @@ import { __, _n, sprintf } from '@wordpress/i18n';
  */
 import Checkbox from './checkbox';
 import SmallButton from './small-button';
+import { termCount } from '../../config';
 
 /**
  * Checkbox list component.
@@ -125,6 +126,10 @@ export default ({ disabled, label, locale, options, onChange, selected, sortBy }
 	 */
 	const displayOption = ({ count, id, label, value }) => {
 		const children = childOptions[value];
+		/**
+		 * Check for term count option.
+		 */
+		const counter = termCount === '1' ? count : '';
 
 		if (!showAll && optionsShown >= optionsLimit) {
 			return <Fragment key={value} />;
@@ -134,7 +139,7 @@ export default ({ disabled, label, locale, options, onChange, selected, sortBy }
 			<li className="ep-search-options-list__item" key={value}>
 				<Checkbox
 					checked={selected.includes(value)}
-					count={count}
+					count={counter}
 					disabled={disabled}
 					id={id}
 					label={label}

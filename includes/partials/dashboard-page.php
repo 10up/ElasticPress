@@ -8,16 +8,13 @@
 
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Features as Features;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$index_meta = get_site_option( 'ep_index_meta', false );
-} else {
-	$index_meta = get_option( 'ep_index_meta', false );
-}
+$index_meta = Utils\get_option( 'ep_index_meta', [] );
 ?>
 
 <?php require_once __DIR__ . '/header.php'; ?>

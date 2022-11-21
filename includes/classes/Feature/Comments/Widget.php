@@ -27,7 +27,11 @@ class Widget extends WP_Widget {
 	 * @since 3.6.0
 	 */
 	public function __construct() {
-		$options = array( 'description' => esc_html__( 'A search form for comments.', 'elasticpress' ) );
+		$options = array(
+			'description'           => esc_html__( 'A search form for comments.', 'elasticpress' ),
+			'show_instance_in_rest' => true,
+		);
+
 		parent::__construct( 'ep-comments', esc_html__( 'ElasticPress - Comments', 'elasticpress' ), $options );
 	}
 
@@ -48,14 +52,16 @@ class Widget extends WP_Widget {
 			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
 		}
 
+		$wrapper_id = 'ep-search-comments-' . uniqid();
 		?>
-		<div class="ep-widget-search-comments">
+		<div id="<?php echo esc_attr( $wrapper_id ); ?>" class="ep-widget-search-comments">
 			<?php
 			if ( ! empty( $instance['post_type'] ) ) {
 				?>
 				<input
+					class="ep-widget-search-comments-post-type"
 					type="hidden"
-					id="ep-widget-search-comments-post-type"
+					id="<?php echo esc_attr( $wrapper_id ); ?>-post-type"
 					value="<?php echo esc_attr( implode( ',', $instance['post_type'] ) ); ?>"
 				/>
 				<?php
@@ -67,42 +73,8 @@ class Widget extends WP_Widget {
 		$search_comments_html = ob_get_clean();
 
 		// Enqueue Script & Styles
-		wp_enqueue_script(
-			'elasticpress-comments',
-			EP_URL . 'dist/js/comments-script.min.js',
-			Utils\get_asset_info( 'comments-script', 'dependencies' ),
-			Utils\get_asset_info( 'comments-script', 'version' ),
-			true
-		);
-
-		wp_enqueue_style(
-			'elasticpress-comments',
-			EP_URL . 'dist/css/comments-styles.min.css',
-			Utils\get_asset_info( 'comments-styles', 'dependencies' ),
-			Utils\get_asset_info( 'comments-styles', 'version' )
-		);
-
-		$default_script_data = [
-			'noResultsFoundText'    => esc_html__( 'We could not find any results', 'elasticpress' ),
-			'minimumLengthToSearch' => 2,
-			'restApiEndpoint'       => get_rest_url( null, 'elasticpress/v1/comments' ),
-		];
-
-		/**
-		 * Filter the l10n data attached to the Widget Search Comments script
-		 *
-		 * @since  3.6.0
-		 * @hook ep_comment_search_widget_l10n_data_script
-		 * @param  {array} $default_script_data Default data attached to the script
-		 * @return  {array} New l10n data to be attached
-		 */
-		$script_data = apply_filters( 'ep_comment_search_widget_l10n_data_script', $default_script_data );
-
-		wp_localize_script(
-			'elasticpress-comments',
-			'epc',
-			$script_data
-		);
+		wp_enqueue_script( 'elasticpress-comments' );
+		wp_enqueue_style( 'elasticpress-comments' );
 
 		// phpcs:disable
 		/**
@@ -130,16 +102,7 @@ class Widget extends WP_Widget {
 		$title     = ( isset( $instance['title'] ) ) ? $instance['title'] : '';
 		$post_type = ( isset( $instance['post_type'] ) ) ? $instance['post_type'] : [];
 
-		$post_types_options = array_map(
-			'get_post_type_object',
-			array_filter(
-				Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types(),
-				function ( $post_type ) {
-					return post_type_supports( $post_type, 'comments' );
-				}
-			)
-		);
-
+		$post_types_options = Comments::get_searchable_post_types();
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
@@ -153,18 +116,18 @@ class Widget extends WP_Widget {
 				<?php esc_html_e( 'Search for comments on:', 'elasticpress' ); ?>
 			</label>
 
-			<?php foreach ( $post_types_options as $indexable_post_type ) : ?>
+			<?php foreach ( $post_types_options as $indexable_post_type => $label ) : ?>
 				<p>
 					<input
 						class="checkbox"
 						type="checkbox"
-						id="<?php echo esc_attr( $this->get_field_id( 'post_type' ) . '-' . $indexable_post_type->name ); ?>"
+						id="<?php echo esc_attr( $this->get_field_id( 'post_type' ) . '-' . $indexable_post_type ); ?>"
 						name="<?php echo esc_attr( $this->get_field_name( 'post_type' ) ); ?>[]"
-						value="<?php echo esc_attr( $indexable_post_type->name ); ?>"
-						<?php checked( in_array( $indexable_post_type->name, $post_type, true ) ); ?>
+						value="<?php echo esc_attr( $indexable_post_type ); ?>"
+						<?php checked( in_array( $indexable_post_type, $post_type, true ) ); ?>
 					/>
-					<label for="<?php echo esc_attr( $this->get_field_id( 'post_type' ) . '-' . $indexable_post_type->name ); ?>">
-						<?php echo esc_html( $indexable_post_type->label ); ?>
+					<label for="<?php echo esc_attr( $this->get_field_id( 'post_type' ) . '-' . $indexable_post_type ); ?>">
+						<?php echo esc_html( $label ); ?>
 					</label>
 				</p>
 			<?php endforeach; ?>

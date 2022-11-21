@@ -113,11 +113,29 @@ class QueryIntegration {
 			return $new_comments;
 		}
 
+		$new_comments = [];
+
 		$formatted_args = $this->indexable->format_args( $query->query_vars );
 
 		$scope = 'current';
+
+		$site__in     = [];
+		$site__not_in = [];
+
 		if ( ! empty( $query->query_vars['sites'] ) ) {
-			$scope = $query->query_vars['sites'];
+
+			_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
+			$site__in = (array) $query->query_vars['sites'];
+			$scope    = 'all' === $query->query_vars['sites'] ? 'all' : $site__in;
+		}
+
+		if ( ! empty( $query->query_vars['site__in'] ) ) {
+			$site__in = (array) $query->query_vars['site__in'];
+			$scope    = 'all' === $query->query_vars['site__in'] ? 'all' : $site__in;
+		}
+
+		if ( ! empty( $query->query_vars['site__not_in'] ) ) {
+			$site__not_in = (array) $query->query_vars['site__not_in'];
 		}
 
 		/**
@@ -138,16 +156,31 @@ class QueryIntegration {
 
 		if ( 'all' === $scope ) {
 			$this->index = $this->indexable->get_network_alias();
-		} elseif ( is_numeric( $scope ) ) {
-			$this->index = $this->indexable->get_index_name( (int) $scope );
-		} elseif ( is_array( $scope ) ) {
+		} elseif ( ! empty( $site__in ) ) {
 			$this->index = [];
 
-			foreach ( $scope as $site_id ) {
+			foreach ( $site__in as $site_id ) {
 				$this->index[] = $this->indexable->get_index_name( $site_id );
 			}
 
 			$this->index = implode( ',', $this->index );
+		} elseif ( ! empty( $site__not_in ) ) {
+
+			$sites = get_sites(
+				array(
+					'fields'       => 'ids',
+					'site__not_in' => $site__not_in,
+				)
+			);
+			foreach ( $sites as $site_id ) {
+				if ( ! Utils\is_site_indexable( $site_id ) ) {
+					continue;
+				}
+				$index[] = Indexables::factory()->get( 'comment' )->get_index_name( $site_id );
+			}
+
+			$this->index = implode( ',', $index );
+
 		}
 
 		$ep_query = $this->indexable->query_es( $formatted_args, $query->query_vars, $this->index, $query );

@@ -83,6 +83,7 @@ class InstantResults extends Feature {
 			'highlight_tag' => 'mark',
 			'facets'        => 'post_type,category,post_tag',
 			'match_type'    => 'all',
+			'term_count'    => '1',
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -171,6 +172,18 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Term Count', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label>
+					<input name="settings[term_count]" <?php checked( (bool) $this->settings['term_count'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+				</label><br>
+				<label>
+					<input name="settings[term_count]" <?php checked( ! (bool) $this->settings['term_count'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+				</label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
 
 		<?php
 	}
@@ -243,18 +256,20 @@ class InstantResults extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-instant-results',
-			EP_URL . 'dist/css/instant-results-styles.min.css',
+			EP_URL . 'dist/css/instant-results-styles.css',
 			Utils\get_asset_info( 'instant-results-styles', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-styles', 'version' )
 		);
 
 		wp_enqueue_script(
 			'elasticpress-instant-results',
-			EP_URL . 'dist/js/instant-results-script.min.js',
+			EP_URL . 'dist/js/instant-results-script.js',
 			Utils\get_asset_info( 'instant-results-script', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results', 'elasticpress' );
 
 		/**
 		 * The search API endpoint.
@@ -281,6 +296,7 @@ class InstantResults extends Feature {
 				'matchType'      => $this->settings['match_type'],
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
+				'termCount'      => $this->settings['term_count'],
 			)
 		);
 	}
@@ -299,11 +315,13 @@ class InstantResults extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-instant-results-admin',
-			EP_URL . 'dist/js/instant-results-admin-script.min.js',
+			EP_URL . 'dist/js/instant-results-admin-script.js',
 			Utils\get_asset_info( 'instant-results-admin-script', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results-admin', 'elasticpress' );
 
 		wp_localize_script(
 			'elasticpress-instant-results-admin',
@@ -923,4 +941,5 @@ class InstantResults extends Feature {
 		}
 		return $args;
 	}
+
 }

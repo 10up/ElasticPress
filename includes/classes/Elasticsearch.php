@@ -9,6 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils as Utils;
+use ElasticPress\Indexables;
 use \WP_Error as WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -431,7 +432,7 @@ class Elasticsearch {
 			$documents = [];
 
 			foreach ( $hits as $hit ) {
-				$document            = $hit['_source'];
+				$document            = isset( $hit['_source'] ) ? $hit['_source'] : array();
 				$document['site_id'] = $this->parse_site_id( $hit['_index'] );
 
 				if ( ! empty( $hit['highlight'] ) ) {
@@ -918,6 +919,28 @@ class Elasticsearch {
 		$request = $this->remote_request( $open, $request_args, [], 'open_index' );
 
 		return ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+	}
+
+	/**
+	 * Get index settings.
+	 *
+	 * @param string $index Index name.
+	 * @since  4.4.0
+	 * @return array|WP_Error Raw ES response from the $index/_settings?flat_settings=true endpoint
+	 */
+	public function get_index_settings( string $index ) {
+		$endpoint = trailingslashit( $index ) . '_settings?flat_settings=true';
+		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$settings = json_decode( $response_body, true );
+
+		return $settings;
 	}
 
 	/**
@@ -1613,6 +1636,51 @@ class Elasticsearch {
 		 * @param {array} $query Query to log
 		 */
 		do_action( 'ep_add_query_log', $query );
+	}
+
+	/**
+	 * Get all index names.
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	public function get_index_names() {
+		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
+
+		$all_indexables = Indexables::factory()->get_all();
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
+		}
+
+		return array_merge( $non_global_indexes, $global_indexes );
+	}
+
+	/**
+	 * Return all indices from the cluster.
+	 *
+	 * @since 4.4.0
+	 * @return WP_Error|array WP_Error on failure or The response
+	 */
+	public function get_cluster_indices() {
+		$path = '_cat/indices?format=json';
+
+		$response = $this->remote_request( $path );
+
+		return $response;
+
 	}
 
 }
