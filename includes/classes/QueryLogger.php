@@ -40,6 +40,11 @@ class QueryLogger {
 	 * @param string $type  Request type
 	 */
 	public function log_query( $query, $type ) {
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
+		if ( empty( $last_sync ) ) {
+			return;
+		}
+
 		$logs = $this->get_logs();
 
 		/**
