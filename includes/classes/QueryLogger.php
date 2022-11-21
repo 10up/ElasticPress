@@ -38,11 +38,21 @@ class QueryLogger {
 	 *
 	 * @param array  $query Remote request arguments
 	 * @param string $type  Request type
-	 * @since 1.3
 	 */
 	public function log_query( $query, $type ) {
 		$logs = $this->get_logs();
-		$keep = 5;
+
+		/**
+		 * Filter the number of queries to keep in the log
+		 *
+		 * @since 4.4.0
+		 * @hook ep_query_logger_queries_to_keep
+		 * @param {int}    $keep  Number of queries to keep in the log
+		 * @param {array}  $query Remote request arguments
+		 * @param {string} $type  Request type
+		 * @return {int} New number
+		 */
+		$keep = apply_filters( 'ep_query_logger_queries_to_keep', 5, $query, $type );
 
 		if ( $keep > 0 && count( $logs ) >= $keep ) {
 			return;
@@ -54,63 +64,18 @@ class QueryLogger {
 
 		array_unshift( $logs, $this->format_log_entry( $query, $type ) );
 
-		$this->update_logs( $logs );
-	}
+		$logs_json_str = $this->update_logs( $logs );
 
-	/**
-	 * Check the request body, as usually bulk indexing does not return a status error.
-	 *
-	 * @since 2.1.0
-	 * @param array $query Remote request arguments
-	 * @return boolean
-	 */
-	public function is_bulk_index_error( $query ) {
-		if ( is_wp_error( $query['request'] ) ) {
-			return true;
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $query['request'] );
-		// Bulk index dynamically will eventually fire a 413 (too big) request but will recover from it
-		if ( 413 === $response_code && false !== strpos( wp_debug_backtrace_summary(), 'bulk_index_dynamically' ) ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_wp_debug_backtrace_summary
-			return false;
-		}
-
-		if ( $response_code < 200 || $response_code > 299 ) {
-			return true;
-		}
-
-		$request_body = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
-		return ! empty( $request_body['errors'] );
-	}
-
-	/**
-	 * Only log delete index error if not 2xx AND not 404
-	 *
-	 * @param  array $query Remote request arguments
-	 * @since  1.3
-	 * @return bool
-	 */
-	public function maybe_log_delete_index( $query ) {
-		$response_code = wp_remote_retrieve_response_code( $query['request'] );
-
-		return ( ( $response_code < 200 || $response_code > 299 ) && 404 !== $response_code );
-	}
-
-	/**
-	 * Log all non-200 requests
-	 *
-	 * @param  array $query Remote request arguments
-	 * @since  1.3
-	 * @return bool
-	 */
-	public function is_query_error( $query ) {
-		if ( is_wp_error( $query['request'] ) ) {
-			return true;
-		}
-
-		$response_code = wp_remote_retrieve_response_code( $query['request'] );
-
-		return ( $response_code < 200 || $response_code > 299 );
+		/**
+		 * Perform actions after a new query is logged
+		 *
+		 * @hook ep_query_logger_logged_query
+		 * @since 4.4.0
+		 * @param {string} $logs_json_str  The JSON string as stored in the transient
+		 * @param {array}  $query          Remote request arguments
+		 * @param {string} $type           Request type
+		 */
+		do_action( 'ep_query_logger_logged_query', $logs_json_str, $query, $type );
 	}
 
 	/**
@@ -119,9 +84,19 @@ class QueryLogger {
 	 * @return array
 	 */
 	public function get_logs() : array {
-		$current_time   = current_time( 'timestamp' );
-		$period_to_keep = DAY_IN_SECONDS;
-		$time_limit     = $current_time - $period_to_keep;
+		$current_time = current_time( 'timestamp' );
+
+		/**
+		 * Filter the period to keep queried logs. Defaults to DAY_IN_SECONDS
+		 *
+		 * @since 4.4.0
+		 * @hook ep_query_logger_time_to_keep
+		 * @param {int} $period_to_keep The period to keep queried logs, in seconds
+		 * @return {int} New period
+		 */
+		$period_to_keep = apply_filters( 'ep_query_logger_time_to_keep', DAY_IN_SECONDS );
+
+		$time_limit = $current_time - $period_to_keep;
 
 		$logs = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 			get_site_transient( self::CACHE_KEY, [] ) :
@@ -136,51 +111,17 @@ class QueryLogger {
 			}
 		);
 
+		/**
+		 * Filter the logs
+		 *
+		 * @since 4.4.0
+		 * @hook ep_query_logger_logs
+		 * @param {int} $logs The logs array
+		 * @return {int} New array
+		 */
+		$logs = apply_filters( 'ep_query_logger_logs', $logs );
+
 		return $logs;
-	}
-
-	/**
-	 * Given a query, return a formatted log entry
-	 *
-	 * @param array  $query The failed query
-	 * @param string $type  The query type
-	 * @return array
-	 */
-	protected function format_log_entry( array $query, string $type ) : array {
-		global $wp;
-
-		$query_time = ( ! empty( $query['time_start'] ) && ! empty( $query['time_finish'] ) ) ?
-			( $query['time_finish'] - $query['time_start'] ) * 1000 :
-			false;
-
-		// Bulk indexes are not "valid" JSON, for example.
-		$body = '';
-		if ( ! empty( $query['args']['body'] ) ) {
-			$body = json_decode( $query['args']['body'], true );
-			if ( json_last_error() === JSON_ERROR_NONE ) {
-				$body = wp_json_encode( $body );
-			} else {
-				$body = $query['args']['body'];
-			}
-		}
-		// If the body is too big, trim it down to avoid storing a too big log entry
-		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
-			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
-		}
-
-		$status = wp_remote_retrieve_response_code( $query['request'] );
-		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
-
-		return [
-			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
-			'es_req'      => $query['args']['method'] . ' ' . $query['url'],
-			'timestamp'   => current_time( 'timestamp' ),
-			'query_time'  => $query_time,
-			'wp_args'     => $query['query_args'] ?? [],
-			'status_code' => $status,
-			'body'        => $body,
-			'result'      => $result,
-		];
 	}
 
 	/**
@@ -226,6 +167,27 @@ class QueryLogger {
 		} else {
 			set_transient( self::CACHE_KEY, $logs_json_str, DAY_IN_SECONDS );
 		}
+
+		return $logs_json_str;
+	}
+
+	/**
+	 * Clear the stored logs
+	 */
+	public function clear_logs() {
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( self::CACHE_KEY );
+		} else {
+			delete_transient( self::CACHE_KEY );
+		}
+
+		/**
+		 * Perform actions after clearing the logs
+		 *
+		 * @hook ep_query_logger_cleared_logs
+		 * @since 4.4.0
+		 */
+		do_action( 'ep_query_logger_cleared_logs' );
 	}
 
 	/**
@@ -265,14 +227,59 @@ class QueryLogger {
 	}
 
 	/**
-	 * Clear the stored logs
+	 * Given a query, return a formatted log entry
+	 *
+	 * @param array  $query The failed query
+	 * @param string $type  The query type
+	 * @return array
 	 */
-	public function clear_logs() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_transient( self::CACHE_KEY );
-		} else {
-			delete_transient( self::CACHE_KEY );
+	protected function format_log_entry( array $query, string $type ) : array {
+		global $wp;
+
+		$query_time = ( ! empty( $query['time_start'] ) && ! empty( $query['time_finish'] ) ) ?
+			( $query['time_finish'] - $query['time_start'] ) * 1000 :
+			false;
+
+		// Bulk indexes are not "valid" JSON, for example.
+		$body = '';
+		if ( ! empty( $query['args']['body'] ) ) {
+			$body = json_decode( $query['args']['body'], true );
+			if ( json_last_error() === JSON_ERROR_NONE ) {
+				$body = wp_json_encode( $body );
+			} else {
+				$body = $query['args']['body'];
+			}
 		}
+		// If the body is too big, trim it down to avoid storing a too big log entry
+		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
+			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
+		}
+
+		$status = wp_remote_retrieve_response_code( $query['request'] );
+		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
+
+		$formatted_log = [
+			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
+			'es_req'      => $query['args']['method'] . ' ' . $query['url'],
+			'timestamp'   => current_time( 'timestamp' ),
+			'query_time'  => $query_time,
+			'wp_args'     => $query['query_args'] ?? [],
+			'status_code' => $status,
+			'body'        => $body,
+			'result'      => $result,
+		];
+
+		/**
+		 * Filter the formatted query log
+		 *
+		 * @since 4.4.0
+		 * @hook ep_query_logger_formatted_query
+		 * @param {array}  $formatted_log The log entry
+		 * @param {array}  $query         The failed query
+		 * @param {string} $type          The query type
+		 * @return {array} Changed log entry
+		 */
+		return apply_filters( 'ep_query_logger_formatted_query', $formatted_log, $query, $type );
 	}
 
 	/**
@@ -314,6 +321,69 @@ class QueryLogger {
 			call_user_func( $allowed_log_types[ $type ], $query ) :
 			false;
 
-		return $should_log;
+		/**
+		 * Filter the formatted query log
+		 *
+		 * @since 4.4.0
+		 * @hook ep_query_logger_should_log_query
+		 * @param {bool}   $should_log Whether the query should be logged or not
+		 * @param {array}  $query      The failed query
+		 * @param {string} $type       The query type
+		 * @return {bool} New value of $should_log
+		 */
+		return apply_filters( 'ep_query_logger_should_log_query', $should_log, $query, $type );
+	}
+
+	/**
+	 * Check the request body, as usually bulk indexing does not return a status error.
+	 *
+	 * @param array $query Remote request arguments
+	 * @return boolean
+	 */
+	protected function is_bulk_index_error( $query ) {
+		if ( is_wp_error( $query['request'] ) ) {
+			return true;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $query['request'] );
+		// Bulk index dynamically will eventually fire a 413 (too big) request but will recover from it
+		if ( 413 === $response_code && false !== strpos( wp_debug_backtrace_summary(), 'bulk_index_dynamically' ) ) { // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_wp_debug_backtrace_summary
+			return false;
+		}
+
+		if ( $response_code < 200 || $response_code > 299 ) {
+			return true;
+		}
+
+		$request_body = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
+		return ! empty( $request_body['errors'] );
+	}
+
+	/**
+	 * Only log delete index error if not 2xx AND not 404
+	 *
+	 * @param  array $query Remote request arguments
+	 * @return bool
+	 */
+	protected function maybe_log_delete_index( $query ) {
+		$response_code = wp_remote_retrieve_response_code( $query['request'] );
+
+		return ( ( $response_code < 200 || $response_code > 299 ) && 404 !== $response_code );
+	}
+
+	/**
+	 * Log all non-200 requests
+	 *
+	 * @param  array $query Remote request arguments
+	 * @return bool
+	 */
+	protected function is_query_error( $query ) {
+		if ( is_wp_error( $query['request'] ) ) {
+			return true;
+		}
+
+		$response_code = wp_remote_retrieve_response_code( $query['request'] );
+
+		return ( $response_code < 200 || $response_code > 299 );
 	}
 }
