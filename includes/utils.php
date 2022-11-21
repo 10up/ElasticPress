@@ -77,14 +77,15 @@ function get_shield_credentials() {
  * @return string|bool
  */
 function get_index_prefix() {
-	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-		$prefix = EP_INDEX_PREFIX;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
-		$prefix = get_site_option( 'ep_prefix', false );
+	if ( defined( 'EP_INDEX_PREFIX' ) && \EP_INDEX_PREFIX ) {
+		$prefix = \EP_INDEX_PREFIX;
 	} elseif ( is_epio() ) {
-		$prefix = get_option( 'ep_prefix', false );
-
-		if ( '-' !== substr( $prefix, - 1 ) ) {
+		$credentials = get_epio_credentials();
+		$prefix      = $credentials['username'];
+		if (
+			( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) &&
+			( '-' !== substr( $prefix, - 1 ) )
+		) {
 			$prefix .= '-';
 		}
 	} else {
@@ -670,4 +671,21 @@ function get_asset_info( $slug, $attribute = null ) {
 	}
 
 	return $asset;
+}
+
+/**
+ * Return the Sync Page URL.
+ *
+ * @since 4.4.0
+ * @param boolean $do_sync Whether the link should or should not start a resync.
+ * @return string
+ */
+function get_sync_url( bool $do_sync = false ) : string {
+	$page = 'admin.php?page=elasticpress-sync';
+	if ( $do_sync ) {
+		$page .= '&do_sync';
+	}
+	return ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+		network_admin_url( $page ) :
+		admin_url( $page );
 }

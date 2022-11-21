@@ -4,6 +4,7 @@
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
+    "@4tw/cypress-drag-drop": "^2.2.1",
     "@wordpress/env": "^5.0.0",
     "10up-toolkit": "^3.0.0",
     "classnames": "^2.3.1",
@@ -50,6 +51,7 @@
     "entry": {
       "autosuggest-script": "./assets/js/autosuggest/index.js",
       "comments-script": "./assets/js/comments.js",
+      "comments-block-script": "./assets/js/blocks/comments/index.js",
       "dashboard-script": "./assets/js/dashboard.js",
       "facets-script": "./assets/js/facets.js",
       "instant-results-script": "./assets/js/instant-results/index.js",
@@ -65,7 +67,8 @@
       "stats-script": "./assets/js/stats.js",
       "synonyms-script": "./assets/js/synonyms/index.js",
       "admin-script": "./assets/js/admin.js",
-      "weighting-script": "./assets/js/weighting/index.js",
+      "weighting-script": "./assets/js/weighting.js",
+      "search-editor-script": "./assets/js/search/editor/index.js",
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",

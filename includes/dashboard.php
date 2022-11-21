@@ -632,11 +632,6 @@ function action_admin_init() {
 			Utils\update_option( 'ep_host', $host );
 		}
 
-		if ( isset( $_POST['ep_prefix'] ) ) {
-			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-			Utils\update_option( 'ep_prefix', $prefix );
-		}
-
 		if ( isset( $_POST['ep_credentials'] ) ) {
 			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
 				'username' => '',
@@ -651,7 +646,6 @@ function action_admin_init() {
 		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
-		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
 		register_setting(

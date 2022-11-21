@@ -79,14 +79,6 @@ $totals       = Stats::factory()->get_totals();
 					</div>
 				</div>
 			</div>
-			<div class="stats-queries postbox">
-				<h2 class="hndle"><?php esc_html_e( 'Queries & Indexing Time', 'elasticpress' ); ?></h2>
-				<div class="ep-qchart-container">
-					<div class="inside">
-						<canvas id="queriesTimeChart" width="400" height="400"></canvas>
-					</div>
-				</div>
-			</div>
 		</div>
 	<?php else : ?>
 		<p>
