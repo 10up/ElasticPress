@@ -88,7 +88,20 @@ class StatusReport {
 		 * @param {array<Report>} $reports Array of reports
 		 * @return {array<Report>} New array of reports
 		 */
-		return apply_filters( 'ep_status_report_reports', $reports );
+		$filtered_reports = apply_filters( 'ep_status_report_reports', $reports );
+
+		$skipped_reports = ! empty( $_GET['ep-skip-reports'] ) ? (array) $_GET['ep-skip-reports'] : []; // phpcs:ignore WordPress.Security.NonceVerification
+		$skipped_reports = array_map( 'sanitize_text_field', $skipped_reports );
+
+		$filtered_reports = array_filter(
+			$filtered_reports,
+			function( $report_slug ) use ( $skipped_reports ) {
+				return ! in_array( $report_slug, $skipped_reports, true );
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+
+		return $filtered_reports;
 	}
 
 	/**

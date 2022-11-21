@@ -2591,7 +2591,7 @@ class Post extends Indexable {
 	/**
 	 * Given a post type, *yields* their Post IDs.
 	 *
-	 * If post IDs are found, this function will return a PHP Generator. To avoid timeout, it will yield 5 groups or 10,000 IDs.
+	 * If post IDs are found, this function will return a PHP Generator. To avoid timeout, it will yield 8 groups or 11,000 IDs.
 	 *
 	 * @since 4.4.0
 	 * @see https://www.php.net/manual/en/language.generators.overview.php
@@ -2607,8 +2607,30 @@ class Post extends Indexable {
 			return [];
 		}
 
-		$per_page = 11000;
-		$pages    = min( ceil( $total / $per_page ), 8 );
+		/**
+		 * Filter the number of IDs to be fetched per page to discover distinct meta fields per post type.
+		 *
+		 * @hook ep_post_meta_by_type_ids_per_page
+		 * @since 4.4.0
+		 * @param {int}    $per_page  Number of IDs
+		 * @param {string} $post_type The post type slug
+		 * @return  {string} New number of IDs
+		 */
+		$per_page = apply_filters( 'ep_post_meta_by_type_ids_per_page', 11000, $post_type );
+
+		$pages = min( ceil( $total / $per_page ), 8 );
+
+		/**
+		 * Filter the number of times EP will fetch IDs from the database
+		 *
+		 * @hook ep_post_meta_by_type_number_of_pages
+		 * @since 4.4.0
+		 * @param {int}    $pages     Number of "pages" (not WP post type)
+		 * @param {int}    $per_page  Number of IDs per page
+		 * @param {string} $post_type The post type slug
+		 * @return  {string} New number of pages
+		 */
+		$pages = apply_filters( 'ep_post_meta_by_type_number_of_pages', $pages, $per_page, $post_type );
 
 		for ( $page = 0; $page < $pages; $page++ ) {
 			$start = $per_page * $page;
