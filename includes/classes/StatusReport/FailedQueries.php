@@ -152,6 +152,18 @@ class FailedQueries extends Report {
 			);
 		}
 
-		return '';
+		if ( Utils\is_epio() ) {
+			return sprintf(
+				/* translators: ElasticPress.io My Account URL */
+				__( 'We did not recognize this error. Please open an ElasticPress.io <a href="%s">support ticket</a> so we can troubleshoot further.', 'elasticpress' ),
+				'https://www.elasticpress.io/my-account/'
+			);
+		}
+
+		return sprintf(
+			/* translators: New GitHub issue URL */
+			__( 'We did not recognize this error. Please consider opening a <a href="%s">Github Issue</a> so we can add it to our list of supported errors. ', 'elasticpress' ),
+			'https://github.com/10up/ElasticPress/issues/new/choose'
+		);
 	}
 }
