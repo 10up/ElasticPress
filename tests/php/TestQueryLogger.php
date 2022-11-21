@@ -124,7 +124,7 @@ class TestQueryLogger extends BaseTestCase {
 		];
 
 		add_filter(
-			'pre_site_transient_ep_query_log',
+			defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'pre_site_transient_ep_query_log' : 'pre_transient_ep_query_log',
 			function() use ( $test_logs ) {
 				return wp_json_encode( $test_logs );
 			}
