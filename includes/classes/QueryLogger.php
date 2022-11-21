@@ -138,7 +138,15 @@ class QueryLogger {
 	 * @param array $logs New logs array
 	 */
 	public function update_logs( array $logs ) {
-		$max_cache_size = MB_IN_BYTES;
+		/**
+		 * Filter the max cache size. Defaults to MB_IN_BYTES
+		 *
+		 * @since 4.4.0
+		 * @hook ep_query_logger_max_cache_size
+		 * @param {int} $max_cache_size The max cache size in bytes
+		 * @return {int} New size
+		 */
+		$max_cache_size = apply_filters( 'ep_query_logger_max_cache_size', MB_IN_BYTES );
 
 		$logs_json_str      = wp_json_encode( $logs );
 		$logs_json_str_size = strlen( $logs_json_str );
@@ -302,14 +310,14 @@ class QueryLogger {
 		 * the query will be logged.
 		 *
 		 * @since 4.4.0
-		 * @hook ep_allowed_log_types
+		 * @hook ep_query_logger_allowed_log_types
 		 * @param {array}  $callable_map Array indexed by type and valued by a callable that returns a boolean
 		 * @param {array}  $query        Remote request arguments
 		 * @param {string} $type         Request type
 		 * @return {array} New array
 		 */
 		$allowed_log_types = apply_filters(
-			'ep_allowed_log_types',
+			'ep_query_logger_allowed_log_types',
 			array(
 				'put_mapping'          => array( $this, 'is_query_error' ),
 				'delete_network_alias' => array( $this, 'is_query_error' ),
