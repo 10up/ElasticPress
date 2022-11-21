@@ -258,7 +258,7 @@ class QueryLogger {
 
 		// If the body is too big, trim it down to avoid storing a too big log entry
 		$body = ! empty( $query['args']['body'] ) ? $query['args']['body'] : '';
-		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
+		if ( strlen( $body ) > 200 * KB_IN_BYTES ) {
 			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
 		} else {
 			$json_body = json_decode( $body, true );

@@ -107,13 +107,19 @@ class FailedQueries extends Report {
 	 * @return array The error in index 0, solution in index 1
 	 */
 	protected function analyze_log( $log ) {
-		$error    = '';
-		$solution = '';
+		$error = '';
 
 		if ( ! empty( $log['result']['error'] ) && ! empty( $log['result']['error']['root_cause'][0]['reason'] ) ) {
-			$error    = $log['result']['error']['root_cause'][0]['reason'];
-			$solution = $this->maybe_suggest_solution_for_es( $error );
+			$error = $log['result']['error']['root_cause'][0]['reason'];
 		}
+
+		if ( ! empty( $log['result']['errors'] ) && ! empty( $log['result']['items'] ) && ! empty( $log['result']['items'][0]['index']['error']['reason'] ) ) {
+			$error = $log['result']['items'][0]['index']['error']['reason'];
+		}
+
+		$solution = ( ! empty( $error ) ) ?
+			$this->maybe_suggest_solution_for_es( $error ) :
+			'';
 
 		return [ $error, $solution ];
 	}
@@ -143,14 +149,26 @@ class FailedQueries extends Report {
 			);
 		}
 
-		if ( false !== strpos( 'Fielddata is disabled on text fields by default. Set fielddata=true on [post_date] in order to load fielddata in memory by uninverting the inverted index. Note that this can however use significant memory. Alternatively use a keyword field instead.', $error ) ) {
+		if ( preg_match( '/Fielddata is disabled on text fields by default. Set fielddata=true on \[(.*?)\]/', $error, $matches ) ) {
 			return sprintf(
-				/* translators: 1. Index name; 2. Sync Page URL */
-				__( 'It seems you saved a post without doing a full sync first. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
+				/* translators: 1. Field name; 2. Sync Page URL */
+				__( 'It seems you saved a post without doing a full sync first because %1$s is missing the correct mapping type. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
 				'<code>' . $matches[1] . '</code>',
 				Utils\get_sync_url()
 			);
 		}
+
+		if ( preg_match( '/Limit of total fields \[(.*?)\] in index \[(.*?)\] has been exceeded/', $error, $matches ) ) {
+			return sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> and sync again.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+		}
+
+		// field limit
 
 		if ( Utils\is_epio() ) {
 			return sprintf(
