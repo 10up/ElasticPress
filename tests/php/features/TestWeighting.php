@@ -362,8 +362,8 @@ class TestWeighting extends BaseTestCase {
 	public function testDoWeightingWithDefaultConfig() {
 		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
 
-		// We have 4 searchable post types.
-		$this->assertEquals( 4, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
+		// We have 5 searchable post types.
+		$this->assertEquals( 5, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
 
 	public function testDoWeightingWithCustomConfig() {

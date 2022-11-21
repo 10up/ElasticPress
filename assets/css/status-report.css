@@ -1,0 +1,42 @@
+.wrap .ep-status-report {
+	max-width: 1200px;
+
+	& h2 {
+		margin-top: 20px;
+	}
+
+	& table {
+		table-layout: fixed;
+
+		& col:first-of-type {
+			width: 30%;
+		}
+
+		& thead {
+
+			& th {
+				font-weight: 600;
+			}
+
+			&:not(:first-child) th {
+				border-top: 1px solid #c3c4c7;
+			}
+		}
+
+		& small {
+			display: block;
+		}
+	}
+}
+
+.ep-copy-button-wrapper {
+	align-items: center;
+	display: inline-flex;
+	margin: 0.5rem 0 1rem;
+}
+
+.ep-copy-button-wrapper__success {
+	color: #008a20;
+	display: none;
+	margin-left: 0.5rem;
+}
