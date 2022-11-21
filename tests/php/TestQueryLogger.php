@@ -24,6 +24,15 @@ class TestQueryLogger extends BaseTestCase {
 	}
 
 	/**
+	 * Clean up after each test
+	 */
+	public function tear_down() {
+		parent::tear_down();
+
+		delete_site_option( 'ep_last_sync' );
+	}
+
+	/**
 	 * Test the log_query method before a sync is performed
 	 *
 	 * @group queryLogger

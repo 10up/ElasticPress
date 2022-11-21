@@ -261,12 +261,10 @@ class QueryLogger {
 		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
 			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
 		} else {
-			$body = json_decode( $body, true );
+			$json_body = json_decode( $body, true );
 			// Bulk indexes are not "valid" JSON, for example.
 			if ( json_last_error() === JSON_ERROR_NONE ) {
-				$body = wp_json_encode( $body );
-			} else {
-				$body = $body;
+				$body = wp_json_encode( $json_body );
 			}
 		}
 
