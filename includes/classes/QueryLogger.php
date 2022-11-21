@@ -81,35 +81,38 @@ class QueryLogger {
 	/**
 	 * Return logged failed queries.
 	 *
+	 * @param bool $should_filter_old Whether it should filter out old entries or not. Default to true, only return entries newer than the limit
 	 * @return array
 	 */
-	public function get_logs() : array {
-		$current_time = current_time( 'timestamp' );
-
-		/**
-		 * Filter the period to keep queried logs. Defaults to DAY_IN_SECONDS
-		 *
-		 * @since 4.4.0
-		 * @hook ep_query_logger_time_to_keep
-		 * @param {int} $period_to_keep The period to keep queried logs, in seconds
-		 * @return {int} New period
-		 */
-		$period_to_keep = apply_filters( 'ep_query_logger_time_to_keep', DAY_IN_SECONDS );
-
-		$time_limit = $current_time - $period_to_keep;
-
+	public function get_logs( bool $should_filter_old = true ) : array {
 		$logs = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 			get_site_transient( self::CACHE_KEY, [] ) :
 			get_transient( self::CACHE_KEY, [] );
 
-		$logs = json_decode( $logs, true );
+		$logs = (array) json_decode( (string) $logs, true );
 
-		$logs = array_filter(
-			(array) $logs,
-			function ( $log ) use ( $time_limit ) {
-				return ! empty( $log['timestamp'] ) && $log['timestamp'] > $time_limit;
-			}
-		);
+		if ( $should_filter_old ) {
+			$current_time = current_time( 'timestamp' );
+
+			/**
+			 * Filter the period to keep queried logs. Defaults to DAY_IN_SECONDS
+			 *
+			 * @since 4.4.0
+			 * @hook ep_query_logger_time_to_keep
+			 * @param {int} $period_to_keep The period to keep queried logs, in seconds
+			 * @return {int} New period
+			 */
+			$period_to_keep = apply_filters( 'ep_query_logger_time_to_keep', DAY_IN_SECONDS );
+
+			$time_limit = $current_time - $period_to_keep;
+
+			$logs = array_filter(
+				(array) $logs,
+				function ( $log ) use ( $time_limit ) {
+					return ! empty( $log['timestamp'] ) && $log['timestamp'] > $time_limit;
+				}
+			);
+		}
 
 		/**
 		 * Filter the logs
@@ -240,19 +243,18 @@ class QueryLogger {
 			( $query['time_finish'] - $query['time_start'] ) * 1000 :
 			false;
 
-		// Bulk indexes are not "valid" JSON, for example.
-		$body = '';
-		if ( ! empty( $query['args']['body'] ) ) {
+		// If the body is too big, trim it down to avoid storing a too big log entry
+		$body = ! empty( $query['args']['body'] ) ? $query['args']['body'] : '';
+		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
+			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
+		} else {
 			$body = json_decode( $query['args']['body'], true );
+			// Bulk indexes are not "valid" JSON, for example.
 			if ( json_last_error() === JSON_ERROR_NONE ) {
 				$body = wp_json_encode( $body );
 			} else {
 				$body = $query['args']['body'];
 			}
-		}
-		// If the body is too big, trim it down to avoid storing a too big log entry
-		if ( strlen( $body ) > 900 * KB_IN_BYTES ) {
-			$body = substr( $body, 0, 1000 ) . ' (trimmed)';
 		}
 
 		$status = wp_remote_retrieve_response_code( $query['request'] );

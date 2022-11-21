@@ -51,7 +51,7 @@ class FailedQueries extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
-		$logs = $this->query_logger->get_logs();
+		$logs = $this->query_logger->get_logs( false );
 
 		$labels = [
 			'wp_url'      => esc_html__( 'Page URL', 'elasticpress' ),
