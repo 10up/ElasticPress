@@ -110,6 +110,11 @@ class FailedQueries extends Report {
 	public function get_actions() : string {
 		global $wp;
 
+		$logs = $this->query_logger->get_logs( false );
+		if ( empty( $logs ) ) {
+			return '';
+		}
+
 		$button_text = __( 'Clear logged queries', 'elasticpress' );
 		$href        = wp_nonce_url( add_query_arg( [ $_GET ], $wp->request ), 'ep-clear-logged-queries', '_wpnonce' ); // phpcs:ignore WordPress.Security.NonceVerification
 
