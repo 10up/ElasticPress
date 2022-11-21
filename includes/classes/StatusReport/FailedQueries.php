@@ -51,6 +51,8 @@ class FailedQueries extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
+		$this->maybe_clear_logs();
+
 		$logs = $this->query_logger->get_logs( false );
 
 		$labels = [
@@ -98,6 +100,31 @@ class FailedQueries extends Report {
 		}
 
 		return $groups;
+	}
+
+	/**
+	 * Return the output of a button to clear the logged queries
+	 *
+	 * @return string
+	 */
+	public function get_actions() : string {
+		global $wp;
+
+		$button_text = __( 'Clear logged queries', 'elasticpress' );
+		$href        = wp_nonce_url( add_query_arg( [ $_GET ], $wp->request ), 'ep-clear-logged-queries', '_wpnonce' ); // phpcs:ignore WordPress.Security.NonceVerification
+
+		return '<a href="' . $href . '" class="button">' . $button_text . '</a>';
+	}
+
+	/**
+	 * If a nonce is present, clear the logs
+	 */
+	protected function maybe_clear_logs() {
+		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'ep-clear-logged-queries' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+
+		$this->query_logger->clear_logs();
 	}
 
 	/**

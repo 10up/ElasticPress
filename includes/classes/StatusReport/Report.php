@@ -30,4 +30,13 @@ abstract class Report {
 	 * @return array
 	 */
 	abstract public function get_groups() : array;
+
+	/**
+	 * Return any actions related to the report, like a button
+	 *
+	 * @return string
+	 */
+	public function get_actions() : string {
+		return '';
+	}
 }

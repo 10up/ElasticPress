@@ -114,17 +114,18 @@ class StatusReport {
 		$copy_paste_output = [];
 
 		foreach ( $reports as $report ) {
-			$title  = $report->get_title();
-			$groups = $report->get_groups();
+			$title   = $report->get_title();
+			$groups  = $report->get_groups();
+			$actions = $report->get_actions();
 
-			$html_output[]       = $this->render_html_report( $title, $groups );
+			$html_output[]       = $this->render_html_report( $title, $groups, $actions );
 			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
 		}
 
 		?>
 		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
 		<p class="ep-copy-button-wrapper">
-			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button" >
+			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button">
 				<?php esc_html_e( 'Copy status report to clipboard', 'elasticpress' ); ?>
 			</button>
 			<span class="ep-copy-button-wrapper__success">
@@ -138,14 +139,16 @@ class StatusReport {
 	/**
 	 * Render the HTML of a report
 	 *
-	 * @param string $title  Report title
-	 * @param array  $groups Report groups
+	 * @param string $title   Report title
+	 * @param array  $groups  Report groups
+	 * @param string $actions Report actions
 	 * @return string
 	 */
-	public function render_html_report( string $title, array $groups ) : string {
+	public function render_html_report( string $title, array $groups, string $actions ) : string {
 		ob_start();
 		?>
 		<h2 id="<?php echo esc_attr( sanitize_title( $title ) ); ?>"><?php echo esc_html( $title ); ?></h2>
+		<?php echo wp_kses( $actions, 'ep-html' ); ?>
 		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
 			<colgroup>
 				<col>
