@@ -148,7 +148,7 @@ class StatusReport {
 		ob_start();
 		?>
 		<h2 id="<?php echo esc_attr( sanitize_title( $title ) ); ?>"><?php echo esc_html( $title ); ?></h2>
-		<?php echo wp_kses( $actions, 'ep-html' ); ?>
+		<?php echo $actions ? '<p>' . wp_kses( $actions, 'ep-html' ) . '</p>' : ''; ?>
 		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
 			<colgroup>
 				<col>
