@@ -258,6 +258,14 @@ describe('WooCommerce Feature', () => {
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {
+
+						/**
+						 * Give Elasticsearch some time to process the new posts.
+						 *
+						 */
+						// eslint-disable-next-line cypress/no-unnecessary-waiting
+						cy.wait(2000);
+
 						cy.reload();
 						cy.get(
 							'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug',
