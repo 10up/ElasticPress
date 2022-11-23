@@ -71,11 +71,11 @@ class FailedQueries extends Report {
 			list( $error, $solution ) = $this->analyze_log( $log );
 
 			$fields = [
-				[
+				'error'                => [
 					'label' => __( 'Error', 'elasticpress' ),
 					'value' => $error,
 				],
-				[
+				'recommended_solution' => [
 					'label' => __( 'Recommended Solution', 'elasticpress' ),
 					'value' => $solution,
 				],
