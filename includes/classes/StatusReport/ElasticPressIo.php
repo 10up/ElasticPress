@@ -146,7 +146,7 @@ class ElasticPressIo extends Report {
 		}
 
 		$feature  = new InstantResults\InstantResults();
-		$template = $feature->get_saved_search_template();
+		$template = $feature->epio_get_search_template();
 
 		if ( is_wp_error( $template ) ) {
 			return [

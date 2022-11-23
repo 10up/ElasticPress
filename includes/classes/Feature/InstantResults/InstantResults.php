@@ -438,7 +438,7 @@ class InstantResults extends Feature {
 	 *
 	 * @since 4.4.0
 	 */
-	public function get_saved_search_template() {
+	public function epio_get_search_template() {
 		$endpoint = $this->get_template_endpoint();
 		$request  = Elasticsearch::factory()->remote_request( $endpoint );
 
