@@ -19,5 +19,6 @@ require_once __DIR__ . '/header.php';
 	<h1><?php esc_html_e( 'Status Report', 'elasticpress' ); ?></h1>
 	<div class="ep-status-report">
 		<?php $status_report->render_reports(); ?>
+		<div id="ep-status-reports"></div>
 	</div>
 </div>

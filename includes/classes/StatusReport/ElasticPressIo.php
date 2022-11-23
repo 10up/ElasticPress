@@ -146,12 +146,12 @@ class ElasticPressIo extends Report {
 		}
 
 		$feature  = new InstantResults\InstantResults();
-		$template = $feature->get_saved_search_template();
+		$template = $feature->epio_get_search_template();
 
 		if ( is_wp_error( $template ) ) {
 			return [
 				$index => [
-					'title' => $index,
+					'label' => $index,
 					'value' => $template->get_error_message(),
 				],
 			];
@@ -159,7 +159,7 @@ class ElasticPressIo extends Report {
 
 		return [
 			$index => [
-				'title' => $index,
+				'label' => $index,
 				'value' => $template,
 			],
 		];

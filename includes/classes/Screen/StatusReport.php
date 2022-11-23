@@ -45,10 +45,30 @@ class StatusReport {
 			true
 		);
 
+		$reports = $this->get_reports();
+		$reports = array_map(
+			function( $report ) {
+				return [
+					'actions' => $report->get_actions(),
+					'groups'  => $report->get_groups(),
+					'title'   => $report->get_title(),
+				];
+			},
+			$reports
+		);
+
+		wp_localize_script(
+			'ep_admin_status_report_scripts',
+			'epStatusReport',
+			$reports
+		);
+
+		$style_deps = Utils\get_asset_info( 'status-report-styles', 'dependencies' );
+
 		wp_enqueue_style(
 			'ep_status_report_styles',
 			EP_URL . 'dist/css/status-report-styles.css',
-			Utils\get_asset_info( 'status-report-styles', 'dependencies' ),
+			array_merge( $style_deps, [ 'wp-edit-post' ] ),
 			Utils\get_asset_info( 'status-report-styles', 'version' )
 		);
 	}
@@ -64,7 +84,14 @@ class StatusReport {
 		$reports['wordpress']    = new \ElasticPress\StatusReport\WordPress();
 		$reports['indexable']    = new \ElasticPress\StatusReport\IndexableContent();
 		$reports['elasticpress'] = new \ElasticPress\StatusReport\ElasticPress();
-		$reports['indices']      = new \ElasticPress\StatusReport\Indices();
+
+		/* this filter is documented in elasticpress.php */
+		$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+		if ( $query_logger ) {
+			$reports['failed_queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
+		}
+
+		$reports['indices'] = new \ElasticPress\StatusReport\Indices();
 
 		if ( Utils\is_epio() ) {
 			$reports['autosuggest'] = new \ElasticPress\StatusReport\ElasticPressIo();
@@ -103,21 +130,19 @@ class StatusReport {
 	public function render_reports() {
 		$reports = $this->get_reports();
 
-		$html_output       = [];
 		$copy_paste_output = [];
 
 		foreach ( $reports as $report ) {
 			$title  = $report->get_title();
 			$groups = $report->get_groups();
 
-			$html_output[]       = $this->render_html_report( $title, $groups );
 			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
 		}
 
 		?>
 		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
 		<p class="ep-copy-button-wrapper">
-			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button" >
+			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button">
 				<?php esc_html_e( 'Copy status report to clipboard', 'elasticpress' ); ?>
 			</button>
 			<span class="ep-copy-button-wrapper__success">
@@ -125,61 +150,6 @@ class StatusReport {
 			</span>
 		</p>
 		<?php
-		echo wp_kses_post( implode( '', $html_output ) );
-	}
-
-	/**
-	 * Render the HTML of a report
-	 *
-	 * @param string $title  Report title
-	 * @param array  $groups Report groups
-	 * @return string
-	 */
-	public function render_html_report( string $title, array $groups ) : string {
-		ob_start();
-		?>
-		<h2><?php echo esc_html( $title ); ?></h2>
-		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
-			<colgroup>
-				<col>
-				<col>
-			</colgroup>
-			<?php foreach ( $groups as $group ) : ?>
-				<?php if ( isset( $group['title'] ) ) : ?>
-					<thead>
-						<tr>
-							<th colspan="2">
-								<?php echo esc_html( $group['title'] ); ?>
-							</th>
-						</tr>
-					</thead>
-				<?php endif; ?>
-				<tbody>
-					<?php
-					foreach ( $group['fields'] as $slug => $field ) {
-						$label       = $field['label'] ?? $slug;
-						$description = $field['description'] ?? '';
-						$value       = $field['value'] ?? '';
-						?>
-						<tr>
-							<td>
-								<?php echo esc_html( $label ); ?>
-								<?php if ( $description ) : ?>
-									<small><?php echo esc_html( $description ); ?></small>
-								<?php endif; ?>
-							</td>
-							<td>
-								<?php echo wp_kses_post( $this->render_value( $value ) ); ?>
-							</td>
-						</tr>
-						<?php
-					}
-					?>
-				</tbody>
-			<?php endforeach; ?>
-		</table>
-		<?php
-		return ob_get_clean();
 	}
 
 	/**
