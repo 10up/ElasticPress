@@ -45,10 +45,30 @@ class StatusReport {
 			true
 		);
 
+		$reports = $this->get_reports();
+		$reports = array_map(
+			function( $report ) {
+				return [
+					'actions' => $report->get_actions(),
+					'groups'  => $report->get_groups(),
+					'title'   => $report->get_title(),
+				];
+			},
+			$reports
+		);
+
+		wp_localize_script(
+			'ep_admin_status_report_scripts',
+			'epStatusReport',
+			$reports
+		);
+
+		$style_deps = Utils\get_asset_info( 'status-report-styles', 'dependencies' );
+
 		wp_enqueue_style(
 			'ep_status_report_styles',
 			EP_URL . 'dist/css/status-report-styles.css',
-			Utils\get_asset_info( 'status-report-styles', 'dependencies' ),
+			array_merge( $style_deps, [ 'wp-edit-post' ] ),
 			Utils\get_asset_info( 'status-report-styles', 'version' )
 		);
 	}
@@ -118,7 +138,6 @@ class StatusReport {
 			$groups  = $report->get_groups();
 			$actions = $report->get_actions();
 
-			$html_output[]       = $this->render_html_report( $title, $groups, $actions );
 			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
 		}
 
@@ -133,63 +152,6 @@ class StatusReport {
 			</span>
 		</p>
 		<?php
-		echo wp_kses_post( implode( '', $html_output ) );
-	}
-
-	/**
-	 * Render the HTML of a report
-	 *
-	 * @param string $title   Report title
-	 * @param array  $groups  Report groups
-	 * @param string $actions Report actions
-	 * @return string
-	 */
-	public function render_html_report( string $title, array $groups, string $actions ) : string {
-		ob_start();
-		?>
-		<h2 id="<?php echo esc_attr( sanitize_title( $title ) ); ?>"><?php echo esc_html( $title ); ?></h2>
-		<?php echo wp_kses( $actions, 'ep-html' ); ?>
-		<table cellpadding="0" cellspacing="0" class="wp-list-table widefat striped">
-			<colgroup>
-				<col>
-				<col>
-			</colgroup>
-			<?php foreach ( $groups as $group ) : ?>
-				<?php if ( isset( $group['title'] ) ) : ?>
-					<thead>
-						<tr>
-							<th colspan="2">
-								<?php echo esc_html( $group['title'] ); ?>
-							</th>
-						</tr>
-					</thead>
-				<?php endif; ?>
-				<tbody>
-					<?php
-					foreach ( $group['fields'] as $slug => $field ) {
-						$label       = $field['label'] ?? $slug;
-						$description = $field['description'] ?? '';
-						$value       = $field['value'] ?? '';
-						?>
-						<tr>
-							<td>
-								<?php echo esc_html( $label ); ?>
-								<?php if ( $description ) : ?>
-									<small><?php echo esc_html( $description ); ?></small>
-								<?php endif; ?>
-							</td>
-							<td>
-								<?php echo wp_kses_post( $this->render_value( $value ) ); ?>
-							</td>
-						</tr>
-						<?php
-					}
-					?>
-				</tbody>
-			<?php endforeach; ?>
-		</table>
-		<?php
-		return ob_get_clean();
 	}
 
 	/**

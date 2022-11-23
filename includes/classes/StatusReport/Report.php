@@ -36,7 +36,7 @@ abstract class Report {
 	 *
 	 * @return string
 	 */
-	public function get_actions() : string {
-		return '';
+	public function get_actions() : array {
+		return [];
 	}
 }
