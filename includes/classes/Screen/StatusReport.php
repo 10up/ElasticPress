@@ -130,13 +130,11 @@ class StatusReport {
 	public function render_reports() {
 		$reports = $this->get_reports();
 
-		$html_output       = [];
 		$copy_paste_output = [];
 
 		foreach ( $reports as $report ) {
-			$title   = $report->get_title();
-			$groups  = $report->get_groups();
-			$actions = $report->get_actions();
+			$title  = $report->get_title();
+			$groups = $report->get_groups();
 
 			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
 		}

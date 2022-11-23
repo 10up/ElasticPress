@@ -9,8 +9,8 @@ import { __ } from '@wordpress/i18n';
 export default () => {
 	const { editPost } = useDispatch('core/editor');
 
-	const { ep_exclude_from_search = false, ...meta } = useSelect((select) =>
-		select('core/editor').getEditedPostAttribute('meta'),
+	const { ep_exclude_from_search = false, ...meta } = useSelect(
+		(select) => select('core/editor').getEditedPostAttribute('meta') || {},
 	);
 
 	const onChange = (ep_exclude_from_search) => {
