@@ -218,6 +218,18 @@ class InstantResults extends Feature {
 			$status->message[] = wp_kses_post( __( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", 'elasticpress' ) );
 		}
 
+		/**
+		 * Display a warning if ElasticPress is network activated.
+		 */
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$status->message[] = wp_kses_post(
+				__(
+					'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="https://elasticpress.zendesk.com/hc/en-us/articles/10841087797901-Running-ElasticPress-in-a-WordPress-Multisite-Network-Mode-" target="_blank">running ElasticPress in network mode</a> for more details.',
+					'elasticpress'
+				)
+			);
+		}
+
 		return $status;
 	}
 
