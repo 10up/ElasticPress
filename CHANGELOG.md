@@ -15,8 +15,11 @@ ElasticPress 4.4.0 release highlights:
 * Renamed some WP-CLI commands and added deprecation notices for the old versions (see table below)
 
 ### Added
+- New Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), [@tott](https://github.com/tott), and [@brandwaffle](https://github.com/brandwaffle) via [#3130](https://github.com/10up/ElasticPress/pull/3130) and [#3148](https://github.com/10up/ElasticPress/pull/3148).
+- New Query Logger to display admin notices about failed queries and the list in the new Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle) via [#3136](https://github.com/10up/ElasticPress/pull/3136).
 - New option to exclude posts from search. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT) via [#3100](https://github.com/10up/ElasticPress/pull/3100).
 - Search Comments block. Replaces the Comments widget in the block editor. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#2986](https://github.com/10up/ElasticPress/pull/2986).
+- Extra debugging information in the browser console when syncing fails and more useful error messages with a troubleshooting URL. Props [@JakePT](https://github.com/JakePT) via [#3133](https://github.com/10up/ElasticPress/pull/3133).
 - New `elasticpress.InstantResults.Result` JavaScript filter for filtering the component used for Instant Results search results. Props [@JakePT](https://github.com/JakePT) via [#2959](https://github.com/10up/ElasticPress/pull/2959).
 - New `window.epInstantResults.openModal()` method for developers to manually open Instant Results. Props [@JakePT](https://github.com/JakePT) via [#2987](https://github.com/10up/ElasticPress/pull/2987).
 - Support for `stock_status` filter on the WooCommerce Admin Product List. Props [@felipeelia](https://github.com/felipeelia) and [@jakgsl](https://github.com/jakgsl) via [#3036](https://github.com/10up/ElasticPress/pull/3036).
@@ -70,6 +73,7 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 - Compatibility code for WP < 4.6 in the Post Search feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3121](https://github.com/10up/ElasticPress/pull/3121).
 - Legacy hook from unit tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#3050](https://github.com/10up/ElasticPress/pull/3050).
 - Time average box in the Index Health page. Props [@felipeelia](https://github.com/felipeelia) and [@alaa-alshamy](https://github.com/alaa-alshamy) via [#3115](https://github.com/10up/ElasticPress/pull/3115).
+- [Protected Content] Removed post types to be indexed by default: ep-synonym, ep-pointer, wp_global_styles, wp_navigation, wp_template, and wp_template_part. Props [@felipeelia](https://github.com/felipeelia) via [#3135](https://github.com/10up/ElasticPress/pull/3135).
 
 ### Fixed
 - Clicking on the Facet Term redirect to Homepage. Props [@burhandodhy](https://github.com/burhandodhy) via [#3032](https://github.com/10up/ElasticPress/pull/3032).
@@ -83,6 +87,8 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 - An issue that caused Autosuggest filter functions to no longer work. Props [@JakePT](https://github.com/JakePT) via [#3110](https://github.com/10up/ElasticPress/pull/3110).
 - An issue that prevented clicking Autosuggest suggestions if they had been customized with additional markup. Props [@JakePT](https://github.com/JakePT) via [#3110](https://github.com/10up/ElasticPress/pull/3110).
 - WooCommerce custom product sort order. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#2965](https://github.com/10up/ElasticPress/pull/2965).
+- Network alias creation failed warning when one of the sites is deactivated. Props [@burhandodhy](https://github.com/burhandodhy) via [#3139](https://github.com/10up/ElasticPress/pull/3139).
+- JS Error on widget screen. Props [@burhandodhy](https://github.com/burhandodhy) via [#3143](https://github.com/10up/ElasticPress/pull/3143).
 - PHP Warning when a post has no comments. Props [@felipeelia](https://github.com/felipeelia) and [@JiveDig](https://github.com/JiveDig) via [#3127](https://github.com/10up/ElasticPress/pull/3127).
 - `put-mapping --network-wide` throws error when plugin is not activated on network. Props [@burhandodhy](https://github.com/burhandodhy) via [#3041](https://github.com/10up/ElasticPress/pull/3041).
 - Internationalization of strings in JavaScript files. Props [@felipeelia](https://github.com/felipeelia) via [#3079](https://github.com/10up/ElasticPress/pull/3079).
@@ -90,11 +96,11 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 - Warning if `_source` is not returned in query hit. Props [@pschoffer](https://github.com/pschoffer) via [#2992](https://github.com/10up/ElasticPress/pull/2992).
 - Undefined variable `$update` on synonyms page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3102](https://github.com/10up/ElasticPress/pull/3102).
 - PHP 8 deprecation warning related to `uasort()` usage. Props [@burhandodhy](https://github.com/burhandodhy) via [#3091](https://github.com/10up/ElasticPress/pull/3091).
-- Cypress intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3053](https://github.com/10up/ElasticPress/pull/3053).
+- Cypress intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3053](https://github.com/10up/ElasticPress/pull/3053) and [#3147](https://github.com/10up/ElasticPress/pull/3147).
 - Fix PHP Unit Tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3073](https://github.com/10up/ElasticPress/pull/3073).
 
 ### Security
-- Bumped `loader-utils` from 1.4.0 to 1.4.1. Props [@dependabot](https://github.com/dependabot) via [#3125](https://github.com/10up/ElasticPress/pull/3125).
+- Bumped `loader-utils` from 1.4.0 to 1.4.2. Props [@dependabot](https://github.com/dependabot) via [#3125](https://github.com/10up/ElasticPress/pull/3125) and [#3137](https://github.com/10up/ElasticPress/pull/3137).
 
 ## [4.3.1] - 2022-09-27
 This release fixes some bugs and also adds some new filters.
