@@ -252,19 +252,14 @@ describe('WooCommerce Feature', () => {
 					thirdProductId = id;
 				});
 
+			cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 			cy.get('@thirdProduct')
 				.drag('#the-list tr:eq(0)', { force: true })
 				.then(() => {
+					cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {
-						/**
-						 * Give Elasticsearch some time to process the post.
-						 *
-						 */
-						// eslint-disable-next-line cypress/no-unnecessary-waiting
-						cy.wait(2000);
-
 						cy.reload();
 						cy.get(
 							'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug',
