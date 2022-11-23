@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
 
 ElasticPress 4.4.0 release highlights:
+* New Status Report page and failed queries logs ([#3130](https://github.com/10up/ElasticPress/pull/3130), [#3148](https://github.com/10up/ElasticPress/pull/3148), and [#3136](https://github.com/10up/ElasticPress/pull/3136))
 * Instant Results template customization ([#2959](https://github.com/10up/ElasticPress/pull/2959))
 * Facets by Meta available by default. Users should delete the 1-file plugin released with 4.3.0 ([#3071](https://github.com/10up/ElasticPress/pull/3071))
 * New option to exclude posts from search ([#3100](https://github.com/10up/ElasticPress/pull/3100))
