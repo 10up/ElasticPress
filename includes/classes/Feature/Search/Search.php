@@ -689,6 +689,12 @@ class Search extends Feature {
 	 * Enqueue block editor assets.
 	 */
 	public function enqueue_block_editor_assets() {
+		global $post;
+
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'ep-search-editor',
 			EP_URL . '/dist/js/search-editor-script.js',
