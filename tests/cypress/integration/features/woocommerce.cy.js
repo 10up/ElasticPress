@@ -259,7 +259,7 @@ describe('WooCommerce Feature', () => {
 
 					cy.refreshIndex('post').then(() => {
 						/**
-						 * Give Elasticsearch some time to process the new posts.
+						 * Give Elasticsearch some time to process the post.
 						 *
 						 */
 						// eslint-disable-next-line cypress/no-unnecessary-waiting
