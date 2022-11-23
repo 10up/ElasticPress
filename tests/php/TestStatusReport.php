@@ -25,7 +25,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'wordpress', 'indexable', 'elasticpress', 'indices', 'last_sync', 'features' ],
+			[ 'wordpress', 'indexable', 'elasticpress', 'failed_queries', 'indices', 'last_sync', 'features' ],
 			array_keys( $reports )
 		);
 	}
@@ -46,7 +46,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'wordpress', 'indexable', 'elasticpress', 'indices', 'last_sync', 'features', 'custom' ],
+			[ 'wordpress', 'indexable', 'elasticpress', 'failed_queries', 'indices', 'last_sync', 'features', 'custom' ],
 			array_keys( $reports )
 		);
 	}
@@ -63,7 +63,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'elasticpress', 'indices', 'last_sync', 'features' ],
+			[ 'elasticpress', 'failed_queries', 'indices', 'last_sync', 'features' ],
 			array_keys( $reports )
 		);
 	}
