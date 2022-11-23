@@ -258,7 +258,6 @@ describe('WooCommerce Feature', () => {
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {
-
 						/**
 						 * Give Elasticsearch some time to process the new posts.
 						 *
