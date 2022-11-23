@@ -71,11 +71,11 @@ class FailedQueries extends Report {
 			list( $error, $solution ) = $this->analyze_log( $log );
 
 			$fields = [
-				[
+				'error'                => [
 					'label' => __( 'Error', 'elasticpress' ),
 					'value' => $error,
 				],
-				[
+				'recommended_solution' => [
 					'label' => __( 'Recommended Solution', 'elasticpress' ),
 					'value' => $solution,
 				],
@@ -107,18 +107,24 @@ class FailedQueries extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_actions() : string {
+	public function get_actions() : array {
 		global $wp;
 
 		$logs = $this->query_logger->get_logs( false );
+
 		if ( empty( $logs ) ) {
-			return '';
+			return [];
 		}
 
-		$button_text = __( 'Clear logged queries', 'elasticpress' );
-		$href        = wp_nonce_url( add_query_arg( [ $_GET ], $wp->request ), 'ep-clear-logged-queries', '_wpnonce' ); // phpcs:ignore WordPress.Security.NonceVerification
+		$label = __( 'Clear query log', 'elasticpress' );
+		$href  = wp_nonce_url( add_query_arg( [ $_GET ], $wp->request ), 'ep-clear-logged-queries', '_wpnonce' ); // phpcs:ignore WordPress.Security.NonceVerification
 
-		return '<a href="' . $href . '" class="button">' . $button_text . '</a>';
+		return [
+			[
+				'href'  => $href,
+				'label' => $label,
+			],
+		];
 	}
 
 	/**

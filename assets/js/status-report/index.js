@@ -4,6 +4,13 @@
  * WordPress dependencies.
  */
 import domReady from '@wordpress/dom-ready';
+import { render } from '@wordpress/element';
+
+/**
+ * Internal dependencies.
+ */
+import { reports } from './config';
+import Reports from './components/reports';
 
 /**
  * Status report copy button.
@@ -11,6 +18,7 @@ import domReady from '@wordpress/dom-ready';
  * @returns {void}
  */
 const init = () => {
+	const report = document.getElementById('ep-status-reports');
 	const clipboard = new ClipboardJS('#ep-copy-report');
 
 	/**
@@ -30,9 +38,14 @@ const init = () => {
 	};
 
 	/**
-	 * Bind events.
+	 * Bind copy button events.
 	 */
 	clipboard.on('success', onSuccess);
+
+	/**
+	 * Render reports.
+	 */
+	render(<Reports reports={reports} />, report);
 };
 
 domReady(init);
