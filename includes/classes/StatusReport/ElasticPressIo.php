@@ -151,7 +151,7 @@ class ElasticPressIo extends Report {
 		if ( is_wp_error( $template ) ) {
 			return [
 				$index => [
-					'title' => $index,
+					'label' => $index,
 					'value' => $template->get_error_message(),
 				],
 			];
@@ -159,7 +159,7 @@ class ElasticPressIo extends Report {
 
 		return [
 			$index => [
-				'title' => $index,
+				'label' => $index,
 				'value' => $template,
 			],
 		];
