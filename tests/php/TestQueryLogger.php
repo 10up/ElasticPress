@@ -237,9 +237,9 @@ class TestQueryLogger extends BaseTestCase {
 		];
 
 		$class  = new \ReflectionClass( $query_logger );
-        $method = $class->getMethod( 'format_log_entry' );
-        $method->setAccessible( true );
-        $formatted_log = $method->invokeArgs( $query_logger, [ $query, 'type' ] );
+		$method = $class->getMethod( 'format_log_entry' );
+		$method->setAccessible( true );
+		$formatted_log = $method->invokeArgs( $query_logger, [ $query, 'type' ] );
 
 		$this->assertStringContainsString( 'query-string=test', $formatted_log['wp_url'] );
 		$this->assertSame( 'GET ep-url', $formatted_log['es_req'] );
@@ -261,8 +261,8 @@ class TestQueryLogger extends BaseTestCase {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
-        $method = $class->getMethod( 'should_log_query_type' );
-        $method->setAccessible( true );
+		$method = $class->getMethod( 'should_log_query_type' );
+		$method->setAccessible( true );
 
 		/**
 		 * Test the `ep_query_logger_allowed_log_types` filter
@@ -325,8 +325,8 @@ class TestQueryLogger extends BaseTestCase {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
-        $method = $class->getMethod( 'maybe_log_delete_index' );
-        $method->setAccessible( true );
+		$method = $class->getMethod( 'maybe_log_delete_index' );
+		$method->setAccessible( true );
 
 		$query = [
 			'request' => [
@@ -348,8 +348,8 @@ class TestQueryLogger extends BaseTestCase {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
-        $method = $class->getMethod( 'is_query_error' );
-        $method->setAccessible( true );
+		$method = $class->getMethod( 'is_query_error' );
+		$method->setAccessible( true );
 
 		$this->assertTrue( $method->invokeArgs( $query_logger, [ [ 'request' => new \WP_Error() ] ] ) );
 	}
@@ -364,8 +364,8 @@ class TestQueryLogger extends BaseTestCase {
 		$query_logger = new QueryLogger();
 
 		$class  = new \ReflectionClass( $query_logger );
-        $method = $class->getMethod( 'is_query_error' );
-        $method->setAccessible( true );
+		$method = $class->getMethod( 'is_query_error' );
+		$method->setAccessible( true );
 
 		$query = [
 			'request' => [
@@ -383,28 +383,28 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @return array
 	 */
-    public function maybeDeleteIndexDataProvider() : array {
-        return [
-            [ true, 199 ],
-            [ false, 200 ],
-            [ false, 299 ],
-            [ true, 300 ],
-            [ false, 404 ],
-        ];
-    }
+	public function maybeDeleteIndexDataProvider() : array {
+		return [
+			[ true, 199 ],
+			[ false, 200 ],
+			[ false, 299 ],
+			[ true, 300 ],
+			[ false, 404 ],
+		];
+	}
 
 	/**
 	 * Data provider for the testIsQueryErrorWithStatusCode method
 	 *
 	 * @return array
 	 */
-    public function isQueryErrorWithStatusCodeDataProvider() : array {
-        return [
-            [ true, 199 ],
-            [ false, 200 ],
-            [ false, 299 ],
-            [ true, 300 ],
-            [ true, 404 ],
-        ];
-    }
+	public function isQueryErrorWithStatusCodeDataProvider() : array {
+		return [
+			[ true, 199 ],
+			[ false, 200 ],
+			[ false, 299 ],
+			[ true, 300 ],
+			[ true, 404 ],
+		];
+	}
 }
