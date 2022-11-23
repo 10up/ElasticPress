@@ -108,9 +108,9 @@ class InstantResults extends Feature {
 			<?php
 			printf(
 				/* translators: %s: ElasticPress.io link. */
-				esc_html__( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s to function.', 'elasticpress' ),
+				esc_html__( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s or a custom proxy to function.', 'elasticpress' ),
 				sprintf(
-					'<a href=”%1$s” target="_blank">%2$s</a>',
+					'<a href="%1$s" target="_blank">%2$s</a>',
 					'https://www.elasticpress.io/',
 					esc_html__( 'ElasticPress.io plan', 'elasticpress' )
 				)
