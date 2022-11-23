@@ -223,9 +223,13 @@ class InstantResults extends Feature {
 		 */
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$status->message[] = wp_kses_post(
-				__(
-					'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="https://elasticpress.zendesk.com/hc/en-us/articles/10841087797901-Running-ElasticPress-in-a-WordPress-Multisite-Network-Mode-" target="_blank">running ElasticPress in network mode</a> for more details.',
-					'elasticpress'
+				sprintf(
+					/* translators: Article URL */
+					__(
+						'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="%s" target="_blank">running ElasticPress in network mode</a> for more details.',
+						'elasticpress'
+					),
+					'https://elasticpress.zendesk.com/hc/en-us/articles/10841087797901-Running-ElasticPress-in-a-WordPress-Multisite-Network-Mode-'
 				)
 			);
 		}
