@@ -10,7 +10,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Screen;
 use ElasticPress\Features;
@@ -44,6 +44,7 @@ class AdminNotices {
 		'using_autosuggest_defaults',
 		'maybe_wrong_mapping',
 		'yellow_health',
+		'too_many_fields',
 	];
 
 	/**
@@ -744,6 +745,91 @@ class AdminNotices {
 	}
 
 	/**
+	 * Too many fields notification. Shows when the site has potentially more fields than ES could handle.
+	 *
+	 * Type: warning|error
+	 * Dismiss: Anywhere
+	 * Show: Sync and Install page
+	 *
+	 * @since 4.4.0
+	 * @return array|bool
+	 */
+	protected function process_too_many_fields_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$dismiss = Utils\get_option( 'ep_hide_too_many_fields_notice', false );
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'install', 'sync' ], true ) || $dismiss ) {
+			return false;
+		}
+
+		$has_error   = false;
+		$has_warning = false;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
+				switch_to_blog( $site['blog_id'] );
+
+				list( $has_error, $site_has_warning ) = $this->check_field_count();
+
+				restore_current_blog();
+
+				$has_warning = $has_warning || $site_has_warning;
+				if ( $has_error ) {
+					break;
+				}
+			}
+		} else {
+			list( $has_error, $has_warning ) = $this->check_field_count();
+		}
+
+		if ( $has_error ) {
+			$message = sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+
+			return [
+				'type'    => 'error',
+				'dismiss' => true,
+				'html'    => $message,
+			];
+		}
+
+		if ( $has_warning ) {
+			$message = sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+
+			return [
+				'type'    => 'warning',
+				'dismiss' => true,
+				'html'    => $message,
+			];
+		}
+
+		return false;
+	}
+
+	/**
 	 * Get notices that should be displayed
 	 *
 	 * @since  3.0
@@ -789,5 +875,29 @@ class AdminNotices {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Compare the number of fields in the site and the number of allowed fields in ES
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	protected function check_field_count() {
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
+		$count_fields_db  = count( $indexable_fields );
+
+		$index_name     = $post_indexable->get_index_name();
+		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
+		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+
+		$predicted_es_field_count = $count_fields_db * 8;
+
+		return [
+			$predicted_es_field_count > $es_field_limit,
+			$predicted_es_field_count * 1.2 > $es_field_limit,
+		];
 	}
 }

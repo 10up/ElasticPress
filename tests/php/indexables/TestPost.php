@@ -7890,4 +7890,242 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->post_count );
 
 	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys_db
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetDistinctMetaFieldKeysDb() {
+		global $wpdb;
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db() );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db` filter
+		 */
+		$return_custom_array = function() {
+			return [ 'totally_custom_key' ];
+		};
+		add_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
+
+		// It should not send any new SQL query
+		$num_queries = $wpdb->num_queries;
+		$this->assertGreaterThan( 0, $num_queries );
+
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		remove_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db` filter
+		 */
+		$return_custom_array = function( $meta_keys ) {
+			return array_merge( $meta_keys, [ 'custom_key' ] );
+		};
+		add_filter( 'ep_post_meta_keys_db', $return_custom_array );
+
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db() );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys_db_per_post_type
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 * @expectedIncorrectUsage ElasticPress\Indexable\Post\Post::get_distinct_meta_field_keys_db_per_post_type
+	 */
+	public function testGetDistinctMetaFieldKeysDbPerPostType() {
+		global $wpdb;
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		// Without setting the correct screen, this should throw a _doing_it_wrong
+		$this->assertSame( [], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+
+		$this->setupDistinctMetaFieldKeysDbPerPostType();
+
+		$meta_keys = [ '_private_key', 'test_key_1', 'test_key_2' ];
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db_per_post_type` filter
+		 */
+		$return_custom_array = function( $meta_keys, $post_type ) {
+			$this->assertSame( $post_type, 'ep_test' );
+			return [ 'totally_custom_key' ];
+		};
+		add_filter( 'ep_post_pre_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
+
+		// It should not send any new SQL query
+		$num_queries = $wpdb->num_queries;
+		$this->assertGreaterThan( 0, $num_queries );
+
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		remove_filter( 'ep_post_pre_meta_keys_db_per_post_type', $return_custom_array );
+
+		/**
+		 * Test the `ep_post_meta_keys_db_per_post_type` filter
+		 */
+		$return_custom_array = function( $meta_keys, $post_type ) {
+			$this->assertSame( $post_type, 'ep_test' );
+			return array_merge( $meta_keys, [ 'custom_key' ] );
+		};
+		add_filter( 'ep_post_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
+
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+	}
+
+
+	/**
+	 * Tests the filters in get_lazy_post_type_ids
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetLazyPostTypeIdsFilters() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->setupDistinctMetaFieldKeysDbPerPostType();
+
+		/**
+		 * Test the `ep_post_meta_by_type_ids_per_page` and `ep_post_meta_by_type_number_of_pages` filters
+		 */
+		$custom_number_of_ids = function( $per_page, $post_type ) {
+			$this->assertSame( 11000, $per_page );
+			$this->assertSame( $post_type, 'ep_test' );
+			return 1;
+		};
+		add_filter( 'ep_post_meta_by_type_ids_per_page', $custom_number_of_ids, 10, 2 );
+
+		$custom_number_of_pages = function( $pages, $per_page, $post_type ) {
+			$this->assertSame( 1, $per_page );
+			$this->assertSame( $post_type, 'ep_test' );
+			return 1;
+		};
+		add_filter( 'ep_post_meta_by_type_number_of_pages', $custom_number_of_pages, 10, 3 );
+
+		// All meta keys from the first post
+		$this->assertCount( 3, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+	}
+
+	/**
+	 * Tests get_indexable_meta_keys_per_post_type
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetIndexableMetaKeysPerPostType() {
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
+
+		$meta_keys = [ 'test_key_1', 'test_key_2' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
+
+		$change_allowed_meta = function () {
+			return [ 'test_key_1' => 'meta value 1' ];
+		};
+		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
+
+		$meta_keys = [ 'test_key_1' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
+	}
+
+	/**
+	 * Tests get_predicted_indexable_meta_keys
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetPredictedIndexableMetaKeys() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
+
+		$meta_keys = [ 'test_key_1', 'test_key_2', 'test_key_3' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+
+		$change_allowed_meta = function () {
+			return [ 'test_key_1' => 'meta value 1' ];
+		};
+		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
+
+		$meta_keys = [ 'test_key_1' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+	}
+
+	/**
+	 * Utilitary function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
+	 *
+	 * @return void
+	 */
+	protected function setupDistinctMetaFieldKeysDbPerPostType() {
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test',
+				'meta_input'   => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			],
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'    => 'ep_test_2',
+				'meta_input'   => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			],
+		);
+	}
 }

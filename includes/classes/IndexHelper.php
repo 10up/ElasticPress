@@ -402,7 +402,7 @@ class IndexHelper {
 
 		$this->index_meta['from']                       = $this->index_meta['offset'];
 		$this->index_meta['found_items']                = (int) $this->current_query['total_objects'];
-		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
+		$this->index_meta['current_sync_item']['total'] = (int) $this->index_meta['current_sync_item']['found_items'];
 
 		if ( 'offset' === $this->index_meta['pagination_method'] ) {
 			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
@@ -877,6 +877,11 @@ class IndexHelper {
 		$sites = Utils\get_sites();
 
 		foreach ( $sites as $site ) {
+
+			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+				continue;
+			}
+
 			switch_to_blog( $site['blog_id'] );
 			$indexes[] = $indexable->get_index_name();
 			restore_current_blog();

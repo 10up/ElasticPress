@@ -2385,4 +2385,290 @@ class Post extends Indexable {
 
 		return $from_to[ $field ] ?? 'term_id';
 	}
+
+	/**
+	 * Return all distinct meta fields in the database.
+	 *
+	 * @since 4.4.0
+	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ) : array {
+		global $wpdb;
+
+		/**
+		 * Short-circuits the process of getting distinct meta keys from the database.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_pre_meta_keys_db
+		 * @param {null} $meta_keys Distinct meta keys array
+		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
+		 */
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db', null );
+		if ( null !== $pre_meta_keys ) {
+			return $pre_meta_keys;
+		}
+
+		$cache_key = 'ep_meta_field_keys';
+
+		if ( ! $force_refresh ) {
+			$cached = get_transient( $cache_key );
+			if ( false !== $cached ) {
+				$cached = (array) json_decode( (string) $cached );
+				/* this filter is documented below */
+				return (array) apply_filters( 'ep_post_meta_keys_db', $cached );
+			}
+		}
+
+		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+
+		// Make sure the size of the transient will not be bigger than 1MB
+		do {
+			$transient_size = strlen( wp_json_encode( $meta_keys ) );
+			if ( $transient_size >= MB_IN_BYTES ) {
+				array_pop( $meta_keys );
+			} else {
+				break;
+			}
+		} while ( true );
+		set_transient( $cache_key, wp_json_encode( $meta_keys ), DAY_IN_SECONDS );
+
+		/**
+		 * Filter the distinct meta keys fetched from the database.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db
+		 * @param {array} $meta_keys Distinct meta keys array
+		 * @return {array} New distinct meta keys array
+		 */
+		return (array) apply_filters( 'ep_post_meta_keys_db', $meta_keys );
+	}
+
+	/**
+	 * Return all distinct meta fields in the database per post type.
+	 *
+	 * @since 4.4.0
+	 * @param string $post_type     Post type slug
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+		$allowed_screen = 'status-report' === \ElasticPress\Screen::factory()->get_current_screen();
+
+		/**
+		 * Filter if the current screen is allowed or not to use the function.
+		 *
+		 * This method can be too resource intensive, use it with caution.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db_per_post_type_allowed_screen
+		 * @param {bool} $allowed_screen Whether this is an allowed screen or not.
+		 * @return {bool} New value of $allowed_screen
+		 */
+		if ( ! apply_filters( 'ep_post_meta_keys_db_per_post_type_allowed_screen', $allowed_screen ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'This method should not be called outside specific pages. Use the `ep_post_meta_keys_db_per_post_type_allowed_screen` filter if you need to use it in your custom screen.' ),
+				'ElasticPress 4.4.0'
+			);
+			return [];
+		}
+
+		/**
+		 * Short-circuits the process of getting distinct meta keys from the database per post type.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_pre_meta_keys_db_per_post_type
+		 * @param {null}   $meta_keys Distinct meta keys array
+		 * @param {string} $post_type Post type slug
+		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
+		 */
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db_per_post_type', null, $post_type );
+		if ( null !== $pre_meta_keys ) {
+			return $pre_meta_keys;
+		}
+
+		$cache_key = 'ep_meta_field_keys_' . $post_type;
+
+		if ( ! $force_refresh ) {
+			$cached = get_transient( $cache_key );
+			if ( false !== $cached ) {
+				$cached = (array) json_decode( (string) $cached );
+				/* this filter is documented below */
+				return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $cached, $post_type );
+			}
+		}
+
+		$meta_keys        = [];
+		$post_ids_batches = $this->get_lazy_post_type_ids( $post_type );
+		foreach ( $post_ids_batches as $post_ids ) {
+			$new_meta_keys = $this->get_meta_keys_from_post_ids( $post_ids );
+
+			$meta_keys = array_unique( array_merge( $meta_keys, $new_meta_keys ) );
+		}
+
+		// Make sure the size of the transient will not be bigger than 1MB
+		do {
+			$transient_size = strlen( wp_json_encode( $meta_keys ) );
+			if ( $transient_size >= MB_IN_BYTES ) {
+				array_pop( $meta_keys );
+			} else {
+				break;
+			}
+		} while ( true );
+		set_transient( $cache_key, wp_json_encode( $meta_keys ), DAY_IN_SECONDS );
+
+		/**
+		 * Filter the distinct meta keys fetched from the database per post type.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db_per_post_type
+		 * @param {array}  $meta_keys Distinct meta keys array
+		 * @param {string} $post_type Post type slug
+		 * @return {array} New distinct meta keys array
+		 */
+		return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $meta_keys, $post_type );
+	}
+
+	/**
+	 * Return all distinct meta fields in the database per post type.
+	 *
+	 * @since 4.4.0
+	 * @param string $post_type Post type slug
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
+		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type, $force_refresh );
+
+		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
+		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $mock_post );
+
+		return array_filter(
+			array_keys( $filtered_meta ),
+			function ( $meta_key ) use ( $mock_post ) {
+				return $this->is_meta_allowed( $meta_key, $mock_post );
+			}
+		);
+	}
+
+	/**
+	 * Return the meta keys that will (possibly) be indexed.
+	 *
+	 * This function gets all the meta keys in the database, creates a fake post without a type and with all the meta fields,
+	 * runs the `ep_prepare_meta_data` filter against it and checks if meta keys are allowed or not.
+	 * Although it provides a good indicator, it is not 100% correct as developers could create code using the
+	 * `ep_prepare_meta_data` filter that would depend on "real" data.
+	 *
+	 * @since 4.4.0
+	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ) : array {
+		$empty_post = new \WP_Post( (object) [] );
+		$meta_keys  = $this->get_distinct_meta_field_keys_db( $force_refresh );
+
+		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
+		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $empty_post );
+
+		$all_keys = array_filter(
+			array_keys( $filtered_meta ),
+			function( $meta_key ) use ( $empty_post ) {
+				return $this->is_meta_allowed( $meta_key, $empty_post );
+			}
+		);
+
+		sort( $all_keys );
+
+		return $all_keys;
+	}
+
+	/**
+	 * Given a post type, *yields* their Post IDs.
+	 *
+	 * If post IDs are found, this function will return a PHP Generator. To avoid timeout, it will yield 8 groups or 11,000 IDs.
+	 *
+	 * @since 4.4.0
+	 * @see https://www.php.net/manual/en/language.generators.overview.php
+	 * @param string $post_type The post type slug
+	 * @return iterator
+	 */
+	protected function get_lazy_post_type_ids( string $post_type ) {
+		global $wpdb;
+
+		$total = $wpdb->get_var( $wpdb->prepare( "SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
+
+		if ( ! $total ) {
+			return [];
+		}
+
+		/**
+		 * Filter the number of IDs to be fetched per page to discover distinct meta fields per post type.
+		 *
+		 * @hook ep_post_meta_by_type_ids_per_page
+		 * @since 4.4.0
+		 * @param {int}    $per_page  Number of IDs
+		 * @param {string} $post_type The post type slug
+		 * @return  {string} New number of IDs
+		 */
+		$per_page = apply_filters( 'ep_post_meta_by_type_ids_per_page', 11000, $post_type );
+
+		$pages = min( ceil( $total / $per_page ), 8 );
+
+		/**
+		 * Filter the number of times EP will fetch IDs from the database
+		 *
+		 * @hook ep_post_meta_by_type_number_of_pages
+		 * @since 4.4.0
+		 * @param {int}    $pages     Number of "pages" (not WP post type)
+		 * @param {int}    $per_page  Number of IDs per page
+		 * @param {string} $post_type The post type slug
+		 * @return  {string} New number of pages
+		 */
+		$pages = apply_filters( 'ep_post_meta_by_type_number_of_pages', $pages, $per_page, $post_type );
+
+		for ( $page = 0; $page < $pages; $page++ ) {
+			$start = $per_page * $page;
+			$ids   = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s LIMIT %d, %d",
+					$post_type,
+					$start,
+					$per_page
+				)
+			);
+			yield $ids;
+		}
+	}
+
+	/**
+	 * Given a set of post IDs, return distinct meta keys associated with them.
+	 *
+	 * @since 4.4.0
+	 * @param array $post_ids Set of post IDs
+	 * @return array
+	 */
+	protected function get_meta_keys_from_post_ids( array $post_ids ) : array {
+		global $wpdb;
+
+		if ( empty( $post_ids ) ) {
+			return [];
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+		$meta_keys    = $wpdb->get_col(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ( {$placeholders} )",
+				$post_ids
+			)
+		);
+
+		return $meta_keys;
+	}
 }

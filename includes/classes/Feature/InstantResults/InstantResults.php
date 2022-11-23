@@ -357,11 +357,11 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Save the search template to ElasticPress.io.
+	 * Get the endpoint for the Instant Results search template.
 	 *
-	 * @return void
+	 * @return string Instant Results search template endpoint.
 	 */
-	public function epio_save_search_template() {
+	public function get_template_endpoint() {
 		/**
 		 * Filters the search template API endpoint.
 		 *
@@ -371,15 +371,23 @@ class InstantResults extends Feature {
 		 * @param {string} $index Elasticsearch index.
 		 * @returns {string} Search template API endpoint.
 		 */
-		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+		return apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+	}
 
-		$search_template = $this->get_search_template();
+	/**
+	 * Save the search template to ElasticPress.io.
+	 *
+	 * @return void
+	 */
+	public function epio_save_search_template() {
+		$endpoint = $this->get_template_endpoint();
+		$template = $this->get_search_template();
 
 		Elasticsearch::factory()->remote_request(
 			$endpoint,
 			[
 				'blocking' => false,
-				'body'     => $search_template,
+				'body'     => $template,
 				'method'   => 'PUT',
 			]
 		);
@@ -389,10 +397,10 @@ class InstantResults extends Feature {
 		 *
 		 * @since 4.0.0
 		 * @hook ep_instant_results_template_saved
-		 * @param {string} $search_template The search template (JSON).
+		 * @param {string} $template The search template (JSON).
 		 * @param {string} $index Index name.
 		 */
-		do_action( 'ep_instant_results_template_saved', $search_template, $this->index );
+		do_action( 'ep_instant_results_template_saved', $template, $this->index );
 	}
 
 	/**
@@ -403,16 +411,7 @@ class InstantResults extends Feature {
 	 * @since 4.3.0
 	 */
 	public function epio_delete_search_template() {
-		/**
-		 * Filters the search template API endpoint.
-		 *
-		 * @since 4.0.0
-		 * @hook ep_instant_results_template_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @param {string} $index Elasticsearch index.
-		 * @returns {string} Search template API endpoint.
-		 */
-		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+		$endpoint = $this->get_template_endpoint();
 
 		Elasticsearch::factory()->remote_request(
 			$endpoint,
@@ -430,6 +429,26 @@ class InstantResults extends Feature {
 		 * @param {string} $index Index name.
 		 */
 		do_action( 'ep_instant_results_template_deleted', $this->index );
+	}
+
+	/**
+	 * Get the saved search template from ElasticPress.io.
+	 *
+	 * @return string|WP_Error Search template if found, WP_Error on error.
+	 *
+	 * @since 4.4.0
+	 */
+	public function epio_get_search_template() {
+		$endpoint = $this->get_template_endpoint();
+		$request  = Elasticsearch::factory()->remote_request( $endpoint );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_body( $request );
+
+		return $response;
 	}
 
 	/**
