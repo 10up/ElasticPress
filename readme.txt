@@ -95,6 +95,7 @@ __Added:__
 * New Query Logger to display admin notices about failed queries and the list in the new Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle).
 * New option to exclude posts from search. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT).
 * Search Comments block. Replaces the Comments widget in the block editor. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
+* [Instant Results] Notice when ElasticPress is network activated warning that Instant Results will not work on all sites without additional steps. Props [@JakePT](https://github.com/JakePT).
 * Extra debugging information in the browser console when syncing fails and more useful error messages with a troubleshooting URL. Props [@JakePT](https://github.com/JakePT).
 * New `elasticpress.InstantResults.Result` JavaScript filter for filtering the component used for Instant Results search results. Props [@JakePT](https://github.com/JakePT).
 * New `window.epInstantResults.openModal()` method for developers to manually open Instant Results. Props [@JakePT](https://github.com/JakePT).
