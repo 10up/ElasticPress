@@ -7892,6 +7892,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test exclude from search filter doesn't apply for admin quries.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testExcludeFromSearchFilterDoesNotApplyForAdminQueries() {
+
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		$this->ep_factory->post->create_many(
+			5,
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test post'
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
+	}
+
+
+	/**
 	 * Tests get_distinct_meta_field_keys_db
 	 *
 	 * @since 4.4.0

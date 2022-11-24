@@ -711,7 +711,7 @@ class Search extends Feature {
 	 */
 	public function exclude_posts_from_search( $query ) {
 
-		if ( ! $query->is_search() || $query->is_admin() ) {
+		if ( ! $query->is_search() || $query->is_admin ) {
 			return;
 		}
 
