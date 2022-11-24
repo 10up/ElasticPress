@@ -637,7 +637,7 @@ class Synonyms {
 	 */
 	public function example_synonym_list( $as_array = false ) {
 		$lines = [
-			__( '# Defined sets ( equivalent synonyms).', 'elasticpress' ),
+			__( '# Defined sets (equivalent synonyms).', 'elasticpress' ),
 			'sneakers, tennis shoes, trainers, runners',
 			'',
 			__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),
