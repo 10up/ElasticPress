@@ -98,9 +98,7 @@ class ProtectedContent extends Feature {
 		];
 
 		foreach ( $ignored_post_types as $ignored_post_type ) {
-			if ( isset( $pc_post_types[ $ignored_post_type ] ) ) {
-				unset( $pc_post_types[ $ignored_post_type ] );
-			}
+			unset( $pc_post_types[ $ignored_post_type ] );
 		}
 
 		// By default, attachments are not indexed, we have to make sure they are included (Could already be included by documents feature).
