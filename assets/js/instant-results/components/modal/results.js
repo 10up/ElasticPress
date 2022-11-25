@@ -23,7 +23,7 @@ export default () => {
 		nextPage,
 		previousPage,
 		searchResults,
-		searchedTerm,
+		searchTerm,
 		totalResults,
 	} = useInstantResults();
 
@@ -54,7 +54,7 @@ export default () => {
 		<div className="ep-search-results">
 			<header className="ep-search-results__header">
 				<h1 className="ep-search-results__title" ref={headingRef} role="status">
-					{searchedTerm
+					{searchTerm
 						? sprintf(
 								/* translators: %1$d: results count. %2$s: Search term. */
 								_n(
@@ -64,7 +64,7 @@ export default () => {
 									'elasticpress',
 								),
 								totalResults,
-								searchedTerm,
+								searchTerm,
 						  )
 						: sprintf(
 								/* translators: %d: results count. */

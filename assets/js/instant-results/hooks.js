@@ -1,15 +1,12 @@
+/**
+ * WordPress dependencies.
+ */
 import { useCallback, useContext, useRef } from '@wordpress/element';
-import { apiEndpoint, apiHost } from './config';
-import Context from './context';
 
 /**
- * Use the Instant Results context.
- *
- * @returns {*} Context value.
+ * Internal dependencies.
  */
-export const useInstantResults = () => {
-	return useContext(Context);
-};
+import { Context } from './lib';
 
 /**
  * Get debounced version of a function that only runs a given ammount of time
@@ -35,46 +32,10 @@ export const useDebounce = (callback, delay) => {
 };
 
 /**
- * Get a callback function for retrieving search results.
+ * Use the Instant Results context.
  *
- * @returns {Function} Memoized callback function for retrieving search results.
+ * @returns {*} Context value.
  */
-export const useGetResults = () => {
-	const abort = useRef(new AbortController());
-	const request = useRef(null);
-
-	/**
-	 * Get new search results from the API.
-	 *
-	 * @param {URLSearchParams} urlParams Query arguments.
-	 * @returns {Promise} Request promise.
-	 */
-	const getResults = async (urlParams) => {
-		const url = `${apiHost}${apiEndpoint}?${urlParams.toString()}`;
-
-		abort.current.abort();
-		abort.current = new AbortController();
-
-		request.current = fetch(url, {
-			signal: abort.current.signal,
-			headers: {
-				Accept: 'application/json',
-			},
-		})
-			.then((response) => {
-				return response.json();
-			})
-			.catch((error) => {
-				if (error?.name !== 'AbortError' && !request.current) {
-					throw error;
-				}
-			})
-			.finally(() => {
-				request.current = null;
-			});
-
-		return request.current;
-	};
-
-	return useCallback(getResults, []);
+export const useInstantResults = () => {
+	return useContext(Context);
 };

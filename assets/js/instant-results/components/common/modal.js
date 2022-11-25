@@ -6,7 +6,7 @@ import FocusTrap from 'focus-trap-react';
 /**
  * WordPress dependencies.
  */
-import { forwardRef, useCallback, useEffect, useRef, WPElement } from '@wordpress/element';
+import { useCallback, useEffect, useRef, WPElement } from '@wordpress/element';
 import { closeSmall, Icon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 
@@ -19,7 +19,7 @@ import { __ } from '@wordpress/i18n';
  * @param {Function} props.onClose Callback to run when modal is closed.
  * @returns {WPElement} React element.
  */
-const Modal = ({ children, isOpen, onClose, ...props }) => {
+export default ({ children, isOpen, onClose, ...props }) => {
 	/**
 	 * Reference to close button element.
 	 */
@@ -96,5 +96,3 @@ const Modal = ({ children, isOpen, onClose, ...props }) => {
 		</div>
 	);
 };
-
-export default forwardRef(Modal);

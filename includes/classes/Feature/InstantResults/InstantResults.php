@@ -961,7 +961,7 @@ class InstantResults extends Feature {
 			),
 			'relation'  => array(
 				'type'          => 'string',
-				'default'       => $this->settings['match_type'],
+				'default'       => 'all' === $this->settings['match_type'] ? 'and' : 'or',
 				'allowedValues' => [ 'and', 'or' ],
 			),
 		);

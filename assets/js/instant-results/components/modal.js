@@ -8,8 +8,9 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { facets, paramPrefix } from '../config';
-import { getPostTypesFromForm, getUrlWithParams } from '../functions';
 import { useInstantResults } from '../hooks';
+import { getUrlWithParams } from '../lib';
+import { getPostTypesFromForm } from '../utilities';
 import Modal from './common/modal';
 import SearchTermFacet from './facets/search-term-facet';
 import PostTypeFacet from './facets/post-type-facet';
@@ -174,6 +175,7 @@ export default ({ defaultIsOpen }) => {
 									return (
 										<PostTypeFacet
 											defaultIsOpen={defaultIsOpen}
+											key={name}
 											label={label}
 										/>
 									);
@@ -181,6 +183,7 @@ export default ({ defaultIsOpen }) => {
 									return (
 										<PriceRangeFacet
 											defaultIsOpen={defaultIsOpen}
+											key={name}
 											label={label}
 										/>
 									);
@@ -188,6 +191,7 @@ export default ({ defaultIsOpen }) => {
 									return (
 										<TaxonomyTermsFacet
 											defaultIsOpen={defaultIsOpen}
+											key={name}
 											label={label}
 											name={name}
 											postTypes={postTypes}

@@ -17,7 +17,7 @@ import SmallButton from '../common/small-button';
  * @returns {WPElement} Element.
  */
 export default () => {
-	const { args, clearFacets } = useInstantResults();
+	const { args, clearConstraints } = useInstantResults();
 
 	/**
 	 * Return whether there are active filters.
@@ -48,7 +48,7 @@ export default () => {
 	 * @returns {void}
 	 */
 	const onClick = () => {
-		clearFacets();
+		clearConstraints();
 	};
 
 	return (

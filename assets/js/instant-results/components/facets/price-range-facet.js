@@ -7,7 +7,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import { formatPrice } from '../../functions';
+import { formatPrice } from '../../utilities';
 import { useInstantResults } from '../../hooks';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';

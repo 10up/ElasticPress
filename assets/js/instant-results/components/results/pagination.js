@@ -7,15 +7,17 @@ import { WPElement } from '@wordpress/element';
 /**
  * Search results component.
  *
- * @param {object}   props            Props.
- * @param {number}   props.offset     Current items offset.
- * @param {Function} props.onNext     Next button handler.
+ * @param {object} props Props.
+ * @param {number} props.offset Current items offset.
+ * @param {Function} props.onNext Next button handler.
  * @param {Function} props.onPrevious Previous button handler.
- * @param {number}   props.perPage    Items per page.
- * @param {number}   props.total      Total number of items.
+ * @param {number} props.perPage Items per page.
+ * @param {number} props.total Total number of items.
  * @returns {WPElement} Element.
  */
 export default ({ offset, onNext, onPrevious, perPage, total }) => {
+	console.log(offset, perPage);
+
 	/**
 	 * Current page number.
 	 */

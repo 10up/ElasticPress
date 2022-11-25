@@ -13,20 +13,18 @@ import { ActiveContraint } from '../tools/active-constraints';
 /**
  * Search field component.
  *
- * @param {object} props Component props.
- * @param {string} props.arg Argument to use.
  * @returns {WPElement} Component element.
  */
-export default ({ arg }) => {
-	const { args, newSearch, searchedTerm } = useInstantResults();
+export default () => {
+	const { args, searchFor, searchTerm } = useInstantResults();
 
-	const [value, setValue] = useState(args[arg]);
+	const [value, setValue] = useState(args.search);
 
 	/**
 	 * Dispatch the change, with debouncing.
 	 */
 	const dispatchChange = useDebounce((value) => {
-		newSearch(value);
+		searchFor(value);
 	}, 300);
 
 	/**
@@ -43,7 +41,7 @@ export default ({ arg }) => {
 	 * Handle clearing.
 	 */
 	const onClear = () => {
-		newSearch('');
+		searchFor('');
 	};
 
 	/**
@@ -51,13 +49,13 @@ export default ({ arg }) => {
 	 * state.
 	 */
 	const handleSearch = () => {
-		setValue(args[arg]);
+		setValue(args.search);
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleSearch, [arg, args]);
+	useEffect(handleSearch, [args.search]);
 
 	return (
 		<>
@@ -68,12 +66,12 @@ export default ({ arg }) => {
 				value={value}
 				onChange={onChange}
 			/>
-			{searchedTerm && (
+			{searchTerm && (
 				<ActiveContraint
 					label={sprintf(
 						/* translators: %s: Search term. */
 						__('“%s”', 'elasticpress'),
-						searchedTerm,
+						searchTerm,
 					)}
 					onClick={onClear}
 				/>

@@ -6,25 +6,30 @@ import { render } from '@wordpress/element';
 /**
  * Internal dependencies.
  */
-import { argsSchema, paramPrefix } from './config';
-import { getArgsFromUrlParams } from './functions';
+import { apiEndpoint, apiHost, argsSchema, paramPrefix } from './config';
+import { getArgsFromUrlParams, Provider } from './lib';
 import Modal from './components/modal';
-import InstantResults from './provider';
 
 /**
  * Render Instant Results as a modal.
  *
  * @param {object} defaultArgs Default search args.
+ * @param {boolean} defaultIsOpen Whether the modal should be open.
  * @returns {void}
  */
-const renderModal = (defaultArgs) => {
+const renderModal = (defaultArgs, defaultIsOpen) => {
 	const el = document.getElementById('ep-instant-results');
-	const defaultIsOpen = defaultArgs && Object.keys(defaultArgs).length > 0;
 
 	render(
-		<InstantResults defaultArgs={defaultArgs}>
+		<Provider
+			apiEndpoint={apiEndpoint}
+			apiHost={apiHost}
+			argsSchema={argsSchema}
+			defaultArgs={defaultArgs}
+			paramPrefix={paramPrefix}
+		>
 			<Modal defaultIsOpen={defaultIsOpen} />
-		</InstantResults>,
+		</Provider>,
 		el,
 	);
 };
@@ -34,9 +39,10 @@ const renderModal = (defaultArgs) => {
  */
 const init = () => {
 	const urlParams = new URLSearchParams(window.location.search);
-	const urlArgs = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
+	const defaultArgs = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
+	const defaultIsOpen = Object.keys(defaultArgs).length > 0;
 
-	renderModal(urlArgs);
+	renderModal(defaultArgs, defaultIsOpen);
 };
 
 window.addEventListener('DOMContentLoaded', init);
