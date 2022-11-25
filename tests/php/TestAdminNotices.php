@@ -572,7 +572,7 @@ class TestAdminNotices extends BaseTestCase {
 			}
 		);
 		ElasticPress\Screen::factory()->set_current_screen( 'install' );
-		
+
 		add_filter(
 			'ep_post_pre_meta_keys_db',
 			function() {

@@ -126,3 +126,5 @@ require_once __DIR__ . '/includes/classes/factory/TermFactory.php';
 require_once __DIR__ . '/includes/classes/factory/CommentFactory.php';
 require_once __DIR__ . '/includes/classes/BaseTestCase.php';
 require_once __DIR__ . '/includes/classes/FeatureTest.php';
+require_once __DIR__ . '/includes/classes/mock/class-wp-cli-command.php';
+require_once __DIR__ . '/includes/classes/mock/class-wp-cli.php';
