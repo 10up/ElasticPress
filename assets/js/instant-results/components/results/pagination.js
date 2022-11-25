@@ -16,8 +16,6 @@ import { WPElement } from '@wordpress/element';
  * @returns {WPElement} Element.
  */
 export default ({ offset, onNext, onPrevious, perPage, total }) => {
-	console.log(offset, perPage);
-
 	/**
 	 * Current page number.
 	 */
