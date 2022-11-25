@@ -101,6 +101,7 @@ class BaseTestCase extends WP_UnitTestCase {
 		);
 
 		register_post_type( 'ep_test', $args );
+		register_post_type( 'ep_test_2', $args );
 
 		// Post type that is excluded from search.
 		$args = array(

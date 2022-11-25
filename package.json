@@ -64,6 +64,7 @@
       "sync-script": "./assets/js/sync/index.js",
       "sites-admin-script": "./assets/js/sites-admin.js",
       "stats-script": "./assets/js/stats.js",
+      "status-report-script": "./assets/js/status-report/index.js",
       "synonyms-script": "./assets/js/synonyms/index.js",
       "admin-script": "./assets/js/admin.js",
       "weighting-script": "./assets/js/weighting.js",
@@ -78,6 +79,7 @@
       "ordering-styles": "./assets/css/ordering.css",
       "facets-block-styles": "./assets/css/facets-block.css",
       "related-posts-block-styles": "./assets/css/related-posts-block.css",
+      "status-report-styles": "./assets/css/status-report.css",
       "sync-styles": "./assets/css/sync.css",
       "synonyms-styles": "./assets/css/synonyms.css"
     },

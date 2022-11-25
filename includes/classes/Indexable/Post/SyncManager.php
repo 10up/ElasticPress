@@ -74,6 +74,19 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
 		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
 		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
+
+		// Clear field limit cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_total_fields_limit_cache' ] );
+		add_action( 'ep_sync_put_mapping', [ $this, 'clear_total_fields_limit_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_total_fields_limit_cache' ] );
+
+		// Clear distinct meta field per post type cache
+		add_action( 'wp_insert_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
+		add_action( 'delete_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
+		add_action( 'updated_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+		add_action( 'added_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+		add_action( 'deleted_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+		add_action( 'delete_post_metadata', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
 	}
 
 	/**
@@ -678,6 +691,60 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		restore_current_blog();
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @since 4.4.0
+	 */
+	public function clear_total_fields_limit_cache() {
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$cache_key = 'ep_total_fields_limit_' . $indexable->get_index_name();
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( $cache_key );
+		} else {
+			delete_transient( $cache_key );
+		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @param int $post_id The post ID
+	 * @since 4.4.0
+	 */
+	public function clear_meta_keys_db_per_post_type_cache_by_post_id( $post_id ) {
+		$post_type = get_post_type( $post_id );
+		if ( $post_type ) {
+			$this->clear_meta_keys_db_cache( $post_type );
+		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @param int|array $meta_id Meta ID
+	 * @param int       $post_id The post ID
+	 * @since 4.4.0
+	 */
+	public function clear_meta_keys_db_per_post_type_cache_by_meta( $meta_id, $post_id ) {
+		$post_type = get_post_type( $post_id );
+		if ( $post_type ) {
+			$this->clear_meta_keys_db_cache( $post_type );
+		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @param string $post_type The post type
+	 * @since 4.4.0
+	 */
+	protected function clear_meta_keys_db_cache( $post_type ) {
+		delete_transient( 'ep_meta_field_keys' );
+		delete_transient( 'ep_meta_field_keys_' . $post_type );
 	}
 
 	/**

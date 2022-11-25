@@ -252,9 +252,11 @@ describe('WooCommerce Feature', () => {
 					thirdProductId = id;
 				});
 
+			cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 			cy.get('@thirdProduct')
 				.drag('#the-list tr:eq(0)', { force: true })
 				.then(() => {
+					cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {

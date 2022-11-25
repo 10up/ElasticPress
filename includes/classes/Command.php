@@ -409,9 +409,9 @@ class Command extends WP_CLI_Command {
 	 */
 	public function get_cluster_indices( $args, $assoc_args ) {
 
-		$response = Elasticsearch::factory()->get_cluster_indices();
+		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
 
-		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $cluster_indices, ! empty( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1306,7 +1306,7 @@ class Command extends WP_CLI_Command {
 				break;
 
 			case 'error':
-				$this->clear_index();
+				$this->clear_sync();
 				WP_CLI::error( $message['message'] );
 				break;
 
