@@ -7634,6 +7634,51 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests the `ep_bypass_exclusion_from_search` filter
+	 */
+	public function testExcludeFromSearchQueryBypassFilter() {
+		$this->ep_factory->post->create_many(
+			2,
+			array(
+				'post_content' => 'find me in search',
+				'meta_input'   => array( 'ep_exclude_from_search' => false ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$bypass = function( $should_bypass, $query ) {
+			$this->assertInstanceOf( \WP_Query::class, $query );
+			return true;
+		};
+		add_filter( 'ep_bypass_exclusion_from_search', $bypass, 10, 2 );
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+
+		remove_filter( 'ep_bypass_exclusion_from_search', $bypass, 10, 2 );
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
 	 */
 	public function testExcludeFromSearchQuery() {
