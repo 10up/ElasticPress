@@ -319,6 +319,7 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 			}
 
 			cy.get('input[type="submit"]').click();
+			cy.wait('@adminAjax').its('response.statusCode').should('eq', 200);
 		})
 		.wait('@adminAjax');
 });
@@ -327,7 +328,7 @@ Cypress.Commands.add('emptyWidgets', () => {
 	cy.wpCliEval(
 		`
 		WP_CLI::runcommand('widget reset --all');
-		
+
 		$inactive_widgets = WP_CLI::runcommand('widget list wp_inactive_widgets --format=ids', [ 'return' => true ] );
 		if ( $inactive_widgets ) {
 			WP_CLI::runcommand("widget delete {$inactive_widgets}" );
