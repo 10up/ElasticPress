@@ -17,6 +17,6 @@ import Report from './reports/report';
  */
 export default ({ reports }) => {
 	return Object.entries(reports).map(([key, { actions, groups, title }]) => (
-		<Report actions={actions} groups={groups} key={key} title={title} />
+		<Report actions={actions} groups={groups} id={key} key={key} title={title} />
 	));
 };

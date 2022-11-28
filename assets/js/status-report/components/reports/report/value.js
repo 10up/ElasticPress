@@ -19,10 +19,14 @@ export default ({ value }) => {
 
 	if (typeof value === 'string') {
 		if (value.indexOf('{') === 0) {
-			const data = JSON.parse(value);
-			const json = JSON.stringify(data, null, 2);
+			try {
+				const data = JSON.parse(value);
+				const json = JSON.stringify(data, null, 2);
 
-			return <pre>{json}</pre>;
+				return <pre>{json}</pre>;
+			} catch (e) {
+				return <pre>{value}</pre>;
+			}
 		}
 
 		return <RawHTML>{value}</RawHTML>;

@@ -260,6 +260,13 @@ describe('Facets Feature', () => {
 			`,
 		);
 
+		/**
+		 * Give Elasticsearch some time to process the post.
+		 *
+		 */
+		// eslint-disable-next-line cypress/no-unnecessary-waiting
+		cy.wait(2000);
+
 		// Blog page
 		cy.visit('/');
 		cy.contains('.site-content article h2', 'A new page').should('not.exist');
