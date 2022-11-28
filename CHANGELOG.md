@@ -16,9 +16,9 @@ ElasticPress 4.4.0 release highlights:
 * Renamed some WP-CLI commands and added deprecation notices for the old versions (see table below)
 
 ### Added
-- New Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), [@tott](https://github.com/tott), and [@brandwaffle](https://github.com/brandwaffle) via [#3130](https://github.com/10up/ElasticPress/pull/3130) and [#3148](https://github.com/10up/ElasticPress/pull/3148).
+- New Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), [@tott](https://github.com/tott), and [@brandwaffle](https://github.com/brandwaffle) via [#3130](https://github.com/10up/ElasticPress/pull/3130), [#3148](https://github.com/10up/ElasticPress/pull/3148), and [#3154](https://github.com/10up/ElasticPress/pull/3154).
 - New Query Logger to display admin notices about failed queries and the list in the new Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle) via [#3136](https://github.com/10up/ElasticPress/pull/3136).
-- New option to exclude posts from search. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT) via [#3100](https://github.com/10up/ElasticPress/pull/3100).
+- New option to exclude posts from search. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT) via [#3100](https://github.com/10up/ElasticPress/pull/3100) and [#3156](https://github.com/10up/ElasticPress/pull/3156).
 - Search Comments block. Replaces the Comments widget in the block editor. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#2986](https://github.com/10up/ElasticPress/pull/2986).
 - [Instant Results] Notice when ElasticPress is network activated warning that Instant Results will not work on all sites without additional steps. Props [@JakePT](https://github.com/JakePT) via [#3149](https://github.com/10up/ElasticPress/pull/3149).
 - Extra debugging information in the browser console when syncing fails and more useful error messages with a troubleshooting URL. Props [@JakePT](https://github.com/JakePT) via [#3133](https://github.com/10up/ElasticPress/pull/3133).
@@ -75,7 +75,7 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 - Compatibility code for WP < 4.6 in the Post Search feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3121](https://github.com/10up/ElasticPress/pull/3121).
 - Legacy hook from unit tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#3050](https://github.com/10up/ElasticPress/pull/3050).
 - Time average box in the Index Health page. Props [@felipeelia](https://github.com/felipeelia) and [@alaa-alshamy](https://github.com/alaa-alshamy) via [#3115](https://github.com/10up/ElasticPress/pull/3115).
-- [Protected Content] Removed post types to be indexed by default: ep-synonym, ep-pointer, wp_global_styles, wp_navigation, wp_template, and wp_template_part. Props [@felipeelia](https://github.com/felipeelia) via [#3135](https://github.com/10up/ElasticPress/pull/3135).
+- [Protected Content] Removed post types to be indexed by default: ep-synonym, ep-pointer, wp_global_styles, wp_navigation, wp_template, and wp_template_part. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3135](https://github.com/10up/ElasticPress/pull/3135) and [#3155](https://github.com/10up/ElasticPress/pull/3155).
 
 ### Fixed
 - Clicking on the Facet Term redirect to Homepage. Props [@burhandodhy](https://github.com/burhandodhy) via [#3032](https://github.com/10up/ElasticPress/pull/3032).
@@ -98,7 +98,7 @@ Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/
 - Warning if `_source` is not returned in query hit. Props [@pschoffer](https://github.com/pschoffer) via [#2992](https://github.com/10up/ElasticPress/pull/2992).
 - Undefined variable `$update` on synonyms page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3102](https://github.com/10up/ElasticPress/pull/3102).
 - PHP 8 deprecation warning related to `uasort()` usage. Props [@burhandodhy](https://github.com/burhandodhy) via [#3091](https://github.com/10up/ElasticPress/pull/3091).
-- Cypress intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3053](https://github.com/10up/ElasticPress/pull/3053) and [#3147](https://github.com/10up/ElasticPress/pull/3147).
+- Cypress intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3053](https://github.com/10up/ElasticPress/pull/3053), [#3147](https://github.com/10up/ElasticPress/pull/3147), and [#3158](https://github.com/10up/ElasticPress/pull/3158).
 - Fix PHP Unit Tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3073](https://github.com/10up/ElasticPress/pull/3073).
 
 ### Security
