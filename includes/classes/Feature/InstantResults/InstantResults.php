@@ -250,6 +250,7 @@ class InstantResults extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'add_post_sync_args' ], 10, 2 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		add_filter( 'ep_bypass_exclusion_from_search', [ $this, 'maybe_bypass_post_exclusion' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
@@ -569,6 +570,20 @@ class InstantResults extends Feature {
 		$this->search_template = $query['args']['body'];
 
 		return wp_remote_request( $query['url'], $args );
+	}
+
+	/**
+	 * If generating the search template query, do not bypass the post exclusion
+	 *
+	 * @since 4.4.0
+	 * @param bool     $bypass_exclusion_from_search Whether the post exclusion from search should be applied or not
+	 * @param WP_Query $query The WP Query
+	 * @return bool
+	 */
+	public function maybe_bypass_post_exclusion( $bypass_exclusion_from_search, $query ) {
+		return true === $query->get( 'ep_search_template' ) ?
+			false : // not bypass, apply
+			$bypass_exclusion_from_search;
 	}
 
 	/**
