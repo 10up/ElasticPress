@@ -196,6 +196,24 @@ class FailedQueries extends Report {
 			);
 		}
 
+		if ( preg_match( '/field \[(.*?)\] is of type \[(.*?)\], but only numeric types are supported./', $error, $matches ) ) {
+			return sprintf(
+				/* translators: 1. Field name; 2. Sync Page URL */
+				__( 'It seems you saved a post without doing a full sync first because %1$s is missing the correct mapping type. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
+				'<code>' . $matches[1] . '</code>',
+				Utils\get_sync_url()
+			);
+		}
+
+		if ( preg_match( '/Alternatively, set fielddata=true on \[(.*?)\] in order to load field data by uninverting the inverted index./', $error, $matches ) ) {
+			return sprintf(
+				/* translators: 1. Field name; 2. Sync Page URL */
+				__( 'It seems you saved a post without doing a full sync first because %1$s is missing the correct mapping type. <a href="%2$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
+				'<code>' . $matches[1] . '</code>',
+				Utils\get_sync_url()
+			);
+		}
+
 		if ( preg_match( '/Limit of total fields \[(.*?)\] in index \[(.*?)\] has been exceeded/', $error, $matches ) ) {
 			return sprintf(
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
@@ -218,7 +236,7 @@ class FailedQueries extends Report {
 
 		return sprintf(
 			/* translators: New GitHub issue URL */
-			__( 'We did not recognize this error. Please consider opening a <a href="%s">Github Issue</a> so we can add it to our list of supported errors. ', 'elasticpress' ),
+			__( 'We did not recognize this error. Please consider opening a <a href="%s">GitHub Issue</a> so we can add it to our list of supported errors. ', 'elasticpress' ),
 			'https://github.com/10up/ElasticPress/issues/new/choose'
 		);
 	}
