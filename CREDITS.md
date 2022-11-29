@@ -4,9 +4,9 @@ The following acknowledges the Maintainers for this repository, those who have C
 
 ## Maintainers
 
-The following individuals are responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen.
+The following individual is responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen:
 
-[Taylor Lovett (@tlovett1)](https://github.com/tlovett1) and [Vasken Hauri (@brandwaffle)](https://github.com/brandwaffle).
+[Vasken Hauri (@brandwaffle)](https://github.com/brandwaffle).
 
 ## Contributors
 
@@ -196,6 +196,13 @@ Thank you to all the people who have already contributed to this repository via 
 [Bogdan Arizancu (@bogdanarizancu)](https://github.com/bogdanarizancu),
 [Stephanie Walters (@PypWalters)](https://github.com/PypWalters),
 [Rafał Całka (@rafaucau)](https://github.com/rafaucau),
+[@jakgsl](https://github.com/jakgsl),
+[@marc-tt](https://github.com/marc-tt),
+[@Greygooo](https://github.com/Greygooo),
+[Miguel A. Estrada (@mae829)](https://github.com/mae829),
+[@cmcandrew](https://github.com/cmcandrew),
+[@DenisFlorin](https://github.com/DenisFlorin),
+[Mike Hemberger (@JiveDig)](https://github.com/JiveDig),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

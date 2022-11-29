@@ -13,14 +13,15 @@ use ElasticPress;
  * Installer test class
  */
 class TestInstaller extends BaseTestCase {
+
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -48,8 +49,8 @@ class TestInstaller extends BaseTestCase {
 	 *
 	 * @since 3.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		update_site_option( 'ep_host', $this->current_host );
 

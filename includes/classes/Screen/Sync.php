@@ -11,6 +11,8 @@ namespace ElasticPress\Screen;
 use ElasticPress\IndexHelper;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
+use ElasticPress\Stats;
+use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -136,31 +138,32 @@ class Sync {
 
 		wp_enqueue_script(
 			'ep_sync_scripts',
-			EP_URL . 'dist/js/sync-script.min.js',
+			EP_URL . 'dist/js/sync-script.js',
 			Utils\get_asset_info( 'sync-script', 'dependencies' ),
 			Utils\get_asset_info( 'sync-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_sync_scripts', 'elasticpress' );
 
 		wp_enqueue_style( 'wp-components' );
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_sync_style',
-			EP_URL . 'dist/css/sync-styles.min.css',
+			EP_URL . 'dist/css/sync-styles.css',
 			Utils\get_asset_info( 'sync-styles', 'dependencies' ),
 			Utils\get_asset_info( 'sync-styles', 'version' )
 		);
 
 		$data       = array( 'nonce' => wp_create_nonce( 'ep_dashboard_nonce' ) );
 		$index_meta = Utils\get_indexing_status();
+		$last_sync  = Utils\get_option( 'ep_last_sync', false );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_site_option( 'ep_last_sync', false );
 		} else {
 			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
-			$last_sync            = get_option( 'ep_last_sync', false );
 		}
 
 		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification
@@ -173,7 +176,18 @@ class Sync {
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
 
-		if ( ! empty( $ep_last_index ) ) {
+		$sync_required   = false;
+		$all_index_names = Elasticsearch::factory()->get_index_names();
+		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
+
+		$cluster_index_names = wp_list_pluck( $cluster_indices, 'index' );
+		$synced_index_names  = array_intersect( $all_index_names, $cluster_index_names );
+
+		if ( $synced_index_names !== $all_index_names ) {
+			$sync_required = true;
+		}
+
+		if ( ! empty( $ep_last_index ) && ! $sync_required ) {
 			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
 			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) ? true : false;
 		}

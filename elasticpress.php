@@ -3,11 +3,11 @@
  * Plugin Name:       ElasticPress
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
- * Version:           4.3.1
+ * Version:           4.4.0
  * Requires at least: 5.6
  * Requires PHP:      7.0
  * Author:            10up
- * Author URI:        http://10up.com
+ * Author URI:        https://10up.com
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       elasticpress
@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '4.3.1' );
+define( 'EP_VERSION', '4.4.0' );
 
 /**
  * PSR-4-ish autoloading
@@ -164,6 +164,19 @@ function register_indexable_posts() {
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\DefaultAlgorithm() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_350() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_400() );
+
+	/**
+	 * Filter the query logger object
+	 *
+	 * @since 4.4.0
+	 * @hook ep_query_logger
+	 * @param {QueryLogger} $query_logger Default query logger
+	 * @return {QueryLogger} New query logger
+	 */
+	$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+	if ( method_exists( $query_logger, 'setup' ) ) {
+		$query_logger->setup();
+	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 

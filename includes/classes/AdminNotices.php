@@ -44,6 +44,7 @@ class AdminNotices {
 		'using_autosuggest_defaults',
 		'maybe_wrong_mapping',
 		'yellow_health',
+		'too_many_fields',
 	];
 
 	/**
@@ -91,11 +92,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -107,11 +104,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_using_autosuggest_defaults_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_using_autosuggest_defaults_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_using_autosuggest_defaults_notice', false );
 
 		if ( $dismiss ) {
 			return false;
@@ -147,32 +140,20 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_auto_activate_sync_notice() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
-		} else {
-			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
-		}
+		$need_upgrade_sync = Utils\get_option( 'ep_need_upgrade_sync', false );
 
 		// need_upgrade_sync takes priority over this notice
 		if ( $need_upgrade_sync ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$auto_activate_sync = get_site_option( 'ep_feature_auto_activated_sync', false );
-		} else {
-			$auto_activate_sync = get_option( 'ep_feature_auto_activated_sync', false );
-		}
+		$auto_activate_sync = Utils\get_option( 'ep_feature_auto_activated_sync', false );
 
 		if ( ! $auto_activate_sync ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -184,11 +165,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_auto_activate_sync_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_auto_activate_sync_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_auto_activate_sync_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -213,9 +190,18 @@ class AdminNotices {
 		$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
-			$html = sprintf( esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ) );
+			$html = sprintf(
+				/* translators: Feature name */
+				esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ),
+				esc_html( is_object( $feature ) ? $feature->title : '' )
+			);
 		} else {
-			$html = sprintf( __( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ), esc_html( is_object( $feature ) ? $feature->title : '' ), esc_url( $url ) );
+			$html = sprintf(
+				/* translators: 1. Feature name; 2: Sync page URL */
+				__( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ),
+				esc_html( is_object( $feature ) ? $feature->title : '' ),
+				esc_url( $url )
+			);
 		}
 
 		return [
@@ -236,21 +222,13 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_upgrade_sync_notice() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$need_upgrade_sync = get_site_option( 'ep_need_upgrade_sync', false );
-		} else {
-			$need_upgrade_sync = get_option( 'ep_need_upgrade_sync', false );
-		}
+		$need_upgrade_sync = Utils\get_option( 'ep_need_upgrade_sync', false );
 
 		if ( ! $need_upgrade_sync ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -262,11 +240,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_upgrade_sync_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_upgrade_sync_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_upgrade_sync_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -291,7 +265,11 @@ class AdminNotices {
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
 			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you delete all data and start a fresh sync using WP-CLI.', 'elasticpress' );
 		} else {
-			$html = sprintf( __( 'The new version of ElasticPress requires that you <a href="%s">delete all data and start a fresh sync</a>.', 'elasticpress' ), esc_url( $url ) );
+			$html = sprintf(
+				/* translators: Sync Page URL */
+				__( 'The new version of ElasticPress requires that you <a href="%s">delete all data and start a fresh sync</a>.', 'elasticpress' ),
+				esc_url( $url )
+			);
 		}
 
 		$notice = esc_html__( 'Please note that some ElasticPress functionality may be impaired and/or content may not be searchable until the full sync has been performed.', 'elasticpress' );
@@ -314,11 +292,7 @@ class AdminNotices {
 	 * @return array|bool
 	 */
 	protected function process_no_sync_notice() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( ! empty( $last_sync ) ) {
 			return false;
@@ -330,11 +304,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_no_sync_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_no_sync_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_no_sync_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -359,7 +329,11 @@ class AdminNotices {
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
 			$html = esc_html__( 'Dashboard sync is disabled, but ElasticPress is almost ready to go. Trigger a sync from WP-CLI.', 'elasticpress' );
 		} else {
-			$html = sprintf( __( 'ElasticPress is almost ready to go. You just need to <a href="%s">sync your content</a>.', 'elasticpress' ), esc_url( $url ) );
+			$html = sprintf(
+				/* translators: Sync Page URL */
+				__( 'ElasticPress is almost ready to go. You just need to <a href="%s">sync your content</a>.', 'elasticpress' ),
+				esc_url( $url )
+			);
 		}
 
 		return [
@@ -386,11 +360,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_need_setup_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_need_setup_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_need_setup_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -409,9 +379,13 @@ class AdminNotices {
 		}
 
 		return [
-			'html'    => sprintf( __( 'ElasticPress is almost ready to go. You just need to <a href="%s">enter your settings</a>.', 'elasticpress' ), esc_url( $url ) ),
 			'type'    => 'info',
 			'dismiss' => 'dashboard' !== $screen,
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'ElasticPress is almost ready to go. You just need to <a href="%s">enter your settings</a>.', 'elasticpress' ),
+				esc_url( $url )
+			),
 		];
 	}
 
@@ -442,11 +416,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_es_below_compat_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_es_below_compat_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_es_below_compat_notice', false );
 
 		if ( $dismiss ) {
 			return false;
@@ -466,9 +436,14 @@ class AdminNotices {
 
 		if ( 1 === version_compare( EP_ES_VERSION_MIN, $major_es_version ) ) {
 			return [
-				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MIN ) ),
 				'type'    => 'error',
 				'dismiss' => true,
+				'html'    => sprintf(
+					/* translators: 1. Current Elasticsearch version; 2. Minimum required ES version */
+					__( 'Your Elasticsearch version %1$s is below the minimum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ),
+					esc_html( $es_version ),
+					esc_html( EP_ES_VERSION_MIN )
+				),
 			];
 		}
 
@@ -502,11 +477,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_es_above_compat_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_es_above_compat_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_es_above_compat_notice', false );
 
 		if ( $dismiss ) {
 			return false;
@@ -517,9 +488,14 @@ class AdminNotices {
 
 		if ( -1 === version_compare( EP_ES_VERSION_MAX, $major_es_version ) ) {
 			return [
-				'html'    => sprintf( __( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ), esc_html( $es_version ), esc_html( EP_ES_VERSION_MAX ) ),
 				'type'    => 'warning',
 				'dismiss' => true,
+				'html'    => sprintf(
+					/* translators: 1. Current Elasticsearch version; 2. Maximum supported ES version */
+					__( 'Your Elasticsearch version %1$s is above the maximum required Elasticsearch version %2$s. ElasticPress may or may not work properly.', 'elasticpress' ),
+					esc_html( $es_version ),
+					esc_html( EP_ES_VERSION_MAX )
+				),
 			];
 		}
 	}
@@ -559,7 +535,7 @@ class AdminNotices {
 
 		$doc_url = 'https://10up.github.io/ElasticPress/tutorial-compatibility.html';
 		$html    = sprintf(
-			/* translator: Document page URL */
+			/* translators: Document page URL */
 			__( 'Your server software is not supported. To learn more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
 			esc_url( $doc_url )
 		);
@@ -602,11 +578,7 @@ class AdminNotices {
 
 		// Only dismissable on non-EP screens
 		if ( ! in_array( $screen, [ 'settings', 'dashboard' ], true ) ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$dismiss = get_site_option( 'ep_hide_host_error_notice', false );
-			} else {
-				$dismiss = get_option( 'ep_hide_host_error_notice', false );
-			}
+			$dismiss = Utils\get_option( 'ep_hide_host_error_notice', false );
 
 			if ( $dismiss ) {
 				return false;
@@ -623,14 +595,21 @@ class AdminNotices {
 			$response_error = get_transient( 'ep_es_info_response_error' );
 		}
 
-		$html = sprintf( __( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ), esc_url( add_query_arg( 'ep-retry', 1 ) ), esc_url( $url ) );
+		$html = sprintf(
+			/* translators: 1. Current URL with retry parameter; 2. Settings Page URL */
+			__( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ),
+			esc_url( add_query_arg( 'ep-retry', 1 ) ),
+			esc_url( $url )
+		);
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			if ( ! empty( $response_code ) ) {
+				/* translators: Response Code Number */
 				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( __( 'Response Code: %s', 'elasticpress' ), esc_html( $response_code ) ) . '</span>';
 			}
 
 			if ( ! empty( $response_error ) ) {
+				/* translators: Response Code Message */
 				$html .= '<span class="notice-error-es-response-error"> ' . sprintf( __( 'Response error: %s', 'elasticpress' ), esc_html( $response_error ) ) . '</span>';
 			}
 		}
@@ -660,11 +639,7 @@ class AdminNotices {
 		}
 
 		// we might have this dismissed
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_maybe_wrong_mapping_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_maybe_wrong_mapping_notice', false );
 
 		// we need a host
 		$host = Utils\get_host();
@@ -680,11 +655,7 @@ class AdminNotices {
 		}
 
 		// we also likely need a sync to have a mapping
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
@@ -707,6 +678,7 @@ class AdminNotices {
 			);
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				/* translators: 1. Current mapping file; 2. Mapping file that should be used */
 				$html .= '<span class="notice-error-es-response-code"> ' . sprintf( esc_html__( 'Current mapping: %1$s. Expected mapping: %2$s', 'elasticpress' ), esc_html( $mapping_file_current ), esc_html( $mapping_file_wanted ) ) . '</span>';
 			}
 
@@ -737,21 +709,13 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', false );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', false );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 
 		if ( empty( $last_sync ) ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dismiss = get_site_option( 'ep_hide_yellow_health_notice', false );
-		} else {
-			$dismiss = get_option( 'ep_hide_yellow_health_notice', false );
-		}
+		$dismiss = Utils\get_option( 'ep_hide_yellow_health_notice', false );
 
 		$screen = Screen::factory()->get_current_screen();
 
@@ -769,11 +733,100 @@ class AdminNotices {
 			}
 
 			return [
-				'html'    => sprintf( __( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the <a href="%1$s">Index Health</a> page where you can check the health of all of your indices.', 'elasticpress' ), $url ),
 				'type'    => 'warning',
 				'dismiss' => true,
+				'html'    => sprintf(
+					/* translators: Index Health URL */
+					__( 'It looks like one or more of your indices are running on a single node. While this won\'t prevent you from using ElasticPress, depending on your site\'s specific needs this can represent a performance issue. Please check the <a href="%s">Index Health</a> page where you can check the health of all of your indices.', 'elasticpress' ),
+					$url
+				),
 			];
 		}
+	}
+
+	/**
+	 * Too many fields notification. Shows when the site has potentially more fields than ES could handle.
+	 *
+	 * Type: warning|error
+	 * Dismiss: Anywhere
+	 * Show: Sync and Install page
+	 *
+	 * @since 4.4.0
+	 * @return array|bool
+	 */
+	protected function process_too_many_fields_notice() {
+		$host = Utils\get_host();
+
+		if ( empty( $host ) ) {
+			return false;
+		}
+
+		$dismiss = Utils\get_option( 'ep_hide_too_many_fields_notice', false );
+
+		$screen = Screen::factory()->get_current_screen();
+
+		if ( ! in_array( $screen, [ 'install', 'sync' ], true ) || $dismiss ) {
+			return false;
+		}
+
+		$has_error   = false;
+		$has_warning = false;
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
+				switch_to_blog( $site['blog_id'] );
+
+				list( $has_error, $site_has_warning ) = $this->check_field_count();
+
+				restore_current_blog();
+
+				$has_warning = $has_warning || $site_has_warning;
+				if ( $has_error ) {
+					break;
+				}
+			}
+		} else {
+			list( $has_error, $has_warning ) = $this->check_field_count();
+		}
+
+		if ( $has_error ) {
+			$message = sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+
+			return [
+				'type'    => 'error',
+				'dismiss' => true,
+				'html'    => $message,
+			];
+		}
+
+		if ( $has_warning ) {
+			$message = sprintf(
+				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
+				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
+				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+			);
+
+			return [
+				'type'    => 'warning',
+				'dismiss' => true,
+				'html'    => $message,
+			];
+		}
+
+		return false;
 	}
 
 	/**
@@ -805,11 +858,7 @@ class AdminNotices {
 		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
 			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
 		}
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_hide_' . $notice . '_notice', $value );
-		} else {
-			update_option( 'ep_hide_' . $notice . '_notice', $value );
-		}
+		Utils\update_option( 'ep_hide_' . $notice . '_notice', $value );
 	}
 
 	/**
@@ -826,5 +875,29 @@ class AdminNotices {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Compare the number of fields in the site and the number of allowed fields in ES
+	 *
+	 * @since 4.4.0
+	 * @return array
+	 */
+	protected function check_field_count() {
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
+		$count_fields_db  = count( $indexable_fields );
+
+		$index_name     = $post_indexable->get_index_name();
+		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
+		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+
+		$predicted_es_field_count = $count_fields_db * 8;
+
+		return [
+			$predicted_es_field_count > $es_field_limit,
+			$predicted_es_field_count * 1.2 > $es_field_limit,
+		];
 	}
 }

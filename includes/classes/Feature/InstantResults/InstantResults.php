@@ -83,6 +83,7 @@ class InstantResults extends Feature {
 			'highlight_tag' => 'mark',
 			'facets'        => 'post_type,category,post_tag',
 			'match_type'    => 'all',
+			'term_count'    => '1',
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -107,9 +108,9 @@ class InstantResults extends Feature {
 			<?php
 			printf(
 				/* translators: %s: ElasticPress.io link. */
-				esc_html__( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s to function.', 'elasticpress' ),
+				esc_html__( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s or a custom proxy to function.', 'elasticpress' ),
 				sprintf(
-					'<a href=”%1$s” target="_blank">%2$s</a>',
+					'<a href="%1$s" target="_blank">%2$s</a>',
 					'https://www.elasticpress.io/',
 					esc_html__( 'ElasticPress.io plan', 'elasticpress' )
 				)
@@ -171,6 +172,18 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Term Count', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label>
+					<input name="settings[term_count]" <?php checked( (bool) $this->settings['term_count'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
+				</label><br>
+				<label>
+					<input name="settings[term_count]" <?php checked( ! (bool) $this->settings['term_count'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
+				</label>
+				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
+			</div>
+		</div>
 
 		<?php
 	}
@@ -205,6 +218,22 @@ class InstantResults extends Feature {
 			$status->message[] = wp_kses_post( __( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", 'elasticpress' ) );
 		}
 
+		/**
+		 * Display a warning if ElasticPress is network activated.
+		 */
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$status->message[] = wp_kses_post(
+				sprintf(
+					/* translators: Article URL */
+					__(
+						'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="%s" target="_blank">running ElasticPress in network mode</a> for more details.',
+						'elasticpress'
+					),
+					'https://elasticpress.zendesk.com/hc/en-us/articles/10841087797901-Running-ElasticPress-in-a-WordPress-Multisite-Network-Mode-'
+				)
+			);
+		}
+
 		return $status;
 	}
 
@@ -221,6 +250,7 @@ class InstantResults extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'add_post_sync_args' ], 10, 2 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		add_filter( 'ep_bypass_exclusion_from_search', [ $this, 'maybe_bypass_post_exclusion' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
@@ -243,18 +273,20 @@ class InstantResults extends Feature {
 
 		wp_enqueue_style(
 			'elasticpress-instant-results',
-			EP_URL . 'dist/css/instant-results-styles.min.css',
+			EP_URL . 'dist/css/instant-results-styles.css',
 			Utils\get_asset_info( 'instant-results-styles', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-styles', 'version' )
 		);
 
 		wp_enqueue_script(
 			'elasticpress-instant-results',
-			EP_URL . 'dist/js/instant-results-script.min.js',
+			EP_URL . 'dist/js/instant-results-script.js',
 			Utils\get_asset_info( 'instant-results-script', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results', 'elasticpress' );
 
 		/**
 		 * The search API endpoint.
@@ -281,6 +313,7 @@ class InstantResults extends Feature {
 				'matchType'      => $this->settings['match_type'],
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
+				'termCount'      => $this->settings['term_count'],
 			)
 		);
 	}
@@ -299,11 +332,13 @@ class InstantResults extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-instant-results-admin',
-			EP_URL . 'dist/js/instant-results-admin-script.min.js',
+			EP_URL . 'dist/js/instant-results-admin-script.js',
 			Utils\get_asset_info( 'instant-results-admin-script', 'dependencies' ),
 			Utils\get_asset_info( 'instant-results-admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'elasticpress-instant-results-admin', 'elasticpress' );
 
 		wp_localize_script(
 			'elasticpress-instant-results-admin',
@@ -339,11 +374,11 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Save the search template to ElasticPress.io.
+	 * Get the endpoint for the Instant Results search template.
 	 *
-	 * @return void
+	 * @return string Instant Results search template endpoint.
 	 */
-	public function epio_save_search_template() {
+	public function get_template_endpoint() {
 		/**
 		 * Filters the search template API endpoint.
 		 *
@@ -353,15 +388,23 @@ class InstantResults extends Feature {
 		 * @param {string} $index Elasticsearch index.
 		 * @returns {string} Search template API endpoint.
 		 */
-		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+		return apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+	}
 
-		$search_template = $this->get_search_template();
+	/**
+	 * Save the search template to ElasticPress.io.
+	 *
+	 * @return void
+	 */
+	public function epio_save_search_template() {
+		$endpoint = $this->get_template_endpoint();
+		$template = $this->get_search_template();
 
 		Elasticsearch::factory()->remote_request(
 			$endpoint,
 			[
 				'blocking' => false,
-				'body'     => $search_template,
+				'body'     => $template,
 				'method'   => 'PUT',
 			]
 		);
@@ -371,10 +414,10 @@ class InstantResults extends Feature {
 		 *
 		 * @since 4.0.0
 		 * @hook ep_instant_results_template_saved
-		 * @param {string} $search_template The search template (JSON).
+		 * @param {string} $template The search template (JSON).
 		 * @param {string} $index Index name.
 		 */
-		do_action( 'ep_instant_results_template_saved', $search_template, $this->index );
+		do_action( 'ep_instant_results_template_saved', $template, $this->index );
 	}
 
 	/**
@@ -385,16 +428,7 @@ class InstantResults extends Feature {
 	 * @since 4.3.0
 	 */
 	public function epio_delete_search_template() {
-		/**
-		 * Filters the search template API endpoint.
-		 *
-		 * @since 4.0.0
-		 * @hook ep_instant_results_template_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @param {string} $index Elasticsearch index.
-		 * @returns {string} Search template API endpoint.
-		 */
-		$endpoint = apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+		$endpoint = $this->get_template_endpoint();
 
 		Elasticsearch::factory()->remote_request(
 			$endpoint,
@@ -412,6 +446,26 @@ class InstantResults extends Feature {
 		 * @param {string} $index Index name.
 		 */
 		do_action( 'ep_instant_results_template_deleted', $this->index );
+	}
+
+	/**
+	 * Get the saved search template from ElasticPress.io.
+	 *
+	 * @return string|WP_Error Search template if found, WP_Error on error.
+	 *
+	 * @since 4.4.0
+	 */
+	public function epio_get_search_template() {
+		$endpoint = $this->get_template_endpoint();
+		$request  = Elasticsearch::factory()->remote_request( $endpoint );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response = wp_remote_retrieve_body( $request );
+
+		return $response;
 	}
 
 	/**
@@ -516,6 +570,20 @@ class InstantResults extends Feature {
 		$this->search_template = $query['args']['body'];
 
 		return wp_remote_request( $query['url'], $args );
+	}
+
+	/**
+	 * If generating the search template query, do not bypass the post exclusion
+	 *
+	 * @since 4.4.0
+	 * @param bool     $bypass_exclusion_from_search Whether the post exclusion from search should be applied or not
+	 * @param WP_Query $query The WP Query
+	 * @return bool
+	 */
+	public function maybe_bypass_post_exclusion( $bypass_exclusion_from_search, $query ) {
+		return true === $query->get( 'ep_search_template' ) ?
+			false : // not bypass, apply
+			$bypass_exclusion_from_search;
 	}
 
 	/**
@@ -923,4 +991,5 @@ class InstantResults extends Feature {
 		}
 		return $args;
 	}
+
 }

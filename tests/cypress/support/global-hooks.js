@@ -8,8 +8,10 @@ before(() => {
 		\\ElasticPress\\IndexHelper::factory()->clear_index_meta();
 
 		$features = json_decode( '${JSON.stringify(cy.elasticPress.defaultFeatures)}', true );
-		
-		if ( ! \\ElasticPress\\Utils\\is_epio() ) {
+
+		$is_epio = (int) \\ElasticPress\\Utils\\is_epio();
+
+		if ( ! $is_epio ) {
 			$host            = \\ElasticPress\\Utils\\get_host();
 			$host            = str_replace( '172.17.0.1', 'localhost', $host );
 			$index_name      = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
@@ -20,14 +22,14 @@ before(() => {
 
 		update_option( 'ep_feature_settings', $features );
 
-		WP_CLI::runcommand('elasticpress get-indexes');
+		$index_names = WP_CLI::runcommand('elasticpress get-indices', [ 'return' => true ] );
+
+		echo wp_json_encode( [ 'indexNames' => json_decode( $index_names ), 'isEpIo' => $is_epio ] );
 		`,
 	).then((wpCliResponse) => {
-		window.indexNames = JSON.parse(wpCliResponse.stdout);
-	});
-
-	cy.wpCli('eval "echo (int) \\ElasticPress\\Utils\\is_epio();"').then((response) => {
-		window.isEpIo = response.stdout === '1';
+		const wpCliRespObj = JSON.parse(wpCliResponse.stdout);
+		window.indexNames = wpCliRespObj.indexNames;
+		window.isEpIo = wpCliRespObj.isEpIo === 1;
 	});
 });
 
