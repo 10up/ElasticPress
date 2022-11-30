@@ -1,0 +1,23 @@
+name: "❓ Need help?"
+description: "Ask us a question, we are here to help!"
+labels: [ "question" ]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              If you have a question that is neither a bug report nor an enhancement, then please post it here!  Please fill in as much of the template below as you can.
+    - type: textarea
+      attributes:
+          label: Describe your question
+          description: A clear and concise description of what your question is.
+      validations:
+          required: true
+
+    - type: checkboxes
+      id: terms
+      attributes:
+        label: Code of Conduct
+        description: By submitting this issue, you agree to follow our `Code of Conduct` (see the `CODE_OF_CONDUCT.md` file in the repo).
+        options:
+          - label: I agree to follow this project's Code of Conduct
+            required: true
