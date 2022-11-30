@@ -135,7 +135,7 @@ describe('Post Search Feature', () => {
 		cy.visit('/?s=Password+Protected');
 		cy.contains('.site-content article h2', 'Password Protected').should('exist');
 
-		cy.get('#wp-admin-bar-logout a').click({ force: true });
+		cy.logout();
 
 		// Logout user can see the post on front but not on search page.
 		cy.visit('/');
