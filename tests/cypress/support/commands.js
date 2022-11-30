@@ -133,9 +133,9 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 
 	if (newPostData.password && newPostData.password !== '') {
 		cy.get('h1.editor-post-title__input').click();
-		cy.get('.edit-post-post-visibility').click();
-		cy.get('.editor-post-visibility__dialog-radio[value="password"]').click();
-		cy.get('.editor-post-visibility__dialog-password-input').type(newPostData.password);
+		cy.get('.edit-post-post-visibility__toggle').click();
+		cy.get('.editor-post-visibility__radio').check('password');
+		cy.get('.editor-post-visibility__password-input').type(newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {

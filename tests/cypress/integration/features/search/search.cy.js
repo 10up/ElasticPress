@@ -137,20 +137,17 @@ describe('Post Search Feature', () => {
 
 		cy.get('#wp-admin-bar-logout a').click({ force: true });
 
-		// // Logout user can see the post on front but not on search page.
-		// cy.visit('/');
-		// cy.contains('.site-content article h2', 'Password Protected').should('exist');
-
-		// cy.visit('/?s=Password+Protected');
-		// cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
-
+		// Logout user can see the post on front but not on search page.
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
 
 		cy.createUser();
 
 		// subscriber can see the post on front and on search page.
 		cy.visit('/');
 		cy.contains('.site-content article h2', 'Password Protected').should('exist');
-
 		cy.visit('/?s=Password+Protected');
 		cy.contains('.site-content article h2', 'Password Protected').should('exist');
 	});
