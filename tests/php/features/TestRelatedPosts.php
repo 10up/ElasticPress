@@ -20,9 +20,9 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @since 2.1
 	 * @group related_posts
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -44,8 +44,8 @@ class TestRelatedPosts extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// make sure no one attached to this
 		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
@@ -67,9 +67,9 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @group related_posts
 	 */
 	public function testFindRelatedPostFilter() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_type'    => 'page',
@@ -105,10 +105,10 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @group related_posts
 	 */
 	public function testGetRelatedQuery() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
 
 		$related_post_title = 'related post test';
-		Functions\create_and_sync_post( array(
+		$this->ep_factory->post->create( array(
 				'post_title'   => $related_post_title,
 				'post_content' => 'findme test 2'
 			)

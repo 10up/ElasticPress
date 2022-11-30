@@ -4,7 +4,7 @@
  *
  * @since 4.0.0
  * @see docs/indexing-process.md
- * @see http://10up.github.io/ElasticPress/tutorial-indexing-process.html
+ * @see https://10up.github.io/ElasticPress/tutorial-indexing-process.html
  * @package elasticpress
  */
 
@@ -402,7 +402,7 @@ class IndexHelper {
 
 		$this->index_meta['from']                       = $this->index_meta['offset'];
 		$this->index_meta['found_items']                = (int) $this->current_query['total_objects'];
-		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
+		$this->index_meta['current_sync_item']['total'] = (int) $this->index_meta['current_sync_item']['found_items'];
 
 		if ( 'offset' === $this->index_meta['pagination_method'] ) {
 			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
@@ -465,15 +465,7 @@ class IndexHelper {
 		 */
 		do_action( "ep_pre_{$this->args['method']}_index", $this->index_meta, ( $this->index_meta['start'] ? 'start' : false ), $indexable );
 
-		/**
-		 * Filter number of items to index per cycle in the dashboard
-		 *
-		 * @since  2.1
-		 * @hook ep_index_default_per_page
-		 * @param  {int} Entries per cycle
-		 * @return  {int} New number of entries
-		 */
-		$per_page = apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		$per_page = $this->get_index_default_per_page();
 
 		if ( ! empty( $this->args['per_page'] ) ) {
 			$per_page = $this->args['per_page'];
@@ -819,14 +811,18 @@ class IndexHelper {
 	protected function update_last_index() {
 		$start_time = $this->index_meta['start_time'];
 		$totals     = $this->index_meta['totals'];
+		$method     = $this->index_meta['method'];
 
 		$this->index_meta = null;
 
-		$end_date_time = date_create( 'now', wp_timezone() );
+		$end_date_time  = date_create( 'now', wp_timezone() );
+		$start_time_sec = (int) $start_time;
 
-		$totals['end_date_time'] = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
-		$totals['end_time_gmt']  = time();
-		$totals['total_time']    = microtime( true ) - $start_time;
+		$totals['end_date_time']   = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
+		$totals['start_date_time'] = $start_time ? wp_date( DATE_ATOM, $start_time_sec ) : false;
+		$totals['end_time_gmt']    = time();
+		$totals['total_time']      = microtime( true ) - $start_time;
+		$totals['method']          = $method;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 	}
@@ -881,6 +877,11 @@ class IndexHelper {
 		$sites = Utils\get_sites();
 
 		foreach ( $sites as $site ) {
+
+			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+				continue;
+			}
+
 			switch_to_blog( $site['blog_id'] );
 			$indexes[] = $indexable->get_index_name();
 			restore_current_blog();
@@ -1073,9 +1074,25 @@ class IndexHelper {
 	 * Resets some values to reduce memory footprint.
 	 */
 	protected function stop_the_insanity() {
-		global $wpdb, $wp_object_cache, $wp_actions, $wp_filter;
+		global $wpdb, $wp_object_cache, $wp_actions;
 
 		$wpdb->queries = [];
+
+		/*
+		 * Runtime flushing was introduced in WordPress 6.0 and will flush only the
+		 * in-memory cache for persistent object caches
+		 */
+		if ( function_exists( 'wp_cache_flush_runtime' ) ) {
+			wp_cache_flush_runtime();
+		} else {
+			/*
+			 * In the case where we're not using an external object cache, we need to call flush on the default
+			 * WordPress object cache class to clear the values from the cache property
+			 */
+			if ( ! wp_using_ext_object_cache() ) {
+				wp_cache_flush();
+			}
+		}
 
 		if ( is_object( $wp_object_cache ) ) {
 			$wp_object_cache->group_ops      = [];
@@ -1093,14 +1110,6 @@ class IndexHelper {
 				// No need to catch.
 			}
 
-			/*
-			 * In the case where we're not using an external object cache, we need to call flush on the default
-			 * WordPress object cache class to clear the values from the cache property
-			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
-
 			if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 				call_user_func( [ $wp_object_cache, '__remoteset' ] );
 			}
@@ -1114,6 +1123,14 @@ class IndexHelper {
 		// It's high memory consuming as WP_Query instance holds all query results inside itself
 		// and in theory $wp_filter will not stop growing until Out Of Memory exception occurs.
 		remove_filter( 'get_term_metadata', [ wp_metadata_lazyloader(), 'lazyload_term_meta' ] );
+
+		/**
+		 * Fires after reducing the memory footprint
+		 *
+		 * @since 4.3.0
+		 * @hook ep_stop_the_insanity
+		 */
+		do_action( 'ep_stop_the_insanity' );
 	}
 
 	/**
@@ -1197,6 +1214,24 @@ class IndexHelper {
 				$error['message']
 			)
 		);
+	}
+
+	/**
+	 * Return the default number of documents to be sent to Elasticsearch on each batch.
+	 *
+	 * @since 4.4.0
+	 * @return integer
+	 */
+	public function get_index_default_per_page() : int {
+		/**
+		 * Filter number of items to index per cycle in the dashboard
+		 *
+		 * @since  2.1
+		 * @hook ep_index_default_per_page
+		 * @param  {int} Entries per cycle
+		 * @return  {int} New number of entries
+		 */
+		return (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
 	}
 
 	/**

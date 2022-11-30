@@ -25,28 +25,6 @@ html.wp-toolbar {
 	z-index: 2;
 }
 
-.wrap h1 {
-	font-size: 23px;
-	font-weight: 400;
-	line-height: 29px;
-	margin: 0;
-	padding: 9px 0 4px;
-}
-
-.wrap h2 {
-	color: #888;
-	line-height: 1.75;
-	margin: 0.5em 0 0.75em;
-}
-
-#wpbody #update-nag,
-#wpbody .update-nag {
-	margin-bottom: 20px;
-	margin-left: -20px;
-	margin-top: 0;
-	width: 100%;
-}
-
 h2.ep-list-features {
 	display: none;
 }
@@ -54,6 +32,12 @@ h2.ep-list-features {
 /**
  * Header
  */
+
+#wpbody #update-nag,
+#wpbody .update-nag {
+	display: block;
+	margin: 5px 15px 2px;
+}
 
 .ep-header-menu {
 	background-color: #fff;
@@ -639,13 +623,6 @@ h2.ep-list-features {
 	color: #fff;
 }
 
-@media (--tablet-min) {
-
-	.wrap h1 {
-		line-height: 1.75;
-	}
-}
-
 .wrap.intro {
 	margin-bottom: 30px;
 	margin-top: 30px;
@@ -997,6 +974,14 @@ h2 .nav-tab.ep-credentials-tab {
 	border-top: 1px solid #ccc;
 }
 
+.ep-settings .ep-credentials-general {
+	padding: 0 1rem;
+}
+
+.ep-settings .button-primary {
+	margin: 0 1rem;
+}
+
 .ep-settings .description {
 	font-size: 0.75rem;
 	font-style: italic;
@@ -1012,8 +997,16 @@ h2 .nav-tab.ep-credentials-tab {
 		width: auto;
 	}
 
-	.ep-credentials .form-table td {
+	.ep-credentials .form-table td,
+	.ep-credentials-general .form-table td {
 		padding-left: 0;
+	}
+
+	.ep-credentials .form-table td input,
+	.ep-credentials .form-table td select,
+	.ep-credentials-general .form-table td input,
+	.ep-credentials-general .form-table td select {
+		width: 250px;
 	}
 }
 

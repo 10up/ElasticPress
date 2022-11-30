@@ -203,11 +203,10 @@ function maybe_skip_install() {
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$redirect_url = network_admin_url( 'admin.php?page=elasticpress' );
-		update_site_option( 'ep_skip_install', true );
 	} else {
 		$redirect_url = admin_url( 'admin.php?page=elasticpress' );
-		update_option( 'ep_skip_install', true );
 	}
+	Utils\update_option( 'ep_skip_install', true );
 
 	wp_safe_redirect( $redirect_url );
 	exit;
@@ -439,11 +438,7 @@ function action_wp_ajax_ep_save_feature() {
 
 	// Since we deactivated, delete auto activate notice.
 	if ( empty( $_POST['settings']['active'] ) ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_option( 'ep_feature_auto_activated_sync' );
-		} else {
-			delete_option( 'ep_feature_auto_activated_sync' );
-		}
+		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 	}
 
 	wp_send_json_success( $data );
@@ -460,11 +455,13 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_enqueue_script(
 			'ep_admin_sites_scripts',
-			EP_URL . 'dist/js/sites-admin-script.min.js',
+			EP_URL . 'dist/js/sites-admin-script.js',
 			Utils\get_asset_info( 'sites-admin-script', 'dependencies' ),
 			Utils\get_asset_info( 'sites-admin-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_admin_sites_scripts', 'elasticpress' );
 
 		$data = [
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
@@ -474,33 +471,46 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ], true ) ) {
 		wp_enqueue_style(
 			'ep_admin_styles',
-			EP_URL . 'dist/css/dashboard-styles.min.css',
+			EP_URL . 'dist/css/dashboard-styles.css',
 			Utils\get_asset_info( 'dashboard-styles', 'dependencies' ),
 			Utils\get_asset_info( 'dashboard-styles', 'version' )
 		);
+		wp_enqueue_script(
+			'ep_admin_script',
+			EP_URL . 'dist/js/admin-script.js',
+			Utils\get_asset_info( 'admin-script', 'dependencies' ),
+			Utils\get_asset_info( 'admin-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
 		wp_enqueue_script(
 			'ep_weighting_script',
-			EP_URL . 'dist/js/weighting-script.min.js',
+			EP_URL . 'dist/js/weighting-script.js',
 			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'install' ], true ) ) {
 		wp_enqueue_script(
 			'ep_dashboard_scripts',
-			EP_URL . 'dist/js/dashboard-script.min.js',
+			EP_URL . 'dist/js/dashboard-script.js',
 			Utils\get_asset_info( 'dashboard-script', 'dependencies' ),
 			Utils\get_asset_info( 'dashboard-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_dashboard_scripts', 'elasticpress' );
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
@@ -528,11 +538,13 @@ function action_admin_enqueue_dashboard_scripts() {
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'settings' ], true ) ) {
 		wp_enqueue_script(
 			'ep_settings_scripts',
-			EP_URL . 'dist/js/settings-script.min.js',
+			EP_URL . 'dist/js/settings-script.js',
 			Utils\get_asset_info( 'settings-script', 'dependencies' ),
 			Utils\get_asset_info( 'settings-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_settings_scripts', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
@@ -542,22 +554,26 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_enqueue_script(
 			'ep_stats',
-			EP_URL . 'dist/js/stats-script.min.js',
+			EP_URL . 'dist/js/stats-script.js',
 			Utils\get_asset_info( 'stats-script', 'dependencies' ),
 			Utils\get_asset_info( 'stats-script', 'version' ),
 			true
 		);
+
+		wp_set_script_translations( 'ep_stats', 'elasticpress' );
 
 		wp_localize_script( 'ep_stats', 'epChartData', $data );
 	}
 
 	wp_register_script(
 		'ep_notice_script',
-		EP_URL . 'dist/js/notice-script.min.js',
+		EP_URL . 'dist/js/notice-script.js',
 		Utils\get_asset_info( 'notice-script', 'dependencies' ),
 		Utils\get_asset_info( 'notice-script', 'version' ),
 		true
 	);
+
+	wp_set_script_translations( 'ep_notice_script', 'elasticpress' );
 
 	wp_localize_script(
 		'ep_notice_script',
@@ -583,16 +599,11 @@ function action_admin_init() {
 		check_admin_referer( 'elasticpress-options' );
 
 		$language = sanitize_text_field( $_POST['ep_language'] );
-		update_site_option( 'ep_language', $language );
+		Utils\update_option( 'ep_language', $language );
 
 		if ( isset( $_POST['ep_host'] ) ) {
 			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
-			update_site_option( 'ep_host', $host );
-		}
-
-		if ( isset( $_POST['ep_prefix'] ) ) {
-			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-			update_site_option( 'ep_prefix', $prefix );
+			Utils\update_option( 'ep_host', $host );
 		}
 
 		if ( isset( $_POST['ep_credentials'] ) ) {
@@ -601,15 +612,14 @@ function action_admin_init() {
 				'token'    => '',
 			];
 
-			update_site_option( 'ep_credentials', $credentials );
+			Utils\update_option( 'ep_credentials', $credentials );
 		}
 
 		if ( isset( $_POST['ep_bulk_setting'] ) ) {
-			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+			Utils\update_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
 		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
-		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
 		register_setting(
@@ -701,6 +711,15 @@ function action_admin_menu() {
 		esc_html__( 'Index Health', 'elasticpress' ),
 		$capability,
 		'elasticpress-health',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+
+	add_submenu_page(
+		'elasticpress',
+		esc_html__( 'ElasticPress Status Report', 'elasticpress' ),
+		esc_html__( 'Status Report', 'elasticpress' ),
+		$capability,
+		'elasticpress-status-report',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 }

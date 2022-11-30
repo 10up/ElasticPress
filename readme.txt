@@ -1,10 +1,10 @@
 === ElasticPress ===
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
-Tested up to: 6.0
-Stable tag:   4.2.2
+Tested up to: 6.1
+Stable tag:   4.4.0
 License:      GPLv2 or later
-License URI:  http://www.gnu.org/licenses/gpl-2.0.html
+License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
 A fast and flexible search and query engine for WordPress.
 
@@ -76,6 +76,209 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 4.4.0 - 2022-11-29 =
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
+
+ElasticPress 4.4.0 release highlights:
+
+* New Status Report page and failed queries logs ([#3130](https://github.com/10up/ElasticPress/pull/3130), [#3148](https://github.com/10up/ElasticPress/pull/3148), and [#3136](https://github.com/10up/ElasticPress/pull/3136))
+* Instant Results template customization ([#2959](https://github.com/10up/ElasticPress/pull/2959))
+* Facets by Meta available by default. Users should delete the 1-file plugin released with 4.3.0 ([#3071](https://github.com/10up/ElasticPress/pull/3071))
+* New option to exclude posts from search ([#3100](https://github.com/10up/ElasticPress/pull/3100))
+* Renamed some WP-CLI commands and added deprecation notices for the old versions (see table below)
+
+__Added:__
+
+* New Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), [@tott](https://github.com/tott), and [@brandwaffle](https://github.com/brandwaffle).
+* New Query Logger to display admin notices about failed queries and the list in the new Status Report page. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@brandwaffle](https://github.com/brandwaffle).
+* New option to exclude posts from search. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT).
+* Search Comments block. Replaces the Comments widget in the block editor. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia).
+* [Instant Results] Notice when ElasticPress is network activated warning that Instant Results will not work on all sites without additional steps. Props [@JakePT](https://github.com/JakePT).
+* Extra debugging information in the browser console when syncing fails and more useful error messages with a troubleshooting URL. Props [@JakePT](https://github.com/JakePT).
+* New `elasticpress.InstantResults.Result` JavaScript filter for filtering the component used for Instant Results search results. Props [@JakePT](https://github.com/JakePT).
+* New `window.epInstantResults.openModal()` method for developers to manually open Instant Results. Props [@JakePT](https://github.com/JakePT).
+* Support for `stock_status` filter on the WooCommerce Admin Product List. Props [@felipeelia](https://github.com/felipeelia) and [@jakgsl](https://github.com/jakgsl).
+* Option to toggle the term count in Instant results. Props [@MARQAS](https://github.com/MARQAS) and [@JakePT](https://github.com/JakePT).
+* New `ep_autosuggest_query_args` filter, to change WP Query args of the autosuggest query template. Props [@felipeelia](https://github.com/felipeelia).
+* New `ep_post_filters` filter and refactor of the `Post::format_args` method. Props [@felipeelia](https://github.com/felipeelia).
+* New `get_index_settings()` method to retrieve index settings. Props [@rebeccahum](https://github.com/rebeccahum).
+* New `ep_woocommerce_default_supported_post_types` and `ep_woocommerce_admin_searchable_post_types` filters. Props [@ecaron](https://github.com/ecaron).
+* Add test factories for Post, User and Term. Props [@burhandodhy](https://github.com/burhandodhy).
+* Unit tests to check access to custom results endpoints. Props [@burhandodhy](https://github.com/burhandodhy).
+* New unit tests for the user feature. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Changed:__
+
+* Facets by Meta available by default. Props [@burhandodhy](https://github.com/burhandodhy).
+* If an Elasticsearch index is missing, force a full sync.  Props [@MARQAS](https://github.com/MARQAS), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT).
+* ElasticPress.io clients only need to enter the Subscription ID now. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia).
+* `Renderer::order_by_selected` visibility. Props [@burhandodhy](https://github.com/burhandodhy).
+* After editing a term, only sync posts if the term is associated with fewer posts than the Content Items per Index Cycle number. Props [@felipeelia](https://github.com/felipeelia), [@cmcandrew](https://github.com/cmcandrew), [@DenisFlorin](https://github.com/DenisFlorin), and [@burhandodhy](https://github.com/burhandodhy).
+* The `meta_query` clause when using the `meta_key` parameter. Props [@felipeelia](https://github.com/felipeelia), [@MARQAS](https://github.com/MARQAS), and [@Greygooo](https://github.com/Greygooo).
+* Facets filters are not applied in the WP Query level anymore. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* To be compatible with WordPress 6.1, when passing `'all'` as the `fields` parameter of `WP_User_Query` only user IDs will be returned. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* `update_term_meta_cache` parameter set as false while getting terms for Facets. Props [@mae829](https://github.com/mae829).
+* Small refactor of Indexables' `parse_orderby` to make it easier to read. Props [@felipeelia](https://github.com/felipeelia).
+* Search algorithms descriptions. Props [@felipeelia](https://github.com/felipeelia).
+* Hide taxonomies from facet block whose `show_ui` is set to false. Props [@burhandodhy](https://github.com/burhandodhy).
+* Use `Utils\*_option()` when possible. Props [@rebeccahum](https://github.com/rebeccahum).
+* Remove unnecessary check from `allow_excerpt_html`. Props [@burhandodhy](https://github.com/burhandodhy).
+* Updated Cypress (version 9 to 10). Props [@felipeelia](https://github.com/felipeelia).
+* Use factory to create comments for tests. Props [@burhandodhy](https://github.com/burhandodhy).
+* Improved e2e tests performance. Props [@felipeelia](https://github.com/felipeelia).
+* GitHub Action used by PHPCS. Props [@felipeelia](https://github.com/felipeelia).
+
+__Deprecated:__
+
+* The following WP-CLI commands were deprecated. They will still work but with a warning.
+	* `wp elasticpress index` in favor of `wp elasticpress sync`
+	* `wp elasticpress get-cluster-indexes` in favor of `wp elasticpress get-cluster-indices`
+	* `wp elasticpress get-indexes` in favor of `wp elasticpress get-indices`
+	* `wp elasticpress clear-index` in favor of `wp elasticpress clear-sync`
+	* `wp elasticpress get-indexing-status` in favor of `wp elasticpress get-ongoing-sync-status`
+	* `wp elasticpress get-last-cli-index` in favor of `wp elasticpress get-last-cli-sync`
+	* `wp elasticpress stop-indexing` in favor of `wp elasticpress stop-sync`
+
+Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia).
+
+* The `sites` parameter for WP_Query, WP_Term_Query and WP_Comment_Query was deprecated in favor of the new `site__in` and `site__not_in`. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Removed:__
+
+* Compatibility code for WP < 4.6 in the Post Search feature. Props [@burhandodhy](https://github.com/burhandodhy).
+* Legacy hook from unit tests. Props [@burhandodhy](https://github.com/burhandodhy).
+* Time average box in the Index Health page. Props [@felipeelia](https://github.com/felipeelia) and [@alaa-alshamy](https://github.com/alaa-alshamy).
+* [Protected Content] Removed post types to be indexed by default: ep-synonym, ep-pointer, wp_global_styles, wp_navigation, wp_template, and wp_template_part. Props [@felipeelia](https://github.com/felipeelia).
+
+__Fixed:__
+
+* Clicking on the Facet Term redirect to Homepage. Props [@burhandodhy](https://github.com/burhandodhy).
+* Custom results are not highlighted. Props [@burhandodhy](https://github.com/burhandodhy).
+* Error when passing an array of post types to WP_Comment_Query. Props [@felipeelia](https://github.com/felipeelia), [@JakePT](https://github.com/JakePT), and [@MARQAS](https://github.com/MARQAS).
+* Deprecated filters for search algorithms do not overwrite values set with the newer filters. Props [@felipeelia](https://github.com/felipeelia) and [@marc-tt](https://github.com/marc-tt).
+* No posts returned when an invalid value was passed to the tax_query parameter. Props [@burhandodhy](https://github.com/burhandodhy).
+* Incorrect excerpt when `get_the_excerpt` is called outside the Loop and Excerpt highlighting option is enabled. Props [@burhandodhy](https://github.com/burhandodhy).
+* Facet returns no result for a term having accent characters. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* An issue where some characters in taxonomy terms would appear encoded when displayed in Instant Results. Props [@JakePT](https://github.com/JakePT).
+* An issue that caused Autosuggest filter functions to no longer work. Props [@JakePT](https://github.com/JakePT).
+* An issue that prevented clicking Autosuggest suggestions if they had been customized with additional markup. Props [@JakePT](https://github.com/JakePT).
+* WooCommerce custom product sort order. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS).
+* Network alias creation failed warning when one of the sites is deactivated. Props [@burhandodhy](https://github.com/burhandodhy).
+* JS Error on widget screen. Props [@burhandodhy](https://github.com/burhandodhy).
+* PHP Warning when a post has no comments. Props [@felipeelia](https://github.com/felipeelia) and [@JiveDig](https://github.com/JiveDig).
+* `put-mapping --network-wide` throws error when plugin is not activated on network. Props [@burhandodhy](https://github.com/burhandodhy).
+* Internationalization of strings in JavaScript files. Props [@felipeelia](https://github.com/felipeelia).
+* Documentation of the `ep_woocommerce_admin_products_list_search_fields` filter. Props [@felipeelia](https://github.com/felipeelia).
+* Warning if `_source` is not returned in query hit. Props [@pschoffer](https://github.com/pschoffer).
+* Undefined variable `$update` on synonyms page. Props [@burhandodhy](https://github.com/burhandodhy).
+* PHP 8 deprecation warning related to `uasort()` usage. Props [@burhandodhy](https://github.com/burhandodhy).
+* Cypress intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Fix PHP Unit Tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Security:__
+
+* Bumped `loader-utils` from 1.4.0 to 1.4.2. Props [@dependabot](https://github.com/dependabot).
+
+= 4.3.1 - 2022-09-27 =
+
+This release fixes some bugs and also adds some new filters.
+
+__Added:__
+
+* New `ep_facet_taxonomy_terms` filter to filter the Facet terms. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Added `ep.Autosuggest.itemHTML`, `ep.Autosuggest.listHTML`, `ep.Autosuggest.query`, and `ep.Autosuggest.element` JavaScript hooks to Autosuggest and migrated filter functions to hook callbacks for backwards compatibility. Props [@JakePT](https://github.com/JakePT).
+* E2E tests for the Comments Feature. Props [@burhandodhy](https://github.com/burhandodhy).
+* E2E tests for the Instant Results feature. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia).
+* More E2E tests for the WooCommerce Feature. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Changed:__
+
+* REST API endpoints used for managing custom results are no longer publicly accessible. Props [@JakePT](https://github.com/JakePT) and [@PypWalters](https://github.com/PypWalters).
+
+__Fixed:__
+
+* WooCommerce data privacy eraser query deleting all orders if EP is enabled for admin and Ajax requests. Props [@sun](https://github.com/sun) and [@bogdanarizancu](https://github.com/bogdanarizancu).
+* Facets removing WooCommerce sorting. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Facets triggering the ElasticPress integration in feed pages. Props [@felipeelia](https://github.com/felipeelia) and [@rafaucau](https://github.com/rafaucau).
+* Taxonomy Facet tree issue when child category is selected. Props [@burhandodhy](https://github.com/burhandodhy).
+* Term search in the admin panel for non-public taxonomies returning nothing. Props [@burhandodhy](https://github.com/burhandodhy).
+* Clicking a Related Posts link while in the editor no longer follows the link. Props [@JakePT](https://github.com/JakePT).
+* Visual alignment of elements in the Settings page. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia).
+* Intermittent tests failures. Props [@burhandodhy](https://github.com/burhandodhy).
+
+= 4.3.0 - 2022-08-31 =
+
+ElasticPress 4.3.0 fixes some bugs and introduces some new and exciting changes.
+
+WooCommerce Product Variations SKUs are now a publicly searchable field. Site administrators wanting to allow users to search for their product variations SKUs can enable it in the _Search Fields & Weighting_ Dashboard, under Products. If a user searches for a variation SKU, the parent product will be displayed in the search results.
+
+The last ElasticPress sync information is now available in WordPress's Site Health. If you want to check information like the date of the last full sync, time spent, number of indexed content, or errors go to Tools -> Site Health, open the Info tab and click on _ElasticPress - Last Sync_.
+
+Facets received some further improvements in this version. In addition to some refactoring related to WordPress Block Editor, ElasticPress 4.3.0 ships with an experimental version of a _Facet By Meta_ block. With that, users will be able to filter content based on post meta fields. If you want to try it, download and activate [this plugin](https://raw.githubusercontent.com/10up/ElasticPress/develop/tests/cypress/wordpress-files/test-plugins/elasticpress-facet-by-meta.php). Do you have an idea of an enhancement? Search in our [`facets`](https://github.com/10up/ElasticPress/labels/module%3Afacets) label in GitHub and if it is not there yet, feel free to open a new issue. We would love to hear new ideas!
+
+__Added:__
+
+* Search products by their variations' SKUs. Props [@burhandodhy](https://github.com/burhandodhy).
+* New block to Facet by Meta fields. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/@tott).
+* Display last sync info in site health screen. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia).
+* New `epwr_decay_field` filter to set the decay field for date weighting. Props [@MARQAS](https://github.com/MARQAS) and [@HypeAU](https://github.com/HypeAU).
+* Autosuggest: filter the autosuggest ElasticSearch query by defining a `window.epAutosuggestQueryFilter()` function in JavaScript. Props [@johnwatkins0](https://github.com/johnwatkins0).
+* Autosuggest: filter the HTML of all results by defining a `window.epAutosuggestListItemsHTMLFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT).
+* Autosuggest: filter the container element by defining a `window.epAutosuggestElementFilter()` function in JavaScript. Props [@JakePT](https://github.com/JakePT).
+* Documentation for Autosuggest JavaScript filters. Props [@JakePT](https://github.com/JakePT) and [@brandwaffle](https://github.com/brandwaffle).
+* Documentation for styling Instant Results. Props [@JakePT](https://github.com/JakePT).
+* Use `wp_cache_flush_group()` for autosuggest when available. Props [@tillkruss](https://github.com/tillkruss).
+* The public search API is automatically deactivated when the Instant Results feature is deactivated. Props [@JakePT](https://github.com/JakePT).
+* Support for transforming instances of the legacy Facet and Related Posts widgets into blocks. Props [@JakePT](https://github.com/JakePT).
+* Use `wp_cache_flush_runtime()` when available. Props [@tillkruss](https://github.com/tillkruss), [@felipeelia](https://github.com/felipeelia), and [@tott](https://github.com/@tott).
+* E2E tests for the Custom Results feature. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* E2E tests for the Terms feature. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+
+__Changed:__
+
+* Improved performance in `get_term_tree()`. Props [@rebeccahum](https://github.com/rebeccahum).
+* Migrated Related Posts block definitions to `block.json`. Props [@JakePT](https://github.com/JakePT).
+* Total comment count made during sync process to be a proper count call. Props [@felipeelia](https://github.com/felipeelia) and [@bsabalaskey](https://github.com/bsabalaskey).
+* Search algorithms moved to separate classes. Props [@felipeelia](https://github.com/felipeelia).
+* The legacy Facet and Related Posts widgets are now hidden when using the block editor. Props [@JakePT](https://github.com/JakePT).
+* Facets are now divided by types and received their own class. Props [@felipeelia](https://github.com/felipeelia).
+* PHP compatibility check merged to regular lint. Props [@felipeelia](https://github.com/felipeelia).
+* E2e tests to run WP-CLI commands in an existent docker container. Props [@felipeelia](https://github.com/felipeelia).
+* Increased E2e tests coverage for WP-CLI commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+
+__Deprecated:__
+
+* The following filters were deprecated. They will still work but add a notice in the error logs.
+	* Deprecated `ep_formatted_args_query` in favour of `ep_post_formatted_args_query`
+	* Deprecated `ep_match_phrase_boost` in favour of `ep_post_match_phrase_boost`
+	* Deprecated `ep_match_boost` in favour of `ep_post_match_boost`
+	* Deprecated `ep_fuzziness_arg` in favour of `ep_post_fuzziness_arg`
+	* Deprecated `ep_match_fuzziness` in favour of `ep_post_match_fuzziness`
+	* Deprecated `ep_match_cross_fields_boost` in favour of `ep_post_match_cross_fields_boost`
+
+__Fixed:__
+
+* Error returned by the `recreate-network-alias` CLI command when called on single site. Props [@burhandodhy](https://github.com/burhandodhy).
+* Term objects in `format_hits_as_terms` to use `WP_Term` instead of `stdClass` to match WordPress expectations. Props [@jonathanstegall](https://github.com/jonathanstegall).
+* Post reindex on meta deletion. Props [@pschoffer](https://github.com/pschoffer).
+* Autosaved drafts not showing up in draft post listing when using the Protected Content feature. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia).
+* Display fatal error messages in the Sync Dashboard. Props [@felipeelia](https://github.com/felipeelia) and [@orasik](https://github.com/orasik).
+* An issue where syncing after skipping setup, instead of deleting and syncing, resulted in an error. Props [@JakePT](https://github.com/JakePT).
+* Stuck progress bar when no post is found. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Infinite loop during sync if the site has just password protected posts and no other content. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* JS error on Custom Results edit page. Props [@burhandodhy](https://github.com/burhandodhy).
+* Horizontal scroll in ElasticPress Quick Setup Screen. Props [@MARQAS](https://github.com/MARQAS) and [@JakePT](https://github.com/JakePT).
+* Allows to replace `post_excerpt` with highlighted results from within AJAX and other integrated contexts. Props [@nickchomey](https://github.com/nickchomey).
+* Empty results for taxonomy terms that have non ASCII characters. Props [@alaa-alshamy](https://github.com/alaa-alshamy).
+* Format of highlight tags quotation mark. Props [@nickchomey](https://github.com/nickchomey).
+* Intermittent error with sticky posts in the tests suite. Props [@felipeelia](https://github.com/felipeelia).
+
+__Security:__
+
+* Bumped `terser` from 5.12.0 to 5.14.2. Props [@dependabot](https://github.com/dependabot).
+* Bumped `@wordpress/env` from 4.5.0 to 5.0.0. Props [@felipeelia](https://github.com/felipeelia).
 
 = 4.2.2 - 2022-07-14 =
 
@@ -236,11 +439,13 @@ __Security:__
 = 4.0.0 - 2022-03-08 =
 
 **ElasticPress 4.0 contains some important changes. Make sure to read these highlights before upgrading:**
+
 * This version requires a full reindex.
 * It introduces a new search algorithm that may change the search results displayed on your site.
 * A new feature called "Instant Results" is available. As it requires a full reindex, if you plan to use it, we recommend you enable it first and reindex only once.
 * Users upgrading from Beta 1 need to re-save the Instant Results feature settings.
 * New minimum versions are:
+
 	||Min|Max|
 	|---|:---:|:---:|
 	|Elasticsearch|5.2|7.10|

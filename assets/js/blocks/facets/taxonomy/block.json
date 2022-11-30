@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Facet by Taxonomy (ElasticPress)",
+	"textdomain": "elasticpress",
+	"name": "elasticpress/facet",
+	"icon": "feedback",
+	"category": "widgets",
+	"attributes": {
+		"facet": {
+			"type": "string",
+			"default": ""
+		},
+		"orderby": {
+			"type"   : "string",
+			"default": "count",
+			"enum"   : [ "count", "name" ]
+		},
+		"order":  {
+			"type":  "string",
+			"default": "desc",
+			"enum":  [ "desc", "asc" ]
+		}
+	},
+	"supports": {
+		"html": false
+	},
+	"editorScript": "ep-facets-block-script",
+	"style": "file:/../../../../../dist/css/facets-styles.css"
+}

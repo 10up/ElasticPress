@@ -38,6 +38,15 @@ const App = () => {
 	stateRef.current = state;
 
 	/**
+	 * Handle open action.
+	 *
+	 * @param {Event} event Input event.
+	 */
+	const openModal = useCallback((args) => {
+		dispatch({ type: 'APPLY_ARGS', payload: args });
+	}, []);
+
+	/**
 	 * Close the modal.
 	 */
 	const closeModal = useCallback(() => {
@@ -152,18 +161,21 @@ const App = () => {
 	/**
 	 * Handle submitting the search form.
 	 *
-	 * @param {Event} event Input event.
+	 * @param {Event} event Submit event.
 	 */
-	const onSubmit = useCallback((event) => {
-		event.preventDefault();
+	const onSubmit = useCallback(
+		(event) => {
+			event.preventDefault();
 
-		inputRef.current = event.target.s;
+			inputRef.current = event.target.s;
 
-		const search = inputRef.current.value;
-		const post_type = getPostTypesFromForm(inputRef.current.form);
+			const search = inputRef.current.value;
+			const post_type = getPostTypesFromForm(inputRef.current.form);
 
-		dispatch({ type: 'APPLY_ARGS', payload: { search, post_type } });
-	}, []);
+			openModal({ post_type, search });
+		},
+		[openModal],
+	);
 
 	/**
 	 * Handle changes to search parameters.
@@ -186,7 +198,7 @@ const App = () => {
 	 * @returns {Function} A cleanup function that unbinds the events.
 	 */
 	const handleEvents = () => {
-		const inputs = document.querySelectorAll('form input[type="search"');
+		const inputs = document.querySelectorAll('form input[name="s"]');
 		const modal = modalRef.current;
 
 		inputs.forEach((input) => {
@@ -205,21 +217,32 @@ const App = () => {
 	};
 
 	/**
-	 * Open modal with pre-defined args if they are found in the URL.
+	 * Initialize the Instant Results modal.
+	 *
+	 * @returns {void}
 	 */
 	const handleInit = () => {
+		/**
+		 * Automatically open the modal with pre-defined args if they are found
+		 * in the URL.
+		 */
 		const urlParams = new URLSearchParams(window.location.search);
 		const args = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
 
 		if (Object.keys(args).length > 0) {
-			dispatch({ type: 'APPLY_ARGS', payload: args });
+			openModal(args);
 		}
+
+		/**
+		 * Publicly expose certain methods for interacting with the modal.
+		 */
+		window.epInstantResults.openModal = openModal;
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleInit, []);
+	useEffect(handleInit, [openModal]);
 	useEffect(handleEvents, [onEscape, onPopState, onSubmit]);
 	useEffect(handleChanges, [
 		doSearch,

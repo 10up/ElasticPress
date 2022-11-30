@@ -11,6 +11,8 @@ namespace ElasticPress\Indexable\Post;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexables as Indexables;
 use ElasticPress\SyncManager as SyncManagerAbstract;
+use ElasticPress\Utils;
+use ElasticPress\IndexHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -61,13 +63,30 @@ class SyncManager extends SyncManagerAbstract {
 		// Called just because we need to know somehow if $delete_all is set before action_queue_meta_sync() runs.
 		add_filter( 'delete_post_metadata', array( $this, 'maybe_delete_meta_for_all' ), 10, 5 );
 		add_action( 'deleted_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
-		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
-		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
-		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 		add_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 
 		add_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		add_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+
+		// Conditionally update posts associated with terms
+		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_edit_single_term' ] );
+		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_term_list_screen' ] );
+		add_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
+		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
+		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
+
+		// Clear field limit cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_total_fields_limit_cache' ] );
+		add_action( 'ep_sync_put_mapping', [ $this, 'clear_total_fields_limit_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_total_fields_limit_cache' ] );
+
+		// Clear distinct meta field per post type cache
+		add_action( 'wp_insert_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
+		add_action( 'delete_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
+		add_action( 'updated_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+		add_action( 'added_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+		add_action( 'deleted_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+		add_action( 'delete_post_metadata', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
 	}
 
 	/**
@@ -360,6 +379,74 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Depending on the number of posts associated with the term display an admin notice
+	 *
+	 * @since 4.4.0
+	 * @param array $notices Current ElasticPress admin notices
+	 * @return array
+	 */
+	public function maybe_display_notice_edit_single_term( $notices ) {
+		global $pagenow, $tag;
+
+		/**
+		 * Make sure we're on a term-related page in the admin dashboard.
+		 */
+		if ( ! is_admin() || 'term.php' !== $pagenow || ! $tag instanceof \WP_Term ) {
+			return $notices;
+		}
+
+		if ( IndexHelper::factory()->get_index_default_per_page() >= $tag->count ) {
+			return $notices;
+		}
+
+		$notices['edited_single_term'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Due to the number of posts associated with this term, you will need to <a href="%s">resync</a> after editing or deleting it.', 'elasticpress' ),
+				Utils\get_sync_url()
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
+	}
+
+	/**
+	 * Depending on the number of posts display an admin notice in the Dashboard Terms List Screen
+	 *
+	 * @since 4.4.0
+	 * @param array $notices Current ElasticPress admin notices
+	 * @return array
+	 */
+	public function maybe_display_notice_term_list_screen( $notices ) {
+		global $pagenow, $tax;
+
+		/**
+		 * Make sure we're on a term-related page in the admin dashboard.
+		 */
+		if ( ! is_admin() || 'edit-tags.php' !== $pagenow || ! $tax instanceof \WP_Taxonomy ) {
+			return $notices;
+		}
+
+		if ( ! $this->is_tax_max_count_bigger_than_items_per_cycle( $tax ) ) {
+			return $notices;
+		}
+
+		$notices['too_many_posts_on_term'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Depending on the number of posts associated with a term, you may need to <a href="%s">resync</a> after editing or deleting it.', 'elasticpress' ),
+				Utils\get_sync_url()
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
+	}
+
+	/**
 	 * When a post's terms are changed, re-index.
 	 *
 	 * This catches term deletions via wp_delete_term(), because that function internally loops over all attached objects
@@ -473,6 +560,9 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
+		// If we have more items to update than the number set as Content Items per Index Cycle, skip it.
+		$should_skip = count( $object_ids ) > IndexHelper::factory()->get_index_default_per_page();
+
 		/**
 		 * Filter to allow skipping this action in case of custom handling
 		 *
@@ -484,11 +574,9 @@ class SyncManager extends SyncManagerAbstract {
 		 * @param {array}  $object_ids IDs of the objects attached to the term id.
 		 * @return {bool}  New value of whether to skip running action_edited_term or not
 		 */
-		if ( apply_filters( 'ep_skip_action_edited_term', false, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
+		if ( apply_filters( 'ep_skip_action_edited_term', $should_skip, $term_id, $tt_id, $taxonomy, $object_ids ) ) {
 			return;
 		}
-
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
 
 		// Add all of them to the queue
 		foreach ( $object_ids as $post_id ) {
@@ -606,6 +694,60 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @since 4.4.0
+	 */
+	public function clear_total_fields_limit_cache() {
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$cache_key = 'ep_total_fields_limit_' . $indexable->get_index_name();
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			delete_site_transient( $cache_key );
+		} else {
+			delete_transient( $cache_key );
+		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @param int $post_id The post ID
+	 * @since 4.4.0
+	 */
+	public function clear_meta_keys_db_per_post_type_cache_by_post_id( $post_id ) {
+		$post_type = get_post_type( $post_id );
+		if ( $post_type ) {
+			$this->clear_meta_keys_db_cache( $post_type );
+		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @param int|array $meta_id Meta ID
+	 * @param int       $post_id The post ID
+	 * @since 4.4.0
+	 */
+	public function clear_meta_keys_db_per_post_type_cache_by_meta( $meta_id, $post_id ) {
+		$post_type = get_post_type( $post_id );
+		if ( $post_type ) {
+			$this->clear_meta_keys_db_cache( $post_type );
+		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @param string $post_type The post type
+	 * @since 4.4.0
+	 */
+	protected function clear_meta_keys_db_cache( $post_type ) {
+		delete_transient( 'ep_meta_field_keys' );
+		delete_transient( 'ep_meta_field_keys_' . $post_type );
+	}
+
+	/**
 	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
 	 *
 	 * @param int    $post_id  The post ID.
@@ -652,6 +794,54 @@ class SyncManager extends SyncManagerAbstract {
 			return false;
 		}
 
-		return true;
+		// If we have more items to update than the number set as Content Items per Index Cycle, skip it to avoid a timeout.
+		$single_ids_queued   = array_unique( array_keys( $this->sync_queue ) );
+		$has_too_many_queued = count( $single_ids_queued ) > IndexHelper::factory()->get_index_default_per_page();
+
+		return ! $has_too_many_queued;
+	}
+
+	/**
+	 * Given a taxonomy, check if the term with most posts is under or above the number set as Content Items per Index Cycle.
+	 *
+	 * The result will be cached in a transient. Its TTL will depend on the result:
+	 * If it is determined we have a term with more posts, cache it for more time.
+	 *
+	 * @since 4.4.0
+	 * @param \WP_Taxonomy $tax The taxonomy object
+	 * @return boolean
+	 */
+	protected function is_tax_max_count_bigger_than_items_per_cycle( \WP_Taxonomy $tax ) : bool {
+		$transient_name   = "ep_term_max_count_{$tax->name}";
+		$cached_max_count = get_transient( $transient_name );
+
+		if ( is_integer( $cached_max_count ) ) {
+			return $cached_max_count > IndexHelper::factory()->get_index_default_per_page();
+		}
+
+		$max_count = get_terms(
+			[
+				'taxonomy' => $tax->name,
+				'orderby'  => 'count',
+				'order'    => 'DESC',
+				'number'   => 1,
+				'count'    => true,
+			]
+		);
+
+		if ( ! is_array( $max_count ) || ! count( $max_count ) || ! $max_count[0] instanceof \WP_Term || ! is_integer( $max_count[0]->count ) ) {
+			set_transient( $transient_name, 0, HOUR_IN_SECONDS );
+			return false;
+		}
+
+		$is_max_count_bigger = $max_count[0]->count > IndexHelper::factory()->get_index_default_per_page();
+
+		set_transient(
+			$transient_name,
+			$max_count[0]->count,
+			$is_max_count_bigger ? DAY_IN_SECONDS : HOUR_IN_SECONDS
+		);
+
+		return $is_max_count_bigger;
 	}
 }

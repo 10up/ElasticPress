@@ -24,13 +24,13 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Setup each test.
 	 */
-	public function setUp() {
+	public function set_up() {
 		$this->stub = $this->getMockForAbstractClass( SearchAlgorithm::class );
 		$this->stub->expects( $this->any() )
 			->method( 'get_raw_query' )
 			->will( $this->returnValue( [] ) );
 
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**

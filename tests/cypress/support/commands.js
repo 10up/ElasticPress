@@ -26,6 +26,7 @@
 
 import 'cypress-file-upload';
 import './commands/block-editor';
+import '@4tw/cypress-drag-drop';
 
 Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.visit(`/wp-admin`);
@@ -122,7 +123,6 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 		const welcomeGuide = $body.find(
 			'.edit-post-welcome-guide .components-modal__header button',
 		);
-		cy.log(welcomeGuide);
 		if (welcomeGuide.length) {
 			welcomeGuide.click();
 		}
@@ -223,19 +223,11 @@ Cypress.Commands.add('updateWeighting', (newWeightingValues = null) => {
 });
 
 Cypress.Commands.add('maybeEnableFeature', (featureName) => {
-	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-		if (!wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
-			cy.wpCli(`elasticpress activate-feature ${featureName}`);
-		}
-	});
+	cy.wpCli(`elasticpress activate-feature ${featureName}`, true);
 });
 
 Cypress.Commands.add('maybeDisableFeature', (featureName) => {
-	cy.wpCli('elasticpress list-features').then((wpCliResponse) => {
-		if (wpCliResponse.stdout.match(new RegExp(featureName, 'g'))) {
-			cy.wpCli(`elasticpress deactivate-feature ${featureName}`);
-		}
-	});
+	cy.wpCli(`elasticpress deactivate-feature ${featureName}`, true);
 });
 
 Cypress.Commands.add('getTotal', (totalNumber) => {
@@ -317,7 +309,7 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 		.last()
 		.within(() => {
 			for (const setting of settings) {
-				cy.get(`[name$="[${setting.name}]"]`).as('control');
+				cy.get(`[name*="[${setting.name}]"]`).as('control');
 
 				switch (setting.type) {
 					case 'select':
@@ -334,17 +326,22 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 			}
 
 			cy.get('input[type="submit"]').click();
+			cy.wait('@adminAjax').its('response.statusCode').should('eq', 200);
 		})
 		.wait('@adminAjax');
 });
 
 Cypress.Commands.add('emptyWidgets', () => {
-	cy.wpCli('widget reset --all');
-	cy.wpCli('widget list wp_inactive_widgets --format=ids').then((wpCliResponse) => {
-		if (wpCliResponse.stdout) {
-			cy.wpCli(`widget delete ${wpCliResponse.stdout}`);
+	cy.wpCliEval(
+		`
+		WP_CLI::runcommand('widget reset --all');
+
+		$inactive_widgets = WP_CLI::runcommand('widget list wp_inactive_widgets --format=ids', [ 'return' => true ] );
+		if ( $inactive_widgets ) {
+			WP_CLI::runcommand("widget delete {$inactive_widgets}" );
 		}
-	});
+		`,
+	);
 });
 
 // Command to drag and drop React DnD element. Original code from: https://github.com/cypress-io/cypress/issues/3942#issuecomment-485648100
@@ -422,6 +419,16 @@ Cypress.Commands.add('createAutosavePost', (postData) => {
 	cy.deactivatePlugin('shorten-autosave', 'wpCli');
 });
 
+Cypress.Commands.add('logout', () => {
+	cy.visit('/wp-admin');
+	cy.get('body').then(($body) => {
+		if ($body.find('#wpadminbar').length !== 0) {
+			cy.get('#wp-admin-bar-my-account').invoke('addClass', 'hover');
+			cy.get('#wp-admin-bar-logout > a').click();
+		}
+	});
+});
+
 Cypress.Commands.add('createUser', (userData) => {
 	const newUserDate = {
 		username: 'testuser',
@@ -442,8 +449,19 @@ Cypress.Commands.add('createUser', (userData) => {
 
 	if (newUserDate.login) {
 		cy.visit('wp-login.php');
-		cy.get('#user_login').type(newUserDate.username);
-		cy.get('#user_pass').type(newUserDate.password);
-		cy.get('#wp-submit').click();
+		cy.get('#user_login').clear().type(newUserDate.username);
+		cy.get('#user_pass').clear().type(`${newUserDate.password}{enter}`);
 	}
+});
+
+Cypress.Commands.add('setPerIndexCycle', (number = 350) => {
+	cy.wpCli(`option set ep_bulk_setting ${number}`);
+});
+
+Cypress.Commands.add('refreshIndex', (indexable) => {
+	cy.wpCliEval(
+		`
+		$index = \\ElasticPress\\Indexables::factory()->get( "${indexable}" )->get_index_name();
+		WP_CLI::runcommand("elasticpress request {$index}/_refresh --method=POST");`,
+	);
 });

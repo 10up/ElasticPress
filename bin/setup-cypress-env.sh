@@ -75,19 +75,17 @@ fi
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
 
-./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate woocommerce"
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate woocommerce elasticpress-proxy"
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate debug-bar debug-bar-elasticpress wordpress-importer --network"
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME}"
 
-./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress index --setup --yes --show-errors"
+./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress sync --setup --yes --show-errors"
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root option set posts_per_page 5"
 ./bin/wp-env-cli tests-wordpress "wp --allow-root user meta update admin edit_post_per_page 5"
 
 # Generate a SQL file that can be imported later to make things faster
-SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
-./bin/wp-env-cli tests-wordpress "wp --allow-root db export -" > $SQL_FILENAME
-
-exit 0
+# SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql
+# npm --silent run env run tests-cli "wp db export -" > $SQL_FILENAME

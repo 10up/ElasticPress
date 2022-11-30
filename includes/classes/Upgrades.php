@@ -8,6 +8,8 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Utils;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -31,11 +33,7 @@ class Upgrades {
 	 * Initialize class
 	 */
 	public function setup() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$this->old_version = get_site_option( 'ep_version', false );
-		} else {
-			$this->old_version = get_option( 'ep_version', false );
-		}
+		$this->old_version = Utils\get_option( 'ep_version', false );
 
 		/**
 		 * An array with the upgrades routines.
@@ -48,6 +46,7 @@ class Upgrades {
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
+			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -62,11 +61,7 @@ class Upgrades {
 		 * Note: if a upgrade routine method is hooked to some action,
 		 * this code will be executed *earlier* than the routine method.
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		} else {
-			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		}
+		Utils\update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 
 		add_filter( 'ep_admin_notices', [ $this, 'resync_notice_4_0_0_instant_results' ] );
 	}
@@ -186,6 +181,17 @@ class Upgrades {
 	}
 
 	/**
+	 * Upgrade routine of v4.4.0.
+	 *
+	 * Delete the ep_prefix option, as that is now obtained via ep_credentials
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2739
+	 */
+	public function upgrade_4_4_0() {
+		Utils\delete_option( 'ep_prefix' );
+	}
+
+	/**
 	 * Adjust the upgrade sync notice to warn users about Instant Results.
 	 *
 	 * As 4.0.0 introduces this new feature and it requires a resync, admin users
@@ -250,11 +256,7 @@ class Upgrades {
 			return;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$last_sync = get_site_option( 'ep_last_sync', 'never' );
-		} else {
-			$last_sync = get_option( 'ep_last_sync', 'never' );
-		}
+		$last_sync = Utils\get_option( 'ep_last_sync', 'never' );
 
 		// No need to upgrade since we've never synced.
 		if ( empty( $last_sync ) || 'never' === $last_sync ) {
@@ -295,11 +297,7 @@ class Upgrades {
 		}
 
 		if ( $need_upgrade_sync ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_need_upgrade_sync', true );
-			} else {
-				update_option( 'ep_need_upgrade_sync', true );
-			}
+			Utils\update_option( 'ep_need_upgrade_sync', true );
 		}
 	}
 

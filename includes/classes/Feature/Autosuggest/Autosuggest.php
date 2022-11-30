@@ -85,7 +85,6 @@ class Autosuggest extends Feature {
 		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
 		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_autosuggest_public_request' ] );
-		add_filter( 'debug_information', [ $this, 'epio_autosuggest_health_check_info' ] );
 
 		add_action( 'ep_cli_after_set_search_algorithm_version', [ $this, 'delete_cached_query' ] );
 		add_action( 'ep_wp_cli_after_index', [ $this, 'delete_cached_query' ] );
@@ -400,15 +399,17 @@ class Autosuggest extends Feature {
 
 		wp_enqueue_script(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/js/autosuggest-script.min.js',
+			EP_URL . 'dist/js/autosuggest-script.js',
 			Utils\get_asset_info( 'autosuggest-script', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-script', 'version' ),
 			true
 		);
 
+		wp_set_script_translations( 'elasticpress-autosuggest', 'elasticpress' );
+
 		wp_enqueue_style(
 			'elasticpress-autosuggest',
-			EP_URL . 'dist/css/autosuggest-styles.min.css',
+			EP_URL . 'dist/css/autosuggest-styles.css',
 			Utils\get_asset_info( 'autosuggest-styles', 'dependencies' ),
 			Utils\get_asset_info( 'autosuggest-styles', 'version' )
 		);
@@ -553,13 +554,36 @@ class Autosuggest extends Feature {
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
-		$search = new \WP_Query(
-			[
-				'post_type'    => $post_type,
-				'post_status'  => $post_status,
-				's'            => $placeholder,
-				'ep_integrate' => true,
-			]
+		new \WP_Query(
+			/**
+			 * Filter WP Query args of the autosuggest query template.
+			 *
+			 * If you want to display 20 posts in autosuggest:
+			 *
+			 * ```
+			 * add_filter(
+			 *     'ep_autosuggest_query_args',
+			 *     function( $args ) {
+			 *         $args['posts_per_page'] = 20;
+			 *         return $args;
+			 *     }
+			 * );
+			 * ```
+			 *
+			 * @since 4.4.0
+			 * @hook ep_autosuggest_query_args
+			 * @param {array} $args Query args
+			 * @return {array} New query args
+			 */
+			apply_filters(
+				'ep_autosuggest_query_args',
+				[
+					'post_type'    => $post_type,
+					'post_status'  => $post_status,
+					's'            => $placeholder,
+					'ep_integrate' => true,
+				]
+			)
 		);
 
 		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );
@@ -874,6 +898,7 @@ class Autosuggest extends Feature {
 							wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
 							wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
 							wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
+							/* translators: List of files allowed to be returned wrapped by var_export() */
 							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ), // phpcs:ignore
 						];
 
@@ -914,54 +939,4 @@ class Autosuggest extends Feature {
 		return $allowed_params;
 	}
 
-	/**
-	 * Add Autosuggest info for EP.io Users in Health Check Info Screen.
-	 *
-	 * @since 3.5.x
-	 * @param array $debug_info Debug Info set so far.
-	 * @return array
-	 */
-	public function epio_autosuggest_health_check_info( $debug_info ) {
-		if ( ! Utils\is_epio() ) {
-			return $debug_info;
-		}
-
-		$debug_info['epio_autosuggest'] = array(
-			'label'  => esc_html__( 'ElasticPress.io - Autosuggest', 'elasticpress' ),
-			'fields' => [],
-		);
-
-		$allowed_params = $this->epio_autosuggest_set_and_get();
-
-		if ( empty( $allowed_params ) ) {
-			return $debug_info;
-		}
-
-		$allowed_params = wp_parse_args(
-			$allowed_params,
-			[
-				'postTypes'    => [],
-				'postStatus'   => [],
-				'searchFields' => [],
-				'returnFields' => '',
-			]
-		);
-
-		$fields = [
-			'Post Types'      => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postTypes'] ),
-			'Post Status'     => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['postStatus'] ),
-			'Search Fields'   => wp_sprintf( esc_html__( '%l', 'elasticpress' ), $allowed_params['searchFields'] ),
-			'Returned Fields' => wp_sprintf( esc_html( var_export( $allowed_params['returnFields'], true ) ) ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
-		];
-
-		foreach ( $fields as $label => $value ) {
-			$debug_info['epio_autosuggest']['fields'][ sanitize_title( $label ) ] = [
-				'label'   => $label,
-				'value'   => $value,
-				'private' => true,
-			];
-		}
-
-		return $debug_info;
-	}
 }
