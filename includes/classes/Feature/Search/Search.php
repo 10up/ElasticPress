@@ -710,8 +710,17 @@ class Search extends Feature {
 	 * @param WP_Query $query WP Query
 	 */
 	public function exclude_posts_from_search( $query ) {
-
-		if ( ! $query->is_search() || $query->is_admin() ) {
+		$bypass_exclusion_from_search = is_admin() || ! $query->is_search();
+		/**
+		 * Filter whether the exclusion from the "exclude from search" checkbox should be applied
+		 *
+		 * @since 4.4.0
+		 * @hook ep_bypass_exclusion_from_search
+		 * @param  {bool}     $bypass_exclusion_from_search True means all posts will be returned
+		 * @param  {WP_Query} $query                              WP Query
+		 * @return {bool} New $bypass_exclusion_from_search value
+		 */
+		if ( apply_filters( 'ep_bypass_exclusion_from_search', $bypass_exclusion_from_search, $query ) ) {
 			return;
 		}
 

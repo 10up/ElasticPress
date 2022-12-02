@@ -16,18 +16,19 @@ import Value from './report/value';
  * @param {object} props Component props.
  * @param {Array} props.actions Report actions.
  * @param {object} props.groups Report groups.
+ * @param {string} props.id Report ID.
  * @param {string} props.title Report title.
  * @returns {WPElement} Report component.
  */
-export default ({ actions, groups, title }) => {
+export default ({ actions, groups, id, title }) => {
 	if (groups.length < 1) {
 		return null;
 	}
 
 	return (
-		<Panel>
+		<Panel id={title}>
 			<PanelHeader>
-				<h2>{title}</h2>
+				<h2 id={id}>{title}</h2>
 				{actions.map(({ href, label }) => (
 					<Button
 						href={decodeEntities(href)}

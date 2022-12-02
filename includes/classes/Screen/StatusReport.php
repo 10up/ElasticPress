@@ -88,7 +88,7 @@ class StatusReport {
 		/* this filter is documented in elasticpress.php */
 		$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
 		if ( $query_logger ) {
-			$reports['failed_queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
+			$reports['failed-queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
 		}
 
 		$reports['indices'] = new \ElasticPress\StatusReport\Indices();
@@ -97,7 +97,7 @@ class StatusReport {
 			$reports['autosuggest'] = new \ElasticPress\StatusReport\ElasticPressIo();
 		}
 
-		$reports['last_sync'] = new \ElasticPress\StatusReport\LastSync();
+		$reports['last-sync'] = new \ElasticPress\StatusReport\LastSync();
 		$reports['features']  = new \ElasticPress\StatusReport\Features();
 
 		/**

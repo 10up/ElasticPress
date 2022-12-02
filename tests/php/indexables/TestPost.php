@@ -7634,6 +7634,51 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests the `ep_bypass_exclusion_from_search` filter
+	 */
+	public function testExcludeFromSearchQueryBypassFilter() {
+		$this->ep_factory->post->create_many(
+			2,
+			array(
+				'post_content' => 'find me in search',
+				'meta_input'   => array( 'ep_exclude_from_search' => false ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$bypass = function( $should_bypass, $query ) {
+			$this->assertInstanceOf( \WP_Query::class, $query );
+			return true;
+		};
+		add_filter( 'ep_bypass_exclusion_from_search', $bypass, 10, 2 );
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+
+		remove_filter( 'ep_bypass_exclusion_from_search', $bypass, 10, 2 );
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
 	 */
 	public function testExcludeFromSearchQuery() {
@@ -7890,6 +7935,36 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 1, $query->post_count );
 
 	}
+
+	/**
+	 * Test exclude from search filter doesn't apply for admin quries.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testExcludeFromSearchFilterDoesNotApplyForAdminQueries() {
+
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		$this->ep_factory->post->create_many(
+			5,
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test post'
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
+	}
+
 
 	/**
 	 * Tests get_distinct_meta_field_keys_db
