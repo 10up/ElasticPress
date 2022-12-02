@@ -880,6 +880,10 @@ class WooCommerce extends Feature {
 		// Custom product ordering
 		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
 		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
+
+		// Orders
+		$this->orders = new Orders();
+		$this->orders->setup();
 	}
 
 	/**
