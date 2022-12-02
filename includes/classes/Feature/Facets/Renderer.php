@@ -194,8 +194,8 @@ class Renderer {
 							 * Get top of tree
 							 */
 							while ( true && $i < 10 ) {
-								if ( ! empty( $term->parent_slug ) ) {
-									$top_of_tree = $terms_by_slug[ $term->parent_slug ];
+								if ( ! empty( $term->parent_term->slug ) ) {
+									$top_of_tree = $terms_by_slug[ $term->parent_term->slug ];
 								} else {
 									break;
 								}
