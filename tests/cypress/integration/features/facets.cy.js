@@ -1,4 +1,4 @@
-describe('Facets Feature', () => {
+describe('Facets Feature', { tags: '@slow' }, () => {
 	/**
 	 * Ensure the feature is active, perform a sync, and remove test posts
 	 * before running tests.

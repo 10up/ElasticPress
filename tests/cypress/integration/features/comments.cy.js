@@ -1,4 +1,4 @@
-describe('Comments Feature', () => {
+describe('Comments Feature', { tags: '@slow' }, () => {
 	const defaultApprovedComments = 26;
 
 	/**

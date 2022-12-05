@@ -1,4 +1,4 @@
-describe('WooCommerce Feature', () => {
+describe('WooCommerce Feature', { tags: '@slow' }, () => {
 	const userData = {
 		username: 'testuser',
 		email: 'testuser@example.com',

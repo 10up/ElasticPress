@@ -13,6 +13,7 @@ module.exports = defineConfig({
 	e2e: {
 		async setupNodeEvents(on, config) {
 			/* eslint-disable global-require */
+			require('@cypress/grep/src/plugin')(config);
 			const path = require('path');
 			const { readConfig } = require('@wordpress/env/lib/config');
 			/* eslint-enable global-require */
@@ -31,6 +32,10 @@ module.exports = defineConfig({
 			config.pluginName = path.resolve(`${process.cwd()}../../../`).split('/').pop();
 
 			return config;
+		},
+		env: {
+			grepFilterSpecs: true,
+			grepOmitFiltered: true,
 		},
 		specPattern: 'tests/cypress/integration/**/*.cy.{js,jsx,ts,tsx}',
 		supportFile: 'tests/cypress/support/index.js',

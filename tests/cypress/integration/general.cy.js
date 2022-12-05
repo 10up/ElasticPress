@@ -1,4 +1,4 @@
-describe('WordPress can perform standard ElasticPress actions', () => {
+describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' }, () => {
 	it('Can see the settings page link in WordPress Dashboard', () => {
 		cy.login();
 

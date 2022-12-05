@@ -1,4 +1,4 @@
-describe('Post Search Feature', () => {
+describe('Post Search Feature', { tags: '@slow' }, () => {
 	before(() => {
 		cy.wpCli('elasticpress sync --setup --yes');
 	});

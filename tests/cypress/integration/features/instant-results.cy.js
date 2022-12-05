@@ -1,6 +1,6 @@
 /* global isEpIo */
 
-describe('Instant Results Feature', () => {
+describe('Instant Results Feature', { tags: '@slow' }, () => {
 	/**
 	 * Create a Search widget.
 	 *

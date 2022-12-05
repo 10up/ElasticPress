@@ -1,6 +1,6 @@
 /* global indexNames */
 
-describe('WP-CLI Commands', () => {
+describe('WP-CLI Commands', { tags: '@slow' }, () => {
 	let indexAllSitesNames = [];
 
 	function checkIfNotMissingIndexes(mode = 'singleSite') {
