@@ -1554,4 +1554,25 @@ class Command extends WP_CLI_Command {
 		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
 		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
 	}
+
+	/**
+	 * Gets the Instant results search template.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-search-template
+	 */
+	public function get_search_template( $args, $assoc_args ) {
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$template = json_decode( $instant_results->epio_get_search_template() );
+
+		$this->pretty_json_encode( $template, true );
+		WP_CLI::success( esc_html__( 'Feature activated', 'elasticpress' ) );
+	}
+
+	public function
+
 }
