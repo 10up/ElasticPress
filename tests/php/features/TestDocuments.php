@@ -19,9 +19,9 @@ class TestDocuments extends BaseTestCase {
 	 *
 	 * @since 2.3
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -45,8 +45,8 @@ class TestDocuments extends BaseTestCase {
 	 *
 	 * @since 2.3
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		global $hook_suffix;
 		$hook_suffix = 'sites.php';
@@ -74,9 +74,9 @@ class TestDocuments extends BaseTestCase {
 
 		$post_ids = array();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
 			array(
 				'post_content'   => 'findme',
 				'post_type'      => 'attachment',
@@ -113,15 +113,15 @@ class TestDocuments extends BaseTestCase {
 
 		$post_ids = array();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
 			array(
 				'post_content'   => 'image',
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image',
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'   => 'findme',
 				'post_type'      => 'attachment',
@@ -158,20 +158,20 @@ class TestDocuments extends BaseTestCase {
 
 		$post_ids = array();
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'post_type'    => 'post',
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'   => '',
 				'post_type'      => 'attachment',
 				'post_mime_type' => 'image',
 			)
 		);
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_content'   => '',
 				'post_type'      => 'attachment',

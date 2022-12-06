@@ -134,17 +134,19 @@ class Synonyms {
 
 		wp_enqueue_script(
 			'ep_synonyms_scripts',
-			EP_URL . 'dist/js/synonyms-script.min.js',
+			EP_URL . 'dist/js/synonyms-script.js',
 			Utils\get_asset_info( 'synonyms-script', 'dependencies' ),
 			Utils\get_asset_info( 'synonyms-script', 'version' ),
 			true
 		);
 
+		wp_set_script_translations( 'ep_synonyms_scripts', 'elasticpress' );
+
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_synonyms_styles',
-			EP_URL . 'dist/css/synonyms-styles.min.css',
+			EP_URL . 'dist/css/synonyms-styles.css',
 			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
 			Utils\get_asset_info( 'synonyms-styles', 'version' ),
 			'all'
@@ -406,6 +408,7 @@ class Synonyms {
 		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
 		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		$post_id = false;
+		$update  = false;
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
 			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_CALLBACK, [ 'options' => 'wp_strip_all_tags' ] );
@@ -634,7 +637,7 @@ class Synonyms {
 	 */
 	public function example_synonym_list( $as_array = false ) {
 		$lines = [
-			__( '# Defined sets ( equivalent synonyms).', 'elasticpress' ),
+			__( '# Defined sets (equivalent synonyms).', 'elasticpress' ),
 			'sneakers, tennis shoes, trainers, runners',
 			'',
 			__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),

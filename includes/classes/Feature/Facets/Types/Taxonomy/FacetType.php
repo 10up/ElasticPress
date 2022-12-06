@@ -27,8 +27,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
-		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ] );
-		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		$this->block = new Block();
@@ -42,32 +41,11 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	public function agg_filters( $query_args ) {
-		// Without taxonomies there is nothing to do here.
-		if ( empty( $query_args['tax_query'] ) ) {
-			return $query_args;
-		}
-
-		$feature  = Features::factory()->get_registered_feature( 'facets' );
-		$settings = wp_parse_args(
-			$feature->get_settings(),
-			array(
-				'match_type' => 'all',
-			)
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Aggregation filters related to facet types are now managed by the main Facets class.' ),
+			'ElasticPress 4.4.0'
 		);
-
-		if ( 'any' === $settings['match_type'] ) {
-			foreach ( $query_args['tax_query'] as $key => $taxonomy ) {
-				if ( is_array( $taxonomy ) ) {
-					unset( $query_args['tax_query'][ $key ] );
-				}
-			}
-		}
-
-		// @todo For some reason these are appearing in the query args, need to investigate
-		$unwanted_args = [ 'category_name', 'cat', 'tag', 'tag_id', 'taxonomy', 'term' ];
-		foreach ( $unwanted_args as $unwanted_arg ) {
-			unset( $query_args[ $unwanted_arg ] );
-		}
 
 		return $query_args;
 	}
@@ -114,12 +92,37 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
+	 * Get the facet sanitize function.
+	 *
+	 * @return string The function name.
+	 */
+	public function get_sanitize_callback() : string {
+
+		/**
+		 * Filter the facet filter sanitize callback.
+		 *
+		 * @hook ep_facet_meta_sanitize_callback
+		 * @since 4.4.0
+		 * @param   {string} Facet filter sanitize callback
+		 * @return  {string} New facet filter sanitize callback
+		 */
+		return apply_filters( 'ep_facet_sanitize_callback', 'sanitize_title' );
+	}
+
+	/**
 	 * Get all taxonomies that could be selected for a facet.
 	 *
 	 * @return array
 	 */
 	public function get_facetable_taxonomies() {
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		$taxonomies = get_taxonomies(
+			array(
+				'public'  => true,
+				'show_ui' => true,
+			),
+			'object'
+		);
+
 		/**
 		 * Filter taxonomies made available for faceting
 		 *
@@ -131,13 +134,19 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * We enable ElasticPress facet on all archive/search queries as well as non-static home pages. There is no way to know
+	 * DEPRECATED. We enable ElasticPress facet on all archive/search queries as well as non-static home pages. There is no way to know
 	 * when a facet widget is used before the main query is executed so we enable EP
 	 * everywhere where a facet widget could be used.
 	 *
 	 * @param  WP_Query $query WP Query
 	 */
 	public function facet_query( $query ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Facet selections are now applied directly to the ES Query.' ),
+			'ElasticPress 4.4.0'
+		);
+
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		if ( ! $feature->is_facetable( $query ) ) {
@@ -187,6 +196,61 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		}
 
 		$query->set( 'tax_query', $tax_query );
+	}
+
+	/**
+	 * Add selected filters to the Facet filter in the ES query
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Current Facet filters
+	 * @return array
+	 */
+	public function add_query_filters( $filters ) {
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$taxonomies = $this->get_facetable_taxonomies();
+		if ( empty( $taxonomies ) ) {
+			return;
+		}
+
+		$selected_filters = $feature->get_selected();
+		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
+			return;
+		}
+
+		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
+		$attribute_taxonomies = [];
+		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
+			$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+			}
+		}
+
+		$match_type = $feature->get_match_type();
+
+		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
+			$taxonomy_slug = $attribute_taxonomies[ $taxonomy ] ?? $taxonomy;
+
+			if ( 'any' === $match_type ) {
+				$filters[] = [
+					'terms' => [
+						'terms.' . $taxonomy_slug . '.slug' => array_keys( $filter['terms'] ),
+					],
+				];
+			} else {
+				foreach ( $filter['terms'] as $term_slug => $term ) {
+					$filters[] = [
+						'term' => [
+							'terms.' . $taxonomy_slug . '.slug' => $term_slug,
+						],
+					];
+				}
+			}
+		}
+
+		return $filters;
 	}
 
 	/**

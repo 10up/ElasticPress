@@ -155,7 +155,7 @@ class SearchOrdering extends Feature {
 			9  => sprintf(
 				// translators: Scheduled date.
 				esc_html__( 'Custom result scheduled for: %1$s.', 'elasticpress' ),
-				// translators: Publish box date format, see http://php.net/date
+				// translators: Publish box date format, see https://php.net/date
 				date_i18n( esc_html__( 'M j, Y @ G:i', 'elasticpress' ), strtotime( $post->post_date ) )
 			),
 			10 => esc_html__( 'Custom result draft updated.', 'elasticpress' ),
@@ -415,15 +415,17 @@ class SearchOrdering extends Feature {
 		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && $screen instanceof \WP_Screen && self::POST_TYPE_NAME === $screen->post_type ) {
 			wp_enqueue_script(
 				'ep_ordering_scripts',
-				EP_URL . 'dist/js/ordering-script.min.js',
+				EP_URL . 'dist/js/ordering-script.js',
 				Utils\get_asset_info( 'ordering-script', 'dependencies' ),
 				Utils\get_asset_info( 'ordering-script', 'version' ),
 				true
 			);
 
+			wp_set_script_translations( 'ep_ordering_scripts', 'elasticpress' );
+
 			wp_enqueue_style(
 				'ep_ordering_styles',
-				EP_URL . 'dist/css/ordering-styles.min.css',
+				EP_URL . 'dist/css/ordering-styles.css',
 				Utils\get_asset_info( 'ordering-styles', 'dependencies' ),
 				Utils\get_asset_info( 'ordering-styles', 'version' )
 			);
@@ -655,7 +657,7 @@ class SearchOrdering extends Feature {
 				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
 					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
 						if ( strtolower( $current_term['name'] ) === $search_query ) {
-							$to_inject[ $current_term['term_order'] ] = $post->ID;
+							$to_inject[ $current_term['term_order'] ] = $post;
 
 							unset( $posts[ $key ] );
 
@@ -673,7 +675,7 @@ class SearchOrdering extends Feature {
 
 			if ( ! empty( $to_inject ) ) {
 				foreach ( $to_inject as $position => $newpost ) {
-					array_splice( $posts, $position - 1, 0, $newpost );
+					array_splice( $posts, $position - 1, 0, array( $newpost ) );
 				}
 			}
 
