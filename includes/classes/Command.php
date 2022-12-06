@@ -391,7 +391,7 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+		$this->print_json_response( $response, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -411,7 +411,7 @@ class Command extends WP_CLI_Command {
 
 		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
 
-		$this->pretty_json_encode( $cluster_indices, ! empty( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $cluster_indices, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -430,7 +430,7 @@ class Command extends WP_CLI_Command {
 	public function get_indices( $args, $assoc_args ) {
 		$index_names = $this->get_index_names();
 
-		$this->pretty_json_encode( $index_names, ! empty( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $index_names, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1011,7 +1011,7 @@ class Command extends WP_CLI_Command {
 			];
 		}
 
-		$this->pretty_json_encode( $indexing_status, ! empty( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $indexing_status, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1031,7 +1031,7 @@ class Command extends WP_CLI_Command {
 	public function get_last_sync( $args, $assoc_args ) {
 		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
 
-		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1057,7 +1057,7 @@ class Command extends WP_CLI_Command {
 			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
-		$this->pretty_json_encode( $last_sync, ! empty( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 
@@ -1455,7 +1455,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( $response->get_error_message() );
 		}
 
-		$this->print_json_response( $response, ! empty( $assoc_args['pretty'] ) );
+		$this->print_json_response( $response, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1553,5 +1553,15 @@ class Command extends WP_CLI_Command {
 	protected function pretty_json_encode( $json_obj, $pretty_print_flag ) {
 		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
 		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
+	}
+
+	/**
+	 * Whether a value can be evaluated as true or not.
+	 *
+	 * @since 4.4.1
+	 * @return bool
+	 */
+		protected function filter_boolean( $value ) {
+		return filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );;
 	}
 }
