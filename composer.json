@@ -42,7 +42,7 @@
     "lint-fix": "phpcbf elasticpress.php includes",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",
-    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 172.29.96.1 latest true"
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true"
   },
   "extra": {
     "installer-paths": {
