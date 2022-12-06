@@ -554,14 +554,14 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		// Find ID of all attached posts (query lifted from wp_delete_term())
-		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
+		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id ) );
 
 		// If the current term is not attached, check if the child terms are attached to the post
 		if ( empty( $object_ids ) ) {
 			$child_terms = get_term_children( $term_id, $taxonomy );
 			if ( ! empty( $child_terms ) ) {
 				$in_id      = join( ',', array_fill( 0, count( $child_terms ), '%d' ) );
-				$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id IN ( $in_id )", $child_terms ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", $child_terms ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 			}
 		}
 		if ( ! count( $object_ids ) ) {
