@@ -37,15 +37,6 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
-	 * Clean up after each test.
-	 *
-	 * @since 4.4.1
-	 */
-	public function tear_down() {
-		parent::tear_down();
-	}
-
-	/**
 	 * Test activate-feature command can activate feature.
 	 *
 	 * @since 4.4.1
@@ -445,7 +436,6 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Deleting post index for site 1', $output );
 		$this->assertStringContainsString( 'Deleting post index for site 2', $output );
-
 	}
 
 }
