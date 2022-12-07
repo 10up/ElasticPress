@@ -109,7 +109,6 @@ class ElasticPressIo extends Report {
 	 * @return array
 	 */
 	protected function get_instant_results_group() : array {
-
 		$instant_results_feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
 
 		if ( ! $instant_results_feature->is_active() ) {
