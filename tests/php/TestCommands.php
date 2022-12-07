@@ -11,7 +11,7 @@ use ElasticPress;
 use ElasticPress\Command;
 
 /**
- * Commands notices test class
+ * Commands test class
  */
 class TestCommands extends BaseTestCase {
 
