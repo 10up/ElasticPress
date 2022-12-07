@@ -271,6 +271,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test recreate-network-alias command can create aliases.
 	 *
+	 * @group skip-on-single-site
 	 * @since 4.4.1
 	 */
 	public function testReCreateNetworkAlias() {
@@ -286,6 +287,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command can sync content.
 	 *
+	 * @group skip-on-multi-site
 	 * @since 4.4.1
 	 */
 	public function testSync() {
@@ -301,8 +303,34 @@ class TestCommands extends BaseTestCase {
 		$this->command->sync( [], [] );
 
 		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Number of posts indexed: 11', $output );
+		$this->assertStringContainsString( 'Number of comments indexed: 10', $output );
+		$this->assertStringContainsString( 'Sync complete', $output );
+		$this->assertStringContainsString( 'Total time elapsed', $output );
+		$this->assertStringContainsString( 'Done!', $output );
+	}
+
+	/**
+	 * Test sync command can sync content.
+	 *
+	 * @group skip-on-single-site
+	 * @since 4.4.1
+	 */
+	public function testSyncOnNetwork() {
+
+		// activate comments feature
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// create dummy comments
+		$this->ep_factory->post->create_many( 10 );
+		$this->ep_factory->comment->create_many( 10, [ 'comment_post_ID' => $this->ep_factory->post->create() ] );
+
+		$this->command->sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Number of posts indexed on site 1: 11', $output );
-		$this->assertStringContainsString( 'Indexing comments on site 1', $output );
+		$this->assertStringContainsString( 'Number of comments indexed on site 1: 10', $output );
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
@@ -399,6 +427,7 @@ class TestCommands extends BaseTestCase {
 	/**
 	 *  Test delete-index command can delete all the indexes if network-wide flag is set.
 	 *
+	 * @group skip-on-single-site
 	 * @since 4.4.1
 	 */
 	public function testDeleteIndexForNetwork() {
