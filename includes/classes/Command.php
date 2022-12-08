@@ -484,7 +484,7 @@ class Command extends WP_CLI_Command {
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
 		$global_indexable_objects     = Indexables::factory()->get_all( true );
 
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
 				$assoc_args['network-wide'] = 0;
 			}
