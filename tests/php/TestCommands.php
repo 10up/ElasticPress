@@ -438,4 +438,175 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Deleting post index for site 2', $output );
 	}
 
+	/**
+	 * Test delete-index command can delete all the indexes if network-wide flag is set.
+	 *
+	 * @group skip-on-single-site
+	 * @since 4.4.1
+	 */
+	public function testClearSync() {
+
+		$this->command->clear_sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Index cleared.', $output );
+	}
+
+	/**
+	 * Test get-ongoing-sync-status command returns ongoing sync status.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testGetOnGoingSyncStatus() {
+
+		$this->command->get_ongoing_sync_status( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertJson( $output );
+	}
+
+	/**
+	 * Test get-last-sync command returns last sync information.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testGetLastSync() {
+
+		$this->command->get_last_sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertJson( $output );
+	}
+
+	/**
+	 * Test get-last-cli-sync command returns last cli sync information.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testGetLastCliSync() {
+
+		$this->command->get_last_cli_sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertJson( $output );
+	}
+
+	/**
+	 * Test stop-sync command can stop indexing.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testStopSync() {
+
+		$this->command->stop_sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'There is no indexing operation running.', $output );
+
+		// mock sync option
+		ElasticPress\Utils\update_option( 'ep_index_meta', [ 'indexing' => true ] );
+
+		$this->command->stop_sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Stopping indexing…', $output );
+		$this->assertStringContainsString( 'Done.', $output );
+	}
+
+	/**
+	 * Test set-search-algorithm-version command can set search algorithm version.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSetSearchAlgorithmVersion() {
+
+		$this->command->set_search_algorithm_version( [], [ 'version' => 1 ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done', $output );
+		$this->assertEquals( 1, ElasticPress\Utils\get_option( 'ep_search_algorithm_version' ) );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with default flag
+		$this->command->set_search_algorithm_version( [], [ 'default' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done', $output );
+		$this->assertEmpty( ElasticPress\Utils\get_option( 'ep_search_algorithm_version' ) );
+	}
+
+	/**
+	 * Test set-search-algorithm-version command throws an error if no version is provided.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSetSearchAlgorithmVersionWithOutVersion() {
+
+		$this->expectExceptionMessage( 'This command expects a version number or the --default flag.' );
+
+		$this->command->set_search_algorithm_version( [], [] );
+	}
+
+	/**
+	 * Test request command can make a request to Elasticsearch.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testRequest() {
+
+		$this->command->request( [ '_cat/indices' ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertNotEmpty( $output );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with --pretty flag
+		$this->command->request( [ '_cat/indices' ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertNotEmpty( $output );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with --debug-http-request flag
+		$this->command->request( [ '_cat/indices' ], [ 'debug-http-request' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'URL:', $output );
+		$this->assertStringContainsString( 'Request Args:', $output );
+		$this->assertStringContainsString( 'Transport:', $output );
+		$this->assertStringContainsString( 'Context:', $output );
+		$this->assertStringContainsString( 'Response:', $output );
+	}
+
+	/**
+	 * Test settings-reset command delete all settings.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSettingsReset() {
+
+		$this->command->settings_reset( [], [ 'yes' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Settings deleted.', $output );
+	}
+
+	/**
+	 * Test settings-reset command ask for confirmation.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSettingsResetAskForConfirmation() {
+
+		$this->expectExceptionMessage( 'Are you sure you want to delete all ElasticPress settings?' );
+
+		$this->command->settings_reset( [], [] );
+	}
+
 }
