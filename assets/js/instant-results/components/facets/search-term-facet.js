@@ -7,8 +7,9 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import { useDebounce, useInstantResults } from '../../hooks';
+import { useDebounce } from '../../hooks';
 import { ActiveContraint } from '../tools/active-constraints';
+import { useApiSearch } from '../../../api-search';
 
 /**
  * Search field component.
@@ -16,7 +17,7 @@ import { ActiveContraint } from '../tools/active-constraints';
  * @returns {WPElement} Component element.
  */
 export default () => {
-	const { args, searchFor, searchTerm } = useInstantResults();
+	const { args, searchFor, searchTerm } = useApiSearch();
 
 	const [value, setValue] = useState(args.search);
 

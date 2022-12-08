@@ -11,7 +11,7 @@ import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
 import { ActiveContraint } from '../tools/active-constraints';
 import { postTypeLabels } from '../../config';
-import { useInstantResults } from '../../hooks';
+import { useApiSearch } from '../../../api-search';
 
 /**
  * Post type facet component.
@@ -27,7 +27,7 @@ export default ({ defaultIsOpen, label }) => {
 		args: { post_type: selectedPostTypes = [] },
 		isLoading,
 		search,
-	} = useInstantResults();
+	} = useApiSearch();
 
 	/**
 	 * Create list of filter options from aggregation buckets.

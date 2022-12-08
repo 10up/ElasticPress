@@ -6,10 +6,10 @@ import { useCallback, useEffect, useReducer, useRef, WPElement } from '@wordpres
 /**
  * Internal dependencies.
  */
-import { getUrlParamsFromArgs, getUrlWithParams } from './utilities';
-import Context from './context';
-import { useFetchResults } from './hooks';
-import reducer from './reducer';
+import { getArgsFromUrlParams, getUrlParamsFromArgs, getUrlWithParams } from './utilities';
+import Context from './src/context';
+import { useFetchResults } from './src/hooks';
+import reducer from './src/reducer';
 
 /**
  * Instant Results provider component.
@@ -19,20 +19,10 @@ import reducer from './reducer';
  * @param {string} props.apiHost API Host.
  * @param {object} props.argsSchema Schema describing supported args.
  * @param {WPElement} props.children Component children.
- * @param {string} props.currencyCode Currency code.
- * @param {object} props.defaultArgs Default search args.
  * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
  * @returns {WPElement} Component.
  */
-export default ({
-	apiEndpoint,
-	apiHost,
-	argsSchema,
-	children,
-	currencyCode,
-	defaultArgs,
-	paramPrefix,
-}) => {
+export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, paramPrefix }) => {
 	/**
 	 * Default args as defined by the schema.
 	 */
@@ -51,7 +41,7 @@ export default ({
 	 */
 	const initialState = {
 		aggregations: {},
-		args: { ...schemaArgs, ...defaultArgs },
+		args: { ...schemaArgs },
 		isLoading: false,
 		isPoppingState: false,
 		searchResults: [],
@@ -94,13 +84,12 @@ export default ({
 	 * @param {object} args Search args.
 	 * @returns {void}
 	 */
-	const search = (args) => {
+	const search = useCallback((args) => {
 		dispatch({
 			type: 'SEARCH',
 			args,
-			argsSchema,
 		});
-	};
+	}, []);
 
 	/**
 	 * Reset search args with new search term.
@@ -182,6 +171,10 @@ export default ({
 	 * @returns {void}
 	 */
 	const pushState = useCallback(() => {
+		if (typeof paramPrefix === 'undefined') {
+			return;
+		}
+
 		const { args } = stateRef.current;
 
 		if (window.history.state) {
@@ -199,13 +192,20 @@ export default ({
 	 *
 	 * @param {Event} event popstate event.
 	 */
-	const onPopState = useCallback((event) => {
-		const hasState = event.state && Object.keys(event.state).length > 0;
+	const onPopState = useCallback(
+		(event) => {
+			if (typeof paramPrefix === 'undefined') {
+				return;
+			}
 
-		if (hasState) {
-			popState(event.state);
-		}
-	}, []);
+			const hasState = event.state && Object.keys(event.state).length > 0;
+
+			if (hasState) {
+				popState(event.state);
+			}
+		},
+		[paramPrefix],
+	);
 
 	/**
 	 * Handle search.
@@ -237,6 +237,19 @@ export default ({
 	const handleInit = () => {
 		window.addEventListener('popstate', onPopState);
 
+		/**
+		 * If a parameter prefix is defined perform an initial search with the
+		 * URL paramters.
+		 */
+		if (typeof paramPrefix !== 'undefined') {
+			const urlParams = new URLSearchParams(window.location.search);
+			const urlArgs = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
+
+			if (Object.keys(urlArgs).length > 0) {
+				search(urlArgs);
+			}
+		}
+
 		return () => {
 			window.removeEventListener('popstate', onPopState);
 		};
@@ -254,7 +267,7 @@ export default ({
 	/**
 	 * Effects.
 	 */
-	useEffect(handleInit, [onPopState]);
+	useEffect(handleInit, [argsSchema, onPopState, paramPrefix, search]);
 	useEffect(handleSearch, [
 		onSearch,
 		state.args,
@@ -273,9 +286,10 @@ export default ({
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
 		aggregations,
-		clearConstraints,
-		currencyCode,
 		args,
+		clearConstraints,
+		getUrlParamsFromArgs,
+		getUrlWithParams,
 		isLoading,
 		searchResults,
 		searchTerm,

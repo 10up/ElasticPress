@@ -1,12 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { useCallback, useContext, useRef } from '@wordpress/element';
-
-/**
- * Internal dependencies.
- */
-import { Context } from './lib';
+import { useCallback, useRef } from '@wordpress/element';
 
 /**
  * Get debounced version of a function that only runs a given ammount of time
@@ -29,13 +24,4 @@ export const useDebounce = (callback, delay) => {
 		},
 		[callback, delay],
 	);
-};
-
-/**
- * Use the Instant Results context.
- *
- * @returns {*} Context value.
- */
-export const useInstantResults = () => {
-	return useContext(Context);
 };

@@ -8,8 +8,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { facets, paramPrefix } from '../config';
-import { useInstantResults } from '../hooks';
-import { getUrlWithParams } from '../lib';
+import { useApiSearch } from '../../api-search';
 import { getPostTypesFromForm } from '../utilities';
 import Modal from './common/modal';
 import SearchTermFacet from './facets/search-term-facet';
@@ -23,20 +22,19 @@ import Toolbar from './modal/toolbar';
 import ActiveConstraints from './tools/active-constraints';
 import ClearConstraints from './tools/clear-constraints';
 import Sort from './tools/sort';
+
 /**
  * Instant Results Modal component.
  *
- * @param {object} props Component props.
- * @param {boolean} props.defaultIsOpen Is the model open by default?
  * @returns {WPElement} Element.
  */
-export default ({ defaultIsOpen }) => {
-	const { args, isLoading, search } = useInstantResults();
+export default () => {
+	const { args, getUrlWithParams, isLoading, search } = useApiSearch();
 
 	/**
 	 * State.
 	 */
-	const [isOpen, setIsOpen] = useState(defaultIsOpen);
+	const [isOpen, setIsOpen] = useState(false);
 
 	/**
 	 * Refs.
@@ -51,7 +49,7 @@ export default ({ defaultIsOpen }) => {
 		const url = getUrlWithParams(paramPrefix);
 
 		window.history.pushState({}, document.title, url);
-	}, []);
+	}, [getUrlWithParams]);
 
 	/**
 	 * Handle closing the modal.
@@ -83,6 +81,8 @@ export default ({ defaultIsOpen }) => {
 	 */
 	const onPopState = useCallback((event) => {
 		const hasState = event.state && Object.keys(event.state).length > 0;
+
+		console.log(event.state);
 
 		if (!hasState) {
 			setIsOpen(false);

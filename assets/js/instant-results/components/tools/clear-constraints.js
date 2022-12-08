@@ -8,8 +8,8 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { facets } from '../../config';
-import { useInstantResults } from '../../hooks';
 import SmallButton from '../common/small-button';
+import { useApiSearch } from '../../../api-search';
 
 /**
  * Active constraints component.
@@ -17,7 +17,7 @@ import SmallButton from '../common/small-button';
  * @returns {WPElement} Element.
  */
 export default () => {
-	const { args, clearConstraints } = useInstantResults();
+	const { args, clearConstraints } = useApiSearch();
 
 	/**
 	 * Return whether there are active filters.

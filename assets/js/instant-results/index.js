@@ -7,7 +7,7 @@ import { render } from '@wordpress/element';
  * Internal dependencies.
  */
 import { apiEndpoint, apiHost, argsSchema, paramPrefix } from './config';
-import { getArgsFromUrlParams, Provider } from './lib';
+import { getArgsFromUrlParams, ApiSearchProvider } from '../api-search';
 import Modal from './components/modal';
 
 /**
@@ -21,7 +21,7 @@ const renderModal = (defaultArgs, defaultIsOpen) => {
 	const el = document.getElementById('ep-instant-results');
 
 	render(
-		<Provider
+		<ApiSearchProvider
 			apiEndpoint={apiEndpoint}
 			apiHost={apiHost}
 			argsSchema={argsSchema}
@@ -29,7 +29,7 @@ const renderModal = (defaultArgs, defaultIsOpen) => {
 			paramPrefix={paramPrefix}
 		>
 			<Modal defaultIsOpen={defaultIsOpen} />
-		</Provider>,
+		</ApiSearchProvider>,
 		el,
 	);
 };

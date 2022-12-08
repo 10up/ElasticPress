@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
  * Internal deendencies.
  */
 import { sortOptions } from '../../config';
-import { useInstantResults } from '../../hooks';
+import { useApiSearch } from '../../../api-search';
 
 /**
  * Search results component.
@@ -19,7 +19,7 @@ export default () => {
 	const {
 		args: { orderby, order },
 		search,
-	} = useInstantResults();
+	} = useApiSearch();
 
 	/**
 	 * The key for the current sorting option.

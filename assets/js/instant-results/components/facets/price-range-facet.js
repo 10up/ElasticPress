@@ -7,11 +7,11 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import { formatPrice } from '../../utilities';
-import { useInstantResults } from '../../hooks';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
 import { ActiveContraint } from '../tools/active-constraints';
+import { formatPrice } from '../../utilities';
+import { useApiSearch } from '../../../api-search';
 
 /**
  * Price range facet.
@@ -32,7 +32,7 @@ export default ({ defaultIsOpen, label }) => {
 		args: { max_price: maxArg = null, min_price: minArg = null },
 		isLoading,
 		search,
-	} = useInstantResults();
+	} = useApiSearch();
 
 	/**
 	 * Minimum and maximum possible values.

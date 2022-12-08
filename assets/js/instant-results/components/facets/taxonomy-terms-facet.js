@@ -12,7 +12,7 @@ import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
 import { ActiveContraint } from '../tools/active-constraints';
 import { facets, postTypeLabels } from '../../config';
-import { useInstantResults } from '../../hooks';
+import { useApiSearch } from '../../../api-search';
 
 /**
  * Taxonomy filter component.
@@ -30,7 +30,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 		args: { [name]: selectedTerms = [] },
 		isLoading,
 		search,
-	} = useInstantResults();
+	} = useApiSearch();
 
 	/**
 	 * A unique label for the facet. Adds additional context to the label if
