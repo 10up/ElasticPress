@@ -21,6 +21,7 @@ jobs:
     name: Cypress - Local
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
 
@@ -75,6 +76,7 @@ jobs:
     name: Cypress - EP.io
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
 

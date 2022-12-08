@@ -1,5 +1,6 @@
 /* global isEpIo */
 
+// eslint-disable-next-line jest/valid-describe-callback
 describe('Instant Results Feature', { tags: '@slow' }, () => {
 	/**
 	 * Create a Search widget.

@@ -20,6 +20,7 @@ import './global-hooks';
 
 // Import cypress grep
 import registerCypressGrep from '@cypress/grep';
+
 registerCypressGrep();
 
 // Alternatively you can use CommonJS syntax:

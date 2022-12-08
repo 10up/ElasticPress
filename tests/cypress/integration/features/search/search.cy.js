@@ -1,3 +1,4 @@
+// eslint-disable-next-line jest/valid-describe-callback
 describe('Post Search Feature', { tags: '@slow' }, () => {
 	before(() => {
 		cy.wpCli('elasticpress sync --setup --yes');
