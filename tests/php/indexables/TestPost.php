@@ -7396,16 +7396,16 @@ class TestPost extends BaseTestCase {
 		register_taxonomy_for_object_type( $tax_name, $post->post_type );
 
 		$term_1_name = rand_str( 32 );
-		$term1       = wp_insert_term( $term_1_name, $tax_name );
+		$term_1      = wp_insert_term( $term_1_name, $tax_name );
 
 		$term_2_name = rand_str( 32 );
-		$term2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term1['term_id'] ) );
+		$term_2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term_1['term_id'] ) );
 
-		wp_set_object_terms( $post->ID, array( $term2['term_id'] ), $tax_name, true );
+		wp_set_object_terms( $post->ID, array( $term_2['term_id'] ), $tax_name, true );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$test_tag = get_term_by( 'id', $term1['term_id'], $tax_name );
+		$test_tag = get_term_by( 'id', $term_1['term_id'], $tax_name );
 
 		wp_update_term(
 			$test_tag->term_id,
@@ -7420,8 +7420,8 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post->ID );
-		$this->assertEquals( 'parent-term', $document['terms'][$tax_name][1]['slug'] );
-		$this->assertEquals( 'Parent Term', $document['terms'][$tax_name][1]['name'] );
+		$this->assertEquals( 'parent-term', $document['terms'][ $tax_name ][1]['slug'] );
+		$this->assertEquals( 'Parent Term', $document['terms'][ $tax_name ][1]['name'] );
 	}
 
 	/**
