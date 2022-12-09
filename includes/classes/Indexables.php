@@ -35,6 +35,10 @@ class Indexables {
 		$this->registered_indexables[ $indexable->slug ] = $indexable;
 	}
 
+	public function deregister( Indexable $indexable ) {
+		unset( $this->registered_indexables[ $indexable->slug ] );
+	}
+
 	/**
 	 * Get an indexable instance given a slug
 	 *

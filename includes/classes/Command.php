@@ -221,10 +221,7 @@ class Command extends WP_CLI_Command {
 		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring();
-
-		if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
-			exit( 1 );
-		}
+		$this->put_mapping_helper( $args, $assoc_args );
 	}
 
 	/**
@@ -286,9 +283,7 @@ class Command extends WP_CLI_Command {
 					if ( $result ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
-
-						return false;
+						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 					}
 				}
 
@@ -322,9 +317,7 @@ class Command extends WP_CLI_Command {
 				if ( $result ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
-
-					return false;
+					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 				}
 			}
 		}
@@ -359,9 +352,7 @@ class Command extends WP_CLI_Command {
 			if ( $result ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
-
-				return false;
+				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 			}
 		}
 

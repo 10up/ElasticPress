@@ -9,6 +9,7 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 use ElasticPress\Command;
+use ElasticPress\Indexables;
 
 /**
  * Commands test class
@@ -177,7 +178,91 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Adding post mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
+
 	}
+
+	public function testPutMappingWithIndexablesFlag() {
+
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// test it only index the posts.
+		$this->command->put_mapping( [], [ 'indexables' => 'post' ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Adding post mapping', $output );
+		$this->assertStringContainsString( 'Mapping sent', $output );
+
+
+		Indexables::factory()->deregister(  new ElasticPress\Indexable\Comment\Comment() );
+	}
+
+
+	public function testPutMappingForNetworkWide() {
+
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->setup_features();
+
+
+		$blog_id = $this->factory->blog->create();
+		update_blog_option( $blog_id, 'ep_indexable', 'no' );
+
+		$this->factory->blog->create();
+
+		// test with network-wide flag
+		$this->command->put_mapping( [], [ 'network-wide' => true, 'indexables' => 'post' ] );
+
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Adding post mapping for site 1', $output );
+		$this->assertStringContainsString( 'Adding post mapping for site 3', $output );
+		$this->assertStringNotContainsString( 'Adding post mapping for site 2', $output );
+		$this->assertStringContainsString( 'Mapping sent', $output );
+
+		Indexables::factory()->deregister(  new ElasticPress\Indexable\Comment\Comment() );
+	}
+
+
+
+	public function testPutMappingThrowErrorIfMappingFailed() {
+
+		$this->expectExceptionMessage( 'Mapping failed' );
+
+		add_filter( 'ep_config_mapping_request', '__return_false' );
+
+		$this->command->put_mapping( [],  [] );
+	}
+
+	public function testPutMappingForNetworkWideThrowErrorIfMappingFailed() {
+
+		$this->expectExceptionMessage( 'Mapping failed' );
+
+		add_filter( 'ep_config_mapping_request', '__return_false' );
+
+		$this->command->put_mapping( [], [ 'network-wide' => true ] );
+	}
+
+
+	public function testPutMappingForGlobalIndexables() {
+
+		ElasticPress\Features::factory()->activate_feature( 'users' );
+		ElasticPress\Features::factory()->setup_features();
+
+
+		$this->command->put_mapping( [], [ 'indexables' => 'user,post' ] );
+
+		$output = $this->getActualOutputForAssertion();
+
+		$this->assertStringContainsString( 'Adding user mapping', $output );
+		$this->assertStringContainsString( 'Mapping sent', $output );
+
+
+		Indexables::factory()->deregister(  new ElasticPress\Indexable\User\User() );
+	}
+
+
+
+
 
 	/**
 	 * Test get-mapping command returns mapping.
@@ -276,6 +361,21 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test recreate-network-alias command can create aliases.
+	 *
+	 * @group skip-on-multi-site
+	 * @since 4.4.1
+	 */
+
+	 public function testReCreateNetworkAliasOnSingleSite() {
+
+		$this->expectExceptionMessage( 'ElasticPress is not network activated.' );
+
+		$command = new Command();
+		$command->recreate_network_alias( [], [] );
+	 }
+
+	/**
 	 * Test sync command can sync content.
 	 *
 	 * @group skip-on-multi-site
@@ -326,6 +426,9 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
 	}
+
+
+
 
 	/**
 	 * Test sync command can ask for confirmation when setup flag is set
@@ -434,8 +537,11 @@ class TestCommands extends BaseTestCase {
 		);
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertStringContainsString( 'Deleting post index for site 1', $output );
-		$this->assertStringContainsString( 'Deleting post index for site 2', $output );
+		$sites = ElasticPress\Utils\get_sites();
+
+		foreach ( $sites as $site ) {
+			$this->assertStringContainsString( "Deleting post index for site {$site['blog_id']}", $output );
+		}
 	}
 
 	/**
