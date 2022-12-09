@@ -121,7 +121,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Dectivate a feature.
+	 * Deactivate a feature.
 	 *
 	 * ## OPTIONS
 	 *
