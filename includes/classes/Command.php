@@ -582,6 +582,8 @@ class Command extends WP_CLI_Command {
 		add_action( 'ep_epio_wp_cli_set_autosuggest', [ $autosuggest_feature, 'epio_send_autosuggest_public_request' ] );
 
 		do_action( 'ep_epio_wp_cli_set_autosuggest', $args, $assoc_args );
+
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
@@ -1331,7 +1333,7 @@ class Command extends WP_CLI_Command {
 		if ( ! $result ) {
 			$this->delete_transient();
 
-			exit( 1 );
+			WP_CLI::error( esc_html__( 'Mapping Failed.', 'elasticpress' ) );
 		}
 	}
 

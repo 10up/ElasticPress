@@ -193,7 +193,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Adding post mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
 
-
 		Indexables::factory()->deregister(  new ElasticPress\Indexable\Comment\Comment() );
 	}
 
@@ -428,6 +427,76 @@ class TestCommands extends BaseTestCase {
 	}
 
 
+	public function testSyncWithSetupFlag() {
+
+		$this->ep_factory->post->create_many( 10 );
+		$this->ep_factory->comment->create_many( 10, [ 'comment_post_ID' => $this->ep_factory->post->create() ] );
+
+		$this->command->sync( [], [ 'setup' => true,  'yes' => true  ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Sync complete', $output );
+		$this->assertStringContainsString( 'Total time elapsed', $output );
+		$this->assertStringContainsString( 'Done!', $output );
+
+	}
+
+	public function testSyncWithIndexablesFlag() {
+
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// without these dummy content, the sync command gets failed because the static variable
+		// https://github.com/10up/ElasticPress/blob/4.0.0/includes/classes/Indexable/Post/Post.php#L173
+		// holds the old value.
+		$this->ep_factory->post->create_many( 10 );
+		$this->ep_factory->comment->create_many( 10, [ 'comment_post_ID' => $this->ep_factory->post->create() ] );
+
+		$this->command->sync( [], ['indexables' => 'post'] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Indexing posts', $output );
+		$this->assertStringNotContainsString( 'Indexing comments', $output );
+		$this->assertStringContainsString( 'Sync complete', $output );
+
+		Indexables::factory()->deregister(  new ElasticPress\Indexable\Comment\Comment() );
+	}
+
+	public function testSyncWithIncludeFlag() {
+
+		$post_id = $this->ep_factory->post->create();
+
+		$this->command->sync( [], ['include' => $post_id] );
+		$output = $this->getActualOutputForAssertion();
+
+		$this->assertStringContainsString( 'Number of posts indexed on site 1: 1', $output );
+		$this->assertStringContainsString( 'Sync complete', $output );
+	}
+
+	public function testSyncWithPerPageFlag() {
+
+		$this->ep_factory->post->create_many( 10 );
+
+		$this->command->sync( [], ['per-page' => 5] );
+		$output = $this->getActualOutputForAssertion();
+
+		$this->assertStringContainsString( 'Processed posts 0 - 5 of 10', $output );
+		$this->assertStringContainsString( 'Processed posts 5 - 10 of 10', $output );
+		$this->assertStringContainsString( 'Sync complete', $output );
+	}
+
+
+	public function testSyncWithPostTypeFlag() {
+
+		$this->ep_factory->post->create_many( 10 );
+		$this->ep_factory->post->create_many( 10, [ 'post_type' => 'page' ] );
+
+		$this->command->sync( [], ['post-type' => 'page'] );
+		$output = $this->getActualOutputForAssertion();
+
+		$this->assertStringContainsString( 'Processed posts 0 - 10 of 10', $output );
+		$this->assertStringContainsString( 'Sync complete', $output );
+	}
 
 
 	/**
@@ -441,6 +510,17 @@ class TestCommands extends BaseTestCase {
 
 		$this->command->sync( [], [ 'setup' => true ] );
 	}
+
+	public function testSyncThrowsErrorIfMappingFailed() {
+
+		$this->expectExceptionMessage( 'Mapping Failed.' );
+
+		// mock the mapping request to return false
+		add_filter( 'ep_config_mapping_request', '__return_false' );
+
+		$this->command->sync( [], [ 'setup' => true, 'yes' => true ] );
+	}
+
 
 	/**
 	 * Test status command returns status information.
@@ -662,7 +742,7 @@ class TestCommands extends BaseTestCase {
 	 */
 	public function testRequest() {
 
-		$this->command->request( [ '_cat/indices' ], [] );
+		$this->command->request( [ '_cat/indices' ], [ 'body' => 'test body', 'method' => 'POST'  ] );
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertNotEmpty( $output );
@@ -690,6 +770,20 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Response:', $output );
 	}
 
+	public function testRequestThrowsError() {
+
+		$this->expectExceptionMessage( 'Error: Request failed.' );
+
+		// mock request
+		add_filter( 'ep_intercept_remote_request', '__return_true' );
+		add_filter( 'ep_do_intercept_request', function() {
+			return new \WP_Error( 400, 'Error: Request failed.' );
+		} );
+
+		$this->command->request( [ '_cat/indices' ], [ 'method' => 'POST' ] );
+	}
+
+
 	/**
 	 * Test settings-reset command delete all settings.
 	 *
@@ -715,4 +809,31 @@ class TestCommands extends BaseTestCase {
 		$this->command->settings_reset( [], [] );
 	}
 
+
+	public function testStats() {
+
+		$this->command->stats( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( '====== End Stats ======', $output );
+
+	}
+
+	public function testEPioSetAutosuggest() {
+
+		ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
+
+		$this->command->epio_set_autosuggest( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done.', $output );
+	}
+
+
+	public function testEPioSetAutosuggestThrowsError() {
+
+		$this->expectExceptionMessage( 'Autosuggest is not enabled.' );
+
+		$this->command->epio_set_autosuggest( [], [] );
+	}
 }
