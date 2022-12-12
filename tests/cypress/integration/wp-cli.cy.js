@@ -350,7 +350,7 @@ describe('WP-CLI Commands', { tags: '@slow' }, () => {
 
 		// mock the sync process
 		cy.wpCliEval(
-			`update_option('ep_index_meta', true); set_transient('ep_sync_interrupted', true);`,
+			`update_option('ep_index_meta', [ 'indexing' => true ] ); set_transient('ep_sync_interrupted', true);`,
 		);
 
 		cy.wpCli('wp elasticpress stop-sync').its('stdout').should('contain', 'Done');
