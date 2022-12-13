@@ -121,7 +121,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Dectivate a feature.
+	 * Deactivate a feature.
 	 *
 	 * ## OPTIONS
 	 *
@@ -484,7 +484,7 @@ class Command extends WP_CLI_Command {
 		$non_global_indexable_objects = Indexables::factory()->get_all( false );
 		$global_indexable_objects     = Indexables::factory()->get_all( true );
 
-		if ( isset( $assoc_args['network-wide'] ) && is_multisite() ) {
+		if ( isset( $assoc_args['network-wide'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
 				$assoc_args['network-wide'] = 0;
 			}
@@ -706,7 +706,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( ! function_exists( 'pcntl_signal' ) ) {
-			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-index` in case the process is killed.', 'elasticpress' ) );
+			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-sync` in case the process is killed.', 'elasticpress' ) );
 		} else {
 			declare( ticks = 1 );
 			pcntl_signal( SIGINT, [ $this, 'delete_transient_on_int' ] );
