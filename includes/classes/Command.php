@@ -19,7 +19,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -622,7 +624,7 @@ class Command extends WP_CLI_Command {
 		if ( SIGINT === $signal_no ) {
 			$this->delete_transient();
 			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
-			exit;
+			WP_CLI::halt();
 		}
 	}
 
