@@ -35,8 +35,14 @@ class Indexables {
 		$this->registered_indexables[ $indexable->slug ] = $indexable;
 	}
 
-	public function deregister( Indexable $indexable ) {
-		unset( $this->registered_indexables[ $indexable->slug ] );
+	/**
+	 * Unregister an indexable instance
+	 *
+	 * @param  string $slug Indexable type slug.
+	 * @since 4.4.1
+	 */
+	public function unregister( $slug ) {
+		unset( $this->registered_indexables[ $slug ] );
 	}
 
 	/**

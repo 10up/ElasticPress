@@ -199,7 +199,7 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Adding post mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
 
-		Indexables::factory()->deregister( new ElasticPress\Indexable\Comment\Comment() );
+		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -233,7 +233,7 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringNotContainsString( 'Adding post mapping for site 2', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
 
-		Indexables::factory()->deregister( new ElasticPress\Indexable\Comment\Comment() );
+		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -281,7 +281,7 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Adding user mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
 
-		Indexables::factory()->deregister( new ElasticPress\Indexable\User\User() );
+		Indexables::factory()->unregister( 'user' );
 	}
 
 	/**
@@ -419,6 +419,8 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
+
+		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -445,6 +447,8 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
+
+		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -453,6 +457,10 @@ class TestCommands extends BaseTestCase {
 	 * @since 4.4.1
 	 */
 	public function testSyncWithSetupFlag() {
+
+		// activate comments feature
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->setup_features();
 
 		$this->ep_factory->post->create_many( 10 );
 		$this->ep_factory->comment->create_many( 10, [ 'comment_post_ID' => $this->ep_factory->post->create() ] );
@@ -470,6 +478,7 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
 
+		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -495,7 +504,7 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringNotContainsString( 'Indexing comments', $output );
 		$this->assertStringContainsString( 'Sync complete', $output );
 
-		Indexables::factory()->deregister( new ElasticPress\Indexable\Comment\Comment() );
+		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
