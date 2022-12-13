@@ -1559,9 +1559,10 @@ class Command extends WP_CLI_Command {
 	 * Whether a value can be evaluated as true or not.
 	 *
 	 * @since 4.4.1
+	 * @param string $value A string value that is going to be evaluated as bool or not.
 	 * @return bool
 	 */
-		protected function filter_boolean( $value ) {
-		return filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );;
+	protected function filter_boolean( $value ) {
+		return filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
 	}
 }
