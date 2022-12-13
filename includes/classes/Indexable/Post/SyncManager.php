@@ -396,9 +396,27 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		if ( IndexHelper::factory()->get_index_default_per_page() >= $tag->count ) {
+
+			$child_tags = get_term_children( $tag->term_id, $tag->taxonomy );
+			if ( ! empty( $child_tags ) ) {
+				foreach ( $child_tags as $child_tag_id ) {
+					$child_tag = get_term( $child_tag_id );
+					if ( ! is_wp_error( $child_tag ) && IndexHelper::factory()->get_index_default_per_page() < $child_tag->count && ! isset( $notices['edited_single_parent_term'] ) ) {
+						$notices['edited_single_parent_term'] = [
+							'html'    => sprintf(
+								/* translators: Sync Page URL */
+								__( 'Due to the number of posts associated with its child terms, you will need to <a href="%s">resync</a> after editing or deleting it.', 'elasticpress' ),
+								Utils\get_sync_url()
+							),
+							'type'    => 'warning',
+							'dismiss' => true,
+						];
+					}
+				}
+			}
+
 			return $notices;
 		}
-
 		$notices['edited_single_term'] = [
 			'html'    => sprintf(
 				/* translators: Sync Page URL */
