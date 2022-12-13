@@ -1600,6 +1600,8 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Gets the Instant results search template.
 	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 * ## OPTIONS
 	 *
 	 * [--pretty]
