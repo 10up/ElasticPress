@@ -385,9 +385,18 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_mapping( $args, $assoc_args ) {
-		$index_names = (array) ( isset( $assoc_args['index-name'] ) ? $assoc_args['index-name'] : $this->get_index_names() );
+		$defaults = [
+			'index-name' => $this->get_index_names(),
+			'pretty'     => false,
+		];
 
-		$path = join( ',', $index_names ) . '/_mapping';
+		if ( isset( $assoc_args['index-name'] ) ) {
+			$assoc_args['index-name'] = (array) $assoc_args['index-name'];
+		}
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
+		$path = join( ',', $assoc_args['index-name'] ) . '/_mapping';
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
@@ -408,6 +417,11 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_cluster_indices( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 
 		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
 
@@ -428,6 +442,12 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indices( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
 		$index_names = $this->get_index_names();
 
 		$this->pretty_json_encode( $index_names, $this->filter_boolean( $assoc_args['pretty'] ) );
@@ -1000,6 +1020,11 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_ongoing_sync_status( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 		$indexing_status = Utils\get_indexing_status();
 
 		if ( empty( $indexing_status ) ) {
@@ -1029,6 +1054,11 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_sync( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
 
 		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
@@ -1051,6 +1081,12 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_cli_sync( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
 		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
 		if ( isset( $assoc_args['clear'] ) ) {
@@ -1393,6 +1429,12 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function request( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
 		$path         = $args[0];
 		$method       = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
 		$body         = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
