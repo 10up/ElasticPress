@@ -1195,6 +1195,11 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		// It should not integrate on single product pages
+		$product_name = $query->get( 'product', false );
+		if ( ! empty( $product_name ) && $query->is_single() ) {
+			return false;
+		}
 		/**
 		 * Filter to skip WP Query integration
 		 *
