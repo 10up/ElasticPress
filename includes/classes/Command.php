@@ -1024,7 +1024,7 @@ class Command extends WP_CLI_Command {
 			'pretty' => false,
 		];
 
-		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+		$assoc_args      = wp_parse_args( $assoc_args, $defaults );
 		$indexing_status = Utils\get_indexing_status();
 
 		if ( empty( $indexing_status ) ) {
@@ -1059,7 +1059,7 @@ class Command extends WP_CLI_Command {
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
-		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$last_sync  = \ElasticPress\IndexHelper::factory()->get_last_index();
 
 		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
