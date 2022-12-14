@@ -810,7 +810,7 @@ class Elasticsearch {
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
 	 * @since  3.0
-	 * @return boolean
+	 * @return boolean|WP_ERROR
 	 */
 	public function put_mapping( $index, $mapping ) {
 		/**
@@ -842,15 +842,21 @@ class Elasticsearch {
 		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
-		$response_body = wp_remote_retrieve_body( $request );
-
-		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
-
-			return true;
+		// If we have an error, return it.
+		if ( is_wp_error( $request ) ) {
+			return $request;
 		}
 
-		return false;
+		$response_code = wp_remote_retrieve_response_code( $request );
+
+		// if response code is not 200, parse the response and return the error.
+		if ( 200 !== $response_code ) {
+			$response_body   = wp_remote_retrieve_body( $request );
+			$parsed_response = json_decode( $response_body, true );
+			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
+		}
+
+		return true;
 	}
 
 	/**

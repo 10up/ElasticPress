@@ -87,6 +87,19 @@ const App = () => {
 		[],
 	);
 
+	const stopSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isComplete: false, isPaused: false, isSyncing: false });
+			cancelIndex();
+		},
+		[cancelIndex],
+	);
+
 	const syncCompleted = useCallback(
 		/**
 		 * Set sync state to completed, with success based on the number of
@@ -235,6 +248,13 @@ const App = () => {
 				 */
 				if (message) {
 					logMessage(message, status);
+
+					// stop sync if there is an error.
+					if (status === 'error') {
+						logMessage(__('Sync failed', 'elasticpress'), 'error');
+						stopSync();
+						return;
+					}
 				}
 
 				/**
@@ -272,7 +292,7 @@ const App = () => {
 				resolve(indexMeta.method);
 			});
 		},
-		[syncCompleted, syncInProgress, syncInterrupted, logMessage],
+		[syncCompleted, syncInProgress, syncInterrupted, logMessage, stopSync],
 	);
 
 	const doIndexStatus = useCallback(
@@ -330,19 +350,6 @@ const App = () => {
 			updateState({ isComplete: false, isPaused: true, isSyncing: true });
 		},
 		[],
-	);
-
-	const stopSync = useCallback(
-		/**
-		 * Stop syncing.
-		 *
-		 * @returns {void}
-		 */
-		() => {
-			updateState({ isComplete: false, isPaused: false, isSyncing: false });
-			cancelIndex();
-		},
-		[cancelIndex],
 	);
 
 	const resumeSync = useCallback(

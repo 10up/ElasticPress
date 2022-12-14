@@ -283,10 +283,11 @@ class Command extends WP_CLI_Command {
 					 */
 					do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-					if ( $result ) {
+					if ( ! is_wp_error( $result ) ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+						/* translators: Error message */
+						WP_CLI::error( sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $result->get_error_message() ), false );
 
 						return false;
 					}
@@ -319,10 +320,11 @@ class Command extends WP_CLI_Command {
 				 */
 				do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-				if ( $result ) {
+				if ( ! is_wp_error( $result ) ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+					/* translators: Error message */
+					WP_CLI::error( sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $result->get_error_message() ), false );
 
 					return false;
 				}
@@ -356,10 +358,11 @@ class Command extends WP_CLI_Command {
 			 */
 			do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-			if ( $result ) {
+			if ( ! is_wp_error( $result ) ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
+				/* translators: Error message */
+				WP_CLI::error( sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $result->get_error_message() ), false );
 
 				return false;
 			}

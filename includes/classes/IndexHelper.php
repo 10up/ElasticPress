@@ -381,11 +381,18 @@ class IndexHelper {
 		 */
 		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start' );
 
-		if ( $result ) {
-			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
-		} else {
-			$this->output_error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+		if ( is_wp_error( $result ) ) {
+			$this->output_error(
+				sprintf(
+					/* translators: Error message */
+					esc_html__( 'Mapping failed: %s', 'elasticpress' ),
+					$result->get_error_message()
+				)
+			);
+			return;
 		}
+
+		$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 	}
 
 	/**
