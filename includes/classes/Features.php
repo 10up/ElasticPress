@@ -36,6 +36,23 @@ class Features {
 		// hooks order matters, make sure feature activation goes before features setup
 		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
 		add_action( 'init', array( $this, 'setup_features' ), 0 );
+
+		add_action( 'ep_feature_post_deactivation', array( $this, 'delete_indexables' ), 10, 2 );
+	}
+
+
+	function delete_indexables( $slug, $current_state ) {
+
+		$indexables = [
+			'comments' => 'comment',
+			'posts' => 'post',
+			'users' => 'user',
+		];
+
+
+		$index_name =  \ElasticPress\Indexables::factory()->get( $indexables[$slug] )->get_index_name() ;
+		  Elasticsearch::factory()->delete_index( $index_name );
+
 	}
 
 	/**
@@ -105,6 +122,17 @@ class Features {
 			return false;
 		}
 
+		// 	$indexables = [
+		// 		'comments' => 'comment',
+		// 		'posts' => 'post',
+		// 		'users' => 'user',
+		// 	];
+
+
+		// $index_name =  \ElasticPress\Indexables::factory()->get( $indexables[$slug] )->get_index_name() ;
+		//   Elasticsearch::factory()->delete_index( $index_name );
+
+
 		$original_state = $feature->is_active();
 
 		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
@@ -131,6 +159,10 @@ class Features {
 			}
 		}
 
+
+		// var_dump( $original_state );
+		// var_dump( $feature_settings );
+
 		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
 		Utils\update_option( 'ep_feature_settings', $sanitize_feature_settings );
@@ -146,6 +178,9 @@ class Features {
 			}
 
 			$feature->post_activation();
+		} else {
+
+			$feature->post_deactivation();
 		}
 
 		/**
