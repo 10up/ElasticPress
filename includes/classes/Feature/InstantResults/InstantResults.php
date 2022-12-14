@@ -67,7 +67,7 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
+		$this->title = $this->get_title();
 
 		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
 
@@ -992,4 +992,19 @@ class InstantResults extends Feature {
 		return $args;
 	}
 
+	/**
+	 * Returns the title.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	protected function get_title() : string {
+
+		if ( ! Utils\is_epio() ) {
+			return esc_html__( 'Instant Results', 'elasticpress' );
+		}
+
+		/* translators: 1. Feature name;  */
+		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
+	}
 }

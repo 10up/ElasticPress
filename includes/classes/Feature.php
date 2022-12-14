@@ -344,4 +344,15 @@ abstract class Feature {
 
 		<?php
 	}
+
+	/**
+	 * Returns the ElasticPress.io logo.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_epio_logo() : string {
+
+		return sprintf( '<img class="feature-epio-logo" src="%s">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
+	}
 }
