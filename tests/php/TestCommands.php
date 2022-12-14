@@ -2,6 +2,7 @@
 /**
  * Test WP-CLI commands.
  *
+ * @since 4.4.1
  * @package elasticpress
  */
 
@@ -24,8 +25,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Setup each test.
-	 *
-	 * @since 4.4.1
 	 */
 	public function set_up() {
 		$this->command = new Command();
@@ -39,9 +38,15 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Clean up after each test.
+	 */
+	public function tear_down() {
+		ob_clean();
+		parent::tear_down();
+	}
+
+	/**
 	 * Test activate-feature command can activate feature.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testActivateFeature() {
 
@@ -53,8 +58,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature throws warning when feature needs re-index.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testActivateFeatureThrowWarnings() {
 
@@ -67,8 +70,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command throws error when feature is already activated.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testActivateFeatureWhenFeatureIsAlreadyActivated() {
 
@@ -79,8 +80,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command throws error when feature is not registered.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testActivateFeatureForInvalidFeature() {
 
@@ -91,8 +90,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test activate-feature command throws error when requirement is not met.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testActivateFeatureWhenRequirementIsNotMet() {
 
@@ -103,8 +100,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test deactivate-feature command can deactivate feature.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testDeactivateFeature() {
 
@@ -117,8 +112,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test deactivate-feature command throws error when feature is already deactivated.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testDeactivateFeatureWhenFeatureIsAlreadyDeactivated() {
 
@@ -129,8 +122,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test deactivate-feature command throws error when feature is not registered.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testDeactivateFeatureForInvalidFeature() {
 
@@ -141,8 +132,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test list-features command can list all active features.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testListFeature() {
 
@@ -155,8 +144,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test list-features command can list all features.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testListFeatureAll() {
 
@@ -169,8 +156,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command can put mapping for active features.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testPutMapping() {
 
@@ -184,8 +169,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command can put mapping for specific indexable.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testPutMappingWithIndexablesFlag() {
 
@@ -206,7 +189,6 @@ class TestCommands extends BaseTestCase {
 	 * Test put-mapping command can put mapping for network-wide.
 	 *
 	 * @group skip-on-single-site
-	 * @since 4.4.1
 	 */
 	public function testPutMappingForNetworkWide() {
 
@@ -238,8 +220,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command throws error if mapping failed.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testPutMappingThrowErrorIfMappingFailed() {
 
@@ -252,8 +232,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command throws error if mapping failed for network-wide.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testPutMappingForNetworkWideThrowErrorIfMappingFailed() {
 
@@ -266,8 +244,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test put-mapping command can put mapping for global indexables.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testPutMappingForGlobalIndexables() {
 
@@ -286,8 +262,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-mapping command returns mapping.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetMapping() {
 
@@ -322,8 +296,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-cluster-indices command returns cluster indices.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetClusterIndices() {
 
@@ -344,8 +316,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-indices command returns indices information.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetIndices() {
 
@@ -368,12 +338,10 @@ class TestCommands extends BaseTestCase {
 	 * Test recreate-network-alias command can create aliases.
 	 *
 	 * @group skip-on-single-site
-	 * @since 4.4.1
 	 */
 	public function testReCreateNetworkAlias() {
 
-		$command = new Command();
-		$command->recreate_network_alias( [], [] );
+		$this->command->recreate_network_alias( [], [] );
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Recreating post network alias…', $output );
@@ -384,22 +352,19 @@ class TestCommands extends BaseTestCase {
 	 * Test recreate-network-alias command can create aliases.
 	 *
 	 * @group skip-on-multi-site
-	 * @since 4.4.1
 	 */
 
 	public function testReCreateNetworkAliasOnSingleSite() {
 
 		$this->expectExceptionMessage( 'ElasticPress is not network activated.' );
 
-		$command = new Command();
-		$command->recreate_network_alias( [], [] );
+		$this->command->recreate_network_alias( [], [] );
 	}
 
 	/**
 	 * Test sync command can sync content.
 	 *
 	 * @group skip-on-multi-site
-	 * @since 4.4.1
 	 */
 	public function testSync() {
 
@@ -427,7 +392,6 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command can sync content.
 	 *
 	 * @group skip-on-single-site
-	 * @since 4.4.1
 	 */
 	public function testSyncOnNetwork() {
 
@@ -453,8 +417,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with setup flag.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncWithSetupFlag() {
 
@@ -483,8 +445,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with indexables flag.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncWithIndexablesFlag() {
 
@@ -511,7 +471,6 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command with include flag.
 	 *
 	 * @group skip-on-multi-site
-	 * @since 4.4.1
 	 */
 	public function testSyncWithIncludeFlag() {
 
@@ -528,7 +487,6 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command with include flag.
 	 *
 	 * @group skip-on-single-site
-	 * @since 4.4.1
 	 */
 	public function testSyncWithIncludeFlagForNetwork() {
 
@@ -543,8 +501,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with per-page flag.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncWithPerPageFlag() {
 
@@ -560,8 +516,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with post-type flag.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncWithPostTypeFlag() {
 
@@ -577,8 +531,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with ep-prefix flag.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncWithEPPrefixFlag() {
 
@@ -593,8 +545,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command with ep-host flag.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncWithEPHostFlag() {
 
@@ -605,8 +555,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command can ask for confirmation when setup flag is set
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncAskForConfirmationWhenSetupIsPassed() {
 
@@ -617,8 +565,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command throws error if mapping failed.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSyncThrowsErrorIfMappingFailed() {
 
@@ -638,8 +584,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test status command returns status information.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testStatus() {
 
@@ -653,8 +597,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test delete-index command ask for confirmation.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testDeleteIndexAskForConfirmation() {
 
@@ -665,8 +607,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test delete-index command can delete index.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testDeleteIndex() {
 
@@ -698,8 +638,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test delete-index command also delete global index.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testDeleteIndexGlobal() {
 
@@ -716,7 +654,6 @@ class TestCommands extends BaseTestCase {
 	 *  Test delete-index command can delete all the indexes if network-wide flag is set.
 	 *
 	 * @group skip-on-single-site
-	 * @since 4.4.1
 	 */
 	public function testDeleteIndexForNetwork() {
 
@@ -742,7 +679,6 @@ class TestCommands extends BaseTestCase {
 	 * Test delete-index command can delete all the indexes if network-wide flag is set.
 	 *
 	 * @group skip-on-single-site
-	 * @since 4.4.1
 	 */
 	public function testClearSync() {
 
@@ -754,8 +690,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-ongoing-sync-status command returns ongoing sync status.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetOnGoingSyncStatus() {
 
@@ -767,8 +701,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-last-sync command returns last sync information.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetLastSync() {
 
@@ -780,8 +712,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-last-cli-sync command returns last cli sync information.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetLastCliSync() {
 
@@ -799,8 +729,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test stop-sync command can stop indexing.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testStopSync() {
 
@@ -821,8 +749,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test set-search-algorithm-version command can set search algorithm version.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSetSearchAlgorithmVersion() {
 
@@ -845,8 +771,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test set-search-algorithm-version command throws an error if no version is provided.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSetSearchAlgorithmVersionWithOutVersion() {
 
@@ -857,8 +781,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test get-search-algorithm-version returns the algorithm version.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testGetSearchAlgorithmVersion() {
 
@@ -882,8 +804,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test request command can make a request to Elasticsearch.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testRequest() {
 
@@ -923,8 +843,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test request command throws an error if request fails.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testRequestThrowsError() {
 
@@ -945,8 +863,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test settings-reset command delete all settings.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSettingsReset() {
 
@@ -958,8 +874,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test settings-reset command ask for confirmation.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testSettingsResetAskForConfirmation() {
 
@@ -970,8 +884,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test stats command.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testStats() {
 
@@ -984,8 +896,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test epio-set-autosuggest command.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testEPioSetAutosuggest() {
 
@@ -999,8 +909,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test epio-set-autosuggest command throws an error if autosuggest is not enabled.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testEPioSetAutosuggestThrowsError() {
 
@@ -1011,8 +919,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test `should_interrupt_sync` method.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testShouldInterruptSync() {
 
@@ -1027,8 +933,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test commands throws an error when host is not set.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testThrowsErrorWhenHostIsNotSet() {
 
@@ -1042,8 +946,6 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test commands throws an error if indexing is already happening.
-	 *
-	 * @since 4.4.1
 	 */
 	public function testThrowsErrorIfIndexingIsAlreadyHappening() {
 
