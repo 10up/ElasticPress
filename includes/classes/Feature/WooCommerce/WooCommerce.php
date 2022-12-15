@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\WooCommerce;
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\IndexHelper;
 use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -1258,8 +1259,7 @@ class WooCommerce extends Feature {
 			return $notices;
 		}
 
-		/* This filter is documented in /includes/classes/IndexHelper.php */
-		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		$documents_per_page_sync = IndexHelper::factory()->get_index_default_per_page();
 		if ( $documents_per_page_sync >= $wp_query->found_posts ) {
 			return $notices;
 		}
@@ -1285,8 +1285,8 @@ class WooCommerce extends Feature {
 	 * @param array $menu_orders Post IDs and their new menu_order value
 	 */
 	public function action_sync_on_woocommerce_sort_single( $sorting_id, $menu_orders ) {
-		/* This filter is documented in /includes/classes/IndexHelper.php */
-		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+
+		$documents_per_page_sync = IndexHelper::factory()->get_index_default_per_page();
 		if ( $documents_per_page_sync < count( $menu_orders ) ) {
 			return;
 		}

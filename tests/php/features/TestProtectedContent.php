@@ -386,5 +386,55 @@ class TestProtectedContent extends BaseTestCase {
 		// Password post is expected to return as we are logged in.
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+
+		// Log out and try again.
+		wp_set_current_user( 0 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'findmetitle',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 0, $query->found_posts );
+	}
+
+	/**
+	 * Check admin comment query are powered by Elasticsearch
+	 *
+	 * @since 4.4.1
+	 */
+	public function testAdminCommentQuery() {
+
+		set_current_screen( 'edit-comments.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue = [];
+
+		// Need to call this since it's hooked to init.
+		ElasticPress\Features::factory()->get_registered_feature( 'comments' )->search_setup();
+
+
+		$this->ep_factory->comment->create( [
+			'comment_content' => 'findme',
+			'comment_post_ID' => $this->ep_factory->post->create(),
+		] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query([
+			'type' => 'comment',
+		]);
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+		$this->assertEquals( 1, $comments_query->found_comments );
 	}
 }

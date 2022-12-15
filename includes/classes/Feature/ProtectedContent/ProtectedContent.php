@@ -272,7 +272,7 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
-	 * Exclude proctected post from the frontend queries.
+	 * Exclude protected post from the frontend queries.
 	 *
 	 * @since 4.0.0
 	 *
