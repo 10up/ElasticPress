@@ -54,10 +54,12 @@ class Screen {
 		$this->sync_screen        = new Screen\Sync();
 		$this->health_info_screen = new Screen\HealthInfo();
 		$this->status_report      = new Screen\StatusReport();
+		$this->elasticpress_io    = new Screen\ElasticPressIo();
 
 		$this->sync_screen->setup();
 		$this->health_info_screen->setup();
 		$this->status_report->setup();
+		$this->elasticpress_io->setup();
 	}
 
 	/**
