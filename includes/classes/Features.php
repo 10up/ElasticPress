@@ -37,65 +37,9 @@ class Features {
 		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
 		add_action( 'init', array( $this, 'setup_features' ), 0 );
 
-		add_action( 'ep_after_update_feature', array( $this, 'delete_indexables' ), 10, 3 );
+		add_action( 'ep_after_update_feature', array( $this, 'delete_indexables' ), 10, 4 );
 	}
 
-
-	function delete_indexables( $slug,
-			$settings,
-			$data ) {
-
-		$indexables = [
-			'comments' => 'comment',
-			'users' => 'user',
-			'terms' => 'term',
-		];
-
-		if ( ! isset( $indexables[$slug] ) ) {
-			return;
-		}
-
-		var_dump( $settings );
-		var_dump( $data );
-
-
-			// $index_name =  \ElasticPress\Indexables::factory()->get( $indexables[$slug] )->get_index_name() ;
-		// Elasticsearch::factory()->delete_index( $index_name );
-
-
-		// var_dump( $current_state );
-
-		if( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-
-
-			$sites = Utils\get_sites();
-
-			foreach ( $sites as $site ) {
-
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
-				switch_to_blog( $site->blog_id );
-
-				$indexable = Indexables::factory()->get( $indexables[$slug] );
-
-				// var_dump( $indexable );
-				$indexable->delete_index();
-
-				restore_current_blog();
-			}
-
-		} else {
-
-			$indexable = Indexables::factory()->get( $indexables[$slug] );
-			$indexable->delete_index();
-		}
-
-
-
-
-	}
 
 	/**
 	 * Activate a feature
@@ -164,16 +108,6 @@ class Features {
 			return false;
 		}
 
-		// 	$indexables = [
-		// 		'comments' => 'comment',
-		// 		'posts' => 'post',
-		// 		'users' => 'user',
-		// 	];
-
-
-		// $index_name =  \ElasticPress\Indexables::factory()->get( $indexables[$slug] )->get_index_name() ;
-		//   Elasticsearch::factory()->delete_index( $index_name );
-
 
 		$original_state = $feature->is_active();
 
@@ -201,10 +135,6 @@ class Features {
 			}
 		}
 
-
-		// var_dump( $original_state );
-		// var_dump( $feature_settings );
-
 		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
 
 		Utils\update_option( 'ep_feature_settings', $sanitize_feature_settings );
@@ -220,9 +150,6 @@ class Features {
 			}
 
 			$feature->post_activation();
-		} else {
-
-			$feature->post_deactivation();
 		}
 
 		/**
@@ -232,6 +159,7 @@ class Features {
 		 * @param  {string} $feature Feature slug
 		 * @param  {array} $settings Feature settings
 		 * @param  {array} $data Feature activation data
+		 * @param {bool} $original_state Feature original state before update.
 		 *
 		 * @since 3.5.5
 		 */
@@ -239,7 +167,8 @@ class Features {
 			'ep_after_update_feature',
 			$slug,
 			$settings,
-			$data
+			$data,
+			$original_state
 		);
 
 		return $data;
@@ -372,5 +301,53 @@ class Features {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * Delete indexables for a given feature on deactivation.
+	 */
+	function delete_indexables( $slug, $settings, $data, $original_state ) {
+
+		// if it was not active, don't delete
+		if ( ! $original_state ) {
+			return;
+		}
+
+		$indexables = [
+			'comments' => 'comment',
+			'users'    => 'user',
+			'terms'    => 'term',
+		];
+
+		if ( ! isset( $indexables[ $slug ] ) ) {
+			return;
+		}
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+			$sites = Utils\get_sites();
+			foreach ( $sites as $site ) {
+
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
+				switch_to_blog( $site->blog_id );
+
+				$indexable = Indexables::factory()->get( $indexables[ $slug ] );
+				if ( $indexable ) {
+					$indexable->delete_index( $site['blog_id'] );
+				}
+
+				restore_current_blog();
+			}
+		} else {
+
+			$indexable = Indexables::factory()->get( $indexables[ $slug ] );
+			if ( $indexable ) {
+				$indexable->delete_index();
+			}
+		}
+
 	}
 }

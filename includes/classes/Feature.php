@@ -213,24 +213,6 @@ abstract class Feature {
 		do_action( 'ep_feature_post_activation', $this->slug, $this );
 	}
 
-
-	/**
-	 * To be run after initial feature activation
-	 *
-	 * @since 2.1
-	 */
-	public function post_deactivation() {
-		/**
-		 * Fires after feature is activated
-		 *
-		 * @hook ep_feature_post_activation
-		 * @param  {string} $slug Feature slug
-		 * @param {Feature} $feature Current feature
-		 * @since  2.1
-		 */
-		do_action( 'ep_feature_post_deactivation', $this->slug, $this );
-	}
-
 	/**
 	 * Outputs feature box
 	 *
