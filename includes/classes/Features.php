@@ -37,21 +37,63 @@ class Features {
 		add_action( 'init', array( $this, 'handle_feature_activation' ), 0 );
 		add_action( 'init', array( $this, 'setup_features' ), 0 );
 
-		add_action( 'ep_feature_post_deactivation', array( $this, 'delete_indexables' ), 10, 2 );
+		add_action( 'ep_after_update_feature', array( $this, 'delete_indexables' ), 10, 3 );
 	}
 
 
-	function delete_indexables( $slug, $current_state ) {
+	function delete_indexables( $slug,
+			$settings,
+			$data ) {
 
 		$indexables = [
 			'comments' => 'comment',
-			'posts' => 'post',
 			'users' => 'user',
+			'terms' => 'term',
 		];
 
+		if ( ! isset( $indexables[$slug] ) ) {
+			return;
+		}
 
-		$index_name =  \ElasticPress\Indexables::factory()->get( $indexables[$slug] )->get_index_name() ;
-		  Elasticsearch::factory()->delete_index( $index_name );
+		var_dump( $settings );
+		var_dump( $data );
+
+
+			// $index_name =  \ElasticPress\Indexables::factory()->get( $indexables[$slug] )->get_index_name() ;
+		// Elasticsearch::factory()->delete_index( $index_name );
+
+
+		// var_dump( $current_state );
+
+		if( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+
+
+			$sites = Utils\get_sites();
+
+			foreach ( $sites as $site ) {
+
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
+				switch_to_blog( $site->blog_id );
+
+				$indexable = Indexables::factory()->get( $indexables[$slug] );
+
+				// var_dump( $indexable );
+				$indexable->delete_index();
+
+				restore_current_blog();
+			}
+
+		} else {
+
+			$indexable = Indexables::factory()->get( $indexables[$slug] );
+			$indexable->delete_index();
+		}
+
+
+
 
 	}
 
