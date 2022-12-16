@@ -424,6 +424,9 @@ class TestCommands extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'comments' );
 		ElasticPress\Features::factory()->setup_features();
 
+		// without these dummy content, the sync command gets failed because the static variable
+		// https://github.com/10up/ElasticPress/blob/4.0.0/includes/classes/Indexable/Post/Post.php#L173
+		// holds the old value.
 		$this->ep_factory->post->create_many( 10 );
 		$this->ep_factory->comment->create_many( 10, [ 'comment_post_ID' => $this->ep_factory->post->create() ] );
 
@@ -956,4 +959,106 @@ class TestCommands extends BaseTestCase {
 
 		$this->command->sync( [], [] );
 	}
+
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-indexes
+	 */
+	public function testGetIndexesThrowsDeprecatedWarning() {
+
+		$this->command->get_indexes( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use get-indices instead.', $output );
+	}
+
+	 /**
+	  * Test commands throws deprecated warning.
+	  *
+	  *  @expectedDeprecated get-cluster-indexes
+	  */
+	public function testGetClusterIndexesThrowsDeprecatedWarning() {
+
+		$this->command->get_cluster_indexes( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use get-cluster-indices instead.', $output );
+	}
+
+	 /**
+	  * Test commands throws deprecated warning.
+	  *
+	  *  @expectedDeprecated index
+	  */
+	public function testIndexThrowsDeprecatedWarning() {
+
+		// activate comments feature
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// without these dummy content, the sync command gets failed because the static variable
+		// https://github.com/10up/ElasticPress/blob/4.0.0/includes/classes/Indexable/Post/Post.php#L173
+		// holds the old value.
+		$this->ep_factory->post->create_many( 10 );
+		$this->ep_factory->comment->create_many( 10, [ 'comment_post_ID' => $this->ep_factory->post->create() ] );
+
+		$this->command->index( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use sync instead.', $output );
+	}
+
+	 /**
+	  * Test commands throws deprecated warning.
+	  *
+	  *  @expectedDeprecated clear-index
+	  */
+	public function testClearIndexThrowsDeprecatedWarning() {
+
+		$this->command->clear_index( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use clear-sync instead.', $output );
+	}
+
+	 /**
+	  * Test commands throws deprecated warning.
+	  *
+	  *  @expectedDeprecated get-indexing-status
+	  */
+	public function testGetIndexingStatusThrowsDeprecatedWarning() {
+
+		$this->command->get_indexing_status( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use get-ongoing-sync-status instead.', $output );
+	}
+
+	 /**
+	  * Test commands throws deprecated warning.
+	  *
+	  *  @expectedDeprecated get-last-cli-index
+	  */
+	public function testGetLastCliIndexThrowsDeprecatedWarning() {
+
+		$this->command->get_last_cli_index( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use get-last-cli-sync instead.', $output );
+	}
+
+	 /**
+	  * Test commands throws deprecated warning.
+	  *
+	  *  @expectedDeprecated stop-indexing
+	  */
+	public function testStopIndexingThrowsDeprecatedWarning() {
+
+		$this->command->stop_indexing( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'This command is deprecated. Please use stop-sync instead.', $output );
+	}
+
 }
