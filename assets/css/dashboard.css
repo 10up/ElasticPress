@@ -1186,3 +1186,9 @@ p.ep-totals-data {
 	font-size: 3em;
 	margin-top: 22px;
 }
+
+.feature-epio-logo {
+	margin-left: 5px;
+	max-width: 110px;
+	vertical-align: middle;
+}
