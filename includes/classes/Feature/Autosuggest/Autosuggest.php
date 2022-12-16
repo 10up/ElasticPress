@@ -911,7 +911,7 @@ class Autosuggest extends Feature {
 			return esc_html__( 'Autosuggest', 'elasticpress' );
 		}
 
-		/* translators: 1. Feature name;  */
+		/* translators: 1. elasticpress.io logo;  */
 		return sprintf( esc_html__( 'Autosuggest By %s', 'elasticpress' ), $this->get_epio_logo() );
 	}
 }

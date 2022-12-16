@@ -1004,7 +1004,7 @@ class InstantResults extends Feature {
 			return esc_html__( 'Instant Results', 'elasticpress' );
 		}
 
-		/* translators: 1. Feature name;  */
+		/* translators: 1. elasticpress.io logo;  */
 		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
 	}
 }
