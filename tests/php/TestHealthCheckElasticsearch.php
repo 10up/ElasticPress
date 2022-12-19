@@ -8,6 +8,7 @@
 
 namespace ElasticPressTest;
 
+use WP_Site_Health;
 use WP_Ajax_UnitTestCase;
 use WPAjaxDieContinueException;
 
@@ -20,7 +21,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	 * Test if the test is registered
 	 */
 	public function testIsRegistered() {
-		$tests = \WP_Site_Health::get_tests();
+		$tests = WP_Site_Health::get_tests();
 
 		$this->assertArrayHasKey( 'elasticpress-health-check-elasticsearch', $tests['async'] );
 	}
@@ -135,5 +136,9 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 
 		remove_filter( 'ep_host', $ep_host );
 		remove_filter( 'ep_elasticsearch_version', '__return_false' );
+
+		// refetch the elasticsearch version. This is needed because this test has changed the value.
+		Elasticsearch::factory()->get_elasticsearch_version( true );
 	}
+
 }
