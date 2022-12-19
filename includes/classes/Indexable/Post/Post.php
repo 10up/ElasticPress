@@ -1720,7 +1720,7 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_parent( $args ) {
-		$has_post_parent = isset( $args['post_parent'] ) && ( 0 === (int) $args['post_parent'] || ! empty( $args['post_parent'] ) );
+		$has_post_parent = isset( $args['post_parent'] ) && ( in_array( $args['post_parent'], [ 0, '0' ], true ) || ! empty( $args['post_parent'] ) );
 		if ( ! $has_post_parent || 'any' === strtolower( $args['post_parent'] ) ) {
 			return [];
 		}
