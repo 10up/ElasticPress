@@ -1114,7 +1114,7 @@ abstract class Indexable {
 	public function put_mapping() {
 		$mapping = $this->generate_mapping();
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping, true );
 	}
 
 	/**

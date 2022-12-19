@@ -809,10 +809,11 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
+	 * @param  bool   $return_error Whether to return the error or not.
 	 * @since  3.0
-	 * @return boolean|WP_ERROR
+	 * @return boolean|WP_Error
 	 */
-	public function put_mapping( $index, $mapping ) {
+	public function put_mapping( $index, $mapping, $return_error = false ) {
 		/**
 		 * Filter Elasticsearch mapping before put mapping
 		 *
@@ -849,8 +850,14 @@ class Elasticsearch {
 
 		$response_code = wp_remote_retrieve_response_code( $request );
 
-		// if response code is not 200, parse the response and return the error.
+		// if response code is not 200.
 		if ( 200 !== $response_code ) {
+
+			// If we don't want to return the error, just return false.
+			if ( ! $return_error ) {
+				return false;
+			}
+
 			$response_body   = wp_remote_retrieve_body( $request );
 			$parsed_response = json_decode( $response_body, true );
 			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
