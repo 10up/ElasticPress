@@ -352,7 +352,6 @@ abstract class Feature {
 	 * @return string
 	 */
 	public function get_epio_logo() : string {
-
-		return sprintf( '<img class="feature-epio-logo" src="%s">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
+		return sprintf( '<img class="feature-epio-logo" alt="elasticpress.io-logo" src="%s">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
 	}
 }
