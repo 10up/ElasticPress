@@ -289,11 +289,8 @@ class Command extends WP_CLI_Command {
 							sprintf(
 								esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 								$result->get_error_message()
-							),
-							false
+							)
 						);
-
-						return false;
 					}
 				}
 
@@ -332,11 +329,8 @@ class Command extends WP_CLI_Command {
 						sprintf(
 							esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 							$result->get_error_message()
-						),
-						false
+						)
 					);
-
-					return false;
 				}
 			}
 		}
@@ -376,11 +370,8 @@ class Command extends WP_CLI_Command {
 					sprintf(
 						esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 						$result->get_error_message()
-					),
-					false
+					)
 				);
-
-				return false;
 			}
 		}
 
