@@ -13,7 +13,9 @@ use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
