@@ -843,19 +843,17 @@ class Elasticsearch {
 		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
-		// If we have an error, return it.
-		if ( is_wp_error( $request ) ) {
-			return $request;
-		}
-
 		$response_code = wp_remote_retrieve_response_code( $request );
 
-		// if response code is not 200.
-		if ( 200 !== $response_code ) {
+		// If WP_Error or not 200, return false or error message depends on attribute.
+		if ( is_wp_error( $request ) || 200 !== $response_code ) {
 
-			// If we don't want to return the error, just return false.
 			if ( ! $return_error ) {
 				return false;
+			}
+
+			if ( is_wp_error( $request ) ) {
+				return $request;
 			}
 
 			$response_body   = wp_remote_retrieve_body( $request );
