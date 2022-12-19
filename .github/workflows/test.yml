@@ -57,8 +57,6 @@ jobs:
       with:
         php-version: '8.0'
         coverage: none
-      env:
-        debug: true 
 
     - name: Install dependencies
       run: composer install
