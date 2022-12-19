@@ -19,7 +19,9 @@ use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexables as Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -221,10 +223,7 @@ class Command extends WP_CLI_Command {
 		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
 		$this->index_occurring();
-
-		if ( ! $this->put_mapping_helper( $args, $assoc_args ) ) {
-			exit( 1 );
-		}
+		$this->put_mapping_helper( $args, $assoc_args );
 	}
 
 	/**
@@ -286,9 +285,7 @@ class Command extends WP_CLI_Command {
 					if ( $result ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
-
-						return false;
+						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 					}
 				}
 
@@ -322,9 +319,7 @@ class Command extends WP_CLI_Command {
 				if ( $result ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
-
-					return false;
+					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 				}
 			}
 		}
@@ -359,9 +354,7 @@ class Command extends WP_CLI_Command {
 			if ( $result ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ), false );
-
-				return false;
+				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
 			}
 		}
 
@@ -611,6 +604,8 @@ class Command extends WP_CLI_Command {
 		add_action( 'ep_epio_wp_cli_set_autosuggest', [ $autosuggest_feature, 'epio_send_autosuggest_public_request' ] );
 
 		do_action( 'ep_epio_wp_cli_set_autosuggest', $args, $assoc_args );
+
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
@@ -649,7 +644,7 @@ class Command extends WP_CLI_Command {
 		if ( SIGINT === $signal_no ) {
 			$this->delete_transient();
 			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
-			exit;
+			WP_CLI::halt();
 		}
 	}
 
@@ -1376,7 +1371,7 @@ class Command extends WP_CLI_Command {
 		if ( ! $result ) {
 			$this->delete_transient();
 
-			exit( 1 );
+			WP_CLI::error( esc_html__( 'Mapping Failed.', 'elasticpress' ) );
 		}
 	}
 

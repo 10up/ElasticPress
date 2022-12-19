@@ -1139,6 +1139,7 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
 

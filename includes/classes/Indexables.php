@@ -36,6 +36,16 @@ class Indexables {
 	}
 
 	/**
+	 * Unregister an indexable instance
+	 *
+	 * @param  string $slug Indexable type slug.
+	 * @since 4.4.1
+	 */
+	public function unregister( $slug ) {
+		unset( $this->registered_indexables[ $slug ] );
+	}
+
+	/**
 	 * Get an indexable instance given a slug
 	 *
 	 * @param  string $slug Indexable type slug.
