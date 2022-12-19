@@ -8,6 +8,7 @@
 
 namespace ElasticPressTest;
 
+use ElasticPress\Elasticsearch;
 use WP_Site_Health;
 use WP_Ajax_UnitTestCase;
 use WPAjaxDieContinueException;
