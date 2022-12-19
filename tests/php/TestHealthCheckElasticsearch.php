@@ -43,7 +43,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 
-		$this->assertEquals( true, $response['success'] );
+		$this->assertTrue( $response['success'] );
 		$this->assertEquals( 'Your site can connect to Elasticsearch.', $response['data']['label'] );
 		$this->assertEquals( 'good', $response['data']['status'] );
 		$this->assertEquals( 'ElasticPress', $response['data']['badge']['label'] );
@@ -68,14 +68,12 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 
-		$this->assertEquals( true, $response['success'] );
+		$this->assertTrue( $response['success'] );
 		$this->assertEquals( 'Your site could not connect to Elasticsearch', $response['data']['label'] );
 		$this->assertEquals( 'critical', $response['data']['status'] );
 		$this->assertEquals( 'ElasticPress', $response['data']['badge']['label'] );
 		$this->assertEquals( 'red', $response['data']['badge']['color'] );
 		$this->assertEquals( 'The Elasticsearch host is not set.', $response['data']['description'] );
-
-		remove_filter( 'ep_host', '__return_empty_string' );
 	}
 
 	/**
@@ -96,14 +94,12 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 
-		$this->assertEquals( true, $response['success'] );
+		$this->assertTrue( $response['success'] );
 		$this->assertEquals( 'Your site could not connect to Elasticsearch', $response['data']['label'] );
 		$this->assertEquals( 'critical', $response['data']['status'] );
 		$this->assertEquals( 'ElasticPress', $response['data']['badge']['label'] );
 		$this->assertEquals( 'red', $response['data']['badge']['color'] );
 		$this->assertEquals( 'Check if your Elasticsearch host URL is correct and you have the right access to the host.', $response['data']['description'] );
-
-		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 
 	/**
@@ -128,7 +124,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 
 		$response = json_decode( $this->_last_response, true );
 
-		$this->assertEquals( true, $response['success'] );
+		$this->assertTrue( $response['success'] );
 		$this->assertEquals( 'Your site could not connect to Elasticsearch', $response['data']['label'] );
 		$this->assertEquals( 'critical', $response['data']['status'] );
 		$this->assertEquals( 'ElasticPress', $response['data']['badge']['label'] );
