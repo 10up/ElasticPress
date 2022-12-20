@@ -626,7 +626,11 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function blacklist_coupons( $enabled, $query ) {
-		if ( method_exists( $query, 'get' ) && 'shop_coupon' === $query->get( 'post_type' ) ) {
+		if ( is_admin() ) {
+			return $enabled;
+		}
+
+		if ( 'shop_coupon' === $query->get( 'post_type' ) && empty( $query->query_vars['ep_integrate'] ) ) {
 			return false;
 		}
 
@@ -860,7 +864,7 @@ class WooCommerce extends Feature {
 		}
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-		add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
+		add_filter( 'ep_integrate_search_queries', [ $this, 'blacklist_coupons' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
 		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
