@@ -2423,7 +2423,27 @@ class Post extends Indexable {
 			}
 		}
 
-		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+		/**
+		 * To avoid running a too expensive SQL query, we run a query getting all public keys
+		 * and only the private keys allowed by the `ep_prepare_meta_allowed_protected_keys` filter.
+		 * This query does not order by on purpose, as that also brings a performance penalty.
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], new \WP_Post( (object) [] ) );
+		$placeholders           = implode( ',', array_fill( 0, count( $allowed_protected_keys ), '%s' ) );
+
+		$meta_keys = $wpdb->get_col(
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$wpdb->prepare(
+				"SELECT DISTINCT meta_key
+					FROM {$wpdb->postmeta}
+					WHERE meta_key NOT LIKE %s OR meta_key IN ( {$placeholders} )
+					LIMIT 800",
+				'\_%',
+				...$allowed_protected_keys
+			)
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		);
+		sort( $meta_keys );
 
 		// Make sure the size of the transient will not be bigger than 1MB
 		do {
