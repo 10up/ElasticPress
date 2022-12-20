@@ -35,8 +35,6 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
 
 		$this->setup_test_post_type();
-
-		delete_option( 'ep_active_features' );
 	}
 
 	/**
@@ -48,8 +46,6 @@ class TestWooCommerce extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -349,7 +345,5 @@ class TestWooCommerce extends BaseTestCase {
 			$query->query_vars['search_fields'],
 			[ 'post_title', 'post_content' ]
 		);
-
-		remove_filter( 'ep_woocommerce_admin_products_list_search_fields', $search_fields_function );
 	}
 }

@@ -1111,8 +1111,6 @@ class TestPostMultisite extends BaseTestCase {
 		$this->assertSame( 2, $query->found_posts );
 
 		$this->cleanUpSites( $sites );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1180,8 +1178,6 @@ class TestPostMultisite extends BaseTestCase {
 		$this->assertSame( 2, $query->found_posts );
 
 		$this->cleanUpSites( $sites );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**

@@ -33,7 +33,6 @@ class TestCommands extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		delete_option( 'ep_active_features' );
 		parent::set_up();
 	}
 
