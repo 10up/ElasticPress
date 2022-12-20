@@ -299,8 +299,6 @@ class TestAdminNotices extends BaseTestCase {
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 
-		remove_filter( 'ep_elasticsearch_version', $es_version );
-
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['es_above_compat'] ) );
 	}
@@ -337,8 +335,6 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-
-		remove_filter( 'ep_elasticsearch_version', $es_version );
 
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['es_below_compat'] ) );

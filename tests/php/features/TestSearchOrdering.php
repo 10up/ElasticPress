@@ -322,8 +322,6 @@ class TestSearchOrdering extends BaseTestCase {
 		add_filter( 'pre_insert_term', $create_term_failed );
 
 		$this->assertFalse( $this->get_feature()->create_or_return_custom_result_term( 'test' ) );
-
-		remove_filter( 'pre_insert_term', $create_term_failed );
 	}
 
 	public function testExcludeCustomResultsWeightingFields() {
@@ -441,8 +439,6 @@ class TestSearchOrdering extends BaseTestCase {
 		$request = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_preview' );
 		$response = $wp_rest_server->dispatch( $request );
 		$this->assertEquals( 400, $response->get_status() );
-
-		remove_filter( 'rest_url', [ $this, 'filter_rest_url_for_leading_slash' ], 10, 2 );
 	}
 
 	/**

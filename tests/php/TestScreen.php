@@ -116,8 +116,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -139,8 +137,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -162,8 +158,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -185,8 +179,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -208,8 +200,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -231,8 +221,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -255,8 +243,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -279,7 +265,5 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 }

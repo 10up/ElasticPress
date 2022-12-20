@@ -99,8 +99,6 @@ class TestTerm extends BaseTestCase {
 
 		$this->deleteAllTerms();
 
-		// Make sure no one attached to this.
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -1396,8 +1394,6 @@ class TestTerm extends BaseTestCase {
 
 		$prepared_meta = $term->prepare_meta( $term_id );
 
-		remove_filter( 'ep_prepare_term_meta_allowed_protected_keys', $callback );
-
 		$this->assertSame( '123', $prepared_meta['_custom_protected_key'][0] );
 	}
 
@@ -1537,7 +1533,6 @@ class TestTerm extends BaseTestCase {
 			remove_filter( 'ep_term_mapping_file', $assert_callback );
 		}
 
-		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 
 	/**
