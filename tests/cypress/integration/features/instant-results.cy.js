@@ -18,6 +18,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 	}
 
 	before(() => {
+		cy.deactivatePlugin('classic-widgets', 'wpCli');
 		createSearchWidget();
 
 		// Create some sample posts
