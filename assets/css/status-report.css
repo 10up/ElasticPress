@@ -5,6 +5,10 @@
 		margin-bottom: 1rem;
 	}
 
+	& .components-notice {
+		margin: 0;
+	}
+
 	& table {
 		table-layout: fixed;
 

@@ -174,4 +174,17 @@ class ElasticPressIo extends Report {
 			],
 		];
 	}
+
+	/**
+	 * Return the report messages.
+	 *
+	 * @return array
+	 * @since 4.5.0
+	 */
+	public function get_messages() : array {
+		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages();
+		$messages = array_values( $messages );
+
+		return $messages;
+	}
 }
