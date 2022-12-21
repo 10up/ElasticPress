@@ -1449,8 +1449,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -1491,8 +1489,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -1552,9 +1548,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
-		remove_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
 	}
 
 	/**
@@ -1743,8 +1736,6 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( $post_id_1, $post_ids );
 		$this->assertContains( $post_id_1, $post_ids );
 		$this->assertNotContains( $post_id_0, $post_ids );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1790,8 +1781,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2418,8 +2407,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2510,8 +2497,6 @@ class TestPost extends BaseTestCase {
 
 			$i++;
 		}
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2542,8 +2527,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2604,8 +2587,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2638,8 +2619,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -3667,7 +3646,6 @@ class TestPost extends BaseTestCase {
 			$this->assertNull( $post['post_modified_gmt'] );
 		}
 		$this->assertNotNull( $post );
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -4368,6 +4346,17 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'           => 'findme',
+			'post_parent' => 0,
+			'fields'      => 'ids',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $parent_post, $query->posts[0] );
 	}
 
 	/**
@@ -6514,8 +6503,6 @@ class TestPost extends BaseTestCase {
 
 		$last_filter = end( $args['post_filter']['bool']['must'] );
 		$this->assertSame( [ 'my_custom_field.raw' => 'my_custom_value' ], $last_filter['term'] );
-
-		remove_filter( 'ep_post_filters', $add_es_filter );
 	}
 
 	/**
@@ -6692,8 +6679,6 @@ class TestPost extends BaseTestCase {
 			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
 			remove_filter( 'ep_post_mapping_file', $assert_callback );
 		}
-
-		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 
 	/**
@@ -7499,8 +7484,6 @@ class TestPost extends BaseTestCase {
 
 		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
 		$this->assertSame( $version_35, $search_algorithm );
-
-		remove_filter( 'ep_post_search_algorithm', $set_version_35 );
 	}
 
 	/**
@@ -7639,9 +7622,6 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 'test content', $query->posts[0]->post_content );
 		$this->assertEquals( 'test title', $query->posts[0]->post_title );
-
-		remove_filter( 'ep_highlight_should_add_clause', '__return_false' );
-
 	}
 
 	/**

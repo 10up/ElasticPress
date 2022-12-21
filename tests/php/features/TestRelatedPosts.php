@@ -35,8 +35,6 @@ class TestRelatedPosts extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
 
 		$this->setup_test_post_type();
-
-		delete_option( 'ep_active_features' );
 	}
 
 	/**
@@ -47,8 +45,6 @@ class TestRelatedPosts extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -95,8 +91,6 @@ class TestRelatedPosts extends BaseTestCase {
 		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, 1 );
 		$this->assertEquals( 1, count( $related ) );
 		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
-
-		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
 	}
 
 	/**

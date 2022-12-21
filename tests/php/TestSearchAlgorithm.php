@@ -50,8 +50,6 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $this->stub->get_query( 'indexable', '', [], [] );
 		$this->assertEquals( [ 'changed' ], $query );
-
-		remove_filter( 'ep_indexable_formatted_args_query', $test_filter );
 	}
 
 	/**
@@ -72,7 +70,5 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $this->stub->get_query( 'post', '', [], [] );
 		$this->assertEquals( [ 'changed' ], $query );
-
-		remove_filter( 'ep_formatted_args_query', $test_filter );
 	}
 }

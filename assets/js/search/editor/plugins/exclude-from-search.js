@@ -20,7 +20,11 @@ export default () => {
 	return (
 		<PluginPostStatusInfo>
 			<CheckboxControl
-				label={__('Exclude from search', 'elasticpress')}
+				label={__('Exclude from search results', 'elasticpress')}
+				help={__(
+					"Excludes this post from the results of your site's search form while ElasticPress is active.",
+					'elasticpress',
+				)}
 				checked={ep_exclude_from_search}
 				onChange={onChange}
 			/>

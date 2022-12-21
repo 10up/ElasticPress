@@ -36,8 +36,6 @@ class TestAutosuggest extends BaseTestCase {
 		$this->setup_test_post_type();
 
 		set_current_screen( 'front' );
-
-		delete_option( 'ep_active_features' );
 	}
 
 	/**
@@ -111,8 +109,6 @@ class TestAutosuggest extends BaseTestCase {
         $this->assertArrayHasKey( 'type', $mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] );
         $this->assertArrayHasKey( 'analyzer', $mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] );
         $this->assertArrayHasKey( 'search_analyzer', $mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] );
-
-        remove_filter( 'ep_elasticsearch_version', $change_es_version );
     }
 
     public function testMappingES7() {
@@ -132,8 +128,6 @@ class TestAutosuggest extends BaseTestCase {
         $this->assertArrayHasKey( 'type', $mapping['mappings']['properties']['post_title']['fields']['suggest'] );
         $this->assertArrayHasKey( 'analyzer', $mapping['mappings']['properties']['post_title']['fields']['suggest'] );
         $this->assertArrayHasKey( 'search_analyzer', $mapping['mappings']['properties']['post_title']['fields']['suggest'] );
-
-        remove_filter( 'ep_elasticsearch_version', $change_es_version );
     }
 
     public function testSetFuzziness() {
@@ -182,9 +176,6 @@ class TestAutosuggest extends BaseTestCase {
 
         $this->get_feature()->enqueue_scripts();
         $this->assertTrue( wp_script_is( 'elasticpress-autosuggest' ) );
-
-        remove_filter( 'pre_site_option_ep_feature_settings', $filter );
-        remove_filter( 'pre_option_ep_feature_settings', $filter );
     }
 
     public function testGenerateSearchQuery() {
@@ -208,8 +199,6 @@ class TestAutosuggest extends BaseTestCase {
 		$query = $this->get_feature()->generate_search_query();
 		$this->assertStringContainsString( 'lorem-ipsum', $query['body'] );
 
-		remove_filter( 'ep_autosuggest_query_placeholder', $test_placeholder_filter );
-
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
 		 */
@@ -221,9 +210,6 @@ class TestAutosuggest extends BaseTestCase {
 
 		$query = $this->get_feature()->generate_search_query();
 		$this->assertStringContainsString( 'my-custom-post-type', $query['body'] );
-
-		remove_filter( 'ep_term_suggest_post_type', $test_post_type_filter );
-
 		/**
 		 * Test the `ep_term_suggest_post_status` filter.
 		 */
@@ -235,8 +221,6 @@ class TestAutosuggest extends BaseTestCase {
 
 		$query = $this->get_feature()->generate_search_query();
 		$this->assertStringContainsString( 'trash', $query['body'] );
-
-		remove_filter( 'ep_term_suggest_post_status', $test_post_status_filter );
 
 		/**
 		 * Test the `ep_term_suggest_post_status` filter.
@@ -250,8 +234,6 @@ class TestAutosuggest extends BaseTestCase {
 
 		$query = $this->get_feature()->generate_search_query();
 		$this->assertStringContainsString( '1234', $query['body'] );
-
-		remove_filter( 'ep_autosuggest_query_args', $test_args_filter );
     }
 
     public function testReturnEmptyPosts() {
@@ -269,8 +251,6 @@ class TestAutosuggest extends BaseTestCase {
 
         $this->assertArrayHasKey( 'hello', $this->get_feature()->apply_autosuggest_weighting( [] ) );
         $this->assertContains( 'world', $this->get_feature()->apply_autosuggest_weighting( [] ) );
-
-        remove_filter( 'ep_weighting_configuration_for_autosuggest', $filter );
     }
 
     public function testRequirementsStatus() {
