@@ -8209,15 +8209,17 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( $mapping );
 
-		// Try to put mapping again to trigger error `resource_already_exists_exception`.
+		// Try to put mapping again to trigger error `resource_already_exists_exception`. Expect false as it defaults to return a bool
 		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		$this->assertFalse( $mapping );
 
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping( 'raw' );
 		$this->assertInstanceOf( 'WP_Error', $mapping );
 		$this->assertEquals( 400, $mapping->get_error_code() );
 
 		// Try to put mapping again to trigger WP_Error by providing an empty host.
 		add_filter( 'ep_pre_request_host', '__return_empty_string' );
-		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping( 'raw' );
 
 		$this->assertInstanceOf( 'WP_Error', $mapping );
 		$this->assertEquals( 'http_request_failed', $mapping->get_error_code() );
