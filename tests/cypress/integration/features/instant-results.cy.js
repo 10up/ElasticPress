@@ -174,7 +174,9 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 			/**
 			 * Update the post and visit the front end.
 			 */
+			cy.intercept('/wp-json/wp/v2/posts/*').as('postSave');
 			cy.get('.editor-post-publish-button__button').click();
+			cy.wait('@postSave');
 			cy.get('.components-snackbar__action').click();
 
 			/**
