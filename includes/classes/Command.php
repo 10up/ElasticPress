@@ -269,7 +269,7 @@ class Command extends WP_CLI_Command {
 					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
-					$result = $indexable->put_mapping();
+					$result = $indexable->put_mapping( 'raw' );
 
 					/**
 					 * Fires after CLI put mapping
@@ -284,9 +284,9 @@ class Command extends WP_CLI_Command {
 					if ( ! is_wp_error( $result ) ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						/* translators: Error message */
 						WP_CLI::error(
 							sprintf(
+								/* translators: Error message */
 								esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 								$result->get_error_message()
 							)
@@ -309,7 +309,7 @@ class Command extends WP_CLI_Command {
 				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
-				$result = $indexable->put_mapping();
+				$result = $indexable->put_mapping( 'raw' );
 
 				/**
 				 * Fires after CLI put mapping
@@ -324,9 +324,9 @@ class Command extends WP_CLI_Command {
 				if ( ! is_wp_error( $result ) ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					/* translators: Error message */
 					WP_CLI::error(
 						sprintf(
+							/* translators: Error message */
 							esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 							$result->get_error_message()
 						)
@@ -350,7 +350,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_index();
-			$result = $indexable->put_mapping();
+			$result = $indexable->put_mapping( 'raw' );
 
 			/**
 			 * Fires after CLI put mapping
@@ -365,9 +365,9 @@ class Command extends WP_CLI_Command {
 			if ( ! is_wp_error( $result ) ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				/* translators: Error message */
 				WP_CLI::error(
 					sprintf(
+						/* translators: Error message */
 						esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 						$result->get_error_message()
 					)

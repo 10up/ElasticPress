@@ -809,11 +809,11 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
-	 * @param  bool   $return_error Whether to return the error or not.
+	 * @param  string $return_type Desired return type. Can be either 'bool' or 'raw'
 	 * @since  3.0
 	 * @return boolean|WP_Error
 	 */
-	public function put_mapping( $index, $mapping, $return_error = false ) {
+	public function put_mapping( $index, $mapping, $return_type = 'bool' ) {
 		/**
 		 * Filter Elasticsearch mapping before put mapping
 		 *
@@ -847,8 +847,7 @@ class Elasticsearch {
 
 		// If WP_Error or not 200, return false or error message depends on attribute.
 		if ( is_wp_error( $request ) || 200 !== $response_code ) {
-
-			if ( ! $return_error ) {
+			if ( 'bool' === $return_type ) {
 				return false;
 			}
 

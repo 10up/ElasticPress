@@ -351,7 +351,7 @@ class IndexHelper {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$indexable->delete_index();
-		$result = $indexable->put_mapping();
+		$result = $indexable->put_mapping( 'raw' );
 
 		/**
 		 * Fires after sync put mapping is completed
