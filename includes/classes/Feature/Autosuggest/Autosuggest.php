@@ -858,16 +858,16 @@ class Autosuggest extends Feature {
 			$epio_link                = 'https://elasticpress.io';
 			$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
 
-				printf(
-					/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
-					esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
-					'<a href="' . esc_url( $epio_link ) . '">',
-					'</a>',
-					'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
-					'</a>',
-					'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
-					'</a>'
-				);
+			printf(
+				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
+				esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
+				'<a href="' . esc_url( $epio_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
+				'</a>'
+			);
 			?>
 			</div>
 		</div>
@@ -906,7 +906,6 @@ class Autosuggest extends Feature {
 	 * @return string
 	 */
 	protected function get_title() : string {
-
 		if ( ! Utils\is_epio() ) {
 			return esc_html__( 'Autosuggest', 'elasticpress' );
 		}

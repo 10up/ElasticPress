@@ -999,7 +999,6 @@ class InstantResults extends Feature {
 	 * @return string
 	 */
 	protected function get_title() : string {
-
 		if ( ! Utils\is_epio() ) {
 			return esc_html__( 'Instant Results', 'elasticpress' );
 		}
