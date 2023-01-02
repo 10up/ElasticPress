@@ -6,7 +6,7 @@
   "devDependencies": {
     "@4tw/cypress-drag-drop": "^2.2.1",
     "@wordpress/env": "^5.0.0",
-    "10up-toolkit": "^3.0.0",
+    "10up-toolkit": "^4.3.1",
     "classnames": "^2.3.1",
     "cypress": "^10.10.0",
     "cypress-file-upload": "^5.0.8",
