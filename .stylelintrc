@@ -11,13 +11,7 @@
       }
     ],
     "font-family-no-missing-generic-family-keyword": null,
-    "declaration-property-unit-allowed-list": null,
-    "value-keyword-case": [
-      "lower",
-      {
-        "camelCaseSvgKeywords": true
-      }
-    ]
+    "declaration-property-unit-allowed-list": null
   }
 
 }
