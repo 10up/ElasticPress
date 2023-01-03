@@ -382,13 +382,7 @@ class IndexHelper {
 		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start' );
 
 		if ( is_wp_error( $result ) ) {
-			$this->output_error(
-				sprintf(
-					/* translators: Error message */
-					esc_html__( 'Mapping failed: %s', 'elasticpress' ),
-					$result->get_error_message()
-				)
-			);
+			$this->on_error_update_and_clean( array( 'message' => $result->get_error_message() ) );
 			return;
 		}
 
