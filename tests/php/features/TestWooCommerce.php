@@ -60,10 +60,9 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->ep_factory->post->create();
-		$this->ep_factory->post->create(
+		$this->ep_factory->product->create(
 			array(
-				'post_content' => 'product 1',
-				'post_type'    => 'product',
+				'description' => 'product 1',
 			)
 		);
 
@@ -250,17 +249,17 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( class_exists( '\WC_Product_Variation' ) );
 
 		$main_product = new \WC_Product_Variable();
-		$main_product->set_sku('main-product_sku');
+		$main_product->set_sku( 'main-product_sku' );
 		$main_product_id = $main_product->save();
 
 		$variation_1 = new \WC_Product_Variation();
 		$variation_1->set_parent_id( $main_product_id );
-		$variation_1->set_sku('child-sku-1');
+		$variation_1->set_sku( 'child-sku-1' );
 		$variation_1->save();
 
 		$variation_2 = new \WC_Product_Variation();
 		$variation_2->set_parent_id( $main_product_id );
-		$variation_2->set_sku('child-sku-2');
+		$variation_2->set_sku( 'child-sku-2' );
 		$variation_2->save();
 
 		$main_product_as_post  = get_post( $main_product_id );
@@ -335,7 +334,7 @@ class TestWooCommerce extends BaseTestCase {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 		add_action( 'pre_get_posts', [ $woocommerce_feature, 'translate_args_admin_products_list' ] );
 
-		$search_fields_function = function() {
+		$search_fields_function = function () {
 			return [ 'post_title', 'post_content' ];
 		};
 		add_filter( 'ep_woocommerce_admin_products_list_search_fields', $search_fields_function );
@@ -345,5 +344,979 @@ class TestWooCommerce extends BaseTestCase {
 			$query->query_vars['search_fields'],
 			[ 'post_title', 'post_content' ]
 		);
+	}
+
+	/**
+	 * Test all the product attributes are synced.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testWoocommerceAttributeTaxonomiesAreSync() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_id = $this->ep_factory->product->create_variation_product();
+
+		$post     = new \ElasticPress\Indexable\Post\Post();
+		$document = $post->prepare_document( $product_id );
+
+		$this->assertArrayHasKey( 'pa_size', $document['terms'] );
+		$this->assertArrayHasKey( 'pa_colour', $document['terms'] );
+		$this->assertArrayHasKey( 'pa_number', $document['terms'] );
+	}
+
+
+	/**
+	 *  Test the product query order when total_sales meta key is passed.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderWhenTotalSalesMetaKeyIsPass() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			array(
+				'total_sales' => 200,
+			)
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			array(
+				'total_sales' => 100,
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type' => 'product',
+			'meta_key'  => 'total_sales',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta.total_sales.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query order when average_rating meta key is passed.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderWhenAverageRatingMetaKeyIsPass() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'average_rating' => 2
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'average_rating' => 1
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type' => 'product',
+			'meta_key'  => '_wc_average_rating',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta._wc_average_rating.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query order when price meta key is passed.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByPrice() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'regular_price' => 2,
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'regular_price' => 1,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type' => 'product',
+			'orderby'   => 'price',
+			'order'     => 'DESC',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+
+				$expected_result = array(
+					0 => array(
+						'meta._price.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby popularity.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByPopularity() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'total_sales' => 2,
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'total_sales' => 1,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type' => 'product',
+			'orderby'   => 'popularity',
+			'order'     => 'DESC',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta.total_sales.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby popularity when orderby is passed as a query string.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByPopularityQueryString() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'total_sales' => 2
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'total_sales' => 1
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=popularity', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta.total_sales.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby price when orderby is passed as a query string.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByPriceQueryString() {
+		 ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->post->create(
+			array(
+				'post_type'  => 'product',
+				'meta_input' => array( '_price' => 2 ),
+			)
+		);
+
+		$product_2 = $this->ep_factory->post->create(
+			array(
+				'post_type'  => 'product',
+				'meta_input' => array( '_price' => 1 ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=price', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta._price.double' => array(
+							'order' => 'asc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'asc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_2, $query[0]->ID );
+		$this->assertEquals( $product_1, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby price-desc.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByPriceDesc() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'regular_price' => 2
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'regular_price' => 1
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=price-desc', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta._price.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby rating.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByRating() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'average_rating' => 2,
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'average_rating' => 1,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=rating', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta._wc_average_rating.double' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby sku query string.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderBySkuQueryString() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'sku' => 2,
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'sku' => 1,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=sku', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'meta._sku.value.sortable' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby title query string.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByTitleQueryString() {
+		 ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			[
+				'name' => 'Banana',
+			]
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			[
+				'name' => 'Apple',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=title', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'post_title.sortable' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( $product_1, $query[0]->ID );
+		$this->assertEquals( $product_2, $query[1]->ID );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby default query string.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByDefault() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create_many( 2 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=default', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'menu_order' => array(
+							'order' => 'desc',
+						),
+					),
+					1 => array(
+						'post_title.sortable' => array(
+							'order' => 'desc',
+						),
+					),
+					2 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query orderby date when query string is empty.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrderByDateWhenQueryStringIsEmpty() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create_many( 2 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'orderby=', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		global $wp_the_query;
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+				$expected_result = array(
+					0 => array(
+						'post_date' => array(
+							'order' => 'desc',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['sort'] );
+
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product query not use Elasticsearch if preview.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testQueryShouldNotUseElasticsearchIfPreview() {
+		 ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$args = array(
+			'post_type' => 'product',
+			'preview'   => true,
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test that search query on Admin Product List use Elasticsearch.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testAdminProductListRequestQuery() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		// load required files
+		include_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
+		include_once WC()->plugin_path() . '/includes/admin/list-tables/class-wc-admin-list-table-products.php';
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		global $typenow, $wc_list_table;
+
+		// mock the global variables
+		$typenow       = 'product';
+		$wc_list_table = new \WC_Admin_List_Table_Products();
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args, $args, $wp_query ) {
+
+				$this->assertEquals(
+					$args['search_fields'],
+					[
+						'post_title',
+						'post_content',
+						'post_excerpt',
+						'meta' => [
+							'_sku',
+							'_variations_skus',
+						],
+					]
+				);
+
+				return $formatted_args;
+			},
+			10,
+			3
+		);
+
+		parse_str( 'post_type=product&s=product', $_GET );
+
+		$wp_list_table = new \WP_Posts_List_Table();
+		$wp_list_table->prepare_items(
+			[
+				'post_type' => 'product',
+			]
+		);
+	}
+
+	/**
+	 * Test the product query when price filter is set.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testPriceFilter() {
+		 ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 1',
+				'regular_price' => 100,
+			]
+		);
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 2',
+				'regular_price' => 800,
+			]
+		);
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 3',
+				'regular_price' => 10000,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'min_price=1&max_price=999', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query and is_search
+		global $wp_the_query, $wp_query;
+		$wp_the_query        = $query;
+		$wp_query->is_search = true;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+
+				$expected_result = array(
+					'range' => array(
+						'meta._price.long' => array(
+							'gte'   => 1,
+							'lte'   => 999,
+							'boost' => 2,
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['query'] );
+				return $formatted_args;
+			},
+			15
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product search query when price filter is set.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testPriceFilterWithSearchQuery() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 1',
+				'regular_price' => 100,
+			]
+		);
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 2',
+				'regular_price' => 800,
+			]
+		);
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 3',
+				'regular_price' => 10000,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'min_price=1&max_price=999', $_GET );
+
+		$args  = array(
+			's'         => 'Cap',
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query and is_search
+		global $wp_the_query, $wp_query;
+		$wp_the_query        = $query;
+		$wp_query->is_search = true;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+
+				$expected_result = array(
+					'range' => array(
+						'meta._price.long' => array(
+							'gte'   => 1,
+							'lte'   => 999,
+							'boost' => 2,
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['query']['function_score']['query']['bool']['must'][0] );
+
+				return $formatted_args;
+			},
+			15
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
 	}
 }
