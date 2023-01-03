@@ -1197,7 +1197,6 @@ class IndexHelper {
 
 		$totals = $this->index_meta['totals'];
 
-		var_dump( $totals );
 		$this->index_meta['totals']['errors'][] = $error['message'];
 		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
 		$this->update_last_index();
