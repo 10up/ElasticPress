@@ -382,7 +382,7 @@ class IndexHelper {
 		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start' );
 
 		if ( is_wp_error( $result ) ) {
-			$this->on_error_update_and_clean( array( 'message' => $result->get_error_message() ) );
+			$this->on_error_update_and_clean( array( 'message' => $result->get_error_message() ), 'mapping' );
 			return;
 		}
 
@@ -1189,13 +1189,15 @@ class IndexHelper {
 	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
 	 *
 	 * @since 4.2.0
-	 * @param array $error Error information retrieved from error_get_last().
+	 * @param array  $error Error information retrieved from error_get_last().
+	 * @param string $context Context of the error.
 	 */
-	protected function on_error_update_and_clean( $error ) {
+	protected function on_error_update_and_clean( $error, $context = 'sync' ) {
 		$this->update_totals_from_current_sync_item();
 
 		$totals = $this->index_meta['totals'];
 
+		var_dump( $totals );
 		$this->index_meta['totals']['errors'][] = $error['message'];
 		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
 		$this->update_last_index();
@@ -1209,13 +1211,18 @@ class IndexHelper {
 		 */
 		do_action( 'ep_after_sync_error', $error );
 
-		$this->output_error(
-			sprintf(
+		switch ( $context ) {
+			case 'mapping':
 				/* translators: Error message */
-				esc_html__( 'Index failed: %s', 'elasticpress' ),
-				$error['message']
-			)
-		);
+				$message = sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $error['message'] );
+				break;
+			default:
+				/* translators: Error message */
+				$message = sprintf( esc_html__( 'Index failed: %s', 'elasticpress' ), $error['message'] );
+				break;
+		}
+
+		$this->output_error( $message );
 	}
 
 	/**
