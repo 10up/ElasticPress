@@ -1946,7 +1946,7 @@ class TestPostMultisite extends BaseTestCase {
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 
-			$this->ep_factory->post->create( 2, array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create_many( 2, array( 'post_content' => 'findme' ) );
 			$this->ep_factory->post->create();
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -1974,7 +1974,6 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->cleanUpSites( $sites );
 	}
-
 
 	/**
 	 * Test a simple post content search with `site__in` parameter and with value `current`.
@@ -2022,7 +2021,6 @@ class TestPostMultisite extends BaseTestCase {
 
 		$this->cleanUpSites( $sites );
 	}
-
 
 	/**
 	 * Tests WP Query returns the data from all sites except one.
