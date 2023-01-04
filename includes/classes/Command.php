@@ -644,7 +644,7 @@ class Command extends WP_CLI_Command {
 		if ( SIGINT === $signal_no ) {
 			$this->delete_transient();
 			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
-			WP_CLI::halt();
+			WP_CLI::halt( 0 );
 		}
 	}
 
@@ -1140,7 +1140,7 @@ class Command extends WP_CLI_Command {
 		if ( $should_interrupt_sync ) {
 			WP_CLI::line( esc_html__( 'Sync was interrupted', 'elasticpress' ) );
 			$this->delete_transient_on_int( 2 );
-			WP_CLI::halt();
+			WP_CLI::halt( 0 );
 		}
 	}
 
