@@ -109,8 +109,12 @@ class LastSync extends Report {
 		$title = $sync_info['start_date_time'];
 		if ( false !== \ElasticPress\Utils\get_indexing_status() ) {
 			/* translators: last sync title */
-			$title = sprintf( __( '%s ( In Progress )', 'elasticpress' ), $title );
+			$title = sprintf( __( '%s (In Progress)', 'elasticpress' ), $title );
 		}
+		if ( 'status-report' === \ElasticPress\Screen::factory()->get_current_screen() ) {
+			unset( $fields['start_date_time'] );
+		}
+
 		return [
 			[
 				'title'  => $title,
