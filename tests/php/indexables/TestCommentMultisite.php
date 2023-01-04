@@ -268,7 +268,7 @@ class TestCommentMultisite extends BaseTestCase {
 	/**
 	 * Test Comment Query with the deprecated `sites` param and with value `current`
 	 *
-	 * @since 4.4.0
+	 * @since 4.4.1
 	 * @expectedDeprecated maybe_filter_query
 	 */
 	public function testCommentQueryWithDeprecatedSitesParamWithValueCurrent() {
@@ -289,7 +289,6 @@ class TestCommentMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		// switch the blog
 		switch_to_blog( $sites[1]['blog_id'] );
 
 		$query = new \WP_Comment_Query(
@@ -311,7 +310,7 @@ class TestCommentMultisite extends BaseTestCase {
 	/**
 	 * Test Comment Query with the `site__in` param and with value `current`
 	 *
-	 * @since 4.4.0
+	 * @since 4.4.1
 	 */
 	public function testCommentQueryWithSiteInParamWithValueCurrent() {
 
@@ -331,7 +330,6 @@ class TestCommentMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		// switch the blog
 		switch_to_blog( $sites[1]['blog_id'] );
 
 		$query = new \WP_Comment_Query(

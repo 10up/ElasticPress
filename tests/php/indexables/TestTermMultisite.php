@@ -397,7 +397,6 @@ class TestTermMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		// switch the site.
 		switch_to_blog( $sites[1]['blog_id'] );
 
 		// test for only current site.
@@ -441,7 +440,6 @@ class TestTermMultisite extends BaseTestCase {
 			restore_current_blog();
 		}
 
-		// switch the site.
 		switch_to_blog( $sites[1]['blog_id'] );
 
 		// test for only current site.
