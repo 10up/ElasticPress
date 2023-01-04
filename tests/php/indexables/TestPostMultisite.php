@@ -1926,6 +1926,102 @@ class TestPostMultisite extends BaseTestCase {
 		$this->cleanUpSites( $sites );
 	}
 
+
+	/**
+	 * Test a simple post content search with deprecated `sites` parameter and with value `current`
+	 *
+	 * @since 4.4.1
+	 * @expectedDeprecated get_es_posts
+	 * @group testMultipleTests
+	 */
+	public function testWPQuerySearchContentWithDeprecatedSitesParamWithValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$this->ep_factory->post->create_many( 2, array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		$args = array(
+			's'     => 'findme',
+			'sites' => 'current',
+		);
+
+		$query = new \WP_Query( $args );
+		$posts = $query->posts;
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+
+		foreach ( $posts as $post ) {
+			$this->assertEquals( $post->site_id, $sites[1]['blog_id'] );
+		}
+
+		$this->cleanUpSites( $sites );
+	}
+
+	/**
+	 * Test a simple post content search with `site__in` parameter and with value `current`.
+	 *
+	 * @since 4.4.1
+	 * @group testMultipleTests
+	 */
+	public function testWPQuerySearchContentWithDeprecatedSiteInParamWithValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$this->ep_factory->post->create_many( 2, array( 'post_content' => 'findme' ) );
+			$this->ep_factory->post->create();
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		$args = array(
+			's'        => 'findme',
+			'site__in' => 'current',
+		);
+
+		$query = new \WP_Query( $args );
+		$posts = $query->posts;
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+
+		foreach ( $posts as $post ) {
+			$this->assertEquals( $post->site_id, $sites[1]['blog_id'] );
+		}
+
+		$this->cleanUpSites( $sites );
+	}
+
 	/**
 	 * Tests WP Query returns the data from all sites except one.
 	 *
