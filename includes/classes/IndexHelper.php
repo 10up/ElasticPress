@@ -1214,6 +1214,8 @@ class IndexHelper {
 			case 'mapping':
 				/* translators: Error message */
 				$message = sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $error['message'] );
+				/* translators: Line break */
+				$message .= sprintf( esc_html__( '%sMapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping.', 'elasticpress' ), "\n" );
 				break;
 			default:
 				/* translators: Error message */
