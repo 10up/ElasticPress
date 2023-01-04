@@ -4,6 +4,61 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+
+## [4.4.1] - 2023-01-XX
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
+
+This is a bug fix release.
+
+### Added
+- Node 18 support. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3224](https://github.com/10up/ElasticPress/pull/3224).
+- Unit tests for WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3202](https://github.com/10up/ElasticPress/pull/3202).
+- Unit tests for the `HealthCheckElasticsearch` class, Protected Feature, and #3106. Props [@burhandodhy](https://github.com/burhandodhy) via [#3213](https://github.com/10up/ElasticPress/pull/3213),[#3183](https://github.com/10up/ElasticPress/pull/3183), and [#3184](https://github.com/10up/ElasticPress/pull/3184).
+
+### Changed
+- Detection of indexable meta fields when visiting the sync and status report pages. Props [@felipeelia](https://github.com/felipeelia) and [@paoloburzacca](https://github.com/paoloburzacca) via [#3215](https://github.com/10up/ElasticPress/pull/3215).
+- `put-mapping` WP-CLI command returns an error message if mapping failed. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#3206](https://github.com/10up/ElasticPress/pull/3206).
+- Last Sync subsection title in the Status Report page. Props [@MARQAS](https://github.com/MARQAS), [@felipeelia](https://github.com/felipeelia), and [@tomioflagos](https://github.com/tomioflagos) via [#3228](https://github.com/10up/ElasticPress/pull/3228).
+- Title for Autosuggest and Instant results features, if connected to an ElasticPress.io account. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@NV607FOX](https://github.com/NV607FOX) via [#3207](https://github.com/10up/ElasticPress/pull/3207).
+- "Exclude from search" checkbox text. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [@anjulahettige](https://github.com/anjulahettige) via [#3210](https://github.com/10up/ElasticPress/pull/3210).
+- Visibility of the `analyze_log` method of the `FailedQueries` class. Props [@MARQAS](https://github.com/MARQAS) via [#3223](https://github.com/10up/ElasticPress/pull/3223).
+- Text of the notice under the Documents feature. Props [@MARQAS](https://github.com/MARQAS) and [@NV607FOX](https://github.com/NV607FOX) via [#3212](https://github.com/10up/ElasticPress/pull/3212).
+- Usage of `get_index_default_per_page` instead of a direct call to `Utils\get_option`. Props [@burhandodhy](https://github.com/burhandodhy) via [#3163](https://github.com/10up/ElasticPress/pull/3163).
+
+### Removed
+- Unnecessary `remove_filters` from the unit tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#3220](https://github.com/10up/ElasticPress/pull/3220).
+
+### Fixed
+- Sync is stopped if put mapping throws an error. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#3206](https://github.com/10up/ElasticPress/pull/3206).
+- Layout issue in Instant Results that would occur with small result sets. Props [@JakePT](https://github.com/JakePT) via [#3200](https://github.com/10up/ElasticPress/pull/3200).
+- Issue where keyboard focus on a facet option was lost upon selection. Props [@JakePT](https://github.com/JakePT) via [#3209](https://github.com/10up/ElasticPress/pull/3209).
+- JS error on Status Report page. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3187](https://github.com/10up/ElasticPress/pull/3187).
+- Hooks documentation reference. Props [@burhandodhy](https://github.com/burhandodhy) via [#3244](https://github.com/10up/ElasticPress/pull/3244).
+- `'current'` as value for the `'sites'` parameter`. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), and [@anders-naslund](https://github.com/anders-naslund) via [#3243](https://github.com/10up/ElasticPress/pull/3243).
+- `Uncaught ArgumentCountError: Too few arguments to function WP_CLI::halt()` message. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3242](https://github.com/10up/ElasticPress/pull/3242).
+- Queries with `post_parent` set to `0` not working correctly. Props [@JiveDig](https://github.com/JiveDig) via [#3211](https://github.com/10up/ElasticPress/pull/3211).
+- Sync command exits without any error message if mapping fails. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3202](https://github.com/10up/ElasticPress/pull/3202).
+- Evaluate the WP-CLI `--pretty` flag as real boolean. Props [@oscarssanchez](https://github.com/oscarssanchez) via [#3185](https://github.com/10up/ElasticPress/pull/3185).
+- Remove deprecated command from the error message. Props [@burhandodhy](https://github.com/burhandodhy) via [#3194](https://github.com/10up/ElasticPress/pull/3194).
+- CLI command `delete-index --network-wide` throws error when EP is not network activated. Props [@burhandodhy](https://github.com/burhandodhy) via [#3172](https://github.com/10up/ElasticPress/pull/3172).
+- E2E tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3188](https://github.com/10up/ElasticPress/pull/3188).
+
+### Security
+- Bumped `simple-git` from 3.6.0 to 3.15.1. Props [@dependabot](https://github.com/dependabot) via [#3190](https://github.com/10up/ElasticPress/pull/3190).
+
 ## [4.4.0] - 2022-11-29
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
@@ -1637,6 +1692,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.4.0]: https://github.com/10up/ElasticPress/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/10up/ElasticPress/compare/4.3.1...4.4.0
 [4.3.1]: https://github.com/10up/ElasticPress/compare/4.3.0...4.3.1
 [4.3.0]: https://github.com/10up/ElasticPress/compare/4.2.2...4.3.0
