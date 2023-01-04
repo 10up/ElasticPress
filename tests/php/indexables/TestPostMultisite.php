@@ -1926,6 +1926,140 @@ class TestPostMultisite extends BaseTestCase {
 		$this->cleanUpSites( $sites );
 	}
 
+
+	/**
+	 * Test a simple post content search with deprecated `sites` parameter and with value `current`
+	 *
+	 * @since 4.4.1
+	 * @expectedDeprecated get_es_posts
+	 * @group testMultipleTests
+	 */
+	public function testWPQuerySearchContentWithDeprecatedSitesParamWithValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$this->ep_factory->post->create( array( 'post_content' => 'findme ' . $site['blog_id'] ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme ' . $site['blog_id'] ) );
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		$args = array(
+			's'     => 'findme ' . $sites[1]['blog_id'],
+			'sites' => 'current',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			global $post;
+
+			$wp_post = get_post( get_the_ID() );
+
+			$this->assertEquals( $post->post_title, get_the_title() );
+			$this->assertEquals( $post->post_content, get_the_content() );
+			$this->assertEquals( $post->post_date, $wp_post->post_date );
+			$this->assertEquals( $post->post_modified, $wp_post->post_modified );
+			$this->assertEquals( $post->post_date_gmt, $wp_post->post_date_gmt );
+			$this->assertEquals( $post->post_modified_gmt, $wp_post->post_modified_gmt );
+			$this->assertEquals( $post->post_name, $wp_post->post_name );
+			$this->assertEquals( $post->post_parent, $wp_post->post_parent );
+			$this->assertEquals( $post->post_excerpt, $wp_post->post_excerpt );
+			$this->assertEquals( $post->site_id, get_current_blog_id() );
+		}
+
+		wp_reset_postdata();
+		$this->cleanUpSites( $sites );
+	}
+
+
+	/**
+	 * Test a simple post content search with `site__in` parameter and with value `current`.
+	 *
+	 * @since 4.4.0
+	 * @group testMultipleTests
+	 */
+	public function testWPQuerySearchContentWithDeprecatedSiteInParamWithValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$this->ep_factory->post->create( array( 'post_content' => 'findme ' . $site['blog_id'] ) );
+			$this->ep_factory->post->create();
+			$this->ep_factory->post->create( array( 'post_content' => 'findme ' . $site['blog_id'] ) );
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		$args = array(
+			's'     => 'findme ' . $sites[1]['blog_id'],
+			'site__in' => 'current',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$this->assertEquals( $query->post_count, 2 );
+		$this->assertEquals( $query->found_posts, 2 );
+
+
+		while ( $query->have_posts() ) {
+			$query->the_post();
+
+			global $post;
+
+			$wp_post = get_post( get_the_ID() );
+
+			$this->assertEquals( $post->post_title, get_the_title() );
+			$this->assertEquals( $post->post_content, get_the_content() );
+			$this->assertEquals( $post->post_date, $wp_post->post_date );
+			$this->assertEquals( $post->post_modified, $wp_post->post_modified );
+			$this->assertEquals( $post->post_date_gmt, $wp_post->post_date_gmt );
+			$this->assertEquals( $post->post_modified_gmt, $wp_post->post_modified_gmt );
+			$this->assertEquals( $post->post_name, $wp_post->post_name );
+			$this->assertEquals( $post->post_parent, $wp_post->post_parent );
+			$this->assertEquals( $post->post_excerpt, $wp_post->post_excerpt );
+			$this->assertEquals( $post->site_id, get_current_blog_id() );
+		}
+
+		wp_reset_postdata();
+		$this->cleanUpSites( $sites );
+	}
+
+
 	/**
 	 * Tests WP Query returns the data from all sites except one.
 	 *
