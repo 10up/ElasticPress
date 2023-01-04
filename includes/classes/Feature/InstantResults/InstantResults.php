@@ -69,6 +69,8 @@ class InstantResults extends Feature {
 
 		$this->title = $this->get_title();
 
+		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
+
 		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#instant-results', 'elasticpress' );
@@ -998,7 +1000,7 @@ class InstantResults extends Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	protected function get_title() : string {
+	public function get_title() : string {
 		if ( ! Utils\is_epio() ) {
 			return esc_html__( 'Instant Results', 'elasticpress' );
 		}

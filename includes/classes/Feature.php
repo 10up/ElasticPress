@@ -38,6 +38,14 @@ abstract class Feature {
 	public $title;
 
 	/**
+	 * Short title
+	 *
+	 * @var string
+	 * @since 4.4.1
+	 */
+	public $short_title;
+
+	/**
 	 * Feature summary
 	 *
 	 * @var string
@@ -353,5 +361,29 @@ abstract class Feature {
 	 */
 	public function get_epio_logo() : string {
 		return sprintf( '<img class="feature-epio-logo" alt="ElasticPresss.io logo" src="%s" width="110" height="20">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
+	}
+
+	/**
+	 * Returns the feature title.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_title() : string {
+		return $this->title;
+	}
+
+	/**
+	 * Returns the feature short title.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_short_title() : string {
+		if ( ! empty( $this->short_title ) ) {
+			return $this->short_title;
+		}
+
+		return $this->get_title();
 	}
 }

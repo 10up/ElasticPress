@@ -42,6 +42,8 @@ class Autosuggest extends Feature {
 
 		$this->title = $this->get_title();
 
+		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
+
 		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
@@ -857,6 +859,7 @@ class Autosuggest extends Feature {
 			<?php
 			$epio_link                = 'https://elasticpress.io';
 			$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+			$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
 
 			printf(
 				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
@@ -865,7 +868,7 @@ class Autosuggest extends Feature {
 				'</a>',
 				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
 				'</a>',
-				'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
+				'<a href="' . esc_url( $status_report_link ) . '">',
 				'</a>'
 			);
 			?>
@@ -905,7 +908,7 @@ class Autosuggest extends Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	protected function get_title() : string {
+	public function get_title() : string {
 		if ( ! Utils\is_epio() ) {
 			return esc_html__( 'Autosuggest', 'elasticpress' );
 		}
