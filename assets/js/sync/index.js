@@ -43,6 +43,7 @@ const App = () => {
 	const [state, setState] = useState({
 		isComplete: false,
 		isDeleting: false,
+		isFailed: false,
 		isSyncing: false,
 		itemsProcessed: 0,
 		itemsTotal: 100,
@@ -94,7 +95,7 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
-			updateState({ isComplete: false, isPaused: false, isSyncing: false });
+			updateState({ isPaused: false, isSyncing: false });
 			cancelIndex();
 		},
 		[cancelIndex],
@@ -129,34 +130,36 @@ const App = () => {
 		/**
 		 * Handle an error in the sync request.
 		 *
-		 * @param {Error} error Request error.
+		 * @param {object|Error} response Request response.
 		 * @returns {void}
 		 */
-		(error) => {
+		(response) => {
 			/**
 			 * Any running requests are cancelled when a new request is made.
 			 * We can handle this silently.
 			 */
-			if (error.name === 'AbortError') {
+			if (response.name === 'AbortError') {
 				return;
 			}
 
 			/**
-			 * Log any error messages created by the browser.
+			 * Log any error messages.
 			 */
-			if (error.message) {
-				logMessage(error.message, 'error');
+			if (response.message) {
+				logMessage(response.message, 'error');
 			}
 
 			/**
-			 * Log any error messages created by the back-end.
+			 * Log a final message and update the sync state.
 			 */
-			if (error.data?.message) {
-				logMessage(error.data.message, 'error');
-			}
-
 			logMessage(__('Sync failed', 'elasticpress'), 'error');
-			updateState({ isSyncing: false });
+
+			updateState({
+				isFailed: true,
+				isSyncing: false,
+				lastSyncDateTime: stateRef.current.syncStartDateTime,
+				lastSyncFailed: true,
+			});
 		},
 		[logMessage],
 	);
@@ -209,7 +212,6 @@ const App = () => {
 
 			updateState({
 				isCli: indexMeta.method === 'cli',
-				isComplete: false,
 				isDeleting,
 				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
@@ -244,17 +246,18 @@ const App = () => {
 				}
 
 				/**
+				 * Stop sync if there is an error.
+				 */
+				if (status === 'error') {
+					syncFailed(response.data);
+					return;
+				}
+
+				/**
 				 * Log any messages.
 				 */
 				if (message) {
 					logMessage(message, status);
-
-					// stop sync if there is an error.
-					if (status === 'error') {
-						logMessage(__('Sync failed', 'elasticpress'), 'error');
-						stopSync();
-						return;
-					}
 				}
 
 				/**
@@ -292,7 +295,7 @@ const App = () => {
 				resolve(indexMeta.method);
 			});
 		},
-		[syncCompleted, syncInProgress, syncInterrupted, logMessage, stopSync],
+		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, logMessage],
 	);
 
 	const doIndexStatus = useCallback(
@@ -347,7 +350,7 @@ const App = () => {
 		 * @returns {void}
 		 */
 		() => {
-			updateState({ isComplete: false, isPaused: true, isSyncing: true });
+			updateState({ isPaused: true, isSyncing: true });
 		},
 		[],
 	);
@@ -368,7 +371,7 @@ const App = () => {
 			 */
 			const putMapping = isInitialSync || isDeleting;
 
-			updateState({ isComplete: false, isPaused: false, isSyncing: true });
+			updateState({ isPaused: false, isSyncing: true });
 			doIndex(putMapping);
 		},
 		[doIndex],
@@ -396,7 +399,14 @@ const App = () => {
 			 */
 			const putMapping = isInitialSync || deleteAndSync;
 
-			updateState({ isComplete: false, isDeleting, isPaused: false, isSyncing: true });
+			updateState({
+				isComplete: false,
+				isFailed: false,
+				isDeleting,
+				isPaused: false,
+				isSyncing: true,
+			});
+
 			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
 			doIndex(putMapping);
 		},
