@@ -4,17 +4,14 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+<!--
 ### Added
-
 ### Changed
-
 ### Deprecated
-
 ### Removed
-
 ### Fixed
-
 ### Security
+-->
 
 
 ## [4.4.1] - 2023-01-XX
@@ -1692,7 +1689,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
-[4.4.0]: https://github.com/10up/ElasticPress/compare/4.4.0...4.4.1
+[4.4.1]: https://github.com/10up/ElasticPress/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/10up/ElasticPress/compare/4.3.1...4.4.0
 [4.3.1]: https://github.com/10up/ElasticPress/compare/4.3.0...4.3.1
 [4.3.0]: https://github.com/10up/ElasticPress/compare/4.2.2...4.3.0
