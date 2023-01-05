@@ -193,13 +193,13 @@ class AdminNotices {
 			$html = sprintf(
 				/* translators: Feature name */
 				esc_html__( 'Dashboard sync is disabled. The ElasticPress %s feature has been auto-activated! You will need to reindex using WP-CLI for it to work.', 'elasticpress' ),
-				esc_html( is_object( $feature ) ? $feature->title : '' )
+				esc_html( is_object( $feature ) ? $feature->get_short_title() : '' )
 			);
 		} else {
 			$html = sprintf(
 				/* translators: 1. Feature name; 2: Sync page URL */
 				__( 'The ElasticPress %1$s feature has been auto-activated! You will need to <a href="%2$s">run a sync</a> for it to work.', 'elasticpress' ),
-				esc_html( is_object( $feature ) ? $feature->title : '' ),
+				esc_html( is_object( $feature ) ? $feature->get_short_title() : '' ),
 				esc_url( $url )
 			);
 		}
