@@ -57,7 +57,7 @@ class HealthInfo {
 
 		$feature = Features::factory()->get_registered_feature( 'autosuggest' );
 
-		if ( ! $feature->is_active() ) {
+		if ( ! $feature || ! $feature->is_active() ) {
 			return $debug_info;
 		}
 
