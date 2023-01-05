@@ -58,7 +58,7 @@ class Features extends Report {
 			ksort( $fields );
 
 			$groups[] = [
-				'title'  => $feature->title,
+				'title'  => $feature->get_short_title(),
 				'fields' => $fields,
 			];
 		}
