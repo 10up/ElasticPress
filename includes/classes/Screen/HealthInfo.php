@@ -55,6 +55,12 @@ class HealthInfo {
 			return $debug_info;
 		}
 
+		$feature = Features::factory()->get_registered_feature( 'autosuggest' );
+
+		if ( ! $feature || ! $feature->is_active() ) {
+			return $debug_info;
+		}
+
 		$epio_report = new \ElasticPress\StatusReport\ElasticPressIo();
 		$groups      = $epio_report->get_groups();
 		$first_group = reset( $groups );

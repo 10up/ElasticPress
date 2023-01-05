@@ -116,7 +116,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 														printf(
 															/* translators: %s: Feature name. */
 															esc_html__( 'Learn more about %s.', 'elasticpress' ),
-															esc_html( $feature->title )
+															esc_html( $feature->get_short_title() )
 														);
 														?>
 													</span>
