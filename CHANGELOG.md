@@ -52,6 +52,8 @@ This is a bug fix release.
 - Remove deprecated command from the error message. Props [@burhandodhy](https://github.com/burhandodhy) via [#3194](https://github.com/10up/ElasticPress/pull/3194).
 - CLI command `delete-index --network-wide` throws error when EP is not network activated. Props [@burhandodhy](https://github.com/burhandodhy) via [#3172](https://github.com/10up/ElasticPress/pull/3172).
 - E2E tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3188](https://github.com/10up/ElasticPress/pull/3188).
+- Feature title issue on the report page and notices. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3248](https://github.com/10up/ElasticPress/pull/3248).
+- Autosuggest Site Health Info containing incorrect information unrelated to Autosuggest. Props [@JakePT](https://github.com/JakePT) via [#3247](https://github.com/10up/ElasticPress/pull/3247).
 
 ### Security
 - Bumped `simple-git` from 3.6.0 to 3.15.1. Props [@dependabot](https://github.com/dependabot) via [#3190](https://github.com/10up/ElasticPress/pull/3190).
