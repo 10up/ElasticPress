@@ -7956,7 +7956,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 5, $query->post_count );
 	}
 
-
 	/**
 	 * Tests get_distinct_meta_field_keys_db
 	 *
@@ -7969,7 +7968,13 @@ class TestPost extends BaseTestCase {
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
 		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
-		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db( true ) );
+
+		// Make sure it works if no allowed protected key is found
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', '__return_empty_array' );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db( true ) );
+		$this->assertEmpty( $wpdb->last_error );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', '__return_empty_array' );
 
 		/**
 		 * Test the `ep_post_pre_meta_keys_db` filter
@@ -7983,7 +7988,7 @@ class TestPost extends BaseTestCase {
 		$num_queries = $wpdb->num_queries;
 		$this->assertGreaterThan( 0, $num_queries );
 
-		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db( true ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		remove_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
@@ -7996,7 +8001,7 @@ class TestPost extends BaseTestCase {
 		};
 		add_filter( 'ep_post_meta_keys_db', $return_custom_array );
 
-		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db( true ) );
 	}
 
 	/**
