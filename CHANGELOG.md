@@ -44,7 +44,7 @@ This is a bug fix release.
 - Issue where keyboard focus on a facet option was lost upon selection. Props [@JakePT](https://github.com/JakePT) via [#3209](https://github.com/10up/ElasticPress/pull/3209).
 - JS error on Status Report page. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3187](https://github.com/10up/ElasticPress/pull/3187).
 - Hooks documentation reference. Props [@burhandodhy](https://github.com/burhandodhy) via [#3244](https://github.com/10up/ElasticPress/pull/3244).
-- `'current'` as value for the `'sites'` parameter`. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), and [@anders-naslund](https://github.com/anders-naslund) via [#3243](https://github.com/10up/ElasticPress/pull/3243).
+- `'current'` as value for the `'sites'` parameter. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), and [@anders-naslund](https://github.com/anders-naslund) via [#3243](https://github.com/10up/ElasticPress/pull/3243).
 - `Uncaught ArgumentCountError: Too few arguments to function WP_CLI::halt()` message. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3242](https://github.com/10up/ElasticPress/pull/3242).
 - Queries with `post_parent` set to `0` not working correctly. Props [@JiveDig](https://github.com/JiveDig) via [#3211](https://github.com/10up/ElasticPress/pull/3211).
 - Sync command exits without any error message if mapping fails. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3202](https://github.com/10up/ElasticPress/pull/3202).
