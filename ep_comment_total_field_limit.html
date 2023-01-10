@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_get_pipeline_args - 10up ElasticPress Hook Docs</title>
+    <title>Filter: ep_comment_total_field_limit - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_get_pipeline_args</h1>
+    <h1 class="page-title">Filter: ep_comment_total_field_limit</h1>
 	
 
     
@@ -43,14 +43,14 @@
 
     
 
-    <h4 class="name" id="ep_get_pipeline_args">apply_filters( 'ep_get_pipeline_args', <span class="signature">$request_args )</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="ep_comment_total_field_limit">apply_filters( 'ep_comment_total_field_limit', <span class="signature">$number )</span><span class="type-signature"> &rarr; {int}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter get pipeline request arguments</p>
+    <p>Filter Elasticsearch total field limit for comments</p>
 </div>
 
 
@@ -84,13 +84,13 @@
 
         <tr>
             
-                <td class="name"><code>$request_args</code></td>
+                <td class="name"><code>$number</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">array</span>
+<span class="param-type">int</span>
 
 
             
@@ -100,7 +100,7 @@
 
             
 
-            <td class="description last"><p>Request arguments</p></td>
+            <td class="description last"><p>Number of fields</p></td>
         </tr>
 
     
@@ -141,7 +141,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Elasticsearch.php.html">includes/classes/Elasticsearch.php</a>, <a href="includes_classes_Elasticsearch.php.html#line1540">line 1540</a>
+        <a href="includes_mappings_comment_pre-5-0.php.html">includes/mappings/comment/pre-5-0.php</a>, <a href="includes_mappings_comment_pre-5-0.php.html#line31">line 31</a>
     </li></ul></dd>
     
 
@@ -168,7 +168,7 @@
 
         
 <div class="param-desc">
-    <p>New arguments</p>
+    <p>New number</p>
 </div>
 
 
@@ -179,7 +179,7 @@
     </dt>
     <dd>
         
-<span class="param-type">array</span>
+<span class="param-type">int</span>
 
 
     </dd>
