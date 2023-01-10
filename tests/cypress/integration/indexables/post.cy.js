@@ -6,6 +6,12 @@ describe('Post Indexable', () => {
 		 * - the `Block` (ID 54) term has 7 posts
 		 * Important: There is no post with both categories, as that would skew results.
 		 */
+
+		// Make sure post categories are searchable
+		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
+		cy.get('#post-terms\\.category\\.name-enabled').check();
+		cy.get('#submit').click();
+
 		cy.setPerIndexCycle();
 		cy.visitAdminPage('edit-tags.php?taxonomy=category');
 		cy.get('div[data-ep-notice="too_many_posts_on_term"]').should('not.exist');
