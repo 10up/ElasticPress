@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 -->
 
 
-## [4.4.1] - 2023-01-XX
+## [4.4.1] - 2023-01-10
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
 
