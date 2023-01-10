@@ -144,7 +144,7 @@ class FailedQueries extends Report {
 	 * @param array $log The log
 	 * @return array The error in index 0, solution in index 1
 	 */
-	protected function analyze_log( $log ) {
+	public function analyze_log( $log ) {
 		$error = '';
 
 		if ( ! empty( $log['result']['error'] ) && ! empty( $log['result']['error']['root_cause'][0]['reason'] ) ) {

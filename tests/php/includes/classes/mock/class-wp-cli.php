@@ -91,4 +91,12 @@ class WP_CLI {
 		throw new Exception( $message );
 	}
 
+	/**
+	 * Halt script execution
+	 *
+	 * @param integer $return_code Exit code to return.
+	 */
+	public static function halt( $return_code ) {
+	}
+
 }

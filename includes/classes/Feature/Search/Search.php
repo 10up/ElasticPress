@@ -771,7 +771,8 @@ class Search extends Feature {
 		?>
 		<div class="misc-pub-section">
 			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ) ); ?>>
-			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from Search', 'elasticpress' ); ?></label>
+			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from search results', 'elasticpress' ); ?></label>
+			<p class="howto"><?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?></p>
 			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
 		</div>
 		<?php

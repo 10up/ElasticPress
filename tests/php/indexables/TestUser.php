@@ -139,8 +139,6 @@ class TestUser extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -1472,7 +1470,7 @@ class TestUser extends BaseTestCase {
 		foreach ( $user_query->results as $user ) {
 			$user_order[] = $user->user_login;
 		}
-		
+
 		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( $expected_user_order, $user_order );
 	}

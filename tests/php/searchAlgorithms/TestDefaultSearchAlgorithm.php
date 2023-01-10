@@ -32,7 +32,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 */
 	public function testGetQuery() {
 		$default = new DefaultAlgorithm();
-		
+
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
 
@@ -85,16 +85,14 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $default->get_query( 'indexable', $search_term, $search_fields, [] );
 		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['fuzziness'] );
-
-		remove_filter( 'ep_indexable_fuzziness_arg', $test_filter );
 	}
 
 	/**
 	 * Test filters with posts
-	 * 
+	 *
 	 * As posts also apply the legacy filters, these tests assure code honors the value of the newer filters
 	 *
-	 * @see https://github.com/10up/ElasticPress/issues/3033 
+	 * @see https://github.com/10up/ElasticPress/issues/3033
 	 * @group searchAlgorithms
 	 */
 	public function testPostFilters() {
@@ -134,8 +132,6 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $default->get_query( 'post', $search_term, $search_fields, [] );
 		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['fuzziness'] );
-
-		remove_filter( 'ep_post_fuzziness_arg', $test_filter );
 	}
 
 	/**
@@ -183,8 +179,6 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $default->get_query( 'post', $search_term, $search_fields, [] );
 		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['fuzziness'] );
-
-		remove_filter( 'ep_fuzziness_arg', $test_filter );
 	}
 
 	/**

@@ -351,7 +351,7 @@ class IndexHelper {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$indexable->delete_index();
-		$result = $indexable->put_mapping();
+		$result = $indexable->put_mapping( 'raw' );
 
 		/**
 		 * Fires after sync put mapping is completed
@@ -381,11 +381,12 @@ class IndexHelper {
 		 */
 		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start' );
 
-		if ( $result ) {
-			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
-		} else {
-			$this->output_error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+		if ( is_wp_error( $result ) ) {
+			$this->on_error_update_and_clean( array( 'message' => $result->get_error_message() ), 'mapping' );
+			return;
 		}
+
+		$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 	}
 
 	/**
@@ -1139,6 +1140,7 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
 
@@ -1187,9 +1189,10 @@ class IndexHelper {
 	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
 	 *
 	 * @since 4.2.0
-	 * @param array $error Error information retrieved from error_get_last().
+	 * @param array  $error Error information retrieved from error_get_last().
+	 * @param string $context Context of the error.
 	 */
-	protected function on_error_update_and_clean( $error ) {
+	protected function on_error_update_and_clean( $error, $context = 'sync' ) {
 		$this->update_totals_from_current_sync_item();
 
 		$totals = $this->index_meta['totals'];
@@ -1207,13 +1210,20 @@ class IndexHelper {
 		 */
 		do_action( 'ep_after_sync_error', $error );
 
-		$this->output_error(
-			sprintf(
+		switch ( $context ) {
+			case 'mapping':
 				/* translators: Error message */
-				esc_html__( 'Index failed: %s', 'elasticpress' ),
-				$error['message']
-			)
-		);
+				$message  = sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $error['message'] );
+				$message .= "\n";
+				$message .= esc_html__( 'Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping.', 'elasticpress' );
+				break;
+			default:
+				/* translators: Error message */
+				$message = sprintf( esc_html__( 'Index failed: %s', 'elasticpress' ), $error['message'] );
+				break;
+		}
+
+		$this->output_error( $message );
 	}
 
 	/**

@@ -32,23 +32,12 @@ class LastSync extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
-		$title  = __( 'Last Sync', 'elasticpress' );
 		$fields = [];
 
 		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
 
 		if ( empty( $sync_info ) ) {
-			$fields['not_available'] = [
-				'label' => esc_html__( 'Last Sync', 'elasticpress' ),
-				'value' => esc_html__( 'Last sync info not available.', 'elasticpress' ),
-			];
-
-			return [
-				[
-					'title'  => $title,
-					'fields' => $fields,
-				],
-			];
+			return [];
 		}
 
 		if ( ! empty( $sync_info['end_time_gmt'] ) ) {
@@ -116,6 +105,14 @@ class LastSync extends Report {
 				'label' => $labels[ $label ] ?? $label,
 				'value' => $value,
 			];
+		}
+		$title = $sync_info['start_date_time'];
+		if ( false !== \ElasticPress\Utils\get_indexing_status() ) {
+			/* translators: last sync title */
+			$title = sprintf( __( '%s (In Progress)', 'elasticpress' ), $title );
+		}
+		if ( 'status-report' === \ElasticPress\Screen::factory()->get_current_screen() ) {
+			unset( $fields['start_date_time'] );
 		}
 
 		return [
