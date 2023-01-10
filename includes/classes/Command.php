@@ -171,7 +171,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function list_features( $args, $assoc_args ) {
-		if ( $this->filter_flag( $assoc_args['all'] ) ) {
+		if ( $this->is_allowed_flag_value( $assoc_args['all'] ) ) {
 			WP_CLI::line( esc_html__( 'Registered features:', 'elasticpress' ) );
 			$features = wp_list_pluck( Features::factory()->registered_features, 'slug' );
 
@@ -392,7 +392,7 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$this->print_json_response( $response, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->print_json_response( $response, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -417,7 +417,7 @@ class Command extends WP_CLI_Command {
 
 		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
 
-		$this->pretty_json_encode( $cluster_indices, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $cluster_indices, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -442,7 +442,7 @@ class Command extends WP_CLI_Command {
 
 		$index_names = $this->get_index_names();
 
-		$this->pretty_json_encode( $index_names, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $index_names, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -711,11 +711,9 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function sync( $args, $assoc_args ) {
-		global $wp_actions;
+		$setup_option = $this->is_allowed_flag_value( $assoc_args['setup'] );
 
-		$setup_option = isset( $assoc_args['setup'] ) ? $assoc_args['setup'] : false;
-
-		if ( true === $setup_option ) {
+		if ( $setup_option ) {
 			WP_CLI::confirm( esc_html__( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
 		}
 
@@ -758,21 +756,21 @@ class Command extends WP_CLI_Command {
 		add_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		add_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
-		$no_bulk = ! empty( $assoc_args['nobulk'] );
+		$no_bulk = $this->is_allowed_flag_value( $assoc_args['nobulk'] );
 
 		$index_args = [
 			'method'         => 'cli',
 			'total_attempts' => 1,
 			'indexables'     => $indexables,
-			'put_mapping'    => ! empty( $setup_option ),
+			'put_mapping'    => $setup_option,
 			'output_method'  => [ $this, 'index_output' ],
 			'network_wide'   => ( ! empty( $assoc_args['network-wide'] ) ) ? $assoc_args['network-wide'] : null,
 			'nobulk'         => $no_bulk,
 			'offset'         => ( ! empty( $assoc_args['offset'] ) ) ? absint( $assoc_args['offset'] ) : 0,
-			'static_bulk'    => ( ! empty( $assoc_args['static-bulk'] ) ) ? $assoc_args['static-bulk'] : null,
+			'static_bulk'    => $this->is_allowed_flag_value( $assoc_args['static-bulk'] ),
 		];
 
-		if ( isset( $assoc_args['show-errors'] ) || ( isset( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $assoc_args['show-nobulk-errors'] ) && $no_bulk ) ) {
+		if ( $this->is_allowed_flag_value( $assoc_args['show-errors'] ) || ( $this->is_allowed_flag_value( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( $this->is_allowed_flag_value( $assoc_args['show-nobulk-errors'] ) && $no_bulk ) ) {
 			$index_args['show_errors'] = true;
 		}
 
@@ -1030,7 +1028,7 @@ class Command extends WP_CLI_Command {
 			];
 		}
 
-		$this->pretty_json_encode( $indexing_status, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $indexing_status, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1055,7 +1053,7 @@ class Command extends WP_CLI_Command {
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 		$last_sync  = \ElasticPress\IndexHelper::factory()->get_last_index();
 
-		$this->pretty_json_encode( $last_sync, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $last_sync, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1083,13 +1081,12 @@ class Command extends WP_CLI_Command {
 
 		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
-		if ( $this->filter_flag( $assoc_args['clear'] ) ) {
+		if ( $this->is_allowed_flag_value( $assoc_args['clear'] ) ) {
 			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
-		$this->pretty_json_encode( $last_sync, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $last_sync, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
-
 
 	/**
 	 * maybe change Elastic host on the fly
@@ -1191,6 +1188,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function set_search_algorithm_version( $args, $assoc_args ) {
+		$use_default_algorithm = $this->is_allowed_flag_value( $assoc_args['default'] );
 		/**
 		 * Fires before the algorithm version is changed via WP-CLI.
 		 *
@@ -1202,11 +1200,11 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_before_set_search_algorithm_version', $args, $assoc_args );
 
-		if ( empty( $assoc_args['version'] ) && ! $this->filter_flag( $assoc_args['default'] ) ) {
+		if ( empty( $assoc_args['version'] ) && ! $use_default_algorithm ) {
 			WP_CLI::error( esc_html__( 'This command expects a version number or the --default flag.', 'elasticpress' ) );
 		}
 
-		if ( ! empty( $assoc_args['default'] ) ) {
+		if ( $use_default_algorithm ) {
 			Utils\delete_option( 'ep_search_algorithm_version' );
 		} else {
 			Utils\update_option( 'ep_search_algorithm_version', $assoc_args['version'] );
@@ -1440,7 +1438,7 @@ class Command extends WP_CLI_Command {
 			$request_args['body'] = $body;
 		}
 
-		if ( $this->filter_flag( $assoc_args['debug-http-request'] ) ) {
+		if ( $this->is_allowed_flag_value( $assoc_args['debug-http-request'] ) ) {
 			add_filter(
 				'http_api_debug',
 				function ( $response, $context, $transport, $request_args, $url ) {
@@ -1492,7 +1490,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( $response->get_error_message() );
 		}
 
-		$this->print_json_response( $response, $this->filter_flag( $assoc_args['pretty'] ) );
+		$this->print_json_response( $response, $this->is_allowed_flag_value( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1597,18 +1595,19 @@ class Command extends WP_CLI_Command {
 	 *
 	 * @since 4.4.1
 	 * @param string $value Value to check.
-	 * @return bool
+	 * @param array  $allowed_values Array of additional values that can be allowed for a flag.
+	 * @return bool True if value is allowed, false otherwise.
 	 */
-	protected function filter_flag( $value, $allowed_flags = [] ) {
+	protected function is_allowed_flag_value( $value, $allowed_values = [] ) {
 		$true_values = [
 			'true',
 			true,
 			1,
-			'1'
+			'1',
 		];
 
-		$allowed_flags = wp_parse_args( $allowed_flags, $true_values );
+		$allowed_values = wp_parse_args( $allowed_values, $true_values );
 
-		return in_array( $value, $allowed_flags, true );
+		return in_array( $value, $allowed_values, true );
 	}
 }
