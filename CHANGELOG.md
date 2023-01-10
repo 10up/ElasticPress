@@ -26,7 +26,7 @@ This is a bug fix release.
 - Unit tests for the `HealthCheckElasticsearch` class, Protected Feature, and #3106. Props [@burhandodhy](https://github.com/burhandodhy) via [#3213](https://github.com/10up/ElasticPress/pull/3213),[#3183](https://github.com/10up/ElasticPress/pull/3183), and [#3184](https://github.com/10up/ElasticPress/pull/3184).
 
 ### Changed
-- Detection of indexable meta fields when visiting the sync and status report pages. Props [@felipeelia](https://github.com/felipeelia) and [@paoloburzacca](https://github.com/paoloburzacca) via [#3215](https://github.com/10up/ElasticPress/pull/3215).
+- Detection of indexable meta fields when visiting the sync and status report pages. Props [@felipeelia](https://github.com/felipeelia),  [@paoloburzacca](https://github.com/paoloburzacca), and [@burhandodhy](https://github.com/burhandodhy) via [#3215](https://github.com/10up/ElasticPress/pull/3215) and [#3250](https://github.com/10up/ElasticPress/pull/3250).
 - `put-mapping` WP-CLI command returns an error message if mapping failed. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#3206](https://github.com/10up/ElasticPress/pull/3206).
 - Last Sync subsection title in the Status Report page. Props [@MARQAS](https://github.com/MARQAS), [@felipeelia](https://github.com/felipeelia), and [@tomioflagos](https://github.com/tomioflagos) via [#3228](https://github.com/10up/ElasticPress/pull/3228).
 - Title for Autosuggest and Instant results features, if connected to an ElasticPress.io account. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@NV607FOX](https://github.com/NV607FOX) via [#3207](https://github.com/10up/ElasticPress/pull/3207).
@@ -54,6 +54,7 @@ This is a bug fix release.
 - E2E tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3188](https://github.com/10up/ElasticPress/pull/3188).
 - Feature title issue on the report page and notices. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3248](https://github.com/10up/ElasticPress/pull/3248).
 - Autosuggest Site Health Info containing incorrect information unrelated to Autosuggest. Props [@JakePT](https://github.com/JakePT) via [#3247](https://github.com/10up/ElasticPress/pull/3247).
+- Styling of the Instant Results Facets field. Props [@JakePT](https://github.com/JakePT) via [#3249](https://github.com/10up/ElasticPress/pull/3249).
 
 ### Security
 - Bumped `simple-git` from 3.6.0 to 3.15.1. Props [@dependabot](https://github.com/dependabot) via [#3190](https://github.com/10up/ElasticPress/pull/3190).
