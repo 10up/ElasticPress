@@ -49,7 +49,7 @@ class Features {
 	}
 
 	/**
-	 * Dectivate a feature
+	 * Deactivate a feature
 	 *
 	 * @param  string $slug Feature slug
 	 * @param  bool   $force Whether to force deactivation

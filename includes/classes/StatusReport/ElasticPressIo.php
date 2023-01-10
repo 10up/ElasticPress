@@ -36,10 +36,12 @@ class ElasticPressIo extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
-		return [
+		$groups = [
 			$this->get_autosuggest_group(),
 			$this->get_instant_results_group(),
 		];
+
+		return array_values( array_filter( $groups ) );
 	}
 
 	/**
@@ -48,10 +50,14 @@ class ElasticPressIo extends Report {
 	 * @return array
 	 */
 	protected function get_autosuggest_group() : array {
-		$title = __( 'Allowed Autosuggest Parameters', 'elasticpress' );
-
 		$autosuggest_feature = \ElasticPress\Features::factory()->get_registered_feature( 'autosuggest' );
-		$allowed_params      = $autosuggest_feature->epio_autosuggest_set_and_get();
+
+		if ( ! $autosuggest_feature->is_active() ) {
+			return [];
+		}
+
+		$title          = __( 'Allowed Autosuggest Parameters', 'elasticpress' );
+		$allowed_params = $autosuggest_feature->epio_autosuggest_set_and_get();
 
 		if ( empty( $allowed_params ) ) {
 			$fields['not_available'] = [
@@ -60,10 +66,8 @@ class ElasticPressIo extends Report {
 			];
 
 			return [
-				[
-					'title'  => $title,
-					'fields' => $fields,
-				],
+				'title'  => $title,
+				'fields' => $fields,
 			];
 		}
 
@@ -105,6 +109,12 @@ class ElasticPressIo extends Report {
 	 * @return array
 	 */
 	protected function get_instant_results_group() : array {
+		$instant_results_feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+
+		if ( ! $instant_results_feature->is_active() ) {
+			return [];
+		}
+
 		$title  = __( 'Instant Results Template', 'elasticpress' );
 		$fields = [];
 

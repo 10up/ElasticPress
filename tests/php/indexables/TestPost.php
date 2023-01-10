@@ -1449,8 +1449,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -1491,8 +1489,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -1552,9 +1548,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
-		remove_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
 	}
 
 	/**
@@ -1743,8 +1736,6 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( $post_id_1, $post_ids );
 		$this->assertContains( $post_id_1, $post_ids );
 		$this->assertNotContains( $post_id_0, $post_ids );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1790,8 +1781,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2418,8 +2407,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2510,8 +2497,6 @@ class TestPost extends BaseTestCase {
 
 			$i++;
 		}
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2542,8 +2527,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2604,8 +2587,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2638,8 +2619,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -3667,7 +3646,6 @@ class TestPost extends BaseTestCase {
 			$this->assertNull( $post['post_modified_gmt'] );
 		}
 		$this->assertNotNull( $post );
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -4368,6 +4346,17 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'           => 'findme',
+			'post_parent' => 0,
+			'fields'      => 'ids',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $parent_post, $query->posts[0] );
 	}
 
 	/**
@@ -6019,6 +6008,17 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( $post_id_4, $post_ids[0] );
 		$this->assertCount( 1, $results['objects'] );
 		$this->assertEquals( 4, $results['total_objects'] );
+
+		// Test it pulls the post with passwords when password protected feature is enabled.
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page'     => 1
+			]
+		);
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**
@@ -6503,8 +6503,6 @@ class TestPost extends BaseTestCase {
 
 		$last_filter = end( $args['post_filter']['bool']['must'] );
 		$this->assertSame( [ 'my_custom_field.raw' => 'my_custom_value' ], $last_filter['term'] );
-
-		remove_filter( 'ep_post_filters', $add_es_filter );
 	}
 
 	/**
@@ -6681,8 +6679,6 @@ class TestPost extends BaseTestCase {
 			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
 			remove_filter( 'ep_post_mapping_file', $assert_callback );
 		}
-
-		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 
 	/**
@@ -7488,8 +7484,6 @@ class TestPost extends BaseTestCase {
 
 		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
 		$this->assertSame( $version_35, $search_algorithm );
-
-		remove_filter( 'ep_post_search_algorithm', $set_version_35 );
 	}
 
 	/**
@@ -7628,9 +7622,6 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEquals( 'test content', $query->posts[0]->post_content );
 		$this->assertEquals( 'test title', $query->posts[0]->post_title );
-
-		remove_filter( 'ep_highlight_should_add_clause', '__return_false' );
-
 	}
 
 	/**
@@ -7965,7 +7956,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 5, $query->post_count );
 	}
 
-
 	/**
 	 * Tests get_distinct_meta_field_keys_db
 	 *
@@ -7978,7 +7968,13 @@ class TestPost extends BaseTestCase {
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
 		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
-		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db( true ) );
+
+		// Make sure it works if no allowed protected key is found
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', '__return_empty_array' );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db( true ) );
+		$this->assertEmpty( $wpdb->last_error );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', '__return_empty_array' );
 
 		/**
 		 * Test the `ep_post_pre_meta_keys_db` filter
@@ -7992,7 +7988,7 @@ class TestPost extends BaseTestCase {
 		$num_queries = $wpdb->num_queries;
 		$this->assertGreaterThan( 0, $num_queries );
 
-		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db( true ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
 		remove_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
@@ -8005,7 +8001,7 @@ class TestPost extends BaseTestCase {
 		};
 		add_filter( 'ep_post_meta_keys_db', $return_custom_array );
 
-		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db() );
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db( true ) );
 	}
 
 	/**
@@ -8173,6 +8169,35 @@ class TestPost extends BaseTestCase {
 
 		$meta_keys = [ 'test_key_1' ];
 		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+	}
+
+	/**
+	 * Tests put_mapping method.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testPutMappingThrowsError() {
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		$this->assertTrue( $mapping );
+
+		// Try to put mapping again to trigger error `resource_already_exists_exception`. Expect false as it defaults to return a bool
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		$this->assertFalse( $mapping );
+
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping( 'raw' );
+		$this->assertInstanceOf( 'WP_Error', $mapping );
+		$this->assertEquals( 400, $mapping->get_error_code() );
+
+		// Try to put mapping again to trigger WP_Error by providing an empty host.
+		add_filter( 'ep_pre_request_host', '__return_empty_string' );
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping( 'raw' );
+
+		$this->assertInstanceOf( 'WP_Error', $mapping );
+		$this->assertEquals( 'http_request_failed', $mapping->get_error_code() );
+		remove_filter( 'ep_pre_request_host', '__return_empty_string' );
 	}
 
 	/**

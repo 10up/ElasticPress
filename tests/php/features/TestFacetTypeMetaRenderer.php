@@ -106,7 +106,5 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		add_filter( 'ep_facet_meta_value_html', $change_html, 10, 3 );
 
 		$this->assertEquals( '<p>Completely custom made element</p>', $renderer->get_meta_value_html( $value, $url )  );
-
-		remove_filter( 'ep_facet_meta_value_html', $change_html );
 	}
 }
