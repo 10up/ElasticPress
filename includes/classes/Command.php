@@ -171,8 +171,14 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function list_features( $args, $assoc_args ) {
+		if ( $this->filter_flag( $assoc_args['all'] ) ) {
+			WP_CLI::line( esc_html__( 'Registered features:', 'elasticpress' ) );
+			$features = wp_list_pluck( Features::factory()->registered_features, 'slug' );
 
-		if ( empty( $assoc_args['all'] ) ) {
+			foreach ( $features as $feature ) {
+				WP_CLI::line( $feature );
+			}
+		} else {
 			$features = Utils\get_option( 'ep_feature_settings', [] );
 
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
@@ -183,13 +189,6 @@ class Command extends WP_CLI_Command {
 				if ( $feature->is_active() ) {
 					WP_CLI::line( $feature_slug );
 				}
-			}
-		} else {
-			WP_CLI::line( esc_html__( 'Registered features:', 'elasticpress' ) );
-			$features = wp_list_pluck( Features::factory()->registered_features, 'slug' );
-
-			foreach ( $features as $feature ) {
-				WP_CLI::line( $feature );
 			}
 		}
 	}
@@ -393,7 +392,7 @@ class Command extends WP_CLI_Command {
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
-		$this->print_json_response( $response, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->print_json_response( $response, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -418,7 +417,7 @@ class Command extends WP_CLI_Command {
 
 		$cluster_indices = Elasticsearch::factory()->get_cluster_indices();
 
-		$this->pretty_json_encode( $cluster_indices, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $cluster_indices, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -443,7 +442,7 @@ class Command extends WP_CLI_Command {
 
 		$index_names = $this->get_index_names();
 
-		$this->pretty_json_encode( $index_names, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $index_names, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1031,7 +1030,7 @@ class Command extends WP_CLI_Command {
 			];
 		}
 
-		$this->pretty_json_encode( $indexing_status, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $indexing_status, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1056,7 +1055,7 @@ class Command extends WP_CLI_Command {
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 		$last_sync  = \ElasticPress\IndexHelper::factory()->get_last_index();
 
-		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $last_sync, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1084,11 +1083,11 @@ class Command extends WP_CLI_Command {
 
 		$last_sync = Utils\get_option( 'ep_last_cli_index', array() );
 
-		if ( isset( $assoc_args['clear'] ) ) {
+		if ( $this->filter_flag( $assoc_args['clear'] ) ) {
 			Utils\delete_option( 'ep_last_cli_index' );
 		}
 
-		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->pretty_json_encode( $last_sync, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 
@@ -1203,7 +1202,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_before_set_search_algorithm_version', $args, $assoc_args );
 
-		if ( empty( $assoc_args['version'] ) && ! isset( $assoc_args['default'] ) ) {
+		if ( empty( $assoc_args['version'] ) && ! $this->filter_flag( $assoc_args['default'] ) ) {
 			WP_CLI::error( esc_html__( 'This command expects a version number or the --default flag.', 'elasticpress' ) );
 		}
 
@@ -1436,11 +1435,12 @@ class Command extends WP_CLI_Command {
 		$request_args = [
 			'method' => $method,
 		];
+
 		if ( 'GET' !== $method && ! empty( $body ) ) {
 			$request_args['body'] = $body;
 		}
 
-		if ( ! empty( $assoc_args['debug-http-request'] ) ) {
+		if ( $this->filter_flag( $assoc_args['debug-http-request'] ) ) {
 			add_filter(
 				'http_api_debug',
 				function ( $response, $context, $transport, $request_args, $url ) {
@@ -1492,7 +1492,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( $response->get_error_message() );
 		}
 
-		$this->print_json_response( $response, $this->filter_boolean( $assoc_args['pretty'] ) );
+		$this->print_json_response( $response, $this->filter_flag( $assoc_args['pretty'] ) );
 	}
 
 	/**
@@ -1593,13 +1593,22 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Whether a value can be evaluated as true or not.
+	 * Filters allowed values for flags.
 	 *
 	 * @since 4.4.1
-	 * @param string $value A string value that is going to be evaluated as bool or not.
+	 * @param string $value Value to check.
 	 * @return bool
 	 */
-	protected function filter_boolean( $value ) {
-		return filter_var( $value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+	protected function filter_flag( $value, $allowed_flags = [] ) {
+		$true_values = [
+			'true',
+			true,
+			1,
+			'1'
+		];
+
+		$allowed_flags = wp_parse_args( $allowed_flags, $true_values );
+
+		return in_array( $value, $allowed_flags, true );
 	}
 }
