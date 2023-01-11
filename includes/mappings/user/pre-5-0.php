@@ -31,7 +31,7 @@ return array(
 		/**
 		 * Filter Elasticsearch total field limit for users
 		 *
-		 * @hook ep_total_field_limit
+		 * @hook ep_user_total_field_limit
 		 * @param  {int} $number Number of fields
 		 * @return {int} New number
 		 */

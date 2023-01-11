@@ -280,16 +280,17 @@ class QueryIntegration {
 			$site__not_in = '';
 
 			if ( ! empty( $query_vars['sites'] ) ) {
-
 				_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
-				$site__in = (array) $query_vars['sites'];
-				$scope    = 'all' === $query_vars['sites'] ? 'all' : $site__in;
 			}
 
-			if ( ! empty( $query_vars['site__in'] ) ) {
+			if ( ! empty( $query_vars['site__in'] ) || ! empty( $query_vars['sites'] ) ) {
+				$site__in = ! empty( $query_vars['site__in'] ) ? (array) $query_vars['site__in'] : (array) $query_vars['sites'];
 
-				$site__in = (array) $query_vars['site__in'];
-				$scope    = 'all' === $query_vars['site__in'] ? 'all' : $site__in;
+				if ( in_array( 'all', $site__in, true ) ) {
+					$scope = 'all';
+				} elseif ( in_array( 'current', $site__in, true ) ) {
+					$site__in = (array) get_current_blog_id();
+				}
 			}
 
 			if ( ! empty( $query_vars['site__not_in'] ) ) {
