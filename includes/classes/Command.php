@@ -171,6 +171,12 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function list_features( $args, $assoc_args ) {
+		$defaults = [
+			'all' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
 		if ( $this->is_allowed_flag_value( $assoc_args['all'] ) ) {
 			WP_CLI::line( esc_html__( 'Registered features:', 'elasticpress' ) );
 			$features = wp_list_pluck( Features::factory()->registered_features, 'slug' );
@@ -711,6 +717,13 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function sync( $args, $assoc_args ) {
+		$defaults = [
+			'setup'  => false,
+			'nobulk' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
 		$setup_option = $this->is_allowed_flag_value( $assoc_args['setup'] );
 
 		if ( $setup_option ) {
@@ -1075,6 +1088,7 @@ class Command extends WP_CLI_Command {
 	public function get_last_cli_sync( $args, $assoc_args ) {
 		$defaults = [
 			'pretty' => false,
+			'clear'  => false,
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
@@ -1188,6 +1202,12 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function set_search_algorithm_version( $args, $assoc_args ) {
+		$defaults = [
+			'version' => false,
+		];
+
+		$assoc_args = wp_parse_args( $assoc_args, $defaults );
+
 		$use_default_algorithm = $this->is_allowed_flag_value( $assoc_args['default'] );
 		/**
 		 * Fires before the algorithm version is changed via WP-CLI.
@@ -1423,6 +1443,7 @@ class Command extends WP_CLI_Command {
 	public function request( $args, $assoc_args ) {
 		$defaults = [
 			'pretty' => false,
+			'debug-http-request' => false,
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
