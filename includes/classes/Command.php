@@ -735,8 +735,9 @@ class Command extends WP_CLI_Command {
 	 */
 	public function sync( $args, $assoc_args ) {
 		$defaults = [
-			'setup'  => false,
-			'nobulk' => false,
+			'setup'       => false,
+			'nobulk'      => false,
+			'static-bulk' => false,
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
@@ -1221,6 +1222,7 @@ class Command extends WP_CLI_Command {
 	public function set_search_algorithm_version( $args, $assoc_args ) {
 		$defaults = [
 			'version' => false,
+			'default' => false,
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
@@ -1459,7 +1461,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function request( $args, $assoc_args ) {
 		$defaults = [
-			'pretty' => false,
+			'pretty'             => false,
 			'debug-http-request' => false,
 		];
 
