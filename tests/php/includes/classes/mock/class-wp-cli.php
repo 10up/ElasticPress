@@ -96,7 +96,7 @@ class WP_CLI {
 	 *
 	 * @param integer $return_code Exit code to return.
 	 */
-	public static function halt( $return_code = 0 ) {
+	public static function halt( $return_code ) {
 	}
 
 }

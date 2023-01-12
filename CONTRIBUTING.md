@@ -35,7 +35,7 @@ The `develop` branch is the development branch which means it contains the next 
 1. Props: Update `CREDITS.md` file with any new contributors, confirm maintainers are accurate.
 1. Readme updates: Make any other readme changes as necessary. `README.md` is geared toward GitHub and `readme.txt` contains WordPress.org-specific content. The two are slightly different.
 1. New files: Check to be sure any new files/paths that are unnecessary in the production version are included in `.distignore`.
-1. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file.
+1. POT file: Run `wp i18n make-pot . lang/elasticpress.pot` and commit the file. In case of errors, try to disable Xdebug (see [#3079](https://github.com/10up/ElasticPress/pull/3079#issuecomment-1291028290).)
 1. Release date: Double check the release date in both changelog files.
 1. Merge: Merge the release branch/PR into `develop`, then make a non-fast-forward merge from `develop` into `trunk` (`git checkout trunk && git merge --no-ff develop`). `trunk` contains the stable development version.
 1. Test: While still on the `trunk` branch, test for functionality locally.

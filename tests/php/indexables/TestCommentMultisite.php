@@ -265,4 +265,86 @@ class TestCommentMultisite extends BaseTestCase {
 		$this->assertEquals( 9, count( $query->get_comments() ) );
 	}
 
+	/**
+	 * Test Comment Query with the deprecated `sites` param and with value `current`
+	 *
+	 * @since 4.4.1
+	 * @expectedDeprecated maybe_filter_query
+	 */
+	public function testCommentQueryWithDeprecatedSitesParamWithValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$post_id = $this->ep_factory->post->create();
+			$this->ep_factory->comment->create_many( 3, array( 'comment_post_ID' => $post_id ) );
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		$query = new \WP_Comment_Query(
+			array(
+				'ep_integrate' => true,
+				'sites'        => 'current',
+			)
+		);
+
+		$comments = $query->get_comments();
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, count( $comments ) );
+
+		foreach ( $comments as $comment ) {
+			$this->assertEquals( $sites[1]['blog_id'], $comment->site_id );
+		}
+	}
+
+	/**
+	 * Test Comment Query with the `site__in` param and with value `current`
+	 *
+	 * @since 4.4.1
+	 */
+	public function testCommentQueryWithSiteInParamWithValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$post_id = $this->ep_factory->post->create();
+			$this->ep_factory->comment->create_many( 3, array( 'comment_post_ID' => $post_id ) );
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		$query = new \WP_Comment_Query(
+			array(
+				'ep_integrate' => true,
+				'site__in'     => 'current',
+			)
+		);
+
+		$comments = $query->get_comments();
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, count( $comments ) );
+
+		foreach ( $comments as $comment ) {
+			$this->assertEquals( $sites[1]['blog_id'], $comment->site_id );
+		}
+	}
 }

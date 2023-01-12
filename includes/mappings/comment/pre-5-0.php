@@ -29,15 +29,15 @@ return [
 		 */
 		'index.number_of_replicas'         => apply_filters( 'ep_default_index_number_of_replicas', 1 ),
 		/**
-		 * Filter Elasticsearch total field limit for users
+		 * Filter Elasticsearch total field limit for comments
 		 *
-		 * @hook ep_total_field_limit
+		 * @hook ep_comment_total_field_limit
 		 * @param  {int} $number Number of fields
 		 * @return {int} New number
 		 */
 		'index.mapping.total_fields.limit' => apply_filters( 'ep_comment_total_field_limit', 5000 ),
 		/**
-		 * Filter Elasticsearch max result window for users
+		 * Filter Elasticsearch max result window for comments
 		 *
 		 * @hook ep_user_max_result_window
 		 * @param  {int} $number Size of result window

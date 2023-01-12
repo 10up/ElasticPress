@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { TabPanel, ToggleControl } from '@wordpress/components';
-import { useState, WPElement } from '@wordpress/element';
+import { useState, WPElement, useEffect } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -24,6 +24,12 @@ export default ({ messages }) => {
 	 * Messages with the error status.
 	 */
 	const errorMessages = messages.filter((m) => m.status === 'error' || m.status === 'warning');
+
+	useEffect(() => {
+		if (errorMessages.length > 0) {
+			setIsOpen(true);
+		}
+	}, [errorMessages.length]);
 
 	/**
 	 * Log tabs.
