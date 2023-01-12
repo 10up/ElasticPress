@@ -735,9 +735,12 @@ class Command extends WP_CLI_Command {
 	 */
 	public function sync( $args, $assoc_args ) {
 		$defaults = [
-			'setup'       => false,
-			'nobulk'      => false,
-			'static-bulk' => false,
+			'setup'              => false,
+			'nobulk'             => false,
+			'static-bulk'        => false,
+			'show-errors'        => false,
+			'show-bulk-errors'   => false,
+			'show-nobulk-errors' => false
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
