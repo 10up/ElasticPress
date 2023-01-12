@@ -28,4 +28,9 @@
       <exclude>./tests/php/indexables/TestTermMultisite.php</exclude>
     </testsuite>
   </testsuites>
+  <groups>
+    <exclude>
+      <group>skip-on-single-site</group>
+    </exclude>
+  </groups>
 </phpunit>

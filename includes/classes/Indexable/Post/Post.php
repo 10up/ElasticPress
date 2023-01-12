@@ -1720,7 +1720,8 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_parent( $args ) {
-		if ( empty( $args['post_parent'] ) || 'any' === strtolower( $args['post_parent'] ) ) {
+		$has_post_parent = isset( $args['post_parent'] ) && ( in_array( $args['post_parent'], [ 0, '0' ], true ) || ! empty( $args['post_parent'] ) );
+		if ( ! $has_post_parent || 'any' === strtolower( $args['post_parent'] ) ) {
 			return [];
 		}
 
@@ -1728,7 +1729,7 @@ class Post extends Indexable {
 			'bool' => [
 				'must' => [
 					'term' => [
-						'post_parent' => $args['post_parent'],
+						'post_parent' => (int) $args['post_parent'],
 					],
 				],
 			],
@@ -2422,7 +2423,31 @@ class Post extends Indexable {
 			}
 		}
 
-		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+		/**
+		 * To avoid running a too expensive SQL query, we run a query getting all public keys
+		 * and only the private keys allowed by the `ep_prepare_meta_allowed_protected_keys` filter.
+		 * This query does not order by on purpose, as that also brings a performance penalty.
+		 */
+		$allowed_protected_keys     = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], new \WP_Post( (object) [] ) );
+		$allowed_protected_keys_sql = '';
+		if ( ! empty( $allowed_protected_keys ) ) {
+			$placeholders               = implode( ',', array_fill( 0, count( $allowed_protected_keys ), '%s' ) );
+			$allowed_protected_keys_sql = " OR meta_key IN ( {$placeholders} ) ";
+		}
+
+		$meta_keys = $wpdb->get_col(
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			$wpdb->prepare(
+				"SELECT DISTINCT meta_key
+					FROM {$wpdb->postmeta}
+					WHERE meta_key NOT LIKE %s {$allowed_protected_keys_sql}
+					LIMIT 800",
+				'\_%',
+				...$allowed_protected_keys
+			)
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		);
+		sort( $meta_keys );
 
 		// Make sure the size of the transient will not be bigger than 1MB
 		do {

@@ -45,8 +45,6 @@ class TestWeighting extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 		update_option( 'elasticpress_weighting', [] );
 	}
@@ -338,8 +336,6 @@ class TestWeighting extends BaseTestCase {
 		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'page' ) );
 		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'test' ) );
 		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'test-2' ) );
-
-		remove_filter( 'ep_weighting_configuration_for_search', $function );
 	}
 
 	public function testDoWeightingWithQueryContainsSearchFields() {

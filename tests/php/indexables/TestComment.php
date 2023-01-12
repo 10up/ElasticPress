@@ -56,8 +56,6 @@ class TestComment extends BaseTestCase {
 
 		$this->deleteAllComments();
 
-		// Make sure no one attached to this.
-		remove_filter( 'ep_sync_comments_allow_hierarchy', array( $this, 'ep_allow_multiple_level_comments_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -279,8 +277,6 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
-
-		remove_filter( 'ep_max_results_window', $return_2 );
 	}
 
 	/**

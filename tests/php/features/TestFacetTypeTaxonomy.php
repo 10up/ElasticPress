@@ -37,7 +37,6 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		};
 		add_filter( 'ep_facet_filter_name', $change_filter_name );
 		$this->assertEquals( 'ep_filter__', $facet_type->get_filter_name() );
-		remove_filter( 'ep_facet_filter_name', $change_filter_name );
 	}
 
 	/**
@@ -63,7 +62,6 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		};
 		add_filter( 'ep_facet_filter_type', $change_filter_type );
 		$this->assertEquals( 'taxonomies_', $facet_type->get_filter_type() );
-		remove_filter( 'ep_facet_filter_type', $change_filter_type );
 	}
 
 	/**
@@ -96,8 +94,6 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 		$facetable_taxonomies = array_keys( $facet_type->get_facetable_taxonomies() );
 		$this->assertNotContains( 'category', $facetable_taxonomies );
-
-		remove_filter( 'ep_facet_include_taxonomies', $change_facetable_taxonomies );
 	}
 
 	/**
@@ -150,8 +146,6 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$with_aggs = $facet_type->set_wp_query_aggs( [] );
 		$this->assertSame( 5, $with_aggs['category']['terms']['size'] );
 		$this->assertSame( 10000, $with_aggs['post_tag']['terms']['size'] );
-
-		remove_filter( 'ep_facet_taxonomies_size', $change_tax_bucket_size );
 	}
 
 	/**
@@ -233,7 +227,5 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		// test sanitize_text_field runs when filter is applied.
 		$expected_result = sanitize_text_field( $test_taxonomy );
 		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
-
-		remove_filter( 'ep_facet_sanitize_callback', $sanitize_function );
 	}
 }
