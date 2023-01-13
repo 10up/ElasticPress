@@ -26,13 +26,25 @@ class Indexables {
 	private $registered_indexables = [];
 
 	/**
+	 * Array of active indexables
+	 *
+	 * @var   array
+	 * @since 4.5.0
+	 */
+	private $active_indexables = [];
+
+	/**
 	 * Register an indexable instance
 	 *
-	 * @param  Indexable $indexable Instance of Indexable.
-	 * @since 3.0
+	 * @param Indexable $indexable Instance of Indexable
+	 * @param bool      $activate  If the indexable should also be activated. Defaults to true.
+	 * @since 3.0, 4.5.0 added $activate
 	 */
-	public function register( Indexable $indexable ) {
+	public function register( Indexable $indexable, bool $activate = true ) {
 		$this->registered_indexables[ $indexable->slug ] = $indexable;
+		if ( $activate ) {
+			$this->active_indexables[ $indexable->slug ] = $indexable;
+		}
 	}
 
 	/**
@@ -57,6 +69,22 @@ class Indexables {
 	}
 
 	/**
+	 * Activate an indexable functionality
+	 *
+	 * @param string $slug The indexable slug
+	 * @since 4.5.0
+	 */
+	public function activate( string $slug ) {
+		$indexable = $this->get( $slug );
+		if ( $indexable ) {
+			$this->active_indexables[ $indexable->slug ] = $indexable;
+			if ( method_exists( $indexable, 'setup' ) ) {
+				$indexable->setup();
+			}
+		}
+	}
+
+	/**
 	 * Get all indexable instances
 	 *
 	 * @param  boolean $global If true or false, will only get Indexables with that global property.
@@ -67,7 +95,7 @@ class Indexables {
 	public function get_all( $global = null, $slug_only = false ) {
 		$indexables = [];
 
-		foreach ( $this->registered_indexables as $slug => $indexable ) {
+		foreach ( $this->active_indexables as $slug => $indexable ) {
 			if ( null === $global ) {
 				if ( $slug_only ) {
 					$indexables[] = $slug;

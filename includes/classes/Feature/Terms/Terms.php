@@ -35,6 +35,8 @@ class Terms extends Feature {
 		$this->requires_install_reindex = true;
 
 		parent::__construct();
+
+		Indexables::factory()->register( new Indexable\Term\Term(), false );
 	}
 
 	/**
@@ -43,7 +45,7 @@ class Terms extends Feature {
 	 * @since 3.1
 	 */
 	public function setup() {
-		Indexables::factory()->register( new Indexable\Term\Term() );
+		Indexables::factory()->activate( 'term' );
 
 		add_action( 'init', [ $this, 'search_setup' ] );
 	}
