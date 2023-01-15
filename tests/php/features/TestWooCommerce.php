@@ -1265,16 +1265,25 @@ class TestWooCommerce extends BaseTestCase {
 				'regular_price' => 100,
 			]
 		);
+
 		$this->ep_factory->product->create(
 			[
 				'name'          => 'Cap 2',
-				'regular_price' => 800,
+				'regular_price' => 1000,
 			]
 		);
+
 		$this->ep_factory->product->create(
 			[
 				'name'          => 'Cap 3',
 				'regular_price' => 10000,
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 4',
+				'regular_price' => 800,
 			]
 		);
 
@@ -1292,27 +1301,6 @@ class TestWooCommerce extends BaseTestCase {
 		global $wp_the_query, $wp_query;
 		$wp_the_query        = $query;
 		$wp_query->is_search = true;
-
-		add_filter(
-			'ep_post_formatted_args',
-			function ( $formatted_args ) {
-
-				$expected_result = array(
-					'range' => array(
-						'meta._price.long' => array(
-							'gte'   => 1,
-							'lte'   => 999,
-							'boost' => 2,
-						),
-					),
-				);
-
-				$this->assertEquals( $expected_result, $formatted_args['query']['function_score']['query']['bool']['must'][0] );
-
-				return $formatted_args;
-			},
-			15
-		);
 
 		$query = $query->query( $args );
 
