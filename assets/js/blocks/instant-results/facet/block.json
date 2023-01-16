@@ -1,0 +1,10 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Instant Results Facet",
+	"textdomain": "elasticpress",
+	"name": "elasticpress/facet",
+	"category": "widgets",
+	"attributes": {},
+	"editorScript": "elasticpress-instant-results-block-script"
+}

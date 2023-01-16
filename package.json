@@ -55,6 +55,7 @@
       "facets-script": "./assets/js/facets.js",
       "instant-results-script": "./assets/js/instant-results/index.js",
       "instant-results-admin-script": "./assets/js/instant-results/admin/index.js",
+      "instant-results-block-script": "./assets/js/blocks/instant-results/index.js",
       "notice-script": "./assets/js/notice.js",
       "ordering-script": "./assets/js/ordering/index.js",
       "facets-block-script": "./assets/js/blocks/facets/taxonomy/index.js",

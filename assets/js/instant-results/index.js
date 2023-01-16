@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createPortal, render } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -9,7 +9,9 @@ import { render } from '@wordpress/element';
 import { apiEndpoint, apiHost, argsSchema, paramPrefix } from './config';
 import { getArgsFromUrlParams, ApiSearchProvider } from '../api-search';
 import Modal from './components/modal';
-
+import SearchTermFacet from './components/facets/search-term-facet';
+import TaxonomyTermsFacet from './components/facets/taxonomy-terms-facet';
+import Results from './components/modal/results';
 /**
  * Render Instant Results as a modal.
  *
@@ -35,6 +37,42 @@ const renderModal = (defaultArgs, defaultIsOpen) => {
 };
 
 /**
+ * Render Instant Results blocks.
+ *
+ * @param {object} defaultArgs Default search args.
+ * @returns {void}
+ */
+const renderBlocks = (defaultArgs) => {
+	const el = document.getElementById('ep-instant-results');
+	const facetEl = document.getElementById('ep-facet-block');
+	const resultsEl = document.getElementById('ep-results-block');
+	const searchEl = document.getElementById('ep-search-block');
+
+	render(
+		<ApiSearchProvider
+			apiEndpoint={apiEndpoint}
+			apiHost={apiHost}
+			argsSchema={argsSchema}
+			defaultArgs={defaultArgs}
+			paramPrefix={paramPrefix}
+		>
+			{createPortal(<SearchTermFacet />, searchEl)}
+			{createPortal(
+				<TaxonomyTermsFacet
+					defaultIsOpen
+					label="Category"
+					name="tax-category"
+					postTypes={[]}
+				/>,
+				facetEl,
+			)}
+			{createPortal(<Results />, resultsEl)}
+		</ApiSearchProvider>,
+		el,
+	);
+};
+
+/**
  * Initialize Instant Results.
  */
 const init = () => {
@@ -42,7 +80,8 @@ const init = () => {
 	const defaultArgs = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
 	const defaultIsOpen = Object.keys(defaultArgs).length > 0;
 
-	renderModal(defaultArgs, defaultIsOpen);
+	// renderModal(defaultArgs, defaultIsOpen);
+	renderBlocks(defaultArgs);
 };
 
 window.addEventListener('DOMContentLoaded', init);

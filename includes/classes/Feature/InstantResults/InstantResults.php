@@ -256,6 +256,7 @@ class InstantResults extends Feature {
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
+		add_action( 'init', [ $this, 'register_blocks' ] );
 	}
 
 	/**
@@ -1007,5 +1008,52 @@ class InstantResults extends Feature {
 
 		/* translators: 1. elasticpress.io logo;  */
 		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
+	}
+
+	/**
+	 * Register blocks.
+	 *
+	 * @since 5.0.0
+	 */
+	public function register_blocks() {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
+		wp_register_script(
+			'elasticpress-instant-results-block-script',
+			EP_URL . 'dist/js/instant-results-block-script.js',
+			Utils\get_asset_info( 'instant-results-block-script', 'dependencies' ),
+			Utils\get_asset_info( 'instant-results-block-script', 'version' ),
+			true
+		);
+
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/instant-results/facet',
+			[
+				'render_callback' => function() {
+					return '<div id="ep-facet-block"></div>';
+				},
+			]
+		);
+
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/instant-results/results',
+			[
+				'render_callback' => function() {
+					return '<div id="ep-results-block"></div>';
+				},
+			]
+		);
+
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/instant-results/search',
+			[
+				'render_callback' => function() {
+					return '<div id="ep-search-block"></div>';
+				},
+			]
+		);
 	}
 }
