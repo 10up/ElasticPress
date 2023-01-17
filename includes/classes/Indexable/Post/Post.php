@@ -1440,7 +1440,7 @@ class Post extends Indexable {
 								 * @param {array} $query_vars Query variables
 								 * @return  {string} New boost
 								 */
-								'fuzziness' => apply_filters( 'ep_match_fuzziness', 'auto', $search_fields, $args ),
+								'fuzziness' => apply_filters( 'ep_fuzziness_arg', 'auto', $search_fields, $args ), // VIP: Use old filter name
 								'operator'  => 'and',
 							),
 						),
