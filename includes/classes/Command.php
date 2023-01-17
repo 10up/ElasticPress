@@ -1614,7 +1614,6 @@ class Command extends WP_CLI_Command {
 		$template        = json_decode( $instant_results->epio_get_search_template() );
 
 		$this->pretty_json_encode( $template, $assoc_args['pretty'] );
-		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
