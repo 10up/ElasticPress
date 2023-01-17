@@ -1593,14 +1593,16 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Gets the Instant results search template.
+	 * Gets the Instant Results search template.
 	 *
-	 * @param array $args Positional CLI args.
-	 * @param array $assoc_args Associative CLI args.
 	 * ## OPTIONS
 	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @since 4.5.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 *
 	 * @subcommand get-search-template
 	 */
@@ -1617,8 +1619,9 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Saves the instant search results template to EPIO.
+	 * Saves the Instant Results search template to EPIO.
 	 *
+	 * @since 4.5.0
 	 * @subcommand put-search-template
 	 */
 	public function put_search_template() {
@@ -1628,8 +1631,9 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Deletes the search template.
+	 * Deletes the Instant Results search template.
 	 *
+	 * @since 4.5.0
 	 * @subcommand delete-search-template
 	 */
 	public function delete_search_template() {
