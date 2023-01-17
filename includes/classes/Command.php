@@ -1614,7 +1614,7 @@ class Command extends WP_CLI_Command {
 		$template        = json_decode( $instant_results->epio_get_search_template() );
 
 		$this->pretty_json_encode( $template, $assoc_args['pretty'] );
-		WP_CLI::success( esc_html__( 'Done', 'elasticpress' ) );
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
@@ -1625,7 +1625,7 @@ class Command extends WP_CLI_Command {
 	public function put_search_template() {
 		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
 		$instant_results->epio_save_search_template();
-		WP_CLI::success( esc_html__( 'Done', 'elasticpress' ) );
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
@@ -1636,7 +1636,7 @@ class Command extends WP_CLI_Command {
 	public function delete_search_template() {
 		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
 		$instant_results->epio_delete_search_template();
-		WP_CLI::success( esc_html__( 'Done', 'elasticpress' ) );
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
