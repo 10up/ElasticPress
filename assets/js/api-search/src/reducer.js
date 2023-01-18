@@ -24,6 +24,7 @@ export default (state, action) => {
 		}
 		case 'SEARCH': {
 			newState.args = { ...newState.args, ...action.args, offset: 0 };
+			newState.isOn = true;
 			break;
 		}
 		case 'SEARCH_FOR': {
@@ -32,11 +33,17 @@ export default (state, action) => {
 			newState.args = clearedArgs;
 			newState.args.search = action.searchTerm;
 			newState.args.offset = 0;
+			newState.isOn = true;
 
 			break;
 		}
 		case 'SET_IS_LOADING': {
 			newState.isLoading = action.isLoading;
+			break;
+		}
+		case 'TURN_OFF': {
+			newState.args = { ...newState.args };
+			newState.isOn = false;
 			break;
 		}
 		case 'SET_RESULTS': {
@@ -66,10 +73,10 @@ export default (state, action) => {
 			break;
 		}
 		case 'POP_STATE': {
-			const { isOpen, ...args } = action.args;
+			const { isOn, ...args } = action.args;
 
 			newState.args = args;
-			newState.isOpen = isOpen;
+			newState.isOn = isOn;
 			newState.isPoppingState = true;
 
 			break;

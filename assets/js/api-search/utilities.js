@@ -135,17 +135,16 @@ export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
  * @property {any} [default] Default arg value.
  * @property {Array} [allowedValues] Array of allowed values.
  *
- * @param {URLSearchParams} urlParams URL parameters.
- * @param {object.<string, ArgSchema>} schema Schema to build args from.
- * @param {string} [prefix] Parameter prefix.
- * @param {boolean} [useDefaults] Whether to populate params with default values.
- * @returns {object.<string, any>} Query args.
+ * @param {Object<string, ArgSchema>} argsSchema Schema to build args from.
+ * @param {string} [paramPrefix] Parameter prefix.
+ * @returns {Object<string, any>} Query args.
  */
-export const getArgsFromUrlParams = (urlParams, schema, prefix = '', useDefaults = true) => {
-	const args = Object.entries(schema).reduce((args, [arg, options]) => {
-		const param = urlParams.get(prefix + arg);
-		const value =
-			typeof param !== 'undefined' ? sanitizeArg(param, options, useDefaults) : null;
+export const getArgsFromUrlParams = (argsSchema, paramPrefix = '') => {
+	const urlParams = new URLSearchParams(window.location.search);
+
+	const args = Object.entries(argsSchema).reduce((args, [arg, options]) => {
+		const param = urlParams.get(paramPrefix + arg);
+		const value = typeof param !== 'undefined' ? sanitizeArg(param, options, false) : null;
 
 		if (value !== null) {
 			args[arg] = value;
@@ -155,6 +154,24 @@ export const getArgsFromUrlParams = (urlParams, schema, prefix = '', useDefaults
 	}, {});
 
 	return args;
+};
+
+/**
+ * Build request args from defaults provided in a given schema.
+ *
+ * @param {Object<string, ArgSchema>} argsSchema Schema to build args from.
+ * @returns {Object<string, any>} Query args.
+ */
+export const getDefaultArgsFromSchema = (argsSchema) => {
+	return Object.entries(argsSchema).reduce((args, [arg, schema]) => {
+		const hasDefault = Object.hasOwnProperty.call(schema, 'default');
+
+		if (hasDefault) {
+			args[arg] = schema.default;
+		}
+
+		return args;
+	}, {});
 };
 
 /**

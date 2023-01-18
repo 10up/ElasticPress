@@ -1,12 +1,17 @@
 /**
  * WordPress dependencies.
  */
-import { useCallback, useEffect, useReducer, useRef, WPElement } from '@wordpress/element';
+import { useCallback, useEffect, useMemo, useReducer, useRef, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
-import { getArgsFromUrlParams, getUrlParamsFromArgs, getUrlWithParams } from './utilities';
+import {
+	getArgsFromUrlParams,
+	getDefaultArgsFromSchema,
+	getUrlParamsFromArgs,
+	getUrlWithParams,
+} from './utilities';
 import Context from './src/context';
 import { useFetchResults } from './src/hooks';
 import reducer from './src/reducer';
@@ -24,35 +29,39 @@ import reducer from './src/reducer';
  */
 export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, paramPrefix }) => {
 	/**
-	 * Default args as defined by the schema.
+	 * Get default args from the schema.
 	 */
-	const schemaArgs = Object.entries(argsSchema).reduce((args, [arg, schema]) => {
-		const hasDefault = Object.hasOwnProperty.call(schema, 'default');
-
-		if (hasDefault) {
-			args[arg] = schema.default;
-		}
-
-		return args;
-	}, {});
+	const defaultArgsFromSchema = useMemo(() => {
+		return getDefaultArgsFromSchema(argsSchema);
+	}, [argsSchema]);
 
 	/**
-	 * The initial state, including any default args passed to the component.
+	 * Get any default args from the UR:.
 	 */
-	const initialState = {
-		aggregations: {},
-		args: { ...schemaArgs },
-		isLoading: false,
-		isPoppingState: false,
-		searchResults: [],
-		searchedTerm: '',
-		totalResults: 0,
-	};
+	const defaultArgsFromUrl = useMemo(() => {
+		if (!paramPrefix) {
+			return {};
+		}
+
+		return getArgsFromUrlParams(argsSchema, paramPrefix);
+	}, [argsSchema, paramPrefix]);
 
 	/**
 	 * Set up the reducer.
 	 */
-	const [state, dispatch] = useReducer(reducer, initialState);
+	const [state, dispatch] = useReducer(reducer, {
+		aggregations: {},
+		args: {
+			...defaultArgsFromSchema,
+			...defaultArgsFromUrl,
+		},
+		isLoading: false,
+		isOn: Object.keys(defaultArgsFromUrl).length > 0,
+		isPoppingState: false,
+		searchResults: [],
+		searchedTerm: '',
+		totalResults: 0,
+	});
 
 	/**
 	 * Set up fetch method.
@@ -71,12 +80,12 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 *
 	 * @returns {void}
 	 */
-	const clearConstraints = () => {
+	const clearConstraints = useCallback(() => {
 		dispatch({
 			type: 'CLEAR_CONSTRAINTS',
 			argsSchema,
 		});
-	};
+	}, [argsSchema]);
 
 	/**
 	 * Set search args.
@@ -175,17 +184,29 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 			return;
 		}
 
-		const { args } = stateRef.current;
+		const { args, isOn } = stateRef.current;
+		const state = { ...args, isOn };
 
 		if (window.history.state) {
-			const params = getUrlParamsFromArgs(args, argsSchema, paramPrefix);
+			const params = isOn ? getUrlParamsFromArgs(args, argsSchema, paramPrefix) : null;
 			const url = getUrlWithParams(paramPrefix, params);
 
-			window.history.pushState(args, document.title, url);
+			window.history.pushState(state, document.title, url);
 		} else {
-			window.history.replaceState(args, document.title, window.location.href);
+			window.history.replaceState(state, document.title, window.location.href);
 		}
 	}, [argsSchema, paramPrefix]);
+
+	/**
+	 * Close search.
+	 *
+	 * @returns {void}
+	 */
+	const turnOff = () => {
+		dispatch({
+			type: 'TURN_OFF',
+		});
+	};
 
 	/**
 	 * Handle popstate event.
@@ -213,10 +234,14 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 * @returns {void}
 	 */
 	const onSearch = useCallback(async () => {
-		const { args, isPoppingState } = stateRef.current;
+		const { args, isOn, isPoppingState } = stateRef.current;
 
 		if (!isPoppingState) {
 			pushState();
+		}
+
+		if (!isOn) {
+			return;
 		}
 
 		const urlParams = getUrlParamsFromArgs(args, argsSchema);
@@ -236,19 +261,6 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 */
 	const handleInit = () => {
 		window.addEventListener('popstate', onPopState);
-
-		/**
-		 * If a parameter prefix is defined perform an initial search with the
-		 * URL paramters.
-		 */
-		if (typeof paramPrefix !== 'undefined') {
-			const urlParams = new URLSearchParams(window.location.search);
-			const urlArgs = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
-
-			if (Object.keys(urlArgs).length > 0) {
-				search(urlArgs);
-			}
-		}
 
 		return () => {
 			window.removeEventListener('popstate', onPopState);
@@ -280,7 +292,7 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	/**
 	 * Provide state to context.
 	 */
-	const { aggregations, args, isLoading, searchResults, searchTerm, totalResults } =
+	const { aggregations, args, isLoading, isOn, searchResults, searchTerm, totalResults } =
 		stateRef.current;
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
@@ -291,15 +303,16 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 		getUrlParamsFromArgs,
 		getUrlWithParams,
 		isLoading,
+		isOn,
 		searchResults,
 		searchTerm,
 		search,
 		searchFor,
-		setIsLoading,
 		setResults,
 		nextPage,
 		previousPage,
 		totalResults,
+		turnOff,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
