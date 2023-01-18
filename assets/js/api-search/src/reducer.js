@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { getArgsWithoutConstraints } from '../utilities';
+import { getArgsWithoutConstraints } from './utilities';
 
 /**
  * Reducer function.
