@@ -1109,12 +1109,13 @@ abstract class Indexable {
 	/**
 	 * Send mapping to Elasticsearch
 	 *
-	 * @return boolean
+	 * @param string $return_type Desired return type. Can be either 'bool' or 'raw'
+	 * @return bool|WP_Error
 	 */
-	public function put_mapping() {
+	public function put_mapping( $return_type = 'bool' ) {
 		$mapping = $this->generate_mapping();
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping, $return_type );
 	}
 
 	/**

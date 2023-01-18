@@ -12,7 +12,6 @@ namespace ElasticPress;
 
 use \WP_CLI_Command as WP_CLI_Command;
 use \WP_CLI as WP_CLI;
-use \WP_Hook as WP_Hook;
 use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
@@ -270,7 +269,7 @@ class Command extends WP_CLI_Command {
 					WP_CLI::line( sprintf( esc_html__( 'Adding %1$s mapping for site %2$d…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ), (int) $site['blog_id'] ) );
 
 					$indexable->delete_index();
-					$result = $indexable->put_mapping();
+					$result = $indexable->put_mapping( 'raw' );
 
 					/**
 					 * Fires after CLI put mapping
@@ -282,10 +281,16 @@ class Command extends WP_CLI_Command {
 					 */
 					do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-					if ( $result ) {
+					if ( ! is_wp_error( $result ) ) {
 						WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 					} else {
-						WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+						WP_CLI::error(
+							sprintf(
+								/* translators: Error message */
+								esc_html__( 'Mapping failed: %s', 'elasticpress' ),
+								$result->get_error_message()
+							)
+						);
 					}
 				}
 
@@ -304,7 +309,7 @@ class Command extends WP_CLI_Command {
 				WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 				$indexable->delete_index();
-				$result = $indexable->put_mapping();
+				$result = $indexable->put_mapping( 'raw' );
 
 				/**
 				 * Fires after CLI put mapping
@@ -316,10 +321,16 @@ class Command extends WP_CLI_Command {
 				 */
 				do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-				if ( $result ) {
+				if ( ! is_wp_error( $result ) ) {
 					WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 				} else {
-					WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+					WP_CLI::error(
+						sprintf(
+							/* translators: Error message */
+							esc_html__( 'Mapping failed: %s', 'elasticpress' ),
+							$result->get_error_message()
+						)
+					);
 				}
 			}
 		}
@@ -339,7 +350,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::line( sprintf( esc_html__( 'Adding %s mapping…', 'elasticpress' ), esc_html( strtolower( $indexable->labels['singular'] ) ) ) );
 
 			$indexable->delete_index();
-			$result = $indexable->put_mapping();
+			$result = $indexable->put_mapping( 'raw' );
 
 			/**
 			 * Fires after CLI put mapping
@@ -351,10 +362,16 @@ class Command extends WP_CLI_Command {
 			 */
 			do_action( 'ep_cli_put_mapping', $indexable, $args, $assoc_args );
 
-			if ( $result ) {
+			if ( ! is_wp_error( $result ) ) {
 				WP_CLI::success( esc_html__( 'Mapping sent', 'elasticpress' ) );
 			} else {
-				WP_CLI::error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+				WP_CLI::error(
+					sprintf(
+						/* translators: Error message */
+						esc_html__( 'Mapping failed: %s', 'elasticpress' ),
+						$result->get_error_message()
+					)
+				);
 			}
 		}
 
@@ -644,7 +661,7 @@ class Command extends WP_CLI_Command {
 		if ( SIGINT === $signal_no ) {
 			$this->delete_transient();
 			WP_CLI::log( esc_html__( 'Indexing cleaned up.', 'elasticpress' ) );
-			WP_CLI::halt();
+			WP_CLI::halt( 0 );
 		}
 	}
 
@@ -1140,7 +1157,7 @@ class Command extends WP_CLI_Command {
 		if ( $should_interrupt_sync ) {
 			WP_CLI::line( esc_html__( 'Sync was interrupted', 'elasticpress' ) );
 			$this->delete_transient_on_int( 2 );
-			WP_CLI::halt();
+			WP_CLI::halt( 0 );
 		}
 	}
 

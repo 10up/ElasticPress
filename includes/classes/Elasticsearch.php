@@ -809,10 +809,11 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
+	 * @param  string $return_type Desired return type. Can be either 'bool' or 'raw'
 	 * @since  3.0
-	 * @return boolean
+	 * @return boolean|WP_Error
 	 */
-	public function put_mapping( $index, $mapping ) {
+	public function put_mapping( $index, $mapping, $return_type = 'bool' ) {
 		/**
 		 * Filter Elasticsearch mapping before put mapping
 		 *
@@ -842,15 +843,24 @@ class Elasticsearch {
 		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
-		$response_body = wp_remote_retrieve_body( $request );
+		$response_code = wp_remote_retrieve_response_code( $request );
 
-		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
+		// If WP_Error or not 200, return false or error message depends on attribute.
+		if ( is_wp_error( $request ) || 200 !== $response_code ) {
+			if ( 'bool' === $return_type ) {
+				return false;
+			}
 
-			return true;
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			}
+
+			$response_body   = wp_remote_retrieve_body( $request );
+			$parsed_response = json_decode( $response_body, true );
+			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
 		}
 
-		return false;
+		return true;
 	}
 
 	/**

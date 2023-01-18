@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import classnames from 'classnames';
+
+/**
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
@@ -10,9 +15,10 @@ import { WPElement } from '@wordpress/element';
  * @param {number} props.current Current value.
  * @param {number} props.total Current total.
  * @param {boolean} props.isComplete If operation is complete.
+ * @param {boolean} props.isFailed If sync has failed.
  * @returns {WPElement} Component.
  */
-export default ({ isComplete, current, total }) => {
+export default ({ isComplete, isFailed, current, total }) => {
 	const now = total ? Math.floor((current / total) * 100) : 100;
 
 	return (
@@ -20,7 +26,10 @@ export default ({ isComplete, current, total }) => {
 			aria-valuemax={100}
 			aria-valuemin={0}
 			aria-valuenow={now}
-			className={`ep-sync-progress-bar ${isComplete ? `ep-sync-progress-bar--complete` : ``}`}
+			className={classnames('ep-sync-progress-bar', {
+				'ep-sync-progress-bar--complete': isComplete,
+				'ep-sync-progress-bar--failed': isFailed,
+			})}
 			role="progressbar"
 		>
 			<div

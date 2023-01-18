@@ -39,8 +39,6 @@ class TestFacet extends BaseTestCase {
 		$facets->types['test_custom'] = $facet_type;
 
 		$facets->setup();
-
-		remove_filter( 'ep_facet_types', $register_facet_type );
 	}
 
 	/**
