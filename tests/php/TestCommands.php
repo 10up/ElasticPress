@@ -222,9 +222,14 @@ class TestCommands extends BaseTestCase {
 	 */
 	public function testPutMappingThrowErrorIfMappingFailed() {
 
-		$this->expectExceptionMessage( 'Mapping failed' );
+		$this->expectExceptionMessage( 'Mapping failed: This was forced to fail' );
 
-		add_filter( 'ep_config_mapping_request', '__return_false' );
+		add_filter(
+			'ep_config_mapping_request',
+			function() {
+				return new \WP_Error( 'test', 'This was forced to fail' );
+			}
+		);
 
 		$this->command->put_mapping( [], [] );
 	}
@@ -234,9 +239,14 @@ class TestCommands extends BaseTestCase {
 	 */
 	public function testPutMappingForNetworkWideThrowErrorIfMappingFailed() {
 
-		$this->expectExceptionMessage( 'Mapping failed' );
+		$this->expectExceptionMessage( 'Mapping failed: This was forced to fail' );
 
-		add_filter( 'ep_config_mapping_request', '__return_false' );
+		add_filter(
+			'ep_config_mapping_request',
+			function() {
+				return new \WP_Error( 'test', 'This was forced to fail' );
+			}
+		);
 
 		$this->command->put_mapping( [], [ 'network-wide' => true ] );
 	}
@@ -570,10 +580,15 @@ class TestCommands extends BaseTestCase {
 	 */
 	public function testSyncThrowsErrorIfMappingFailed() {
 
-		$this->expectExceptionMessage( 'Mapping Failed.' );
+		$this->expectExceptionMessage( 'Mapping failed: This was forced to fail' );
 
-		// mock the mapping request to return false
-		add_filter( 'ep_config_mapping_request', '__return_false' );
+		// mock the mapping request to return the error
+		add_filter(
+			'ep_config_mapping_request',
+			function() {
+				return new \WP_Error( 'test', 'This was forced to fail' );
+			}
+		);
 
 		$this->command->sync(
 			[],
