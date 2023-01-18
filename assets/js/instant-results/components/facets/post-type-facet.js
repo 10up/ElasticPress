@@ -7,11 +7,11 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
+import { postTypeLabels } from '../../config';
 import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
 import { ActiveContraint } from '../tools/active-constraints';
-import { postTypeLabels } from '../../config';
-import { useApiSearch } from '../../../api-search';
 
 /**
  * Post type facet component.

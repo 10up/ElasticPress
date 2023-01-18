@@ -8,20 +8,20 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
+import { facets, postTypeLabels } from '../../config';
 import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
 import { ActiveContraint } from '../tools/active-constraints';
-import { facets, postTypeLabels } from '../../config';
-import { useApiSearch } from '../../../api-search';
 
 /**
  * Taxonomy filter component.
  *
- * @param {object}  props               Components props.
+ * @param {object} props Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
- * @param {string}  props.label         Facet label.
- * @param {string}  props.name          Facet name.
- * @param {Array}   props.postTypes     Facet post types.
+ * @param {string} props.label Facet label.
+ * @param {string} props.name Facet name.
+ * @param {Array} props.postTypes Facet post types.
  * @returns {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label, postTypes, name }) => {

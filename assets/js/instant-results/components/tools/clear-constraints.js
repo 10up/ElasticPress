@@ -7,9 +7,9 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
 import { facets } from '../../config';
 import SmallButton from '../common/small-button';
-import { useApiSearch } from '../../../api-search';
 
 /**
  * Active constraints component.

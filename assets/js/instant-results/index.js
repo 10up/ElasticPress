@@ -6,8 +6,8 @@ import { render } from '@wordpress/element';
 /**
  * Internal dependencies.
  */
-import { apiEndpoint, apiHost, argsSchema, paramPrefix } from './config';
 import { ApiSearchProvider } from '../api-search';
+import { apiEndpoint, apiHost, argsSchema, paramPrefix } from './config';
 import Modal from './apps/modal';
 
 /**

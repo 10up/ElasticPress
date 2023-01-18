@@ -8,7 +8,7 @@ import { useCallback, useRef } from '@wordpress/element';
  * after the last time it was run.
  *
  * @param {Function} callback Function to debounce.
- * @param {number}   delay    Milliseconds to delay.
+ * @param {number} delay Milliseconds to delay.
  * @returns {Function} Debounced function.
  */
 export const useDebounce = (callback, delay) => {

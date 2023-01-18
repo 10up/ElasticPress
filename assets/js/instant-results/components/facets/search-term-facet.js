@@ -7,9 +7,9 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
 import { useDebounce } from '../../hooks';
 import { ActiveContraint } from '../tools/active-constraints';
-import { useApiSearch } from '../../../api-search';
 
 /**
  * Search field component.

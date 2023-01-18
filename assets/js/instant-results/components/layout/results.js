@@ -7,10 +7,10 @@ import { _n, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
 import Pagination from '../results/pagination';
 import Result from '../results/result';
 import Sort from '../tools/sort';
-import { useApiSearch } from '../../../api-search';
 
 /**
  * Search results component.
