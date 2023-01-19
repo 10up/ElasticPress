@@ -73,7 +73,7 @@ export default (state, action) => {
 			break;
 		}
 		case 'POP_STATE': {
-			const { isOn, ...args } = action.args;
+			const { isOn, args } = action.args;
 
 			newState.args = args;
 			newState.isOn = isOn;
