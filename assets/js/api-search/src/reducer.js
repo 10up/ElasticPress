@@ -15,7 +15,7 @@ export default (state, action) => {
 
 	switch (action.type) {
 		case 'CLEAR_CONSTRAINTS': {
-			const clearedArgs = getArgsWithoutConstraints(newState.args, action.argsSchema);
+			const clearedArgs = getArgsWithoutConstraints(newState.args, newState.argsSchema);
 
 			newState.args = clearedArgs;
 			newState.args.offset = 0;
@@ -28,7 +28,7 @@ export default (state, action) => {
 			break;
 		}
 		case 'SEARCH_FOR': {
-			const clearedArgs = getArgsWithoutConstraints(newState.args, action.argsSchema);
+			const clearedArgs = getArgsWithoutConstraints(newState.args, newState.argsSchema);
 
 			newState.args = clearedArgs;
 			newState.args.search = action.searchTerm;

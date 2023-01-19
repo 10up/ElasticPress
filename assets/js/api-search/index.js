@@ -42,14 +42,7 @@ const Context = createContext();
  */
 export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, paramPrefix }) => {
 	/**
-	 * Get default args from the schema.
-	 */
-	const defaultArgsFromSchema = useMemo(() => {
-		return getDefaultArgsFromSchema(argsSchema);
-	}, [argsSchema]);
-
-	/**
-	 * Get any default args from the UR:.
+	 * Any default args from the URL.
 	 */
 	const defaultArgsFromUrl = useMemo(() => {
 		if (!paramPrefix) {
@@ -60,21 +53,23 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	}, [argsSchema, paramPrefix]);
 
 	/**
-	 * Set up the reducer.
+	 * All default args including defaults from the schema.
 	 */
-	const [state, dispatch] = useReducer(reducer, {
-		aggregations: {},
-		args: {
+	const defaultArgs = useMemo(() => {
+		const defaultArgsFromSchema = getDefaultArgsFromSchema(argsSchema);
+
+		return {
 			...defaultArgsFromSchema,
 			...defaultArgsFromUrl,
-		},
-		isLoading: false,
-		isOn: Object.keys(defaultArgsFromUrl).length > 0,
-		isPoppingState: false,
-		searchResults: [],
-		searchedTerm: '',
-		totalResults: 0,
-	});
+		};
+	}, [argsSchema, defaultArgsFromUrl]);
+
+	/**
+	 * Whether the provider is "on" by default.
+	 */
+	const defaultIsOn = useMemo(() => {
+		return Object.keys(defaultArgsFromUrl).length > 0;
+	}, [defaultArgsFromUrl]);
 
 	/**
 	 * Set up fetch method.
@@ -82,7 +77,24 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	const fetchResults = useFetchResults(apiHost, apiEndpoint);
 
 	/**
+	 * Set up the reducer.
+	 */
+	const [state, dispatch] = useReducer(reducer, {
+		aggregations: {},
+		args: defaultArgs,
+		argsSchema,
+		isLoading: false,
+		isOn: defaultIsOn,
+		isPoppingState: false,
+		searchResults: [],
+		searchedTerm: '',
+		totalResults: 0,
+	});
+
+	/**
 	 * Create state ref.
+	 *
+	 * Helps to avoid dependency hell.
 	 */
 	const stateRef = useRef(state);
 
@@ -94,37 +106,28 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 * @returns {void}
 	 */
 	const clearConstraints = useCallback(() => {
-		dispatch({
-			type: 'CLEAR_CONSTRAINTS',
-			argsSchema,
-		});
-	}, [argsSchema]);
+		dispatch({ type: 'CLEAR_CONSTRAINTS' });
+	}, []);
 
 	/**
-	 * Set search args.
+	 * Update the search query args, triggering a search.
 	 *
 	 * @param {object} args Search args.
 	 * @returns {void}
 	 */
 	const search = useCallback((args) => {
-		dispatch({
-			type: 'SEARCH',
-			args,
-		});
+		dispatch({ type: 'SEARCH', args });
 	}, []);
 
 	/**
-	 * Reset search args with new search term.
+	 * Update the search term, triggering a search and resetting facet
+	 * constraints.
 	 *
 	 * @param {string} searchTerm Search term.
 	 * @returns {void}
 	 */
 	const searchFor = (searchTerm) => {
-		dispatch({
-			type: 'SEARCH_FOR',
-			argsSchema,
-			searchTerm,
-		});
+		dispatch({ type: 'SEARCH_FOR', searchTerm });
 	};
 
 	/**
@@ -134,10 +137,7 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 * @returns {void}
 	 */
 	const setIsLoading = (isLoading) => {
-		dispatch({
-			type: 'SET_IS_LOADING',
-			isLoading,
-		});
+		dispatch({ type: 'SET_IS_LOADING', isLoading });
 	};
 
 	/**
@@ -147,32 +147,25 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 * @returns {void}
 	 */
 	const setResults = (response) => {
-		dispatch({
-			type: 'SET_RESULTS',
-			response,
-		});
+		dispatch({ type: 'SET_RESULTS', response });
 	};
 
 	/**
-	 * Load the next page of search results.
+	 * Go to the next page of search results.
 	 *
 	 * @returns {void}
 	 */
 	const nextPage = () => {
-		dispatch({
-			type: 'NEXT_PAGE',
-		});
+		dispatch({ type: 'NEXT_PAGE' });
 	};
 
 	/**
-	 * Load the previous page of search results.
+	 * Go to the previous page of search results.
 	 *
 	 * @returns {void}
 	 */
 	const previousPage = () => {
-		dispatch({
-			type: 'PREVIOUS_PAGE',
-		});
+		dispatch({ type: 'PREVIOUS_PAGE' });
 	};
 
 	/**
@@ -181,14 +174,20 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 * @param {object} args Search args.
 	 */
 	const popState = (args) => {
-		dispatch({
-			type: 'POP_STATE',
-			args,
-		});
+		dispatch({ type: 'POP_STATE', args });
 	};
 
 	/**
-	 * Push args state to history.
+	 * Turn off the provider.
+	 *
+	 * @returns {void}
+	 */
+	const turnOff = () => {
+		dispatch({ type: 'TURN_OFF' });
+	};
+
+	/**
+	 * Push search args to browser history.
 	 *
 	 * @returns {void}
 	 */
@@ -198,28 +197,23 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 		}
 
 		const { args, isOn } = stateRef.current;
-		const state = { ...args, isOn };
+		const state = { args, isOn };
 
 		if (window.history.state) {
-			const params = isOn ? getUrlParamsFromArgs(args, argsSchema, paramPrefix) : null;
-			const url = getUrlWithParams(paramPrefix, params);
+			if (isOn) {
+				const params = getUrlParamsFromArgs(args, argsSchema, paramPrefix);
+				const url = getUrlWithParams(paramPrefix, params);
 
-			window.history.pushState(state, document.title, url);
+				window.history.pushState(state, document.title, url);
+			} else {
+				const url = getUrlWithParams(paramPrefix);
+
+				window.history.pushState(state, document.title, url);
+			}
 		} else {
 			window.history.replaceState(state, document.title, window.location.href);
 		}
 	}, [argsSchema, paramPrefix]);
-
-	/**
-	 * Close search.
-	 *
-	 * @returns {void}
-	 */
-	const turnOff = () => {
-		dispatch({
-			type: 'TURN_OFF',
-		});
-	};
 
 	/**
 	 * Handle popstate event.
@@ -242,11 +236,24 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	);
 
 	/**
-	 * Handle search.
+	 * Handle initialization.
+	 *
+	 * @returns {Function} A cleanup function.
+	 */
+	const handleInit = useCallback(() => {
+		window.addEventListener('popstate', onPopState);
+
+		return () => {
+			window.removeEventListener('popstate', onPopState);
+		};
+	}, [onPopState]);
+
+	/**
+	 * Handle a change to search args.
 	 *
 	 * @returns {void}
 	 */
-	const onSearch = useCallback(async () => {
+	const handleSearch = useCallback(() => {
 		const { args, isOn, isPoppingState } = stateRef.current;
 
 		if (!isPoppingState) {
@@ -261,40 +268,18 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 
 		setIsLoading(true);
 
-		const response = await fetchResults(urlParams);
-
-		setResults(response);
-		setIsLoading(false);
+		fetchResults(urlParams).then((response) => {
+			setResults(response);
+			setIsLoading(false);
+		});
 	}, [argsSchema, fetchResults, pushState]);
-
-	/**
-	 * Bind events to outside elements.
-	 *
-	 * @returns {Function} A cleanup function that unbinds the events.
-	 */
-	const handleInit = () => {
-		window.addEventListener('popstate', onPopState);
-
-		return () => {
-			window.removeEventListener('popstate', onPopState);
-		};
-	};
-
-	/**
-	 * Perform a search.
-	 *
-	 * @returns {void}
-	 */
-	const handleSearch = () => {
-		onSearch();
-	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleInit, [argsSchema, onPopState, paramPrefix, search]);
+	useEffect(handleInit, [handleInit]);
 	useEffect(handleSearch, [
-		onSearch,
+		handleSearch,
 		state.args,
 		state.args.orderby,
 		state.args.order,
