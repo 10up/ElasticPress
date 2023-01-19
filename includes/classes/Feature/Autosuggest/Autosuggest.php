@@ -894,9 +894,13 @@ class Autosuggest extends Feature {
 				break;
 			}
 
-			if ( empty( $allowed_params ) ) {
-				$this->epio_send_autosuggest_public_request( true );
+			// We have what we need, no need to retry.
+			if ( ! empty( $allowed_params ) ) {
+				break;
 			}
+
+			// Send to EP.io what should be accepted as values by autosuggest and try to get them again.
+			$this->epio_send_autosuggest_public_request( true );
 		}
 
 		return $allowed_params;
