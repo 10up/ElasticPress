@@ -899,7 +899,7 @@ class Autosuggest extends Feature {
 				break;
 			}
 
-			// Send to EP.io what should be accepted as values by autosuggest and try to get them again.
+			// Send to EP.io what should be autosuggest's allowed values and try to get them again.
 			$this->epio_send_autosuggest_public_request( true );
 		}
 
