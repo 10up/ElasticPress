@@ -6,20 +6,17 @@ import { createPortal, render } from '@wordpress/element';
 /**
  * Internal dependencies.
  */
+import { ApiSearchProvider } from '../api-search';
 import { apiEndpoint, apiHost, argsSchema, paramPrefix } from './config';
-import { getArgsFromUrlParams, ApiSearchProvider } from '../api-search';
-import Modal from './components/modal';
+import Modal from './apps/modal';
 import SearchTermFacet from './components/facets/search-term-facet';
 import TaxonomyTermsFacet from './components/facets/taxonomy-terms-facet';
-import Results from './components/modal/results';
+import Results from './components/layout/results';
+
 /**
- * Render Instant Results as a modal.
- *
- * @param {object} defaultArgs Default search args.
- * @param {boolean} defaultIsOpen Whether the modal should be open.
- * @returns {void}
+ * Initialize Instant Results.
  */
-const renderModal = (defaultArgs, defaultIsOpen) => {
+const init = () => {
 	const el = document.getElementById('ep-instant-results');
 
 	render(
@@ -27,23 +24,13 @@ const renderModal = (defaultArgs, defaultIsOpen) => {
 			apiEndpoint={apiEndpoint}
 			apiHost={apiHost}
 			argsSchema={argsSchema}
-			defaultArgs={defaultArgs}
 			paramPrefix={paramPrefix}
 		>
-			<Modal defaultIsOpen={defaultIsOpen} />
+			<Modal />
 		</ApiSearchProvider>,
 		el,
 	);
-};
 
-/**
- * Render Instant Results blocks.
- *
- * @param {object} defaultArgs Default search args.
- * @returns {void}
- */
-const renderBlocks = (defaultArgs) => {
-	const el = document.getElementById('ep-instant-results');
 	const facetEl = document.getElementById('ep-facet-block');
 	const resultsEl = document.getElementById('ep-results-block');
 	const searchEl = document.getElementById('ep-search-block');
@@ -53,7 +40,6 @@ const renderBlocks = (defaultArgs) => {
 			apiEndpoint={apiEndpoint}
 			apiHost={apiHost}
 			argsSchema={argsSchema}
-			defaultArgs={defaultArgs}
 			paramPrefix={paramPrefix}
 		>
 			{createPortal(<SearchTermFacet />, searchEl)}
@@ -70,18 +56,6 @@ const renderBlocks = (defaultArgs) => {
 		</ApiSearchProvider>,
 		el,
 	);
-};
-
-/**
- * Initialize Instant Results.
- */
-const init = () => {
-	const urlParams = new URLSearchParams(window.location.search);
-	const defaultArgs = getArgsFromUrlParams(urlParams, argsSchema, paramPrefix, false);
-	const defaultIsOpen = Object.keys(defaultArgs).length > 0;
-
-	// renderModal(defaultArgs, defaultIsOpen);
-	renderBlocks(defaultArgs);
 };
 
 window.addEventListener('DOMContentLoaded', init);

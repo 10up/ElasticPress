@@ -7,8 +7,8 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal deendencies.
  */
-import { sortOptions } from '../../config';
 import { useApiSearch } from '../../../api-search';
+import { sortOptions } from '../../config';
 
 /**
  * Search results component.

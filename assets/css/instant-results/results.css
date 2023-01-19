@@ -2,13 +2,16 @@
 	display: flex;
 	flex-direction: column;
 	gap: 2em;
-	padding: 0 0 1em 0;
 	width: 100%;
 
-	@media ( min-width: 768px ) {
-		height: 100%;
-		overflow-y: auto;
-		padding: 0 1em 1em 1em;
+	@nest .ep-search-modal & {
+		padding: 0 0 1em 0;
+
+		@media ( min-width: 768px ) {
+			height: 100%;
+			overflow-y: auto;
+			padding: 0 1em 1em 1em;
+		}
 	}
 }
 

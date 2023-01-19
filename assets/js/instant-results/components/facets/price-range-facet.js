@@ -7,11 +7,11 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
+import { formatPrice } from '../../utilities';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
 import { ActiveContraint } from '../tools/active-constraints';
-import { formatPrice } from '../../utilities';
-import { useApiSearch } from '../../../api-search';
 
 /**
  * Price range facet.

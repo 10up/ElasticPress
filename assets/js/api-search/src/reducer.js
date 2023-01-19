@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { getArgsWithoutConstraints } from '../utilities';
+import { getArgsWithoutConstraints } from './utilities';
 
 /**
  * Reducer function.
@@ -15,7 +15,7 @@ export default (state, action) => {
 
 	switch (action.type) {
 		case 'CLEAR_CONSTRAINTS': {
-			const clearedArgs = getArgsWithoutConstraints(newState.args, action.argsSchema);
+			const clearedArgs = getArgsWithoutConstraints(newState.args, newState.argsSchema);
 
 			newState.args = clearedArgs;
 			newState.args.offset = 0;
@@ -24,19 +24,26 @@ export default (state, action) => {
 		}
 		case 'SEARCH': {
 			newState.args = { ...newState.args, ...action.args, offset: 0 };
+			newState.isOn = true;
 			break;
 		}
 		case 'SEARCH_FOR': {
-			const clearedArgs = getArgsWithoutConstraints(newState.args, action.argsSchema);
+			const clearedArgs = getArgsWithoutConstraints(newState.args, newState.argsSchema);
 
 			newState.args = clearedArgs;
 			newState.args.search = action.searchTerm;
 			newState.args.offset = 0;
+			newState.isOn = true;
 
 			break;
 		}
 		case 'SET_IS_LOADING': {
 			newState.isLoading = action.isLoading;
+			break;
+		}
+		case 'TURN_OFF': {
+			newState.args = { ...newState.args };
+			newState.isOn = false;
 			break;
 		}
 		case 'SET_RESULTS': {
@@ -66,10 +73,10 @@ export default (state, action) => {
 			break;
 		}
 		case 'POP_STATE': {
-			const { isOpen, ...args } = action.args;
+			const { isOn, ...args } = action.args;
 
 			newState.args = args;
-			newState.isOpen = isOpen;
+			newState.isOn = isOn;
 			newState.isPoppingState = true;
 
 			break;

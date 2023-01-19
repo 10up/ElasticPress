@@ -7,29 +7,29 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import { termCount } from '../../config';
 import Checkbox from './checkbox';
 import SmallButton from './small-button';
-import { termCount } from '../../config';
 
 /**
  * Checkbox list component.
  *
  * @typedef {object} Option
- * @property {number}   count          Number associated with option.
- * @property {string}   id             Option ID.
- * @property {string}   label          Option label.
- * @property {number}   order          Option order.
- * @property {string}   parent         Parent option value.
- * @property {any}      value          Option value.
+ * @property {number} count Number associated with option.
+ * @property {string} id Option ID.
+ * @property {string} label Option label.
+ * @property {number} order Option order.
+ * @property {string} parent Parent option value.
+ * @property {any} value Option value.
  *
- * @param    {object}   props          Component props.
- * @param    {boolean}  props.disabled Whether the checkboxes should be disabled.
- * @param    {string}   props.locale   BCP 47 language tag. Used for sorting.
- * @param    {boolean}  props.label    List label.
- * @param    {Function} props.onChange Checkbox change event callback function.
- * @param    {Option[]} props.options  Checkbox options.
- * @param    {string}   props.selected Selected values.
- * @param    {string}   props.sortBy   How to sort options.
+ * @param {object} props Component props.
+ * @param {boolean} props.disabled Whether the checkboxes should be disabled.
+ * @param {string} props.locale BCP 47 language tag. Used for sorting.
+ * @param {boolean} props.label List label.
+ * @param {Function} props.onChange Checkbox change event callback function.
+ * @param {Option[]} props.options Checkbox options.
+ * @param {string} props.selected Selected values.
+ * @param {string} props.sortBy How to sort options.
  * @returns {WPElement} A React element.
  */
 export default ({ disabled, label, locale, options, onChange, selected, sortBy }) => {
