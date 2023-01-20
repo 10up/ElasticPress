@@ -8235,7 +8235,6 @@ class TestPost extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testDeletingThumbnailUpdateRelatedIndexablePost() {
-
 		$product_id = $this->ep_factory->post->create( array(
 			'post_type' => 'product',
 		) );
@@ -8267,7 +8266,6 @@ class TestPost extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testDeletingThumbnailShouldNotUpdateRelatedNonIndexablePost() {
-
 		$product_id = $this->ep_factory->post->create( array(
 			'post_type' => 'product',
 		) );
