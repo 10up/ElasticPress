@@ -144,7 +144,7 @@ class WooCommerce extends Feature {
 	 * @return  array
 	 */
 	public function convert_post_object_to_id( $posts ) {
-		_doing_it_wrong( __METHOD__, 'This filter is removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5' );
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
 		return $posts;
 	}
 
@@ -201,7 +201,7 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function disallow_duplicated_query( $value, $query ) {
-		_doing_it_wrong( __METHOD__, 'This filter is removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5' );
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
 
 		return $value;
 	}
