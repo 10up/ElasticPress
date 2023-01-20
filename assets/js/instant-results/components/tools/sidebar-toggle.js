@@ -1,45 +1,28 @@
 /**
  * WordPress deendencies.
  */
-import { useContext, WPElement } from '@wordpress/element';
+import { WPElement } from '@wordpress/element';
 import { chevronDown, chevronUp, Icon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 
 /**
- * Internal deendencies.
- */
-import Context from '../../context';
-
-/**
  * Open sidebar component.
  *
+ * @param {object} props Component props.
+ * @param {boolean} props.isOpen Is the sidebar open?
+ * @param {Function} props.onClick Click handler.
  * @returns {WPElement} Element.
  */
-export default () => {
-	const {
-		state: { isSidebarOpen },
-		dispatch,
-	} = useContext(Context);
-
-	/**
-	 * Handle click.
-	 */
-	const onClick = () => {
-		dispatch({ type: 'TOGGLE_SIDEBAR' });
-	};
-
+export default ({ isOpen, onClick }) => {
 	return (
 		<button
-			aria-expanded={isSidebarOpen}
+			aria-expanded={isOpen}
 			className="ep-search-sidebar-toggle ep-search-icon-button"
 			onClick={onClick}
 			type="button"
 		>
-			{isSidebarOpen
-				? __('Close filters', 'elasticpress')
-				: __('All filters', 'elasticoress')}
-
-			<Icon icon={isSidebarOpen ? chevronUp : chevronDown} />
+			{isOpen ? __('Close filters', 'elasticpress') : __('All filters', 'elasticoress')}
+			<Icon icon={isOpen ? chevronUp : chevronDown} />
 		</button>
 	);
 };
