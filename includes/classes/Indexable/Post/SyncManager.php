@@ -205,6 +205,7 @@ class SyncManager extends SyncManagerAbstract {
 					'meta_key'     => $meta_key,
 					'meta_value'   => $meta_value,
 					'fields'       => 'ids',
+					'post_type'    => $indexable->get_indexable_post_types(),
 				]
 			);
 
