@@ -144,17 +144,8 @@ class WooCommerce extends Feature {
 	 * @return  array
 	 */
 	public function convert_post_object_to_id( $posts ) {
-		$new_posts = [];
-
-		foreach ( $posts as $post ) {
-			if ( is_object( $post ) ) {
-				$new_posts[] = $post->ID;
-			} else {
-				$new_posts[] = $post;
-			}
-		}
-
-		return $new_posts;
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
+		return $posts;
 	}
 
 	/**
@@ -210,26 +201,9 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function disallow_duplicated_query( $value, $query ) {
-		global $pagenow;
-
-		$searchable_post_types = $this->get_admin_searchable_post_types();
-
-		/**
-		 * Make sure we're on edit.php in admin dashboard.
-		 */
-		if ( 'edit.php' !== $pagenow || ! is_admin() || ! in_array( $query->get( 'post_type' ), $searchable_post_types, true ) ) {
-			return $value;
-		}
-
-		/**
-		 * Check if EP API request was already done. If request was sent return its results.
-		 */
-		if ( isset( $query->elasticsearch_success ) && $query->elasticsearch_success ) {
-			return $query->posts;
-		}
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
 
 		return $value;
-
 	}
 
 	/**
