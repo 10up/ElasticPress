@@ -64,7 +64,7 @@ $index_meta = Utils\get_option( 'ep_index_meta', [] );
 			<div class="<?php if ( $feature->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) : ?>dash-sync-disabled<?php endif; ?> ep-feature ep-feature-<?php echo esc_attr( $feature->slug ); ?> <?php echo esc_attr( $feature_classes ); ?>">
 				<div class="postbox">
 					<h2 class="hndle">
-						<span><?php echo esc_html( $feature->title ); ?></span>
+						<span><?php echo wp_kses_post( $feature->get_title() ); ?></span>
 						<button aria-expanded="false" type="button" class="settings-button"><?php esc_html_e( 'settings', 'elasticpress' ); ?></button>
 					</h2>
 

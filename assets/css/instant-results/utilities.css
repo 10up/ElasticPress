@@ -39,7 +39,7 @@
 	justify-content: space-between;
 
 	& svg {
-		fill: currentColor;
+		fill: currentcolor;
 		flex-shrink: 0;
 		height: 1em;
 		width: 1em;

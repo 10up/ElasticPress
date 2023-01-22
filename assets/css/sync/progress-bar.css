@@ -24,4 +24,8 @@
 	@nest .ep-sync-progress-bar--paused & {
 		opacity: 0.5;
 	}
+
+	@nest .ep-sync-progress-bar--failed & {
+		background: var(--ep-sync-color-error);
+	}
 }

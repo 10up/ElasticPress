@@ -203,6 +203,11 @@ Thank you to all the people who have already contributed to this repository via 
 [@cmcandrew](https://github.com/cmcandrew),
 [@DenisFlorin](https://github.com/DenisFlorin),
 [Mike Hemberger (@JiveDig)](https://github.com/JiveDig),
+[Oluwatosin Yakubu (@tomioflagos)](https://github.com/tomioflagos),
+[Logan Fox (@NV607FOX)](https://github.com/NV607FOX),
+[@anders-naslund](https://github.com/anders-naslund),
+[Paolo Burzacca (@paoloburzacca)](https://github.com/paoloburzacca),
+[Anjula Hettige (@anjulahettige)](https://github.com/anjulahettige),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 6.1
-Stable tag:   4.4.0
+Stable tag:   4.4.1
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,56 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 4.4.1 - 2023-01-10 =
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
+
+This is a bug fix release.
+
+__Added:__
+
+* Node 18 support. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Unit tests for WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Unit tests for the `HealthCheckElasticsearch` class, Protected Feature, and #3106. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Changed:__
+
+* Detection of indexable meta fields when visiting the sync and status report pages. Props [@felipeelia](https://github.com/felipeelia), [@paoloburzacca](https://github.com/paoloburzacca), and [@burhandodhy](https://github.com/burhandodhy).
+* `put-mapping` WP-CLI command returns an error message if mapping failed. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia).
+* Last Sync subsection title in the Status Report page. Props [@MARQAS](https://github.com/MARQAS), [@felipeelia](https://github.com/felipeelia), and [@tomioflagos](https://github.com/tomioflagos).
+* Title for Autosuggest and Instant results features, if connected to an ElasticPress.io account. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@NV607FOX](https://github.com/NV607FOX).
+* "Exclude from search" checkbox text. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), and [@anjulahettige](https://github.com/anjulahettige).
+* Visibility of the `analyze_log` method of the `FailedQueries` class. Props [@MARQAS](https://github.com/MARQAS).
+* Text of the notice under the Documents feature. Props [@MARQAS](https://github.com/MARQAS) and [@NV607FOX](https://github.com/NV607FOX).
+* Usage of `get_index_default_per_page` instead of a direct call to `Utils\get_option`. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Removed:__
+
+* Unnecessary `remove_filters` from the unit tests. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Fixed:__
+
+* Sync is stopped if put mapping throws an error. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia).
+* Layout issue in Instant Results that would occur with small result sets. Props [@JakePT](https://github.com/JakePT).
+* Issue where keyboard focus on a facet option was lost upon selection. Props [@JakePT](https://github.com/JakePT).
+* JS error on Status Report page. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Hooks documentation reference. Props [@burhandodhy](https://github.com/burhandodhy).
+* `'current'` as value for the `'sites'` parameter. Props [@burhandodhy](https://github.com/burhandodhy), [@oscarssanchez](https://github.com/oscarssanchez), and [@anders-naslund](https://github.com/anders-naslund).
+* `Uncaught ArgumentCountError: Too few arguments to function WP_CLI::halt()` message. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT).
+* Queries with `post_parent` set to `0` not working correctly. Props [@JiveDig](https://github.com/JiveDig).
+* Sync command exits without any error message if mapping fails. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Evaluate the WP-CLI `--pretty` flag as real boolean. Props [@oscarssanchez](https://github.com/oscarssanchez).
+* Remove deprecated command from the error message. Props [@burhandodhy](https://github.com/burhandodhy).
+* CLI command `delete-index --network-wide` throws error when EP is not network activated. Props [@burhandodhy](https://github.com/burhandodhy).
+* E2E tests for PHP 8. Props [@burhandodhy](https://github.com/burhandodhy).
+* Feature title issue on the report page and notices. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT).
+* Autosuggest Site Health Info containing incorrect information unrelated to Autosuggest. Props [@JakePT](https://github.com/JakePT).
+* Styling of the Instant Results Facets field. Props [@JakePT](https://github.com/JakePT).
+
+__Security:__
+
+* Bumped `simple-git` from 3.6.0 to 3.15.1. Props [@dependabot](https://github.com/dependabot).
 
 = 4.4.0 - 2022-11-29 =
 

@@ -1,14 +1,14 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, useLayoutEffect, useState, WPElement } from '@wordpress/element';
+import { useLayoutEffect, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import Context from '../../context';
-import { formatPrice } from '../../functions';
+import { useApiSearch } from '../../../api-search';
+import { formatPrice } from '../../utilities';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
 import { ActiveContraint } from '../tools/active-constraints';
@@ -23,18 +23,16 @@ import { ActiveContraint } from '../tools/active-constraints';
  */
 export default ({ defaultIsOpen, label }) => {
 	const {
-		state: {
-			aggregations: {
-				price_range: {
-					max_price: { value: maxAgg = null } = {},
-					min_price: { value: minAgg = null } = {},
-				} = {},
-			},
-			args: { max_price: maxArg = null, min_price: minArg = null },
-			isLoading,
+		aggregations: {
+			price_range: {
+				max_price: { value: maxAgg = null } = {},
+				min_price: { value: minAgg = null } = {},
+			} = {},
 		},
-		dispatch,
-	} = useContext(Context);
+		args: { max_price: maxArg = null, min_price: minArg = null },
+		isLoading,
+		search,
+	} = useApiSearch();
 
 	/**
 	 * Minimum and maximum possible values.
@@ -74,7 +72,7 @@ export default ({ defaultIsOpen, label }) => {
 	const onAfterChange = (values) => {
 		const [min_price, max_price] = values;
 
-		dispatch({ type: 'APPLY_ARGS', payload: { min_price, max_price } });
+		search({ min_price, max_price });
 	};
 
 	/**
@@ -91,7 +89,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * Handle clearing the filter.
 	 */
 	const onClear = () => {
-		dispatch({ type: 'APPLY_ARGS', payload: { max_price: null, min_price: null } });
+		search({ max_price: null, min_price: null });
 	};
 
 	/**

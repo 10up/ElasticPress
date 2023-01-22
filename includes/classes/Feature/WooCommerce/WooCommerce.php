@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\WooCommerce;
 use ElasticPress\Feature as Feature;
 use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\IndexHelper;
 use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -143,17 +144,8 @@ class WooCommerce extends Feature {
 	 * @return  array
 	 */
 	public function convert_post_object_to_id( $posts ) {
-		$new_posts = [];
-
-		foreach ( $posts as $post ) {
-			if ( is_object( $post ) ) {
-				$new_posts[] = $post->ID;
-			} else {
-				$new_posts[] = $post;
-			}
-		}
-
-		return $new_posts;
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
+		return $posts;
 	}
 
 	/**
@@ -209,26 +201,9 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function disallow_duplicated_query( $value, $query ) {
-		global $pagenow;
-
-		$searchable_post_types = $this->get_admin_searchable_post_types();
-
-		/**
-		 * Make sure we're on edit.php in admin dashboard.
-		 */
-		if ( 'edit.php' !== $pagenow || ! is_admin() || ! in_array( $query->get( 'post_type' ), $searchable_post_types, true ) ) {
-			return $value;
-		}
-
-		/**
-		 * Check if EP API request was already done. If request was sent return its results.
-		 */
-		if ( isset( $query->elasticsearch_success ) && $query->elasticsearch_success ) {
-			return $query->posts;
-		}
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
 
 		return $value;
-
 	}
 
 	/**
@@ -625,7 +600,11 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function blacklist_coupons( $enabled, $query ) {
-		if ( method_exists( $query, 'get' ) && 'shop_coupon' === $query->get( 'post_type' ) ) {
+		if ( is_admin() ) {
+			return $enabled;
+		}
+
+		if ( 'shop_coupon' === $query->get( 'post_type' ) && empty( $query->query_vars['ep_integrate'] ) ) {
 			return false;
 		}
 
@@ -859,7 +838,7 @@ class WooCommerce extends Feature {
 		}
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-		add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
+		add_filter( 'ep_integrate_search_queries', [ $this, 'blacklist_coupons' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
 		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
@@ -1262,8 +1241,7 @@ class WooCommerce extends Feature {
 			return $notices;
 		}
 
-		/* This filter is documented in /includes/classes/IndexHelper.php */
-		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		$documents_per_page_sync = IndexHelper::factory()->get_index_default_per_page();
 		if ( $documents_per_page_sync >= $wp_query->found_posts ) {
 			return $notices;
 		}
@@ -1289,8 +1267,8 @@ class WooCommerce extends Feature {
 	 * @param array $menu_orders Post IDs and their new menu_order value
 	 */
 	public function action_sync_on_woocommerce_sort_single( $sorting_id, $menu_orders ) {
-		/* This filter is documented in /includes/classes/IndexHelper.php */
-		$documents_per_page_sync = (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+
+		$documents_per_page_sync = IndexHelper::factory()->get_index_default_per_page();
 		if ( $documents_per_page_sync < count( $menu_orders ) ) {
 			return;
 		}

@@ -105,7 +105,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 												name="features[]"
 												value="<?php echo esc_attr( $feature->slug ); ?>"
 												<?php checked( $should_be_checked ); ?>>
-											<?php echo esc_html( $feature->title ); ?>
+											<?php echo esc_html( $feature->get_short_title() ); ?>
 										</label>
 										<?php if ( $feature->summary ) : ?>
 											<span class="a11y-tip a11y-tip--no-delay">
@@ -116,7 +116,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 														printf(
 															/* translators: %s: Feature name. */
 															esc_html__( 'Learn more about %s.', 'elasticpress' ),
-															esc_html( $feature->title )
+															esc_html( $feature->get_short_title() )
 														);
 														?>
 													</span>
