@@ -1039,6 +1039,15 @@ class InstantResults extends Feature {
 		);
 
 		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/instant-results/post-type',
+			[
+				'render_callback' => function() {
+					return '<div id="ep-post-type-block"></div>';
+				},
+			]
+		);
+
+		register_block_type_from_metadata(
 			EP_PATH . 'assets/js/blocks/instant-results/results',
 			[
 				'render_callback' => function() {

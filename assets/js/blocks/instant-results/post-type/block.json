@@ -1,0 +1,10 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Instant Results Post Type",
+	"textdomain": "elasticpress",
+	"name": "elasticpress/post-type",
+	"category": "widgets",
+	"attributes": {},
+	"editorScript": "elasticpress-instant-results-block-script"
+}
