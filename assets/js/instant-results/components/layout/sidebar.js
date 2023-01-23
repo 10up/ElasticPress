@@ -1,26 +1,16 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, WPElement } from '@wordpress/element';
-
-/**
- * Internal dependencies.
- */
-import Context from '../../context';
+import { WPElement } from '@wordpress/element';
 
 /**
  * Search field component.
  *
- * @param {object}    props          Props.
+ * @param {object} props Props.
  * @param {WPElement} props.children Children.
+ * @param {boolean} props.isOpen Is sidebar open?
  * @returns {WPElement} Element.
  */
-export default ({ children }) => {
-	const {
-		state: { isSidebarOpen },
-	} = useContext(Context);
-
-	return (
-		<aside className={`ep-search-sidebar ${isSidebarOpen ? 'is-open' : ''}`}>{children}</aside>
-	);
+export default ({ children, isOpen }) => {
+	return <aside className={`ep-search-sidebar ${isOpen ? 'is-open' : ''}`}>{children}</aside>;
 };

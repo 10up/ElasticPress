@@ -19,6 +19,14 @@ defined( 'ABSPATH' ) || exit;
  */
 class StatusReport {
 	/**
+	 * The formatted/processed reports.
+	 *
+	 * @since 4.5.0
+	 * @var array
+	 */
+	protected $formatted_reports = [];
+
+	/**
 	 * Initialize class
 	 */
 	public function setup() {
@@ -45,22 +53,10 @@ class StatusReport {
 			true
 		);
 
-		$reports = $this->get_reports();
-		$reports = array_map(
-			function( $report ) {
-				return [
-					'actions' => $report->get_actions(),
-					'groups'  => $report->get_groups(),
-					'title'   => $report->get_title(),
-				];
-			},
-			$reports
-		);
-
 		wp_localize_script(
 			'ep_admin_status_report_scripts',
 			'epStatusReport',
-			$reports
+			$this->get_formatted_reports()
 		);
 
 		$style_deps = Utils\get_asset_info( 'status-report-styles', 'dependencies' );
@@ -128,13 +124,13 @@ class StatusReport {
 	 * Render all reports (HTML and Copy & Paste button)
 	 */
 	public function render_reports() {
-		$reports = $this->get_reports();
+		$reports = $this->get_formatted_reports();
 
 		$copy_paste_output = [];
 
 		foreach ( $reports as $report ) {
-			$title  = $report->get_title();
-			$groups = $report->get_groups();
+			$title  = $report['title'];
+			$groups = $report['groups'];
 
 			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
 		}
@@ -150,6 +146,30 @@ class StatusReport {
 			</span>
 		</p>
 		<?php
+	}
+
+	/**
+	 * Process and format the reports, then store them in the `formatted_reports` attribute.
+	 *
+	 * @since 4.5.0
+	 * @return array
+	 */
+	protected function get_formatted_reports() : array {
+		if ( empty( $this->formatted_reports ) ) {
+			$reports = $this->get_reports();
+
+			$this->formatted_reports = array_map(
+				function( $report ) {
+					return [
+						'actions' => $report->get_actions(),
+						'groups'  => $report->get_groups(),
+						'title'   => $report->get_title(),
+					];
+				},
+				$reports
+			);
+		}
+		return $this->formatted_reports;
 	}
 
 	/**

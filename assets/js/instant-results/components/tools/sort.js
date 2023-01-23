@@ -1,14 +1,14 @@
 /**
  * WordPress deendencies.
  */
-import { useContext, useMemo, WPElement } from '@wordpress/element';
+import { useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Internal deendencies.
  */
+import { useApiSearch } from '../../../api-search';
 import { sortOptions } from '../../config';
-import Context from '../../context';
 
 /**
  * Search results component.
@@ -17,11 +17,9 @@ import Context from '../../context';
  */
 export default () => {
 	const {
-		state: {
-			args: { orderby, order },
-		},
-		dispatch,
-	} = useContext(Context);
+		args: { orderby, order },
+		search,
+	} = useApiSearch();
 
 	/**
 	 * The key for the current sorting option.
@@ -40,7 +38,7 @@ export default () => {
 	const onChange = (event) => {
 		const { orderby, order } = sortOptions[event.target.value];
 
-		dispatch({ type: 'APPLY_ARGS', payload: { orderby, order } });
+		search({ orderby, order });
 	};
 
 	return (

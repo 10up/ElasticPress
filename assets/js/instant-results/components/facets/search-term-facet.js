@@ -1,13 +1,13 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, useEffect, useState, WPElement } from '@wordpress/element';
+import { useEffect, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import Context from '../../context';
+import { useApiSearch } from '../../../api-search';
 import { useDebounce } from '../../hooks';
 import { ActiveContraint } from '../tools/active-constraints';
 
@@ -17,21 +17,15 @@ import { ActiveContraint } from '../tools/active-constraints';
  * @returns {WPElement} Component element.
  */
 export default () => {
-	const {
-		state: {
-			args: { search },
-			searchedTerm,
-		},
-		dispatch,
-	} = useContext(Context);
+	const { args, searchFor, searchTerm } = useApiSearch();
 
-	const [value, setValue] = useState(search);
+	const [value, setValue] = useState(args.search);
 
 	/**
 	 * Dispatch the change, with debouncing.
 	 */
 	const dispatchChange = useDebounce((value) => {
-		dispatch({ type: 'NEW_SEARCH_TERM', payload: value });
+		searchFor(value);
 	}, 300);
 
 	/**
@@ -48,7 +42,7 @@ export default () => {
 	 * Handle clearing.
 	 */
 	const onClear = () => {
-		dispatch({ type: 'NEW_SEARCH_TERM', payload: '' });
+		searchFor('');
 	};
 
 	/**
@@ -56,13 +50,13 @@ export default () => {
 	 * state.
 	 */
 	const handleSearch = () => {
-		setValue(search);
+		setValue(args.search);
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(handleSearch, [search]);
+	useEffect(handleSearch, [args.search]);
 
 	return (
 		<>
@@ -73,12 +67,12 @@ export default () => {
 				value={value}
 				onChange={onChange}
 			/>
-			{searchedTerm && (
+			{searchTerm && (
 				<ActiveContraint
 					label={sprintf(
 						/* translators: %s: Search term. */
 						__('“%s”', 'elasticpress'),
-						searchedTerm,
+						searchTerm,
 					)}
 					onClick={onClear}
 				/>

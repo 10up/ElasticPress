@@ -347,6 +347,115 @@ class TestWooCommerce extends BaseTestCase {
 	}
 
 	/**
+	 * Tests the search query for a shop_coupon.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSearchQueryForCoupon() {
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// ensures that the search query doesn't use Elasticsearch.
+		$query = new \WP_Query(
+			[
+				'post_type' => 'shop_coupon',
+				's'         => 'test-coupon',
+			]
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// ensures that the search query doesn't use Elasticsearch when ep_integrate set to false.
+		$query = new \WP_Query(
+			[
+				'post_type'    => 'shop_coupon',
+				's'            => 'test-coupon',
+				'ep_integrate' => false,
+			]
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// ensures that the search query use Elasticsearch when ep_integrate set to true.
+		$query = new \WP_Query(
+			[
+				'post_type'    => 'shop_coupon',
+				's'            => 'test-coupon',
+				'ep_integrate' => true,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Tests the search query for a shop_coupon in admin use Elasticsearch when protected content is enabled.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSearchQueryForCouponWhenProtectedContentIsEnable() {
+
+		set_current_screen( 'dashboard' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test-coupon',
+				'post_type'    => 'shop_coupon',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'post_type' => 'shop_coupon',
+				's'         => 'test-coupon',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+	}
+
+	/**
+	 * Tests the search query for a shop_coupon in admin does not use Elasticsearch when protected content is not enabled.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSearchQueryForCouponWhenProtectedContentIsNotEnable() {
+
+		set_current_screen( 'dashboard' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test-coupon',
+				'post_type'    => 'shop_coupon',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'post_type'    => 'shop_coupon',
+				's'            => 'test-coupon',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertNull( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+	}
+
+
+	/**
 	 * Test all the product attributes are synced.
 	 *
 	 * @since 4.5.0
