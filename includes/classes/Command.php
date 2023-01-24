@@ -1615,6 +1615,56 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * Gets the Instant Results search template.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @since 4.5.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @subcommand get-search-template
+	 */
+	public function get_search_template( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args      = wp_parse_args( $assoc_args, $defaults );
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$template        = json_decode( $instant_results->epio_get_search_template() );
+
+		$this->pretty_json_encode( $template, $assoc_args['pretty'] );
+	}
+
+	/**
+	 * Saves the Instant Results search template to EPIO.
+	 *
+	 * @since 4.5.0
+	 * @subcommand put-search-template
+	 */
+	public function put_search_template() {
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$instant_results->epio_save_search_template();
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Deletes the Instant Results search template.
+	 *
+	 * @since 4.5.0
+	 * @subcommand delete-search-template
+	 */
+	public function delete_search_template() {
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$instant_results->epio_delete_search_template();
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
 	 * Whether a value can be evaluated as true or not.
 	 *
 	 * @since 4.4.1

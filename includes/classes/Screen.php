@@ -44,6 +44,14 @@ class Screen {
 	public $health_info_screen;
 
 	/**
+	 * Status report instance
+	 *
+	 * @var Screen\StatusReport
+	 * @since  4.5.0
+	 */
+	public $status_report;
+
+	/**
 	 * Initialize class
 	 *
 	 * @since 3.0

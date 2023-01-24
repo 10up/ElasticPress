@@ -7379,6 +7379,48 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests parent term edition when child term is attached to post
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testParentEditedTerm() {
+		$post = $this->ep_factory->post->create_and_get();
+
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
+
+		$term_1_name = rand_str( 32 );
+		$term_1      = wp_insert_term( $term_1_name, $tax_name );
+
+		$term_2_name = rand_str( 32 );
+		$term_2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term_1['term_id'] ) );
+
+		wp_set_object_terms( $post->ID, array( $term_2['term_id'] ), $tax_name, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$test_tag = get_term_by( 'id', $term_1['term_id'], $tax_name );
+
+		wp_update_term(
+			$test_tag->term_id,
+			$tax_name,
+			[
+				'slug' => 'parent-term',
+				'name' => 'Parent Term',
+			]
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post->ID );
+		$this->assertEquals( 'parent-term', $document['terms'][ $tax_name ][1]['slug'] );
+		$this->assertEquals( 'Parent Term', $document['terms'][ $tax_name ][1]['name'] );
+	}
+
+	/**
 	 * Tests post without meta value.
 	 *
 	 * @return void
@@ -8227,5 +8269,72 @@ class TestPost extends BaseTestCase {
 				],
 			],
 		);
+	}
+
+	/**
+	 * Tests that deleting a thumbnail updates the meta value of all the linked indexable posts
+	 *
+	 * @since 4.5.0
+	 */
+	public function testDeletingThumbnailUpdateRelatedIndexablePost() {
+		$product_id = $this->ep_factory->post->create( array(
+			'post_type' => 'product',
+		) );
+
+		$thumbnail_id = $this->factory->attachment->create_object( 'test.jpg', $product_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+		) );
+
+		set_post_thumbnail( $product_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $product_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $product_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_delete_attachment( $thumbnail_id, true );
+		$this->assertEquals( '', get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
+		$this->assertArrayNotHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+
+	/**
+	 * Tests that deleting a thumbnail does not update the meta value of all the linked non-indexable posts
+	 *
+	 * @since 4.5.0
+	 */
+	public function testDeletingThumbnailShouldNotUpdateRelatedNonIndexablePost() {
+		$product_id = $this->ep_factory->post->create( array(
+			'post_type' => 'product',
+		) );
+
+		$thumbnail_id = $this->factory->attachment->create_object( 'test.jpg', $product_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+		) );
+
+		set_post_thumbnail( $product_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $product_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $product_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Remove product from indexable post types.
+		add_filter( 'ep_indexable_post_types', function( $post_types ) {
+			unset( $post_types['product'] );
+			return $post_types;
+		} );
+
+		wp_delete_attachment( $thumbnail_id, true );
+		$this->assertEquals( '', get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
+		$this->assertArrayHasKey( '_thumbnail_id', $ep_post['meta'] );
 	}
 }
