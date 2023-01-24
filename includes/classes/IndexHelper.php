@@ -113,7 +113,7 @@ class IndexHelper {
 
 		$starting_indices = array_intersect(
 			Elasticsearch::factory()->get_index_names( 'all' ),
-			wp_list_pluck( Elasticsearch::factory()->get_cluster_indices(), 'index' ),
+			wp_list_pluck( Elasticsearch::factory()->get_cluster_indices(), 'index' )
 		);
 
 		$this->index_meta = [
