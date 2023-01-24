@@ -1111,7 +1111,7 @@ class IndexHelper {
 
 		$this->index_meta['current_sync_item'] = null;
 
-		if ( ! $current_sync_item['put_mapping'] ) {
+		if ( empty( $current_sync_item['put_mapping'] ) ) {
 			return;
 		}
 
