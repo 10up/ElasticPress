@@ -54,6 +54,7 @@ class Indexables {
 	 * @since 4.4.1
 	 */
 	public function unregister( $slug ) {
+		unset( $this->active_indexables[ $slug ] );
 		unset( $this->registered_indexables[ $slug ] );
 	}
 
@@ -82,6 +83,25 @@ class Indexables {
 				$indexable->setup();
 			}
 		}
+	}
+
+	/**
+	 * Deactivate an indexable
+	 *
+	 * @param string $slug The indexable slug
+	 * @since 4.5.0
+	 */
+	public function deactivate( string $slug ) {
+		unset( $this->active_indexables[ $slug ] );
+	}
+
+	/**
+	 * Deactivate all indexables
+	 *
+	 * @since 4.5.0
+	 */
+	public function deactivate_all() {
+		$this->active_indexables = [];
 	}
 
 	/**

@@ -30,6 +30,8 @@ class TestCommands extends BaseTestCase {
 		$this->command = new Command();
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->deactivate_all();
+		ElasticPress\Indexables::factory()->activate( 'post' );
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -180,8 +182,6 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Adding post mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -213,8 +213,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Adding post mapping for site 3', $output );
 		$this->assertStringNotContainsString( 'Adding post mapping for site 2', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -265,8 +263,6 @@ class TestCommands extends BaseTestCase {
 
 		$this->assertStringContainsString( 'Adding user mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
-		Indexables::factory()->unregister( 'user' );
 	}
 
 	/**
@@ -393,8 +389,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -420,8 +414,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -451,8 +443,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -475,8 +465,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Indexing posts', $output );
 		$this->assertStringNotContainsString( 'Indexing comments', $output );
 		$this->assertStringContainsString( 'Sync complete', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
