@@ -34,9 +34,9 @@ class Terms extends Feature {
 
 		$this->requires_install_reindex = true;
 
-		parent::__construct();
-
 		Indexables::factory()->register( new Indexable\Term\Term(), false );
+
+		parent::__construct();
 	}
 
 	/**

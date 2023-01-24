@@ -111,6 +111,11 @@ class IndexHelper {
 			'offset' :
 			'id_range';
 
+		$starting_indices = array_intersect(
+			Elasticsearch::factory()->get_index_names( 'all' ),
+			wp_list_pluck( Elasticsearch::factory()->get_cluster_indices(), 'index' ),
+		);
+
 		$this->index_meta = [
 			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
 			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
@@ -121,6 +126,7 @@ class IndexHelper {
 			'network_alias'     => [],
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
+			'starting_indices'  => $starting_indices,
 			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
@@ -131,8 +137,8 @@ class IndexHelper {
 			],
 		];
 
-		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true ) );
-		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true ) );
+		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true, 'all' ) );
+		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true, 'all' ) );
 
 		$is_network_wide = isset( $this->args['network_wide'] ) && ! is_null( $this->args['network_wide'] );
 
@@ -151,20 +157,13 @@ class IndexHelper {
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexables as $indexable ) {
-					$sync_stack_item = [
-						'url'         => untrailingslashit( $site['domain'] . $site['path'] ),
-						'blog_id'     => (int) $site['blog_id'],
-						'indexable'   => $indexable,
-						'put_mapping' => ! empty( $this->args['put_mapping'] ),
-					];
-
-					$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-					$objects_to_index = $this->get_objects_to_index();
-
-					$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
-					$this->index_meta['sync_stack'][] = $sync_stack_item;
+					$this->add_sync_item_to_stack(
+						[
+							'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
+							'blog_id'   => (int) $site['blog_id'],
+							'indexable' => $indexable,
+						]
+					);
 
 					if ( ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
 						$this->index_meta['network_alias'][] = $indexable;
@@ -175,36 +174,22 @@ class IndexHelper {
 			restore_current_blog();
 		} else {
 			foreach ( $non_global_indexables as $indexable ) {
-				$sync_stack_item = [
-					'url'         => untrailingslashit( home_url() ),
-					'blog_id'     => (int) get_current_blog_id(),
-					'indexable'   => $indexable,
-					'put_mapping' => ! empty( $this->args['put_mapping'] ),
-				];
-
-				$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-				$objects_to_index = $this->get_objects_to_index();
-
-				$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
-				$this->index_meta['sync_stack'][] = $sync_stack_item;
+				$this->add_sync_item_to_stack(
+					[
+						'url'       => untrailingslashit( home_url() ),
+						'blog_id'   => (int) get_current_blog_id(),
+						'indexable' => $indexable,
+					]
+				);
 			}
 		}
 
 		foreach ( $global_indexables as $indexable ) {
-			$sync_stack_item = [
-				'indexable'   => $indexable,
-				'put_mapping' => ! empty( $this->args['put_mapping'] ),
-			];
-
-			$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-			$objects_to_index = $this->get_objects_to_index();
-
-			$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
-			$this->index_meta['sync_stack'][] = $sync_stack_item;
+			$this->add_sync_item_to_stack(
+				[
+					'indexable' => $indexable,
+				]
+			);
 		}
 
 		$this->index_meta['current_sync_item'] = false;
@@ -284,9 +269,12 @@ class IndexHelper {
 				]
 			);
 
-			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+			$indexable_slug = $this->index_meta['current_sync_item']['indexable'];
+			$indexable      = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
-			if ( ! empty( $this->index_meta['current_sync_item']['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( ! Indexables::factory()->is_active( $indexable_slug ) ) {
+				return $this->process_not_active_indexable_sync_item();
+			} elseif ( ! empty( $this->index_meta['current_sync_item']['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name, 2: Site ID */
@@ -386,7 +374,14 @@ class IndexHelper {
 			return;
 		}
 
-		$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
+		$index_exists = in_array( $indexable->get_index_name(), $this->index_meta['starting_indices'], true );
+		if ( $index_exists ) {
+			$message = esc_html__( 'Mapping sent', 'elasticpress' );
+		} else {
+			$message = esc_html__( 'Index not present. Mapping sent', 'elasticpress' );
+		}
+
+		$this->output_success( $message );
 	}
 
 	/**
@@ -1069,6 +1064,72 @@ class IndexHelper {
 		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object->ID );
 
 		return $ep_item_sync_kill || $ep_indexable_sync_kill;
+	}
+
+	/**
+	 * Given an array, create a new sync item and add it to the stack.
+	 *
+	 * @since 4.5.0
+	 * @param array $sync_stack_item The new sync item
+	 */
+	protected function add_sync_item_to_stack( array $sync_stack_item ) {
+		$indexable_slug   = $sync_stack_item['indexable'];
+		$indexable_object = Indexables::factory()->get( $indexable_slug );
+
+		if ( ! $indexable_object ) {
+			return;
+		}
+
+		if ( ! Indexables::factory()->is_active( $indexable_slug ) ) {
+			array_unshift( $this->index_meta['sync_stack'], $sync_stack_item );
+			return;
+		}
+
+		$index_exists = in_array( $indexable_object->get_index_name(), $this->index_meta['starting_indices'], true );
+
+		$sync_stack_item['put_mapping'] = ! empty( $this->args['put_mapping'] ) || ! $index_exists;
+
+		// This is needed, because get_objects_to_index() calculates its total based on the current sync item.
+		$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+		$objects_to_index = $this->get_objects_to_index();
+
+		$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+		$this->index_meta['sync_stack'][] = $sync_stack_item;
+	}
+
+	/**
+	 * Processes an indexable that is not active.
+	 *
+	 * If running a full sync, delete the index of an unused indexable.
+	 *
+	 * @since 4.5.0
+	 */
+	protected function process_not_active_indexable_sync_item() {
+		$current_sync_item = $this->index_meta['current_sync_item'];
+
+		$this->index_meta['current_sync_item'] = null;
+
+		if ( ! $current_sync_item['put_mapping'] ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $current_sync_item['indexable'] );
+
+		if ( ! in_array( $indexable->get_index_name(), $this->index_meta['starting_indices'], true ) ) {
+			return;
+		}
+
+		$indexable->delete_index();
+
+		$this->output_success(
+			sprintf(
+				/* translators: Index name */
+				esc_html__( 'Index %s deleted', 'elasticpress' ),
+				$indexable->get_index_name()
+			)
+		);
 	}
 
 	/**

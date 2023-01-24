@@ -446,19 +446,23 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
+	 * [--status=<status>]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-indices
-	 * @since      4.4.0, `--pretty` introduced in 4.1.0
+	 * @since      4.4.0, `--pretty` introduced in 4.1.0, `--status` introduced in 4.5.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indices( $args, $assoc_args ) {
 		$defaults = [
 			'pretty' => false,
+			'status' => 'active',
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 
-		$index_names = $this->get_index_names();
+		$index_names = $this->get_index_names( $assoc_args['status'] );
 
 		$this->pretty_json_encode( $index_names, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
@@ -466,11 +470,12 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Get all index names.
 	 *
-	 * @since 3.6.4
+	 * @param string $status Whether to return active indexables or all registered.
+	 * @since 3.6.4, 4.5.0 Added $status
 	 * @return array
 	 */
-	protected function get_index_names() {
-		return Elasticsearch::factory()->get_index_names();
+	protected function get_index_names( $status = 'active' ) {
+		return Elasticsearch::factory()->get_index_names( $status );
 	}
 
 	/**
