@@ -1080,14 +1080,14 @@ class IndexHelper {
 			return;
 		}
 
+		$index_exists = in_array( $indexable_object->get_index_name(), $this->index_meta['starting_indices'], true );
+
+		$sync_stack_item['put_mapping'] = ! empty( $this->args['put_mapping'] ) || ! $index_exists;
+
 		if ( ! Indexables::factory()->is_active( $indexable_slug ) ) {
 			array_unshift( $this->index_meta['sync_stack'], $sync_stack_item );
 			return;
 		}
-
-		$index_exists = in_array( $indexable_object->get_index_name(), $this->index_meta['starting_indices'], true );
-
-		$sync_stack_item['put_mapping'] = ! empty( $this->args['put_mapping'] ) || ! $index_exists;
 
 		// This is needed, because get_objects_to_index() calculates its total based on the current sync item.
 		$this->index_meta['current_sync_item'] = $sync_stack_item;

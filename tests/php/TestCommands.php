@@ -336,6 +336,19 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( "[\n", $output );
+
+		// clean output buffer
+		ob_clean();
+
+		/**
+		 * Test the --status flag
+		 * 
+		 * @since 4.5.0
+		 */
+		$this->command->get_indices( [], [ 'status' => 'all' ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertEquals( "[\"exampleorg-post-1\",\"exampleorg-comment-1\",\"exampleorg-term-1\",\"exampleorg-user\"]\n", $output );
 	}
 
 
@@ -417,6 +430,20 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test sync command can create an index even without the --setup flag
+	 * 
+	 * @since 4.5.0
+	 */
+	public function testSyncIndexCreationWithoutSetupFlag() {
+		Indexables::factory()->get( 'post' )->delete_index();
+
+		$this->command->sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Index not present. Mapping sent', $output );
+	}
+
+	/**
 	 * Test sync command with setup flag.
 	 */
 	public function testSyncWithSetupFlag() {
@@ -443,6 +470,29 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
+	}
+
+	/**
+	 * Test the sync command with the setup flag. It should delete unused indices.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testSyncWithSetupFlagDeleteUnusedIndices() {
+		// activate comments and users features
+		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'user' )->put_mapping();
+
+		$this->command->sync(
+			[],
+			[
+				'setup' => true,
+				'yes'   => true,
+			]
+		);
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Index exampleorg-comment-1 deleted', $output );
+		$this->assertStringContainsString( 'Index exampleorg-user deleted', $output );
 	}
 
 	/**
