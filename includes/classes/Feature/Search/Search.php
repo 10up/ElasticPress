@@ -796,7 +796,7 @@ class Search extends Feature {
 	 * @since 4.5
 	 */
 	public function skip_query_integration( $skip, $query ) {
-		if ( $query instanceof \WP_Query ) {
+		if ( ! $query instanceof \WP_Query ) {
 			return $skip;
 		}
 
