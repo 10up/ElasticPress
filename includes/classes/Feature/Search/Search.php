@@ -796,6 +796,10 @@ class Search extends Feature {
 	 * @since 4.5
 	 */
 	public function skip_query_integration( $skip, $query ) {
+		if ( $query instanceof \WP_Query ) {
+			return $skip;
+		}
+
 		$unsupported_orderby = [
 			'post__in',
 			'post_name__in',
