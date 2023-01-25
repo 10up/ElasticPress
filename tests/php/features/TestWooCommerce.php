@@ -1236,11 +1236,53 @@ class TestWooCommerce extends BaseTestCase {
 	}
 
 	/**
-	 * Test that search query on Admin Product List use Elasticsearch.
+	 * Test that on Admin Product List use Elasticsearch.
 	 *
 	 * @since 4.5.0
 	 */
-	public function testAdminProductListRequestQuery() {
+	public function testProductListInAdminUseElasticSearch() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		// load required files
+		include_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
+		include_once WC()->plugin_path() . '/includes/admin/list-tables/class-wc-admin-list-table-products.php';
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		global $typenow, $wc_list_table;
+
+		// mock the global variables
+		$typenow       = 'product';
+		$wc_list_table = new \WC_Admin_List_Table_Products();
+
+		add_filter( 'ep_post_filters', function( $filters, $args, $query ) {
+			$expected_result = array(
+				'terms' => array(
+					'post_type.raw' => array(
+						'product',
+					),
+				),
+			);
+
+			$this->assertEquals( $expected_result, $filters['post_type'] );
+			return $filters;
+		}, 10, 3 );
+
+		parse_str( 'post_type=product&s=product', $_GET );
+
+		$wp_list_table = new \WP_Posts_List_Table();
+		$wp_list_table->prepare_items();
+	}
+
+	/**
+	 * Test that Search in Admin Product List use Elasticsearch.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductListSearchInAdminUseElasticSearch() {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 
@@ -1261,7 +1303,7 @@ class TestWooCommerce extends BaseTestCase {
 		add_filter(
 			'ep_post_formatted_args',
 			function ( $formatted_args, $args, $wp_query ) {
-
+				$this->assertEquals( 'findme', $formatted_args['query']['function_score']['query']['bool']['should'][0]['multi_match']['query'] );
 				$this->assertEquals(
 					$args['search_fields'],
 					[
@@ -1281,14 +1323,10 @@ class TestWooCommerce extends BaseTestCase {
 			3
 		);
 
-		parse_str( 'post_type=product&s=product', $_GET );
+		parse_str( 'post_type=product&s=findme', $_GET );
 
 		$wp_list_table = new \WP_Posts_List_Table();
-		$wp_list_table->prepare_items(
-			[
-				'post_type' => 'product',
-			]
-		);
+		$wp_list_table->prepare_items();
 	}
 
 	/**
@@ -1415,5 +1453,61 @@ class TestWooCommerce extends BaseTestCase {
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
 		$this->assertEquals( 2, count( $query ) );
+	}
+
+
+	public function testAttributesFilterUseES() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create_variation_product(
+			[
+				'name' => 'Cap'
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name' => 'Shoes'
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name' => 'T-Shirt'
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'filter_color=blue', $_GET );
+
+		update_option( 'show_on_front', 'page' );
+
+		$args  = array(
+			'post_type' => 'product',
+
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query and is_search
+		global $wp_the_query, $wp_query;
+		$wp_the_query        = $query;
+		$wp_query->is_posts_page = false;
+		$wp_query->is_home = true;
+		$wp_query->is_post_type_archive = 'product';
+
+		$query = $query->query( $args );
+
+
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+
+
+
+
+
+
+
 	}
 }
