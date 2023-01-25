@@ -165,7 +165,7 @@ class IndexHelper {
 						]
 					);
 
-					if ( ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
+					if ( Indexables::factory()->is_active( $indexable ) && ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
 						$this->index_meta['network_alias'][] = $indexable;
 					}
 				}
