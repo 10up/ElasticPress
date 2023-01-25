@@ -1,0 +1,26 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Facet by Meta Range (ElasticPress)",
+	"textdomain": "elasticpress",
+	"name": "elasticpress/facet-meta-range",
+	"icon": "feedback",
+	"category": "widgets",
+	"attributes": {
+		"facet": {
+			"type": "string",
+			"default": ""
+		},
+		"min": {
+			"type": "integer"
+		},
+		"max": {
+			"type": "integer"
+		}
+	},
+	"supports": {
+		"html": false
+	},
+	"editorScript": "ep-facets-meta-range-block-script",
+	"style": "file:/../../../../../dist/css/facets-styles.css"
+}

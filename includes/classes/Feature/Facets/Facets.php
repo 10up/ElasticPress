@@ -50,8 +50,9 @@ class Facets extends Feature {
 		];
 
 		$types = [
-			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
-			'meta'     => __NAMESPACE__ . '\Types\Meta\FacetType',
+			'taxonomy'   => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
+			'meta'       => __NAMESPACE__ . '\Types\Meta\FacetType',
+			'meta-range' => __NAMESPACE__ . '\Types\MetaRange\FacetType',
 		];
 
 		/**
@@ -351,11 +352,16 @@ class Facets extends Feature {
 						continue;
 					}
 
-					if ( ! is_array( $agg ) || empty( $agg['buckets'] ) ) {
+					if ( ! is_array( $agg ) || ( empty( $agg['buckets'] ) && empty( $agg['value'] ) ) ) {
 						continue;
 					}
 
 					$GLOBALS['ep_facet_aggs'][ $key ] = [];
+
+					if ( ! empty( $agg['value'] ) ) {
+						$GLOBALS['ep_facet_aggs'][ $key ] = $agg['value'];
+						continue;
+					}
 
 					foreach ( $agg['buckets'] as $bucket ) {
 						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
