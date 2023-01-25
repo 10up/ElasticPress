@@ -791,8 +791,8 @@ class Search extends Feature {
 	/**
 	 * If WP_Query has unsupported orderby, skip ES query integration and use the WP query instead.
 	 *
-	 * @param bool $skip Whether to skip ES query integration
-	  * @param \WP_Query $query WP_Query object
+	 * @param bool      $skip Whether to skip ES query integration
+	 * @param \WP_Query $query WP_Query object
 	 * @since 4.5
 	 */
 	function skip_query_integration( $skip, $query ) {
@@ -800,7 +800,7 @@ class Search extends Feature {
 			'post__in',
 			'post_name__in',
 			'post_parent__in',
-			'parent'
+			'parent',
 		];
 
 		if ( in_array( $query->get( 'orderby' ), $unsupported_orderby, true ) ) {
