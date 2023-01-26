@@ -80,35 +80,37 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	public function add_query_filters( $filters ) {
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
-		$selected_filters = $feature->get_selected();
-		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
+		$all_selected_filters = $feature->get_selected();
+		if ( empty( $all_selected_filters ) || empty( $all_selected_filters[ $this->get_filter_type() ] ) ) {
 			return $filters;
 		}
 
-		$meta_fields = $selected_filters[ $this->get_filter_type() ];
-
-		echo '<pre>';
-		print_r( $meta_fields );
-		echo '</pre>';
-
-		foreach ( $meta_fields as $meta_field => $values ) {
-			$values = array_keys( $values['terms'] );
-			if ( 2 !== count( $values ) ) {
+		$selected_filters = $all_selected_filters[ $this->get_filter_type() ];
+		foreach ( $selected_filters as $selected_filter => $values ) {
+			$filter     = [];
+			$min_or_max = substr( $selected_filter, -4 );
+			$field_name = substr( $selected_filter, 0, -4 );
+			
+			if ( ! in_array( $min_or_max, [ '_min', '_max' ], true ) ) {
 				continue;
 			}
 
-			list( $min, $max ) = $values;
+			$values = array_keys( $values['terms'] );
+			if ( empty( $values ) ) {
+				continue;
+			}
+			$value = reset( $values );
 
-			$filter = [];
-			if ( $min ) {
-				$filter['gte'] = $min;
+			if ( '_min' === $min_or_max ) {
+				$filter['gte'] = $value;
 			}
-			if ( $max ) {
-				$filter['lte'] = $max;
+			if ( '_max' === $min_or_max ) {
+				$filter['lte'] = $value;
 			}
+
 			$filters[] = [
 				'range' => [
-					'meta.' . $meta_field . '.long' => $filter,
+					'meta.' . $field_name . '.double' => $filter,
 				],
 			];
 		}
@@ -138,7 +140,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			 * @param {string} $meta_field The meta field key
 			 * @return {string} The chosen ES field
 			 */
-			$facet_field = apply_filters( 'ep_facet_meta_range_use_field', 'long', $meta_field );
+			$facet_field = apply_filters( 'ep_facet_meta_range_use_field', 'double', $meta_field );
 
 			$facet_aggs[ $this->get_filter_name() . $meta_field . '_min' ] = array(
 				'min' => array(

@@ -80,12 +80,6 @@ class Block {
 					'facet' => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
-					'min'   => [
-						'sanitize_callback' => 'absint',
-					],
-					'max'   => [
-						'sanitize_callback' => 'absint',
-					],
 				],
 
 			]
@@ -143,8 +137,6 @@ class Block {
 		$attributes = $this->parse_attributes(
 			[
 				'facet' => $request->get_param( 'facet' ),
-				'min'   => $request->get_param( 'min' ),
-				'max'   => $request->get_param( 'max' ),
 			]
 		);
 
@@ -215,9 +207,6 @@ class Block {
 			$attributes,
 			[
 				'facet' => '',
-				'min'   => 0,
-				'max'   => 100,
-
 			]
 		);
 		if ( empty( $attributes['facet'] ) ) {
