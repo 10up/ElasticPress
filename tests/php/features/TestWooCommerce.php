@@ -1455,7 +1455,11 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertEquals( 2, count( $query ) );
 	}
 
-
+	/**
+	 * Tests that attributes filter uses Elasticsearch.
+	 *
+	 * @since 4.5.0
+	 */
 	public function testAttributesFilterUseES() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
@@ -1480,34 +1484,21 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		parse_str( 'filter_color=blue', $_GET );
+		// call the product query directly to bypass the additional checks by WooCommerce
+		add_action( 'pre_get_posts', function( $query )  {
+			$wc_query = WC()->query;
+			$wc_query->product_query( $query );
+		} );
 
-		update_option( 'show_on_front', 'page' );
-
+		parse_str( 'filter_colour=blue', $_GET );
 		$args  = array(
 			'post_type' => 'product',
 
 		);
 		$query = new \WP_Query( $args );
 
-		// mock the query as main query and is_search
-		global $wp_the_query, $wp_query;
-		$wp_the_query        = $query;
-		$wp_query->is_posts_page = false;
-		$wp_query->is_home = true;
-		$wp_query->is_post_type_archive = 'product';
-
-		$query = $query->query( $args );
-
-
-
-		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
-
-
-
-
-
-
-
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 'Cap', $query->posts[0]->post_title  );
 	}
 }
