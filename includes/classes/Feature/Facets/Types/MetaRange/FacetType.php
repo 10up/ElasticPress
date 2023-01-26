@@ -85,12 +85,13 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			return $filters;
 		}
 
-		$selected_filters = $all_selected_filters[ $this->get_filter_type() ];
-		foreach ( $selected_filters as $selected_filter => $values ) {
-			$filter     = [];
+		$selected_range_filters = $all_selected_filters[ $this->get_filter_type() ];
+
+		$range_filters = [];
+		foreach ( $selected_range_filters as $selected_filter => $values ) {
 			$min_or_max = substr( $selected_filter, -4 );
 			$field_name = substr( $selected_filter, 0, -4 );
-			
+
 			if ( ! in_array( $min_or_max, [ '_min', '_max' ], true ) ) {
 				continue;
 			}
@@ -101,16 +102,15 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			}
 			$value = reset( $values );
 
-			if ( '_min' === $min_or_max ) {
-				$filter['gte'] = $value;
-			}
-			if ( '_max' === $min_or_max ) {
-				$filter['lte'] = $value;
-			}
+			$operator = '_min' === $min_or_max ? 'gte' : 'lte';
 
+			$range_filters[ $field_name ][ $operator ] = $value;
+		}
+
+		foreach ( $range_filters as $field_name => $range_filter ) {
 			$filters[] = [
 				'range' => [
-					'meta.' . $field_name . '.double' => $filter,
+					'meta.' . $field_name . '.double' => $range_filter,
 				],
 			];
 		}

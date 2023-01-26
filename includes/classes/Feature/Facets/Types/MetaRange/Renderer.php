@@ -51,7 +51,7 @@ class Renderer {
 		$max_field_name = $facet_type->get_filter_name() . $this->meta_field . '_max';
 
 		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] )
-		 || empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] )
+			|| empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] )
 		) {
 			if ( $instance['is_preview'] ) {
 				esc_html_e( 'Could not get min and max values. Is this a numeric field?', 'elasticpress' );
@@ -63,7 +63,11 @@ class Renderer {
 		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
 
 		$selected_filters = $feature->get_selected();
-		unset( $selected_filters[ $facet_type->get_filter_type() ][ $this->meta_field ] );
+		foreach ( $selected_filters[ $facet_type->get_filter_type() ] as $filter => $value ) {
+			if ( in_array( $filter, [ "{$this->meta_field}_min", "{$this->meta_field}_max" ], true ) ) {
+				unset( $selected_filters[ $facet_type->get_filter_type() ][ $filter ] );
+			}
+		}
 		$form_action = wp_parse_url( $feature->build_query_url( $selected_filters ) );
 		wp_parse_str( $form_action['query'], $filter_fields );
 		?>
