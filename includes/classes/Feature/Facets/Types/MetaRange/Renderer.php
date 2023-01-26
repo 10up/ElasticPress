@@ -33,6 +33,12 @@ class Renderer {
 	 */
 	public function render( $args, $instance ) {
 		$this->meta_field = $instance['facet'];
+		if ( empty( $this->meta_field ) ) {
+			if ( $instance['is_preview'] ) {
+				esc_html_e( 'Preview not available. Make sure you select a field.', 'elasticpress' );
+			}
+			return false;
+		}
 
 		if ( ! $this->should_render() ) {
 			return;
@@ -42,18 +48,19 @@ class Renderer {
 		$facet_type = $feature->types['meta-range'];
 
 		$min_field_name = $facet_type->get_filter_name() . $this->meta_field . '_min';
-		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] ) ) {
-			return;
-		} else {
-			$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
+		$max_field_name = $facet_type->get_filter_name() . $this->meta_field . '_max';
+
+		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] )
+		 || empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] )
+		) {
+			if ( $instance['is_preview'] ) {
+				esc_html_e( 'Could not get min and max values. Is this a numeric field?', 'elasticpress' );
+			}
+			return false;
 		}
 
-		$max_field_name = $facet_type->get_filter_name() . $this->meta_field . '_max';
-		if ( empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] ) ) {
-			return;
-		} else {
-			$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
-		}
+		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
+		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
 
 		$selected_filters = $feature->get_selected();
 		unset( $selected_filters[ $facet_type->get_filter_type() ][ $this->meta_field ] );
@@ -85,10 +92,6 @@ class Renderer {
 	 */
 	protected function should_render() : bool {
 		global $wp_query;
-
-		if ( empty( $this->meta_field ) ) {
-			return false;
-		}
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 		if ( $wp_query->get( 'ep_facet', false ) && ! $feature->is_facetable( $wp_query ) ) {

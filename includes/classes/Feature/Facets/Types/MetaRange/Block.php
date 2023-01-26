@@ -136,7 +136,8 @@ class Block {
 
 		$attributes = $this->parse_attributes(
 			[
-				'facet' => $request->get_param( 'facet' ),
+				'facet'      => $request->get_param( 'facet' ),
+				'is_preview' => true,
 			]
 		);
 
@@ -164,10 +165,6 @@ class Block {
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
-			if ( empty( $attributes['facet'] ) ) {
-				return esc_html__( 'Preview not available', 'elasticpress' );
-			}
-
 			return sprintf(
 				/* translators: Meta field name */
 				esc_html__( 'Preview for %s not available', 'elasticpress' ),
@@ -206,7 +203,8 @@ class Block {
 		$attributes = wp_parse_args(
 			$attributes,
 			[
-				'facet' => '',
+				'facet'      => '',
+				'is_preview' => false,
 			]
 		);
 		if ( empty( $attributes['facet'] ) ) {
