@@ -1,4 +1,5 @@
-describe('Comments Feature', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('Comments Feature', { tags: '@slow' }, () => {
 	const defaultApprovedComments = 26;
 
 	/**
