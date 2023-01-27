@@ -1,4 +1,5 @@
-describe('WordPress can perform standard ElasticPress actions', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' }, () => {
 	it('Can see the settings page link in WordPress Dashboard', () => {
 		cy.login();
 

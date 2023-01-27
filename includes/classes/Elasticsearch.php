@@ -1661,13 +1661,14 @@ class Elasticsearch {
 	/**
 	 * Get all index names.
 	 *
-	 * @since 4.4.0
+	 * @param string $status Whether to return active indexables or all registered.
+	 * @since 4.4.0, 4.5.0 Added $status
 	 * @return array
 	 */
-	public function get_index_names() {
+	public function get_index_names( $status = 'active' ) {
 		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
 
-		$all_indexables = Indexables::factory()->get_all();
+		$all_indexables = Indexables::factory()->get_all( null, false, $status );
 
 		$global_indexes     = [];
 		$non_global_indexes = [];
