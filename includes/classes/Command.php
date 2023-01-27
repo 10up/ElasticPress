@@ -446,19 +446,23 @@ class Command extends WP_CLI_Command {
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
+	 * [--status=<status>]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
 	 * @subcommand get-indices
-	 * @since      4.4.0, `--pretty` introduced in 4.1.0
+	 * @since      4.4.0, `--pretty` introduced in 4.1.0, `--status` introduced in 4.5.0
 	 * @param array $args Positional CLI args.
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indices( $args, $assoc_args ) {
 		$defaults = [
 			'pretty' => false,
+			'status' => 'active',
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
 
-		$index_names = $this->get_index_names();
+		$index_names = $this->get_index_names( $assoc_args['status'] );
 
 		$this->pretty_json_encode( $index_names, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
@@ -466,11 +470,12 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Get all index names.
 	 *
-	 * @since 3.6.4
+	 * @param string $status Whether to return active indexables or all registered.
+	 * @since 3.6.4, 4.5.0 Added $status
 	 * @return array
 	 */
-	protected function get_index_names() {
-		return Elasticsearch::factory()->get_index_names();
+	protected function get_index_names( $status = 'active' ) {
+		return Elasticsearch::factory()->get_index_names( $status );
 	}
 
 	/**
@@ -1607,6 +1612,56 @@ class Command extends WP_CLI_Command {
 	protected function pretty_json_encode( $json_obj, $pretty_print_flag ) {
 		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
 		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
+	}
+
+	/**
+	 * Gets the Instant Results search template.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @since 4.5.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 *
+	 * @subcommand get-search-template
+	 */
+	public function get_search_template( $args, $assoc_args ) {
+		$defaults = [
+			'pretty' => false,
+		];
+
+		$assoc_args      = wp_parse_args( $assoc_args, $defaults );
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$template        = json_decode( $instant_results->epio_get_search_template() );
+
+		$this->pretty_json_encode( $template, $assoc_args['pretty'] );
+	}
+
+	/**
+	 * Saves the Instant Results search template to EPIO.
+	 *
+	 * @since 4.5.0
+	 * @subcommand put-search-template
+	 */
+	public function put_search_template() {
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$instant_results->epio_save_search_template();
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Deletes the Instant Results search template.
+	 *
+	 * @since 4.5.0
+	 * @subcommand delete-search-template
+	 */
+	public function delete_search_template() {
+		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
+		$instant_results->epio_delete_search_template();
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**

@@ -34,6 +34,8 @@ class Users extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		Indexables::factory()->register( new Indexable\User\User(), false );
+
 		parent::__construct();
 	}
 
@@ -43,7 +45,7 @@ class Users extends Feature {
 	 * @since  3.0
 	 */
 	public function setup() {
-		Indexables::factory()->register( new Indexable\User\User() );
+		Indexables::factory()->activate( 'user' );
 
 		add_action( 'init', [ $this, 'search_setup' ] );
 	}

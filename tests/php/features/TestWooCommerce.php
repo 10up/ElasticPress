@@ -250,17 +250,17 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( class_exists( '\WC_Product_Variation' ) );
 
 		$main_product = new \WC_Product_Variable();
-		$main_product->set_sku('main-product_sku');
+		$main_product->set_sku( 'main-product_sku' );
 		$main_product_id = $main_product->save();
 
 		$variation_1 = new \WC_Product_Variation();
 		$variation_1->set_parent_id( $main_product_id );
-		$variation_1->set_sku('child-sku-1');
+		$variation_1->set_sku( 'child-sku-1' );
 		$variation_1->save();
 
 		$variation_2 = new \WC_Product_Variation();
 		$variation_2->set_parent_id( $main_product_id );
-		$variation_2->set_sku('child-sku-2');
+		$variation_2->set_sku( 'child-sku-2' );
 		$variation_2->save();
 
 		$main_product_as_post  = get_post( $main_product_id );
@@ -345,5 +345,113 @@ class TestWooCommerce extends BaseTestCase {
 			$query->query_vars['search_fields'],
 			[ 'post_title', 'post_content' ]
 		);
+	}
+
+	/**
+	 * Tests the search query for a shop_coupon.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSearchQueryForCoupon() {
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// ensures that the search query doesn't use Elasticsearch.
+		$query = new \WP_Query(
+			[
+				'post_type' => 'shop_coupon',
+				's'         => 'test-coupon',
+			]
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// ensures that the search query doesn't use Elasticsearch when ep_integrate set to false.
+		$query = new \WP_Query(
+			[
+				'post_type'    => 'shop_coupon',
+				's'            => 'test-coupon',
+				'ep_integrate' => false,
+			]
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// ensures that the search query use Elasticsearch when ep_integrate set to true.
+		$query = new \WP_Query(
+			[
+				'post_type'    => 'shop_coupon',
+				's'            => 'test-coupon',
+				'ep_integrate' => true,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Tests the search query for a shop_coupon in admin use Elasticsearch when protected content is enabled.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSearchQueryForCouponWhenProtectedContentIsEnable() {
+
+		set_current_screen( 'dashboard' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test-coupon',
+				'post_type'    => 'shop_coupon',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'post_type' => 'shop_coupon',
+				's'         => 'test-coupon',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+	}
+
+	/**
+	 * Tests the search query for a shop_coupon in admin does not use Elasticsearch when protected content is not enabled.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testSearchQueryForCouponWhenProtectedContentIsNotEnable() {
+
+		set_current_screen( 'dashboard' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test-coupon',
+				'post_type'    => 'shop_coupon',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'post_type'    => 'shop_coupon',
+				's'            => 'test-coupon',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertNull( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
 	}
 }
