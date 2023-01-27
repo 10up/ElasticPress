@@ -43,6 +43,9 @@ if [ -z $EP_HOST ]; then
 	if [ "$(uname | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
 		echo "Running tests on $(uname)"
 		EP_HOST="http://host.docker.internal:8890/"
+	elif grep -qi microsoft /proc/version; then
+		echo "Running tests on Windows"
+		EP_HOST="http://host.docker.internal:8890/"
 	else
 		echo "Running tests on $(uname)"
 		# 172.17.0.1 is the IP Address of host when using Linux
