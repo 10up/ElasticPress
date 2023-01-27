@@ -21,7 +21,7 @@ ElasticPress e2e tests use [Cypress](https://www.cypress.io/), [wp-env](https://
 ### Reset
 
 * Destroy the WP env: `npm run env destroy`
-* Restart WP env and redo initial setup: `npm run env start && npm run cypress:setup`
+* Restart WP env and redo initial setup: `npm run env:start && npm run cypress:setup`
 * Open Cypress: `npm run cypress:open`
 
 ## Troubleshooting
