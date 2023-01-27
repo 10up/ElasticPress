@@ -36,6 +36,8 @@ class Comments extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		Indexables::factory()->register( new Indexable\Comment\Comment(), false );
+
 		parent::__construct();
 	}
 
@@ -45,7 +47,7 @@ class Comments extends Feature {
 	 * @since 3.6.0
 	 */
 	public function setup() {
-		Indexables::factory()->register( new Indexable\Comment\Comment() );
+		Indexables::factory()->activate( 'comment' );
 
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'init', [ $this, 'search_setup' ] );
