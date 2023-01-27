@@ -1195,11 +1195,17 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		//  If this is just a preview, let's not use Elasticsearch.
+		if ( $query->get( 'preview', false ) ) {
+			return false;
+		}
+
 		// It should not integrate on single product pages
 		$product_name = $query->get( 'product', false );
 		if ( ! empty( $product_name ) && $query->is_single() ) {
 			return false;
 		}
+
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -1224,14 +1230,15 @@ class WooCommerce extends Feature {
 		if ( true === $allow ) {
 			return true;
 		}
-		if ( method_exists( $query, 'is_search' ) && ! $query->is_search() && empty( $query->query_vars['s'] ) ) {
+
+		if ( ! $query->is_search() && empty( $query->query_vars['s'] ) ) {
 			/**
 			 * Filter to allow WooCommerce integration
 			 *
 			 * @hook ep_woocommerce_integration
 			 * @param  {bool} $allow True to allow ep integration
 			 * @param  {WP_Query} $query WP Query to evaluate
-			 * @since  4.4.0
+			 * @since  4.5.0
 			 * @return  {bool} New allow value
 			 */
 			return apply_filters( 'ep_woocommerce_integration', false, $query );
