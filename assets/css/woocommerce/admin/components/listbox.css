@@ -1,0 +1,36 @@
+:root {
+	--ep-listbox-background: #fff;
+	--ep-listbox-background-selected: #f0f0f0;
+	--ep-listbox-border: #8c8f94;
+}
+
+.ep-listbox {
+	background-color: var(--ep-listbox-background);
+	border: 1px solid var(--ep-listbox-border);
+	border-radius: 4px;
+	box-shadow: 0 2px 6px rgb(0 0 0 / 5%);
+	box-sizing: border-box;
+	display: none;
+	margin: 4px 0 0;
+	overflow: hidden;
+	padding: 4px;
+	position: absolute;
+	top: 100%;
+	width: 100%;
+	z-index: 1;
+
+	&[aria-hidden="false"] {
+		display: block;
+	}
+}
+
+.ep-listbox__option {
+	border-radius: 4px;
+	margin: 0;
+	padding: 8px;
+
+	&[aria-selected="true"] {
+		background: var(--ep-listbox-background-selected);
+		cursor: pointer;
+	}
+}

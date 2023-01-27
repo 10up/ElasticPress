@@ -115,26 +115,38 @@ class Orders {
 			return;
 		}
 
+		wp_enqueue_style(
+			'elasticpress-woocommerce-admin-orders',
+			EP_URL . 'dist/css/woocommerce-admin-orders-styles.css',
+			Utils\get_asset_info( 'woocommerce-admin-orders-styles', 'dependencies' ),
+			Utils\get_asset_info( 'woocommerce-admin-orders-styles', 'version' )
+		);
+
 		wp_enqueue_script(
-			'elasticpress-woocommerce-orders-admin',
-			EP_URL . 'dist/js/woocommerce-orders-admin-script.js',
-			Utils\get_asset_info( 'woocommerce-orders-admin-script', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-orders-admin-script', 'version' ),
+			'elasticpress-woocommerce-admin-orders',
+			EP_URL . 'dist/js/woocommerce-admin-orders-script.js',
+			Utils\get_asset_info( 'woocommerce-admin-orders-script', 'dependencies' ),
+			Utils\get_asset_info( 'woocommerce-admin-orders-script', 'version' ),
 			true
 		);
 
-		wp_set_script_translations( 'elasticpress-woocommerce-orders-admin', 'elasticpress' );
+		wp_set_script_translations( 'elasticpress-woocommerce-admin-orders', 'elasticpress' );
 
 		$api_endpoint = $this->get_search_endpoint();
 		$api_host     = Utils\get_host();
 
 		wp_localize_script(
-			'elasticpress-woocommerce-orders-admin',
-			'epWooCommerceOrdersAdmin',
+			'elasticpress-woocommerce-admin-orders',
+			'epWooCommerceAdminOrders',
 			array(
-				'apiEndpoint' => $api_endpoint,
-				'apiHost'     => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $api_host ) : '',
-				'argsSchema'  => $this->get_args_schema(),
+				'adminUrl'      => admin_url( 'post.php' ),
+				'apiEndpoint'   => $api_endpoint,
+				'apiHost'       => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $api_host ) : '',
+				'authorization' => "Basic $temporary_token",
+				'argsSchema'    => $this->get_args_schema(),
+				'dateFormat'    => wc_date_format(),
+				'statusLabels'  => wc_get_order_statuses(),
+				'timeFormat'    => wc_time_format(),
 			)
 		);
 	}
@@ -358,7 +370,7 @@ class Orders {
 		}
 
 		$endpoint = $this->get_tokens_endpoint();
-		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method'=> 'POST' ] );
+		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
 
 		if ( is_wp_error( $response ) ) {
 			return false;
