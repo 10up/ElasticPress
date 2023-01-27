@@ -79,6 +79,23 @@ class Orders {
 	}
 
 	/**
+	 * Get the endpoint for temporary tokens.
+	 *
+	 * @return string Temporary tokens endpoint.
+	 */
+	public function get_tokens_endpoint() {
+		/**
+		 * Filters the WooCommerce Orders search template API endpoint.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_tokens_endpoint
+		 * @param {string} $endpoint Endpoint path.
+		 * @returns {string} Search template API endpoint.
+		 */
+		return apply_filters( 'ep_tokens_endpoint', 'api/v1/token' );
+	}
+
+	/**
 	 * Enqueue admin assets.
 	 *
 	 * @param string $hook_suffix The current admin page.
@@ -89,6 +106,12 @@ class Orders {
 		}
 
 		if ( 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$temporary_token = $this->get_temporary_token();
+
+		if ( ! $temporary_token ) {
 			return;
 		}
 
@@ -314,5 +337,40 @@ class Orders {
 		);
 
 		return $args;
+	}
+
+	/**
+	 * Get temporary token.
+	 *
+	 * @return string|false Temporary token, or false on failure.
+	 */
+	public function get_temporary_token() {
+		$user_id = get_current_user_id();
+
+		if ( ! user_can( $user_id, 'edit_others_shop_orders' ) ) {
+			return false;
+		}
+
+		$temporary_token = get_user_meta( $user_id, 'ep_temporary_token', true );
+
+		if ( $temporary_token ) {
+			return $temporary_token;
+		}
+
+		$endpoint = $this->get_tokens_endpoint();
+		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method'=> 'POST' ] );
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$response = wp_remote_retrieve_body( $response );
+		$response = json_decode( $response );
+
+		$token = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		update_user_meta( $user_id, 'ep_temporary_token', $token );
+
+		return $token;
 	}
 }
