@@ -181,6 +181,12 @@ class Weighting {
 	 * @return array
 	 */
 	public function get_weighting_configuration() {
+		foreach ( Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types() as $post_type ) {
+			$defaults[ $post_type ] = $this->get_post_type_default_settings( $post_type );
+		}
+
+		$saved_weights = get_option( 'elasticpress_weighting', [] );
+
 		/**
 		 * Filter weighting configuration
 		 *
@@ -188,7 +194,7 @@ class Weighting {
 		 * @param  {array} $config Current configuration
 		 * @return  {array} New configuration
 		 */
-		return apply_filters( 'ep_weighting_configuration', get_option( 'elasticpress_weighting', [] ) );
+		return apply_filters( 'ep_weighting_configuration', wp_parse_args($saved_weights, $defaults ) );
 	}
 
 	/**
