@@ -199,6 +199,34 @@ class TestWooCommerce extends BaseTestCase {
 	}
 
 	/**
+	 * Test Shop Order post type query does not get integrated when the protected content feature is activated and ep_integrate is set to false.
+	 *
+	 * @since 4.5
+	 */
+	public function testShopOrderPostTypeQueryWhenEPIntegrateSetFalse() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
+			array(
+				'post_type' => 'shop_order',
+				'ep_integrate' => false,
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'post_type' => 'shop_order',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
 	 * Test search for shop orders by order ID
 	 *
 	 * @since 4.0.0
