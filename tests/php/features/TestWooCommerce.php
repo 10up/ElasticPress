@@ -211,8 +211,7 @@ class TestWooCommerce extends BaseTestCase {
 		$this->ep_factory->post->create();
 		$this->ep_factory->post->create(
 			array(
-				'post_type' => 'shop_order',
-				'ep_integrate' => false,
+				'post_type' => 'shop_order'
 			)
 		);
 
@@ -220,6 +219,7 @@ class TestWooCommerce extends BaseTestCase {
 
 		$args = array(
 			'post_type' => 'shop_order',
+			'ep_integrate' => false,
 		);
 		$query = new \WP_Query( $args );
 
