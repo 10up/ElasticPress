@@ -88,23 +88,12 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$selected_range_filters = $all_selected_filters[ $this->get_filter_type() ];
 
 		$range_filters = [];
-		foreach ( $selected_range_filters as $selected_filter => $values ) {
-			$min_or_max = substr( $selected_filter, -4 );
-			$field_name = substr( $selected_filter, 0, -4 );
-
-			if ( ! in_array( $min_or_max, [ '_min', '_max' ], true ) ) {
-				continue;
+		foreach ( $selected_range_filters as $field_name => $values ) {
+			foreach ( $values as $min_or_max => $value ) {
+				$operator = '_min' === $min_or_max ? 'gte' : 'lte';
+	
+				$range_filters[ $field_name ][ $operator ] = $value;
 			}
-
-			$values = array_keys( $values['terms'] );
-			if ( empty( $values ) ) {
-				continue;
-			}
-			$value = reset( $values );
-
-			$operator = '_min' === $min_or_max ? 'gte' : 'lte';
-
-			$range_filters[ $field_name ][ $operator ] = $value;
 		}
 
 		foreach ( $range_filters as $field_name => $range_filter ) {
@@ -156,6 +145,48 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		}
 
 		return $facet_aggs;
+	}
+
+	/**
+	 * Format selected values.
+	 *
+	 * For meta range facets, we will have `[ 'facet_name' => [ '_min' => X, '_max' => Y ] ]`;
+	 *
+	 * @since 4.5.0
+	 * @param string $facet   Facet name
+	 * @param mixed  $value   Facet value
+	 * @param array  $filters Selected filters
+	 * @return array
+	 */
+	public function format_selected( string $facet, $value, array $filters ) {
+		$filter_type = $this->get_filter_type();
+		$min_or_max  = substr( $facet, -4 );
+		$field_name  = substr( $facet, 0, -4 );
+		$return      = $filters[ $filter_type ][ $field_name ] ?? [];
+
+		$return[ $min_or_max ] = $value;
+
+		return [ $field_name => $return ];
+	}
+
+	/**
+	 * Add selected filters to the query string.
+	 *
+	 * @since 4.5.0
+	 * @param array $query_params Existent query parameters
+	 * @param array $filters      Selected filters
+	 * @return array
+	 */
+	public function add_query_params( array $query_params, array $filters ) : array {
+		$selected = $filters[ $this->get_filter_type() ];
+
+		foreach ( $selected as $facet => $values ) {
+			foreach ( $values as $min_or_max => $value ) {
+				$query_params[ $this->get_filter_name() . $facet . $min_or_max ] = $value;
+			}
+		}
+
+		return $query_params;
 	}
 
 	/**

@@ -62,14 +62,21 @@ class Renderer {
 		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
 		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
 
+		$selected_min_value = null;
+		$selected_max_value = null;
+
 		$selected_filters = $feature->get_selected();
-		foreach ( $selected_filters[ $facet_type->get_filter_type() ] as $filter => $value ) {
-			if ( in_array( $filter, [ "{$this->meta_field}_min", "{$this->meta_field}_max" ], true ) ) {
-				unset( $selected_filters[ $facet_type->get_filter_type() ][ $filter ] );
+		foreach ( $selected_filters[ $facet_type->get_filter_type() ] as $filter => $values ) {
+			if ( $this->meta_field !== $filter ) {
+				continue;
 			}
+
+			$selected_min_value = $values['_min'] ?? null;
+			$selected_max_value = $values['_max'] ?? null;
+			unset( $selected_filters[ $facet_type->get_filter_type() ][ $filter ] );
 		}
 		$form_action = wp_parse_url( $feature->build_query_url( $selected_filters ) );
-		wp_parse_str( $form_action['query'], $filter_fields );
+		wp_parse_str( $form_action['query'] ?? '', $filter_fields );
 		?>
 		<form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>">
 			<?php foreach ( $filter_fields as $field => $value ) { ?>
@@ -77,11 +84,11 @@ class Renderer {
 			<?php } ?>
 			<label for="">
 				Min.
-				<input type="number" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>">
+				<input type="number" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
 			</label>
 			<label for="">
 				Max.
-				<input type="number" name="<?php echo esc_attr( $max_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>">
+				<input type="number" name="<?php echo esc_attr( $max_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_max_value ); ?>">
 			</label>
 			<input type="submit" value="<?php esc_attr_e( 'Filter', 'elasticpress' ); ?>">
 		</form>

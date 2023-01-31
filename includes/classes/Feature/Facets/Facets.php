@@ -380,29 +380,20 @@ class Facets extends Feature {
 	public function get_selected() {
 		$allowed_args = $this->get_allowed_query_args();
 
-		$filters            = [];
-		$filter_names       = [];
-		$sanitize_callbacks = [];
+		$filters      = [];
+		$filter_names = [];
 		foreach ( $this->types as $type_obj ) {
-			$filter_type = $type_obj->get_filter_type();
-
-			$filters[ $filter_type ]            = [];
-			$filter_names[ $filter_type ]       = $type_obj->get_filter_name();
-			$sanitize_callbacks[ $filter_type ] = $type_obj->get_sanitize_callback();
+			$filter_names[ $type_obj->get_filter_name() ] = $type_obj;
 		}
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$key = sanitize_key( $key );
 
-			foreach ( $filter_names as $filter_type => $filter_name ) {
+			foreach ( $filter_names as $filter_name => $type_obj ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
-					$facet             = str_replace( $filter_name, '', $key );
-					$sanitize_callback = $sanitize_callbacks[ $filter_type ];
-					$terms             = explode( ',', trim( $value, ',' ) );
+					$facet = str_replace( $filter_name, '', $key );
 
-					$filters[ $filter_type ][ $facet ] = array(
-						'terms' => array_fill_keys( array_map( $sanitize_callback, $terms ), true ),
-					);
+					$filters[ $type_obj->get_filter_type() ] = $type_obj->format_selected( $facet, $value, $filters );
 				}
 			}
 
@@ -422,20 +413,13 @@ class Facets extends Feature {
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {
-		$query_param = array();
+		$query_params = array();
 
 		foreach ( $this->types as $type_obj ) {
-			$filter_type = $type_obj->get_filter_type();
-
-			if ( ! empty( $filters[ $filter_type ] ) ) {
-				$type_filters = $filters[ $filter_type ];
-
-				foreach ( $type_filters as $facet => $filter ) {
-					if ( ! empty( $filter['terms'] ) ) {
-						$query_param[ $type_obj->get_filter_name() . $facet ] = implode( ',', array_keys( $filter['terms'] ) );
-					}
-				}
+			if ( empty( $filters[ $type_obj->get_filter_type() ] ) ) {
+				continue;
 			}
+			$query_params = $type_obj->add_query_params( $query_params, $filters );
 		}
 
 		$feature      = Features::factory()->get_registered_feature( 'facets' );
@@ -444,22 +428,22 @@ class Facets extends Feature {
 		if ( ! empty( $filters ) ) {
 			foreach ( $filters as $filter => $value ) {
 				if ( in_array( $filter, $allowed_args, true ) ) {
-					$query_param[ $filter ] = $value;
+					$query_params[ $filter ] = $value;
 				}
 			}
 		}
 
-		$query_string = build_query( $query_param );
+		$query_string = build_query( $query_params );
 
 		/**
 		 * Filter facet query string
 		 *
 		 * @hook ep_facet_query_string
 		 * @param  {string} $query_string Current query string
-		 * @param  {array} $query_param Query parameters
+		 * @param  {array}  $query_params Query parameters
 		 * @return  {string} New query string
 		 */
-		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_param );
+		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_params );
 
 		$url        = $_SERVER['REQUEST_URI'];
 		$pagination = strpos( $url, '/page' );
