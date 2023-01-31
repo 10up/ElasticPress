@@ -1,6 +1,7 @@
 /* global indexNames */
 
-describe('WP-CLI Commands', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('WP-CLI Commands', { tags: '@slow' }, () => {
 	let indexAllSitesNames = [];
 
 	function checkIfNotMissingIndexes(mode = 'singleSite') {

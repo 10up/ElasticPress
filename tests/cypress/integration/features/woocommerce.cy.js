@@ -1,4 +1,5 @@
-describe('WooCommerce Feature', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('WooCommerce Feature', { tags: '@slow' }, () => {
 	const userData = {
 		username: 'testuser',
 		email: 'testuser@example.com',
