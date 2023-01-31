@@ -1721,4 +1721,26 @@ class TestWooCommerce extends BaseTestCase {
 
 		$this->assertObjectNotHasAttribute( 'elasticsearch', $posts[0] );
 	}
+
+	/**
+	 * Tests that Weighting dashboard shows SKU and Variation SKUs option.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testSkuOptionAddInWeightDashboard() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$fields = $search->weighting->get_weightable_fields_for_post_type( 'product' );
+
+		$this->assertArrayHasKey( 'meta._sku.value', $fields['attributes']['children'] );
+		$this->assertArrayHasKey( 'meta._variations_skus.value', $fields['attributes']['children'] );
+
+		$this->assertEquals( 'meta._sku.value', $fields['attributes']['children']['meta._sku.value']['key'] );
+		$this->assertEquals( 'SKU', $fields['attributes']['children']['meta._sku.value']['label'] );
+
+		$this->assertEquals( 'meta._variations_skus.value', $fields['attributes']['children']['meta._variations_skus.value']['key'] );
+		$this->assertEquals( 'Variations SKUs', $fields['attributes']['children']['meta._variations_skus.value']['label'] );
+	}
 }
