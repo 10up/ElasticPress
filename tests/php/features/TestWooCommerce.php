@@ -159,7 +159,7 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
+		$args  = array(
 			'post_type' => 'shop_order',
 		);
 		$query = new \WP_Query( $args );
@@ -188,7 +188,7 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
+		$args  = array(
 			'post_type' => 'shop_order',
 		);
 		$query = new \WP_Query( $args );
@@ -211,14 +211,14 @@ class TestWooCommerce extends BaseTestCase {
 		$this->ep_factory->post->create();
 		$this->ep_factory->post->create(
 			array(
-				'post_type' => 'shop_order'
+				'post_type' => 'shop_order',
 			)
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
-			'post_type' => 'shop_order',
+		$args  = array(
+			'post_type'    => 'shop_order',
 			'ep_integrate' => false,
 		);
 		$query = new \WP_Query( $args );
@@ -633,13 +633,13 @@ class TestWooCommerce extends BaseTestCase {
 
 		$product_1 = $this->ep_factory->product->create(
 			[
-				'average_rating' => 2
+				'average_rating' => 2,
 			]
 		);
 
 		$product_2 = $this->ep_factory->product->create(
 			[
-				'average_rating' => 1
+				'average_rating' => 1,
 			]
 		);
 
@@ -824,13 +824,13 @@ class TestWooCommerce extends BaseTestCase {
 
 		$product_1 = $this->ep_factory->product->create(
 			[
-				'total_sales' => 2
+				'total_sales' => 2,
 			]
 		);
 
 		$product_2 = $this->ep_factory->product->create(
 			[
-				'total_sales' => 1
+				'total_sales' => 1,
 			]
 		);
 
@@ -839,9 +839,12 @@ class TestWooCommerce extends BaseTestCase {
 		parse_str( 'orderby=popularity', $_GET );
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		$args  = array(
 			'post_type' => 'product',
@@ -895,13 +898,13 @@ class TestWooCommerce extends BaseTestCase {
 
 		$product_1 = $this->ep_factory->product->create(
 			array(
-				'regular_price' => 2
+				'regular_price' => 2,
 			)
 		);
 
 		$product_2 = $this->ep_factory->product->create(
 			array(
-				'regular_price' => 1
+				'regular_price' => 1,
 			)
 		);
 
@@ -910,9 +913,12 @@ class TestWooCommerce extends BaseTestCase {
 		parse_str( 'orderby=price', $_GET );
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		$args  = array(
 			'post_type' => 'product',
@@ -966,13 +972,13 @@ class TestWooCommerce extends BaseTestCase {
 
 		$product_1 = $this->ep_factory->product->create(
 			[
-				'regular_price' => 2
+				'regular_price' => 2,
 			]
 		);
 
 		$product_2 = $this->ep_factory->product->create(
 			[
-				'regular_price' => 1
+				'regular_price' => 1,
 			]
 		);
 
@@ -981,9 +987,12 @@ class TestWooCommerce extends BaseTestCase {
 		parse_str( 'orderby=price-desc', $_GET );
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		$args  = array(
 			'post_type' => 'product',
@@ -1052,9 +1061,12 @@ class TestWooCommerce extends BaseTestCase {
 		parse_str( 'orderby=rating', $_GET );
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		$args  = array(
 			'post_type' => 'product',
@@ -1123,9 +1135,12 @@ class TestWooCommerce extends BaseTestCase {
 		parse_str( 'orderby=sku', $_GET );
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		$args  = array(
 			'post_type' => 'product',
@@ -1203,9 +1218,12 @@ class TestWooCommerce extends BaseTestCase {
 		$wp_the_query = $query;
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		add_filter(
 			'ep_post_formatted_args',
@@ -1253,9 +1271,12 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		parse_str( 'orderby=default', $_GET );
 
@@ -1392,18 +1413,23 @@ class TestWooCommerce extends BaseTestCase {
 		$typenow       = 'product';
 		$wc_list_table = new \WC_Admin_List_Table_Products();
 
-		add_filter( 'ep_post_filters', function( $filters, $args, $query ) {
-			$expected_result = array(
-				'terms' => array(
-					'post_type.raw' => array(
-						'product',
+		add_filter(
+			'ep_post_filters',
+			function( $filters, $args, $query ) {
+				$expected_result = array(
+					'terms' => array(
+						'post_type.raw' => array(
+							'product',
+						),
 					),
-				),
-			);
+				);
 
-			$this->assertEquals( $expected_result, $filters['post_type'] );
-			return $filters;
-		}, 10, 3 );
+				$this->assertEquals( $expected_result, $filters['post_type'] );
+				return $filters;
+			},
+			10,
+			3
+		);
 
 		parse_str( 'post_type=product&s=product', $_GET );
 
@@ -1600,28 +1626,31 @@ class TestWooCommerce extends BaseTestCase {
 
 		$this->ep_factory->product->create_variation_product(
 			[
-				'name' => 'Cap'
+				'name' => 'Cap',
 			]
 		);
 
 		$this->ep_factory->product->create(
 			[
-				'name' => 'Shoes'
+				'name' => 'Shoes',
 			]
 		);
 
 		$this->ep_factory->product->create(
 			[
-				'name' => 'T-Shirt'
+				'name' => 'T-Shirt',
 			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// mock the query as post type archive
-		add_action( 'parse_query', function( \WP_Query $query ) : void {
-			$query->is_post_type_archive = true;
-		}  );
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
 
 		parse_str( 'filter_colour=blue', $_GET );
 
@@ -1638,6 +1667,51 @@ class TestWooCommerce extends BaseTestCase {
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success );
 		$this->assertEquals( 1, count( $query ) );
-		$this->assertEquals( 'Cap', $query[0]->post_title  );
+		$this->assertEquals( 'Cap', $query[0]->post_title );
+	}
+
+	/**
+	 * Tests that get_posts() uses Elasticsearch when ep_integrate is true.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetPosts() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$posts = get_posts(
+			[
+				'post_type'    => 'product',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $posts[0]->elasticsearch );
+	}
+
+	/**
+	 * Tests that get_posts() does not use Elasticsearch when ep_integrate is not set.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetPostQueryDoesNotUseElasticSearchByDefault() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$posts = get_posts(
+			[
+				'post_type' => 'product',
+			]
+		);
+
+		$this->assertObjectNotHasAttribute( 'elasticsearch', $posts[0] );
 	}
 }
