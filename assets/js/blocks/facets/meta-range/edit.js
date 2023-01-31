@@ -1,7 +1,7 @@
 /* global facetMetaBlock */
 
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, TextControl, Spinner, Placeholder, SelectControl } from '@wordpress/components';
+import { PanelBody, Spinner, Placeholder, SelectControl } from '@wordpress/components';
 import {
 	Fragment,
 	useEffect,
@@ -32,11 +32,7 @@ const FacetBlockEdit = (props) => {
 
 	useEffect(() => {
 		setLoading(true);
-		const params = new URLSearchParams({
-			facet,
-			min,
-			max,
-		});
+		const params = new URLSearchParams({ facet });
 		apiFetch({
 			path: `/elasticpress/v1/facets/meta-range/block-preview?${params}`,
 		})
@@ -66,16 +62,6 @@ const FacetBlockEdit = (props) => {
 							})),
 						]}
 						onChange={(value) => setAttributes({ facet: value })}
-					/>
-					<TextControl
-						label={__('Minimum', 'elasticpress')}
-						value={min}
-						onChange={(value) => setAttributes({ min: value })}
-					/>
-					<TextControl
-						label={__('Max', 'elasticpress')}
-						value={min}
-						onChange={(value) => setAttributes({ min: value })}
 					/>
 				</PanelBody>
 			</InspectorControls>

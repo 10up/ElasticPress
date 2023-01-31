@@ -10,12 +10,6 @@
 		"facet": {
 			"type": "string",
 			"default": ""
-		},
-		"min": {
-			"type": "integer"
-		},
-		"max": {
-			"type": "integer"
 		}
 	},
 	"supports": {
