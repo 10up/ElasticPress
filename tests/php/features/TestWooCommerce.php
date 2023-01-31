@@ -129,6 +129,11 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
+		// mock the pagenow to bypass the search_order checks
+		global $pagenow;
+		$pagenow = 'edit.php';
+
+		parse_str( 's=findme', $_GET );
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'shop_order',
@@ -139,6 +144,8 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$pagenow = 'index.php';
 	}
 
 	/**
