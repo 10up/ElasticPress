@@ -807,7 +807,14 @@ class Search extends Feature {
 			'parent',
 		];
 
-		if ( in_array( $query->get( 'orderby' ), $unsupported_orderby, true ) ) {
+		$orderby = $query->get( 'orderby' );
+		if ( is_array( $orderby ) ) {
+			$orderby = array_keys( $orderby );
+		} else {
+			$orderby = explode( ' ', $orderby );
+		}
+
+		if ( array_intersect( $orderby, $unsupported_orderby ) ) {
 			return true;
 		}
 

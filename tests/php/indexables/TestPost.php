@@ -8353,6 +8353,24 @@ class TestPost extends BaseTestCase {
 		);
 		$this->assertNull( $query->elasticsearch_success );
 
+		// test for post__in with fallback to a title
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in title',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and with different sort orders
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in' => 'DESC', 'title' => 'ASC' ),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
 		// test for post_name__in
 		$query = new \WP_Query(
 			array(
