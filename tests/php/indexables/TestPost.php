@@ -8371,6 +8371,15 @@ class TestPost extends BaseTestCase {
 		);
 		$this->assertNull( $query->elasticsearch_success );
 
+		// test for post__in with fallback to a title and without orders.
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in', 'title'),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
 		// test for post_name__in
 		$query = new \WP_Query(
 			array(

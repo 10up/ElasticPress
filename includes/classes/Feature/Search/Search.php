@@ -807,14 +807,14 @@ class Search extends Feature {
 			'parent',
 		];
 
-		$orderby = $query->get( 'orderby' );
-		if ( is_array( $orderby ) ) {
-			$orderby = array_keys( $orderby );
-		} else {
-			$orderby = explode( ' ', $orderby );
+		$orderby = is_string( $query->get( 'orderby' ) ) ? explode( ' ', $query->get( 'orderby' ) ) : $query->get( 'orderby', 'date' );
+
+		$parse_orderby = array();
+		foreach ( $orderby as $key => $value ) {
+			$parse_orderby[] = is_string( $key ) ? $key : $value;
 		}
 
-		if ( array_intersect( $orderby, $unsupported_orderby ) ) {
+		if ( array_intersect( $parse_orderby, $unsupported_orderby ) ) {
 			return true;
 		}
 
