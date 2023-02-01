@@ -2,6 +2,7 @@
 /**
  * WooCommerce Orders Feature
  *
+ * @since 4.5.0
  * @package elasticpress
  */
 
@@ -17,9 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * WooCommerce Orders Feature
- *
- * @since 4.5.0
- * @package ElasticPress\Feature\WooCommerce
  */
 class Orders {
 	/**
@@ -105,7 +103,7 @@ class Orders {
 			return;
 		}
 
-		if ( 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 
