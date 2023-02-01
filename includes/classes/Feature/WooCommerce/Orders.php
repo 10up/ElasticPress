@@ -180,7 +180,7 @@ class Orders {
 		$endpoint = $this->get_template_endpoint();
 		$template = $this->get_search_template();
 
-		$response = Elasticsearch::factory()->remote_request(
+		Elasticsearch::factory()->remote_request(
 			$endpoint,
 			[
 				'blocking' => false,
