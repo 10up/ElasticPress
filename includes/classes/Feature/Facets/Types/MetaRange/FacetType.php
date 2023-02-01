@@ -92,7 +92,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			foreach ( $values as $min_or_max => $value ) {
 				$operator = '_min' === $min_or_max ? 'gte' : 'lte';
 
-				$range_filters[ $field_name ][ $operator ] = $value;
+				$range_filters[ $field_name ][ $operator ] = floatval( $value );
 			}
 		}
 
@@ -162,9 +162,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$min_or_max = substr( $facet, -4 );
 		$field_name = substr( $facet, 0, -4 );
 
-		$filters[ $this->get_filter_type() ][ $field_name ] = [
-			$min_or_max => $value,
-		];
+		$filters[ $this->get_filter_type() ][ $field_name ][ $min_or_max ] = $value;
 
 		return $filters;
 	}
