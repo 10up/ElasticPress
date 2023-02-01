@@ -64,11 +64,10 @@ abstract class FacetType {
 	 */
 	public function format_selected( string $facet, $value, array $filters ) {
 		$terms = explode( ',', trim( $value, ',' ) );
-		return [
-			$facet => [
-				'terms' => array_fill_keys( array_map( $this->get_sanitize_callback(), $terms ), true ),
-			],
+		$filters[ $this->get_filter_type() ][ $facet ] = [
+			'terms' => array_fill_keys( array_map( $this->get_sanitize_callback(), $terms ), true ),
 		];
+		return $filters;
 	}
 
 	/**

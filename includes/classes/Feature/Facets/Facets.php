@@ -393,7 +393,7 @@ class Facets extends Feature {
 				if ( 0 === strpos( $key, $filter_name ) ) {
 					$facet = str_replace( $filter_name, '', $key );
 
-					$filters[ $type_obj->get_filter_type() ] = $type_obj->format_selected( $facet, $value, $filters );
+					$filters = $type_obj->format_selected( $facet, $value, $filters );
 				}
 			}
 

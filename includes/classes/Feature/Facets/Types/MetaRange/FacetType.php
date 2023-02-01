@@ -159,14 +159,14 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	public function format_selected( string $facet, $value, array $filters ) {
-		$filter_type = $this->get_filter_type();
-		$min_or_max  = substr( $facet, -4 );
-		$field_name  = substr( $facet, 0, -4 );
-		$return      = $filters[ $filter_type ][ $field_name ] ?? [];
+		$min_or_max = substr( $facet, -4 );
+		$field_name = substr( $facet, 0, -4 );
 
-		$return[ $min_or_max ] = $value;
+		$filters[ $this->get_filter_type() ][ $field_name ] = [
+			$min_or_max => $value,
+		];
 
-		return [ $field_name => $return ];
+		return $filters;
 	}
 
 	/**
