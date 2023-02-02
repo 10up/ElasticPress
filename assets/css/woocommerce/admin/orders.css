@@ -1,0 +1,6 @@
+@import "components/listbox.css";
+@import "components/shop-order.css";
+
+#posts-filter .search-box {
+	position: relative;
+}

@@ -36,11 +36,19 @@ const Context = createContext();
  * @param {string} props.apiEndpoint API endpoint.
  * @param {string} props.apiHost API Host.
  * @param {object} props.argsSchema Schema describing supported args.
+ * @param {string} props.authorization Authorization header.
  * @param {WPElement} props.children Component children.
  * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
  * @returns {WPElement} Component.
  */
-export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, paramPrefix }) => {
+export const ApiSearchProvider = ({
+	apiEndpoint,
+	apiHost,
+	authorization,
+	argsSchema,
+	children,
+	paramPrefix,
+}) => {
 	/**
 	 * Any default args from the URL.
 	 */
@@ -74,7 +82,7 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	/**
 	 * Set up fetch method.
 	 */
-	const fetchResults = useFetchResults(apiHost, apiEndpoint);
+	const fetchResults = useFetchResults(apiHost, apiEndpoint, authorization);
 
 	/**
 	 * Set up the reducer.
@@ -107,6 +115,15 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 */
 	const clearConstraints = useCallback(() => {
 		dispatch({ type: 'CLEAR_CONSTRAINTS' });
+	}, []);
+
+	/**
+	 * Clear search resu;ts.
+	 *
+	 * @returns {void}
+	 */
+	const clearResults = useCallback(() => {
+		dispatch({ type: 'CLEAR_RESULTS' });
 	}, []);
 
 	/**
@@ -253,7 +270,7 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 	 *
 	 * @returns {void}
 	 */
-	const handleSearch = useCallback(() => {
+	const handleSearch = useCallback(async () => {
 		const { args, isOn, isPoppingState } = stateRef.current;
 
 		if (!isPoppingState) {
@@ -268,10 +285,14 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 
 		setIsLoading(true);
 
-		fetchResults(urlParams).then((response) => {
-			setResults(response);
-			setIsLoading(false);
-		});
+		const response = await fetchResults(urlParams);
+
+		if (!response) {
+			return;
+		}
+
+		setResults(response);
+		setIsLoading(false);
 	}, [argsSchema, fetchResults, pushState]);
 
 	/**
@@ -298,6 +319,7 @@ export const ApiSearchProvider = ({ apiEndpoint, apiHost, argsSchema, children, 
 		aggregations,
 		args,
 		clearConstraints,
+		clearResults,
 		getUrlParamsFromArgs,
 		getUrlWithParams,
 		isLoading,
