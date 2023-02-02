@@ -1,4 +1,5 @@
-describe('Facets Feature', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('Facets Feature', { tags: '@slow' }, () => {
 	/**
 	 * Ensure the feature is active, perform a sync, and remove test posts
 	 * before running tests.

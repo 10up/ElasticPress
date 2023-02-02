@@ -20,6 +20,10 @@ jobs:
   cypress_local:
     name: Cypress - Local
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testGroup: ['@slow', '-@slow']
 
     steps:
     - name: Checkout
@@ -51,7 +55,7 @@ jobs:
       run: npm run cypress:setup
 
     - name: Test
-      run: npm run cypress:run
+      run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
 
     - name: Make artifacts available
       uses: actions/upload-artifact@v3
@@ -71,6 +75,10 @@ jobs:
   cypress_epio:
     name: Cypress - EP.io
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testGroup: ['@slow', '-@slow']
 
     steps:
     - name: Checkout
@@ -104,7 +112,7 @@ jobs:
       run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }}
 
     - name: Test
-      run: npm run cypress:run
+      run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
 
     - name: Make artifacts available
       uses: actions/upload-artifact@v3
