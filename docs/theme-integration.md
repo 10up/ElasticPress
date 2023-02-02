@@ -360,3 +360,16 @@ document.getElementById('search-blocks').addEventListener('click', () => {
 });
 </script>
 ```
+
+### Change the number of results per page
+
+As of ElasticPress 4.5.0 Instant Results will display the same number of results per page as the number of posts per page set in _Settings > Reading_. The `ep_instant_results_per_page` filter can be used to change the number of results per page independently of the number of posts per page:
+
+```
+add_filter(
+	'ep_instant_results_per_page',
+	function() {
+		return 12;
+	}
+);
+```
