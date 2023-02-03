@@ -793,8 +793,8 @@ class Search extends Feature {
 	 *
 	 * @param bool      $skip Whether to skip ES query integration
 	 * @param \WP_Query $query WP_Query object
-	 * @since 4.5
 	 *
+	 * @since 4.5
 	 * @return bool
 	 */
 	public function skip_query_integration( $skip, $query ) {
