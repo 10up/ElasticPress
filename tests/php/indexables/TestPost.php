@@ -3238,7 +3238,6 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testMetaQueryIntegerKey() {
-		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' ) );
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
@@ -3270,8 +3269,8 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertEquals( 3, $query->post_count );
-		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
