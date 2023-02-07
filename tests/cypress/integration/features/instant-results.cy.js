@@ -18,6 +18,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 	}
 
 	before(() => {
+		cy.deactivatePlugin('woocommerce', 'wpCli');
 		cy.deactivatePlugin('classic-widgets', 'wpCli');
 		createSearchWidget();
 
@@ -62,6 +63,8 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 	describe('Instant Results Available', () => {
 		before(() => {
+			cy.activatePlugin('woocommerce');
+
 			if (!isEpIo) {
 				cy.activatePlugin('elasticpress-proxy');
 			}
@@ -150,6 +153,49 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 				cy.get('#wpadminbar li#wp-admin-bar-debug-bar').click();
 				cy.get('#querylist').should('be.visible');
+			});
+
+			it('Can filter results by price', () => {
+				/**
+				 * Add price range facet.
+				 */
+				cy.maybeEnableFeature('instant-results');
+				cy.visitAdminPage('admin.php?page=elasticpress');
+				cy.intercept('/wp-admin/admin-ajax.php*').as('ajaxRequest');
+				cy.get('.ep-feature-instant-results .settings-button').click();
+				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
+					'{backspace}{backspace}price{downArrow}{enter}{esc}',
+				);
+				cy.get('.ep-feature-instant-results .button-primary').click();
+				cy.wait('@ajaxRequest');
+
+				/**
+				 * Perform a search.
+				 */
+				cy.visit('/');
+				cy.intercept('*search=ergonomic*').as('apiRequest');
+				cy.get('.wp-block-search').last().as('searchBlock');
+				cy.get('@searchBlock').find('input[type="search"]').type('ergonomic');
+				cy.get('@searchBlock').find('button').click();
+				cy.get('.ep-search-modal').should('be.visible');
+				cy.wait('@apiRequest');
+				cy.get('.ep-search-result').should('have.length', 3);
+
+				/**
+				 * Adjusting the price range facet should filter results by price.
+				 */
+				cy.get('.ep-search-range-slider__thumb-0').as('priceThumb');
+				cy.get('@priceThumb').type('{rightArrow}');
+				cy.wait('@apiRequest');
+				cy.url().should('include', 'min_price=420');
+				cy.get('.ep-search-result').should('have.length', 2);
+
+				/**
+				 * Clearing the filter should return the unfiltered results.
+				 */
+				cy.get('.ep-search-tokens button').contains('420').click();
+				cy.wait('@apiRequest');
+				cy.get('.ep-search-result').should('have.length', 3);
 			});
 
 			it('Is possible to manually open Instant Results with a plugin', () => {

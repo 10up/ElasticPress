@@ -8,9 +8,10 @@ import { useCallback, useRef } from '@wordpress/element';
  *
  * @param {string} apiHost API host.
  * @param {string} apiEndpoint API endpoint.
+ * @param {string} Authorization Authorization header.
  * @returns {Function} Function for retrieving search results.
  */
-export const useFetchResults = (apiHost, apiEndpoint) => {
+export const useFetchResults = (apiHost, apiEndpoint, Authorization) => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
 
@@ -30,6 +31,7 @@ export const useFetchResults = (apiHost, apiEndpoint) => {
 			signal: abort.current.signal,
 			headers: {
 				Accept: 'application/json',
+				Authorization,
 			},
 		})
 			.then((response) => {
@@ -47,5 +49,5 @@ export const useFetchResults = (apiHost, apiEndpoint) => {
 		return request.current;
 	};
 
-	return useCallback(fetchResults, [apiHost, apiEndpoint]);
+	return useCallback(fetchResults, [apiHost, apiEndpoint, Authorization]);
 };

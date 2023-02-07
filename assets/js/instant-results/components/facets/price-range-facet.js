@@ -8,6 +8,7 @@ import { __, sprintf } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { useApiSearch } from '../../../api-search';
+import { currencyCode } from '../../config';
 import { formatPrice } from '../../utilities';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
@@ -49,8 +50,15 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Current minimum and maximum prices, formatted.
 	 */
-	const currentMaxPrice = formatPrice(currentMaxValue, { maximumFractionDigits: 0 });
-	const currentMinPrice = formatPrice(currentMinValue, { maximumFractionDigits: 0 });
+	const currentMaxPrice = formatPrice(currentMaxValue, {
+		maximumFractionDigits: 0,
+		currency: currencyCode,
+	});
+
+	const currentMinPrice = formatPrice(currentMinValue, {
+		maximumFractionDigits: 0,
+		currency: currencyCode,
+	});
 
 	/**
 	 * Applied minimum and maximum values.
@@ -61,8 +69,8 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Applied minimum and maximum prices, formatted.
 	 */
-	const maxPrice = formatPrice(maxValue, { maximumFractionDigits: 0 });
-	const minPrice = formatPrice(minValue, { maximumFractionDigits: 0 });
+	const maxPrice = formatPrice(maxValue, { maximumFractionDigits: 0, currency: currencyCode });
+	const minPrice = formatPrice(minValue, { maximumFractionDigits: 0, currency: currencyCode });
 
 	/**
 	 * Handle completed slider change.

@@ -22,6 +22,12 @@ export default (state, action) => {
 
 			break;
 		}
+		case 'CLEAR_RESULTS': {
+			newState.aggregations = {};
+			newState.searchResults = [];
+			newState.totalResults = 0;
+			break;
+		}
 		case 'SEARCH': {
 			newState.args = { ...newState.args, ...action.args, offset: 0 };
 			newState.isOn = true;
