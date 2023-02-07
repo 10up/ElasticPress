@@ -442,7 +442,7 @@ class Command extends WP_CLI_Command {
 	 * @return array
 	 */
 	protected function get_index_names() {
-		$sites = ( is_multisite() ) ? Utils\get_sites() : array( 'blog_id' => get_current_blog_id() );
+		$sites = ( is_multisite() ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
 
 		$all_indexables = Indexables::factory()->get_all();
 

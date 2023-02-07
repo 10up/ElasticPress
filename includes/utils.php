@@ -109,7 +109,8 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
+	// VIP: We're on VIP, so return false immediately.
+	return false;
 }
 
 /**
