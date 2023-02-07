@@ -12,6 +12,7 @@ use ElasticPress;
 use ElasticPress\Command;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
+use ElasticPress\Command\Helper as Helper;
 
 /**
  * Commands test class
@@ -342,7 +343,7 @@ class TestCommands extends BaseTestCase {
 
 		/**
 		 * Test the --status flag
-		 * 
+		 *
 		 * @since 4.5.0
 		 */
 		$this->command->get_indices( [], [ 'status' => 'all' ] );
@@ -431,7 +432,7 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command can create an index even without the --setup flag
-	 * 
+	 *
 	 * @since 4.5.0
 	 */
 	public function testSyncIndexCreationWithoutSetupFlag() {
@@ -979,7 +980,7 @@ class TestCommands extends BaseTestCase {
 
 		set_transient( 'ep_wpcli_sync_interrupted', true );
 
-		$this->command->should_interrupt_sync();
+		Helper::should_interrupt_sync();
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Sync was interrupted', $output );

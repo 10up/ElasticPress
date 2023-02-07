@@ -4,6 +4,7 @@
  */
 class WP_CLI {
 
+
 	/**
 	 * Display a log message
 	 *
@@ -97,6 +98,18 @@ class WP_CLI {
 	 * @param integer $return_code Exit code to return.
 	 */
 	public static function halt( $return_code ) {
+	}
+
+	/**
+	 * Return mocked runner object.
+	 *
+	 * @return object
+	 */
+	public static function get_runner() {
+		$runner = new stdClass();
+		$runner->arguments = [];
+		$runner->assoc_args = [];
+		return $runner;
 	}
 
 }
