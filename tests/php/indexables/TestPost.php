@@ -4357,6 +4357,29 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $parent_post, $query->posts[0] );
+
+		// Test post_parent__in and post_parent__not_in queries
+		$args = array(
+			's'               => 'findme',
+			'post_parent__in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'                   => 'findme',
+			'post_parent__not_in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
