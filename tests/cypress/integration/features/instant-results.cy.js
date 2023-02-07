@@ -155,6 +155,39 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('#querylist').should('be.visible');
 			});
 
+			it('Is possible to filter the number of results', () => {
+				/**
+				 * The number of results should match the posts per page
+				 * setting by default.
+				 */
+				cy.maybeEnableFeature('instant-results');
+				cy.visitAdminPage('options-reading.php');
+				cy.get('input[name="posts_per_page"]').then(($input) => {
+					const perPage = $input.val();
+
+					cy.visit('/');
+					cy.get('.wp-block-search').last().as('searchBlock');
+					cy.get('@searchBlock').find('input[type="search"]').type('block');
+					cy.get('@searchBlock').find('button').click();
+					cy.url().should('include', `per_page=${perPage}`);
+
+					/**
+					 * Activate test plugin with filter.
+					 */
+					cy.activatePlugin('filter-instant-results-per-page', 'wpCli');
+
+					/**
+					 * On searching the per_page parameter should reflect the
+					 * filtered value.
+					 */
+					cy.visit('/');
+					cy.get('.wp-block-search').last().as('searchBlock');
+					cy.get('@searchBlock').find('input[type="search"]').type('block');
+					cy.get('@searchBlock').find('button').click();
+					cy.url().should('include', 'per_page=3');
+				});
+			});
+
 			it('Can filter results by price', () => {
 				/**
 				 * Add price range facet.
@@ -268,39 +301,6 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 */
 				cy.get('.my-custom-result').should('exist');
 				cy.get('.ep-search-result').should('not.exist');
-			});
-		});
-
-		it('Is possible to filter the number of results', () => {
-			/**
-			 * The number of results should match the posts per page
-			 * setting by default.
-			 */
-			cy.maybeEnableFeature('instant-results');
-			cy.visitAdminPage('options-reading.php');
-			cy.get('input[name="posts_per_page"]').then(($input) => {
-				const perPage = $input.val();
-
-				cy.visit('/');
-				cy.get('.wp-block-search').last().as('searchBlock');
-				cy.get('@searchBlock').find('input[type="search"]').type('block');
-				cy.get('@searchBlock').find('button').click();
-				cy.url().should('include', `per_page=${perPage}`);
-
-				/**
-				 * Activate test plugin with filter.
-				 */
-				cy.activatePlugin('filter-instant-results-per-page', 'wpCli');
-
-				/**
-				 * On searching the per_page parameter should reflect the
-				 * filtered value.
-				 */
-				cy.visit('/');
-				cy.get('.wp-block-search').last().as('searchBlock');
-				cy.get('@searchBlock').find('input[type="search"]').type('block');
-				cy.get('@searchBlock').find('button').click();
-				cy.url().should('include', 'per_page=3');
 			});
 		});
 	});
