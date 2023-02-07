@@ -3232,6 +3232,49 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test an advanced meta filter query with integer key
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testMetaQueryIntegerKey() {
+		$this->ep_factory->post->create( array( 'post_content' => 'the post content findme' ), array( 'test_key' => 'value1' ) );
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value1',
+					'test_key2' => 'value',
+				),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value',
+					'test_key2' => 'value2',
+					'test_key3' => 'value',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				0 => array(),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
 	 * Test a query that searches and filters by a meta value like the query
 	 *
 	 * @since 1.5
