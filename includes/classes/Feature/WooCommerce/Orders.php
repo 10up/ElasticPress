@@ -39,6 +39,7 @@ class Orders {
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 	}
 
 	/**
@@ -94,6 +95,30 @@ class Orders {
 	}
 
 	/**
+	 * Registers the API endpoint to get a token.
+	 *
+	 * @return void
+	 */
+	public function rest_api_init() {
+		register_rest_route(
+			'elasticpress/v1',
+			'api-authorization',
+			[
+				[
+					'methods'             => 'GET',
+					'callback'            => [ $this, 'get_api_authorization' ],
+					'permission_callback' => [ $this, 'check_api_authorization_permission' ],
+				],
+				[
+					'methods'             => 'POST',
+					'callback'            => [ $this, 'refresh_api_authorization' ],
+					'permission_callback' => [ $this, 'check_api_authorization_permission' ],
+				],
+			]
+		);
+	}
+
+	/**
 	 * Enqueue admin assets.
 	 *
 	 * @param string $hook_suffix The current admin page.
@@ -107,9 +132,7 @@ class Orders {
 			return;
 		}
 
-		$temporary_token = $this->get_temporary_token();
-
-		if ( ! $temporary_token ) {
+		if ( ! $this->check_api_authorization_permission() ) {
 			return;
 		}
 
@@ -137,14 +160,15 @@ class Orders {
 			'elasticpress-woocommerce-admin-orders',
 			'epWooCommerceAdminOrders',
 			array(
-				'adminUrl'      => admin_url( 'post.php' ),
-				'apiEndpoint'   => $api_endpoint,
-				'apiHost'       => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $api_host ) : '',
-				'authorization' => "Basic $temporary_token",
-				'argsSchema'    => $this->get_args_schema(),
-				'dateFormat'    => wc_date_format(),
-				'statusLabels'  => wc_get_order_statuses(),
-				'timeFormat'    => wc_time_format(),
+				'restUrl'      => rest_url( 'elasticpress/v1/api-authorization' ),
+				'adminUrl'     => admin_url( 'post.php' ),
+				'apiEndpoint'  => $api_endpoint,
+				'apiHost'      => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $api_host ) : '',
+				'argsSchema'   => $this->get_args_schema(),
+				'dateFormat'   => wc_date_format(),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'statusLabels' => wc_get_order_statuses(),
+				'timeFormat'   => wc_time_format(),
 			)
 		);
 	}
@@ -350,22 +374,29 @@ class Orders {
 	}
 
 	/**
-	 * Get temporary token.
+	 * Get API Authorization header.
 	 *
-	 * @return string|false Temporary token, or false on failure.
+	 * @return string|false Authorization header, or false on failure.
 	 */
-	public function get_temporary_token() {
+	public function get_api_authorization() {
 		$user_id = get_current_user_id();
 
-		if ( ! user_can( $user_id, 'edit_others_shop_orders' ) ) {
-			return false;
+		$authorization = get_user_meta( $user_id, 'ep_authorization', true );
+
+		if ( $authorization ) {
+			return $authorization;
 		}
 
-		$temporary_token = get_user_meta( $user_id, 'ep_temporary_token', true );
+		return $this->refresh_api_authorization();
+	}
 
-		if ( $temporary_token ) {
-			return $temporary_token;
-		}
+	/**
+	 * Refresh API Authorization header.
+	 *
+	 * @return string|false Authorization header, or false on failure.
+	 */
+	public function refresh_api_authorization() {
+		$user_id = get_current_user_id();
 
 		$endpoint = $this->get_tokens_endpoint();
 		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
@@ -377,10 +408,29 @@ class Orders {
 		$response = wp_remote_retrieve_body( $response );
 		$response = json_decode( $response );
 
-		$token = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$credentials   = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$authorization = "Basic $credentials";
 
-		update_user_meta( $user_id, 'ep_temporary_token', $token );
+		update_user_meta( $user_id, 'ep_api_authorization', $authorization );
 
-		return $token;
+		return $authorization;
+	}
+
+	/**
+	 * Check permission to use the API Authorization header.
+	 *
+	 * @return boolean Whether the user can use the API Authorization header.
+	 */
+	public function check_api_authorization_permission() {
+		/**
+		 * Filters the capability required to use Orders Autosuggest.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_woocommerce_orders_capability
+		 * @param {string} $capability Required capability.
+		 */
+		$capability = apply_filters( 'ep_woocommerce_orders_capability', 'edit_others_shop_orders' );
+
+		return current_user_can( $capability );
 	}
 }

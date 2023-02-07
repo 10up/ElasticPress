@@ -8,6 +8,8 @@ const {
 	argsSchema,
 	authorization,
 	dateFormat,
+	nonce,
+	restUrl,
 	statusLabels,
 	timeFormat,
 } = window.epWooCommerceAdminOrders;
@@ -19,6 +21,8 @@ export {
 	argsSchema,
 	authorization,
 	dateFormat,
+	nonce,
+	restUrl,
 	statusLabels,
 	timeFormat,
 };
