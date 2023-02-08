@@ -125,7 +125,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('.ep-search-modal').as('searchModal').should('be.visible'); // Should be visible immediatly
 				cy.url().should('include', 'search=blog');
 
-				cy.wait('@apiRequest');
+				cy.wait('@apiRequest')
+					.its('request.headers')
+					.should('have.property', 'x-elasticpress-request-id');
+
 				cy.get('@searchModal').should('contain.text', 'blog');
 				// Show the number of results
 				cy.get('@searchModal').find('.ep-search-results__title').contains(/\d+/);
