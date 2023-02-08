@@ -26,5 +26,5 @@
 		"html": false
 	},
 	"editorScript": "ep-facets-block-script",
-	"style": "file:/../../../../../dist/css/facets-styles.css"
+	"style": "elasticpress-facets"
 }
