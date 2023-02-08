@@ -38,8 +38,9 @@ export const useFetchResults = (apiHost, apiEndpoint, Authorization, requestIdBa
 			Authorization,
 		};
 
-		if (requestIdBase) {
-			headers['X-ElasticPress-Request-ID'] = generateRequestId(requestIdBase);
+		const requestId = generateRequestId(requestIdBase);
+		if (requestId) {
+			headers['X-ElasticPress-Request-ID'] = requestId;
 		}
 
 		request.current = fetch(url, {
