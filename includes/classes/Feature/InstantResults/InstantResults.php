@@ -317,6 +317,7 @@ class InstantResults extends Feature {
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
 				'termCount'      => $this->settings['term_count'],
+				'requestIdBase'  => Utils\get_request_id_base(),
 			)
 		);
 	}

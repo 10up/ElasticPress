@@ -4,14 +4,20 @@
 import { useCallback, useRef } from '@wordpress/element';
 
 /**
+ * Internal dependencies.
+ */
+import { generateRequestId } from '../../utils/helpers';
+
+/**
  * Get a callback function for retrieving search results.
  *
  * @param {string} apiHost API host.
  * @param {string} apiEndpoint API endpoint.
  * @param {string} Authorization Authorization header.
+ * @param {string} requestIdBase Base of Request IDs.
  * @returns {Function} Function for retrieving search results.
  */
-export const useFetchResults = (apiHost, apiEndpoint, Authorization) => {
+export const useFetchResults = (apiHost, apiEndpoint, Authorization, requestIdBase = '') => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
 
@@ -27,12 +33,18 @@ export const useFetchResults = (apiHost, apiEndpoint, Authorization) => {
 		abort.current.abort();
 		abort.current = new AbortController();
 
+		const headers = {
+			Accept: 'application/json',
+			Authorization,
+		};
+
+		if (requestIdBase) {
+			headers['X-ElasticPress-Request-ID'] = generateRequestId(requestIdBase);
+		}
+
 		request.current = fetch(url, {
 			signal: abort.current.signal,
-			headers: {
-				Accept: 'application/json',
-				Authorization,
-			},
+			headers,
 		})
 			.then((response) => {
 				return response.json();
@@ -49,5 +61,5 @@ export const useFetchResults = (apiHost, apiEndpoint, Authorization) => {
 		return request.current;
 	};
 
-	return useCallback(fetchResults, [apiHost, apiEndpoint, Authorization]);
+	return useCallback(fetchResults, [apiHost, apiEndpoint, Authorization, requestIdBase]);
 };
