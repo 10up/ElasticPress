@@ -2001,9 +2001,8 @@ class Post extends Indexable {
 		 *
 		 * @since 1.3
 		 */
-		$meta_queries     = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
-		$this->meta_query = new \WP_Meta_Query();
-		$meta_queries     = $this->meta_query->sanitize_query( $meta_queries );
+		$meta_queries = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
+		$meta_queries = ( new \WP_Meta_Query() )->sanitize_query( $meta_queries );
 
 		/**
 		 * Todo: Support meta_type

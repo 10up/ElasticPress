@@ -3232,12 +3232,12 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test an advanced meta filter query with integer key
+	 * Test the sanitization of an empty meta query
 	 *
 	 * @since 4.5.0
 	 * @group post
 	 */
-	public function testMetaQueryIntegerKey() {
+	public function testMetaQueryEmptySanitization() {
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
