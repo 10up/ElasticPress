@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import domReady from '@wordpress/dom-ready';
-import { render } from '@wordpress/element';
+import { render, useEffect, useState, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -14,13 +14,80 @@ import {
 	apiEndpoint,
 	apiHost,
 	argsSchema,
-	dateFormat,
-	nonce,
-	restUrl,
-	statusLabels,
-	timeFormat,
+	credentialsApiUrl,
+	credentialsNonce,
 } from './config';
-import { getAuthorization, getNewAuthorization } from './utilities';
+
+/**
+ * Order search provider component.
+ *
+ * Bundles several provider components with authentication handling.
+ *
+ * @param {object} props Component props.
+ * @param {WPElement} props.children Component children.
+ * @returns {WPElement}
+ */
+const AuthenticatedApiSearchProvider = ({ children }) => {
+	/**
+	 * State.
+	 */
+	const [credentials, setCredentials] = useState(null);
+	const [hasRefreshed, setHasRefreshed] = useState(false);
+
+	/**
+	 * Refresh credentials on authentication errors.
+	 *
+	 * @returns {void}
+	 */
+	const onAuthError = () => {
+		if (hasRefreshed) {
+			setCredentials(null);
+			return;
+		}
+
+		fetch(credentialsApiUrl, {
+			headers: { 'X-WP-Nonce': credentialsNonce },
+			method: 'POST',
+		})
+			.then((response) => response.text())
+			.then(setCredentials);
+
+		setHasRefreshed(true);
+	};
+
+	/**
+	 * Set credentials on initialization.
+	 *
+	 * @returns {void}
+	 */
+	const onInit = () => {
+		fetch(credentialsApiUrl, {
+			headers: { 'X-WP-Nonce': credentialsNonce },
+		})
+			.then((response) => response.text())
+			.then(setCredentials);
+	};
+
+	/**
+	 * Effects.
+	 */
+	useEffect(onInit, []);
+
+	/**
+	 * Render.
+	 */
+	return (
+		<ApiSearchProvider
+			apiEndpoint={apiEndpoint}
+			apiHost={apiHost}
+			argsSchema={argsSchema}
+			authorization={`Basic ${credentials}`}
+			onAuthError={onAuthError}
+		>
+			{credentials ? children : null}
+		</ApiSearchProvider>
+	);
+};
 
 /**
  * Initialize.
@@ -28,9 +95,6 @@ import { getAuthorization, getNewAuthorization } from './utilities';
  * @returns {void}
  */
 const init = async () => {
-	/**
-	 * Create an element for the app to render into.
-	 */
 	const form = document.getElementById('posts-filter');
 	const input = form.s;
 
@@ -38,64 +102,16 @@ const init = async () => {
 		return;
 	}
 
-	/**
-	 * Render the orders autosuggest app.
-	 *
-	 * @param {string} authorization Authorization header.
-	 * @param {Function} onAuthError Failed authentication handler.
-	 * @returns {void}
-	 */
-	const renderApp = (authorization, onAuthError) => {
-		const el = document.createElement('div');
+	const el = document.createElement('div');
 
-		input.parentElement.appendChild(el);
+	input.parentElement.appendChild(el);
 
-		render(
-			<ApiSearchProvider
-				apiEndpoint={apiEndpoint}
-				apiHost={apiHost}
-				argsSchema={argsSchema}
-				authorization={authorization}
-				onAuthError={onAuthError}
-			>
-				{authorization}
-				<App
-					adminUrl={adminUrl}
-					dateFormat={dateFormat}
-					input={input}
-					statusLabels={statusLabels}
-					timeFormat={timeFormat}
-				/>
-			</ApiSearchProvider>,
-			el,
-		);
-	};
-
-	/**
-	 * Handle authentiation failures.
-	 *
-	 * Generates a new Authorization header and re-renders the app. The app is
-	 * re-rendered without the authentication failure handler so that getting a
-	 * new Authorization header is only attempted once.
-	 *
-	 * @returns {void}
-	 */
-	const onAuthError = async () => {
-		const authorization = await getNewAuthorization(restUrl, nonce);
-
-		renderApp(authorization);
-	};
-
-	/**
-	 * Get an Authorization header and render the app.
-	 */
-	const authorization = await getAuthorization(restUrl, nonce);
-
-	if (!authorization) {
-		return;
-	}
-
-	renderApp(authorization, onAuthError);
+	render(
+		<AuthenticatedApiSearchProvider>
+			<App adminUrl={adminUrl} input={input} />
+		</AuthenticatedApiSearchProvider>,
+		el,
+	);
 };
 
 domReady(init);
