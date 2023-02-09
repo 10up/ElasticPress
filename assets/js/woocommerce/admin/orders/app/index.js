@@ -45,11 +45,7 @@ export default ({ adminUrl, input }) => {
 	 * Dispatch the change, with debouncing.
 	 */
 	const dispatchInput = useDebounce((value) => {
-		if (value) {
-			searchFor(value);
-		} else {
-			clearResults();
-		}
+		searchFor(value);
 	}, 300);
 
 	/**
@@ -59,9 +55,15 @@ export default ({ adminUrl, input }) => {
 	 */
 	const onInput = useCallback(
 		(event) => {
-			dispatchInput(event.target.value);
+			const { value } = event.target;
+
+			if (value) {
+				dispatchInput(event.target.value);
+			} else {
+				clearResults();
+			}
 		},
-		[dispatchInput],
+		[clearResults, dispatchInput],
 	);
 
 	/**
