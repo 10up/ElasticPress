@@ -20,6 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Renderer {
 	/**
+	 * Whether the term count should be displayed or not.
+	 *
+	 * @var bool
+	 */
+	protected $display_count = false;
+
+	/**
 	 * Output the widget or block HTML.
 	 *
 	 * @param array $args     Widget args
@@ -45,6 +52,8 @@ class Renderer {
 		);
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$this->display_count = $feature->get_setting( 'display_count' );
 
 		if ( $wp_query->get( 'ep_facet', false ) && ! $feature->is_facetable( $wp_query ) ) {
 			return false;
@@ -365,6 +374,11 @@ class Renderer {
 			esc_url( $url )
 		);
 
+		$label = $term->name;
+		if ( $this->display_count ) {
+			$label .= ' <span>(' . $term->count . ')</span>';
+		}
+
 		/**
 		 * Filter the label for an individual facet term.
 		 *
@@ -375,7 +389,7 @@ class Renderer {
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term label.
 		 */
-		$label = apply_filters( 'ep_facet_widget_term_label', $term->name, $term, $selected );
+		$label = apply_filters( 'ep_facet_widget_term_label', $label, $term, $selected );
 
 		/**
 		 * Filter the accessible label for an individual facet term link.
