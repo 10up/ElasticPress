@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies.
  */
-import domReady from '@wordpress/dom-ready';
 import { render, useEffect, useState, WPElement } from '@wordpress/element';
 
 /**
@@ -114,4 +113,4 @@ const init = async () => {
 	);
 };
 
-domReady(init);
+init();

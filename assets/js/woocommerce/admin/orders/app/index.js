@@ -102,6 +102,8 @@ export default ({ adminUrl, input }) => {
 					post_status,
 				} = option._source;
 
+				const orderDate = `${post_date_gmt.split(' ').join('T')}+00:00`;
+
 				return (
 					<ShopOrder
 						emailAddress={billing_email}
@@ -110,7 +112,7 @@ export default ({ adminUrl, input }) => {
 						itemCount={items ? items.split('|').length : 0}
 						key={post_id}
 						lastName={billing_last_name}
-						orderDate={post_date_gmt}
+						orderDate={orderDate}
 						orderNumber={post_id}
 						orderStatus={post_status}
 					/>
