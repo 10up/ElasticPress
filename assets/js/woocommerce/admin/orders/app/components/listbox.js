@@ -119,7 +119,8 @@ export default ({ children, id, input, label, onSelect }) => {
 					}
 
 					event.preventDefault();
-					onSelect(selectedIndexRef.current);
+
+					onSelect(selectedIndexRef.current, event.metaKey);
 
 					break;
 				default:
@@ -191,13 +192,12 @@ export default ({ children, id, input, label, onSelect }) => {
 					aria-selected={selectedIndexRef.current === index}
 					className="ep-listbox__option"
 					key={child.props.id}
-					onClick={() => onSelect(index)}
+					onClick={(event) => onSelect(index, event.metaKey)}
 					onMouseEnter={() => {
 						setSelectedIndex(index);
 						selectedIndexRef.current = index;
 					}}
 					role="option"
-					tabIndex="-1"
 				>
 					{child}
 				</li>

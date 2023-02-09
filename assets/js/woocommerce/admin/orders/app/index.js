@@ -33,10 +33,10 @@ export default ({ adminUrl, input }) => {
 	 * @param {number} index Selected option index.
 	 */
 	const onSelect = useCallback(
-		(index) => {
+		(index, isMetaKey) => {
 			const { post_id } = searchResultsRef.current[index]._source;
 
-			window.location = `${adminUrl}?post=${post_id}&action=edit`;
+			window.open(`${adminUrl}?post=${post_id}&action=edit`, isMetaKey ? '_blank' : '_self');
 		},
 		[adminUrl],
 	);
