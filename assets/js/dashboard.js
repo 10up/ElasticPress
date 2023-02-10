@@ -23,11 +23,22 @@ const {
  * @returns {boolean} Whether a reindex will need to occur when saved.
  */
 const willChangeTriggerReindex = (data) => {
-	return (
-		data.get('requires_reindex') === '1' &&
-		data.get('was_active') === '0' &&
-		data.get('settings[active]') === '1'
-	);
+	const isActive = data.get('settings[active]') === '1';
+	const settingRequiresReindex = data.get('setting_requires_reindex');
+
+	if (settingRequiresReindex) {
+		const settingIs = data.get(`settings[${settingRequiresReindex}]`);
+		const settingWas = data.get(`setting_requires_reindex_was`);
+
+		if (isActive && settingIs !== settingWas) {
+			return true;
+		}
+	}
+
+	const requiresReindex = data.get('requires_reindex') === '1';
+	const wasActive = data.get('was_active') === '1';
+
+	return requiresReindex && isActive && !wasActive;
 };
 
 /**
@@ -83,6 +94,10 @@ const onSubmit = async (event) => {
 	}
 
 	feature.classList.toggle('feature-active', response.data.active);
+
+	if (typeof response.data.setting !== 'undefined') {
+		form.setting_requires_reindex_was.value = response.data.setting;
+	}
 
 	if (response.data.reindex) {
 		window.location = syncUrl;
