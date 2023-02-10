@@ -182,7 +182,7 @@ class Features {
 			/**
 			 * If the setting has changed, a reindex is required.
 			 */
-			if ( $is_active && $setting_is !== $setting_was ) {
+			if ( $is_active && $setting_is && $setting_is !== $setting_was ) {
 				$data['reindex'] = true;
 			}
 		}

@@ -30,7 +30,8 @@ const willChangeTriggerReindex = (data) => {
 		const settingIs = data.get(`settings[${settingRequiresReindex}]`);
 		const settingWas = data.get(`setting_requires_reindex_was`);
 
-		if (isActive && settingIs && settingIs !== settingWas) {
+		// eslint-disable-next-line eqeqeq
+		if (isActive && settingIs == true && settingIs !== settingWas) {
 			return true;
 		}
 	}
