@@ -30,7 +30,7 @@ const willChangeTriggerReindex = (data) => {
 		const settingIs = data.get(`settings[${settingRequiresReindex}]`);
 		const settingWas = data.get(`setting_requires_reindex_was`);
 
-		if (isActive && settingIs !== settingWas) {
+		if (isActive && settingIs && settingIs !== settingWas) {
 			return true;
 		}
 	}

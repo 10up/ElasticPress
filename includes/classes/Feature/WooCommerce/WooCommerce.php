@@ -38,7 +38,19 @@ class WooCommerce extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		$this->setting_requires_install_reindex = 'orders';
+
 		$this->available_during_installation = true;
+
+		$this->default_settings = [
+			'orders' => '0',
+		];
+
+		$settings = $this->get_settings() ? $this->get_settings() : array();
+
+		$this->settings = wp_parse_args( $settings, $this->default_settings );
+
+		$this->orders = new Orders();
 
 		parent::__construct();
 	}
@@ -859,6 +871,11 @@ class WooCommerce extends Feature {
 		// Custom product ordering
 		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
 		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
+
+		// Orders Autosuggest feature.
+		if ( '1' === $this->settings['orders'] ) {
+			$this->orders->setup();
+		}
 	}
 
 	/**
@@ -869,6 +886,23 @@ class WooCommerce extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Dashboard WooCommerce settings
+	 *
+	 * @since 4.5.0
+	 */
+	public function output_feature_box_settings() {
+		?>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Orders Autosuggest', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label><input name="settings[orders]" type="radio" <?php checked( $this->settings['orders'], '1' ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[orders]" type="radio" <?php checked( $this->settings['orders'], '0' ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
+			</div>
+		</div>
 		<?php
 	}
 
