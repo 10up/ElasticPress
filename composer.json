@@ -28,7 +28,8 @@
     }
   ],
   "require": {
-    "php": ">=7.0"
+    "php": ">=7.0",
+    "wp-cli/wp-cli": "*"
   },
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
