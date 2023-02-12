@@ -52,6 +52,34 @@ function get_epio_credentials() {
 }
 
 /**
+ * Get WP capability needed for a user to interact with ElasticPress in the admin
+ *
+ * @return string
+ */
+function get_capability() {
+	return apply_filters( 'ep_capability', 'elasticpress_manage' );
+}
+
+/**
+ * Get mapped capabilities for post types
+ *
+ * @return string
+ */
+function get_post_map_capabilities() {
+	$capability = get_capability();
+
+	return [
+		'edit_post'          => $capability,
+		'edit_posts'         => $capability,
+		'edit_others_posts'  => $capability,
+		'publish_posts'      => $capability,
+		'read_post'          => $capability,
+		'read_private_posts' => $capability,
+		'delete_post'        => $capability,
+	];
+}
+
+/**
  * Get shield credentials
  *
  * @since  3.0

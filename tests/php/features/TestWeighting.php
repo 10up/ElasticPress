@@ -175,7 +175,7 @@ class TestWeighting extends BaseTestCase {
 		add_menu_page(
 			'ElasticPress',
 			'ElasticPress',
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress'
 		);
 

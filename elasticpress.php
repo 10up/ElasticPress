@@ -246,6 +246,17 @@ function setup_misc() {
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
 
 /**
+ * Set up role(s) with EP capability
+ */
+function setup_roles() {
+	// add custom capabilities to admin role
+	$role = get_role( 'administrator' );
+
+	$role->add_cap( Utils\get_capability() );
+}
+add_action( 'init', __NAMESPACE__ . '\\setup_roles' );
+
+/**
  * Fires after Elasticpress plugin is loaded
  *
  * @since  2.0
