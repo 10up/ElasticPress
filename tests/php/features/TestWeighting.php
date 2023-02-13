@@ -8,6 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use \ElasticPress\Utils;
 
 /**
  * Weighting test class
