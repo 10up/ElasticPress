@@ -19,6 +19,7 @@ const {
 	postTypeLabels,
 	taxonomyLabels,
 	termCount,
+	requestIdBase,
 } = window.epInstantResults;
 
 /**
@@ -74,4 +75,5 @@ export {
 	sortOptions,
 	taxonomyLabels,
 	termCount,
+	requestIdBase,
 };

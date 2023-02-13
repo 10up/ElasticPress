@@ -458,6 +458,7 @@ class Autosuggest extends Feature {
 			'http_headers'        => apply_filters( 'ep_autosuggest_http_headers', [] ),
 			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
 			'addSearchTermHeader' => false,
+			'requestIdBase'       => Utils\get_request_id_base(),
 		];
 
 		if ( Utils\is_epio() ) {
