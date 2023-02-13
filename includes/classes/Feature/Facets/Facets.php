@@ -46,8 +46,7 @@ class Facets extends Feature {
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [
-			'match_type'    => 'all',
-			'display_count' => 0,
+			'match_type' => 'all',
 		];
 
 		$types = [
@@ -131,13 +130,6 @@ class Facets extends Feature {
 				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
 				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
 				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Display Count', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label><input name="settings[display_count]" type="radio" <?php checked( $settings['display_count'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[display_count]" type="radio" <?php checked( ! $settings['display_count'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 			</div>
 		</div>
 		<?php

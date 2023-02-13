@@ -46,7 +46,8 @@ class Renderer {
 			]
 		);
 
-		$this->meta_field = $instance['facet'];
+		$this->meta_field    = $instance['facet'];
+		$this->display_count = $instance['displayCount'];
 
 		if ( ! $this->should_render() ) {
 			return;
@@ -68,8 +69,6 @@ class Renderer {
 
 		$selected_meta    = $this->get_selected_meta();
 		$selected_filters = $feature->get_selected();
-
-		$this->display_count = $feature->get_setting( 'display_count' );
 
 		/**
 		 * Get all the terms so we know if we should output the widget

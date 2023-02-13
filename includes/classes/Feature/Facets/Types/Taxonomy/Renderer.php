@@ -53,8 +53,6 @@ class Renderer {
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
-		$this->display_count = $feature->get_setting( 'display_count' );
-
 		if ( $wp_query->get( 'ep_facet', false ) && ! $feature->is_facetable( $wp_query ) ) {
 			return false;
 		}
@@ -69,7 +67,8 @@ class Renderer {
 			return;
 		}
 
-		$taxonomy = $instance['facet'];
+		$taxonomy            = $instance['facet'];
+		$this->display_count = $instance['displayCount'];
 
 		if ( ! is_search() ) {
 
