@@ -1,4 +1,14 @@
 /**
+ * WordPress dependencies.
+ */
+import { applyFilters } from '@wordpress/hooks';
+
+/**
+ * External dependencies.
+ */
+import { v4 as uuidv4 } from 'uuid';
+
+/**
  * Simple throttling function for waiting a set amount of time after the last keypress
  * So we don't overload the server with too many requests at once
  *
@@ -154,4 +164,25 @@ export const domReady = (callback) => {
 
 	// DOMContentLoaded has not fired yet, delay callback until then.
 	document.addEventListener('DOMContentLoaded', callback);
+};
+
+/**
+ * Generate a Request ID for autosuggest
+ *
+ * @param {string} requestIdBase - base for request ID generation
+ * @returns {string} Request ID
+ */
+export const generateRequestId = (requestIdBase) => {
+	const uuid = uuidv4().replaceAll('-', '');
+
+	/**
+	 * Filter the request ID used for an autosuggest request.
+	 *
+	 * @filter ep.Autosuggest.requestId
+	 * @since 4.5.0
+	 *
+	 * @param {string} requestId The Request ID.
+	 * @returns {string} New Request ID.
+	 */
+	return applyFilters('ep.requestId', requestIdBase + uuid);
 };

@@ -165,6 +165,7 @@ class Orders {
 				'dateFormat'        => wc_date_format(),
 				'statusLabels'      => wc_get_order_statuses(),
 				'timeFormat'        => wc_time_format(),
+				'requestIdBase'     => Utils\get_request_id_base(),
 			)
 		);
 	}
@@ -180,7 +181,7 @@ class Orders {
 	 * @return void
 	 */
 	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $featured ) {
+		if ( 'woocommerce' !== $feature ) {
 			return;
 		}
 

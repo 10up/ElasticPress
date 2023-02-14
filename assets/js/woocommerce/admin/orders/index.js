@@ -15,6 +15,7 @@ import {
 	argsSchema,
 	credentialsApiUrl,
 	credentialsNonce,
+	requestIdBase,
 } from './config';
 
 /**
@@ -81,6 +82,7 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
 			apiHost={apiHost}
 			argsSchema={argsSchema}
 			authorization={`Basic ${credentials}`}
+			requestIdBase={requestIdBase}
 			onAuthError={onAuthError}
 		>
 			{credentials ? children : null}

@@ -11,6 +11,7 @@ const {
 	dateFormat,
 	statusLabels,
 	timeFormat,
+	requestIdBase,
 } = window.epWooCommerceOrderSearch;
 
 export {
@@ -23,4 +24,5 @@ export {
 	dateFormat,
 	statusLabels,
 	timeFormat,
+	requestIdBase,
 };
