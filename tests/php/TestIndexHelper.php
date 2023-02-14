@@ -23,7 +23,7 @@ class TestIndexHelper extends BaseTestCase {
 		$index_helper = \ElasticPress\IndexHelper::factory();
 
 		$args = [
-			'method' => 'custom',
+			'method'        => 'custom',
 			'output_method' => function() {},
 		];
 
