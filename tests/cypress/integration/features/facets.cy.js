@@ -424,7 +424,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
 			cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
 			cy.get('@firstBlock')
-				.contains('.term', /\(\d*\)$/)
+				.contains('.term', /(^\(\d*\))$/)
 				.should('not.exist');
 
 			cy.get('@secondBlock')
@@ -432,7 +432,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				.should('have.attr', 'placeholder', 'Search Meta 2');
 			cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
 			cy.get('@secondBlock')
-				.contains('.term', /(^\(\d*\))$/)
+				.contains('.term', /\(\d*\)$/)
 				.should('not.exist');
 
 			/**
