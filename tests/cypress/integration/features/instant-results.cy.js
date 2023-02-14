@@ -114,7 +114,12 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 			it('Can see instant results elements, URL changes, reload, and update after changing search term', () => {
 				cy.maybeEnableFeature('instant-results');
 
-				cy.intercept('*search=blog*').as('apiRequest');
+				cy.intercept({
+					url: '*search=blog*',
+					headers: {
+						'X-ElasticPress-Request-ID': /[0-9a-f]{32}$/,
+					},
+				}).as('apiRequest');
 
 				cy.visit('/');
 
@@ -126,6 +131,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.url().should('include', 'search=blog');
 
 				cy.wait('@apiRequest');
+
 				cy.get('@searchModal').should('contain.text', 'blog');
 				// Show the number of results
 				cy.get('@searchModal').find('.ep-search-results__title').contains(/\d+/);

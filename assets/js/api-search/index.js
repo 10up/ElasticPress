@@ -37,6 +37,7 @@ const Context = createContext();
  * @param {string} props.apiHost API Host.
  * @param {object} props.argsSchema Schema describing supported args.
  * @param {string} props.authorization Authorization header.
+ * @param {string} props.requestIdBase Base of Requests IDs.
  * @param {WPElement} props.children Component children.
  * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
  * @returns {WPElement} Component.
@@ -45,6 +46,7 @@ export const ApiSearchProvider = ({
 	apiEndpoint,
 	apiHost,
 	authorization,
+	requestIdBase,
 	argsSchema,
 	children,
 	paramPrefix,
@@ -82,7 +84,7 @@ export const ApiSearchProvider = ({
 	/**
 	 * Set up fetch method.
 	 */
-	const fetchResults = useFetchResults(apiHost, apiEndpoint, authorization);
+	const fetchResults = useFetchResults(apiHost, apiEndpoint, authorization, requestIdBase);
 
 	/**
 	 * Set up the reducer.

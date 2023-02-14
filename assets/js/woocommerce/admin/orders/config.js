@@ -10,6 +10,7 @@ const {
 	dateFormat,
 	statusLabels,
 	timeFormat,
+	requestIdBase,
 } = window.epWooCommerceAdminOrders;
 
 export {
@@ -21,4 +22,5 @@ export {
 	dateFormat,
 	statusLabels,
 	timeFormat,
+	requestIdBase,
 };

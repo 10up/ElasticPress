@@ -18,6 +18,7 @@ import {
 	dateFormat,
 	statusLabels,
 	timeFormat,
+	requestIdBase,
 } from './config';
 
 /**
@@ -41,6 +42,7 @@ const init = () => {
 			apiHost={apiHost}
 			argsSchema={argsSchema}
 			authorization={authorization}
+			requestIdBase={requestIdBase}
 			defaultIsOn
 		>
 			<App
