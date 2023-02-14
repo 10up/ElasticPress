@@ -181,7 +181,7 @@ class Orders {
 	 * @return void
 	 */
 	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $featured ) {
+		if ( 'woocommerce' !== $feature ) {
 			return;
 		}
 
