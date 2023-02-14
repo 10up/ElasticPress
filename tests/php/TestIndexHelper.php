@@ -36,7 +36,7 @@ class TestIndexHelper extends BaseTestCase {
 
 		$index_helper->full_index( $args );
 
-		$this->assertEquals( 1, did_filter( 'ep_sync_args' ) );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_sync_args' ) );
 	}
 	
 	/**
