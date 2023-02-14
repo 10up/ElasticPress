@@ -2660,7 +2660,7 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function testNoneOrderbyQuery() {
-		$posts = [];
+		$posts   = [];
 		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 1' ) );
 		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 2' ) );
 		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 3' ) );
