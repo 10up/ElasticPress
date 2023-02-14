@@ -110,6 +110,7 @@ class Search extends Feature {
 		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
 		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
+		add_filter( 'ep_skip_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
 	}
 
 
@@ -785,5 +786,40 @@ class Search extends Feature {
 		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : false;
 
 		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
+	}
+
+	/**
+	 * If WP_Query has unsupported orderby, skip ES query integration and use the WP query instead.
+	 *
+	 * @param bool      $skip Whether to skip ES query integration
+	 * @param \WP_Query $query WP_Query object
+	 *
+	 * @since 4.5
+	 * @return bool
+	 */
+	public function skip_query_integration( $skip, $query ) {
+		if ( ! $query instanceof \WP_Query ) {
+			return $skip;
+		}
+
+		$unsupported_orderby = [
+			'post__in',
+			'post_name__in',
+			'post_parent__in',
+			'parent',
+		];
+
+		$orderby = is_string( $query->get( 'orderby' ) ) ? explode( ' ', $query->get( 'orderby' ) ) : $query->get( 'orderby', 'date' );
+
+		$parse_orderby = array();
+		foreach ( $orderby as $key => $value ) {
+			$parse_orderby[] = is_string( $key ) ? $key : $value;
+		}
+
+		if ( array_intersect( $parse_orderby, $unsupported_orderby ) ) {
+			return true;
+		}
+
+		return $skip;
 	}
 }

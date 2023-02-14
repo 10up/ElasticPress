@@ -3232,6 +3232,48 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the sanitization of an empty meta query
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testMetaQueryEmptySanitization() {
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value1',
+					'test_key2' => 'value',
+				),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value',
+					'test_key2' => 'value2',
+					'test_key3' => 'value',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				0 => array(),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a query that searches and filters by a meta value like the query
 	 *
 	 * @since 1.5
@@ -4357,6 +4399,29 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $parent_post, $query->posts[0] );
+
+		// Test post_parent__in and post_parent__not_in queries
+		$args = array(
+			's'               => 'findme',
+			'post_parent__in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'                   => 'findme',
+			'post_parent__not_in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -8336,5 +8401,75 @@ class TestPost extends BaseTestCase {
 
 		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
 		$this->assertArrayHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+	/**
+	 * Test that query with unsupported orderby does not use EP.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testQueryWithUnSupportedOrderByDoesNotUseEP() {
+		// test for post__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in title',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and with different sort orders
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in' => 'DESC', 'title' => 'ASC' ),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and without orders.
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in', 'title'),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post_name__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post_name__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post_parent__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post_parent__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for parent
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
 	}
 }
