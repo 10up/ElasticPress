@@ -12,6 +12,33 @@ namespace ElasticPressTest;
  * InderHelper test class
  */
 class TestIndexHelper extends BaseTestCase {
+
+	/**
+	 * Test if the ep_sync_args filter is applied in the full_index method
+	 *
+	 * @since 4.5.0
+	 * @group indexHelper
+	 */
+	public function testFullIndexEpSyncArgsFilter() {
+		$index_helper = \ElasticPress\IndexHelper::factory();
+
+		$args = [
+			'method' => 'custom',
+			'output_method' => function() {},
+		];
+
+		$change_args = function ( $filter_args, $index_meta ) use ( $args ) {
+			$this->assertFalse( $index_meta );
+			$this->assertSame( $filter_args, $args );
+			return $filter_args;
+		};
+		add_filter( 'ep_sync_args', $change_args, 10, 2 );
+
+		$index_helper->full_index( $args );
+
+		$this->assertEquals( 1, did_filter( 'ep_sync_args' ) );
+	}
+	
 	/**
 	 * Test get_index_default_per_page
 	 *
