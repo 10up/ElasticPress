@@ -158,7 +158,7 @@ class Orders {
 			array(
 				'adminUrl'          => admin_url( 'post.php' ),
 				'apiEndpoint'       => $api_endpoint,
-				'apiHost'           => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $api_host ) : '',
+				'apiHost'           => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? trailingslashit( esc_url_raw( $api_host ) ) : '',
 				'argsSchema'        => $this->get_args_schema(),
 				'credentialsApiUrl' => rest_url( 'elasticpress/v1/token' ),
 				'credentialsNonce'  => wp_create_nonce( 'wp_rest' ),
@@ -181,7 +181,7 @@ class Orders {
 	 * @return void
 	 */
 	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $feature ) {
+		if ( 'woocommerce' !== $featured ) {
 			return;
 		}
 
