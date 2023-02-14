@@ -199,4 +199,58 @@ class TestElasticsearch extends BaseTestCase {
 			$this->assertSame( 123, get_transient( $cache_key ) );
 		}
 	}
+
+	/**
+	 * Test the format_request_headers method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testFormatRequestHeaders() {
+		/**
+		 * Test the default behavior
+		 */
+		$default_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 2, $default_headers );
+		$this->assertSame( 'application/json', $default_headers['Content-Type'] );
+		$this->assertNotEmpty( $default_headers['X-ElasticPress-Request-ID'] );
+
+		/**
+		 * Test the addition of `X-ElasticPress-API-Key` if `EP_API_KEY` is defined
+		 */
+		define( 'EP_API_KEY', 'custom_key' );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 3, $new_headers );
+		$this->assertSame( 'custom_key', $new_headers['X-ElasticPress-API-Key'] );
+
+		/**
+		 * Test the addition of `Authorization` if `ES_SHIELD` is defined
+		 */
+		define( 'ES_SHIELD', 'custom_shield' );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 4, $new_headers );
+		$this->assertSame( 'Basic ' . base64_encode( 'custom_shield' ), $new_headers['Authorization'] );
+
+		/**
+		 * Test if an empty request ID removes `X-ElasticPress-Request-ID`
+		 */
+		add_filter( 'ep_request_id', '__return_empty_string' );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+		$this->assertArrayNotHasKey( 'X-ElasticPress-Request-ID', $new_headers );
+
+		/**
+		 * Test the `ep_format_request_headers` filter
+		 */
+		$change_headers = function( $headers ) {
+			$headers['X-Custom'] = 'totally custom';
+			return $headers;
+		};
+		add_filter( 'ep_format_request_headers', $change_headers );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 4, $new_headers ); // 3 old + 1 new
+		$this->assertSame( 'totally custom', $new_headers['X-Custom'] );
+	}
 }
