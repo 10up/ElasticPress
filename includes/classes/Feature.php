@@ -167,13 +167,30 @@ abstract class Feature {
 	/**
 	 * Return feature settings
 	 *
-	 * @since  2.2.1
-	 * @return array|bool
+	 * @since  2.2.1, 4.5.0 started using default settings
+	 * @return array
 	 */
 	public function get_settings() {
-		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
+		$all_settings = Utils\get_option( 'ep_feature_settings', [] );
 
-		return ( ! empty( $feature_settings[ $this->slug ] ) ) ? $feature_settings[ $this->slug ] : false;
+		$feature_settings = ( ! empty( $all_settings[ $this->slug ] ) ) ? (array) $all_settings[ $this->slug ] : [];
+
+		$feature_settings = wp_parse_args( $feature_settings, $this->default_settings );
+
+		return $feature_settings;
+	}
+
+	/**
+	 * Return a specific setting of the feature
+	 *
+	 * @since 4.5.0
+	 * @param string $setting_name The setting name
+	 * @return mixed
+	 */
+	public function get_setting( string $setting_name ) {
+		$settings = $this->get_settings();
+
+		return isset( $settings[ $setting_name ] ) ? $settings[ $setting_name ] : null;
 	}
 
 	/**

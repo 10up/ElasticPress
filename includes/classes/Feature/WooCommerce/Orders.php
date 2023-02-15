@@ -39,6 +39,7 @@ class Orders {
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 	}
 
 	/**
@@ -51,11 +52,11 @@ class Orders {
 		 * Filters the WooCommerce Orders search endpoint.
 		 *
 		 * @since 4.5.0
-		 * @hook ep_woocommerce_orders_search_endpoint
+		 * @hook ep_woocommerce_order_search_endpoint
 		 * @param {string} $endpoint Endpoint path.
 		 * @param {string} $index Elasticsearch index.
 		 */
-		return apply_filters( 'ep_woocommerce_orders_search_endpoint', "api/v1/search/orders/{$this->index}", $this->index );
+		return apply_filters( 'ep_woocommerce_order_search_endpoint', "api/v1/search/orders/{$this->index}", $this->index );
 	}
 
 	/**
@@ -68,29 +69,53 @@ class Orders {
 		 * Filters the WooCommerce Orders search template API endpoint.
 		 *
 		 * @since 4.5.0
-		 * @hook ep_woocommerce_orders_template_endpoint
+		 * @hook ep_woocommerce_order_search_template_endpoint
 		 * @param {string} $endpoint Endpoint path.
 		 * @param {string} $index Elasticsearch index.
 		 * @returns {string} Search template API endpoint.
 		 */
-		return apply_filters( 'ep_woocommerce_orders_template_endpoint', "api/v1/search/orders/{$this->index}/template", $this->index );
+		return apply_filters( 'ep_woocommerce_order_search_template_endpoint', "api/v1/search/orders/{$this->index}/template", $this->index );
 	}
 
 	/**
 	 * Get the endpoint for temporary tokens.
 	 *
-	 * @return string Temporary tokens endpoint.
+	 * @return string Temporary token endpoint.
 	 */
-	public function get_tokens_endpoint() {
+	public function get_token_endpoint() {
 		/**
-		 * Filters the WooCommerce Orders search template API endpoint.
+		 * Filters the temporary token API endpoint.
 		 *
 		 * @since 4.5.0
-		 * @hook ep_tokens_endpoint
+		 * @hook ep_token_endpoint
 		 * @param {string} $endpoint Endpoint path.
-		 * @returns {string} Search template API endpoint.
+		 * @returns {string} Token API endpoint.
 		 */
-		return apply_filters( 'ep_tokens_endpoint', 'api/v1/token' );
+		return apply_filters( 'ep_token_endpoint', 'api/v1/token' );
+	}
+
+	/**
+	 * Registers the API endpoint to get a token.
+	 *
+	 * @return void
+	 */
+	public function rest_api_init() {
+		register_rest_route(
+			'elasticpress/v1',
+			'token',
+			[
+				[
+					'callback'            => [ $this, 'get_token' ],
+					'permission_callback' => [ $this, 'check_token_permission' ],
+					'methods'             => 'GET',
+				],
+				[
+					'callback'            => [ $this, 'refresh_token' ],
+					'permission_callback' => [ $this, 'check_token_permission' ],
+					'methods'             => 'POST',
+				],
+			]
+		);
 	}
 
 	/**
@@ -107,45 +132,40 @@ class Orders {
 			return;
 		}
 
-		$temporary_token = $this->get_temporary_token();
-
-		if ( ! $temporary_token ) {
-			return;
-		}
-
 		wp_enqueue_style(
-			'elasticpress-woocommerce-admin-orders',
-			EP_URL . 'dist/css/woocommerce-admin-orders-styles.css',
-			Utils\get_asset_info( 'woocommerce-admin-orders-styles', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-admin-orders-styles', 'version' )
+			'elasticpress-woocommerce-order-search',
+			EP_URL . 'dist/css/woocommerce-order-search-styles.css',
+			Utils\get_asset_info( 'woocommerce-order-search-styles', 'dependencies' ),
+			Utils\get_asset_info( 'woocommerce-order-search-styles', 'version' )
 		);
 
 		wp_enqueue_script(
-			'elasticpress-woocommerce-admin-orders',
-			EP_URL . 'dist/js/woocommerce-admin-orders-script.js',
-			Utils\get_asset_info( 'woocommerce-admin-orders-script', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-admin-orders-script', 'version' ),
+			'elasticpress-woocommerce-order-search',
+			EP_URL . 'dist/js/woocommerce-order-search-script.js',
+			Utils\get_asset_info( 'woocommerce-order-search-script', 'dependencies' ),
+			Utils\get_asset_info( 'woocommerce-order-search-script', 'version' ),
 			true
 		);
 
-		wp_set_script_translations( 'elasticpress-woocommerce-admin-orders', 'elasticpress' );
+		wp_set_script_translations( 'elasticpress-woocommerce-order-search', 'elasticpress' );
 
 		$api_endpoint = $this->get_search_endpoint();
 		$api_host     = Utils\get_host();
 
 		wp_localize_script(
-			'elasticpress-woocommerce-admin-orders',
-			'epWooCommerceAdminOrders',
+			'elasticpress-woocommerce-order-search',
+			'epWooCommerceOrderSearch',
 			array(
-				'adminUrl'      => admin_url( 'post.php' ),
-				'apiEndpoint'   => $api_endpoint,
-				'apiHost'       => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $api_host ) : '',
-				'authorization' => "Basic $temporary_token",
-				'argsSchema'    => $this->get_args_schema(),
-				'dateFormat'    => wc_date_format(),
-				'statusLabels'  => wc_get_order_statuses(),
-				'timeFormat'    => wc_time_format(),
-				'requestIdBase' => Utils\get_request_id_base(),
+				'adminUrl'          => admin_url( 'post.php' ),
+				'apiEndpoint'       => $api_endpoint,
+				'apiHost'           => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? trailingslashit( esc_url_raw( $api_host ) ) : '',
+				'argsSchema'        => $this->get_args_schema(),
+				'credentialsApiUrl' => rest_url( 'elasticpress/v1/token' ),
+				'credentialsNonce'  => wp_create_nonce( 'wp_rest' ),
+				'dateFormat'        => wc_date_format(),
+				'statusLabels'      => wc_get_order_statuses(),
+				'timeFormat'        => wc_time_format(),
+				'requestIdBase'     => Utils\get_request_id_base(),
 			)
 		);
 	}
@@ -161,7 +181,7 @@ class Orders {
 	 * @return void
 	 */
 	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $featured ) {
+		if ( 'woocommerce' !== $feature ) {
 			return;
 		}
 
@@ -194,11 +214,11 @@ class Orders {
 		 * Fires after the request is sent the search template API endpoint.
 		 *
 		 * @since 4.5.0
-		 * @hook ep_woocommerce_orders_template_saved
+		 * @hook ep_woocommerce_order_search_template_saved
 		 * @param {string} $template The search template (JSON).
 		 * @param {string} $index Index name.
 		 */
-		do_action( 'ep_woocommerce_orders_template_saved', $template, $this->index );
+		do_action( 'ep_woocommerce_order_search_template_saved', $template, $this->index );
 	}
 
 	/**
@@ -221,10 +241,10 @@ class Orders {
 		 * Fires after the request is sent the search template API endpoint.
 		 *
 		 * @since 4.5.0
-		 * @hook ep_woocommerce_orders_template_deleted
+		 * @hook ep_woocommerce_order_search_template_deleted
 		 * @param {string} $index Index name.
 		 */
-		do_action( 'ep_woocommerce_orders_template_deleted', $this->index );
+		do_action( 'ep_woocommerce_order_search_template_deleted', $this->index );
 	}
 
 	/**
@@ -351,24 +371,31 @@ class Orders {
 	}
 
 	/**
-	 * Get temporary token.
+	 * Get a temporary token.
 	 *
-	 * @return string|false Temporary token, or false on failure.
+	 * @return string|false Authorization header, or false on failure.
 	 */
-	public function get_temporary_token() {
+	public function get_token() {
 		$user_id = get_current_user_id();
 
-		if ( ! user_can( $user_id, 'edit_others_shop_orders' ) ) {
-			return false;
+		$credentials = get_user_meta( $user_id, 'ep_token', true );
+
+		if ( $credentials ) {
+			return $credentials;
 		}
 
-		$temporary_token = get_user_meta( $user_id, 'ep_temporary_token', true );
+		return $this->refresh_token();
+	}
 
-		if ( $temporary_token ) {
-			return $temporary_token;
-		}
+	/**
+	 * Refresh the temporary token.
+	 *
+	 * @return string|false Authorization header, or false on failure.
+	 */
+	public function refresh_token() {
+		$user_id = get_current_user_id();
 
-		$endpoint = $this->get_tokens_endpoint();
+		$endpoint = $this->get_token_endpoint();
 		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
 
 		if ( is_wp_error( $response ) ) {
@@ -378,10 +405,28 @@ class Orders {
 		$response = wp_remote_retrieve_body( $response );
 		$response = json_decode( $response );
 
-		$token = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$credentials = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 
-		update_user_meta( $user_id, 'ep_temporary_token', $token );
+		update_user_meta( $user_id, 'ep_token', $credentials );
 
-		return $token;
+		return $credentials;
+	}
+
+	/**
+	 * Checks if the token API can be used.
+	 *
+	 * @return boolean Whether the token API can be used.
+	 */
+	public function check_token_permission() {
+		/**
+		 * Filters the capability required to use the token API.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_token_capability
+		 * @param {string} $capability Required capability.
+		 */
+		$capability = apply_filters( 'ep_token_capability', 'edit_others_shop_orders' );
+
+		return current_user_can( $capability );
 	}
 }

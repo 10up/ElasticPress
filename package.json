@@ -68,7 +68,7 @@
       "stats-script": "./assets/js/stats.js",
       "status-report-script": "./assets/js/status-report/index.js",
       "synonyms-script": "./assets/js/synonyms/index.js",
-      "woocommerce-admin-orders-script": "./assets/js/woocommerce/admin/orders/index.js",
+      "woocommerce-order-search-script": "./assets/js/woocommerce/admin/orders/index.js",
       "admin-script": "./assets/js/admin.js",
       "weighting-script": "./assets/js/weighting.js",
       "search-editor-script": "./assets/js/search/editor/index.js",
@@ -85,7 +85,7 @@
       "status-report-styles": "./assets/css/status-report.css",
       "sync-styles": "./assets/css/sync.css",
       "synonyms-styles": "./assets/css/synonyms.css",
-      "woocommerce-admin-orders-styles": "./assets/css/woocommerce/admin/orders.css"
+      "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },
     "wpDependencyExternals": true
   },

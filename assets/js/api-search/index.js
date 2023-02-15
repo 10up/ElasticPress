@@ -40,6 +40,7 @@ const Context = createContext();
  * @param {string} props.requestIdBase Base of Requests IDs.
  * @param {WPElement} props.children Component children.
  * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
+ * @param {Function} props.onAuthError Function to run when request authentication fails.
  * @returns {WPElement} Component.
  */
 export const ApiSearchProvider = ({
@@ -50,6 +51,7 @@ export const ApiSearchProvider = ({
 	argsSchema,
 	children,
 	paramPrefix,
+	onAuthError,
 }) => {
 	/**
 	 * Any default args from the URL.
@@ -84,7 +86,13 @@ export const ApiSearchProvider = ({
 	/**
 	 * Set up fetch method.
 	 */
-	const fetchResults = useFetchResults(apiHost, apiEndpoint, authorization, requestIdBase);
+	const fetchResults = useFetchResults(
+		apiHost,
+		apiEndpoint,
+		authorization,
+		onAuthError,
+		requestIdBase,
+	);
 
 	/**
 	 * Set up the reducer.

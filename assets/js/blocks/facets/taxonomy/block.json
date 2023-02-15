@@ -11,6 +11,10 @@
 			"type": "string",
 			"default": ""
 		},
+		"displayCount": {
+			"type": "boolean",
+			"default": false
+		},
 		"orderby": {
 			"type"   : "string",
 			"default": "count",
@@ -26,5 +30,5 @@
 		"html": false
 	},
 	"editorScript": "ep-facets-block-script",
-	"style": "file:/../../../../../dist/css/facets-styles.css"
+	"style": "elasticpress-facets"
 }
