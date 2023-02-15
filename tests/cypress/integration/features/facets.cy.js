@@ -68,6 +68,18 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		cy.get('@block').find('.term').should('be.elementsSortedAlphabetically');
 
 		/**
+		 * Verify the display count setting on the editor.
+		 */
+		cy.get('@block')
+			.contains('.term', /\(\d*\)$/)
+			.should('not.exist');
+		cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
+		cy.wait('@blockPreview1');
+		cy.get('@block')
+			.contains('.term', /(^\(\d*\))$/)
+			.should('not.exist');
+
+		/**
 		 * Save widgets and visit the front page.
 		 */
 		cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
@@ -82,9 +94,14 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
 		cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
 		cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Categories');
+		cy.get('@firstBlock')
+			.contains('.term', /\(\d*\)$/)
+			.should('not.exist');
 		cy.get('@secondBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
 		cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
-
+		cy.get('@secondBlock')
+			.contains('.term', /(^\(\d*\))$/)
+			.should('not.exist');
 		/**
 		 * Typing in the input should filter the list of terms for that block
 		 * without affecting other blocks.
@@ -333,6 +350,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 1',
+				true,
 			);
 
 			cy.intercept(
@@ -348,6 +366,18 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block1').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
 
 			/**
+			 * Verify the display count setting on the editor.
+			 */
+			cy.get('@block1')
+				.contains('.term', /\(\d*\)$/)
+				.should('not.exist');
+			cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
+			cy.wait('@blockPreview1');
+			cy.get('@block1')
+				.contains('.term', /(^\(\d*\))$/)
+				.should('not.exist');
+
+			/**
 			 * Insert a second block.
 			 */
 			cy.openBlockInserter();
@@ -360,6 +390,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 2',
+				true,
 			);
 			cy.get('.block-editor-block-inspector select').select('meta_field_2');
 			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
@@ -392,10 +423,17 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
 			cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
 			cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
+			cy.get('@firstBlock')
+				.contains('.term', /(^\(\d*\))$/)
+				.should('not.exist');
+
 			cy.get('@secondBlock')
 				.find('input')
 				.should('have.attr', 'placeholder', 'Search Meta 2');
 			cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
+			cy.get('@secondBlock')
+				.contains('.term', /\(\d*\)$/)
+				.should('not.exist');
 
 			/**
 			 * Typing in the input should filter the list of terms for that block
