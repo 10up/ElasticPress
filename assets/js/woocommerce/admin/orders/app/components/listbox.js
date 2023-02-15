@@ -154,6 +154,7 @@ export default ({ children, id, input, label, onSelect }) => {
 		input.setAttribute('aria-autocomplete', 'list');
 		input.setAttribute('aria-haspopup', true);
 		input.setAttribute('aria-owns', id);
+		input.setAttribute('autocomplete', 'off');
 		input.setAttribute('role', 'combobox');
 		input.addEventListener('focus', onFocus);
 		input.addEventListener('keydown', onKeyDown);
@@ -163,6 +164,7 @@ export default ({ children, id, input, label, onSelect }) => {
 			input.removeAttribute('aria-autocomplete');
 			input.removeAttribute('aria-haspopup');
 			input.removeAttribute('aria-owns');
+			input.removeAttribute('autocomplete');
 			input.removeAttribute('role');
 			input.removeEventListener('focus', onFocus);
 			input.removeEventListener('keydown', onKeyDown);
