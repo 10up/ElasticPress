@@ -5,6 +5,7 @@ import {
 	PanelBody,
 	RadioControl,
 	TextControl,
+	ToggleControl,
 	Spinner,
 	Placeholder,
 	SelectControl,
@@ -24,7 +25,7 @@ const FacetBlockEdit = (props) => {
 	const [metaKeys, setMetaKeys] = useState([]);
 	const [preview, setPreview] = useState('');
 	const [loading, setLoading] = useState(false);
-	const { searchPlaceholder, facet, orderby, order } = attributes;
+	const { searchPlaceholder, facet, displayCount, orderby, order } = attributes;
 
 	const blockProps = useBlockProps();
 
@@ -42,6 +43,7 @@ const FacetBlockEdit = (props) => {
 		const params = new URLSearchParams({
 			searchPlaceholder,
 			facet,
+			displayCount,
 			orderby,
 			order,
 		});
@@ -50,7 +52,7 @@ const FacetBlockEdit = (props) => {
 		})
 			.then((preview) => setPreview(preview))
 			.finally(() => setLoading(false));
-	}, [searchPlaceholder, facet, orderby, order]);
+	}, [searchPlaceholder, facet, displayCount, orderby, order]);
 
 	return (
 		<Fragment>
@@ -79,6 +81,11 @@ const FacetBlockEdit = (props) => {
 							})),
 						]}
 						onChange={(value) => setAttributes({ facet: value })}
+					/>
+					<ToggleControl
+						checked={displayCount}
+						onChange={(value) => setAttributes({ displayCount: value })}
+						label={__('Display Term Count', 'elasticpress')}
 					/>
 					<RadioControl
 						label={__('Order By', 'elasticpress')}
