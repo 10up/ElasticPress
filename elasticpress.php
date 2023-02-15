@@ -254,7 +254,7 @@ function setup_roles() {
 
 	$role->add_cap( Utils\get_capability() );
 }
-add_action( 'init', __NAMESPACE__ . '\\setup_roles' );
+register_activation_hook( __FILE__, __NAMESPACE__ . '\setup_roles' );
 
 /**
  * Fires after Elasticpress plugin is loaded

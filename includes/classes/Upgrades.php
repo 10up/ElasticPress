@@ -47,6 +47,7 @@ class Upgrades {
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
 			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
+			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -189,6 +190,17 @@ class Upgrades {
 	 */
 	public function upgrade_4_4_0() {
 		Utils\delete_option( 'ep_prefix' );
+	}
+
+	/**
+	 * Upgrade routine of v4.5.0.
+	 *
+	 * Add the ElasticPress capability to admins
+	 *
+	 * @see https://github.com/10up/ElasticPress/pull/3313
+	 */
+	public function upgrade_4_5_0() {
+		setup_roles();
 	}
 
 	/**

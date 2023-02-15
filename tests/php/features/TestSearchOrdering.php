@@ -103,12 +103,10 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testAdminMenu() {
-		$site_url = trailingslashit( get_option( 'siteurl' ) );
-
 		add_menu_page(
 			'ElasticPress',
 			'ElasticPress',
-			'manage_options',
+			\ElasticPress\Utils\get_capability(),
 			'elasticpress'
 		);
 

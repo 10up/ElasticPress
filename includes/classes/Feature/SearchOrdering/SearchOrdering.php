@@ -36,6 +36,15 @@ class SearchOrdering extends Feature {
 	const TAXONOMY_NAME = 'ep_custom_result';
 
 	/**
+	 * Capability required to manage.
+	 *
+	 * This will be removed in future versions of ElasticPress. Please use `Utils\get_capability()` instead.
+	 *
+	 * @deprecated 4.5.0
+	 */
+	const CAPABILITY = 'elasticpress_manage';
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0

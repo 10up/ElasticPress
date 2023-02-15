@@ -54,18 +54,46 @@ function get_epio_credentials() {
 /**
  * Get WP capability needed for a user to interact with ElasticPress in the admin
  *
+ * @since 4.5.0
  * @return string
  */
-function get_capability() {
-	return apply_filters( 'ep_capability', 'elasticpress_manage' );
+function get_capability() : string {
+	/**
+	 * Filter the WP capability needed to interact with ElasticPress in the admin
+	 *
+	 * @since 4.5.0
+	 * @hook ep_capability
+	 * @param  {bool} $capability Capability name. Defaults to `'elasticpress_manage'`
+	 * @return {bool} New capability value
+	 */
+	return apply_filters( 'ep_capability', 'manage_elasticpress' );
+}
+
+/**
+ * Get WP capability needed for a user to interact with ElasticPress in the network admin
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function get_network_capability() : string {
+	/**
+	 * Filter the WP capability needed to interact with ElasticPress in the network admin
+	 *
+	 * @since 4.5.0
+	 * @hook ep_capability
+	 * @param  {bool} $capability Capability name. Defaults to `'manage_network_elasticpress'`
+	 * @return {bool} New capability value
+	 */
+	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress' );
 }
 
 /**
  * Get mapped capabilities for post types
  *
- * @return string
+ * @since 4.5.0
+ * @return array
  */
-function get_post_map_capabilities() {
+function get_post_map_capabilities() : array {
 	$capability = get_capability();
 
 	return [

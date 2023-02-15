@@ -652,11 +652,7 @@ function resolve_screen() {
  * @return void
  */
 function action_admin_menu() {
-	$capability = Utils\get_capability();
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$capability = 'manage_network';
-	}
+	$capability = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_network_capability() : Utils\get_capability();
 
 	add_menu_page(
 		'ElasticPress',
