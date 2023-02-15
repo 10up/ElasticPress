@@ -33,10 +33,10 @@ export default ({ adminUrl, input }) => {
 	 * @param {number} index Selected option index.
 	 */
 	const onSelect = useCallback(
-		(index) => {
+		(index, isMetaKey) => {
 			const { post_id } = searchResultsRef.current[index]._source;
 
-			window.location = `${adminUrl}?post=${post_id}&action=edit`;
+			window.open(`${adminUrl}?post=${post_id}&action=edit`, isMetaKey ? '_blank' : '_self');
 		},
 		[adminUrl],
 	);
@@ -45,11 +45,7 @@ export default ({ adminUrl, input }) => {
 	 * Dispatch the change, with debouncing.
 	 */
 	const dispatchInput = useDebounce((value) => {
-		if (value) {
-			searchFor(value);
-		} else {
-			clearResults();
-		}
+		searchFor(value);
 	}, 300);
 
 	/**
@@ -59,9 +55,15 @@ export default ({ adminUrl, input }) => {
 	 */
 	const onInput = useCallback(
 		(event) => {
-			dispatchInput(event.target.value);
+			const { value } = event.target;
+
+			if (value) {
+				dispatchInput(event.target.value);
+			} else {
+				clearResults();
+			}
 		},
-		[dispatchInput],
+		[clearResults, dispatchInput],
 	);
 
 	/**
@@ -102,6 +104,8 @@ export default ({ adminUrl, input }) => {
 					post_status,
 				} = option._source;
 
+				const orderDate = `${post_date_gmt.split(' ').join('T')}+00:00`;
+
 				return (
 					<ShopOrder
 						emailAddress={billing_email}
@@ -110,7 +114,7 @@ export default ({ adminUrl, input }) => {
 						itemCount={items ? items.split('|').length : 0}
 						key={post_id}
 						lastName={billing_last_name}
-						orderDate={post_date_gmt}
+						orderDate={orderDate}
 						orderNumber={post_id}
 						orderStatus={post_status}
 					/>

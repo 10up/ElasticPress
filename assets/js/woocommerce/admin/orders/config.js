@@ -5,20 +5,22 @@ const {
 	adminUrl,
 	apiEndpoint,
 	apiHost,
+	credentialsApiUrl,
+	credentialsNonce,
 	argsSchema,
-	authorization,
 	dateFormat,
 	statusLabels,
 	timeFormat,
 	requestIdBase,
-} = window.epWooCommerceAdminOrders;
+} = window.epWooCommerceOrderSearch;
 
 export {
 	adminUrl,
 	apiEndpoint,
 	apiHost,
 	argsSchema,
-	authorization,
+	credentialsApiUrl,
+	credentialsNonce,
 	dateFormat,
 	statusLabels,
 	timeFormat,

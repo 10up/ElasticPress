@@ -14,12 +14,20 @@ import { generateRequestId } from '../../utils/helpers';
  * @param {string} apiHost API host.
  * @param {string} apiEndpoint API endpoint.
  * @param {string} Authorization Authorization header.
+ * @param {Function} onAuthError Function to run when request authentication fails.
  * @param {string} requestIdBase Base of Request IDs.
  * @returns {Function} Function for retrieving search results.
  */
-export const useFetchResults = (apiHost, apiEndpoint, Authorization, requestIdBase = '') => {
+export const useFetchResults = (
+	apiHost,
+	apiEndpoint,
+	Authorization,
+	onAuthError,
+	requestIdBase = '',
+) => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
+	const onAuthErrorRef = useRef(onAuthError);
 
 	/**
 	 * Get new search results from the API.
@@ -48,6 +56,10 @@ export const useFetchResults = (apiHost, apiEndpoint, Authorization, requestIdBa
 			headers,
 		})
 			.then((response) => {
+				if (onAuthErrorRef.current && !response.ok) {
+					onAuthErrorRef.current();
+				}
+
 				return response.json();
 			})
 			.catch((error) => {
