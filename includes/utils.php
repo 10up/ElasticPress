@@ -717,3 +717,45 @@ function get_sync_url( bool $do_sync = false ) : string {
 		network_admin_url( $page ) :
 		admin_url( $page );
 }
+
+/**
+ * Generate a common prefix to be used while generating a request ID.
+ *
+ * Uses the return of `get_index_prefix()` by default.
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function get_request_id_base() {
+	/**
+	 * Filter the base of requests IDs. Uses the return of `get_index_prefix()` by default.
+	 *
+	 * @hook ep_request_id_base
+	 * @since 4.5.0
+	 * @param {string} $request_id_base Request ID base
+	 * @return {string} New Request ID base
+	 */
+	return apply_filters( 'ep_request_id_base', str_replace( '-', '', get_index_prefix() ) );
+}
+
+/**
+ * Generate a Request ID.
+ *
+ * The function concatenates the indices prefix to a random UUID4.
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function generate_request_id() : string {
+	$uuid = str_replace( '-', '', wp_generate_uuid4() );
+
+	/**
+	 * Filter the ID generated to identify a request.
+	 *
+	 * @hook ep_request_id
+	 * @since 4.5.0
+	 * @param {string} $request_id Request ID. By default formed by the indices prefix and a random UUID4.
+	 * @return {string} New Request ID
+	 */
+	return apply_filters( 'ep_request_id', get_request_id_base() . $uuid );
+}

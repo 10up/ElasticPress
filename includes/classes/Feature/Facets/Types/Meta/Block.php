@@ -51,6 +51,9 @@ class Block {
 					'searchPlaceholder' => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
+					'displayCount'      => [
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
 					'facet'             => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
@@ -168,6 +171,7 @@ class Block {
 		$attributes = $this->parse_attributes(
 			[
 				'searchPlaceholder' => $request->get_param( 'searchPlaceholder' ),
+				'displayCount'      => $request->get_param( 'displayCount' ),
 				'facet'             => $request->get_param( 'facet' ),
 				'orderby'           => $request->get_param( 'orderby' ),
 				'order'             => $request->get_param( 'order' ),
@@ -225,6 +229,7 @@ class Block {
 			[
 				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by meta search placeholder', 'elasticpress' ),
 				'facet'             => '',
+				'displayCount'      => false,
 				'orderby'           => 'count',
 				'order'             => 'desc',
 
