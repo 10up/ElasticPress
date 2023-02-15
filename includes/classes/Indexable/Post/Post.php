@@ -1227,6 +1227,15 @@ class Post extends Indexable {
 				continue;
 			}
 
+			/**
+			 * If `orderby` is 'none', WordPress will let the database decide on what should be used to order.
+			 * It will use the primary key ASC.
+			 */
+			if ( 'none' === $orderby_clause ) {
+				$orderby_clause = 'ID';
+				$order          = 'asc';
+			}
+
 			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
 				if ( empty( $args['meta_key'] ) ) {
 					continue;

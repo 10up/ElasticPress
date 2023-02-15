@@ -11,6 +11,10 @@
 			"type": "string",
 			"default": ""
 		},
+		"displayCount": {
+			"type": "boolean",
+			"default": false
+		},
 		"orderby": {
 			"type"   : "string",
 			"default": "count",

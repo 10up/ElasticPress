@@ -2652,6 +2652,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test orderby 'none'
+	 * 
+	 * In this case, EP should order by ID ASC, as this is the behavior used by the database.
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testNoneOrderbyQuery() {
+		$posts   = [];
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 1' ) );
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 2' ) );
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'orderby'      => 'none',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( $posts, $query->posts );
+	}
+
+	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
 	 * @since 1.2
