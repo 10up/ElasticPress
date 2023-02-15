@@ -289,6 +289,10 @@ class WooCommerce extends Feature {
 			'product_variation',
 		);
 
+		if ( $query->is_post_type_archive( 'product' ) || isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			$supported_post_types[] = 'product';
+		}
+
 		/**
 		 * Expands or contracts the post_types eligible for indexing.
 		 *
@@ -298,10 +302,6 @@ class WooCommerce extends Feature {
 		 * @return  {array} New post types
 		 */
 		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
-
-		if ( $query->is_post_type_archive( 'product' ) || isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
-			$supported_post_types[] = 'product';
-		}
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
