@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render, useEffect, useState, WPElement } from '@wordpress/element';
+import { render, useEffect, useRef, useState, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -32,7 +32,11 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
 	 * State.
 	 */
 	const [credentials, setCredentials] = useState(null);
-	const [hasRefreshed, setHasRefreshed] = useState(false);
+
+	/**
+	 * Refs.
+	 */
+	const hasRefreshed = useRef(false);
 
 	/**
 	 * Refresh credentials on authentication errors.
@@ -40,7 +44,7 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
 	 * @returns {void}
 	 */
 	const onAuthError = () => {
-		if (hasRefreshed) {
+		if (hasRefreshed.current) {
 			setCredentials(null);
 			return;
 		}
@@ -52,7 +56,7 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
 			.then((response) => response.text())
 			.then(setCredentials);
 
-		setHasRefreshed(true);
+		hasRefreshed.current = true;
 	};
 
 	/**
@@ -76,7 +80,7 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
 	/**
 	 * Render.
 	 */
-	return (
+	return credentials ? (
 		<ApiSearchProvider
 			apiEndpoint={apiEndpoint}
 			apiHost={apiHost}
@@ -85,9 +89,9 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
 			requestIdBase={requestIdBase}
 			onAuthError={onAuthError}
 		>
-			{credentials ? children : null}
+			{children}
 		</ApiSearchProvider>
-	);
+	) : null;
 };
 
 /**
