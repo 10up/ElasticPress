@@ -34,5 +34,5 @@
 		"html": false
 	},
 	"editorScript": "ep-facets-meta-block-script",
-	"style": "file:/../../../../../dist/css/facets-styles.css"
+	"style": "elasticpress-facets"
 }
