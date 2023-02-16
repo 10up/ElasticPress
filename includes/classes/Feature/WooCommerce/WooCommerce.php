@@ -290,7 +290,7 @@ class WooCommerce extends Feature {
 		);
 
 		if ( $query->is_post_type_archive( 'product' ) || isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
-			$supported_post_types[] = 'product';
+			$post_types[] = 'product';
 		}
 
 		/**
