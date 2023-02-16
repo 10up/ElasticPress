@@ -143,7 +143,7 @@ class Helper {
 		 * @param  {array} $args CLI command position args
 		 * @param {array} $assoc_args CLI command associative args
 		 */
-		do_action( 'ep_cli_put_mapping', $indexable, WP_CLI::get_runner()->arguments, WP_CLI::get_runner()->assoc_args);
+		do_action( 'ep_cli_put_mapping', $indexable, WP_CLI::get_runner()->arguments, WP_CLI::get_runner()->assoc_args );
 	}
 
 
