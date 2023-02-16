@@ -48,7 +48,7 @@ class Utility {
 	 * @since 3.1
 	 */
 	public static function delete_transient() {
-		\ElasticPress\IndexUtility::factory()->clear_index_meta();
+		\ElasticPress\IndexHelper::factory()->clear_index_meta();
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			delete_site_transient( 'ep_cli_sync_progress' );

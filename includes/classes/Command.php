@@ -824,7 +824,7 @@ class Command extends WP_CLI_Command {
 			$index_args['lower_limit_object_id'] = absint( $assoc_args['lower-limit-object-id'] );
 		}
 
-		\ElasticPress\IndexUtility::factory()->full_index( $index_args );
+		\ElasticPress\IndexHelper::factory()->full_index( $index_args );
 
 		remove_action( 'ep_sync_put_mapping', [ Utility::class, 'stop_on_failed_mapping' ] );
 		remove_action( 'ep_sync_put_mapping', [ Utility::class, 'ep_cli_put_mapping' ], 10, 2 );
@@ -1065,7 +1065,7 @@ class Command extends WP_CLI_Command {
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
-		$last_sync  = \ElasticPress\IndexUtility::factory()->get_last_index();
+		$last_sync  = \ElasticPress\IndexHelper::factory()->get_last_index();
 
 		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
