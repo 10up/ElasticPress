@@ -88,16 +88,23 @@ describe('Custom Results', () => {
 			})
 			.then(() => {
 				expect(searchResult.length).to.be.gt(0);
-				cy.get('#publish').click();
+				cy.get('#publish')
+					.click()
+					.then(() => {
+						/**
+						 * Give Elasticsearch some time to update the posts in custom results.
+						 */
+						// eslint-disable-next-line cypress/no-unnecessary-waiting
+						cy.wait(1000);
+						cy.visit(`?s=${searchTerm}`);
 
-				cy.visit(`?s=${searchTerm}`);
-
-				// verify the result of the search is in the same position.
-				cy.get(`article:nth-child(-n+${searchResult.length}) .entry-title`).each(
-					(post, index) => {
-						expect(post[0].innerText).to.equal(searchResult[index]);
-					},
-				);
+						// verify the result of the search is in the same position.
+						cy.get(`article:nth-child(-n+${searchResult.length}) .entry-title`).each(
+							(post, index) => {
+								expect(post[0].innerText).to.equal(searchResult[index]);
+							},
+						);
+					});
 			});
 	});
 });

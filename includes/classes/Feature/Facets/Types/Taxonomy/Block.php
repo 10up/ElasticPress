@@ -48,13 +48,16 @@ class Block {
 				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
 				'callback'            => [ $this, 'render_block_preview' ],
 				'args'                => [
-					'facet'   => [
+					'facet'        => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
-					'orderby' => [
+					'displayCount' => [
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
+					'orderby'      => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
-					'order'   => [
+					'order'        => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
 				],
@@ -189,9 +192,10 @@ class Block {
 
 		$attributes = $this->parse_attributes(
 			[
-				'facet'   => $request->get_param( 'facet' ),
-				'orderby' => $request->get_param( 'orderby' ),
-				'order'   => $request->get_param( 'order' ),
+				'facet'        => $request->get_param( 'facet' ),
+				'displayCount' => $request->get_param( 'displayCount' ),
+				'orderby'      => $request->get_param( 'orderby' ),
+				'order'        => $request->get_param( 'order' ),
 			]
 		);
 
@@ -229,9 +233,10 @@ class Block {
 		$attributes = wp_parse_args(
 			$attributes,
 			[
-				'facet'   => '',
-				'orderby' => 'count',
-				'order'   => 'desc',
+				'facet'        => '',
+				'displayCount' => '',
+				'orderby'      => 'count',
+				'order'        => 'desc',
 
 			]
 		);

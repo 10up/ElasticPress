@@ -1227,6 +1227,15 @@ class Post extends Indexable {
 				continue;
 			}
 
+			/**
+			 * If `orderby` is 'none', WordPress will let the database decide on what should be used to order.
+			 * It will use the primary key ASC.
+			 */
+			if ( 'none' === $orderby_clause ) {
+				$orderby_clause = 'ID';
+				$order          = 'asc';
+			}
+
 			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
 				if ( empty( $args['meta_key'] ) ) {
 					continue;
@@ -1422,19 +1431,21 @@ class Post extends Indexable {
 		 * these filters by its usual numeric indices (see the array_values() call below.)
 		 */
 		$filters = [
-			'tax_query'        => $this->parse_tax_queries( $args, $query ),
-			'post_parent'      => $this->parse_post_parent( $args ),
-			'post__in'         => $this->parse_post__in( $args ),
-			'post_name__in'    => $this->parse_post_name__in( $args ),
-			'post__not_in'     => $this->parse_post__not_in( $args ),
-			'category__not_in' => $this->parse_category__not_in( $args ),
-			'tag__not_in'      => $this->parse_tag__not_in( $args ),
-			'author'           => $this->parse_author( $args ),
-			'post_mime_type'   => $this->parse_post_mime_type( $args ),
-			'date'             => $this->parse_date( $args ),
-			'meta_query'       => $this->parse_meta_queries( $args ),
-			'post_type'        => $this->parse_post_type( $args ),
-			'post_status'      => $this->parse_post_status( $args ),
+			'tax_query'           => $this->parse_tax_queries( $args, $query ),
+			'post_parent'         => $this->parse_post_parent( $args ),
+			'post_parent__in'     => $this->parse_post_parent__in( $args ),
+			'post_parent__not_in' => $this->parse_post_parent__not_in( $args ),
+			'post__in'            => $this->parse_post__in( $args ),
+			'post_name__in'       => $this->parse_post_name__in( $args ),
+			'post__not_in'        => $this->parse_post__not_in( $args ),
+			'category__not_in'    => $this->parse_category__not_in( $args ),
+			'tag__not_in'         => $this->parse_tag__not_in( $args ),
+			'author'              => $this->parse_author( $args ),
+			'post_mime_type'      => $this->parse_post_mime_type( $args ),
+			'date'                => $this->parse_date( $args ),
+			'meta_query'          => $this->parse_meta_queries( $args ),
+			'post_type'           => $this->parse_post_type( $args ),
+			'post_status'         => $this->parse_post_status( $args ),
 		];
 
 		/**
@@ -1737,6 +1748,52 @@ class Post extends Indexable {
 	}
 
 	/**
+	 * Parse the `post_parent__in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.5.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent__in( $args ) {
+		if ( empty( $args['post_parent__in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_parent' => array_values( (array) $args['post_parent__in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post_parent__not_in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.5.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent__not_in( $args ) {
+		if ( empty( $args['post_parent__not_in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'post_parent' => array_values( (array) $args['post_parent__not_in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
 	 * Parse the `post__in` WP Query arg and transform it into an ES query clause.
 	 *
 	 * @since 4.4.0
@@ -2002,6 +2059,7 @@ class Post extends Indexable {
 		 * @since 1.3
 		 */
 		$meta_queries = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
+		$meta_queries = ( new \WP_Meta_Query() )->sanitize_query( $meta_queries );
 
 		/**
 		 * Todo: Support meta_type

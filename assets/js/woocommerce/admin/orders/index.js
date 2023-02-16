@@ -1,8 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import domReady from '@wordpress/dom-ready';
-import { render } from '@wordpress/element';
+import { render, useEffect, useRef, useState, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -14,16 +13,93 @@ import {
 	apiEndpoint,
 	apiHost,
 	argsSchema,
-	authorization,
-	dateFormat,
-	statusLabels,
-	timeFormat,
+	credentialsApiUrl,
+	credentialsNonce,
+	requestIdBase,
 } from './config';
 
 /**
- * Initialize.
+ * Order search provider component.
+ *
+ * Bundles several provider components with authentication handling.
+ *
+ * @param {object} props Component props.
+ * @param {WPElement} props.children Component children.
+ * @returns {WPElement}
  */
-const init = () => {
+const AuthenticatedApiSearchProvider = ({ children }) => {
+	/**
+	 * State.
+	 */
+	const [credentials, setCredentials] = useState(null);
+
+	/**
+	 * Refs.
+	 */
+	const hasRefreshed = useRef(false);
+
+	/**
+	 * Refresh credentials on authentication errors.
+	 *
+	 * @returns {void}
+	 */
+	const onAuthError = () => {
+		if (hasRefreshed.current) {
+			setCredentials(null);
+			return;
+		}
+
+		fetch(credentialsApiUrl, {
+			headers: { 'X-WP-Nonce': credentialsNonce },
+			method: 'POST',
+		})
+			.then((response) => response.text())
+			.then(setCredentials);
+
+		hasRefreshed.current = true;
+	};
+
+	/**
+	 * Set credentials on initialization.
+	 *
+	 * @returns {void}
+	 */
+	const onInit = () => {
+		fetch(credentialsApiUrl, {
+			headers: { 'X-WP-Nonce': credentialsNonce },
+		})
+			.then((response) => response.text())
+			.then(setCredentials);
+	};
+
+	/**
+	 * Effects.
+	 */
+	useEffect(onInit, []);
+
+	/**
+	 * Render.
+	 */
+	return credentials ? (
+		<ApiSearchProvider
+			apiEndpoint={apiEndpoint}
+			apiHost={apiHost}
+			argsSchema={argsSchema}
+			authorization={`Basic ${credentials}`}
+			requestIdBase={requestIdBase}
+			onAuthError={onAuthError}
+		>
+			{children}
+		</ApiSearchProvider>
+	) : null;
+};
+
+/**
+ * Initialize.
+ *
+ * @returns {void}
+ */
+const init = async () => {
 	const form = document.getElementById('posts-filter');
 	const input = form.s;
 
@@ -31,28 +107,16 @@ const init = () => {
 		return;
 	}
 
-	const app = document.createElement('div');
+	const el = document.createElement('div');
 
-	input.parentElement.appendChild(app);
+	input.parentElement.appendChild(el);
 
 	render(
-		<ApiSearchProvider
-			apiEndpoint={apiEndpoint}
-			apiHost={apiHost}
-			argsSchema={argsSchema}
-			authorization={authorization}
-			defaultIsOn
-		>
-			<App
-				adminUrl={adminUrl}
-				dateFormat={dateFormat}
-				input={input}
-				statusLabels={statusLabels}
-				timeFormat={timeFormat}
-			/>
-		</ApiSearchProvider>,
-		app,
+		<AuthenticatedApiSearchProvider>
+			<App adminUrl={adminUrl} input={input} />
+		</AuthenticatedApiSearchProvider>,
+		el,
 	);
 };
 
-domReady(init);
+init();

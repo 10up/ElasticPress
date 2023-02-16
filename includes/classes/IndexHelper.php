@@ -69,7 +69,17 @@ class IndexHelper {
 		add_filter( 'wp_php_error_message', [ $this, 'wp_handle_index_error' ], 10, 2 );
 
 		$this->index_meta = Utils\get_indexing_status();
-		$this->args       = $args;
+
+		/**
+		 * Filter the sync arguments
+		 *
+		 * @since 4.5.0
+		 * @hook ep_sync_args
+		 * @param {array} $args Sync arguments
+		 * @param {array} $index_meta Current index meta
+		 * @return {array} New sync arguments
+		 */
+		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
 			$this->build_index_meta();
@@ -806,9 +816,10 @@ class IndexHelper {
 	 * @since 4.2.0
 	 */
 	protected function update_last_index() {
-		$start_time = $this->index_meta['start_time'];
-		$totals     = $this->index_meta['totals'];
-		$method     = $this->index_meta['method'];
+		$start_time   = $this->index_meta['start_time'];
+		$totals       = $this->index_meta['totals'];
+		$method       = $this->index_meta['method'];
+		$is_full_sync = $this->index_meta['put_mapping'];
 
 		$this->index_meta = null;
 
@@ -820,6 +831,7 @@ class IndexHelper {
 		$totals['end_time_gmt']    = time();
 		$totals['total_time']      = microtime( true ) - $start_time;
 		$totals['method']          = $method;
+		$totals['is_full_sync']    = $is_full_sync;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 	}

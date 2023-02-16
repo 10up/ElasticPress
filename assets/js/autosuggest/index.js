@@ -15,6 +15,7 @@ import {
 	replaceGlobally,
 	debounce,
 	domReady,
+	generateRequestId,
 } from '../utils/helpers';
 
 const { epas } = window;
@@ -190,6 +191,12 @@ async function esSearch(query, searchTerm) {
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
 		fetchConfig.headers['EP-Search-Term'] = encodeURI(searchTerm);
+	}
+
+	// only add a request ID if using ep.io endpoint
+	const requestId = generateRequestId(epas?.requestIdBase || '');
+	if (requestId) {
+		fetchConfig.headers['X-ElasticPress-Request-ID'] = requestId;
 	}
 
 	try {

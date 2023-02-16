@@ -16,5 +16,5 @@
 		"html": false
 	},
 	"editorScript": "ep-facets-meta-range-block-script",
-	"style": "file:/../../../../../dist/css/facets-styles.css"
+	"style": "elasticpress-facets"
 }
