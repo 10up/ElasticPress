@@ -10,6 +10,13 @@ namespace ElasticPress\Command;
 
 use \WP_CLI as WP_CLI;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Helper class for WP CLI commands.
+ */
 class Helper {
 
 	/**
