@@ -12,7 +12,7 @@ use ElasticPress;
 use ElasticPress\Command;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
-use ElasticPress\Command\Helper as Helper;
+use ElasticPress\Command\Utility as Utility;
 
 /**
  * Commands test class
@@ -980,7 +980,7 @@ class TestCommands extends BaseTestCase {
 
 		set_transient( 'ep_wpcli_sync_interrupted', true );
 
-		Helper::should_interrupt_sync();
+		Utility::should_interrupt_sync();
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Sync was interrupted', $output );
