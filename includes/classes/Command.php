@@ -16,7 +16,7 @@ use ElasticPress\Features as Features;
 use ElasticPress\Utils as Utils;
 use ElasticPress\Elasticsearch as Elasticsearch;
 use ElasticPress\Indexables as Indexables;
-use ElasticPress\Command\Helper as Helper;
+use ElasticPress\Command\Utility as Utility;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -74,7 +74,7 @@ class Command extends WP_CLI_Command {
 	 * @since  3.5.2
 	 */
 	public function __construct() {
-		add_filter( 'pre_transient_ep_wpcli_sync_interrupted', [ Helper::class, 'custom_get_transient' ], 10, 2 );
+		add_filter( 'pre_transient_ep_wpcli_sync_interrupted', [ Utility::class, 'custom_get_transient' ], 10, 2 );
 	}
 
 	/**
@@ -632,7 +632,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Helper method for creating the network alias for an indexable
+	 * Utility method for creating the network alias for an indexable
 	 *
 	 * @param  Indexable $indexable Instance of indexable.
 	 * @since  0.9
@@ -664,8 +664,8 @@ class Command extends WP_CLI_Command {
 	 * @since  3.3
 	 */
 	public function delete_transient_on_int( $signal_no ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Helper::delete_transient_on_int instead.', 'elasticpress' ), '4.5.1' );
-		Helper::delete_transient_on_int( $signal_no );
+		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::delete_transient_on_int instead.', 'elasticpress' ), '4.5.1' );
+		Utility::delete_transient_on_int( $signal_no );
 	}
 
 	/**
@@ -742,7 +742,7 @@ class Command extends WP_CLI_Command {
 			WP_CLI::warning( esc_html__( 'Function pcntl_signal not available. Make sure to run `wp elasticpress clear-sync` in case the process is killed.', 'elasticpress' ) );
 		} else {
 			declare( ticks = 1 );
-			pcntl_signal( SIGINT, [ Helper::class, 'delete_transient_on_int' ] );
+			pcntl_signal( SIGINT, [ Utility::class, 'delete_transient_on_int' ] );
 		}
 
 		$this->maybe_change_host( $assoc_args );
@@ -771,11 +771,11 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_pre_index', $args, $assoc_args );
 
-		Helper::timer_start();
+		Utility::timer_start();
 
-		add_action( 'ep_sync_put_mapping', [ Helper::class, 'stop_on_failed_mapping' ], 10, 3 );
-		add_action( 'ep_sync_put_mapping', [ Helper::class, 'call_ep_cli_put_mapping' ], 10, 2 );
-		add_action( 'ep_index_batch_new_attempt', [ Helper::class, 'should_interrupt_sync' ] );
+		add_action( 'ep_sync_put_mapping', [ Utility::class, 'stop_on_failed_mapping' ], 10, 3 );
+		add_action( 'ep_sync_put_mapping', [ Utility::class, 'call_ep_cli_put_mapping' ], 10, 2 );
+		add_action( 'ep_index_batch_new_attempt', [ Utility::class, 'should_interrupt_sync' ] );
 
 		$no_bulk = ! empty( $assoc_args['nobulk'] );
 
@@ -824,13 +824,13 @@ class Command extends WP_CLI_Command {
 			$index_args['lower_limit_object_id'] = absint( $assoc_args['lower-limit-object-id'] );
 		}
 
-		\ElasticPress\IndexHelper::factory()->full_index( $index_args );
+		\ElasticPress\IndexUtility::factory()->full_index( $index_args );
 
-		remove_action( 'ep_sync_put_mapping', [ Helper::class, 'stop_on_failed_mapping' ] );
-		remove_action( 'ep_sync_put_mapping', [ Helper::class, 'ep_cli_put_mapping' ], 10, 2 );
-		remove_action( 'ep_index_batch_new_attempt', [ Helper::class, 'maybe_interrupt_sync' ] );
+		remove_action( 'ep_sync_put_mapping', [ Utility::class, 'stop_on_failed_mapping' ] );
+		remove_action( 'ep_sync_put_mapping', [ Utility::class, 'ep_cli_put_mapping' ], 10, 2 );
+		remove_action( 'ep_index_batch_new_attempt', [ Utility::class, 'maybe_interrupt_sync' ] );
 
-		$sync_time_in_ms = Helper::timer_stop();
+		$sync_time_in_ms = Utility::timer_stop();
 
 		/**
 		 * Fires after executing a CLI index
@@ -843,9 +843,9 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_wp_cli_after_index', $args, $assoc_args );
 
-		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . Helper::timer_format( $sync_time_in_ms ) ) );
+		WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Total time elapsed: ', 'elasticpress' ) . '%N' . Utility::timer_format( $sync_time_in_ms ) ) );
 
-		Helper::delete_transient();
+		Utility::delete_transient();
 
 		WP_CLI::success( esc_html__( 'Done!', 'elasticpress' ) );
 	}
@@ -969,8 +969,8 @@ class Command extends WP_CLI_Command {
 	 * @since 3.1
 	 */
 	private function delete_transient() {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Helper::delete_transient() instead.', 'elasticpress' ), '4.5.1' );
-		Helper::delete_transient();
+		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::delete_transient() instead.', 'elasticpress' ), '4.5.1' );
+		Utility::delete_transient();
 	}
 
 	/**
@@ -992,7 +992,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_before_clear_index' );
 
-		Helper::delete_transient();
+		Utility::delete_transient();
 
 		/**
 		 * Fires after the CLI `clear-sync` command is executed.
@@ -1065,7 +1065,7 @@ class Command extends WP_CLI_Command {
 		];
 
 		$assoc_args = wp_parse_args( $assoc_args, $defaults );
-		$last_sync  = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$last_sync  = \ElasticPress\IndexUtility::factory()->get_last_index();
 
 		$this->pretty_json_encode( $last_sync, $this->filter_boolean( $assoc_args['pretty'] ) );
 	}
@@ -1146,8 +1146,8 @@ class Command extends WP_CLI_Command {
 	 * @since 3.5.2
 	 */
 	public function should_interrupt_sync() {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Helper::should_interrupt_sync instead.', 'elasticpress' ), '4.5.1' );
-		Helper::should_interrupt_sync();
+		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::should_interrupt_sync instead.', 'elasticpress' ), '4.5.1' );
+		Utility::should_interrupt_sync();
 	}
 
 
@@ -1271,9 +1271,9 @@ class Command extends WP_CLI_Command {
 	 * @return true|null
 	 */
 	public function custom_get_transient( $pre_transient, $transient ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This function is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Helper::custom_get_transient instead.', 'elasticpress' ), '3.5.2' );
+		_doing_it_wrong( __METHOD__, esc_html__( 'This function is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::custom_get_transient instead.', 'elasticpress' ), '3.5.2' );
 
-		return Helper::custom_get_transient( $pre_transient, $transient );
+		return Utility::custom_get_transient( $pre_transient, $transient );
 	}
 
 	/**
@@ -1297,10 +1297,10 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Function used to ouput messages coming from IndexHelper
+	 * Function used to ouput messages coming from IndexUtility
 	 *
 	 * @param array  $message    Message data
-	 * @param array  $args       Args sent and processed by IndexHelper
+	 * @param array  $args       Args sent and processed by IndexUtility
 	 * @param array  $index_meta Current index state
 	 * @param string $context    Context of the message being outputted
 	 */
@@ -1320,7 +1320,7 @@ class Command extends WP_CLI_Command {
 				break;
 
 			case 'error':
-				Helper::delete_transient();
+				Utility::delete_transient();
 				WP_CLI::error( $message['message'] );
 				break;
 
@@ -1332,9 +1332,9 @@ class Command extends WP_CLI_Command {
 		if ( 'index_next_batch' === $context ) {
 			$counter++;
 			if ( ( $counter % 10 ) === 0 ) {
-				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( Helper::timer_stop() - $time_elapsed ) . ')' : '';
-				$time_elapsed      = Helper::timer_stop( 2 );
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . Helper::timer_format( $time_elapsed ) . $time_elapsed_diff ) );
+				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( Utility::timer_stop() - $time_elapsed ) . ')' : '';
+				$time_elapsed      = Utility::timer_stop( 2 );
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . Utility::timer_format( $time_elapsed ) . $time_elapsed_diff ) );
 
 				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
 				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
@@ -1352,8 +1352,8 @@ class Command extends WP_CLI_Command {
 	 * @param bool      $result     Whether the request was successful or not
 	 */
 	public function stop_on_failed_mapping( $index_meta, $indexable, $result ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Helper::stop_on_failed_mapping instead.', 'elasticpress' ), '4.5.1' );
-		Helper::stop_on_failed_mapping( $index_meta, $indexable, $result );
+		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::stop_on_failed_mapping instead.', 'elasticpress' ), '4.5.1' );
+		Utility::stop_on_failed_mapping( $index_meta, $indexable, $result );
 	}
 
 	/**
@@ -1366,8 +1366,8 @@ class Command extends WP_CLI_Command {
 	 * @return void
 	 */
 	public function call_ep_cli_put_mapping( $index_meta, $indexable ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Helper::call_ep_cli_put_mapping instead.', 'elasticpress' ), '4.5.1' );
-		Helper::call_ep_cli_put_mapping( $index_meta, $indexable );
+		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::call_ep_cli_put_mapping instead.', 'elasticpress' ), '4.5.1' );
+		Utility::call_ep_cli_put_mapping( $index_meta, $indexable );
 	}
 
 	/**
