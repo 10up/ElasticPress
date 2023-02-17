@@ -396,13 +396,11 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_mapping( $args, $assoc_args ) {
-		$pretty = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+		$pretty      = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+		$index_name  = \WP_CLI\Utils\get_flag_value( $assoc_args, 'index-name' );
+		$index_names = (array) ( ! empty( $index_name ) ? $index_name : $this->get_index_names() );
 
-		if ( isset( $assoc_args['index-name'] ) ) {
-			$assoc_args['index-name'] = (array) $assoc_args['index-name'];
-		}
-
-		$path = join( ',', $assoc_args['index-name'] ) . '/_mapping';
+		$path = join( ',', $index_names ) . '/_mapping';
 
 		$response = Elasticsearch::factory()->remote_request( $path );
 
@@ -451,6 +449,8 @@ class Command extends WP_CLI_Command {
 		$index_names = $this->get_index_names( $assoc_args['status'] );
 
 		$this->pretty_json_encode( $index_names, $pretty );
+
+
 	}
 
 	/**
