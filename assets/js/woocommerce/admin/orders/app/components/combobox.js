@@ -213,9 +213,11 @@ export default ({ children, id, isBusy, onSelect, ...props }) => {
 		<div className="ep-combobox" onBlur={onBlur}>
 			<input
 				aria-activedescendant={activeDescendant}
+				aria-autocomplete="list"
 				aria-controls={id}
 				aria-describedby={`${id}-description`}
 				aria-expanded={!isBusy && isExpanded}
+				autoComplete="off"
 				className="ep-combobox__input"
 				onFocus={onFocus}
 				onKeyDown={onKeyDown}
