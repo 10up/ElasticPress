@@ -69,7 +69,17 @@ class IndexHelper {
 		add_filter( 'wp_php_error_message', [ $this, 'wp_handle_index_error' ], 10, 2 );
 
 		$this->index_meta = Utils\get_indexing_status();
-		$this->args       = $args;
+
+		/**
+		 * Filter the sync arguments
+		 *
+		 * @since 4.5.0
+		 * @hook ep_sync_args
+		 * @param {array} $args Sync arguments
+		 * @param {array} $index_meta Current index meta
+		 * @return {array} New sync arguments
+		 */
+		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
 			$this->build_index_meta();

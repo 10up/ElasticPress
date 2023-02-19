@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { date, dateI18n } from '@wordpress/date';
+import { dateI18n } from '@wordpress/date';
 import { WPElement } from '@wordpress/element';
 import { _n, sprintf } from '@wordpress/i18n';
 
@@ -32,9 +32,9 @@ export default ({
 	orderNumber,
 	orderStatus,
 }) => {
-	const formattedDate = dateI18n(dateFormat, orderDate, 'GMT');
-	const formattedDateTime = date('c', orderDate, 'GMT');
-	const formattedTime = dateI18n(timeFormat, orderDate, 'GMT');
+	const formattedDate = dateI18n(dateFormat, orderDate);
+	const formattedDateTime = dateI18n('c', orderDate);
+	const formattedTime = dateI18n(timeFormat, orderDate);
 	const statusClass = `status-${orderStatus.substring(3)}`;
 	const statusLabel = statusLabels[orderStatus];
 
