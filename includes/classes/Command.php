@@ -445,12 +445,15 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_indices( $args, $assoc_args ) {
+		$defaults = [
+			'status' => 'active',
+		];
+
+		$assoc_args  = wp_parse_args( $assoc_args, $defaults );
 		$pretty      = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
 		$index_names = $this->get_index_names( $assoc_args['status'] );
 
 		$this->pretty_json_encode( $index_names, $pretty );
-
-
 	}
 
 	/**
