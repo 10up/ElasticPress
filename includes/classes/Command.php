@@ -770,7 +770,7 @@ class Command extends WP_CLI_Command {
 		add_action( 'ep_sync_put_mapping', [ $this, 'call_ep_cli_put_mapping' ], 10, 2 );
 		add_action( 'ep_index_batch_new_attempt', [ $this, 'should_interrupt_sync' ] );
 
-		$no_bulk = ! empty( $assoc_args['nobulk'] );
+		$no_bulk      = ! empty( $assoc_args['nobulk'] );
 		$static_bulk  = \WP_CLI\Utils\get_flag_value( $assoc_args, 'static-bulk', null );
 		$network_wide = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network-wide', null );
 
@@ -1058,8 +1058,8 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_last_sync( $args, $assoc_args ) {
-		$pretty     = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
-		$last_sync  = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$pretty    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
 
 		$this->pretty_json_encode( $last_sync, $pretty );
 	}
