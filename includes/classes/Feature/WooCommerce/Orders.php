@@ -440,7 +440,7 @@ class Orders {
 	 * @return array
 	 */
 	public function filter_term_suggest( $post_args ) {
-		if ( 'shop_order' !== $post_args['post_type'] ) {
+		if ( empty( $post_args['post_type'] ) || 'shop_order' !== $post_args['post_type'] ) {
 			return $post_args;
 		}
 
