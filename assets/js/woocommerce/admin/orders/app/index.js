@@ -1,55 +1,45 @@
 /**
  * WordPress dependencies.
  */
-import { useCallback, useEffect, useRef, WPElement } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { useCallback, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
 import { useApiSearch } from '../../../../api-search';
 import { useDebounce } from '../hooks';
-import Listbox from './components/listbox';
-import ShopOrder from './components/shop-order';
+import Combobox from './components/combobox';
+import Suggestion from './components/suggestion';
 
 /**
  * Autosuggest app.
  *
  * @param {object} props Component props.
  * @param {string} props.adminUrl Admin URL.
- * @param {string} props.input Input element.
+ * @param {string} props.dateFormat Date format string.
+ * @param {object} props.statusLabels Post status labels.
+ * @param {string} props.timeFormat Time format string.
+ * @param {string} props.value Input value.
  * @returns {WPElement} Rendered component.
  */
-export default ({ adminUrl, input }) => {
-	const { clearResults, searchFor, searchResults } = useApiSearch();
-
-	const searchResultsRef = useRef(searchResults);
-
-	searchResultsRef.current = searchResults;
+export default ({ adminUrl, dateFormat, statusLabels, timeFormat, value, ...props }) => {
+	/**
+	 * Use the API Search provider.
+	 */
+	const { clearResults, isLoading, searchFor, searchResults } = useApiSearch();
 
 	/**
-	 * Selection event handler.
+	 * Update the search term, debounced.
 	 *
-	 * @param {number} index Selected option index.
+	 * @param {string} searchTerm Search term.
+	 * @returns {void}
 	 */
-	const onSelect = useCallback(
-		(index, isMetaKey) => {
-			const { post_id } = searchResultsRef.current[index]._source;
-
-			window.open(`${adminUrl}?post=${post_id}&action=edit`, isMetaKey ? '_blank' : '_self');
-		},
-		[adminUrl],
-	);
-
-	/**
-	 * Dispatch the change, with debouncing.
-	 */
-	const dispatchInput = useDebounce((value) => {
-		searchFor(value);
+	const dispatchSearchFor = useDebounce((searchTerm) => {
+		searchFor(searchTerm);
 	}, 300);
 
 	/**
-	 * Callback for input keyup event.
+	 * Input event handler.
 	 *
 	 * @param {Event} event keyupEvent
 	 */
@@ -58,68 +48,63 @@ export default ({ adminUrl, input }) => {
 			const { value } = event.target;
 
 			if (value) {
-				dispatchInput(event.target.value);
+				dispatchSearchFor(event.target.value);
 			} else {
 				clearResults();
 			}
 		},
-		[clearResults, dispatchInput],
+		[clearResults, dispatchSearchFor],
 	);
 
 	/**
-	 * Handle initialization.
+	 * Selection event handler.
 	 *
-	 * @returns {Function} Cleanup function.
+	 * Fires when a suggestion from the combobox component is selected. The
+	 * value will be the value prop of the child that was selected.
+	 *
+	 * @param {*} value Selection value.
+	 * @param {Event} event Click or keydown event.
 	 */
-	const handleInit = () => {
-		input.addEventListener('input', onInput);
-
-		return () => {
-			input.removeEventListener('input', onInput);
-		};
-	};
+	const onSelect = useCallback(
+		(value, event) => {
+			window.open(
+				`${adminUrl}?post=${value}&action=edit`,
+				event.metaKey ? '_blank' : '_self',
+			);
+		},
+		[adminUrl],
+	);
 
 	/**
-	 * Effects.
+	 * Render.
 	 */
-	useEffect(handleInit, [input, onInput]);
-
 	return (
-		<Listbox
+		<Combobox
+			defaultValue={value}
 			id="ep-orders-suggestions"
-			input={input}
-			label={__('Search results powered by ElasticPress', 'elasticpress-orders')}
+			isBusy={isLoading}
+			onInput={onInput}
 			onSelect={onSelect}
+			{...props}
 		>
-			{searchResults.map((option) => {
+			{searchResults.map((hit) => {
 				const {
-					meta: {
-						_billing_email: [{ value: billing_email } = {}] = [],
-						_billing_first_name: [{ value: billing_first_name } = {}] = [],
-						_billing_last_name: [{ value: billing_last_name } = {}] = [],
-						_items: [{ value: items } = {}] = [],
-					},
-					post_date_gmt,
-					post_id,
-					post_status,
-				} = option._source;
-
-				const orderDate = `${post_date_gmt.split(' ').join('T')}+00:00`;
+					_id,
+					_source: { post_id },
+				} = hit;
 
 				return (
-					<ShopOrder
-						emailAddress={billing_email}
-						firstName={billing_first_name}
-						id={`ep-order-suggestion-${post_id}`}
-						itemCount={items ? items.split('|').length : 0}
-						key={post_id}
-						lastName={billing_last_name}
-						orderDate={orderDate}
-						orderNumber={post_id}
-						orderStatus={post_status}
+					<Suggestion
+						dateFormat={dateFormat}
+						id={`ep-order-suggestion-${_id}`}
+						hit={hit}
+						key={_id}
+						statusLabels={statusLabels}
+						timeFormat={timeFormat}
+						value={post_id}
 					/>
 				);
 			})}
-		</Listbox>
+		</Combobox>
 	);
 };
