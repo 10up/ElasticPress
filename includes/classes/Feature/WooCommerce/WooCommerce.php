@@ -14,6 +14,8 @@ use ElasticPress\Indexables as Indexables;
 use ElasticPress\IndexHelper;
 use ElasticPress\Utils as Utils;
 
+use function ElasticPress\Utils\is_epio;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -22,6 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WooCommerce feature class
  */
 class WooCommerce extends Feature {
+	/**
+	 * If enabled, receive the Orders object instance
+	 *
+	 * @since 4.5.0
+	 * @var null|Orders
+	 */
+	public $orders = null;
+
 	/**
 	 * Initialize feature setting it's config
 	 *
@@ -836,6 +846,12 @@ class WooCommerce extends Feature {
 		if ( ! function_exists( 'WC' ) ) {
 			return;
 		}
+
+		if ( apply_filters( 'ep_woocommerce_enable_orders_autosuggest', false && is_epio() ) ) {
+			$this->orders = new Orders();
+			$this->orders->setup();
+		}
+
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 		add_filter( 'ep_integrate_search_queries', [ $this, 'blacklist_coupons' ], 10, 2 );
