@@ -80,7 +80,7 @@ function get_network_capability() : string {
 	 * Filter the WP capability needed to interact with ElasticPress in the network admin
 	 *
 	 * @since 4.5.0
-	 * @hook ep_capability
+	 * @hook ep_network_capability
 	 * @param  {bool} $capability Capability name. Defaults to `'manage_network_elasticpress'`
 	 * @return {bool} New capability value
 	 */
