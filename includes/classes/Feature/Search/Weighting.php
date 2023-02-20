@@ -199,7 +199,7 @@ class Weighting {
 			'elasticpress',
 			esc_html__( 'ElasticPress Search Fields & Weighting', 'elasticpress' ),
 			esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress-weighting',
 			[ $this, 'render_settings_page' ]
 		);
@@ -339,7 +339,7 @@ class Weighting {
 			return;
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( Utils\get_capability() ) ) {
 			return;
 		}
 

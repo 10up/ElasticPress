@@ -8,6 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use \ElasticPress\Utils;
 
 /**
  * Weighting test class
@@ -175,7 +176,7 @@ class TestWeighting extends BaseTestCase {
 		add_menu_page(
 			'ElasticPress',
 			'ElasticPress',
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress'
 		);
 
