@@ -201,6 +201,45 @@ class TestWooCommerceOrders extends TestWooCommerce {
 	 * @group WooCommerceOrders
 	 */
 	public function testSetSearchFields() {
+		$original_search_fields = [ 'old_search_field', ];
+		
+		$wp_query = new \WP_Query(
+			[
+				'ep_integrate'             => true,
+				'ep_order_search_template' => false,
+				'post_type'                => 'shop_order',
+				's'                        => '{{ep_placeholder}}',
+			]
+		);
 
+		$changed_search_fields = $this->orders->set_search_fields( $original_search_fields, $wp_query );
+
+		$this->assertSame( $original_search_fields, $changed_search_fields );
+
+		$wp_query = new \WP_Query(
+			[
+				'ep_integrate'             => true,
+				'ep_order_search_template' => true,
+				'post_type'                => 'shop_order',
+				's'                        => '{{ep_placeholder}}',
+			]
+		);
+
+		$changed_search_fields = $this->orders->set_search_fields( $original_search_fields, $wp_query );
+
+		$expected_fields = [
+			'meta.order_post_id.value',
+			'term_suggest',
+			'meta' => [
+				'_order_key',
+				'_billing_email',
+				'_billing_last_name',
+				'_billing_first_name',
+				'_shipping_first_name',
+				'_shipping_last_name',
+			],
+		];
+
+		$this->assertSame( $expected_fields, $changed_search_fields );
 	}
 }
