@@ -2,7 +2,7 @@
 /**
  * ElasticPress CLI Utility
  *
- * @since 4.4.0
+ * @since 4.5.0
  * @package elasticpress
  */
 
@@ -21,8 +21,6 @@ class Utility {
 
 	/**
 	 * Internal timer.
-	 *
-	 * @since 4.2.0
 	 *
 	 * @var float
 	 */
@@ -44,8 +42,6 @@ class Utility {
 
 	/**
 	 * Delete transient that indicates indexing is occurring
-	 *
-	 * @since 3.1
 	 */
 	public static function delete_transient() {
 		\ElasticPress\IndexHelper::factory()->clear_index_meta();
@@ -62,7 +58,6 @@ class Utility {
 	/**
 	 * Stops the timer.
 	 *
-	 * @since 4.2.0
 	 * @param int $precision The number of digits from the right of the decimal to display. Default 3.
 	 * @return float Time spent so far
 	 */
@@ -74,7 +69,6 @@ class Utility {
 	/**
 	 * Starts the timer.
 	 *
-	 * @since 4.2.0
 	 * @return true
 	 */
 	public static function timer_start() {
@@ -100,7 +94,6 @@ class Utility {
 	/**
 	 * Given a timestamp in microseconds, returns it in the given format.
 	 *
-	 * @since 4.2.0
 	 * @param float  $microtime Unix timestamp in ms
 	 * @param string $format    Desired format
 	 * @return string
@@ -128,8 +121,6 @@ class Utility {
 	/**
 	 * Ties the `ep_cli_put_mapping` action to `ep_sync_put_mapping`.
 	 *
-	 * @since 4.0.0
-	 *
 	 * @param array     $index_meta Index meta information
 	 * @param Indexable $indexable  Indexable object
 	 * @return void
@@ -156,7 +147,6 @@ class Utility {
 	 * false after the command is running even when the value
 	 * is updated.
 	 *
-	 * @since      3.5.2
 	 * @param mixed  $pre_transient The default value.
 	 * @param string $transient Transient name.
 	 * @return true|null
