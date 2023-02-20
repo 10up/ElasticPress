@@ -10,13 +10,13 @@
 
 namespace ElasticPress;
 
-use \WP_CLI_Command as WP_CLI_Command;
-use \WP_CLI as WP_CLI;
-use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Command\Utility as Utility;
+use \WP_CLI_Command;
+use \WP_CLI;
+use ElasticPress\Features;
+use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
+use ElasticPress\Command\Utility;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
