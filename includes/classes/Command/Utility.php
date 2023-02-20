@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Command;
 
-use \WP_CLI as WP_CLI;
+use \WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -30,7 +30,6 @@ class Utility {
 	 * Properly clean up when receiving SIGINT on indexing
 	 *
 	 * @param int $signal_no Signal number
-	 * @since  3.3
 	 */
 	public static function delete_transient_on_int( $signal_no ) {
 		if ( SIGINT === $signal_no ) {
@@ -78,8 +77,6 @@ class Utility {
 
 	/**
 	 * Check if sync should be interrupted
-	 *
-	 * @since 3.5.2
 	 */
 	public static function should_interrupt_sync() {
 		$should_interrupt_sync = get_transient( 'ep_wpcli_sync_interrupted' );

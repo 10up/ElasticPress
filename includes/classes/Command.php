@@ -632,7 +632,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Utility method for creating the network alias for an indexable
+	 * Helper method for creating the network alias for an indexable
 	 *
 	 * @param  Indexable $indexable Instance of indexable.
 	 * @since  0.9
@@ -1296,10 +1296,10 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Function used to ouput messages coming from IndexUtility
+	 * Function used to ouput messages coming from IndexHelper
 	 *
 	 * @param array  $message    Message data
-	 * @param array  $args       Args sent and processed by IndexUtility
+	 * @param array  $args       Args sent and processed by IndexHelper
 	 * @param array  $index_meta Current index state
 	 * @param string $context    Context of the message being outputted
 	 */
@@ -1341,7 +1341,6 @@ class Command extends WP_CLI_Command {
 			}
 		}
 	}
-
 
 	/**
 	 * If put_mapping fails while indexing, stop the index process.
