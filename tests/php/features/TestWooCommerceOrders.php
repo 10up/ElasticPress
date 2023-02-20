@@ -13,7 +13,7 @@ use ElasticPress;
 /**
  * WC Orders test class
  */
-class TestWooCommerceOrders extends TestWooCommerce {
+class TestWooCommerceOrders extends BaseTestCase {
 	public $woocommerce_feature;
 
 	public $orders;
