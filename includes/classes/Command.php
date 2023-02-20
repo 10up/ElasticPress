@@ -664,7 +664,7 @@ class Command extends WP_CLI_Command {
 	 * @since  3.3
 	 */
 	public function delete_transient_on_int( $signal_no ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::delete_transient_on_int instead.', 'elasticpress' ), '4.5.1' );
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Command\Utility::delete_transient_on_int' );
 		Utility::delete_transient_on_int( $signal_no );
 	}
 
@@ -969,7 +969,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.1
 	 */
 	private function delete_transient() {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::delete_transient() instead.', 'elasticpress' ), '4.5.1' );
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Command\Utility::delete_transient()' );
 		Utility::delete_transient();
 	}
 
@@ -1146,7 +1146,7 @@ class Command extends WP_CLI_Command {
 	 * @since 3.5.2
 	 */
 	public function should_interrupt_sync() {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::should_interrupt_sync instead.', 'elasticpress' ), '4.5.1' );
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Command\Utility::should_interrupt_sync' );
 		Utility::should_interrupt_sync();
 	}
 
@@ -1271,8 +1271,7 @@ class Command extends WP_CLI_Command {
 	 * @return true|null
 	 */
 	public function custom_get_transient( $pre_transient, $transient ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This function is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::custom_get_transient instead.', 'elasticpress' ), '3.5.2' );
-
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Command\Utility::custom_get_transient' );
 		return Utility::custom_get_transient( $pre_transient, $transient );
 	}
 
@@ -1352,7 +1351,7 @@ class Command extends WP_CLI_Command {
 	 * @param bool      $result     Whether the request was successful or not
 	 */
 	public function stop_on_failed_mapping( $index_meta, $indexable, $result ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::stop_on_failed_mapping instead.', 'elasticpress' ), '4.5.1' );
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Command\Utility::stop_on_failed_mapping' );
 		Utility::stop_on_failed_mapping( $index_meta, $indexable, $result );
 	}
 
@@ -1366,7 +1365,7 @@ class Command extends WP_CLI_Command {
 	 * @return void
 	 */
 	public function call_ep_cli_put_mapping( $index_meta, $indexable ) {
-		_doing_it_wrong( __METHOD__, esc_html__( 'This method is deprecated and will be removed from 5.0. Use \ElasticPress\Command\Utility::call_ep_cli_put_mapping instead.', 'elasticpress' ), '4.5.1' );
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Command\Utility::call_ep_cli_put_mapping' );
 		Utility::call_ep_cli_put_mapping( $index_meta, $indexable );
 	}
 
