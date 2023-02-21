@@ -29,13 +29,7 @@
 }
 
 .ep-copy-button-wrapper {
-	align-items: center;
-	display: inline-flex;
 	margin: 0.5rem 0 1rem;
-
-	& .button + .button {
-		margin-left: 0.5rem;
-	}
 }
 
 .ep-copy-button-wrapper__success {
