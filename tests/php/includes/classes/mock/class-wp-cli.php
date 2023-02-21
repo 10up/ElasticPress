@@ -4,7 +4,6 @@
  */
 class WP_CLI {
 
-
 	/**
 	 * Display a log message
 	 *
