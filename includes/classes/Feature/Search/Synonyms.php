@@ -172,7 +172,7 @@ class Synonyms {
 			'elasticpress',
 			esc_html__( 'ElasticPress Synonyms', 'elasticpress' ),
 			esc_html__( 'Synonyms', 'elasticpress' ),
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress-synonyms',
 			[ $this, 'admin_page' ]
 		);
@@ -249,7 +249,7 @@ class Synonyms {
 			'show_ui'            => false,
 			'show_in_menu'       => false,
 			'query_var'          => true,
-			'capability_type'    => 'post',
+			'capabilities'       => Utils\get_post_map_capabilities(),
 			'has_archive'        => false,
 			'hierarchical'       => false,
 			'menu_position'      => 100,

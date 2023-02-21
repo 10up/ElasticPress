@@ -1,0 +1,28 @@
+.ep-suggestion {
+	font-size: smaller;
+}
+
+.ep-suggestion__header {
+	margin-bottom: 1ch;
+}
+
+.ep-suggestion__title {
+	display: block;
+	font-size: small;
+	font-weight: 600;
+
+	@nest [aria-selected="true"] & {
+		color: var(--wp-admin-theme-color);
+	}
+}
+
+.ep-suggestion__footer {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+
+	& .order-status {
+		justify-content: center;
+		margin: 0;
+	}
+}

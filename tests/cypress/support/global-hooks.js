@@ -14,6 +14,7 @@ before(() => {
 		if ( ! $is_epio ) {
 			$host            = \\ElasticPress\\Utils\\get_host();
 			$host            = str_replace( '172.17.0.1', 'localhost', $host );
+			$host            = str_replace( 'host.docker.internal', 'localhost', $host );
 			$index_name      = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
 			$as_endpoint_url = $host . $index_name . '/_search';
 			

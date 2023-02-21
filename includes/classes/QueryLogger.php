@@ -268,12 +268,17 @@ class QueryLogger {
 			}
 		}
 
+		$request_id = ( ! empty( $query['args']['headers'] ) && ! empty( $query['args']['headers']['X-ElasticPress-Request-ID'] ) ) ?
+			$query['args']['headers']['X-ElasticPress-Request-ID'] :
+			null;
+
 		$status = wp_remote_retrieve_response_code( $query['request'] );
 		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
 
 		$formatted_log = [
 			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
 			'es_req'      => $query['args']['method'] . ' ' . $query['url'],
+			'request_id'  => $request_id ?? '',
 			'timestamp'   => current_time( 'timestamp' ),
 			'query_time'  => $query_time,
 			'wp_args'     => $query['query_args'] ?? [],
