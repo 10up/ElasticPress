@@ -449,22 +449,29 @@ class Orders {
 		}
 
 		/**
-		 * Add the post ID as a meta (text) field, so we can freely search on it.
+		 * Add the order number as a meta (text) field, so we can freely search on it.
 		 */
-		$post_args['meta']['order_post_id'][] = [
-			'raw'   => $post_args['ID'],
-			'value' => $post_args['ID'],
+		$order_id = $post_args['ID'];
+		if ( function_exists( 'wc_get_order' ) ) {
+			$order = wc_get_order( $post_args['ID'] );
+			if ( $order && is_a( $order, 'WC_Order' ) && method_exists( $order, 'get_order_number' ) ) {
+				$order_id = $order->get_order_number();
+			}
+		}
+
+		$post_args['meta']['order_number'] = [
+			[
+				'raw'   => $order_id,
+				'value' => $order_id,
+			],
 		];
 
 		$suggest = [];
 
 		$fields_to_ngram = [
-			'_order_key',
 			'_billing_email',
 			'_billing_last_name',
 			'_billing_first_name',
-			'_shipping_first_name',
-			'_shipping_last_name',
 		];
 
 		foreach ( $fields_to_ngram as $field_to_ngram ) {
@@ -509,15 +516,12 @@ class Orders {
 
 		if ( $is_orders_search_template ) {
 			$search_fields = [
-				'meta.order_post_id.value',
+				'meta.order_number.value',
 				'term_suggest',
 				'meta' => [
-					'_order_key',
 					'_billing_email',
 					'_billing_last_name',
 					'_billing_first_name',
-					'_shipping_first_name',
-					'_shipping_last_name',
 				],
 			];
 		}
