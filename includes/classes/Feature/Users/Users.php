@@ -48,6 +48,7 @@ class Users extends Feature {
 		Indexables::factory()->activate( 'user' );
 
 		add_action( 'init', [ $this, 'search_setup' ] );
+		add_filter( 'ep_admin_notices', [ $this, 'add_migration_notice' ] );
 	}
 
 	/**
@@ -102,6 +103,35 @@ class Users extends Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
 
+		$status->message = [
+			sprintf(
+				/* translators: Sync Page URL */
+				__( 'Attention! This feature is being migrated to the <a href="%s">ElasticPress Labs</a> plugin. Make sure you install that plugin and activate its version of the Users feature.', 'elasticpress' ),
+				'https://github.com/10up/ElasticPressLabs'
+			),
+		];
+
 		return $status;
+	}
+
+	/**
+	 * Display a notice about the feature migration to ElasticPress Labs
+	 *
+	 * @since 4.5.0
+	 * @param array $notices Notices array
+	 * @return array
+	 */
+	public function add_migration_notice( $notices ) {
+		$notices['users_migragrion'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Attention! The Users feature is being migrated to the <a href="%s">ElasticPress Labs</a> plugin. Make sure you install that plugin and activate its version of the Users feature.', 'elasticpress' ),
+				'https://github.com/10up/ElasticPressLabs'
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
 	}
 }
