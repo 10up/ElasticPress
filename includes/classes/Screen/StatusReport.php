@@ -138,7 +138,7 @@ class StatusReport {
 		?>
 		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
 		<p class="ep-copy-button-wrapper">
-			<a download="elasticpress-report.txt" href="data:text/plain;charset=utf-8, <?php echo rawurlencode( implode( "\n\n", $copy_paste_output ) ); ?>" class="button button-primary" id="ep-download-report">
+			<a download="elasticpress-report.txt" href="data:text/plain;charset=utf-8,<?php echo rawurlencode( implode( "\n\n", $copy_paste_output ) ); ?>" class="button button-primary" id="ep-download-report">
 				<?php esc_html_e( 'Download report', 'elasticpress' ); ?>
 			</a>
 			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button">
