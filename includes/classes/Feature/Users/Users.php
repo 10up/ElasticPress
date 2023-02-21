@@ -129,7 +129,7 @@ class Users extends Feature {
 				'https://github.com/10up/ElasticPressLabs'
 			),
 			'type'    => 'warning',
-			'dismiss' => true,
+			'dismiss' => false,
 		];
 
 		return $notices;
