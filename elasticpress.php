@@ -109,14 +109,6 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
-		new Feature\InstantResults\InstantResults()
-	);
-
-	Features::factory()->register_feature(
-		new Feature\Autosuggest\Autosuggest()
-	);
-
-	Features::factory()->register_feature(
 		new Feature\WooCommerce\WooCommerce()
 	);
 
@@ -134,10 +126,6 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\ProtectedContent\ProtectedContent()
-	);
-
-	Features::factory()->register_feature(
-		new Feature\Documents\Documents()
 	);
 
 	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {

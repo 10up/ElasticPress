@@ -27,7 +27,7 @@ class Widget extends WP_Widget {
 	 */
 	public function __construct() {
 		$options = array( 'description' => esc_html__( 'Show related posts using ElasticPress. This widget will only appear on single post, page, and custom type pages.', 'elasticpress' ) );
-		parent::__construct( 'ep-related-posts', esc_html__( 'ElasticPress - Related Posts', 'elasticpress' ), $options );
+		parent::__construct( 'ep-related-posts', esc_html__( 'Enterprise Search - Related Posts', 'elasticpress' ), $options );
 	}
 
 	/**
