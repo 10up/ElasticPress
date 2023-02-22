@@ -50,6 +50,16 @@ class WooCommerce extends Feature {
 
 		$this->settings = wp_parse_args( $settings, $this->default_settings );
 
+		/**
+		 * Whether the autosuggest feature is available for non
+		 * ElasticPress.io customers.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_woocommerce_orders_autosuggest_available
+		 * @param {boolean} $available Whether the feature is available.
+		 */
+		$this->orders_autosuggest_available = apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
+
 		$this->orders = new Orders();
 
 		parent::__construct();
@@ -873,7 +883,7 @@ class WooCommerce extends Feature {
 		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
 
 		// Orders Autosuggest feature.
-		if ( '1' === $this->settings['orders'] ) {
+		if ( $this->orders_autosuggest_available && '1' === $this->settings['orders'] ) {
 			$this->orders->setup();
 		}
 	}
@@ -895,12 +905,20 @@ class WooCommerce extends Feature {
 	 * @since 4.5.0
 	 */
 	public function output_feature_box_settings() {
+		$available = $this->orders_autosuggest_available;
+		$enabled   = $available && '1' === $this->settings['orders'];
 		?>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Orders Autosuggest', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[orders]" type="radio" <?php checked( $this->settings['orders'], '1' ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
-				<label><input name="settings[orders]" type="radio" <?php checked( $this->settings['orders'], '0' ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
+				<label><input name="settings[orders]" type="radio" <?php checked( $enabled ); ?> <?php disabled( $available, false, true ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[orders]" type="radio" <?php checked( ! $enabled ); ?> <?php disabled( $available, false, true ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
+				<?php if ( ! $available ) : ?>
+					<p class="field-description">
+						<?php esc_html_e( 'Due to the sensitive nature of orders, this autosuggest feature is available only to ElasticPress.io customers.', 'elasticpress' ); ?>
+						<?php printf( '<a href="%1$s" target="_blank">%s</a>', esc_html__( 'Learn more.', 'elasticpress' ) ); ?>
+					</p>
+				<?php endif; ?>
 			</div>
 		</div>
 		<?php
