@@ -715,16 +715,7 @@ class Post extends Indexable {
 
 			foreach ( $object_terms as $term ) {
 				if ( ! isset( $terms_dic[ $term->term_id ] ) ) {
-					$terms_dic[ $term->term_id ] = array(
-						'term_id'          => $term->term_id,
-						'slug'             => $term->slug,
-						'name'             => $term->name,
-						'parent'           => $term->parent,
-						'term_taxonomy_id' => $term->term_taxonomy_id,
-						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
-					);
-
-					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
+					$terms_dic[ $term->term_id ] = $this->get_formatted_term( $term, $post->ID );
 
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
@@ -753,19 +744,40 @@ class Post extends Indexable {
 			return $terms;
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
-			$terms[ $parent_term->term_id ] = array(
-				'term_id'          => $parent_term->term_id,
-				'slug'             => $parent_term->slug,
-				'name'             => $parent_term->name,
-				'parent'           => $parent_term->parent,
-				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
-				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
-			);
-
-			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
+			$terms[ $parent_term->term_id ] = $this->get_formatted_term( $parent_term, $object_id );
 
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
+	}
+
+	/**
+	 * Given a term, format it to be appended to the post ES document.
+	 *
+	 * @since 4.5.0
+	 * @param \WP_Term $term    Term to be formatted
+	 * @param int      $post_id The post ID
+	 * @return array
+	 */
+	private function get_formatted_term( \WP_Term $term, int $post_id ) : array {
+		$formatted_term = [
+			'term_id'          => $term->term_id,
+			'slug'             => $term->slug,
+			'name'             => $term->name,
+			'parent'           => $term->parent,
+			'term_taxonomy_id' => $term->term_taxonomy_id,
+			'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post_id ),
+		];
+
+		/**
+		 * As the name implies, the facet attribute is used to list all terms in facets.
+		 * As in facets, the term_order associated with a post does not matter, we set it as 0 here.
+		 * Note that this is set as 0 instead of simply removed to keep backward compatibility.
+		 */
+		$term_facet               = $formatted_term;
+		$term_facet['term_order'] = 0;
+		$formatted_term['facet']  = wp_json_encode( $term_facet );
+
+		return $formatted_term;
 	}
 
 	/**
