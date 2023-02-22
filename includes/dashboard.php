@@ -235,6 +235,7 @@ function maybe_clear_es_info_cache() {
 
 	if ( ! empty( $_GET['ep-retry'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
+		exit();
 	}
 }
 
