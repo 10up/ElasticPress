@@ -1624,6 +1624,7 @@ class Elasticsearch {
 	 */
 	protected function add_query_log( $query ) {
 		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
+			$query['backtrace'] = wp_debug_backtrace_summary( null, 1, false ); // VIP: Search Dev Tools relies on this backtrace
 			$this->queries[] = $query;
 		}
 
