@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Status Report page firing requests to ES twice. Props [@felipeelia](https://github.com/felipeelia) via [#3265](https://github.com/10up/ElasticPress/pull/3265).
 - Sanitization of Meta Queries. Props [@MARQAS](https://github.com/MARQAS) via [#3271](https://github.com/10up/ElasticPress/pull/3271).
 - Facets styles not enqueued more than once. Props [@felipeelia](https://github.com/felipeelia) and [@MediaMaquina](https://github.com/MediaMaquina) via [#3306](https://github.com/10up/ElasticPress/pull/3306).
+- Duplicate terms listed in Instant Results facets. Props [@felipeelia](https://github.com/felipeelia) via [#3335](https://github.com/10up/ElasticPress/pull/3335).
 
 ## [4.4.1] - 2023-01-10
 
