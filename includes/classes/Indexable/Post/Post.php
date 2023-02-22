@@ -744,7 +744,7 @@ class Post extends Indexable {
 			return $terms;
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
-			$terms[ $parent_term->term_id ] = $this->get_formatted_term( $term, $object_id );
+			$terms[ $parent_term->term_id ] = $this->get_formatted_term( $parent_term, $object_id );
 
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
