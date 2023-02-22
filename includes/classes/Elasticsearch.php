@@ -1340,7 +1340,7 @@ class Elasticsearch {
 			if ( ! empty( $es_info ) ) {
 				$this->elasticsearch_version = $es_info['version'];
 				$this->elasticsearch_plugins = $es_info['plugins'];
-				$this->server_type           = $es_info['server_type'];
+				$this->server_type           = $es_info['server_type'] ?? 'elasticsearch'; // VIP: Hardcode if array key isn't found from older version EP transients.
 				return;
 			}
 		}
