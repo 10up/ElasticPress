@@ -53,6 +53,14 @@ class Block {
 		);
 
 		wp_localize_script( 'ep-facets-meta-range-block-script', 'facetMetaBlock', [ 'syncUrl' => Utils\get_sync_url() ] );
+
+		wp_register_script(
+			'ep-facets-meta-range-block-view-script',
+			EP_URL . 'dist/js/facets-meta-range-block-view-script.js',
+			Utils\get_asset_info( 'facets-meta-range-block-view-script', 'dependencies' ),
+			Utils\get_asset_info( 'facets-meta-range-block-view-script', 'version' ),
+			true
+		);
 	}
 
 

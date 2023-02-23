@@ -78,21 +78,14 @@ class Renderer {
 		$form_action = wp_parse_url( $feature->build_query_url( $selected_filters ) );
 		wp_parse_str( $form_action['query'] ?? '', $filter_fields );
 		?>
-		<form action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>">
+		<form class="ep-facet-meta-range">
+			<input type="hidden" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
+			<input type="hidden" name="<?php echo esc_attr( $max_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_max_value ); ?>">
+
 			<?php foreach ( $filter_fields as $field => $value ) { ?>
 				<input type="hidden" name="<?php echo esc_attr( $field ); ?>" value="<?php echo esc_attr( $value ); ?>">
 			<?php } ?>
-			<label for="">
-				Min.
-				<input type="number" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
-			</label>
-			<label for="">
-				Max.
-				<input type="number" name="<?php echo esc_attr( $max_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_max_value ); ?>">
-			</label>
-			<input type="submit" value="<?php esc_attr_e( 'Filter', 'elasticpress' ); ?>">
 		</form>
-		<p>From <?php echo absint( $min ); ?> to <?php echo absint( $max ); ?></p>
 		<?php
 	}
 

@@ -16,5 +16,6 @@
 		"html": false
 	},
 	"editorScript": "ep-facets-meta-range-block-script",
-	"style": "elasticpress-facets"
+	"style": "elasticpress-facets",
+	"viewScript": "ep-facets-meta-range-block-view-script"
 }
