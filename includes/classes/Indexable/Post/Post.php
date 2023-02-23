@@ -420,7 +420,9 @@ class Post extends Indexable {
 	 * @return bool|array
 	 */
 	public function prepare_document( $post_id ) {
+		global $post;
 		$post = get_post( $post_id );
+		setup_postdata( $post );
 
 		if ( empty( $post ) ) {
 			return false;
