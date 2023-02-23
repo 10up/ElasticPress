@@ -928,7 +928,7 @@ class WooCommerce extends Feature {
 				<?php if ( ! $available ) : ?>
 					<p class="field-description">
 						<?php esc_html_e( 'Due to the sensitive nature of orders, this autosuggest feature is available only to ElasticPress.io customers.', 'elasticpress' ); ?>
-						<?php printf( '<a href="%1$s" target="_blank">%s</a>', esc_html__( 'Learn more.', 'elasticpress' ) ); ?>
+						<?php printf( '<a href="%1$s" target="_blank">%2$s</a>', '#', esc_html__( 'Learn more.', 'elasticpress' ) ); ?>
 					</p>
 				<?php endif; ?>
 			</div>
