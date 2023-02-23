@@ -8,13 +8,11 @@
 
 namespace ElasticPress\Feature\WooCommerce;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
-use ElasticPress\Utils as Utils;
-
-use function ElasticPress\Utils\is_epio;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
