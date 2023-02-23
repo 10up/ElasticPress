@@ -30,11 +30,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 - Unit tests related to the `ep_weighting_configuration_for_search` filter. Props [@felipeelia](https://github.com/felipeelia) via [#3303](https://github.com/10up/ElasticPress/pull/3303).
 
 ### Changed
-- Indices of disabled features will be deleted during a full sync. Mappings of needed but unexistent indices will be added even during a regular sync. Props [@felipeelia](https://github.com/felipeelia) via [#3261](https://github.com/10up/ElasticPress/pull/3261).
+- Indices of disabled features will be deleted during a full sync. Mappings of needed but non-existent indices will be added even during a regular sync. Props [@felipeelia](https://github.com/felipeelia) via [#3261](https://github.com/10up/ElasticPress/pull/3261).
 - The number of results per page in Instant Results now matches the site's posts per page setting. Props [@JakePT](https://github.com/JakePT) via [#3292](https://github.com/10up/ElasticPress/pull/3292).
 - Under the hood improvements to the structure of Instant Results. Props [@JakePT](https://github.com/JakePT) via [#3159](https://github.com/10up/ElasticPress/pull/3159) and [#3293](https://github.com/10up/ElasticPress/pull/3293).
 - Apply the "Exclude from Search" filter directly on ES Query. Props [@burhandodhy](https://github.com/burhandodhy) via [#3266](https://github.com/10up/ElasticPress/pull/3266).
-- Prevent using the Elasticsearch if query has unsupported orderby. Props [@burhandodhy](https://github.com/burhandodhy) via [#3273](https://github.com/10up/ElasticPress/pull/3273).
+- Avoid using Elasticsearch if query has an unsupported orderby clause. Props [@burhandodhy](https://github.com/burhandodhy) via [#3273](https://github.com/10up/ElasticPress/pull/3273).
 - E2e tests split into 2 groups to be executed in parallel. Props [@iamchughmayank](https://github.com/iamchughmayank), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia) via [#3283](https://github.com/10up/ElasticPress/pull/3283).
 - Filter command flags using `get_flag_value()`. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3301](https://github.com/10up/ElasticPress/pull/3301).
 
@@ -43,7 +43,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ### Fixed
 - API requests for Instant Results sent on page load before the modal has been opened. Props [@JakePT](https://github.com/JakePT) via [#3159](https://github.com/10up/ElasticPress/pull/3159).
-- Prevent search queries for coupon to use Elasticsearch. Props [@burhandodhy](https://github.com/burhandodhy) via [#3222](https://github.com/10up/ElasticPress/pull/3222).
+- Prevent search queries for coupons from using Elasticsearch. Props [@burhandodhy](https://github.com/burhandodhy) via [#3222](https://github.com/10up/ElasticPress/pull/3222).
 - Thumbnails are not removed from indexed WooCommerce Products when the attachments are deleted. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3267](https://github.com/10up/ElasticPress/pull/3267).
 - Auto sync posts associated with a child term when the term parent is changed. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#3145](https://github.com/10up/ElasticPress/pull/3145).
 - Status Report page firing requests to ES twice. Props [@felipeelia](https://github.com/felipeelia) via [#3265](https://github.com/10up/ElasticPress/pull/3265).
