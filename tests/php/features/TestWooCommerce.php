@@ -595,6 +595,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testProductQueryOrder( $product_arg_key, $query_args, $query_string, $expected, $order = '' ) {
+		global $wp_the_query;
+
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -631,7 +633,6 @@ class TestWooCommerce extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		// mock the query as main query
-		global $wp_the_query;
 		$wp_the_query = $query;
 
 		add_filter(
@@ -683,6 +684,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testProductListInAdminUseElasticSearch() {
+		global $typenow, $wc_list_table;
+
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 
@@ -693,8 +696,6 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
-
-		global $typenow, $wc_list_table;
 
 		// mock the global variables
 		$typenow       = 'product';
@@ -730,6 +731,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testProductListSearchInAdminUseElasticSearch() {
+		global $typenow, $wc_list_table;
+
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 
@@ -740,8 +743,6 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
-
-		global $typenow, $wc_list_table;
 
 		// mock the global variables
 		$typenow       = 'product';
@@ -782,6 +783,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testPriceFilter() {
+		global $wp_the_query, $wp_query;
+
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -814,7 +817,6 @@ class TestWooCommerce extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		// mock the query as main query and is_search
-		global $wp_the_query, $wp_query;
 		$wp_the_query        = $query;
 		$wp_query->is_search = true;
 
@@ -850,6 +852,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testPriceFilterWithSearchQuery() {
+		global $wp_the_query, $wp_query;
+
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -892,7 +896,6 @@ class TestWooCommerce extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		// mock the query as main query and is_search
-		global $wp_the_query, $wp_query;
 		$wp_the_query        = $query;
 		$wp_query->is_search = true;
 
@@ -908,6 +911,8 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.5.0
 	 */
 	public function testAttributesFilterUseES() {
+		global $wp_the_query;
+
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
@@ -947,7 +952,6 @@ class TestWooCommerce extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		// mock the query as main query
-		global $wp_the_query;
 		$wp_the_query = $query;
 
 		$query = $query->query( $args );
