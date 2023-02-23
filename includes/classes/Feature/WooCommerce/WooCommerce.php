@@ -31,13 +31,6 @@ class WooCommerce extends Feature {
 	public $orders = null;
 
 	/**
-	 * Whether orders autosuggest is available or not
-	 *
-	 * @var boolean
-	 */
-	protected $orders_autosuggest_available = false;
-
-	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -60,16 +53,6 @@ class WooCommerce extends Feature {
 		$this->default_settings = [
 			'orders' => '0',
 		];
-
-		/**
-		 * Whether the autosuggest feature is available for non
-		 * ElasticPress.io customers.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_orders_autosuggest_available
-		 * @param {boolean} $available Whether the feature is available.
-		 */
-		$this->orders_autosuggest_available = apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
 
 		$this->orders = new Orders();
 
@@ -917,7 +900,7 @@ class WooCommerce extends Feature {
 	 * @since 4.5.0
 	 */
 	public function output_feature_box_settings() {
-		$available = $this->orders_autosuggest_available;
+		$available = $this->is_orders_autosuggest_available();
 		$enabled   = $this->is_orders_autosuggest_enabled();
 		?>
 		<div class="field">
@@ -1340,12 +1323,30 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Whether orders autosuggest is available or not
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_available() : bool {
+		/**
+		 * Whether the autosuggest feature is available for non
+		 * ElasticPress.io customers.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_woocommerce_orders_autosuggest_available
+		 * @param {boolean} $available Whether the feature is available.
+		 */
+		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
+	}
+
+	/**
 	 * Whether orders autosuggest is enabled or not
 	 *
 	 * @since 4.5.0
 	 * @return boolean
 	 */
 	public function is_orders_autosuggest_enabled() : bool {
-		return $this->orders_autosuggest_available && '1' === $this->get_setting( 'orders' );
+		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
 	}
 }

@@ -454,4 +454,61 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertNull( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 	}
+
+	/**
+	 * Test the `is_orders_autosuggest_available` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testIsOrdersAutosuggestAvailable() {
+		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+
+		$this->assertSame( $woocommerce_feature->is_orders_autosuggest_available(), \ElasticPress\Utils\is_epio() );
+
+		/**
+		 * Test the `ep_woocommerce_orders_autosuggest_available` filter
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertTrue( $woocommerce_feature->is_orders_autosuggest_available() );
+
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_false' );
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_available() );
+	}
+
+	/**
+	 * Test the `is_orders_autosuggest_available` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testIsOrdersAutosuggestEnabled() {
+		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+	
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
+
+		/**
+		 * Make it available but it won't be enabled
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
+
+		/**
+		 * Enable it
+		 */
+		$filter = function() {
+            return [
+                'woocommerce' => [
+                    'orders' => '1',
+                ],
+            ];
+        };
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+		$this->assertTrue( $woocommerce_feature->is_orders_autosuggest_enabled() );
+
+		/**
+		 * Make it unavailable. Even activated, it should not be considered enabled if not available anymore.
+		 */
+		remove_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
+	}
 }
