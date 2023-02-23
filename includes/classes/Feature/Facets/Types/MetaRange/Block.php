@@ -150,7 +150,7 @@ class Block {
 		);
 
 		add_filter(
-			'ep_facet_meta_fields',
+			'ep_facet_meta_range_fields',
 			function ( $meta_fields ) use ( $attributes ) {
 				$meta_fields = [ $attributes['facet'] ];
 				return $meta_fields;

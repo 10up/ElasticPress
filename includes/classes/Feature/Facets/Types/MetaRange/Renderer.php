@@ -65,17 +65,18 @@ class Renderer {
 		$selected_min_value = null;
 		$selected_max_value = null;
 
-		$selected_filters = $feature->get_selected();
-		foreach ( $selected_filters[ $facet_type->get_filter_type() ] as $filter => $values ) {
+		$all_selected_filters = (array) $feature->get_selected();
+		$selected_filters     = $all_selected_filters[ $facet_type->get_filter_type() ] ?? [];
+		foreach ( $selected_filters as $filter => $values ) {
 			if ( $this->meta_field !== $filter ) {
 				continue;
 			}
 
 			$selected_min_value = $values['_min'] ?? null;
 			$selected_max_value = $values['_max'] ?? null;
-			unset( $selected_filters[ $facet_type->get_filter_type() ][ $filter ] );
+			unset( $all_selected_filters[ $facet_type->get_filter_type() ][ $filter ] );
 		}
-		$form_action = wp_parse_url( $feature->build_query_url( $selected_filters ) );
+		$form_action = wp_parse_url( $feature->build_query_url( $all_selected_filters ) );
 		wp_parse_str( $form_action['query'] ?? '', $filter_fields );
 		?>
 		<form class="ep-facet-meta-range">
