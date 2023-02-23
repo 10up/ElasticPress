@@ -2766,4 +2766,31 @@ class Post extends Indexable {
 
 		return $meta_keys;
 	}
+
+	/**
+	 * Add a `term_suggest` field to the mapping.
+	 *
+	 * This method assumes the `edge_ngram_analyzer` analyzer was already added to the mapping.
+	 *
+	 * @since 4.5.0
+	 * @param array $mapping The mapping array
+	 * @return array
+	 */
+	public function add_term_suggest_field( array $mapping ) : array {
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping_properties = &$mapping['mappings']['post']['properties'];
+		} else {
+			$mapping_properties = &$mapping['mappings']['properties'];
+		}
+
+		$text_type = $mapping_properties['post_content']['type'];
+
+		$mapping_properties['term_suggest'] = array(
+			'type'            => $text_type,
+			'analyzer'        => 'edge_ngram_analyzer',
+			'search_analyzer' => 'standard',
+		);
+
+		return $mapping;
+	}
 }
