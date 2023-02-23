@@ -575,24 +575,8 @@ class TestWooCommerce extends BaseTestCase {
 		return [
 			[ 'total_sales', 'total_sales', [ 'meta_key' => 'total_sales' ], false ],
 			[ '_wc_average_rating', 'average_rating', [ 'meta_key' => '_wc_average_rating' ], false ],
-			[
-				'_price',
-				'regular_price',
-				[
-					'orderby' => 'price',
-					'order'   => 'DESC',
-				],
-				false,
-			],
-			[
-				'total_sales',
-				'total_sales',
-				[
-					'orderby' => 'popularity',
-					'order'   => 'DESC',
-				],
-				false,
-			],
+			[ '_price', 'regular_price', [ 'orderby' => 'price', 'order'   => 'DESC', ], false, ],
+			[ 'total_sales', 'total_sales', [ 'orderby' => 'popularity', 'order'   => 'DESC', ], false, ],
 			[ 'total_sales', 'total_sales', [], 'popularity' ],
 			[ '_price', 'regular_price', [], 'price-desc' ],
 			[ '_wc_average_rating', 'average_rating', [], 'rating' ],
@@ -676,7 +660,6 @@ class TestWooCommerce extends BaseTestCase {
 		\WC_Query::reset_chosen_attributes();
 	}
 
-
 	/**
 	 * Test the product query orderby price when orderby is passed as a query string.
 	 *
@@ -750,6 +733,8 @@ class TestWooCommerce extends BaseTestCase {
 
 		\WC_Query::reset_chosen_attributes();
 	}
+
+
 
 	/**
 	 * Test the product query orderby sku query string.
