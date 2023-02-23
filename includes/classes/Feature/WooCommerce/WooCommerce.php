@@ -847,11 +847,6 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		if ( apply_filters( 'ep_woocommerce_enable_orders_autosuggest', false && is_epio() ) ) {
-			$this->orders = new Orders();
-			$this->orders->setup();
-		}
-
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 		add_filter( 'ep_integrate_search_queries', [ $this, 'blacklist_coupons' ], 10, 2 );
