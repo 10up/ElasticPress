@@ -495,12 +495,12 @@ class TestWooCommerce extends BaseTestCase {
 		 * Enable it
 		 */
 		$filter = function() {
-            return [
-                'woocommerce' => [
-                    'orders' => '1',
-                ],
-            ];
-        };
+			return [
+				'woocommerce' => [
+					'orders' => '1',
+				],
+			];
+		};
 		add_filter( 'pre_site_option_ep_feature_settings', $filter );
 		add_filter( 'pre_option_ep_feature_settings', $filter );
 		$this->assertTrue( $woocommerce_feature->is_orders_autosuggest_enabled() );
