@@ -23,6 +23,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WooCommerce extends Feature {
 	/**
+	 * If enabled, receive the Orders object instance
+	 *
+	 * @since 4.5.0
+	 * @var null|Orders
+	 */
+	public $orders = null;
+
+	/**
+	 * Whether orders autosuggest is available or not
+	 *
+	 * @var boolean
+	 */
+	protected $orders_autosuggest_available = false;
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -45,10 +60,6 @@ class WooCommerce extends Feature {
 		$this->default_settings = [
 			'orders' => '0',
 		];
-
-		$settings = $this->get_settings() ? $this->get_settings() : array();
-
-		$this->settings = wp_parse_args( $settings, $this->default_settings );
 
 		/**
 		 * Whether the autosuggest feature is available for non
@@ -883,7 +894,7 @@ class WooCommerce extends Feature {
 		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
 
 		// Orders Autosuggest feature.
-		if ( $this->orders_autosuggest_available && '1' === $this->settings['orders'] ) {
+		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders->setup();
 		}
 	}
@@ -906,7 +917,7 @@ class WooCommerce extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$available = $this->orders_autosuggest_available;
-		$enabled   = $available && '1' === $this->settings['orders'];
+		$enabled   = $this->is_orders_autosuggest_enabled();
 		?>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Orders Autosuggest', 'elasticpress' ); ?></div>
@@ -1325,5 +1336,15 @@ class WooCommerce extends Feature {
 		foreach ( $menu_orders as $post_id => $order ) {
 			$sync_manager->add_to_queue( $post_id );
 		}
+	}
+
+	/**
+	 * Whether orders autosuggest is enabled or not
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_enabled() : bool {
+		return $this->orders_autosuggest_available && '1' === $this->get_setting( 'orders' );
 	}
 }

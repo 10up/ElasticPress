@@ -73,9 +73,9 @@ abstract class Feature {
 	 * True if the feature requires content reindexing after activating
 	 *
 	 * @since 2.1
-	 * @var [type]
+	 * @var bool
 	 */
-	public $requires_install_reindex;
+	public $requires_install_reindex = false;
 
 	/**
 	 * The slug of a setting that requires content reindexing after activating.
@@ -83,7 +83,7 @@ abstract class Feature {
 	 * @since 4.5.0
 	 * @var string
 	 */
-	public $setting_requires_install_reindex;
+	public $setting_requires_install_reindex = '';
 
 	/**
 	 * The order in the features screen
@@ -233,6 +233,7 @@ abstract class Feature {
 	 * Get the value of the setting that requires a reindex, if it exists.
 	 *
 	 * @since 4.5.0
+	 * @return mixed
 	 */
 	public function get_reindex_setting() {
 		$settings = $this->get_settings();
