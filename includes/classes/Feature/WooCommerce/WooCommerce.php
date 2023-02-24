@@ -300,11 +300,14 @@ class WooCommerce extends Feature {
 
 		// Act only on a defined subset of all indexable post types here
 		$post_types = array(
-			'product',
 			'shop_order',
 			'shop_order_refund',
 			'product_variation',
 		);
+
+		if ( $query->is_post_type_archive( 'product' ) || isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			$post_types[] = 'product';
+		}
 
 		/**
 		 * Expands or contracts the post_types eligible for indexing.
@@ -1221,6 +1224,14 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
+			return false;
+		}
+
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return false;
+		}
+
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -1229,8 +1240,7 @@ class WooCommerce extends Feature {
 		 * @param  {WP_Query} $query WP Query to evaluate
 		 * @return  {bool} New skip value
 		 */
-		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) ) {
+		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return false;
 		}
 
@@ -1238,13 +1248,10 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
-		$product_name = $query->get( 'product', false );
-
-		$post_parent = $query->get( 'post_parent', false );
-
 		/**
 		 * Do nothing for single product queries
 		 */
+		$product_name = $query->get( 'product', false );
 		if ( ! empty( $product_name ) || $query->is_single() ) {
 			return false;
 		}
@@ -1252,6 +1259,7 @@ class WooCommerce extends Feature {
 		/**
 		 * ElasticPress does not yet support post_parent queries
 		 */
+		$post_parent = $query->get( 'post_parent', false );
 		if ( ! empty( $post_parent ) ) {
 			return false;
 		}
@@ -1260,13 +1268,6 @@ class WooCommerce extends Feature {
 		 * If this is just a preview, let's not use Elasticsearch.
 		 */
 		if ( $query->get( 'preview', false ) ) {
-			return false;
-		}
-
-		/**
-		 * Cant hook into WC API yet
-		 */
-		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
 			return false;
 		}
 
