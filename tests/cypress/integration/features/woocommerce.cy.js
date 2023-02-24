@@ -383,19 +383,19 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			 * loop around to the opposite side of the list.
 			 */
 			cy.get('@input').type('{downArrow}');
-			cy.get('@listbox').children.eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{downArrow}{downArrow}');
-			cy.get('@listbox').children.eq(2).should('have.attr', 'aria-selected', 'true');
-			cy.get('@listbox').children.eq(0).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{downArrow}');
-			cy.get('@listbox').children.eq(0).should('have.attr', 'aria-selected', 'true');
-			cy.get('@listbox').children.eq(2).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(2).should('not.have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{upArrow}');
-			cy.get('@listbox').children.eq(2).should('have.attr', 'aria-selected', 'true');
-			cy.get('@listbox').children.eq(0).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{upArrow}');
-			cy.get('@listbox').children.eq(1).should('have.attr', 'aria-selected', 'true');
-			cy.get('@listbox').children.eq(2).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(1).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(2).should('not.have.attr', 'aria-selected', 'true');
 
 			/**
 			 * Pressing escape should hide the listbox and pressing an arrow
@@ -405,7 +405,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.get('@listbox').should('not.be.visible');
 			cy.get('@input').type('{downArrow}');
 			cy.get('@listbox').should('be.visible');
-			cy.get('@listbox').children.eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
 
 			/**
 			 * Moving focus away from the input should hide the listbox.
