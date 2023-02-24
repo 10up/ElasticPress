@@ -105,8 +105,8 @@ class Users extends Feature {
 
 		$status->message = [
 			sprintf(
-				/* translators: Sync Page URL */
-				__( 'Attention! This feature is being migrated to the <a href="%s">ElasticPress Labs</a> plugin. Make sure you install that plugin and activate its version of the Users feature.', 'elasticpress' ),
+				/* translators: ElasticPress Labs URL */
+				__( 'Due to the potential for inadvertently exposing user data on non-ElasticPress.io installations, the Users Feature will be moving to the <a href="%s">ElasticPress Labs</a> plugin as of ElasticPress 5.0.', 'elasticpress' ),
 				'https://github.com/10up/ElasticPressLabs'
 			),
 		];
@@ -122,14 +122,23 @@ class Users extends Feature {
 	 * @return array
 	 */
 	public function add_migration_notice( $notices ) {
-		$notices['users_migragrion'] = [
+		if ( ! current_user_can( Utils\get_capability() ) ) {
+			return $notices;
+		}
+
+		// Dismissed.
+		if ( Utils\get_option( 'ep_hide_users_migration_notice', false ) ) {
+			return $notices;
+		}
+
+		$notices['users_migration'] = [
 			'html'    => sprintf(
-				/* translators: Sync Page URL */
-				__( 'Attention! The Users feature is being migrated to the <a href="%s">ElasticPress Labs</a> plugin. Make sure you install that plugin and activate its version of the Users feature.', 'elasticpress' ),
+				/* translators: ElasticPress Labs URL */
+				__( 'Due to the potential for inadvertently exposing user data on non-ElasticPress.io installations, the Users Feature will be moving to the <a href="%s">ElasticPress Labs</a> plugin as of ElasticPress 5.0.', 'elasticpress' ),
 				'https://github.com/10up/ElasticPressLabs'
 			),
 			'type'    => 'warning',
-			'dismiss' => false,
+			'dismiss' => true,
 		];
 
 		return $notices;
