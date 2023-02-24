@@ -369,7 +369,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 			/**
 			 * Search for "Antwon". 3 suggestions should appear.
-			*/
+			 */
 			cy.get('@input').type('Antwon');
 			cy.wait('@apiRequest');
 			cy.get('@input').should('have.attr', 'aria-expanded', 'true');
