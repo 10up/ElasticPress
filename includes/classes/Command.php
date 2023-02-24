@@ -1128,7 +1128,6 @@ class Command extends WP_CLI_Command {
 		Utility::should_interrupt_sync();
 	}
 
-
 	/**
 	 * Stop the Sync operation started from the dashboard.
 	 *
@@ -1297,7 +1296,7 @@ class Command extends WP_CLI_Command {
 				break;
 
 			case 'error':
-				Utility::delete_transient();
+				$this->clear_sync();
 				WP_CLI::error( $message['message'] );
 				break;
 
