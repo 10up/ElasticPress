@@ -46,7 +46,15 @@ class WooCommerce extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		$this->setting_requires_install_reindex = 'orders';
+
 		$this->available_during_installation = true;
+
+		$this->default_settings = [
+			'orders' => '0',
+		];
+
+		$this->orders = new Orders();
 
 		parent::__construct();
 	}
@@ -868,6 +876,11 @@ class WooCommerce extends Feature {
 		// Custom product ordering
 		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
 		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
+
+		// Orders Autosuggest feature.
+		if ( $this->is_orders_autosuggest_enabled() ) {
+			$this->orders->setup();
+		}
 	}
 
 	/**
@@ -878,6 +891,37 @@ class WooCommerce extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Dashboard WooCommerce settings
+	 *
+	 * @since 4.5.0
+	 */
+	public function output_feature_box_settings() {
+		$available = $this->is_orders_autosuggest_available();
+		$enabled   = $this->is_orders_autosuggest_enabled();
+		?>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Orders Autosuggest', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label><input name="settings[orders]" type="radio" <?php checked( $enabled ); ?> <?php disabled( $available, false, true ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[orders]" type="radio" <?php checked( ! $enabled ); ?> <?php disabled( $available, false, true ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
+				<?php if ( ! $available ) : ?>
+					<p class="field-description">
+						<?php esc_html_e( 'Due to the sensitive nature of orders, this autosuggest feature is available only to ElasticPress.io customers.', 'elasticpress' ); ?>
+						<?php
+							printf(
+								'<a href="%1$s" target="_blank">%2$s</a>',
+								'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest',
+								esc_html__( 'Learn more.', 'elasticpress' )
+							);
+						?>
+					</p>
+				<?php endif; ?>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -1282,5 +1326,33 @@ class WooCommerce extends Feature {
 		foreach ( $menu_orders as $post_id => $order ) {
 			$sync_manager->add_to_queue( $post_id );
 		}
+	}
+
+	/**
+	 * Whether orders autosuggest is available or not
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_available() : bool {
+		/**
+		 * Whether the autosuggest feature is available for non
+		 * ElasticPress.io customers.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_woocommerce_orders_autosuggest_available
+		 * @param {boolean} $available Whether the feature is available.
+		 */
+		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
+	}
+
+	/**
+	 * Whether orders autosuggest is enabled or not
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_enabled() : bool {
+		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
 	}
 }

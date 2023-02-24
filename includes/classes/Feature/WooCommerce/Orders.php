@@ -39,6 +39,8 @@ class Orders {
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
+		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
@@ -431,6 +433,30 @@ class Orders {
 		$capability = apply_filters( 'ep_token_capability', 'edit_others_shop_orders' );
 
 		return current_user_can( $capability );
+	}
+
+	/**
+	 * Index shop orders.
+	 *
+	 * @param array $post_types Indexable post types.
+	 * @return array Indexable post types.
+	 */
+	public function post_types( $post_types ) {
+		$post_types['shop_order'] = 'shop_order';
+
+		return $post_types;
+	}
+
+	/**
+	 * Index order statuses.
+	 *
+	 * @param array $post_statuses Indexable post statuses.
+	 * @return array Indexable post statuses.
+	 */
+	public function post_statuses( $post_statuses ) {
+		$order_statuses = wc_get_order_statuses();
+
+		return array_unique( array_merge( $post_statuses, array_keys( $order_statuses ) ) );
 	}
 
 	/**
