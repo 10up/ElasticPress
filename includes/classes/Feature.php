@@ -73,9 +73,17 @@ abstract class Feature {
 	 * True if the feature requires content reindexing after activating
 	 *
 	 * @since 2.1
-	 * @var [type]
+	 * @var bool
 	 */
-	public $requires_install_reindex;
+	public $requires_install_reindex = false;
+
+	/**
+	 * The slug of a setting that requires content reindexing after activating.
+	 *
+	 * @since 4.5.0
+	 * @var string
+	 */
+	public $setting_requires_install_reindex = '';
 
 	/**
 	 * The order in the features screen
@@ -230,6 +238,21 @@ abstract class Feature {
 	}
 
 	/**
+	 * Get the value of the setting that requires a reindex, if it exists.
+	 *
+	 * @since 4.5.0
+	 * @return mixed
+	 */
+	public function get_reindex_setting() {
+		$settings = $this->get_settings();
+		$setting  = $this->setting_requires_install_reindex;
+
+		return $settings && $setting && ! empty( $settings[ $setting ] )
+			? $settings[ $setting ]
+			: '';
+	}
+
+	/**
 	 * To be run after initial feature activation
 	 *
 	 * @since 2.1
@@ -325,7 +348,7 @@ abstract class Feature {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
-			<?php if ( $this->requires_install_reindex ) : ?>
+			<?php if ( $this->requires_install_reindex || $this->setting_requires_install_reindex ) : ?>
 				<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
 					<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
 				</div>
@@ -367,6 +390,8 @@ abstract class Feature {
 				<input type="hidden" name="feature" value="<?php echo esc_attr( $this->slug ); ?>">
 				<input type="hidden" name="requires_reindex" value="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>">
 				<input type="hidden" name="was_active" value="<?php echo $this->is_active() ? '1' : '0'; ?>">
+				<input type="hidden" name="setting_requires_reindex" value="<?php echo esc_attr( $this->setting_requires_install_reindex ); ?>">
+				<input type="hidden" name="setting_requires_reindex_was" value="<?php echo esc_attr( $this->get_reindex_setting() ); ?>">
 				<?php wp_nonce_field( 'ep_dashboard_nonce', 'nonce' ); ?>
 
 				<button name="submit" <?php disabled( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ); ?> class="button button-primary" type="submit">
