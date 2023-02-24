@@ -8,6 +8,8 @@
  * @since   1.7
  */
 
+use ElasticPress\Utils;
+
 /**
  * Class EP_Uninstaller
  */
@@ -95,6 +97,7 @@ class EP_Uninstaller {
 
 		// Uninstall ElasticPress.
 		$this->clean_options_and_transients();
+		$this->remove_elasticpress_capability();
 	}
 
 	/**
@@ -179,6 +182,16 @@ class EP_Uninstaller {
 			$this->delete_related_posts_transients();
 			$this->delete_total_fields_limit_transients();
 		}
+	}
+
+	/**
+	 * Remove the ElasticPress' capability
+	 *
+	 * @since 4.5.0
+	 */
+	protected function remove_elasticpress_capability() {
+		$role = get_role( 'administrator' );
+		$role->remove_cap( Utils\get_capability() );
 	}
 
 	/**
