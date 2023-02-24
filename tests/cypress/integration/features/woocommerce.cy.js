@@ -361,7 +361,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			/**
 			 * Prepare aliases.
 			 */
-			cy.intercept('*api/v1/search/orders*').as('apiRequest');
+			cy.intercept('**/api/v1/search/orders/*').as('apiRequest');
 			cy.get('#posts-filter .ep-combobox__input').as('input');
 			cy.get('#posts-filter .screen-reader-text').as('description');
 			cy.get('#posts-filter .ep-combobox__list').as('listbox');
