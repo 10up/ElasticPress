@@ -351,6 +351,14 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.visitAdminPage('edit.php?post_type=shop_order');
 
 			/**
+			 * The combobox will not render if not using ElasticPress.io.
+			 */
+			if (!isEpIo) {
+				cy.get('#posts-filter .ep-combobox__input').should('not.exist');
+				return;
+			}
+
+			/**
 			 * Prepare aliases.
 			 */
 			cy.intercept('*api/v1/search/orders*').as('apiRequest');
@@ -359,14 +367,9 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.get('#posts-filter .ep-combobox__list').as('listbox');
 			cy.get('#posts-filter .button').as('submit');
 
-			if (!isEpIo) {
-				cy.get('@listbox').should('not.exist');
-				return;
-			}
-
 			/**
 			 * Search for "Antwon". 3 suggestions should appear.
-			 */
+			*/
 			cy.get('@input').type('Antwon');
 			cy.wait('@apiRequest');
 			cy.get('@input').should('have.attr', 'aria-expanded', 'true');
