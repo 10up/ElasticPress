@@ -97,7 +97,8 @@ class QueryLogger {
 		$logs = (array) json_decode( (string) $logs, true );
 
 		if ( $should_filter_old ) {
-			$current_time = current_time( 'timestamp' );
+			$current_time        = current_time( 'timestamp' );
+			$dismissed_timestamp = get_option( 'ep_hide_has_failed_queries_notice', null );
 
 			/**
 			 * Filter the period to keep queried logs. Defaults to DAY_IN_SECONDS
@@ -109,7 +110,7 @@ class QueryLogger {
 			 */
 			$period_to_keep = apply_filters( 'ep_query_logger_time_to_keep', DAY_IN_SECONDS );
 
-			$time_limit = $current_time - $period_to_keep;
+			$time_limit = ! empty( $dismissed_timestamp ) ? $dismissed_timestamp : $current_time - $period_to_keep;
 
 			$logs = array_filter(
 				(array) $logs,
@@ -213,6 +214,10 @@ class QueryLogger {
 	 * @return array
 	 */
 	public function maybe_add_notice( array $notices ) : array {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return $notices;
+		}
+
 		$current_ep_screen = \ElasticPress\Screen::factory()->get_current_screen();
 		if ( 'status-report' === $current_ep_screen ) {
 			return $notices;
