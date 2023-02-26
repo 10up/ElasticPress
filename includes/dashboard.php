@@ -298,22 +298,11 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
 function maybe_notice( $force = false ) {
 	// Admins only.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_super_admin() ) {
+		if ( ! is_super_admin() || ! is_network_admin() ) {
 			return false;
 		}
 	} else {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-	}
-
-	// If in network mode, don't output notice in admin and vice-versa.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_network_admin() ) {
-			return false;
-		}
-	} else {
-		if ( is_network_admin() ) {
+		if ( is_network_admin() || ! current_user_can( Utils\get_capability() ) ) {
 			return false;
 		}
 	}
@@ -378,7 +367,7 @@ function action_wp_ajax_ep_notice_dismiss() {
 		exit;
 	}
 
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( Utils\get_capability() ) ) {
 		wp_send_json_error();
 		exit;
 	}
@@ -664,11 +653,7 @@ function resolve_screen() {
  * @return void
  */
 function action_admin_menu() {
-	$capability = 'manage_options';
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$capability = 'manage_network';
-	}
+	$capability = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_network_capability() : Utils\get_capability();
 
 	add_menu_page(
 		'ElasticPress',

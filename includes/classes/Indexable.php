@@ -1270,4 +1270,24 @@ abstract class Indexable {
 	 * @since 4.5.0
 	 */
 	public function setup() {}
+
+	/**
+	 * Given a mapping, add the ngram analyzer to it
+	 *
+	 * @since 4.5.0
+	 * @param array $mapping The mapping
+	 * @return array
+	 */
+	public function add_ngram_analyzer( array $mapping ) : array {
+		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
+			'type'      => 'custom',
+			'tokenizer' => 'standard',
+			'filter'    => array(
+				'lowercase',
+				'edge_ngram',
+			),
+		);
+
+		return $mapping;
+	}
 }

@@ -24,6 +24,7 @@ class TestSearchOrdering extends BaseTestCase {
 		parent::set_up();
 		$wpdb->suppress_errors();
 
+		\ElasticPress\setup_roles();
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
 		wp_set_current_user( $admin_id );
@@ -103,12 +104,10 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	public function testAdminMenu() {
-		$site_url = trailingslashit( get_option( 'siteurl' ) );
-
 		add_menu_page(
 			'ElasticPress',
 			'ElasticPress',
-			'manage_options',
+			\ElasticPress\Utils\get_capability(),
 			'elasticpress'
 		);
 
@@ -442,11 +441,11 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	/**
-	 * Test API endpoints are accessible for users with `manage_options` capability.
+	 * Test API endpoints are accessible for users with `manage_elasticpress` capability.
 	 *
 	 * @since 4.4.0
 	 */
-	public function testUserWithManageOptionsCapabilityCanAccessAPI() {
+	public function testUserWithManageElasticPressCapabilityCanAccessAPI() {
 
 		global $wp_rest_server;
 		/** @var WP_REST_Server $wp_rest_server */
@@ -474,13 +473,13 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	/**
-	 * Test API endpoints are not accessible for users without `manage_options` capability.
+	 * Test API endpoints are not accessible for users without `manage_elasticpress` capability.
 	 *
 	 * @since 4.4.0
 	 */
-	public function testUserWithOutManageOptionsCapabilityCanNotAccessAPI() {
+	public function testUserWithOutManageElasticPressCapabilityCanNotAccessAPI() {
 
-		// Set current user without `manage_options` capability.
+		// Set current user without `manage_elasticpress` capability.
 		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'editor' ) ) );
 
 		global $wp_rest_server;

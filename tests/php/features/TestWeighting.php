@@ -8,11 +8,59 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use \ElasticPress\Utils;
 
 /**
  * Weighting test class
  */
 class TestWeighting extends BaseTestCase {
+	/**
+	 * Weighting settings
+	 *
+	 * @var array
+	 */
+	public $weighting_settings = [
+		'weighting' => [
+			'post' => [
+				'post_title'   => [
+					'weight'  => 1,
+					'enabled' => 'on',
+				],
+				'post_content' => [
+					'weight'  => 1,
+					'enabled' => 'on',
+				],
+				'post_excerpt' => [
+					'weight'  => 1,
+					'enabled' => 'on',
+				],
+
+				'author_name'  => [
+					'weight'  => 0,
+					'enabled' => 'on',
+				],
+			],
+			'page' => [
+				'post_title'   => [
+					'weight'  => 1,
+					'enabled' => 'on',
+				],
+				'post_content' => [
+					'weight'  => 1,
+					'enabled' => 'on',
+				],
+				'post_excerpt' => [
+					'weight'  => 1,
+					'enabled' => 'on',
+				],
+
+				'author_name'  => [
+					'weight'  => 0,
+					'enabled' => false,
+				],
+			],
+		]
+	];
 
 	/**
 	 * Setup each test.
@@ -175,7 +223,7 @@ class TestWeighting extends BaseTestCase {
 		add_menu_page(
 			'ElasticPress',
 			'ElasticPress',
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress'
 		);
 
@@ -399,46 +447,34 @@ class TestWeighting extends BaseTestCase {
 		return [ $formatted_args, $query_vars ];
 	}
 
-	public $weighting_settings = [
-		'weighting' => [
-			'post' => [
-				'post_title'   => [
-					'weight'  => 1,
-					'enabled' => 'on',
-				],
-				'post_content' => [
-					'weight'  => 1,
-					'enabled' => 'on',
-				],
-				'post_excerpt' => [
-					'weight'  => 1,
-					'enabled' => 'on',
-				],
+	/**
+	 * Test if ep_weighting_configuration_for_search is applied even when the config was not saved yet.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testApplyFilterWhenWeightingConfigWasNotSaved() {
+		delete_option( 'elasticpress_weighting' );
 
-				'author_name'  => [
-					'weight'  => 0,
-					'enabled' => 'on',
-				],
-			],
-			'page' => [
-				'post_title'   => [
-					'weight'  => 1,
-					'enabled' => 'on',
-				],
-				'post_content' => [
-					'weight'  => 1,
-					'enabled' => 'on',
-				],
-				'post_excerpt' => [
-					'weight'  => 1,
-					'enabled' => 'on',
-				],
+		$add_post_content_filter = function( $weight_config ) {
+			$weight_config['new_cpt']['post_content_filtered'] = [
+				'enabled' => true,
+				'weight'  => 40,
+			];
+			return $weight_config;
+		};
+		$set_query_post_type     = function() {
+			return 'new_cpt';
+		};
 
-				'author_name'  => [
-					'weight'  => 0,
-					'enabled' => false,
-				],
-			],
-		]
-	];
+		add_filter( 'ep_weighting_configuration_for_search', $add_post_content_filter );
+		add_filter( 'ep_query_post_type', $set_query_post_type );
+
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
+
+		$query_multi_match = $new_formatted_args['query']['function_score']['query']
+			['bool']['should'][0]['bool']['must'][0]
+			['bool']['should'][0]['bool']['must'][0]
+			['bool']['should'][0]['multi_match'];
+		$this->assertEquals( [ 'post_content_filtered^40' ], $query_multi_match['fields'] );
+	}
 }

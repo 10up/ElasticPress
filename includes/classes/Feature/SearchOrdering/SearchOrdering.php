@@ -37,8 +37,12 @@ class SearchOrdering extends Feature {
 
 	/**
 	 * Capability required to manage.
+	 *
+	 * This will be removed in future versions of ElasticPress. Please use `Utils\get_capability()` instead.
+	 *
+	 * @deprecated 4.5.0
 	 */
-	const CAPABILITY = 'manage_options';
+	const CAPABILITY = 'elasticpress_manage';
 
 	/**
 	 * Initialize feature setting it's config
@@ -215,7 +219,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			self::CAPABILITY,
+			Utils\get_capability(),
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -297,7 +301,7 @@ class SearchOrdering extends Feature {
 			'show_in_menu'         => $menu,
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
-			'capability_type'      => 'post',
+			'capabilities'         => Utils\get_post_map_capabilities(),
 			'has_archive'          => false,
 			'hierarchical'         => false,
 			'menu_position'        => 100,
@@ -697,7 +701,7 @@ class SearchOrdering extends Feature {
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_search' ],
 				'permission_callback' => function() {
-					return current_user_can( self::CAPABILITY );
+					return current_user_can( Utils\get_capability() );
 				},
 				'args'                => [
 					's' => [
@@ -717,7 +721,7 @@ class SearchOrdering extends Feature {
 				'methods'             => 'GET',
 				'callback'            => [ $this, 'handle_pointer_preview' ],
 				'permission_callback' => function() {
-					return current_user_can( self::CAPABILITY );
+					return current_user_can( Utils\get_capability() );
 				},
 				'args'                => [
 					's' => [

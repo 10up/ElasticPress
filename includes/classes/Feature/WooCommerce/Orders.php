@@ -39,7 +39,12 @@ class Orders {
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
+		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
+		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
+		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 	}
 
 	/**
@@ -428,5 +433,125 @@ class Orders {
 		$capability = apply_filters( 'ep_token_capability', 'edit_others_shop_orders' );
 
 		return current_user_can( $capability );
+	}
+
+	/**
+	 * Index shop orders.
+	 *
+	 * @param array $post_types Indexable post types.
+	 * @return array Indexable post types.
+	 */
+	public function post_types( $post_types ) {
+		$post_types['shop_order'] = 'shop_order';
+
+		return $post_types;
+	}
+
+	/**
+	 * Index order statuses.
+	 *
+	 * @param array $post_statuses Indexable post statuses.
+	 * @return array Indexable post statuses.
+	 */
+	public function post_statuses( $post_statuses ) {
+		$order_statuses = wc_get_order_statuses();
+
+		return array_unique( array_merge( $post_statuses, array_keys( $order_statuses ) ) );
+	}
+
+	/**
+	 * Add term suggestions to be indexed
+	 *
+	 * @param array $post_args Array of ES args.
+	 * @return array
+	 */
+	public function filter_term_suggest( $post_args ) {
+		if ( empty( $post_args['post_type'] ) || 'shop_order' !== $post_args['post_type'] ) {
+			return $post_args;
+		}
+
+		if ( empty( $post_args['meta'] ) ) {
+			return $post_args;
+		}
+
+		/**
+		 * Add the order number as a meta (text) field, so we can freely search on it.
+		 */
+		$order_id = $post_args['ID'];
+		if ( function_exists( 'wc_get_order' ) ) {
+			$order = wc_get_order( $post_args['ID'] );
+			if ( $order && is_a( $order, 'WC_Order' ) && method_exists( $order, 'get_order_number' ) ) {
+				$order_id = $order->get_order_number();
+			}
+		}
+
+		$post_args['meta']['order_number'] = [
+			[
+				'raw'   => $order_id,
+				'value' => $order_id,
+			],
+		];
+
+		$suggest = [];
+
+		$fields_to_ngram = [
+			'_billing_email',
+			'_billing_last_name',
+			'_billing_first_name',
+		];
+
+		foreach ( $fields_to_ngram as $field_to_ngram ) {
+			if ( ! empty( $post_args['meta'][ $field_to_ngram ] )
+				&& ! empty( $post_args['meta'][ $field_to_ngram ][0] )
+				&& ! empty( $post_args['meta'][ $field_to_ngram ][0]['value'] ) ) {
+				$suggest[] = $post_args['meta'][ $field_to_ngram ][0]['value'];
+			}
+		}
+
+		if ( ! empty( $suggest ) ) {
+			$post_args['term_suggest'] = $suggest;
+		}
+
+		return $post_args;
+	}
+
+	/**
+	 * Add mapping for suggest fields
+	 *
+	 * @param  array $mapping ES mapping.
+	 * @return array
+	 */
+	public function mapping( $mapping ) {
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$mapping = $post_indexable->add_ngram_analyzer( $mapping );
+		$mapping = $post_indexable->add_term_suggest_field( $mapping );
+
+		return $mapping;
+	}
+
+	/**
+	 * Set the search_fields parameter in the search template.
+	 *
+	 * @param array     $search_fields Current search fields
+	 * @param \WP_Query $query         Query being executed
+	 * @return array New search fields
+	 */
+	public function set_search_fields( array $search_fields, \WP_Query $query ) : array {
+		$is_orders_search_template = (bool) $query->get( 'ep_order_search_template' );
+
+		if ( $is_orders_search_template ) {
+			$search_fields = [
+				'meta.order_number.value',
+				'term_suggest',
+				'meta' => [
+					'_billing_email',
+					'_billing_last_name',
+					'_billing_first_name',
+				],
+			];
+		}
+
+		return $search_fields;
 	}
 }

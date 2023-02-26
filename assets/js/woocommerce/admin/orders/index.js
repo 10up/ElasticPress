@@ -15,7 +15,10 @@ import {
 	argsSchema,
 	credentialsApiUrl,
 	credentialsNonce,
+	dateFormat,
 	requestIdBase,
+	statusLabels,
+	timeFormat,
 } from './config';
 
 /**
@@ -107,13 +110,34 @@ const init = async () => {
 		return;
 	}
 
+	/**
+	 * Get the attributes from the search input so that we can assign them to
+	 * the combobox input, for visual and functional continuity with the
+	 * original search input.
+	 */
+	const props = Object.values(input.attributes).reduce(
+		(props, attribute) => ({ ...props, [attribute.name]: attribute.value }),
+		{},
+	);
+
+	/**
+	 * Render our application in place of the search input.
+	 */
 	const el = document.createElement('div');
 
-	input.parentElement.appendChild(el);
+	el.setAttribute('id', 'ep-woocommerce-order-search');
+
+	input.replaceWith(el);
 
 	render(
 		<AuthenticatedApiSearchProvider>
-			<App adminUrl={adminUrl} input={input} />
+			<App
+				adminUrl={adminUrl}
+				dateFormat={dateFormat}
+				statusLabels={statusLabels}
+				timeFormat={timeFormat}
+				{...props}
+			/>
 		</AuthenticatedApiSearchProvider>,
 		el,
 	);

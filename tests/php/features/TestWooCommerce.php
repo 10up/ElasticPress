@@ -50,7 +50,7 @@ class TestWooCommerce extends BaseTestCase {
 	}
 
 	/**
-	 * Test products post type query does get integrated when the feature is active
+	 * Test products post type query does not get integrated when the feature is active
 	 *
 	 * @since 2.1
 	 * @group woocommerce
@@ -60,10 +60,9 @@ class TestWooCommerce extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->ep_factory->post->create();
-		$this->ep_factory->post->create(
+		$this->ep_factory->product->create(
 			array(
-				'post_content' => 'product 1',
-				'post_type'    => 'product',
+				'description' => 'product 1',
 			)
 		);
 
@@ -75,7 +74,7 @@ class TestWooCommerce extends BaseTestCase {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNull( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -130,6 +129,11 @@ class TestWooCommerce extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
+		// mock the pagenow to bypass the search_order checks
+		global $pagenow;
+		$pagenow = 'edit.php';
+
+		parse_str( 's=findme', $_GET );
 		$args = array(
 			's'         => 'findme',
 			'post_type' => 'shop_order',
@@ -140,6 +144,93 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$pagenow = 'index.php';
+	}
+
+	/**
+	 * Test Shop Order post type query does not get integrated when the protected content feature is deactivated.
+	 *
+	 * @since 4.5
+	 */
+	public function testShopOrderPostTypeQueryOn() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
+			array(
+				'post_type' => 'shop_order',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type' => 'shop_order',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test Shop Order post type query does get integrated when the protected content feature is activated.
+	 *
+	 * @since 4.5
+	 */
+	public function testShopOrderPostTypeQueryWhenProtectedContentEnable() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
+			array(
+				'post_type' => 'shop_order',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type' => 'shop_order',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test Shop Order post type query does not get integrated when the protected content feature is activated and ep_integrate is set to false.
+	 *
+	 * @since 4.5
+	 */
+	public function testShopOrderPostTypeQueryWhenEPIntegrateSetFalse() {
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create(
+			array(
+				'post_type' => 'shop_order',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'post_type'    => 'shop_order',
+			'ep_integrate' => false,
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
 	}
 
 	/**
@@ -335,7 +426,7 @@ class TestWooCommerce extends BaseTestCase {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 		add_action( 'pre_get_posts', [ $woocommerce_feature, 'translate_args_admin_products_list' ] );
 
-		$search_fields_function = function() {
+		$search_fields_function = function () {
 			return [ 'post_title', 'post_content' ];
 		};
 		add_filter( 'ep_woocommerce_admin_products_list_search_fields', $search_fields_function );
@@ -453,5 +544,543 @@ class TestWooCommerce extends BaseTestCase {
 
 		$this->assertNull( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
+	}
+
+	/**
+	 * Test all the product attributes are synced.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testWoocommerceAttributeTaxonomiesAreSync() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_id = $this->ep_factory->product->create_variation_product();
+
+		$post     = new \ElasticPress\Indexable\Post\Post();
+		$document = $post->prepare_document( $product_id );
+
+		$this->assertArrayHasKey( 'pa_size', $document['terms'] );
+		$this->assertArrayHasKey( 'pa_colour', $document['terms'] );
+		$this->assertArrayHasKey( 'pa_number', $document['terms'] );
+	}
+
+	/**
+	 * Data provider for the testProductQueryOrder method.
+	 *
+	 * @return array
+	 */
+	public function productQueryOrderDataProvider() : array {
+		return [
+			[ 'total_sales', [ 'meta_key' => 'total_sales' ], false, [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[ 'average_rating', [ 'meta_key' => '_wc_average_rating' ], false,  [ 0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[ 'regular_price', [ 'orderby' => 'price', 'order'   => 'DESC', ], false,  [ 0 => [ 'meta._price.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[  'total_sales', [ 'orderby' => 'popularity', 'order'   => 'DESC', ], false, [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[ 'total_sales', [], 'popularity',  [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[  'regular_price', [], 'price-desc',  [ 0 => [ 'meta._price.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[ 'average_rating', [], 'rating',  [ 0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
+			[ 'regular_price', [], 'price',  [ 0 => [ 'meta._price.double' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
+			[ 'sku', [], 'sku',  [ 0 => [ 'meta._sku.value.sortable' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
+			[ 'name', [], 'title',  [ 0 => [ 'post_title.sortable' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
+			[ '', [], 'default',  [ 0 => [ 'menu_order' => [ 'order' => 'asc', ] ], 1 => [ 'post_title.sortable' => [ 'order' => 'asc', ] ], 2 => [ 'post_date' => [ 'order' => 'asc', ] ] ], ],
+			[ '', [], '',  [ 0 => [ 'post_date' => [ 'order' => 'desc', ] ] ], ],
+		];
+	}
+
+	/**
+	 *  Test the product query order.
+	 *
+	 * @dataProvider productQueryOrderDataProvider
+	 * @since 4.5.0
+	 */
+	public function testProductQueryOrder( $product_arg_key, $query_args, $query_string, $expected, $order = '' ) {
+		global $wp_the_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$product_1 = $this->ep_factory->product->create(
+			array(
+				$product_arg_key => 200,
+			)
+		);
+
+		$product_2 = $this->ep_factory->product->create(
+			array(
+				$product_arg_key => 100,
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		if ( $query_string ) {
+			parse_str( 'orderby=' . $query_string, $_GET );
+
+			// mock the query as post type archive
+			add_action(
+				'parse_query',
+				function( \WP_Query $query ) : void {
+					$query->is_post_type_archive = true;
+				}
+			);
+		}
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$args  = array_merge( $args, $query_args );
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		$wp_the_query = $query;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) use ( $expected ) {
+				$this->assertEquals( $expected, $formatted_args['sort'] );
+				return $formatted_args;
+			}
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
+
+		if ( 'asc' == $order ) {
+			$this->assertEquals( $product_2, $query[0]->ID );
+			$this->assertEquals( $product_1, $query[1]->ID );
+		} elseif ( 'desc' == $order ) {
+			$this->assertEquals( $product_1, $query[0]->ID );
+			$this->assertEquals( $product_2, $query[1]->ID );
+		}
+
+		\WC_Query::reset_chosen_attributes();
+	}
+
+	/**
+	 * Test the product query not use Elasticsearch if preview.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testQueryShouldNotUseElasticsearchIfPreview() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$args = array(
+			'post_type' => 'product',
+			'preview'   => true,
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test that on Admin Product List use Elasticsearch.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductListInAdminUseElasticSearch() {
+		global $typenow, $wc_list_table;
+
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		// load required files
+		include_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
+		include_once WC()->plugin_path() . '/includes/admin/list-tables/class-wc-admin-list-table-products.php';
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// mock the global variables
+		$typenow       = 'product';
+		$wc_list_table = new \WC_Admin_List_Table_Products();
+
+		add_filter(
+			'ep_post_filters',
+			function( $filters, $args, $query ) {
+				$expected_result = array(
+					'terms' => array(
+						'post_type.raw' => array(
+							'product',
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $filters['post_type'] );
+				return $filters;
+			},
+			10,
+			3
+		);
+
+		parse_str( 'post_type=product&s=product', $_GET );
+
+		$wp_list_table = new \WP_Posts_List_Table();
+		$wp_list_table->prepare_items();
+	}
+
+	/**
+	 * Test that Search in Admin Product List use Elasticsearch.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testProductListSearchInAdminUseElasticSearch() {
+		global $typenow, $wc_list_table;
+
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		// load required files
+		include_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
+		include_once WC()->plugin_path() . '/includes/admin/list-tables/class-wc-admin-list-table-products.php';
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// mock the global variables
+		$typenow       = 'product';
+		$wc_list_table = new \WC_Admin_List_Table_Products();
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args, $args, $wp_query ) {
+				$this->assertEquals( 'findme', $formatted_args['query']['function_score']['query']['bool']['should'][0]['multi_match']['query'] );
+				$this->assertEquals(
+					$args['search_fields'],
+					[
+						'post_title',
+						'post_content',
+						'post_excerpt',
+						'meta' => [
+							'_sku',
+							'_variations_skus',
+						],
+					]
+				);
+
+				return $formatted_args;
+			},
+			10,
+			3
+		);
+
+		parse_str( 'post_type=product&s=findme', $_GET );
+
+		$wp_list_table = new \WP_Posts_List_Table();
+		$wp_list_table->prepare_items();
+	}
+
+	/**
+	 * Test the product query when price filter is set.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testPriceFilter() {
+		global $wp_the_query, $wp_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 1',
+				'regular_price' => 100,
+			]
+		);
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 2',
+				'regular_price' => 800,
+			]
+		);
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 3',
+				'regular_price' => 10000,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'min_price=1&max_price=999', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query and is_search
+		$wp_the_query        = $query;
+		$wp_query->is_search = true;
+
+		add_filter(
+			'ep_post_formatted_args',
+			function ( $formatted_args ) {
+
+				$expected_result = array(
+					'range' => array(
+						'meta._price.long' => array(
+							'gte'   => 1,
+							'lte'   => 999,
+							'boost' => 2,
+						),
+					),
+				);
+
+				$this->assertEquals( $expected_result, $formatted_args['query'] );
+				return $formatted_args;
+			},
+			15
+		);
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the product search query when price filter is set.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testPriceFilterWithSearchQuery() {
+		global $wp_the_query, $wp_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 1',
+				'regular_price' => 100,
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 2',
+				'regular_price' => 1000,
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 3',
+				'regular_price' => 10000,
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name'          => 'Cap 4',
+				'regular_price' => 800,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		parse_str( 'min_price=1&max_price=999', $_GET );
+
+		$args  = array(
+			's'         => 'Cap',
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query and is_search
+		$wp_the_query        = $query;
+		$wp_query->is_search = true;
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Tests that attributes filter uses Elasticsearch.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testAttributesFilterUseES() {
+		global $wp_the_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create_variation_product(
+			[
+				'name' => 'Cap',
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name' => 'Shoes',
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name' => 'T-Shirt',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// mock the query as post type archive
+		add_action(
+			'parse_query',
+			function( \WP_Query $query ) : void {
+				$query->is_post_type_archive = true;
+			}
+		);
+
+		parse_str( 'filter_colour=blue', $_GET );
+
+		$args  = array(
+			'post_type' => 'product',
+		);
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		$wp_the_query = $query;
+
+		$query = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+		$this->assertEquals( 1, count( $query ) );
+		$this->assertEquals( 'Cap', $query[0]->post_title );
+	}
+
+	/**
+	 * Tests that get_posts() uses Elasticsearch when ep_integrate is true.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetPosts() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$posts = get_posts(
+			[
+				'post_type'    => 'product',
+				'ep_integrate' => true,
+			]
+		);
+
+		$this->assertTrue( $posts[0]->elasticsearch );
+	}
+
+	/**
+	 * Tests that get_posts() does not use Elasticsearch when ep_integrate is not set.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetPostQueryDoesNotUseElasticSearchByDefault() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->product->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$posts = get_posts(
+			[
+				'post_type' => 'product',
+			]
+		);
+
+		$this->assertObjectNotHasAttribute( 'elasticsearch', $posts[0] );
+	}
+
+	/**
+	 * Tests that Weighting dashboard shows SKU and Variation SKUs option.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testSkuOptionAddInWeightDashboard() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$fields = $search->weighting->get_weightable_fields_for_post_type( 'product' );
+
+		$this->assertArrayHasKey( 'meta._sku.value', $fields['attributes']['children'] );
+		$this->assertArrayHasKey( 'meta._variations_skus.value', $fields['attributes']['children'] );
+
+		$this->assertEquals( 'meta._sku.value', $fields['attributes']['children']['meta._sku.value']['key'] );
+		$this->assertEquals( 'SKU', $fields['attributes']['children']['meta._sku.value']['label'] );
+
+		$this->assertEquals( 'meta._variations_skus.value', $fields['attributes']['children']['meta._variations_skus.value']['key'] );
+		$this->assertEquals( 'Variations SKUs', $fields['attributes']['children']['meta._variations_skus.value']['label'] );
+	}
+
+	/**
+	 * Test the `is_orders_autosuggest_available` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testIsOrdersAutosuggestAvailable() {
+		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+
+		$this->assertSame( $woocommerce_feature->is_orders_autosuggest_available(), \ElasticPress\Utils\is_epio() );
+
+		/**
+		 * Test the `ep_woocommerce_orders_autosuggest_available` filter
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertTrue( $woocommerce_feature->is_orders_autosuggest_available() );
+
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_false' );
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_available() );
+	}
+
+	/**
+	 * Test the `is_orders_autosuggest_available` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testIsOrdersAutosuggestEnabled() {
+		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+	
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
+
+		/**
+		 * Make it available but it won't be enabled
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
+
+		/**
+		 * Enable it
+		 */
+		$filter = function() {
+			return [
+				'woocommerce' => [
+					'orders' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+		$this->assertTrue( $woocommerce_feature->is_orders_autosuggest_enabled() );
+
+		/**
+		 * Make it unavailable. Even activated, it should not be considered enabled if not available anymore.
+		 */
+		remove_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
 	}
 }
