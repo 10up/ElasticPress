@@ -12,7 +12,7 @@ use ElasticPress;
 use ElasticPress\Command;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
-use ElasticPress\Command\Utility as Utility;
+use ElasticPress\Command\Utility;
 
 /**
  * Commands test class
