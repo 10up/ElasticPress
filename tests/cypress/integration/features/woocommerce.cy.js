@@ -363,9 +363,9 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			 */
 			cy.intercept('**/api/v1/search/orders/*').as('apiRequest');
 			cy.get('#posts-filter .ep-combobox__input').as('input');
-			cy.get('#posts-filter .screen-reader-text').as('description');
+			cy.get('#posts-filter .ep-combobox > .screen-reader-text').as('description');
 			cy.get('#posts-filter .ep-combobox__list').as('listbox');
-			cy.get('#posts-filter .button').as('submit');
+			cy.get('#posts-filter .search-box .button').as('submit');
 
 			/**
 			 * Search for "Antwon". 3 suggestions should appear.
@@ -373,9 +373,9 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.get('@input').type('Antwon');
 			cy.wait('@apiRequest');
 			cy.get('@input').should('have.attr', 'aria-expanded', 'true');
-			cy.get('@description').should('contain.text', '3 suggestions available');
+			cy.get('@description').should('contain.text', '4 suggestions available');
 			cy.get('@listbox').should('be.visible');
-			cy.get('@listbox').children().should('have.length', 3);
+			cy.get('@listbox').children().should('have.length', 4);
 
 			/**
 			 * It should be possible to navigate suggestions with the arrow
@@ -384,18 +384,18 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@input').type('{downArrow}');
 			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
-			cy.get('@input').type('{downArrow}{downArrow}');
-			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{downArrow}{downArrow}{downArrow}');
+			cy.get('@listbox').children().eq(3).should('have.attr', 'aria-selected', 'true');
 			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{downArrow}');
 			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
-			cy.get('@listbox').children().eq(2).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('not.have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{upArrow}');
-			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('have.attr', 'aria-selected', 'true');
 			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
 			cy.get('@input').type('{upArrow}');
-			cy.get('@listbox').children().eq(1).should('have.attr', 'aria-selected', 'true');
-			cy.get('@listbox').children().eq(2).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('not.have.attr', 'aria-selected', 'true');
 
 			/**
 			 * Pressing escape should hide the listbox and pressing an arrow
@@ -421,7 +421,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@input').type('{backspace}{backspace}');
 			cy.wait('@apiRequest');
-			cy.get('@listbox').children().should('have.length', 3);
+			cy.get('@listbox').children().should('have.length', 4);
 
 			/**
 			 * Pressing enter on a selected item should navigate to that order.
