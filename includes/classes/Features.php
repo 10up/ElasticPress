@@ -67,10 +67,7 @@ class Features {
 	 * @return boolean
 	 */
 	public function register_feature( Feature $feature ) {
-		$feature_args['slug'] = $feature->slug;
-
 		$this->registered_features[ $feature->slug ] = $feature;
-
 		return true;
 	}
 

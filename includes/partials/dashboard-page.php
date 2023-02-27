@@ -24,7 +24,12 @@ $index_meta = Utils\get_option( 'ep_index_meta', [] );
 	<h2 class="ep-list-features"><?php esc_html_e( 'List of features', 'elasticpress' ); // We use this since WP inserts warnings after the first h2. This will be hidden. ?></h2>
 	<div class="ep-features metabox-holder">
 		<?php
-		$features = Features::factory()->registered_features;
+		$features = array_filter(
+			Features::factory()->registered_features,
+			function ( $feature ) {
+				return $feature->is_visible();
+			}
+		);
 		uasort(
 			$features,
 			function( $feature_a, $feature_b ) {
