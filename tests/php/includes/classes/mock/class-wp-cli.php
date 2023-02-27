@@ -99,4 +99,16 @@ class WP_CLI {
 	public static function halt( $return_code ) {
 	}
 
+	/**
+	 * Return mocked runner object.
+	 *
+	 * @return object
+	 */
+	public static function get_runner() {
+		$runner = new stdClass();
+		$runner->arguments = [];
+		$runner->assoc_args = [];
+		return $runner;
+	}
+
 }
