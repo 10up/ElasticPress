@@ -152,4 +152,24 @@ class TestComments extends BaseTestCase {
 
 		$this->assertEquals( 1, $status->code );
     }
+
+	/**
+	 * Test the `is_available` method
+	 *
+	 * @sicne 4.5.0
+	 * @group comments
+	 */
+	public function testIsAvailable() {
+		$this->assertTrue( $this->get_feature()->is_visible() );
+
+		$change_visibility = function ( $is_visible, $feature_slug, $feature ) {
+			$this->assertTrue( $is_visible );
+			$this->assertSame( 'comments', $feature_slug );
+			$this->assertInstanceOf( '\ElasticPress\Feature\Comments\Comments', $feature );
+			return false;
+		};
+		add_filter( 'ep_feature_is_visible', $change_visibility, 10, 3 );
+
+		$this->assertFalse( $this->get_feature()->is_visible() );
+	}
 }
