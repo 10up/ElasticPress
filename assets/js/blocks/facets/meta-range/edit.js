@@ -222,7 +222,7 @@ export default (props) => {
 					) : min !== false && max !== false ? (
 						<Preview min={min} max={max} />
 					) : (
-						<PreviewUnavailable />
+						<PreviewUnavailable value={facet} />
 					)
 				) : (
 					<Wizard onChange={onChange} options={options} value={facet} />
