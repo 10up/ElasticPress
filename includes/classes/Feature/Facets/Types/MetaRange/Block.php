@@ -136,10 +136,6 @@ class Block {
 	 * @return string
 	 */
 	public function render_block_preview( $request ) {
-		global $wp_query;
-
-		add_filter( 'ep_is_facetable', '__return_true' );
-
 		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
 		$attributes = $this->parse_attributes(
@@ -157,10 +153,11 @@ class Block {
 			}
 		);
 
-		$wp_query = new \WP_Query(
+		$query = new \WP_Query(
 			[
-				'post_type' => $search->get_searchable_post_types(),
-				'per_page'  => 1,
+				'ep_is_facetable' => true,
+				'post_type'       => $search->get_searchable_post_types(),
+				'per_page'        => 1,
 			]
 		);
 
