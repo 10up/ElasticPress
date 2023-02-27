@@ -137,18 +137,15 @@ class Block {
 	 */
 	public function render_block_preview( $request ) {
 		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$facets = \ElasticPress\Features::factory()->get_registered_feature( 'facets' );
 
-		$attributes = $this->parse_attributes(
-			[
-				'facet'      => $request->get_param( 'facet' ),
-				'is_preview' => true,
-			]
-		);
+		$facet = $request->get_param( 'facet' );
 
 		add_filter(
 			'ep_facet_meta_range_fields',
-			function ( $meta_fields ) use ( $attributes ) {
-				$meta_fields = [ $attributes['facet'] ];
+			function ( $meta_fields ) use ( $facet ) {
+				$meta_fields = [ $facet ];
+
 				return $meta_fields;
 			}
 		);
@@ -161,24 +158,22 @@ class Block {
 			]
 		);
 
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta-block', 'block', $attributes );
-		$renderer       = new $renderer_class();
+		$min_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_min';
+		$max_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_max';
 
-		ob_start();
-		$renderer->render( [], $attributes );
-		$block_content = ob_get_clean();
-
-		if ( empty( $block_content ) ) {
-			return sprintf(
-				/* translators: Meta field name */
-				esc_html__( 'Preview for %s not available', 'elasticpress' ),
-				esc_html( $request->get_param( 'facet' ) )
-			);
+		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] ) || empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] ) ) {
+			return wp_send_json_error();
 		}
 
-		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
-		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
+		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
+		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
+
+		return wp_send_json_success(
+			[
+				'min' => $min,
+				'max' => $max,
+			]
+		);
 	}
 
 	/**

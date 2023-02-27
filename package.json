@@ -61,7 +61,7 @@
       "facets-block-script": "./assets/js/blocks/facets/taxonomy/index.js",
       "facets-meta-block-script": "./assets/js/blocks/facets/meta/index.js",
       "facets-meta-range-block-script": "./assets/js/blocks/facets/meta-range/index.js",
-      "facets-meta-range-block-view-script": "./assets/js/blocks/facets/meta-range/view/index.js",
+      "facets-meta-range-block-view-script": "./assets/js/blocks/facets/meta-range/view.js",
       "related-posts-block-script": "./assets/js/blocks/related-posts/index.js",
       "settings-script": "./assets/js/settings.js",
       "sync-script": "./assets/js/sync/index.js",

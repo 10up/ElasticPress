@@ -1,4 +1,5 @@
 :root {
+	--ep-range-slider-background-color: #fff;
 	--ep-range-slider-track-color: #eee;
 
 	@media ( min-width: 768px ) {
@@ -141,7 +142,7 @@
 	border-radius: calc(var(--ep-range-slider-thumb-size) / 2);
 	box-shadow:
 		inset 0 0 0 calc(var(--ep-range-slider-thumb-size) / 10) currentcolor,
-		inset 0 0 0 calc((var(--ep-range-slider-thumb-size) - var(--ep-range-slider-track-size)) / 2) var(--ep-search-background-color);
+		inset 0 0 0 calc((var(--ep-range-slider-thumb-size) - var(--ep-range-slider-track-size)) / 2) var(--ep-range-slider-background-color);
 	height: var(--ep-range-slider-thumb-size);
 	width: var(--ep-range-slider-thumb-size);
 }

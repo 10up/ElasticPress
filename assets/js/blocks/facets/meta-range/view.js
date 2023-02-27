@@ -1,13 +1,13 @@
 /**
  * WordPress dependencies.
  */
-import { useLayoutEffect, useState, WPElement } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { render, useLayoutEffect, useState, WPElement } from '@wordpress/element';
+import domReady from '@wordpress/dom-ready';
 
 /**
  * Internal dependencies.
  */
-import RangeSlider from './components/range-slider';
+import RangeFacet from './components/range-facet';
 
 /**
  * App component.
@@ -21,7 +21,7 @@ import RangeSlider from './components/range-slider';
  * @param {Element} props.min Minimum value input element.
  * @returns {WPElement}
  */
-export default ({ max, min }) => {
+const App = ({ max, min }) => {
 	/**
 	 * Minimum and maximum possible values.
 	 */
@@ -64,17 +64,25 @@ export default ({ max, min }) => {
 	/**
 	 * Render.
 	 */
-	return (
-		<div className="ep-range-facet">
-			<div className="ep-range-facet__slider">
-				<RangeSlider max={maxAgg} min={minAgg} onChange={onChange} value={[from, to]} />
-			</div>
-			<div className="ep-range-facet__values">
-				{from} — {to}
-			</div>
-			<div className="ep-range-facet__action">
-				<button type="submit">{__('Filter', 'elasticpress')}</button>
-			</div>
-		</div>
-	);
+	return <RangeFacet max={maxAgg} min={minAgg} onChange={onChange} value={[from, to]} />;
 };
+
+/**
+ * Initialize.
+ *
+ * @returns {void}
+ */
+const init = () => {
+	const blocks = document.querySelectorAll('.ep-facet-meta-range');
+
+	blocks.forEach((block) => {
+		const [min, max] = block.querySelectorAll('input[type="hidden"]');
+		const el = document.createElement('div');
+
+		block.insertAdjacentElement('afterbegin', el);
+
+		render(<App min={min} max={max} />, el);
+	});
+};
+
+domReady(init);
