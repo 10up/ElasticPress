@@ -111,6 +111,14 @@ abstract class Feature {
 	public $available_during_installation = false;
 
 	/**
+	 * Whether the feature should be always visible in the dashboard
+	 *
+	 * @since 4.5.0
+	 * @var boolean
+	 */
+	protected $is_visible = true;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -427,5 +435,39 @@ abstract class Feature {
 		}
 
 		return $this->get_title();
+	}
+
+	/**
+	 * Returns whether the feature is visible in the dashboard or not.
+	 *
+	 * By default, all active features are visible.
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_visible() {
+		/**
+		 * Filter whether a feature is visible or not in the dashboard.
+		 *
+		 * Example:
+		 * ```
+		 * add_filter(
+		 *     'ep_feature_is_visible',
+		 *     function ( $is_visible, $feature_slug ) {
+		 *         return 'terms' === $feature_slug ? true : $is_visible;
+		 *     },
+		 *     10,
+		 *     2
+		 * );
+		 * ```
+		 *
+		 * @hook ep_feature_is_visible
+		 * @param {bool}    $is_visible   True to display the feature
+		 * @param {string}  $feature_slug Feature slug
+		 * @param {Feature} $feature      Feature object
+		 * @since 4.5.0
+		 * @return {bool} New $is_visible value
+		 */
+		return apply_filters( 'ep_feature_is_visible', $this->is_visible || $this->is_active(), $this->slug, $this );
 	}
 }
