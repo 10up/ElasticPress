@@ -14,8 +14,18 @@ use ElasticPress;
  * WC Orders test class
  */
 class TestWooCommerceOrders extends BaseTestCase {
+	/**
+	 * Instance of the feature
+	 *
+	 * @var ElasticPress\Feature\WooCommerce\WooCommerce
+	 */
 	public $woocommerce_feature;
 
+	/**
+	 * Orders instance
+	 *
+	 * @var \ElasticPress\Feature\WooCommerce\Orders
+	 */
 	public $orders;
 
 	/**

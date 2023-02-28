@@ -688,6 +688,11 @@ class TestWooCommerce extends BaseTestCase {
 	/**
 	 *  Test the product query order.
 	 *
+	 * @param string $product_arg_key Field slug
+	 * @param array  $query_args      Query array
+	 * @param bool   $query_string    Query string
+	 * @param array  $expected        Value expected
+	 * @param string $order           Order
 	 * @dataProvider productQueryOrderDataProvider
 	 * @since 4.5.0
 	 */
@@ -717,7 +722,7 @@ class TestWooCommerce extends BaseTestCase {
 			// mock the query as post type archive
 			add_action(
 				'parse_query',
-				function( \WP_Query $query ) : void {
+				function( \WP_Query $query ) {
 					$query->is_post_type_archive = true;
 				}
 			);
@@ -745,10 +750,10 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
 		$this->assertEquals( 2, count( $query ) );
 
-		if ( 'asc' == $order ) {
+		if ( 'asc' === $order ) {
 			$this->assertEquals( $product_2, $query[0]->ID );
 			$this->assertEquals( $product_1, $query[1]->ID );
-		} elseif ( 'desc' == $order ) {
+		} elseif ( 'desc' === $order ) {
 			$this->assertEquals( $product_1, $query[0]->ID );
 			$this->assertEquals( $product_2, $query[1]->ID );
 		}
@@ -1036,7 +1041,7 @@ class TestWooCommerce extends BaseTestCase {
 		// mock the query as post type archive
 		add_action(
 			'parse_query',
-			function( \WP_Query $query ) : void {
+			function( \WP_Query $query ) {
 				$query->is_post_type_archive = true;
 			}
 		);

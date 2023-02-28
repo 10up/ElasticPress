@@ -1013,35 +1013,34 @@ class TestTerm extends BaseTestCase {
 			);
 		}
 
-		// We should have a list list this.
-		// phpcs:disable
-		//{
-		//"hierarchical_false_empty_false": [
-		//		"child-term-post",
-		//		"child-term-2-no-post",
-		//		"childless-term-post",
-		//		"parent-term-no-post",
-		//		"parent-term-2-no-post",
-		//	],
-		//	"hierarchical_false_empty_true": [
-		//		"child-term-post",
-		//		"childless-term-post"
-		//	],
-		//		"hierarchical_true_empty_true": [
-		//		"child-term-post",
-		//		"childless-term-post",
-		//		"parent-term-no-post"
-		//	],
-		//	"hierarchical_true_empty_false": [
-		//		"child-term-post",
-		//		"child-term-2-no-post",
-		//		"childless-term-post",
-		//		"parent-term-no-post",
-		//		"parent-term-2-no-post",
-		//	]
-		//}
-		//// phpcs:enable
-
+		/**
+		 * We should have a list list this.
+		 *
+		 *"hierarchical_false_empty_false": [
+		 *     "child-term-post",
+		 *     "child-term-2-no-post",
+		 *     "childless-term-post",
+		 *     "parent-term-no-post",
+		 *     "parent-term-2-no-post",
+		 * ],
+		 * "hierarchical_false_empty_true": [
+		 *     "child-term-post",
+		 *     "childless-term-post"
+		 * ],
+		 * "hierarchical_true_empty_true": [
+		 *     "child-term-post",
+		 *     "childless-term-post",
+		 *     "parent-term-no-post"
+		 * ],
+		 * "hierarchical_true_empty_false": [
+		 *     "child-term-post",
+		 *     "child-term-2-no-post",
+		 *     "childless-term-post",
+		 *     "parent-term-no-post",
+		 *     "parent-term-2-no-post",
+		 *  ]
+		 * }
+		 */
 		// Now run the same queries against ES.
 		$es_slugs = [
 			'hierarchical_false_empty_false' => [],

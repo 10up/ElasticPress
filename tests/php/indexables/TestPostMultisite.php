@@ -14,8 +14,6 @@ use ElasticPress;
  */
 class TestPostMultisite extends BaseTestCase {
 
-	public $post_ids = [];
-
 	/**
 	 * Setup each test.
 	 *
@@ -1444,8 +1442,6 @@ class TestPostMultisite extends BaseTestCase {
 			while ( $query->have_posts() ) {
 				global $post;
 				$query->the_post();
-
-				// do stuff!
 			}
 		}
 

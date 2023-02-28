@@ -156,7 +156,7 @@ class TestElasticsearch extends BaseTestCase {
 		 * 4. get_index_settings returns what we expect
 		 */
 		$elasticsearch_mock->expects( $this->exactly( 3 ) )
-			 ->method( 'get_index_settings' )
+			->method( 'get_index_settings' )
 			->willReturnOnConsecutiveCalls(
 				[ new \WP_Error() ],
 				$wrong_settings,
@@ -230,7 +230,7 @@ class TestElasticsearch extends BaseTestCase {
 		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
 
 		$this->assertCount( 4, $new_headers );
-		$this->assertSame( 'Basic ' . base64_encode( 'custom_shield' ), $new_headers['Authorization'] );
+		$this->assertSame( 'Basic ' . base64_encode( 'custom_shield' ), $new_headers['Authorization'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 
 		/**
 		 * Test if an empty request ID removes `X-ElasticPress-Request-ID`

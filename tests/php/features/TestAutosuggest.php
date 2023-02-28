@@ -56,10 +56,16 @@ class TestAutosuggest extends BaseTestCase {
 		$this->fired_actions = array();
 	}
 
+	/**
+	 * Get the feature instance
+	 */
 	protected function get_feature() {
 		return ElasticPress\Features::factory()->get_registered_feature( 'autosuggest' );
 	}
 
+	/**
+	 * Test the class constructor
+	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
 
@@ -67,6 +73,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertEquals( 'Autosuggest', $instance->title );
 	}
 
+	/**
+	 * Test the `output_feature_box_summary` method
+	 */
 	public function testBoxSummary() {
 		ob_start();
 		$this->get_feature()->output_feature_box_summary();
@@ -75,6 +84,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertStringContainsString( 'Suggest relevant content as text is entered into the search field', $output );
 	}
 
+	/**
+	 * Test the `output_feature_box_long` method
+	 */
 	public function testBoxLong() {
 		ob_start();
 		$this->get_feature()->output_feature_box_long();
@@ -83,6 +95,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertStringContainsString( 'Input fields of type &quot;search&quot;', $output );
 	}
 
+	/**
+	 * Test the `output_feature_box_settings` method
+	 */
 	public function testOutputFeatureBoxSettings() {
 		ob_start();
 		$this->get_feature()->output_feature_box_settings();
@@ -92,6 +107,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertStringContainsString( 'Google Analytics Events', $output );
 	}
 
+	/**
+	 * Test the mapping change in ES 5 method
+	 */
 	public function testMappingES5() {
 		$change_es_version = function() {
 			return '5.2';
@@ -111,6 +129,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertArrayHasKey( 'search_analyzer', $mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] );
 	}
 
+	/**
+	 * Test the mapping change in ES 7 method
+	 */
 	public function testMappingES7() {
 		$change_es_version = function() {
 			return '7.0';
@@ -130,6 +151,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertArrayHasKey( 'search_analyzer', $mapping['mappings']['properties']['post_title']['fields']['suggest'] );
 	}
 
+	/**
+	 * Test the `output_feature_box_settings` method
+	 */
 	public function testSetFuzziness() {
 		set_current_screen( 'edit.php' );
 		$this->assertequals( 2, $this->get_feature()->set_fuzziness( 2, [], [] ) );
@@ -138,6 +162,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertequals( 'auto', $this->get_feature()->set_fuzziness( 2, [], [ 's' => 'test' ] ) );
 	}
 
+	/**
+	 * Test the `filter_term_suggest` method
+	 */
 	public function testFilterTermSuggest() {
 		$post_args = [];
 		$this->assertEquals( [], $this->get_feature()->filter_term_suggest( $post_args ) );
@@ -158,6 +185,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertContains( 'test-category', $result['term_suggest'] );
 	}
 
+	/**
+	 * Test the `enqueue_scripts` method
+	 */
 	public function testEnqueueScripts() {
 		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
 		$this->get_feature()->enqueue_scripts();
@@ -178,6 +208,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertTrue( wp_script_is( 'elasticpress-autosuggest' ) );
 	}
 
+	/**
+	 * Test the `generate_search_query` method
+	 */
 	public function testGenerateSearchQuery() {
 		$query = $this->get_feature()->generate_search_query();
 
@@ -186,6 +219,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertContains( 'ep_autosuggest_placeholder', $query );
 	}
 
+	/**
+	 * Test the filters in the `generate_search_query` method
+	 */
 	public function testGenerateSearchQueryFilters() {
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
@@ -236,10 +272,16 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertStringContainsString( '1234', $query['body'] );
 	}
 
+	/**
+	 * Test the filters in the `return_empty_posts` method
+	 */
 	public function testReturnEmptyPosts() {
 		$this->assertEmpty( $this->get_feature()->return_empty_posts() );
 	}
 
+	/**
+	 * Test the filters in the `apply_autosuggest_weighting` method
+	 */
 	public function testApplyAutosuggestWeighting() {
 		$filter = function() {
 			return [ 'hello' => 'world' ];
@@ -253,6 +295,9 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertContains( 'world', $this->get_feature()->apply_autosuggest_weighting( [] ) );
 	}
 
+	/**
+	 * Test the filters in the `requirements_status` method
+	 */
 	public function testRequirementsStatus() {
 		$status = $this->get_feature()->requirements_status();
 

@@ -21,6 +21,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Holds Command class instance.
+	 *
+	 * @var Command
 	 */
 	protected $command;
 
@@ -372,7 +374,6 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-multi-site
 	 */
-
 	public function testReCreateNetworkAliasOnSingleSite() {
 
 		$this->expectExceptionMessage( 'ElasticPress is not network activated.' );

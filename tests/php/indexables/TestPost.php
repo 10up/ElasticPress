@@ -1821,7 +1821,7 @@ class TestPost extends BaseTestCase {
 				'tags_input'   => array( 'superterm' ),
 				'post_author'  => $user_id,
 				'meta_input'   => array( 'test_key' => 'meta value' ),
-			),
+			)
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -3099,7 +3099,7 @@ class TestPost extends BaseTestCase {
 					'test_key'  => 'value1',
 					'test_key2' => 'value',
 				),
-			),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
@@ -3146,26 +3146,26 @@ class TestPost extends BaseTestCase {
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
-				'meta_input'   => array( 'test_key' => date( 'Ymd' ) - 5 ),
-			),
+				'meta_input'   => array( 'test_key' => gmdate( 'Ymd' ) - 5 ),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
 				'meta_input'   => array(
-					'test_key'  => date( 'Ymd' ) + 5,
-					'test_key2' => date( 'Ymd' ) + 6,
+					'test_key'  => gmdate( 'Ymd' ) + 5,
+					'test_key2' => gmdate( 'Ymd' ) + 6,
 				),
-			),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
 				'meta_input'   => array(
-					'test_key'  => date( 'Ymd' ) + 5,
-					'test_key2' => date( 'Ymd' ) + 6,
+					'test_key'  => gmdate( 'Ymd' ) + 5,
+					'test_key2' => gmdate( 'Ymd' ) + 6,
 				),
-			),
+			)
 		);
 
 		$post = new \ElasticPress\Indexable\Post\Post();
@@ -3177,13 +3177,13 @@ class TestPost extends BaseTestCase {
 				'relation' => 'or',
 				array(
 					'key'     => 'test_key',
-					'value'   => date( 'Ymd' ),
+					'value'   => gmdate( 'Ymd' ),
 					'compare' => '<=',
 					'type'    => 'NUMERIC',
 				),
 				array(
 					'key'     => 'test_key2',
-					'value'   => date( 'Ymd' ),
+					'value'   => gmdate( 'Ymd' ),
 					'compare' => '>=',
 					'type'    => 'NUMERIC',
 				),
@@ -3886,10 +3886,15 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( is_array( $recognizable_time ) && 6 === count( $recognizable_time ) );
 		$this->assertTrue( is_array( $recognizable_time ) && array_key_exists( 'datetime', $recognizable_time ) && '2020-01-20 00:00:00' === $recognizable_time['datetime'] );
 		$this->assertTrue( is_array( $relative_format ) && 6 === count( $relative_format ) );
-		$this->assertTrue( is_array( $relative_format ) && array_key_exists( 'datetime', $relative_format ) && date( 'Y-m-d H:i:s', strtotime( '+1 year' ) ) === $relative_format['datetime'] );
+		$this->assertTrue( is_array( $relative_format ) && array_key_exists( 'datetime', $relative_format ) && gmdate( 'Y-m-d H:i:s', strtotime( '+1 year' ) ) === $relative_format['datetime'] );
 
 	}
 
+	/**
+	 * Test meta date preparation
+	 *
+	 * @group post
+	 */
 	public function testMetaValueTypeDate() {
 		$meta_types = array();
 
@@ -7285,7 +7290,7 @@ class TestPost extends BaseTestCase {
 					'common_meta_one' => 'lorem',
 					'common_meta_two' => 'ipsum',
 				),
-			),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
@@ -7294,7 +7299,7 @@ class TestPost extends BaseTestCase {
 					'common_meta_one' => 'lorem',
 					'common_meta_two' => 'ipsum',
 				),
-			),
+			)
 		);
 
 		delete_metadata( 'post', null, 'common_meta_one', 'lorem', true );
@@ -8248,7 +8253,7 @@ class TestPost extends BaseTestCase {
 					'test_key_1'   => 'meta value 1',
 					'test_key_2'   => 'meta value 2.1',
 				],
-			],
+			]
 		);
 		$this->ep_factory->post->create(
 			[
@@ -8257,7 +8262,7 @@ class TestPost extends BaseTestCase {
 					'test_key_2' => 'meta value 2.2',
 					'test_key_3' => 'meta value 3',
 				],
-			],
+			]
 		);
 
 		$meta_keys = [ 'test_key_1', 'test_key_2' ];
@@ -8289,7 +8294,7 @@ class TestPost extends BaseTestCase {
 					'test_key_1'   => 'meta value 1',
 					'test_key_2'   => 'meta value 2.1',
 				],
-			],
+			]
 		);
 		$this->ep_factory->post->create(
 			[
@@ -8298,7 +8303,7 @@ class TestPost extends BaseTestCase {
 					'test_key_2' => 'meta value 2.2',
 					'test_key_3' => 'meta value 3',
 				],
-			],
+			]
 		);
 
 		$meta_keys = [ 'test_key_1', 'test_key_2', 'test_key_3' ];
@@ -8358,7 +8363,7 @@ class TestPost extends BaseTestCase {
 					'test_key_1'   => 'meta value 1',
 					'test_key_2'   => 'meta value 2.1',
 				],
-			],
+			]
 		);
 		$this->ep_factory->post->create(
 			[
@@ -8367,7 +8372,7 @@ class TestPost extends BaseTestCase {
 					'test_key_2' => 'meta value 2.2',
 					'test_key_3' => 'meta value 3',
 				],
-			],
+			]
 		);
 	}
 

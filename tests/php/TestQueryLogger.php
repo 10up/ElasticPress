@@ -2,6 +2,8 @@
 /**
  * Test the Query Logger
  *
+ * @phpcs:disable WordPress.DateTime.CurrentTimeTimestamp.Requested
+ *
  * @since 4.4.0
  * @package elasticpress
  */
@@ -318,6 +320,8 @@ class TestQueryLogger extends BaseTestCase {
 	/**
 	 * Test the maybe_log_delete_index method
 	 *
+	 * @param bool $expected    Expected maybe_log_delete_index return
+	 * @param int  $status_code HTTP Status Code
 	 * @dataProvider maybeDeleteIndexDataProvider
 	 * @group queryLogger
 	 */
@@ -357,6 +361,8 @@ class TestQueryLogger extends BaseTestCase {
 	/**
 	 * Test the is_query_error method with a request status code
 	 *
+	 * @param bool $expected    Expected maybe_log_delete_index return
+	 * @param int  $status_code HTTP Status Code
 	 * @dataProvider isQueryErrorWithStatusCodeDataProvider
 	 * @group queryLogger
 	 */
