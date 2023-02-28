@@ -15,10 +15,12 @@ import { __ } from '@wordpress/i18n';
  * @param {object} props Props.
  * @param {number} props.min Minimum value.
  * @param {number} props.max Maximum value.
+ * @param {string} props.prefix Value prefix.
+ * @param {string} props.suffix Value suffix.
  * @param {number[]} props.value Currnet value.
  * @returns {WPElement} Component element.
  */
-export default ({ min, max, value, ...props }) => {
+export default ({ min, max, prefix, suffix, value, ...props }) => {
 	return (
 		<div className="ep-range-facet">
 			<div className="ep-range-facet__slider">
@@ -35,7 +37,13 @@ export default ({ min, max, value, ...props }) => {
 				/>
 			</div>
 			<div className="ep-range-facet__values">
-				{value[0]} — {value[1]}
+				{prefix}
+				{value[0]}
+				{suffix}
+				{' — '}
+				{prefix}
+				{value[1]}
+				{suffix}
 			</div>
 			<div className="ep-range-facet__action">
 				<button type="submit">{__('Filter', 'elasticpress')}</button>

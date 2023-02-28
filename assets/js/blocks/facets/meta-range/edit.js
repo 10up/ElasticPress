@@ -6,7 +6,14 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 import { InspectorControls, useBlockProps, Warning } from '@wordpress/block-editor';
-import { Disabled, PanelBody, Placeholder, Spinner, SelectControl } from '@wordpress/components';
+import {
+	Disabled,
+	PanelBody,
+	Placeholder,
+	Spinner,
+	SelectControl,
+	TextControl,
+} from '@wordpress/components';
 import {
 	createInterpolateElement,
 	useEffect,
@@ -17,7 +24,7 @@ import {
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
- * Internal dependencies/
+ * Internal dependencies.
  */
 import RangeFacet from './components/range-facet';
 
@@ -40,12 +47,14 @@ const PreviewLoading = () => {
  * @param {object} props Component props.
  * @param {number} props.min Minumum value.
  * @param {number} props.max Maximum value.
+ * @param {string} props.prefix Value prefix.
+ * @param {string} props.suffix Value suffix.
  * @returns {WPElement} Component element.
  */
-const Preview = ({ min, max }) => {
+const Preview = ({ min, max, prefix, suffix }) => {
 	return (
 		<Disabled>
-			<RangeFacet min={min} max={max} value={[min, max]} />
+			<RangeFacet min={min} max={max} prefix={prefix} suffix={suffix} value={[min, max]} />
 		</Disabled>
 	);
 };
@@ -80,7 +89,7 @@ const PreviewUnavailable = ({ value }) => {
  * @param {string} props.value Selected facet.
  * @returns {WPElement} Component element.
  */
-const SelectKey = ({ onChange, options, value }) => {
+const FacetControl = ({ onChange, options, value }) => {
 	return (
 		<SelectControl
 			disabled={options.length <= 1}
@@ -101,22 +110,6 @@ const SelectKey = ({ onChange, options, value }) => {
 };
 
 /**
- * Block settings component.
- *
- * @param {object} props Component props.
- * @returns {WPElement} Component element.
- */
-const Settings = (props) => {
-	return (
-		<InspectorControls>
-			<PanelBody title={__('Facet Settings', 'elasticpress')}>
-				<SelectKey {...props} />
-			</PanelBody>
-		</InspectorControls>
-	);
-};
-
-/**
  * Block wizard component.
  *
  * @param {object} props Component props.
@@ -125,7 +118,7 @@ const Settings = (props) => {
 const Wizard = (props) => {
 	return (
 		<Placeholder label={__('Facet by Meta Range', 'elasticpress')}>
-			<SelectKey {...props} />
+			<FacetControl {...props} />
 		</Placeholder>
 	);
 };
@@ -140,7 +133,7 @@ const Wizard = (props) => {
  */
 export default (props) => {
 	const { attributes, setAttributes } = props;
-	const { facet } = attributes;
+	const { facet, prefix, suffix } = attributes;
 
 	const blockProps = useBlockProps();
 	const [isLoading, setIsLoading] = useState(false);
@@ -172,6 +165,26 @@ export default (props) => {
 	 */
 	const onChange = (value) => {
 		setAttributes({ facet: value });
+	};
+
+	/**
+	 * Change handler.
+	 *
+	 * @param {string} value Selected value.
+	 * @returns {void}
+	 */
+	const onChangePrefix = (value) => {
+		setAttributes({ prefix: value });
+	};
+
+	/**
+	 * Change handler.
+	 *
+	 * @param {string} value Selected value.
+	 * @returns {void}
+	 */
+	const onChangeSuffix = (value) => {
+		setAttributes({ suffix: value });
 	};
 
 	/**
@@ -214,13 +227,27 @@ export default (props) => {
 
 	return (
 		<>
-			<Settings onChange={onChange} options={options} value={facet} />
+			<InspectorControls>
+				<PanelBody title={__('Facet Settings', 'elasticpress')}>
+					<FacetControl onChange={onChange} options={options} value={facet} />
+					<TextControl
+						label={__('Value prefix', 'elasticpress')}
+						onChange={onChangePrefix}
+						value={prefix}
+					/>
+					<TextControl
+						label={__('Value suffix', 'elasticpress')}
+						onChange={onChangeSuffix}
+						value={suffix}
+					/>
+				</PanelBody>
+			</InspectorControls>
 			<div {...blockProps}>
 				{facet ? (
 					isLoading ? (
 						<PreviewLoading />
 					) : min !== false && max !== false ? (
-						<Preview min={min} max={max} />
+						<Preview min={min} max={max} prefix={prefix} suffix={suffix} />
 					) : (
 						<PreviewUnavailable value={facet} />
 					)

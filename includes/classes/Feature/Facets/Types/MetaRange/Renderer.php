@@ -80,7 +80,7 @@ class Renderer {
 		wp_parse_str( $form_action['query'] ?? '', $filter_fields );
 		?>
 		<form class="ep-facet-meta-range">
-			<input type="hidden" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
+			<input type="hidden" data-prefix="<?php echo esc_attr( $instance['prefix'] ); ?>" data-suffix="<?php echo esc_attr( $instance['suffix'] ); ?>" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
 			<input type="hidden" name="<?php echo esc_attr( $max_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_max_value ); ?>">
 
 			<?php foreach ( $filter_fields as $field => $value ) { ?>

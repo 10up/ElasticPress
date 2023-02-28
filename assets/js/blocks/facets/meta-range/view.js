@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render, useLayoutEffect, useState, WPElement } from '@wordpress/element';
+import { render, useLayoutEffect, useMemo, useState, WPElement } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 
 /**
@@ -41,6 +41,12 @@ const App = ({ max, min }) => {
 	const [from, setFrom] = useState(defaultFrom);
 
 	/**
+	 * Prefix and suffix.
+	 */
+	const prefix = useMemo(() => min.dataset.prefix, [min]);
+	const suffix = useMemo(() => min.dataset.suffix, [min]);
+
+	/**
 	 * Handle change.
 	 *
 	 * @param {Array} value Value range.
@@ -64,7 +70,16 @@ const App = ({ max, min }) => {
 	/**
 	 * Render.
 	 */
-	return <RangeFacet max={maxAgg} min={minAgg} onChange={onChange} value={[from, to]} />;
+	return (
+		<RangeFacet
+			max={maxAgg}
+			min={minAgg}
+			prefix={prefix}
+			suffix={suffix}
+			onChange={onChange}
+			value={[from, to]}
+		/>
+	);
 };
 
 /**
