@@ -15,6 +15,11 @@ use ElasticPress\Features as Features;
  */
 class TestFacetTypeMetaRange extends BaseTestCase {
 
+	/**
+	 * The facet type instance
+	 *
+	 * @var null|\ElasticPress\Feature\Facets\Types\MetaRange\FacetType
+	 */
 	protected $facet_type = null;
 
 	/**
@@ -32,8 +37,8 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 			$facet_feature->types['meta-range']->setup();
 		}
 
-		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
-		$this->facet_type    = $facet_feature->types['meta-range'];
+		$facet_feature    = Features::factory()->get_registered_feature( 'facets' );
+		$this->facet_type = $facet_feature->types['meta-range'];
 
 		parent::set_up();
 	}
@@ -189,7 +194,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 		$original_query_params = [ 'custom_name' => 'custom_value' ];
 		$selected_filters      = [
 			[
-				'custom_type' => [ 'facet' => [ 1, 2, 3 ] ]
+				'custom_type' => [ 'facet' => [ 1, 2, 3 ] ],
 			],
 			$this->facet_type->get_filter_type() => [
 				'my_meta_1' => [
@@ -202,7 +207,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 				],
 			],
 		];
-		
+
 		$new_query_params      = $this->facet_type->add_query_params( $original_query_params, $selected_filters );
 		$expected_query_params = array_merge(
 			$original_query_params,

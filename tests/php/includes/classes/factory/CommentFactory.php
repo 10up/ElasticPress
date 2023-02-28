@@ -1,6 +1,8 @@
 <?php
 /**
  * Class for comment factory.
+ *
+ * @package elasticpress
  */
 
 namespace ElasticPressTest;

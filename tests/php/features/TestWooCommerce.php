@@ -572,24 +572,127 @@ class TestWooCommerce extends BaseTestCase {
 	 */
 	public function productQueryOrderDataProvider() : array {
 		return [
-			[ 'total_sales', [ 'meta_key' => 'total_sales' ], false, [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'average_rating', [ 'meta_key' => '_wc_average_rating' ], false,  [ 0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'regular_price', [ 'orderby' => 'price', 'order'   => 'DESC', ], false,  [ 0 => [ 'meta._price.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[  'total_sales', [ 'orderby' => 'popularity', 'order'   => 'DESC', ], false, [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'total_sales', [], 'popularity',  [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[  'regular_price', [], 'price-desc',  [ 0 => [ 'meta._price.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'average_rating', [], 'rating',  [ 0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'regular_price', [], 'price',  [ 0 => [ 'meta._price.double' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
-			[ 'sku', [], 'sku',  [ 0 => [ 'meta._sku.value.sortable' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
-			[ 'name', [], 'title',  [ 0 => [ 'post_title.sortable' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
-			[ '', [], 'default',  [ 0 => [ 'menu_order' => [ 'order' => 'asc', ] ], 1 => [ 'post_title.sortable' => [ 'order' => 'asc', ] ], 2 => [ 'post_date' => [ 'order' => 'asc', ] ] ], ],
-			[ '', [], '',  [ 0 => [ 'post_date' => [ 'order' => 'desc', ] ] ], ],
+			[
+				'total_sales',
+				[ 'meta_key' => 'total_sales' ],
+				false,
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'average_rating',
+				[ 'meta_key' => '_wc_average_rating' ],
+				false,
+				[
+					0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'regular_price',
+				[
+					'orderby' => 'price',
+					'order'   => 'DESC',
+				],
+				false,
+				[
+					0 => [ 'meta._price.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'total_sales',
+				[
+					'orderby' => 'popularity',
+					'order'   => 'DESC',
+				],
+				false,
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'total_sales',
+				[],
+				'popularity',
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'regular_price',
+				[],
+				'price-desc',
+				[
+					0 => [ 'meta._price.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'average_rating',
+				[],
+				'rating',
+				[
+					0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'regular_price',
+				[],
+				'price',
+				[
+					0 => [ 'meta._price.double' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+				'asc',
+			],
+			[
+				'sku',
+				[],
+				'sku',
+				[
+					0 => [ 'meta._sku.value.sortable' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+				'asc',
+			],
+			[
+				'name',
+				[],
+				'title',
+				[
+					0 => [ 'post_title.sortable' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+				'asc',
+			],
+			[
+				'',
+				[],
+				'default',
+				[
+					0 => [ 'menu_order' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_title.sortable' => [ 'order' => 'asc' ] ],
+					2 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+			],
+			[ '', [], '', [ 0 => [ 'post_date' => [ 'order' => 'desc' ] ] ] ],
 		];
 	}
 
 	/**
 	 *  Test the product query order.
 	 *
+	 * @param string $product_arg_key Field slug
+	 * @param array  $query_args      Query array
+	 * @param bool   $query_string    Query string
+	 * @param array  $expected        Value expected
+	 * @param string $order           Order
 	 * @dataProvider productQueryOrderDataProvider
 	 * @since 4.5.0
 	 */
@@ -619,7 +722,7 @@ class TestWooCommerce extends BaseTestCase {
 			// mock the query as post type archive
 			add_action(
 				'parse_query',
-				function( \WP_Query $query ) : void {
+				function( \WP_Query $query ) {
 					$query->is_post_type_archive = true;
 				}
 			);
@@ -647,10 +750,10 @@ class TestWooCommerce extends BaseTestCase {
 		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
 		$this->assertEquals( 2, count( $query ) );
 
-		if ( 'asc' == $order ) {
+		if ( 'asc' === $order ) {
 			$this->assertEquals( $product_2, $query[0]->ID );
 			$this->assertEquals( $product_1, $query[1]->ID );
-		} elseif ( 'desc' == $order ) {
+		} elseif ( 'desc' === $order ) {
 			$this->assertEquals( $product_1, $query[0]->ID );
 			$this->assertEquals( $product_2, $query[1]->ID );
 		}
@@ -938,7 +1041,7 @@ class TestWooCommerce extends BaseTestCase {
 		// mock the query as post type archive
 		add_action(
 			'parse_query',
-			function( \WP_Query $query ) : void {
+			function( \WP_Query $query ) {
 				$query->is_post_type_archive = true;
 			}
 		);
@@ -1002,7 +1105,8 @@ class TestWooCommerce extends BaseTestCase {
 			]
 		);
 
-		$this->assertObjectNotHasAttribute( 'elasticsearch', $posts[0] );
+		$properties = get_object_vars( $posts[0] );
+		$this->assertArrayNotHasKey( 'elasticsearch', $properties );
 	}
 
 	/**
@@ -1054,7 +1158,7 @@ class TestWooCommerce extends BaseTestCase {
 	 */
 	public function testIsOrdersAutosuggestEnabled() {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
-	
+
 		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
 
 		/**

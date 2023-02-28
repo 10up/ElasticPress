@@ -74,7 +74,6 @@ class EP_Uninstaller {
 	 * Perform some checks to make sure plugin can/should be uninstalled
 	 *
 	 * @since 1.7
-	 * @return EP_Uninstaller
 	 */
 	public function __construct() {
 
