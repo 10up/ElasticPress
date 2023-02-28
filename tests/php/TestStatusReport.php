@@ -59,7 +59,7 @@ class TestStatusReport extends BaseTestCase {
 	public function testGetReportsSkipped() {
 		$status_report = new StatusReport();
 
-		parse_str( 'ep-skip-reports[]=wordpress&ep-skip-reports[]=indexable', $_GET );
+		parse_str( 'ep-skip-reports[]=WordPress&ep-skip-reports[]=indexable', $_GET );
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(

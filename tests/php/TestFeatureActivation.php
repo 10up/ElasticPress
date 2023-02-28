@@ -274,11 +274,11 @@ class TestFeatureActivation extends BaseTestCase {
 			'setting_3' => 'custom_string',
 		];
 
-        $filter = function() use ( $new_values ) {
-            return [
-                'test' => $new_values,
-            ];
-        };
+		$filter = function() use ( $new_values ) {
+			return [
+				'test' => $new_values,
+			];
+		};
 		add_filter( 'pre_site_option_ep_feature_settings', $filter );
 		add_filter( 'pre_option_ep_feature_settings', $filter );
 
@@ -302,14 +302,14 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
 		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
 
-        $filter = function() {
-            return [
-                'test' => [
-                    'setting_1' => 456,
-                    'setting_3' => 'new_string',
-                ],
-            ];
-        };
+		$filter = function() {
+			return [
+				'test' => [
+					'setting_1' => 456,
+					'setting_3' => 'new_string',
+				],
+			];
+		};
 		add_filter( 'pre_site_option_ep_feature_settings', $filter );
 		add_filter( 'pre_option_ep_feature_settings', $filter );
 

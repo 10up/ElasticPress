@@ -614,7 +614,6 @@ class TestAdminNotices extends BaseTestCase {
 
 	/**
 	 * Tests notice is show when number of posts linked with term is greater than number of items per cycle.
-	 *
 	 */
 	public function testNumberOfPostsBiggerThanItemPerCycle() {
 
@@ -622,17 +621,20 @@ class TestAdminNotices extends BaseTestCase {
 
 		// set global variables.
 		$pagenow = 'edit-tags.php';
-		$tax = get_taxonomy( 'category' );
+		$tax     = get_taxonomy( 'category' );
 
 		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
-		$term = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
-		$this->posts = $this->factory->post->create_many( $number_of_posts, [
-			'tax_input' => [
-				'category' => [
-					$term->term_id,
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
 				],
-			],
-		] );
+			]
+		);
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 

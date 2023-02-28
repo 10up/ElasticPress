@@ -60,7 +60,7 @@ class TestElasticsearch extends BaseTestCase {
 	 */
 	public function testGetDocuments() {
 
-		$post_ids = array();
+		$post_ids   = array();
 		$post_ids[] = $this->ep_factory->post->create();
 		$post_ids[] = $this->ep_factory->post->create();
 
@@ -90,7 +90,7 @@ class TestElasticsearch extends BaseTestCase {
 		$this->assertIsArray( $documents );
 		$this->assertEmpty( $documents );
 
-		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', []  );
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', [] );
 
 		$this->assertIsArray( $documents );
 		$this->assertEmpty( $documents );
@@ -139,7 +139,6 @@ class TestElasticsearch extends BaseTestCase {
 			->setMethods( [ 'get_index_settings' ] )
 			->getMock();
 
-
 		$wrong_settings = [ '' ];
 		$right_settings = [
 			$index_name => [
@@ -157,12 +156,12 @@ class TestElasticsearch extends BaseTestCase {
 		 * 4. get_index_settings returns what we expect
 		 */
 		$elasticsearch_mock->expects( $this->exactly( 3 ) )
-             ->method( 'get_index_settings' )
-			 ->willReturnOnConsecutiveCalls(
+			 ->method( 'get_index_settings' )
+			->willReturnOnConsecutiveCalls(
 				[ new \WP_Error() ],
 				$wrong_settings,
 				$right_settings
-			 );
+			);
 
 		/**
 		 * Test when cached

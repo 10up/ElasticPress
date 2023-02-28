@@ -42,14 +42,13 @@ class ProductFactory extends \WP_UnitTest_Factory_For_Post {
 		$product = new \WC_Product_Simple();
 
 		$default_props = array(
-				'manage_stock' => false,
-				'tax_status'   => 'taxable',
-				'downloadable' => false,
-				'virtual'      => false,
-				'stock_status' => 'instock',
-				'weight'       => '1.1',
+			'manage_stock' => false,
+			'tax_status'   => 'taxable',
+			'downloadable' => false,
+			'virtual'      => false,
+			'stock_status' => 'instock',
+			'weight'       => '1.1',
 		);
-
 
 		$product->set_props( array_merge( $default_props, $args ) );
 		$product->save();

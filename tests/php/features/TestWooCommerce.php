@@ -572,18 +572,116 @@ class TestWooCommerce extends BaseTestCase {
 	 */
 	public function productQueryOrderDataProvider() : array {
 		return [
-			[ 'total_sales', [ 'meta_key' => 'total_sales' ], false, [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'average_rating', [ 'meta_key' => '_wc_average_rating' ], false,  [ 0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'regular_price', [ 'orderby' => 'price', 'order'   => 'DESC', ], false,  [ 0 => [ 'meta._price.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[  'total_sales', [ 'orderby' => 'popularity', 'order'   => 'DESC', ], false, [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'total_sales', [], 'popularity',  [ 0 => [ 'meta.total_sales.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[  'regular_price', [], 'price-desc',  [ 0 => [ 'meta._price.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'average_rating', [], 'rating',  [ 0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc', ] ], 1 => [ 'post_date' => [ 'order' => 'desc', ] ] ] ],
-			[ 'regular_price', [], 'price',  [ 0 => [ 'meta._price.double' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
-			[ 'sku', [], 'sku',  [ 0 => [ 'meta._sku.value.sortable' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
-			[ 'name', [], 'title',  [ 0 => [ 'post_title.sortable' => [ 'order' => 'asc', ] ], 1 => [ 'post_date' => [ 'order' => 'asc', ] ] ], 'asc' ],
-			[ '', [], 'default',  [ 0 => [ 'menu_order' => [ 'order' => 'asc', ] ], 1 => [ 'post_title.sortable' => [ 'order' => 'asc', ] ], 2 => [ 'post_date' => [ 'order' => 'asc', ] ] ], ],
-			[ '', [], '',  [ 0 => [ 'post_date' => [ 'order' => 'desc', ] ] ], ],
+			[
+				'total_sales',
+				[ 'meta_key' => 'total_sales' ],
+				false,
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'average_rating',
+				[ 'meta_key' => '_wc_average_rating' ],
+				false,
+				[
+					0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'regular_price',
+				[
+					'orderby' => 'price',
+					'order'   => 'DESC',
+				],
+				false,
+				[
+					0 => [ 'meta._price.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'total_sales',
+				[
+					'orderby' => 'popularity',
+					'order'   => 'DESC',
+				],
+				false,
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'total_sales',
+				[],
+				'popularity',
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'regular_price',
+				[],
+				'price-desc',
+				[
+					0 => [ 'meta._price.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'average_rating',
+				[],
+				'rating',
+				[
+					0 => [ 'meta._wc_average_rating.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+			],
+			[
+				'regular_price',
+				[],
+				'price',
+				[
+					0 => [ 'meta._price.double' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+				'asc',
+			],
+			[
+				'sku',
+				[],
+				'sku',
+				[
+					0 => [ 'meta._sku.value.sortable' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+				'asc',
+			],
+			[
+				'name',
+				[],
+				'title',
+				[
+					0 => [ 'post_title.sortable' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+				'asc',
+			],
+			[
+				'',
+				[],
+				'default',
+				[
+					0 => [ 'menu_order' => [ 'order' => 'asc' ] ],
+					1 => [ 'post_title.sortable' => [ 'order' => 'asc' ] ],
+					2 => [ 'post_date' => [ 'order' => 'asc' ] ],
+				],
+			],
+			[ '', [], '', [ 0 => [ 'post_date' => [ 'order' => 'desc' ] ] ] ],
 		];
 	}
 
@@ -1054,7 +1152,7 @@ class TestWooCommerce extends BaseTestCase {
 	 */
 	public function testIsOrdersAutosuggestEnabled() {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
-	
+
 		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
 
 		/**

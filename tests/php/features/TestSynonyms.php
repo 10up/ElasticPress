@@ -16,10 +16,10 @@ use ElasticPress\Feature\Search\Synonyms;
 class TestSynonyms extends BaseTestCase {
 
 		/**
-	 * Setup each test.
-	 *
-	 * @since 3.5
-	 */
+		 * Setup each test.
+		 *
+		 * @since 3.5
+		 */
 	public function set_up() {
 		global $wpdb;
 		parent::set_up();
@@ -80,7 +80,6 @@ class TestSynonyms extends BaseTestCase {
 		$instance = $this->getFeature();
 
 		$synonyms = $instance->get_synonyms();
-
 
 		// For some reason, the greater-than gets encoded during the multi-site
 		// tests but not the single-site tests. This updates the encoding so

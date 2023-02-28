@@ -7,4 +7,9 @@
  * License:     GPLv2 or later
  */
 
-add_filter( 'ep_instant_results_per_page', function() { return 3; } );
+add_filter(
+	'ep_instant_results_per_page',
+	function() {
+		return 3;
+	}
+);

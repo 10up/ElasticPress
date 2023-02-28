@@ -102,9 +102,10 @@ class TestRelatedPosts extends BaseTestCase {
 		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
 
 		$related_post_title = 'related post test';
-		$this->ep_factory->post->create( array(
+		$this->ep_factory->post->create(
+			array(
 				'post_title'   => $related_post_title,
-				'post_content' => 'findme test 2'
+				'post_content' => 'findme test 2',
 			)
 		);
 

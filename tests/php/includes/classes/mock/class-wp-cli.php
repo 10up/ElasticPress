@@ -105,8 +105,8 @@ class WP_CLI {
 	 * @return object
 	 */
 	public static function get_runner() {
-		$runner = new stdClass();
-		$runner->arguments = [];
+		$runner             = new stdClass();
+		$runner->arguments  = [];
 		$runner->assoc_args = [];
 		return $runner;
 	}
