@@ -136,6 +136,10 @@ class Block {
 	 * @return string
 	 */
 	public function render_block_preview( $request ) {
+		global $wp_query;
+
+		add_filter( 'ep_is_facetable', '__return_true' );
+
 		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
 		$facets = \ElasticPress\Features::factory()->get_registered_feature( 'facets' );
 
@@ -150,13 +154,11 @@ class Block {
 			}
 		);
 
-		$query = new \WP_Query(
-			[
-				'ep_is_facetable' => true,
-				'post_type'       => $search->get_searchable_post_types(),
-				'per_page'        => 1,
-			]
-		);
+		$args = [
+			'post_type'      => $search->get_searchable_post_types(),
+			'posts_per_page' => 1,
+		];
+		$wp_query->query( $args );
 
 		$min_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_min';
 		$max_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_max';
