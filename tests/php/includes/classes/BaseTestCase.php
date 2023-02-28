@@ -120,6 +120,11 @@ class BaseTestCase extends WP_UnitTestCase {
 		register_post_type( 'ep_test_not_public', $args );
 	}
 
+	/**
+	 * Utilitary function to check if EP is network activated or not.
+	 *
+	 * @return boolean
+	 */
 	public function is_network_activate() {
 		return defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 	}

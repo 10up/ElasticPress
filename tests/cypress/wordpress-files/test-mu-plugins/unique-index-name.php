@@ -1,4 +1,9 @@
 <?php
+/**
+ * Plugin Name: E2e Tweaks
+ *
+ * @package ElasticPress_Tests_E2e
+ */
 
 add_filter(
 	'ep_index_name',
@@ -18,7 +23,7 @@ add_action(
 	function() {
 		printf(
 			'<div id="docker-cid">%s</div>',
-			get_docker_cid()
+			get_docker_cid() // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 	}
 );
@@ -34,7 +39,7 @@ add_action(
 function get_docker_cid() {
 	$docker_cid = get_site_option( 'ep_tests_docker_cid', '' );
 	if ( ! $docker_cid ) {
-		$docker_cid = exec( 'cat /etc/hostname' );
+		$docker_cid = exec( 'cat /etc/hostname' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec
 		update_site_option( 'ep_tests_docker_cid', $docker_cid );
 	}
 	return $docker_cid;

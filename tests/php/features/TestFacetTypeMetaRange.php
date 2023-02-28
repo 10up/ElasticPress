@@ -15,6 +15,11 @@ use ElasticPress\Features as Features;
  */
 class TestFacetTypeMetaRange extends BaseTestCase {
 
+	/**
+	 * The facet type instance
+	 *
+	 * @var null|\ElasticPress\Feature\Facets\Types\MetaRange\FacetType
+	 */
 	protected $facet_type = null;
 
 	/**

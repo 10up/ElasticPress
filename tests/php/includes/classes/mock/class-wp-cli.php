@@ -1,5 +1,13 @@
 <?php
 /**
+ * WP_CLI Mock
+ *
+ * phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
+ *
+ * @package elasticpress
+ */
+
+/**
  * Various utilities for WP-CLI commands.
  */
 class WP_CLI {
@@ -7,7 +15,7 @@ class WP_CLI {
 	/**
 	 * Display a log message
 	 *
-	 * @param message Message to display to the end user.
+	 * @param string $message Message to display to the end user.
 	 */
 	public static function log( $message ) {
 		print $message;
@@ -16,7 +24,7 @@ class WP_CLI {
 	/**
 	 * Display a success message.
 	 *
-	 * @param message Message to display to the end user.
+	 * @param string $message Message to display to the end user.
 	 */
 	public static function success( $message ) {
 		print $message;
@@ -25,8 +33,8 @@ class WP_CLI {
 	/**
 	 * Display debug message.
 	 *
-	 * @param message Message to display to the end user.
-	 * @param boolean                                    $group
+	 * @param string  $message Message to display to the end user.
+	 * @param boolean $group   Group
 	 */
 	public static function debug( $message, $group = false ) {
 		print $message;
@@ -35,7 +43,7 @@ class WP_CLI {
 	/**
 	 * Display warning message
 	 *
-	 * @param message Message to display to the end user.
+	 * @param string $message Message to display to the end user.
 	 */
 	public static function warning( $message ) {
 		print $message;
@@ -44,9 +52,10 @@ class WP_CLI {
 	/**
 	 * Display error message.
 	 *
-	 * @param string $message
-	 *
-	 * @return Exception
+	 * @param string  $message Message to display to the end user.
+	 * @param boolean $exit    Whether exit or not.
+	 * @return void
+	 * @throws Exception Exception
 	 */
 	public static function error( $message, $exit = true ) {
 
@@ -81,6 +90,8 @@ class WP_CLI {
 	 *
 	 * @param string $message Question to display before the prompt.
 	 * @param array  $args Skips prompt if 'yes' is provided.
+	 * @return void
+	 * @throws Exception Exception
 	 */
 	public static function confirm( $message, $args = [] ) {
 

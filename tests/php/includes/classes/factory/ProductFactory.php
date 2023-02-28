@@ -2,7 +2,9 @@
 /**
  * Class for Product factory. Inspired by WooCommerce's WC_Helper_Product class.
  *
- * @package  elasticpress
+ * phpcs:disable WordPress.WP.AlternativeFunctions.rand_rand
+ *
+ * @package elasticpress
  */
 
 namespace ElasticPressTest;

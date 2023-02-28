@@ -38,7 +38,7 @@
     "yoast/phpunit-polyfills": "^1.0"
   },
   "scripts": {
-    "lint": "phpcs . --runtime-set testVersion 7.0-",
+    "lint": "phpcs . -s --runtime-set testVersion 7.0-",
     "lint-fix": "phpcbf .",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",

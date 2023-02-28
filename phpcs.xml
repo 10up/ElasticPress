@@ -6,4 +6,8 @@
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
   </rule>
   <rule ref="PHPCompatibilityWP" />
+
+  <rule ref="WordPress.Security.NonceVerification.Recommended">
+      <exclude-pattern>/tests/*.php</exclude-pattern>
+  </rule>
 </ruleset>
