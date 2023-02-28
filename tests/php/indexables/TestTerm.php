@@ -252,7 +252,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$properties = get_object_vars( $term_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
@@ -1000,7 +1001,9 @@ class TestTerm extends BaseTestCase {
 				]
 			);
 
-			$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+
+			$properties = get_object_vars( $term_query );
+			$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 
 			$wp_slugs[ $query_type ] = array_values( $term_query->terms );
 
@@ -1440,16 +1443,18 @@ class TestTerm extends BaseTestCase {
 
 		$term->remap_terms( $new_term );
 
-		$this->assertObjectHasAttribute( 'ID', $new_term );
-		$this->assertObjectHasAttribute( 'term_id', $new_term );
-		$this->assertObjectHasAttribute( 'name', $new_term );
-		$this->assertObjectHasAttribute( 'slug', $new_term );
-		$this->assertObjectHasAttribute( 'term_group', $new_term );
-		$this->assertObjectHasAttribute( 'term_taxonomy_id', $new_term );
-		$this->assertObjectHasAttribute( 'taxonomy', $new_term );
-		$this->assertObjectHasAttribute( 'description', $new_term );
-		$this->assertObjectHasAttribute( 'parent', $new_term );
-		$this->assertObjectHasAttribute( 'count', $new_term );
+		
+		$properties = get_object_vars( $new_term );
+		$this->assertArrayHasKey( 'ID', $new_term );
+		$this->assertArrayHasKey( 'term_id', $new_term );
+		$this->assertArrayHasKey( 'name', $new_term );
+		$this->assertArrayHasKey( 'slug', $new_term );
+		$this->assertArrayHasKey( 'term_group', $new_term );
+		$this->assertArrayHasKey( 'term_taxonomy_id', $new_term );
+		$this->assertArrayHasKey( 'taxonomy', $new_term );
+		$this->assertArrayHasKey( 'description', $new_term );
+		$this->assertArrayHasKey( 'parent', $new_term );
+		$this->assertArrayHasKey( 'count', $new_term );
 
 		$this->assertSame( $new_term->ID, $current_term->term_id );
 		$this->assertSame( $new_term->term_id, $current_term->term_id );
@@ -1699,7 +1704,9 @@ class TestTerm extends BaseTestCase {
 				'hide_empty'   => false,
 			]
 		);
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+
+		$properties = get_object_vars( $term_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 		$this->assertEquals( 2, count( $term_query->terms ) );
 
 		$this->ep_factory->term->create_many( '2', array( 'taxonomy' => 'post_tag' ) );
@@ -1712,7 +1719,9 @@ class TestTerm extends BaseTestCase {
 				'hide_empty'   => false,
 			]
 		);
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+
+		$properties = get_object_vars( $term_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 		$this->assertEquals( 4, count( $term_query->terms ) );
 	}
 }

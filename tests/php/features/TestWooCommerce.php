@@ -1105,7 +1105,8 @@ class TestWooCommerce extends BaseTestCase {
 			]
 		);
 
-		$this->assertObjectNotHasAttribute( 'elasticsearch', $posts[0] );
+		$properties = get_object_vars( $posts[0]);
+		$this->assertArrayNotHasKey( 'elasticsearch', $properties );
 	}
 
 	/**
