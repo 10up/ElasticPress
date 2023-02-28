@@ -137,7 +137,7 @@ class TestUtils extends BaseTestCase {
 		$creds = \ElasticPress\Utils\sanitize_credentials(
 			[
 				'username' => '<strong>hello</strong> world',
-				'token' => 'able <script>alert("baker");</script>',
+				'token'    => 'able <script>alert("baker");</script>',
 			]
 		);
 
@@ -153,7 +153,7 @@ class TestUtils extends BaseTestCase {
 		$creds = \ElasticPress\Utils\sanitize_credentials(
 			[
 				'username' => 'my-user-name',
-				'token' => 'my-token',
+				'token'    => 'my-token',
 			]
 		);
 
@@ -220,7 +220,7 @@ class TestUtils extends BaseTestCase {
 
 	/**
 	 * Test the `get_request_id_base` function
-	 * 
+	 *
 	 * @since 4.5.0
 	 */
 	public function testGetRequestIdBase() {

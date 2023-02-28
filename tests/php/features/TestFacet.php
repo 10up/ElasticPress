@@ -56,7 +56,14 @@ class TestFacet extends BaseTestCase {
 
 		parse_str( 'ep_filter_taxonomy=dolor,sit', $_GET );
 		$selected = $facet_feature->get_selected();
-		$this->assertSelectedTax( [ 'dolor' => true, 'sit' => true ], 'taxonomy', $selected );
+		$this->assertSelectedTax(
+			[
+				'dolor' => true,
+				'sit'   => true,
+			],
+			'taxonomy',
+			$selected
+		);
 
 		parse_str( 'ep_filter_taxonomy=dolor,sit&ep_filter_othertax=amet', $_GET );
 		$selected = $facet_feature->get_selected();
@@ -66,7 +73,13 @@ class TestFacet extends BaseTestCase {
 		$this->assertCount( 2, $selected['taxonomies'] );
 		$this->assertArrayHasKey( 'taxonomy', $selected['taxonomies'] );
 		$this->assertArrayHasKey( 'othertax', $selected['taxonomies'] );
-		$this->assertSame( [ 'dolor' => true, 'sit' => true ], $selected['taxonomies']['taxonomy']['terms'] );
+		$this->assertSame(
+			[
+				'dolor' => true,
+				'sit'   => true,
+			],
+			$selected['taxonomies']['taxonomy']['terms']
+		);
 		$this->assertSame( [ 'amet' => true ], $selected['taxonomies']['othertax']['terms'] );
 
 		parse_str( 's=searchterm&ep_filter_taxonomy=dolor', $_GET );
@@ -107,10 +120,10 @@ class TestFacet extends BaseTestCase {
 			'taxonomies' => [
 				'category' => [
 					'terms' => [
-						'augue' => 1
-					]
-				]
-			]
+						'augue' => 1,
+					],
+				],
+			],
 		];
 
 		$this->assertEquals( '/?ep_filter_category=augue', $facet_feature->build_query_url( $filters ) );
@@ -124,10 +137,10 @@ class TestFacet extends BaseTestCase {
 				'category' => [
 					'terms' => [
 						'augue'       => 1,
-						'consectetur' => 1
-					]
-				]
-			]
+						'consectetur' => 1,
+					],
+				],
+			],
 		];
 
 		$this->assertEquals( '/?ep_filter_category=augue,consectetur', $facet_feature->build_query_url( $filters ) );
@@ -176,8 +189,8 @@ class TestFacet extends BaseTestCase {
 
 		$args = [
 			'aggs' => [
-				'terms' => []
-			]
+				'terms' => [],
+			],
 		];
 
 		$query_args = [];
@@ -193,7 +206,7 @@ class TestFacet extends BaseTestCase {
 		 * query.
 		 */
 		remove_all_filters( 'ep_facet_agg_filters' );
-		$query_args    = [
+		$query_args = [
 			'ep_facet'    => 1,
 			'post_type'   => 'post',
 			'post_status' => 'publish',

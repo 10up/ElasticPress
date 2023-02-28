@@ -14,8 +14,18 @@ use ElasticPress;
  * WC Orders test class
  */
 class TestWooCommerceOrders extends BaseTestCase {
+	/**
+	 * Instance of the feature
+	 *
+	 * @var ElasticPress\Feature\WooCommerce\WooCommerce
+	 */
 	public $woocommerce_feature;
 
+	/**
+	 * Orders instance
+	 *
+	 * @var \ElasticPress\Feature\WooCommerce\Orders
+	 */
 	public $orders;
 
 	/**
@@ -30,7 +40,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 
 		$this->woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 		if ( empty( $this->woocommerce_feature->orders ) ) {
-			$this->woocommerce_feature->orders = new \ElasticPress\Feature\WooCommerce\Orders;
+			$this->woocommerce_feature->orders = new \ElasticPress\Feature\WooCommerce\Orders();
 		}
 
 		ElasticPress\Features::factory()->setup_features();
@@ -48,16 +58,16 @@ class TestWooCommerceOrders extends BaseTestCase {
 			'ID'        => 123,
 			'post_type' => 'shop_order',
 			'meta'      => [
-				'_billing_email'       => [
-					[ 'value' => '_billing_email_example', ],
+				'_billing_email'      => [
+					[ 'value' => '_billing_email_example' ],
 				],
-				'_billing_last_name'   => [
-					[ 'value' => '_billing_last_name_example', ],
+				'_billing_last_name'  => [
+					[ 'value' => '_billing_last_name_example' ],
 				],
-				'_billing_first_name'  => [
-					[ 'value' => '_billing_first_name_example', ],
+				'_billing_first_name' => [
+					[ 'value' => '_billing_first_name_example' ],
 				],
-			]
+			],
 		];
 
 		$order_with_suggest = $this->orders->filter_term_suggest( $order );
@@ -67,7 +77,13 @@ class TestWooCommerceOrders extends BaseTestCase {
 		$this->assertContains( '_billing_last_name_example', $order_with_suggest['term_suggest'] );
 		$this->assertContains( '_billing_first_name_example', $order_with_suggest['term_suggest'] );
 
-		$this->assertSame( [ 'raw' => 123, 'value' => 123 ], $order_with_suggest['meta']['order_number'][0] );
+		$this->assertSame(
+			[
+				'raw'   => 123,
+				'value' => 123,
+			],
+			$order_with_suggest['meta']['order_number'][0]
+		);
 
 		unset( $order['post_type'] );
 		$order_with_suggest = $this->orders->filter_term_suggest( $order );
@@ -85,23 +101,29 @@ class TestWooCommerceOrders extends BaseTestCase {
 
 	/**
 	 * Test the `filter_term_suggest` method with some Order Id changes
-	 * 
+	 *
 	 * This method steps into WooCommerce functionality a bit.
 	 *
 	 * @group WooCommerceOrders
 	 */
 	public function testFilterTermSuggestWithCustomOrderId() {
 		$shop_order_1 = new \WC_Order();
-		$shop_order_1->set_billing_email('test@domain.com');
-		$shop_order_1->set_billing_first_name('John');
-		$shop_order_1->set_billing_last_name('Doe');
+		$shop_order_1->set_billing_email( 'test@domain.com' );
+		$shop_order_1->set_billing_first_name( 'John' );
+		$shop_order_1->set_billing_last_name( 'Doe' );
 		$shop_order_1->save();
 		$shop_order_id_1 = (string) $shop_order_1->get_id();
 
 		$prepared_shop_order = ElasticPress\Indexables::factory()->get( 'post' )->prepare_document( $shop_order_id_1 );
 		$order_with_suggest  = $this->orders->filter_term_suggest( $prepared_shop_order );
 
-		$this->assertSame( [ 'raw' => $shop_order_id_1, 'value' => $shop_order_id_1 ], $order_with_suggest['meta']['order_number'][0] );
+		$this->assertSame(
+			[
+				'raw'   => $shop_order_id_1,
+				'value' => $shop_order_id_1,
+			],
+			$order_with_suggest['meta']['order_number'][0]
+		);
 
 		/**
 		 * Set a custom Order Number
@@ -114,7 +136,10 @@ class TestWooCommerceOrders extends BaseTestCase {
 		$order_with_suggest = $this->orders->filter_term_suggest( $prepared_shop_order );
 
 		$this->assertSame(
-			[ 'raw' => 'custom-' . $shop_order_id_1, 'value' => 'custom-' . $shop_order_id_1 ],
+			[
+				'raw'   => 'custom-' . $shop_order_id_1,
+				'value' => 'custom-' . $shop_order_id_1,
+			],
 			$order_with_suggest['meta']['order_number'][0]
 		);
 	}
@@ -129,10 +154,10 @@ class TestWooCommerceOrders extends BaseTestCase {
 			'mappings' => [
 				'properties' => [
 					'post_content' => [ 'type' => 'text' ],
-				]
-			]
+				],
+			],
 		];
-		$changed_mapping = $this->orders->mapping( $original_mapping );
+		$changed_mapping  = $this->orders->mapping( $original_mapping );
 
 		$expected_mapping = [
 			'mappings' => [
@@ -143,7 +168,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 						'analyzer'        => 'edge_ngram_analyzer',
 						'search_analyzer' => 'standard',
 					],
-				]
+				],
 			],
 			'settings' => [
 				'analysis' => [
@@ -225,8 +250,8 @@ class TestWooCommerceOrders extends BaseTestCase {
 	 * @group WooCommerceOrders
 	 */
 	public function testSetSearchFields() {
-		$original_search_fields = [ 'old_search_field', ];
-		
+		$original_search_fields = [ 'old_search_field' ];
+
 		$wp_query = new \WP_Query(
 			[
 				'ep_integrate'             => true,

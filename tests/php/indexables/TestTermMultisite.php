@@ -9,8 +9,10 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Test multisite term indexable class
+ */
 class TestTermMultisite extends BaseTestCase {
-
 
 	/**
 	 * Setup each test.

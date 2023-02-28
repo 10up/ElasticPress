@@ -38,7 +38,7 @@ class TestIndexHelper extends BaseTestCase {
 
 		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_sync_args' ) );
 	}
-	
+
 	/**
 	 * Test get_index_default_per_page
 	 *
