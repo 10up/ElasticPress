@@ -49,7 +49,7 @@ class ElasticPressIo {
 		$response = \ElasticPress\Elasticsearch::factory()->remote_request( 'endpoint-messages' );
 		$messages = (array) json_decode( wp_remote_retrieve_body( $response ), true );
 
-		set_transient( $transient, $messages, DAY_IN_SECONDS );
+		set_transient( $transient, $messages, HOUR_IN_SECONDS );
 
 		return $messages;
 	}
