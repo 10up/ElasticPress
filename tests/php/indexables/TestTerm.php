@@ -1001,7 +1001,6 @@ class TestTerm extends BaseTestCase {
 				]
 			);
 
-
 			$properties = get_object_vars( $term_query );
 			$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 
@@ -1443,7 +1442,6 @@ class TestTerm extends BaseTestCase {
 
 		$term->remap_terms( $new_term );
 
-		
 		$properties = get_object_vars( $new_term );
 		$this->assertArrayHasKey( 'ID', $new_term );
 		$this->assertArrayHasKey( 'term_id', $new_term );
