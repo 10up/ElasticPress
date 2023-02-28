@@ -208,6 +208,7 @@ Thank you to all the people who have already contributed to this repository via 
 [@anders-naslund](https://github.com/anders-naslund),
 [Paolo Burzacca (@paoloburzacca)](https://github.com/paoloburzacca),
 [Anjula Hettige (@anjulahettige)](https://github.com/anjulahettige),
+[Mayank Chugh (@iamchughmayank)](https://github.com/iamchughmayank),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

@@ -160,44 +160,25 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function mapping( $mapping ) {
-		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
-			'type'      => 'custom',
-			'tokenizer' => 'standard',
-			'filter'    => array(
-				'lowercase',
-				'edge_ngram',
-			),
-		);
+		$post_indexable = Indexables::factory()->get( 'post' );
 
+		$mapping = $post_indexable->add_ngram_analyzer( $mapping );
+		$mapping = $post_indexable->add_term_suggest_field( $mapping );
+
+		// Note the assignment by reference below.
 		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-			$text_type = $mapping['mappings']['post']['properties']['post_content']['type'];
-
-			$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
-
-			$mapping['mappings']['post']['properties']['term_suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
+			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
-			$text_type = $mapping['mappings']['properties']['post_content']['type'];
-
-			$mapping['mappings']['properties']['post_title']['fields']['suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
-
-			$mapping['mappings']['properties']['term_suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
+			$mapping_properties = &$mapping['mappings']['properties'];
 		}
+
+		$text_type = $mapping_properties['post_content']['type'];
+
+		$mapping_properties['post_title']['fields']['suggest'] = array(
+			'type'            => $text_type,
+			'analyzer'        => 'edge_ngram_analyzer',
+			'search_analyzer' => 'standard',
+		);
 
 		return $mapping;
 	}
@@ -458,6 +439,7 @@ class Autosuggest extends Feature {
 			'http_headers'        => apply_filters( 'ep_autosuggest_http_headers', [] ),
 			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
 			'addSearchTermHeader' => false,
+			'requestIdBase'       => Utils\get_request_id_base(),
 		];
 
 		if ( Utils\is_epio() ) {

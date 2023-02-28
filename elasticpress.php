@@ -140,23 +140,31 @@ function register_indexable_posts() {
 		new Feature\Documents\Documents()
 	);
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Comments\Comments()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\Comments\Comments()
+	);
 
-	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+	/**
+	 * Filter whether the Users feature should be registered or not.
+	 *
+	 * The Users feature is going to be migrated to ElasticPress Labs. If EP Labs is enabled
+	 * and in a more recent version, it will change this to false and load its own version
+	 * of the Users feature.
+	 *
+	 * @hook ep_user_register_feature
+	 * @since 4.5.0
+	 * @param {bool} $version Version
+	 * @return {bool} New version
+	 */
+	if ( apply_filters( 'ep_user_register_feature', true ) ) {
 		Features::factory()->register_feature(
 			new Feature\Users\Users()
 		);
 	}
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Terms\Terms()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\Terms\Terms()
+	);
 
 	/**
 	 * Register search algorithms
@@ -244,6 +252,17 @@ function setup_misc() {
 	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
+
+/**
+ * Set up role(s) with EP capability
+ */
+function setup_roles() {
+	// add custom capabilities to admin role
+	$role = get_role( 'administrator' );
+
+	$role->add_cap( Utils\get_capability() );
+}
+register_activation_hook( __FILE__, __NAMESPACE__ . '\setup_roles' );
 
 /**
  * Fires after Elasticpress plugin is loaded

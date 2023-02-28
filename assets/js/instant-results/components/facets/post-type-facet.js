@@ -1,16 +1,16 @@
 /**
  * WordPress dependencies.
  */
-import { useCallback, useContext, useMemo, WPElement } from '@wordpress/element';
+import { useCallback, useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
 import { postTypeLabels } from '../../config';
-import Context from '../../context';
-import Panel from '../common/panel';
 import CheckboxList from '../common/checkbox-list';
+import Panel from '../common/panel';
 import { ActiveContraint } from '../tools/active-constraints';
 
 /**
@@ -23,13 +23,11 @@ import { ActiveContraint } from '../tools/active-constraints';
  */
 export default ({ defaultIsOpen, label }) => {
 	const {
-		state: {
-			aggregations: { post_type: { post_type: { buckets = [] } = {} } = {} },
-			args: { post_type: selectedPostTypes = [] },
-			isLoading,
-		},
-		dispatch,
-	} = useContext(Context);
+		aggregations: { post_type: { post_type: { buckets = [] } = {} } = {} },
+		args: { post_type: selectedPostTypes = [] },
+		isLoading,
+		search,
+	} = useApiSearch();
 
 	/**
 	 * Create list of filter options from aggregation buckets.
@@ -71,7 +69,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * @param {string[]} postTypes Selected post types.
 	 */
 	const onChange = (postTypes) => {
-		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
+		search({ post_type: postTypes });
 	};
 
 	/**
@@ -85,7 +83,7 @@ export default ({ defaultIsOpen, label }) => {
 
 		postTypes.splice(index, 1);
 
-		dispatch({ type: 'APPLY_ARGS', payload: { post_type: postTypes } });
+		search({ post_type: postTypes });
 	};
 
 	return (

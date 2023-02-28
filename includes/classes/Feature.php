@@ -73,9 +73,17 @@ abstract class Feature {
 	 * True if the feature requires content reindexing after activating
 	 *
 	 * @since 2.1
-	 * @var [type]
+	 * @var bool
 	 */
-	public $requires_install_reindex;
+	public $requires_install_reindex = false;
+
+	/**
+	 * The slug of a setting that requires content reindexing after activating.
+	 *
+	 * @since 4.5.0
+	 * @var string
+	 */
+	public $setting_requires_install_reindex = '';
 
 	/**
 	 * The order in the features screen
@@ -101,6 +109,14 @@ abstract class Feature {
 	 * @var boolean
 	 */
 	public $available_during_installation = false;
+
+	/**
+	 * Whether the feature should be always visible in the dashboard
+	 *
+	 * @since 4.5.0
+	 * @var boolean
+	 */
+	protected $is_visible = true;
 
 	/**
 	 * Run on every page load for feature to set itself up
@@ -167,13 +183,30 @@ abstract class Feature {
 	/**
 	 * Return feature settings
 	 *
-	 * @since  2.2.1
-	 * @return array|bool
+	 * @since  2.2.1, 4.5.0 started using default settings
+	 * @return array
 	 */
 	public function get_settings() {
-		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
+		$all_settings = Utils\get_option( 'ep_feature_settings', [] );
 
-		return ( ! empty( $feature_settings[ $this->slug ] ) ) ? $feature_settings[ $this->slug ] : false;
+		$feature_settings = ( ! empty( $all_settings[ $this->slug ] ) ) ? (array) $all_settings[ $this->slug ] : [];
+
+		$feature_settings = wp_parse_args( $feature_settings, $this->default_settings );
+
+		return $feature_settings;
+	}
+
+	/**
+	 * Return a specific setting of the feature
+	 *
+	 * @since 4.5.0
+	 * @param string $setting_name The setting name
+	 * @return mixed
+	 */
+	public function get_setting( string $setting_name ) {
+		$settings = $this->get_settings();
+
+		return isset( $settings[ $setting_name ] ) ? $settings[ $setting_name ] : null;
 	}
 
 	/**
@@ -202,6 +235,21 @@ abstract class Feature {
 		 * @return {bool}  New active value
 		 */
 		return apply_filters( 'ep_feature_active', $active, $feature_settings, $this );
+	}
+
+	/**
+	 * Get the value of the setting that requires a reindex, if it exists.
+	 *
+	 * @since 4.5.0
+	 * @return mixed
+	 */
+	public function get_reindex_setting() {
+		$settings = $this->get_settings();
+		$setting  = $this->setting_requires_install_reindex;
+
+		return $settings && $setting && ! empty( $settings[ $setting ] )
+			? $settings[ $setting ]
+			: '';
 	}
 
 	/**
@@ -300,7 +348,7 @@ abstract class Feature {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
-			<?php if ( $this->requires_install_reindex ) : ?>
+			<?php if ( $this->requires_install_reindex || $this->setting_requires_install_reindex ) : ?>
 				<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
 					<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
 				</div>
@@ -342,6 +390,8 @@ abstract class Feature {
 				<input type="hidden" name="feature" value="<?php echo esc_attr( $this->slug ); ?>">
 				<input type="hidden" name="requires_reindex" value="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>">
 				<input type="hidden" name="was_active" value="<?php echo $this->is_active() ? '1' : '0'; ?>">
+				<input type="hidden" name="setting_requires_reindex" value="<?php echo esc_attr( $this->setting_requires_install_reindex ); ?>">
+				<input type="hidden" name="setting_requires_reindex_was" value="<?php echo esc_attr( $this->get_reindex_setting() ); ?>">
 				<?php wp_nonce_field( 'ep_dashboard_nonce', 'nonce' ); ?>
 
 				<button name="submit" <?php disabled( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ); ?> class="button button-primary" type="submit">
@@ -385,5 +435,39 @@ abstract class Feature {
 		}
 
 		return $this->get_title();
+	}
+
+	/**
+	 * Returns whether the feature is visible in the dashboard or not.
+	 *
+	 * By default, all active features are visible.
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_visible() {
+		/**
+		 * Filter whether a feature is visible or not in the dashboard.
+		 *
+		 * Example:
+		 * ```
+		 * add_filter(
+		 *     'ep_feature_is_visible',
+		 *     function ( $is_visible, $feature_slug ) {
+		 *         return 'terms' === $feature_slug ? true : $is_visible;
+		 *     },
+		 *     10,
+		 *     2
+		 * );
+		 * ```
+		 *
+		 * @hook ep_feature_is_visible
+		 * @param {bool}    $is_visible   True to display the feature
+		 * @param {string}  $feature_slug Feature slug
+		 * @param {Feature} $feature      Feature object
+		 * @since 4.5.0
+		 * @return {bool} New $is_visible value
+		 */
+		return apply_filters( 'ep_feature_is_visible', $this->is_visible || $this->is_active(), $this->slug, $this );
 	}
 }

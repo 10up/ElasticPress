@@ -64,6 +64,22 @@ abstract class Indexable {
 	public $support_indexing_advanced_pagination = false;
 
 	/**
+	 * Indexable slug
+	 *
+	 * @since 4.5.0
+	 * @var string
+	 */
+	public $slug = '';
+
+	/**
+	 * Indexable labels
+	 *
+	 * @since 4.5.0
+	 * @var array
+	 */
+	public $labels = [];
+
+	/**
 	 * Get number of bulk items to index per page
 	 *
 	 * @since  3.0
@@ -1246,5 +1262,32 @@ abstract class Indexable {
 		}
 
 		return $values;
+	}
+
+	/**
+	 * Should instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
+	 *
+	 * @since 4.5.0
+	 */
+	public function setup() {}
+
+	/**
+	 * Given a mapping, add the ngram analyzer to it
+	 *
+	 * @since 4.5.0
+	 * @param array $mapping The mapping
+	 * @return array
+	 */
+	public function add_ngram_analyzer( array $mapping ) : array {
+		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
+			'type'      => 'custom',
+			'tokenizer' => 'standard',
+			'filter'    => array(
+				'lowercase',
+				'edge_ngram',
+			),
+		);
+
+		return $mapping;
 	}
 }

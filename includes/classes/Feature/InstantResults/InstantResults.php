@@ -86,6 +86,7 @@ class InstantResults extends Feature {
 			'facets'        => 'post_type,category,post_tag',
 			'match_type'    => 'all',
 			'term_count'    => '1',
+			'per_page'      => get_option( 'posts_per_page', 6 ),
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -316,6 +317,7 @@ class InstantResults extends Feature {
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
 				'termCount'      => $this->settings['term_count'],
+				'requestIdBase'  => Utils\get_request_id_base(),
 			)
 		);
 	}
@@ -945,6 +947,15 @@ class InstantResults extends Feature {
 	 * @return array Search args schema.
 	 */
 	public function get_args_schema() {
+		/**
+		 * The number of resutls per page for Instant Results.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_instant_results_per_page
+		 * @param {int} $per_page Results per page.
+		 */
+		$per_page = apply_filters( 'ep_instant_results_per_page', $this->settings['per_page'] );
+
 		$args = array(
 			'highlight' => array(
 				'type'          => 'string',
@@ -967,7 +978,7 @@ class InstantResults extends Feature {
 			),
 			'per_page'  => array(
 				'type'    => 'number',
-				'default' => 6,
+				'default' => absint( $per_page ),
 			),
 			'post_type' => array(
 				'type' => 'strings',
@@ -978,7 +989,7 @@ class InstantResults extends Feature {
 			),
 			'relation'  => array(
 				'type'          => 'string',
-				'default'       => 'and',
+				'default'       => 'all' === $this->settings['match_type'] ? 'and' : 'or',
 				'allowedValues' => [ 'and', 'or' ],
 			),
 		);

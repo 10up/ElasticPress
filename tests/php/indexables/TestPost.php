@@ -2652,6 +2652,36 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test orderby 'none'
+	 * 
+	 * In this case, EP should order by ID ASC, as this is the behavior used by the database.
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testNoneOrderbyQuery() {
+		$posts   = [];
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 1' ) );
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 2' ) );
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'orderby'      => 'none',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( $posts, $query->posts );
+	}
+
+	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
 	 * @since 1.2
@@ -3229,6 +3259,48 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test the sanitization of an empty meta query
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testMetaQueryEmptySanitization() {
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value1',
+					'test_key2' => 'value',
+				),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value',
+					'test_key2' => 'value2',
+					'test_key3' => 'value',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				0 => array(),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -4357,6 +4429,29 @@ class TestPost extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( $parent_post, $query->posts[0] );
+
+		// Test post_parent__in and post_parent__not_in queries
+		$args = array(
+			's'               => 'findme',
+			'post_parent__in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'                   => 'findme',
+			'post_parent__not_in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -7379,6 +7474,48 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests parent term edition when child term is attached to post
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testParentEditedTerm() {
+		$post = $this->ep_factory->post->create_and_get();
+
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
+
+		$term_1_name = rand_str( 32 );
+		$term_1      = wp_insert_term( $term_1_name, $tax_name );
+
+		$term_2_name = rand_str( 32 );
+		$term_2       = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term_1['term_id'] ) );
+
+		wp_set_object_terms( $post->ID, array( $term_2['term_id'] ), $tax_name, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$test_tag = get_term_by( 'id', $term_1['term_id'], $tax_name );
+
+		wp_update_term(
+			$test_tag->term_id,
+			$tax_name,
+			[
+				'slug' => 'parent-term',
+				'name' => 'Parent Term',
+			]
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post->ID );
+		$this->assertEquals( 'parent-term', $document['terms'][ $tax_name ][1]['slug'] );
+		$this->assertEquals( 'Parent Term', $document['terms'][ $tax_name ][1]['name'] );
+	}
+
+	/**
 	 * Tests post without meta value.
 	 *
 	 * @return void
@@ -8227,5 +8364,249 @@ class TestPost extends BaseTestCase {
 				],
 			],
 		);
+	}
+
+	/**
+	 * Tests that deleting a thumbnail updates the meta value of all the linked indexable posts
+	 *
+	 * @since 4.5.0
+	 */
+	public function testDeletingThumbnailUpdateRelatedIndexablePost() {
+		$product_id = $this->ep_factory->post->create( array(
+			'post_type' => 'product',
+		) );
+
+		$thumbnail_id = $this->factory->attachment->create_object( 'test.jpg', $product_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+		) );
+
+		set_post_thumbnail( $product_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $product_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $product_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_delete_attachment( $thumbnail_id, true );
+		$this->assertEquals( '', get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
+		$this->assertArrayNotHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+
+	/**
+	 * Tests that deleting a thumbnail does not update the meta value of all the linked non-indexable posts
+	 *
+	 * @since 4.5.0
+	 */
+	public function testDeletingThumbnailShouldNotUpdateRelatedNonIndexablePost() {
+		$product_id = $this->ep_factory->post->create( array(
+			'post_type' => 'product',
+		) );
+
+		$thumbnail_id = $this->factory->attachment->create_object( 'test.jpg', $product_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_type'      => 'attachment',
+		) );
+
+		set_post_thumbnail( $product_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $product_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $product_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Remove product from indexable post types.
+		add_filter( 'ep_indexable_post_types', function( $post_types ) {
+			unset( $post_types['product'] );
+			return $post_types;
+		} );
+
+		wp_delete_attachment( $thumbnail_id, true );
+		$this->assertEquals( '', get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
+		$this->assertArrayHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+	/**
+	 * Test that query with unsupported orderby does not use EP.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testQueryWithUnSupportedOrderByDoesNotUseEP() {
+		// test for post__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in title',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and with different sort orders
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in' => 'DESC', 'title' => 'ASC' ),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and without orders.
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in', 'title'),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post_name__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post_name__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post_parent__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post_parent__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for parent
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test the `add_ngram_analyzer` method
+	 * 
+	 * @todo Move this to a mock, as it is just inherited now
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testAddNgramAnalyzer() {
+		$post_indexable   = ElasticPress\Indexables::factory()->get( 'post' );
+		$changed_mapping  = $post_indexable->add_ngram_analyzer( [] );
+		$expected_mapping = [
+			'settings' => [
+				'analysis' => [
+					'analyzer' => [
+						'edge_ngram_analyzer' => [
+							'type'      => 'custom',
+							'tokenizer' => 'standard',
+							'filter'    => [
+								'lowercase',
+								'edge_ngram',
+							],
+						],
+					],
+				],
+			],
+		];
+
+		$this->assertSame( $expected_mapping, $changed_mapping );
+	}
+
+	/**
+	 * Test the `add_term_suggest_field` method with the ES 7 mapping
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testAddTermSuggestFieldEs7() {
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+
+		$original_mapping = [
+			'mappings' => [
+				'properties' => [
+					'post_content' => [ 'type' => 'text' ],
+				],
+			],
+		];
+		$changed_mapping = $post_indexable->add_term_suggest_field( $original_mapping );
+
+		$expected_mapping = [
+			'mappings' => [
+				'properties' => [
+					'post_content' => [ 'type' => 'text' ],
+					'term_suggest' => [
+						'type'            => 'text',
+						'analyzer'        => 'edge_ngram_analyzer',
+						'search_analyzer' => 'standard',
+					],
+				]
+			],
+		];
+
+		$this->assertSame( $expected_mapping, $changed_mapping );
+	}
+
+	/**
+	 * Test the `add_term_suggest_field` method with the ES 5 mapping
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testAddTermSuggestFieldEs5() {
+		$change_es_version = function() {
+			return '5.6';
+		};
+		add_filter( 'ep_elasticsearch_version', $change_es_version );
+
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+
+		$original_mapping = [
+			'mappings' => [
+				'post' => [
+					'properties' => [
+						'post_content' => [ 'type' => 'text' ],
+					],
+				],
+			],
+		];
+		$changed_mapping = $post_indexable->add_term_suggest_field( $original_mapping );
+
+		$expected_mapping = [
+			'mappings' => [
+				'post' => [
+					'properties' => [
+						'post_content' => [ 'type' => 'text' ],
+						'term_suggest' => [
+							'type'            => 'text',
+							'analyzer'        => 'edge_ngram_analyzer',
+							'search_analyzer' => 'standard',
+						],
+					],
+				],
+			],
+		];
+
+		$this->assertSame( $expected_mapping, $changed_mapping );
 	}
 }
