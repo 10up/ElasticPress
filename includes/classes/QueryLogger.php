@@ -214,7 +214,7 @@ class QueryLogger {
 	 * @return array
 	 */
 	public function maybe_add_notice( array $notices ) : array {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( Utils\get_capability() ) ) {
 			return $notices;
 		}
 
