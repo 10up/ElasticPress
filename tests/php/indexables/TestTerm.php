@@ -1443,16 +1443,16 @@ class TestTerm extends BaseTestCase {
 		$term->remap_terms( $new_term );
 
 		$properties = get_object_vars( $new_term );
-		$this->assertArrayHasKey( 'ID', $new_term );
-		$this->assertArrayHasKey( 'term_id', $new_term );
-		$this->assertArrayHasKey( 'name', $new_term );
-		$this->assertArrayHasKey( 'slug', $new_term );
-		$this->assertArrayHasKey( 'term_group', $new_term );
-		$this->assertArrayHasKey( 'term_taxonomy_id', $new_term );
-		$this->assertArrayHasKey( 'taxonomy', $new_term );
-		$this->assertArrayHasKey( 'description', $new_term );
-		$this->assertArrayHasKey( 'parent', $new_term );
-		$this->assertArrayHasKey( 'count', $new_term );
+		$this->assertArrayHasKey( 'ID', $properties );
+		$this->assertArrayHasKey( 'term_id', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'term_group', $properties );
+		$this->assertArrayHasKey( 'term_taxonomy_id', $properties );
+		$this->assertArrayHasKey( 'taxonomy', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
+		$this->assertArrayHasKey( 'count', $properties );
 
 		$this->assertSame( $new_term->ID, $current_term->term_id );
 		$this->assertSame( $new_term->term_id, $current_term->term_id );
