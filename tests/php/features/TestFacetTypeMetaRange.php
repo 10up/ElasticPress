@@ -105,6 +105,13 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 			],
 		];
 		$this->assertSame( $expected, $new_filters );
+
+		/**
+		 * If applying filters to the aggregations, we do not add the range as that would restrict
+		 * min and max to the selected values
+		 */
+		$new_filters = $this->facet_type->add_query_filters( [], [ 'ep_facet_adding_agg_filters' => true ] );
+		$this->assertSame( [], $new_filters );
 	}
 
 	/**
