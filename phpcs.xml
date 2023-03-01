@@ -19,4 +19,5 @@
   <rule ref="WordPress.WP.PostsPerPage.posts_per_page_posts_per_page">
       <exclude-pattern>/tests/*.php</exclude-pattern>
   </rule>
+  <exclude-pattern>dist/</exclude-pattern>
 </ruleset>
