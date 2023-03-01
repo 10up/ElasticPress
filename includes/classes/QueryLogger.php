@@ -97,8 +97,7 @@ class QueryLogger {
 		$logs = (array) json_decode( (string) $logs, true );
 
 		if ( $should_filter_old ) {
-			$current_time        = current_time( 'timestamp' );
-			$dismissed_timestamp = get_option( 'ep_hide_has_failed_queries_notice', null );
+			$current_time = current_time( 'timestamp' );
 
 			/**
 			 * Filter the period to keep queried logs. Defaults to DAY_IN_SECONDS
@@ -110,7 +109,7 @@ class QueryLogger {
 			 */
 			$period_to_keep = apply_filters( 'ep_query_logger_time_to_keep', DAY_IN_SECONDS );
 
-			$time_limit = ! empty( $dismissed_timestamp ) ? $dismissed_timestamp : $current_time - $period_to_keep;
+			$time_limit = $current_time - $period_to_keep;
 
 			$logs = array_filter(
 				(array) $logs,
@@ -179,6 +178,8 @@ class QueryLogger {
 			}
 		}
 
+		\ElasticPress\Utils\delete_option( 'ep_hide_has_failed_queries_notice' );
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			set_site_transient( self::CACHE_KEY, $logs_json_str, DAY_IN_SECONDS );
 		} else {
@@ -220,6 +221,10 @@ class QueryLogger {
 
 		$current_ep_screen = \ElasticPress\Screen::factory()->get_current_screen();
 		if ( 'status-report' === $current_ep_screen ) {
+			return $notices;
+		}
+
+		if ( \ElasticPress\Utils\get_option( 'ep_hide_has_failed_queries_notice' ) ) {
 			return $notices;
 		}
 
