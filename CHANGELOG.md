@@ -18,15 +18,15 @@ All notable changes to this project will be documented in this file, per [the Ke
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code.**
 
 ElasticPress 4.5.0 release highlights:
-* Autosuggest for WooCommerce Orders (#3175, #3308, #3321, #3324, #3323, #3310, and #3349)
-* New Facet by Meta Range block (#3289, #3342, and #3337)
-* ElasticPress.io messages system (#3162)
-* Indices of disabled features will be deleted during a full sync (#3261)
-* WooCommerce Queries (#3259)
+* Autosuggest for WooCommerce Orders ([#3175](https://github.com/10up/ElasticPress/pull/3175), [#3308](https://github.com/10up/ElasticPress/pull/3308), [#3321](https://github.com/10up/ElasticPress/pull/3321), [#3324](https://github.com/10up/ElasticPress/pull/3324), [#3323](https://github.com/10up/ElasticPress/pull/3323), [#3310](https://github.com/10up/ElasticPress/pull/3310), and [#3349](https://github.com/10up/ElasticPress/pull/3349))
+* New Facet by Meta Range block ([#3289](https://github.com/10up/ElasticPress/pull/3289), [#3342](https://github.com/10up/ElasticPress/pull/3342), and [#3337](https://github.com/10up/ElasticPress/pull/3337))
+* ElasticPress.io messages system ([#3162](https://github.com/10up/ElasticPress/pull/3162))
+* Indices of disabled features will be deleted during a full sync ([#3261](https://github.com/10up/ElasticPress/pull/3261))
+* WooCommerce Queries ([#3259](https://github.com/10up/ElasticPress/pull/3259))
 
 ### Added
-- Autosuggest for WooCommerce Orders. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#3175](https://github.com/10up/ElasticPress/pull/3175), [#3308](https://github.com/10up/ElasticPress/pull/3308), [#3321](https://github.com/10up/ElasticPress/pull/3321), #3324, #3323, #3310, and #3349.
-- New Facet by Meta Range block (currently in Beta.) Props [@felipeelia](https://github.com/felipeelia) via [#3289](https://github.com/10up/ElasticPress/pull/3289), #3342, and #3337.
+- Autosuggest for WooCommerce Orders. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#3175](https://github.com/10up/ElasticPress/pull/3175), [#3308](https://github.com/10up/ElasticPress/pull/3308), [#3321](https://github.com/10up/ElasticPress/pull/3321), [#3324](https://github.com/10up/ElasticPress/pull/3324), [#3323](https://github.com/10up/ElasticPress/pull/3323), [#3310](https://github.com/10up/ElasticPress/pull/3310), and [#3349](https://github.com/10up/ElasticPress/pull/3349).
+- New Facet by Meta Range block (currently in Beta.) Props [@felipeelia](https://github.com/felipeelia) via [#3289](https://github.com/10up/ElasticPress/pull/3289), [#3342](https://github.com/10up/ElasticPress/pull/3342), and [#3337](https://github.com/10up/ElasticPress/pull/3337).
 - Option to display term counts in Facets blocks. Props [@felipeelia](https://github.com/felipeelia) via [#3309](https://github.com/10up/ElasticPress/pull/3309).
 - New capability for managing ElasticPress. Props [@tlovett1](https://github.com/tlovett1), [@tott](https://github.com/tott), and [@felipeelia](https://github.com/felipeelia) via [#3313](https://github.com/10up/ElasticPress/pull/3313).
 - New "Download report" button in the Status Report page. Props [@felipeelia](https://github.com/felipeelia) via [#3319](https://github.com/10up/ElasticPress/pull/3319).
