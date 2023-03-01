@@ -183,12 +183,11 @@ class Block {
 
 		$search = Features::factory()->get_registered_feature( 'search' );
 
-		$wp_query = new \WP_Query(
-			[
-				'post_type' => $search->get_searchable_post_types(),
-				'per_page'  => 1,
-			]
-		);
+		$args = [
+			'post_type'      => $search->get_searchable_post_types(),
+			'posts_per_page' => 1,
+		];
+		$wp_query->query( $args );
 
 		$attributes = $this->parse_attributes(
 			[
