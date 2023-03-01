@@ -2,6 +2,8 @@
 /**
  * Test the Query Logger
  *
+ * @phpcs:disable WordPress.DateTime.CurrentTimeTimestamp.Requested
+ *
  * @since 4.4.0
  * @package elasticpress
  */
@@ -67,7 +69,7 @@ class TestQueryLogger extends BaseTestCase {
 		$query_logger->expects( $this->exactly( 1 ) )->method( 'update_logs' )->willReturn( '{somejson}' );
 
 		$query_logger->log_query( [ 'query' ], 'type' );
-		$this->assertEquals( 0, did_action( 'ep_query_logger_logged_query' )  );
+		$this->assertEquals( 0, did_action( 'ep_query_logger_logged_query' ) );
 
 		add_filter(
 			'ep_query_logger_queries_to_keep',
@@ -289,7 +291,7 @@ class TestQueryLogger extends BaseTestCase {
 
 		/**
 		 * Test the `ep_query_logger_should_log_query` filter
-		 * 
+		 *
 		 * Even though the `type-should-not-log` type should NOT log, this will return true
 		 */
 		add_filter(
@@ -318,6 +320,8 @@ class TestQueryLogger extends BaseTestCase {
 	/**
 	 * Test the maybe_log_delete_index method
 	 *
+	 * @param bool $expected    Expected maybe_log_delete_index return
+	 * @param int  $status_code HTTP Status Code
 	 * @dataProvider maybeDeleteIndexDataProvider
 	 * @group queryLogger
 	 */
@@ -357,6 +361,8 @@ class TestQueryLogger extends BaseTestCase {
 	/**
 	 * Test the is_query_error method with a request status code
 	 *
+	 * @param bool $expected    Expected maybe_log_delete_index return
+	 * @param int  $status_code HTTP Status Code
 	 * @dataProvider isQueryErrorWithStatusCodeDataProvider
 	 * @group queryLogger
 	 */

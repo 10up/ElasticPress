@@ -16,7 +16,14 @@ import Report from './reports/report';
  * @returns {WPElement} Reports component.
  */
 export default ({ reports }) => {
-	return Object.entries(reports).map(([key, { actions, groups, title }]) => (
-		<Report actions={actions} groups={groups} id={key} key={key} title={title} />
+	return Object.entries(reports).map(([key, { actions, groups, messages, title }]) => (
+		<Report
+			actions={actions}
+			groups={groups}
+			id={key}
+			key={key}
+			messages={messages}
+			title={title}
+		/>
 	));
 };

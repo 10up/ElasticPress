@@ -20,8 +20,6 @@ class TermFactory extends \WP_UnitTest_Factory_For_Term {
 	 * Creates a term object.
 	 *
 	 * @param array $args Array or string of arguments for inserting a term.
-	 * @param null  $generation_definitions Optional. The default values for the object. Default is null.
-	 *
 	 * @return Int|WP_Error
 	 */
 	public function create_object( $args ) {

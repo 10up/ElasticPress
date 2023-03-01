@@ -49,6 +49,7 @@ class EP_Uninstaller {
 		'ep_hide_auto_activate_sync_notice',
 		'ep_hide_using_autosuggest_defaults_notice',
 		'ep_hide_yellow_health_notice',
+		'ep_hide_users_migration_notice',
 	];
 
 	/**
@@ -73,7 +74,6 @@ class EP_Uninstaller {
 	 * Perform some checks to make sure plugin can/should be uninstalled
 	 *
 	 * @since 1.7
-	 * @return EP_Uninstaller
 	 */
 	public function __construct() {
 

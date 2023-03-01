@@ -74,7 +74,15 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$public_taxonomies    = array_keys( get_taxonomies( array( 'public' => true, 'show_ui' => true ), 'names' ) );
+		$public_taxonomies    = array_keys(
+			get_taxonomies(
+				array(
+					'public'  => true,
+					'show_ui' => true,
+				),
+				'names'
+			)
+		);
 		$facetable_taxonomies = array_keys( $facet_type->get_facetable_taxonomies() );
 
 		/**
@@ -230,7 +238,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 	/**
 	 * Test the format_selected method.
-	 * 
+	 *
 	 * @todo Move this to a mock, as it is just inherited now
 	 * @since 4.5.0
 	 */
@@ -274,7 +282,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 	/**
 	 * Test the add_query_params method.
-	 * 
+	 *
 	 * @todo Move this to a mock, as it is just inherited now
 	 * @since 4.5.0
 	 */
@@ -285,7 +293,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$original_query_params = [ 'custom_name' => 'custom_value' ];
 		$selected_filters      = [
 			[
-				'custom_type' => [ 'facet' => [ 1, 2, 3 ] ]
+				'custom_type' => [ 'facet' => [ 1, 2, 3 ] ],
 			],
 			$facet_type->get_filter_type() => [
 				'category' => [
@@ -294,7 +302,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 						'slug2' => true,
 					],
 				],
-				'tags' => [
+				'tags'     => [
 					'terms' => [
 						'slug3' => true,
 						'slug4' => true,
@@ -302,13 +310,13 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 				],
 			],
 		];
-		
+
 		$new_query_params      = $facet_type->add_query_params( $original_query_params, $selected_filters );
 		$expected_query_params = array_merge(
 			$original_query_params,
 			[
 				$facet_type->get_filter_name() . 'category' => 'slug1,slug2',
-				$facet_type->get_filter_name() . 'tags'     => 'slug3,slug4',
+				$facet_type->get_filter_name() . 'tags' => 'slug3,slug4',
 			]
 		);
 

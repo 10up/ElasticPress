@@ -38,7 +38,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $default->get_query( 'indexable', $search_term, $search_fields, [] );
 
-		$model = $this->getModel( $search_term, $search_fields);
+		$model = $this->getModel( $search_term, $search_fields );
 
 		$this->assertEquals( $model, $query );
 	}

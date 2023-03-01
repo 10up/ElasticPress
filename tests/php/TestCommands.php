@@ -12,6 +12,7 @@ use ElasticPress;
 use ElasticPress\Command;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
+use ElasticPress\Command\Utility;
 
 /**
  * Commands test class
@@ -20,6 +21,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Holds Command class instance.
+	 *
+	 * @var Command
 	 */
 	protected $command;
 
@@ -342,7 +345,7 @@ class TestCommands extends BaseTestCase {
 
 		/**
 		 * Test the --status flag
-		 * 
+		 *
 		 * @since 4.5.0
 		 */
 		$this->command->get_indices( [], [ 'status' => 'all' ] );
@@ -371,7 +374,6 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-multi-site
 	 */
-
 	public function testReCreateNetworkAliasOnSingleSite() {
 
 		$this->expectExceptionMessage( 'ElasticPress is not network activated.' );
@@ -431,7 +433,7 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Test sync command can create an index even without the --setup flag
-	 * 
+	 *
 	 * @since 4.5.0
 	 */
 	public function testSyncIndexCreationWithoutSetupFlag() {
@@ -979,7 +981,7 @@ class TestCommands extends BaseTestCase {
 
 		set_transient( 'ep_wpcli_sync_interrupted', true );
 
-		$this->command->should_interrupt_sync();
+		Utility::should_interrupt_sync();
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Sync was interrupted', $output );
@@ -1025,11 +1027,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-indices instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated get-cluster-indexes
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-cluster-indexes
+	 */
 	public function testGetClusterIndexesThrowsDeprecatedWarning() {
 
 		$this->command->get_cluster_indexes( [], [] );
@@ -1038,11 +1040,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-cluster-indices instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated index
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated index
+	 */
 	public function testIndexThrowsDeprecatedWarning() {
 
 		// activate comments feature
@@ -1061,11 +1063,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use sync instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated clear-index
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated clear-index
+	 */
 	public function testClearIndexThrowsDeprecatedWarning() {
 
 		$this->command->clear_index( [], [] );
@@ -1074,11 +1076,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use clear-sync instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated get-indexing-status
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-indexing-status
+	 */
 	public function testGetIndexingStatusThrowsDeprecatedWarning() {
 
 		$this->command->get_indexing_status( [], [] );
@@ -1087,11 +1089,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-ongoing-sync-status instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated get-last-cli-index
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-last-cli-index
+	 */
 	public function testGetLastCliIndexThrowsDeprecatedWarning() {
 
 		$this->command->get_last_cli_index( [], [] );
@@ -1100,11 +1102,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-last-cli-sync instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated stop-indexing
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated stop-indexing
+	 */
 	public function testStopIndexingThrowsDeprecatedWarning() {
 
 		$this->command->stop_indexing( [], [] );

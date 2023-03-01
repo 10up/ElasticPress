@@ -140,23 +140,31 @@ function register_indexable_posts() {
 		new Feature\Documents\Documents()
 	);
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Comments\Comments()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\Comments\Comments()
+	);
 
-	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
+	/**
+	 * Filter whether the Users feature should be registered or not.
+	 *
+	 * The Users feature is going to be migrated to ElasticPress Labs. If EP Labs is enabled
+	 * and in a more recent version, it will change this to false and load its own version
+	 * of the Users feature.
+	 *
+	 * @hook ep_user_register_feature
+	 * @since 4.5.0
+	 * @param {bool} $version Version
+	 * @return {bool} New version
+	 */
+	if ( apply_filters( 'ep_user_register_feature', true ) ) {
 		Features::factory()->register_feature(
 			new Feature\Users\Users()
 		);
 	}
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Terms\Terms()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\Terms\Terms()
+	);
 
 	/**
 	 * Register search algorithms
