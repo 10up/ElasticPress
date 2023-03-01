@@ -470,4 +470,37 @@ abstract class Feature {
 		 */
 		return apply_filters( 'ep_feature_is_visible', $this->is_visible || $this->is_active(), $this->slug, $this );
 	}
+
+	/**
+	 * Returns whether the feature is available or not.
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_available() : bool {
+		$requirements_status = $this->requirements_status();
+		/**
+		 * Filter whether a feature is available or not.
+		 *
+		 * Example:
+		 * ```
+		 * add_filter(
+		 *     'ep_feature_is_available',
+		 *     function ( $is_available, $feature_slug ) {
+		 *         return 'terms' === $feature_slug ? true : $is_available;
+		 *     },
+		 *     10,
+		 *     2
+		 * );
+		 * ```
+		 *
+		 * @hook ep_feature_is_available
+		 * @param {bool}    $is_available True if the feature is available
+		 * @param {string}  $feature_slug Feature slug
+		 * @param {Feature} $feature      Feature object
+		 * @since 4.5.0
+		 * @return {bool} New $is_available value
+		 */
+		return apply_filters( 'ep_feature_is_available', $this->is_visible && 2 !== $requirements_status->code, $this->slug, $this );
+	}
 }
