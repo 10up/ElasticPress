@@ -30,7 +30,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * Setup hooks and filters for feature
 	 */
 	public function setup() {
-		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
+		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ], 10, 2 );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		$this->block = new Block();
@@ -74,10 +74,21 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	/**
 	 * Add selected filters to the Facet filter in the ES query
 	 *
-	 * @param array $filters Current Facet filters
+	 * @param array $filters    Current Facet filters
+	 * @param array $query_args WP_Query arguments
 	 * @return array
 	 */
-	public function add_query_filters( $filters ) {
+	public function add_query_filters( $filters, $query_args = [] ) {
+		/**
+		 * We do not want to apply the range filter to the aggregations because then
+		 * the minimum and maximum values will be the filter already applied.
+		 *
+		 * @see https://github.com/10up/ElasticPress/issues/3341
+		 */
+		if ( ! empty( $query_args['ep_facet_adding_agg_filters'] ) ) {
+			return $filters;
+		}
+
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$all_selected_filters = $feature->get_selected();

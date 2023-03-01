@@ -10,11 +10,20 @@
 		"facet": {
 			"type": "string",
 			"default": ""
+		},
+		"prefix": {
+			"type": "string",
+			"default": ""
+		},
+		"suffix": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"supports": {
 		"html": false
 	},
 	"editorScript": "ep-facets-meta-range-block-script",
-	"style": "elasticpress-facets"
+	"style": "elasticpress-facets",
+	"viewScript": "ep-facets-meta-range-block-view-script"
 }

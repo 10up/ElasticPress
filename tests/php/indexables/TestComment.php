@@ -66,7 +66,7 @@ class TestComment extends BaseTestCase {
 	 */
 	public function deleteAllComments() {
 
-		foreach( get_comments() as $comment ) {
+		foreach ( get_comments() as $comment ) {
 			wp_delete_comment( $comment->comment_ID, true );
 		}
 	}
@@ -74,44 +74,51 @@ class TestComment extends BaseTestCase {
 	/**
 	 * Create test comments.
 	 *
-	 * @param int $number The number of comments to be created.
+	 * @param int  $number The number of comments to be created.
 	 * @param bool $has_child Create child comment
 	 * @return array
 	 * @since 3.6.0
 	 * @group comments
 	 */
 	public function createComments( $number = 4, $has_child = false ) {
-		$parent_comment_id = $child_comment_id = 0;
-		$comment_ids = [];
+		$parent_comment_id = 0;
+		$child_comment_id  = 0;
+		$comment_ids       = [];
 
 		$post_id = $this->ep_factory->post->create();
 
-		if( $number > 0 ) {
-			for( $i = 1; $i <= $number; $i++ ) {
-				$comment_ids[] = $this->ep_factory->comment->create( [
-					'comment_content' => 'Test comment ' . $i,
-					'comment_post_ID' => $post_id
-				] );
+		if ( $number > 0 ) {
+			for ( $i = 1; $i <= $number; $i++ ) {
+				$comment_ids[] = $this->ep_factory->comment->create(
+					[
+						'comment_content' => 'Test comment ' . $i,
+						'comment_post_ID' => $post_id,
+					]
+				);
 			}
 		}
 
-		if( $has_child ) {
-			$parent_comment_id = $this->ep_factory->comment->create( [
-				'comment_content' => 'Test parent comment ',
-				'comment_post_ID' => $post_id
-			] );
-			$child_comment_id  = $this->ep_factory->comment->create( [
-				'comment_content' => 'Test child comment ',
-				'comment_post_ID' => $post_id,
-				'comment_parent' => $parent_comment_id,
-			] );
+		if ( $has_child ) {
+			$parent_comment_id = $this->ep_factory->comment->create(
+				[
+					'comment_content' => 'Test parent comment ',
+					'comment_post_ID' => $post_id,
+				]
+			);
+			$child_comment_id  = $this->ep_factory->comment->create(
+				[
+					'comment_content' => 'Test child comment ',
+					'comment_post_ID' => $post_id,
+					'comment_parent'  => $parent_comment_id,
+				]
+			);
 		}
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		return [
 			'post_id'           => $post_id,
-			'parent_comment_id' =>  $parent_comment_id,
+			'parent_comment_id' => $parent_comment_id,
 			'child_comment_id'  => $child_comment_id,
 			'comment_ids'       => $comment_ids,
 		];
@@ -133,10 +140,12 @@ class TestComment extends BaseTestCase {
 
 		$post_id = $this->ep_factory->post->create();
 
-		$comment_id = wp_insert_comment( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-		] );
+		$comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
 
@@ -162,10 +171,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentSyncMeta() {
 		$post_id = $this->ep_factory->post->create();
 
-		$comment_id = wp_insert_comment( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-		] );
+		$comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		update_comment_meta( $comment_id, 'new_meta', 'test' );
 
@@ -187,10 +198,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentSyncOnMetaUpdate() {
 		$post_id = $this->ep_factory->post->create();
 
-		$comment_id = wp_insert_comment( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-		] );
+		$comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		update_comment_meta( $comment_id, 'test_key', true );
 
@@ -207,10 +220,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentSyncKill() {
 		$post_id = $this->ep_factory->post->create();
 
-		$created_comment_id = wp_insert_comment( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-		] );
+		$created_comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		add_filter(
 			'ep_comment_sync_kill',
@@ -243,16 +258,19 @@ class TestComment extends BaseTestCase {
 		// First try without ES and make sure everything is right.
 		$comments_query = new \WP_Comment_Query( [] );
 
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $comments_query );
+		$properties = get_object_vars( $comments_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 
 		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 3, count( $comments ) );
 
 		// Now try with Elasticsearch.
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -268,9 +286,11 @@ class TestComment extends BaseTestCase {
 		add_filter( 'ep_max_results_window', $return_2 );
 
 		// Now try with Elasticsearch.
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -288,10 +308,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryNumber() {
 		$this->createComments();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'number' => 2,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'number'       => 2,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -309,10 +331,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOffset() {
 		$this->createComments( 6 );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'offset' => 3,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'offset'       => 3,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -330,11 +354,13 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOrderCommentContent() {
 		$this->createComments();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_content',
-			'order' => 'ASC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_content',
+				'order'        => 'ASC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -342,11 +368,13 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 'Test comment 4', $comments[3]->comment_content );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_content',
-			'order' => 'DESC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_content',
+				'order'        => 'DESC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -366,11 +394,13 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOrderCommentPostType() {
 		$this->createComments();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_post_type',
-		] );
-		$comments = $comments_query->get_comments();
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_post_type',
+			]
+		);
+		$comments       = $comments_query->get_comments();
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertNotEmpty( $comments );
@@ -385,10 +415,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryOrderCommentID() {
 		$this->createComments();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby'      => 'comment_ID',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_ID',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -399,11 +431,13 @@ class TestComment extends BaseTestCase {
 		$this->assertGreaterThan( $ids[2], $ids[1] );
 		$this->assertGreaterThan( $ids[3], $ids[2] );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby'      => 'comment_ID',
-			'order'        => 'ASC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_ID',
+				'order'        => 'ASC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -425,21 +459,27 @@ class TestComment extends BaseTestCase {
 		$post_id_1 = $this->ep_factory->post->create();
 		$post_id_2 = $this->ep_factory->post->create();
 
-		$comment_ids[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id_1,
-		] );
-		$comment_ids[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id_2
-		] );
+		$comment_ids[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
+		$comment_ids[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby'      => 'comment_post_ID',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_post_ID',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -448,11 +488,13 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 'Test comment 2', $comments[0]->comment_content );
 		$this->assertEquals( 'Test comment 1', $comments[1]->comment_content );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby'      => 'comment_post_ID',
-			'order'        => 'ASC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_post_ID',
+				'order'        => 'ASC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -472,10 +514,12 @@ class TestComment extends BaseTestCase {
 
 		$created_comments = $this->createComments( 3 );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'fields' => 'ids',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'fields'       => 'ids',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -498,10 +542,12 @@ class TestComment extends BaseTestCase {
 
 		$this->createComments( 3 );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'fields' => 'count',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'fields'       => 'count',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -519,10 +565,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryHierarchical() {
 		$created_comments = $this->createComments( 0, true );
 
-		$comments_query = new \WP_Comment_Query( [
-			'hierarchical' => 'threaded',
-			'ep_integrate' => true,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'hierarchical' => 'threaded',
+				'ep_integrate' => true,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -532,17 +580,19 @@ class TestComment extends BaseTestCase {
 		$parent_comment = reset( $comments );
 		$this->assertNotFalse( $parent_comment->get_child( $created_comments['child_comment_id'] ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'hierarchical' => 'flat',
-			'ep_integrate' => true,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'hierarchical' => 'flat',
+				'ep_integrate' => true,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		$this->assertEquals( 2, count( $comments ) );
-		foreach( $comments as $comment ) {
+		foreach ( $comments as $comment ) {
 			$this->assertFalse( $comment->get_child( $created_comments['child_comment_id'] ) );
 		}
 	}
@@ -570,10 +620,12 @@ class TestComment extends BaseTestCase {
 
 		$post_id = $this->ep_factory->post->create();
 
-		$comment_id = wp_insert_comment( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-		] );
+		$comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -612,12 +664,14 @@ class TestComment extends BaseTestCase {
 
 		$this->createComments( 7 );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'paged' => 2,
-			'number' => 4,
-		] );
-		$comments = $comments_query->get_comments();
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'paged'        => 2,
+				'number'       => 4,
+			]
+		);
+		$comments       = $comments_query->get_comments();
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertEquals( 3, count( $comments ) );
@@ -632,30 +686,38 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryAuthorEmail() {
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'comment_author_email' => 'joe@example.com',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 1',
+				'comment_post_ID'      => $post_id,
+				'comment_author_email' => 'joe@example.com',
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'comment_author_email' => 'doe@example.com',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 2',
+				'comment_post_ID'      => $post_id,
+				'comment_author_email' => 'doe@example.com',
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'comment_author_email' => 'joe@example.com',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 3',
+				'comment_post_ID'      => $post_id,
+				'comment_author_email' => 'joe@example.com',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'author_email' => 'joe@example.com',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'author_email' => 'joe@example.com',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -667,11 +729,13 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_author_email',
-			'order' => 'ASC'
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_author_email',
+				'order'        => 'ASC',
+			]
+		);
 
 		$comments = $comments_query->get_comments();
 
@@ -688,34 +752,42 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryAuthorUrl() {
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'comment_author_email' => 'joe@example.com',
-			'comment_author_url' => 'http://example.com',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 1',
+				'comment_post_ID'      => $post_id,
+				'comment_author_email' => 'joe@example.com',
+				'comment_author_url'   => 'http://example.com',
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'comment_author_email' => 'doe@example.com',
-			'comment_author_url' => 'http://example.com',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 2',
+				'comment_post_ID'      => $post_id,
+				'comment_author_email' => 'doe@example.com',
+				'comment_author_url'   => 'http://example.com',
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'comment_author_email' => 'hoe@example.com',
-			'comment_author_url' => 'http://example.org',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 3',
+				'comment_post_ID'      => $post_id,
+				'comment_author_email' => 'hoe@example.com',
+				'comment_author_url'   => 'http://example.org',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'author_url' => 'http://example.com',
-		] );
-		$comments = $comments_query->get_comments();
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'author_url'   => 'http://example.com',
+			]
+		);
+		$comments       = $comments_query->get_comments();
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -725,12 +797,14 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_author_url',
-			'order' => 'ASC',
-		] );
-		$comments = $comments_query->get_comments();
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_author_url',
+				'order'        => 'ASC',
+			]
+		);
+		$comments       = $comments_query->get_comments();
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertEquals( 'http://example.com', $comments[0]->comment_author_url );
@@ -747,35 +821,45 @@ class TestComment extends BaseTestCase {
 
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 3',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 4',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 4',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'user_id' => $current_user_id,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'user_id'      => $current_user_id,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -795,47 +879,57 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorIn() {
-		$current_user_id = get_current_user_id();
+		$current_user_id   = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'user_id' => $another_author_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 3',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $another_author_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 4',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 4',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'author__in' => [ $current_user_id, $another_author_id ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'author__in'   => [ $current_user_id, $another_author_id ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->user_id, [ $current_user_id, $another_author_id ] ) );
+			$this->assertContains( (int) $comment->user_id, [ $current_user_id, $another_author_id ] );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -848,35 +942,43 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentQueryAuthorNotIn() {
-		$current_user_id = get_current_user_id();
+		$current_user_id   = get_current_user_id();
 		$another_author_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'user_id' => $current_user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $current_user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'user_id' => $another_author_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 3',
+				'comment_post_ID' => $post_id,
+				'user_id'         => $another_author_id,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'author__not_in' => [ $another_author_id ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate'   => true,
+				'author__not_in' => [ $another_author_id ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -900,18 +1002,20 @@ class TestComment extends BaseTestCase {
 
 		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'comment__in' => $test_comments,
-			'number' => 2,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'comment__in'  => $test_comments,
+				'number'       => 2,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $test_comments ) );
+			$this->assertContains( (int) $comment->comment_ID, $test_comments );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -928,17 +1032,19 @@ class TestComment extends BaseTestCase {
 
 		$test_comments = [ $created_comments['comment_ids'][0], $created_comments['comment_ids'][1] ];
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'comment__not_in' => $test_comments,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate'    => true,
+				'comment__not_in' => $test_comments,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertFalse( in_array( $comment->comment_ID, $test_comments ) );
+			$this->assertNotContains( $comment->comment_ID, $test_comments );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
@@ -952,44 +1058,54 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryDateQuery() {
 
-		$post_id = $this->ep_factory->post->create();
-		$in_range = [];
+		$post_id   = $this->ep_factory->post->create();
+		$in_range  = [];
 		$out_range = [];
 
-		$in_range[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_date_gmt' => '2020-05-21',
-			'comment_date' => '2020-05-21',
-		] );
+		$in_range[] = $this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment',
+				'comment_post_ID'  => $post_id,
+				'comment_date_gmt' => '2020-05-21',
+				'comment_date'     => '2020-05-21',
+			]
+		);
 
-		$out_range[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_date_gmt' => '2020-05-19',
-			'comment_date' => '2020-05-19',
-		] );
+		$out_range[] = $this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment',
+				'comment_post_ID'  => $post_id,
+				'comment_date_gmt' => '2020-05-19',
+				'comment_date'     => '2020-05-19',
+			]
+		);
 
-		$in_range[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_date_gmt' => '2020-05-25',
-			'comment_date' => '2020-05-25',
-		] );
+		$in_range[] = $this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment',
+				'comment_post_ID'  => $post_id,
+				'comment_date_gmt' => '2020-05-25',
+				'comment_date'     => '2020-05-25',
+			]
+		);
 
-		$out_range[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_date_gmt' => '2020-05-29',
-			'comment_date' => '2020-05-29',
-		] );
+		$out_range[] = $this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment',
+				'comment_post_ID'  => $post_id,
+				'comment_date_gmt' => '2020-05-29',
+				'comment_date'     => '2020-05-29',
+			]
+		);
 
-		$out_range[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_date_gmt' => '2020-06-15',
-			'comment_date' => '2020-06-15',
-		] );
+		$out_range[] = $this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment',
+				'comment_post_ID'  => $post_id,
+				'comment_date_gmt' => '2020-06-15',
+				'comment_date'     => '2020-06-15',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -997,32 +1113,36 @@ class TestComment extends BaseTestCase {
 			'relation' => 'AND',
 			array(
 				'column' => 'comment_date',
-				'after' => '2020-05-20',
+				'after'  => '2020-05-20',
 				'before' => '2020-05-27',
 			),
 		);
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'date_query' => $date_query,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => $date_query,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $in_range ) );
-			$this->assertFalse( in_array( $comment->comment_ID, $out_range ) );
+			$this->assertContains( (int) $comment->comment_ID, $in_range );
+			$this->assertNotContains( (int) $comment->comment_ID, $out_range );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_date',
-			'order' => 'ASC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_date',
+				'order'        => 'ASC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1032,11 +1152,13 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( '2020-05-21 00:00:00', $comments[1]->comment_date );
 		$this->assertEquals( '2020-06-15 00:00:00', $comments[4]->comment_date );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'orderby' => 'comment_date',
-			'order' => 'DESC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'comment_date',
+				'order'        => 'DESC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1055,48 +1177,58 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryKarma() {
 
-		$post_id = $this->ep_factory->post->create();
-		$match = [];
+		$post_id   = $this->ep_factory->post->create();
+		$match     = [];
 		$not_match = [];
 
-		$match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_karma' => 9,
-		] );
+		$match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_karma'   => 9,
+			]
+		);
 
-		$not_match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_karma' => 3,
-		] );
+		$not_match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_karma'   => 3,
+			]
+		);
 
-		$match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_karma' => 9,
-		] );
+		$match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_karma'   => 9,
+			]
+		);
 
-		$not_match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_karma' => 1,
-		] );
+		$not_match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_karma'   => 1,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'karma' => 9,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'karma'        => 9,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
-			$this->assertFalse( in_array( $comment->comment_ID, $not_match ) );
+			$this->assertContains( (int) $comment->comment_ID, $match );
+			$this->assertNotContains( (int) $comment->comment_ID, $not_match );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -1111,44 +1243,52 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryMeta() {
 
 		$post_id = $this->ep_factory->post->create();
-		$match = [];
+		$match   = [];
 
-		$match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_meta' => [
-				'test_meta' => 'test_value'
+		$match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_meta'    => [
+					'test_meta' => 'test_value',
+				],
 			]
-		] );
+		);
 
-		$not_match = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-		] );
-
-		$match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_meta' => [
-				'test_meta' => 'test_value'
+		$not_match = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
 			]
-		] );
+		);
+
+		$match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_meta'    => [
+					'test_meta' => 'test_value',
+				],
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'meta_key' => 'test_meta',
-			'meta_value' => 'test_value',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'meta_key'     => 'test_meta',
+				'meta_value'   => 'test_value',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
-			$this->assertNotEquals( $comment->comment_ID, $not_match );
+			$this->assertContains( (int) $comment->comment_ID, $match );
+			$this->assertNotEquals( (int) $comment->comment_ID, $not_match );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -1163,52 +1303,60 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryMetaQuery() {
 
 		$post_id = $this->ep_factory->post->create();
-		$match = [];
+		$match   = [];
 
-		$not_match = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_meta' => [
-				'weight' => 10
+		$not_match = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_meta'    => [
+					'weight' => 10,
+				],
 			]
-		] );
+		);
 
-		$match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_meta' => [
-				'weight' => 20
+		$match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_meta'    => [
+					'weight' => 20,
+				],
 			]
-		] );
+		);
 
-		$match[] = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id,
-			'comment_meta' => [
-				'weight' => 50
+		$match[] = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id,
+				'comment_meta'    => [
+					'weight' => 50,
+				],
 			]
-		] );
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'meta_query' => [
-				[
-					'key'   => 'weight',
-					'value' => 15,
-					'compare' => '>',
-				]
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'meta_query'   => [
+					[
+						'key'     => 'weight',
+						'value'   => 15,
+						'compare' => '>',
+					],
+				],
 			]
-		] );
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $match ) );
-			$this->assertNotEquals( $comment->comment_ID, $not_match );
+			$this->assertContains( (int) $comment->comment_ID, $match );
+			$this->assertNotEquals( (int) $comment->comment_ID, $not_match );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -1223,10 +1371,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryParentIn() {
 		$created_comments = $this->createComments( 3, true );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'parent__in' => [ $created_comments['parent_comment_id'] ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'parent__in'   => [ $created_comments['parent_comment_id'] ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1248,10 +1398,12 @@ class TestComment extends BaseTestCase {
 	public function testCommentQueryParentNotIn() {
 		$created_comments = $this->createComments( 3, true );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'parent__not_in' => [ $created_comments['parent_comment_id'] ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate'   => true,
+				'parent__not_in' => [ $created_comments['parent_comment_id'] ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1281,79 +1433,97 @@ class TestComment extends BaseTestCase {
 		$post_id_3 = $this->ep_factory->post->create( [ 'post_author' => $user_id_2 ] );
 		$post_id_4 = $this->ep_factory->post->create( [ 'post_author' => $user_id_3 ] );
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_3,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_3,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_4,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_4,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_author' => $user_id_1,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_author'  => $user_id_1,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2 ] ) );
+			$this->assertContains( (int) $comment->comment_post_ID, [ $post_id_1, $post_id_2 ] );
 		}
 
 		$this->assertEquals( 4, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_author__in' => [ $user_id_1, $user_id_2 ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate'    => true,
+				'post_author__in' => [ $user_id_1, $user_id_2 ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
+			$this->assertContains( (int) $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] );
 		}
 
 		$this->assertEquals( 5, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_author__not_in' => [ $user_id_1 ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate'        => true,
+				'post_author__not_in' => [ $user_id_1 ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_3, $post_id_4 ] ) );
+			$this->assertContains( (int) $comment->comment_post_ID, [ $post_id_3, $post_id_4 ] );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
@@ -1369,47 +1539,53 @@ class TestComment extends BaseTestCase {
 		$this->createComments();
 		$created_comments = $this->createComments( 3 );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_id' => $created_comments['post_id'],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_id'      => $created_comments['post_id'],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $created_comments['comment_ids'] ) );
+			$this->assertContains( (int) $comment->comment_ID, $created_comments['comment_ids'] );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post__in' => [ $created_comments['post_id'] ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => [ $created_comments['post_id'] ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_ID, $created_comments['comment_ids'] ) );
+			$this->assertContains( (int) $comment->comment_ID, $created_comments['comment_ids'] );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post__not_in' => [ $created_comments['post_id'] ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post__not_in' => [ $created_comments['post_id'] ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertFalse( in_array( $comment->comment_post_ID, $created_comments['comment_ids'] ) );
+			$this->assertNotContains( $comment->comment_post_ID, $created_comments['comment_ids'] );
 		}
 
 		$this->assertEquals( 4, count( $comments ) );
@@ -1426,47 +1602,59 @@ class TestComment extends BaseTestCase {
 		$post_id_1 = $this->ep_factory->post->create( [ 'post_status' => 'publish' ] );
 		$post_id_2 = $this->ep_factory->post->create( [ 'post_status' => 'draft' ] );
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_status' => 'publish',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_status'  => 'publish',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertEquals( $comment->comment_post_ID, $post_id_1  );
+			$this->assertEquals( $comment->comment_post_ID, $post_id_1 );
 		}
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_status' => [ 'draft', 'publish' ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_status'  => [ 'draft', 'publish' ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1487,55 +1675,66 @@ class TestComment extends BaseTestCase {
 		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
 		$post_id_3 = $this->ep_factory->post->create( [ 'post_type' => 'post' ] );
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_3,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_3,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_type' => 'post',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_type'    => 'post',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_3 ] ) );
+			$this->assertContains( (int) $comment->comment_post_ID, [ $post_id_1, $post_id_3 ] );
 		}
 
 		$this->assertEquals( 2, count( $comments ) );
 
-
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_type' => [ 'post', 'page' ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_type'    => [ 'post', 'page' ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
 		$comments = $comments_query->get_comments();
 
 		foreach ( $comments as $comment ) {
-			$this->assertTrue( in_array( $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] ) );
+			$this->assertContains( (int) $comment->comment_post_ID, [ $post_id_1, $post_id_2, $post_id_3 ] );
 		}
 
 		$this->assertEquals( 4, count( $comments ) );
@@ -1549,30 +1748,43 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostParent() {
 
-		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'page' ]);
-		$post_id_2 = $this->ep_factory->post->create( [ 'post_type' => 'page', 'post_parent' => $post_id_1 ] );
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+		$post_id_2 = $this->ep_factory->post->create(
+			[
+				'post_type'   => 'page',
+				'post_parent' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment',
-			'comment_post_ID' => $post_id_2,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment',
+				'comment_post_ID' => $post_id_2,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_parent' => $post_id_1,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_parent'  => $post_id_1,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1594,20 +1806,26 @@ class TestComment extends BaseTestCase {
 	public function testCommentQuerySearch() {
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$comment_id = $this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-		] );
+		$comment_id = $this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 3',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
 		update_comment_meta( $comment_id, 'test_meta_key', 'start here' );
 
@@ -1615,9 +1833,11 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'search' => 'test comment',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'search' => 'test comment',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1625,14 +1845,16 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'search' => 'start',
-			'search_fields' => [
-				'meta' => [
-					'test_meta_key',
-				]
-			],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'search'        => 'start',
+				'search_fields' => [
+					'meta' => [
+						'test_meta_key',
+					],
+				],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1656,32 +1878,40 @@ class TestComment extends BaseTestCase {
 		$post_id = $this->ep_factory->post->create();
 		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'comment_approved' => 1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment 1',
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'comment_approved' => 0,
-			'user_id' => $user_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment 2',
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 0,
+				'user_id'          => $user_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'comment_approved' => 0,
-			'comment_author_email' => 'joe@example.com',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'      => 'Test comment 3',
+				'comment_post_ID'      => $post_id,
+				'comment_approved'     => 0,
+				'comment_author_email' => 'joe@example.com',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'status' => 'approve',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'status'       => 'approve',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1689,10 +1919,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'status' => 'hold',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'status'       => 'hold',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1700,14 +1932,16 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'status' => 'approve',
-			'include_unapproved' => [
-				'joe@example.com',
-				$user_id,
-			],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate'       => true,
+				'status'             => 'approve',
+				'include_unapproved' => [
+					'joe@example.com',
+					$user_id,
+				],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1715,11 +1949,13 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'status' => 'all',
-			'orderby' => 'comment_approved',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'status'       => 'all',
+				'orderby'      => 'comment_approved',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1727,12 +1963,14 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( '1', $comments[0]->comment_approved );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'status' => 'all',
-			'orderby' => 'comment_approved',
-			'order' => 'ASC',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'status'       => 'all',
+				'orderby'      => 'comment_approved',
+				'order'        => 'ASC',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1751,29 +1989,37 @@ class TestComment extends BaseTestCase {
 
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'comment_type' => 'pingback',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'pingback',
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $post_id,
-			'comment_type' => 'trackback',
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 3',
+				'comment_post_ID' => $post_id,
+				'comment_type'    => 'trackback',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'type' => 'comment',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'type'         => 'comment',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1781,10 +2027,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 1, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'type' => 'trackback,pingback',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'type'         => 'trackback,pingback',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1792,10 +2040,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 2, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'type__in' => [ 'trackback', 'pingback', 'comment' ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'type__in'     => [ 'trackback', 'pingback', 'comment' ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1803,10 +2053,12 @@ class TestComment extends BaseTestCase {
 
 		$this->assertEquals( 3, count( $comments ) );
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'type__not_in' => [ 'trackback', 'pingback' ],
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'type__not_in' => [ 'trackback', 'pingback' ],
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1823,35 +2075,47 @@ class TestComment extends BaseTestCase {
 	 */
 	public function testCommentQueryPostName() {
 
-		$post_id = $this->ep_factory->post->create( [
-			'post_name' => 'start-here'
-		] );
+		$post_id = $this->ep_factory->post->create(
+			[
+				'post_name' => 'start-here',
+			]
+		);
 
-		$another_post_id = $this->ep_factory->post->create( [
-			'post_name' => 'about-us'
-		] );
+		$another_post_id = $this->ep_factory->post->create(
+			[
+				'post_name' => 'about-us',
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 2',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 3',
-			'comment_post_ID' => $another_post_id,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test comment 3',
+				'comment_post_ID' => $another_post_id,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-			'post_name' => 'start-here',
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'post_name'    => 'start-here',
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1881,17 +2145,21 @@ class TestComment extends BaseTestCase {
 			)
 		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test review',
-			'comment_post_ID' => $product_id,
-			'comment_type'    => 'review'
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'Test review',
+				'comment_post_ID' => $product_id,
+				'comment_type'    => 'review',
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 
@@ -1911,34 +2179,42 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentIndexableQueryDb() {
-		$post_id = wp_insert_post( [
-			'post_name' => 'start-here',
-			'post_status' => 'publish'
-		] );
+		$post_id = wp_insert_post(
+			[
+				'post_name'   => 'start-here',
+				'post_status' => 'publish',
+			]
+		);
 
-		wp_insert_comment( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-		] );
+		wp_insert_comment(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$product_id = wp_insert_post( [
-			'post_content' => 'product 1',
-			'post_type'    => 'product',
-			'post_status' => 'publish'
-		] );
+		$product_id = wp_insert_post(
+			[
+				'post_content' => 'product 1',
+				'post_type'    => 'product',
+				'post_status'  => 'publish',
+			]
+		);
 
-		wp_insert_comment( [
-			'comment_content' => 'Test review',
-			'comment_post_ID' => $product_id,
-			'comment_type'    => 'review'
-		] );
+		wp_insert_comment(
+			[
+				'comment_content' => 'Test review',
+				'comment_post_ID' => $product_id,
+				'comment_type'    => 'review',
+			]
+		);
 
 		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
 
-		$results = $comment_indexable->query_db([]);
+		$results = $comment_indexable->query_db( [] );
 
-		$this->assertArrayHasKey( 'objects', $results);
-		$this->assertArrayHasKey( 'total_objects', $results);
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
 
 		$this->assertEquals( 1, $results['total_objects'] );
 	}
@@ -1953,31 +2229,39 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$post_id = wp_insert_post( [
-			'post_content' => 'start-here',
-			'post_status'  => 'publish',
-		] );
+		$post_id = wp_insert_post(
+			[
+				'post_content' => 'start-here',
+				'post_status'  => 'publish',
+			]
+		);
 
-		wp_insert_comment( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-		] );
+		wp_insert_comment(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$product_id = wp_insert_post( [
-			'post_content' => 'product 1',
-			'post_type'    => 'product',
-			'post_status'  => 'publish',
-		] );
+		$product_id = wp_insert_post(
+			[
+				'post_content' => 'product 1',
+				'post_type'    => 'product',
+				'post_status'  => 'publish',
+			]
+		);
 
-		wp_insert_comment( [
-			'comment_content' => 'Test review',
-			'comment_post_ID' => $product_id,
-			'comment_type'    => 'review',
-		] );
+		wp_insert_comment(
+			[
+				'comment_content' => 'Test review',
+				'comment_post_ID' => $product_id,
+				'comment_type'    => 'review',
+			]
+		);
 
 		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
 
-		$results = $comment_indexable->query_db([]);
+		$results = $comment_indexable->query_db( [] );
 
 		$this->assertEquals( 2, $results['total_objects'] );
 	}
@@ -1994,45 +2278,57 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$post_id = wp_insert_post( [
-			'post_content' => 'start-here',
-			'post_status'  => 'publish',
-		] );
+		$post_id = wp_insert_post(
+			[
+				'post_content' => 'start-here',
+				'post_status'  => 'publish',
+			]
+		);
 
-		$post_comment_id = wp_insert_comment( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-		] );
+		$post_comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test comment 1',
+				'comment_post_ID' => $post_id,
+			]
+		);
 
-		$product_id = wp_insert_post( [
-			'post_content' => 'product 1',
-			'post_type'    => 'product',
-			'post_status'  => 'publish',
-		] );
+		$product_id = wp_insert_post(
+			[
+				'post_content' => 'product 1',
+				'post_type'    => 'product',
+				'post_status'  => 'publish',
+			]
+		);
 
-		$product_comment_id = wp_insert_comment( [
-			'comment_content' => 'Test review',
-			'comment_post_ID' => $product_id,
-			'comment_type'    => 'review',
-		] );
+		$product_comment_id = wp_insert_comment(
+			[
+				'comment_content' => 'Test review',
+				'comment_post_ID' => $product_id,
+				'comment_type'    => 'review',
+			]
+		);
 
-		$shop_order_id = wp_insert_post( [
-			'post_content'   => 'order 1',
-			'post_type'      => 'shop_order',
-			'post_status'    => 'wc-pending',
-			'comment_status' => 'closed',
-		] );
+		$shop_order_id = wp_insert_post(
+			[
+				'post_content'   => 'order 1',
+				'post_type'      => 'shop_order',
+				'post_status'    => 'wc-pending',
+				'comment_status' => 'closed',
+			]
+		);
 
-		wp_insert_comment( [
-			'comment_content' => 'Added line items',
-			'comment_post_ID' => $shop_order_id,
-			'comment_type'    => 'order_note'
+		wp_insert_comment(
+			[
+				'comment_content' => 'Added line items',
+				'comment_post_ID' => $shop_order_id,
+				'comment_type'    => 'order_note',
 
-		] );
+			]
+		);
 
 		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
 
-		$results = $comment_indexable->query_db([]);
+		$results = $comment_indexable->query_db( [] );
 
 		$this->assertEquals( 2, $results['total_objects'] );
 
@@ -2053,18 +2349,22 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = $this->ep_factory->post->create([
-			'post_content'   => 'order 1',
-			'post_type'      => 'shop_order',
-			'post_status'    => 'wc-pending',
-			'comment_status' => 'closed',
-		]);
+		$shop_order_id = $this->ep_factory->post->create(
+			[
+				'post_content'   => 'order 1',
+				'post_type'      => 'shop_order',
+				'post_status'    => 'wc-pending',
+				'comment_status' => 'closed',
+			]
+		);
 
-		wp_insert_comment( [
-			'comment_content' => 'Added line items',
-			'comment_post_ID' => $shop_order_id,
-			'comment_type'    => 'order_note'
-		] );
+		wp_insert_comment(
+			[
+				'comment_content' => 'Added line items',
+				'comment_post_ID' => $shop_order_id,
+				'comment_type'    => 'order_note',
+			]
+		);
 
 		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
 
@@ -2086,21 +2386,25 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$shop_order_id = $this->ep_factory->post->create([
-			'post_content'   => 'order 1',
-			'post_type'      => 'shop_order',
-			'post_status'    => 'wc-pending',
-			'comment_status' => 'closed',
-		]);
-
-		wp_insert_comment( [
-			'comment_content' => 'Added line items',
-			'comment_post_ID' => $shop_order_id,
-			'comment_type'    => 'order_note',
-			'comment_meta'    => [
-				'is_customer_note' => 1
+		$shop_order_id = $this->ep_factory->post->create(
+			[
+				'post_content'   => 'order 1',
+				'post_type'      => 'shop_order',
+				'post_status'    => 'wc-pending',
+				'comment_status' => 'closed',
 			]
-		] );
+		);
+
+		wp_insert_comment(
+			[
+				'comment_content' => 'Added line items',
+				'comment_post_ID' => $shop_order_id,
+				'comment_type'    => 'order_note',
+				'comment_meta'    => [
+					'is_customer_note' => 1,
+				],
+			]
+		);
 
 		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
 
@@ -2123,23 +2427,29 @@ class TestComment extends BaseTestCase {
 
 		$post_id = $this->ep_factory->post->create();
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 1',
-			'comment_post_ID' => $post_id,
-			'comment_approved' => 1,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment 1',
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 1,
+			]
+		);
 
-		$this->ep_factory->comment->create( [
-			'comment_content' => 'Test comment 2',
-			'comment_post_ID' => $post_id,
-			'comment_approved' => 0,
-		] );
+		$this->ep_factory->comment->create(
+			[
+				'comment_content'  => 'Test comment 2',
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 0,
+			]
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$comments_query = new \WP_Comment_Query( [
-			'ep_integrate' => true,
-		] );
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+			]
+		);
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 

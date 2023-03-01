@@ -45,6 +45,8 @@ class Orders {
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
+		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
+		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
 	}
 
 	/**
@@ -553,5 +555,51 @@ class Orders {
 		}
 
 		return $search_fields;
+	}
+
+	/**
+	 * Allow password protected to be indexed.
+	 *
+	 * If Protected Content is enabled, do nothing. Otherwise, allow pw protected posts to be indexed.
+	 * The feature restricts it back in maybe_set_posts_where()
+	 *
+	 * @see maybe_set_posts_where()
+	 * @param array $args WP_Query args
+	 * @return array
+	 */
+	public function maybe_query_password_protected_posts( $args ) {
+		// Password protected posts are already being indexed, no need to do anything.
+		if ( isset( $args['has_password'] ) && is_null( $args['has_password'] ) ) {
+			return $args;
+		}
+
+		/**
+		 * Set a flag in the query but allow it to index all password protected posts for now,
+		 * so WP does not inject its own where clause.
+		 */
+		$args['ep_orders_has_password'] = true;
+		$args['has_password']           = null;
+
+		return $args;
+	}
+
+	/**
+	 * Restrict password protected posts back but allow orders.
+	 *
+	 * @see maybe_query_password_protected_posts
+	 * @param string   $where Current where clause
+	 * @param WP_Query $query WP_Query
+	 * @return string
+	 */
+	public function maybe_set_posts_where( $where, $query ) {
+		global $wpdb;
+
+		if ( ! $query->get( 'ep_orders_has_password' ) ) {
+			return $where;
+		}
+
+		$where .= " AND ( {$wpdb->posts}.post_password = '' OR {$wpdb->posts}.post_type = 'shop_order' )";
+
+		return $where;
 	}
 }

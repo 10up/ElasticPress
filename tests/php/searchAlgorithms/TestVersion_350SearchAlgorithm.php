@@ -38,7 +38,7 @@ class TestVersion_350SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $basic->get_query( 'indexable', $search_term, $search_fields, [] );
 
-		$model = $this->getModel( $search_term, $search_fields);
+		$model = $this->getModel( $search_term, $search_fields );
 
 		$this->assertEquals( $model, $query );
 	}

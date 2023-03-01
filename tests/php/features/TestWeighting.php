@@ -59,7 +59,7 @@ class TestWeighting extends BaseTestCase {
 					'enabled' => false,
 				],
 			],
-		]
+		],
 	];
 
 	/**
@@ -98,7 +98,9 @@ class TestWeighting extends BaseTestCase {
 	}
 
 	/**
-	 * @return weighting sub-feature
+	 * Get the Weighting instance
+	 *
+	 * @return Weighting
 	 */
 	public function get_weighting_feature() {
 		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
@@ -109,7 +111,7 @@ class TestWeighting extends BaseTestCase {
 	/**
 	 * Test searchable post_types exist after configuration change
 	 */
-	function testWeightablePostType() {
+	public function testWeightablePostType() {
 		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
 		$searchable_post_types = $search->get_searchable_post_types();
@@ -119,10 +121,10 @@ class TestWeighting extends BaseTestCase {
 				'post' => [
 					'post_title' => [
 						'enabled' => 'on',
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
-			]
+			],
 		];
 
 		$this->get_weighting_feature()->save_weighting_configuration( $weighting_settings );
@@ -150,10 +152,10 @@ class TestWeighting extends BaseTestCase {
 				'post' => [
 					'post_title' => [
 						'enabled' => 'on',
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
-			]
+			],
 		];
 
 		// enable post_title weighting
@@ -185,7 +187,6 @@ class TestWeighting extends BaseTestCase {
 		$this->assertTrue( $post_default_config['terms.category.name']['enabled'] );
 		$this->assertTrue( $post_default_config['terms.post_tag.name']['enabled'] );
 
-
 		add_filter(
 			'ep_weighting_default_enabled_taxonomies',
 			function ( $taxs, $post_type ) {
@@ -208,6 +209,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertArrayNotHasKey( 'terms.post_format.name', $weighting_configuration['post'] );
 	}
 
+	/**
+	 * Test the `get_weightable_fields_for_post_type` method
+	 */
 	public function testGetWeightableFieldsForPostType() {
 		$fields = $this->get_weighting_feature()->get_weightable_fields_for_post_type( 'ep_test' );
 
@@ -217,6 +221,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertContains( 'terms.post_tag.name', array_keys( $fields['taxonomies']['children'] ) );
 	}
 
+	/**
+	 * Test the `add_weighting_submenu_page` method
+	 */
 	public function testAddWeightingSubmenuPage() {
 		$site_url = trailingslashit( get_option( 'siteurl' ) );
 
@@ -232,22 +239,28 @@ class TestWeighting extends BaseTestCase {
 		$this->assertEquals( $site_url . 'wp-admin/admin.php?page=elasticpress-weighting', menu_page_url( 'elasticpress-weighting', false ) );
 	}
 
+	/**
+	 * Test the `render_settings_page` method
+	 */
 	public function testRenderSettingsPage() {
 		ob_start();
 		$this->get_weighting_feature()->render_settings_page();
 		$content = ob_get_clean();
 
-		$search = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$search     = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 		$post_types = $search->get_searchable_post_types();
 
 		$this->assertStringContainsString( 'Manage Search Fields &amp; Weighting', $content );
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_object = get_post_type_object( $post_type );
-			$this->assertStringContainsString( '<h2 class="hndle">'.$post_type_object->labels->menu_name, $content );
+			$this->assertStringContainsString( '<h2 class="hndle">' . $post_type_object->labels->menu_name, $content );
 		}
 	}
 
+	/**
+	 * Test the `render_settings_page` method (success)
+	 */
 	public function testRenderSettingsPageSaveSuccess() {
 		$_GET['settings-updated'] = true;
 		ob_start();
@@ -257,6 +270,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertStringContainsString( 'Changes Saved', $content );
 	}
 
+	/**
+	 * Test the `render_settings_page` method (failed)
+	 */
 	public function testRenderSettingsPageSaveFailed() {
 		$_GET['settings-updated'] = false;
 		ob_start();
@@ -266,7 +282,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertStringContainsString( 'An error occurred when saving', $content );
 	}
 
-
+	/**
+	 * Test the `handle_save` method
+	 */
 	public function testHandleSave() {
 		$weighting_class = $this->getMockBuilder( 'ElasticPress\Feature\Search\Weighting' )
 			->setMethods( [ 'redirect' ] )
@@ -276,19 +294,19 @@ class TestWeighting extends BaseTestCase {
 		$this->assertEquals( null, $weighting_class->handle_save() );
 
 		// Change to non admin user
-		wp_set_current_user($this->factory->user->create( array( 'role' => 'author' ) ) );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'author' ) ) );
 
 		$_POST['ep-weighting-nonce'] = wp_create_nonce( 'save-weighting' );
 		$this->assertEquals( null, $weighting_class->handle_save() );
 
-		wp_set_current_user($this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
 		$_POST = [
 			'ep-weighting-nonce' => wp_create_nonce( 'save-weighting' ),
-			'weighting' => [
+			'weighting'          => [
 				'post' => [
 					'post_title' => [
 						'enabled' => 'on',
-						'weight'  => 1
+						'weight'  => 1,
 					],
 				],
 			],
@@ -298,39 +316,56 @@ class TestWeighting extends BaseTestCase {
 		$weighting_class->handle_save();
 	}
 
+	/**
+	 * Test the `save_weighting_configuration` method (invalid post type)
+	 */
 	public function testSaveWeightingConfigurationInvalidPostType() {
-
 		$weighting_settings = [
 			'weighting' => [
 				'post' => [
 					'post_title' => [
 						'enabled' => 'on',
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
-			]
+			],
 		];
 
-		add_filter( 'ep_searchable_post_types', function( $config ) {
-			return array_merge( $config, [ 'invalid_post_type' ] );
-		} );
+		add_filter(
+			'ep_searchable_post_types',
+			function( $config ) {
+				return array_merge( $config, [ 'invalid_post_type' ] );
+			}
+		);
 
-		add_filter( 'ep_weighting_configuration', function( $config ) {
-			return array_merge( $config, [ 'invalid_post_type' ] );
-		} );
+		add_filter(
+			'ep_weighting_configuration',
+			function( $config ) {
+				return array_merge( $config, [ 'invalid_post_type' ] );
+			}
+		);
 
 		$this->assertNotContains( 'invalid_post_type', $this->get_weighting_feature()->save_weighting_configuration( $weighting_settings ) );
 	}
 
+	/**
+	 * Test the `recursively_inject_weights_to_fields` method
+	 */
 	public function testRecursivelyInjectWeightsToFieldsInvalidArgs() {
 		$invalid_args = '';
 		$this->assertEquals( null, $this->get_weighting_feature()->recursively_inject_weights_to_fields( $invalid_args, $this->weighting_settings['weighting']['post'] ) );
 	}
 
+	/**
+	 * Test the `post_type_has_fields` method
+	 */
 	public function testPostTypeHasFieldsWithDefaultConfig() {
 		$this->assertTrue( $this->get_weighting_feature()->post_type_has_fields( 'post' ) );
 	}
 
+	/**
+	 * Test the `post_type_has_fields` method (with custom config)
+	 */
 	public function testPostTypeHasFieldsWithCustomConfig() {
 		// Test with configuration saved for post only, page will return false.
 		$weighting_settings = [
@@ -338,10 +373,10 @@ class TestWeighting extends BaseTestCase {
 				'post' => [
 					'post_title' => [
 						'enabled' => 'on',
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
-			]
+			],
 		];
 		$this->get_weighting_feature()->save_weighting_configuration( $weighting_settings );
 
@@ -357,24 +392,24 @@ class TestWeighting extends BaseTestCase {
 	public function testPostTypeHasFieldsWithCustomConfigViaFilter() {
 		$function = function() {
 			return [
-				'page' => [],
-				'post' => [
+				'page'   => [],
+				'post'   => [
 					'post_title' => [
 						'enabled' => 'on',
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
-				'test' => [
+				'test'   => [
 					'post_title' => [
 						'enabled' => true,
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
 				'test-2' => [
 					'post_title' => [
 						'enabled' => 10, // This is not considered a "truthy" value
-						'weight'  => 1
-					]
+						'weight'  => 1,
+					],
 				],
 			];
 		};
@@ -386,23 +421,35 @@ class TestWeighting extends BaseTestCase {
 		$this->assertFalse( $this->get_weighting_feature()->post_type_has_fields( 'test-2' ) );
 	}
 
+	/**
+	 * Test the `do_weighting` method (with `search_fields` parameter)
+	 */
 	public function testDoWeightingWithQueryContainsSearchFields() {
 		// Test search fields are set on the query.
-		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['search_fields' => [ 'post_title' ] ] ) );
+		$this->assertSame( [ 'do', 'nothing' ], $this->get_weighting_feature()->do_weighting( [ 'do', 'nothing' ], [ 'search_fields' => [ 'post_title' ] ] ) );
 	}
 
+	/**
+	 * Test the `do_weighting` method in admin
+	 */
 	public function testDoWeightingInAdmin() {
 		// Test if we're in admin area.
 		set_current_screen( 'edit-post' );
-		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => 'blog' ] ) );
+		$this->assertSame( [ 'do', 'nothing' ], $this->get_weighting_feature()->do_weighting( [ 'do', 'nothing' ], [ 's' => 'blog' ] ) );
 		set_current_screen( 'front' );
 	}
 
+	/**
+	 * Test the `do_weighting` method (with an empty search query)
+	 */
 	public function testDoWeightingWithEmptySearchQuery() {
 		// Test if search query is empty.
-		$this->assertSame( ['do', 'nothing'], $this->get_weighting_feature()->do_weighting( ['do', 'nothing'], ['s' => '' ] ) );
+		$this->assertSame( [ 'do', 'nothing' ], $this->get_weighting_feature()->do_weighting( [ 'do', 'nothing' ], [ 's' => '' ] ) );
 	}
 
+	/**
+	 * Test the `do_weighting` method (with the default config)
+	 */
 	public function testDoWeightingWithDefaultConfig() {
 		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
 
@@ -410,6 +457,9 @@ class TestWeighting extends BaseTestCase {
 		$this->assertEquals( 5, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
 
+	/**
+	 * Test the `do_weighting` method (with the custom config)
+	 */
 	public function testDoWeightingWithCustomConfig() {
 		$this->get_weighting_feature()->save_weighting_configuration( $this->weighting_settings );
 
@@ -418,12 +468,14 @@ class TestWeighting extends BaseTestCase {
 		$this->assertEquals( 2, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
 	}
 
+	/**
+	 * Get formatted ES and query vars
+	 */
 	public function getArgs() {
 		$post = new \ElasticPress\Indexable\Post\Post();
 
-		$query = new \WP_Query( [ 's' => 'blog' ] );
+		$query      = new \WP_Query( [ 's' => 'blog' ] );
 		$query_vars = $query->query_vars;
-
 
 		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
 

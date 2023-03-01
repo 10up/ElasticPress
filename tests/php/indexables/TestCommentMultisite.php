@@ -9,6 +9,9 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Test multisite comment class
+ */
 class TestCommentMultisite extends BaseTestCase {
 
 	/**

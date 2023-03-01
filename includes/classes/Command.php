@@ -203,7 +203,7 @@ class Command extends WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--network-wide]
-	 * : Force mappings to be sent for every index in the network.
+	 * : Force mappings to be sent for every index in the network. `--network-wide` takes an optional argument to limit the number of mappings to be sent where 0 is no limit. For example, `--network-wide=5` would send mappings for only 5 blogs on the network.
 	 *
 	 * [--indexables=<indexables>]
 	 * : List of indexables
@@ -477,7 +477,7 @@ class Command extends WP_CLI_Command {
 	 * : The name of the index to be deleted. If not passed, all indexes will be deleted
 	 *
 	 * [--network-wide]
-	 * : Force every index on the network to be deleted.
+	 * : Force every index on the network to be deleted. `--network-wide` takes an optional argument to limit the number of indices to be deleted where 0 is no limit. For example, `--network-wide=5` would limit to only 5 indices on the network to be deleted.
 	 *
 	 * [--yes]
 	 * : Skip confirmation

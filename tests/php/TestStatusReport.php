@@ -25,7 +25,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'wordpress', 'indexable', 'elasticpress', 'failed-queries', 'indices', 'last-sync', 'features' ],
+			[ 'failed-queries', 'wordpress', 'indexable', 'elasticpress', 'indices', 'last-sync', 'features' ],
 			array_keys( $reports )
 		);
 	}
@@ -46,7 +46,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'wordpress', 'indexable', 'elasticpress', 'failed-queries', 'indices', 'last-sync', 'features', 'custom' ],
+			[ 'failed-queries', 'wordpress', 'indexable', 'elasticpress', 'indices', 'last-sync', 'features', 'custom' ],
 			array_keys( $reports )
 		);
 	}
@@ -59,11 +59,11 @@ class TestStatusReport extends BaseTestCase {
 	public function testGetReportsSkipped() {
 		$status_report = new StatusReport();
 
-		parse_str( 'ep-skip-reports[]=wordpress&ep-skip-reports[]=indexable', $_GET );
+		parse_str( 'ep-skip-reports[]=wordpress&ep-skip-reports[]=indexable', $_GET ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'elasticpress', 'failed-queries', 'indices', 'last-sync', 'features' ],
+			[ 'failed-queries', 'elasticpress', 'indices', 'last-sync', 'features' ],
 			array_keys( $reports )
 		);
 	}

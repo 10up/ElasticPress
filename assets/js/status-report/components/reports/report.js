@@ -1,8 +1,9 @@
 /**
  * WordPress dependencies.
  */
-import { Button, Panel, PanelBody, PanelHeader } from '@wordpress/components';
-import { WPElement } from '@wordpress/element';
+import { Button, Notice, Panel, PanelBody, PanelHeader } from '@wordpress/components';
+import { safeHTML } from '@wordpress/dom';
+import { RawHTML, WPElement } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
 
 /**
@@ -17,10 +18,11 @@ import Value from './report/value';
  * @param {Array} props.actions Report actions.
  * @param {object} props.groups Report groups.
  * @param {string} props.id Report ID.
+ * @param {string} props.messages Report messages.
  * @param {string} props.title Report title.
  * @returns {WPElement} Report component.
  */
-export default ({ actions, groups, id, title }) => {
+export default ({ actions, groups, id, messages, title }) => {
 	if (groups.length < 1) {
 		return null;
 	}
@@ -41,6 +43,11 @@ export default ({ actions, groups, id, title }) => {
 					</Button>
 				))}
 			</PanelHeader>
+			{messages.map(({ message, type }) => (
+				<Notice status={type} isDismissible={false}>
+					<RawHTML>{safeHTML(message)}</RawHTML>
+				</Notice>
+			))}
 			{groups.map(({ fields, title }) => (
 				<PanelBody key={title} title={decodeEntities(title)} initialOpen={false}>
 					<table

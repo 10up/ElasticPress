@@ -1,6 +1,9 @@
 <?php
-
-// Utilities that do NOT depend on WordPress code.
+/**
+ * Utilities that do NOT depend on WordPress code.
+ *
+ * @package elasticpress
+ */
 
 namespace WP_CLI\Utils;
 

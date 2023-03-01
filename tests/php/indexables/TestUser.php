@@ -92,7 +92,7 @@ class TestUser extends BaseTestCase {
 					'user_num'   => 5,
 					'long_key'   => 'here is a text field',
 				],
-			],
+			]
 		);
 
 		$user_2 = $this->ep_factory->user->create(
