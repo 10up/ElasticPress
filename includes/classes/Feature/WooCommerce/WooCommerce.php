@@ -305,7 +305,7 @@ class WooCommerce extends Feature {
 			'product_variation',
 		);
 
-		if ( $query->is_post_type_archive( 'product' ) || isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+		if ( ( $query->main_query() && $query->is_post_type_archive( 'product' ) ) || isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			$post_types[] = 'product';
 		}
 
