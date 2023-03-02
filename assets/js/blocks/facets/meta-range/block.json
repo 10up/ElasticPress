@@ -1,7 +1,7 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"title": "Facet by Meta Range (ElasticPress)",
+	"title": "Facet by Meta Range - Beta (ElasticPress)",
 	"textdomain": "elasticpress",
 	"name": "elasticpress/facet-meta-range",
 	"icon": "feedback",
