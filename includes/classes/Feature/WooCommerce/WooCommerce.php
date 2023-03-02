@@ -926,7 +926,7 @@ class WooCommerce extends Feature {
 						'<a href="https://elasticpress.io/" target="_blank">',
 						'</a>',
 						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
-						'</a>',
+						'</a>'
 					);
 					?>
 				</p>
