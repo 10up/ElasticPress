@@ -117,7 +117,7 @@ function filter_allowed_html( $allowedtags, $context ) {
 
 		$ep_tags['a'] = array_merge(
 			$atts,
-			[ 'target' => true ],
+			[ 'target' => true ]
 		);
 
 		return $ep_tags;
