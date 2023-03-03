@@ -525,4 +525,98 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.contains('.site-content article h2', 'Facet By Meta Post 1').should('exist');
 		});
 	});
+
+	describe('Facet by Meta Range block', () => {
+		before(() => {
+			/**
+			 * Clean up sample posts.
+			 */
+			cy.wpCli(
+				'post list --meta_key=_facet_by_meta_range_tests --meta_compare=EXISTS --format=ids',
+			).then((wpCliResponse) => {
+				if (wpCliResponse.stdout) {
+					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
+				}
+			});
+
+			/**
+			 * Create sample posts.
+			 */
+			cy.wpCliEval(
+				`
+				for ( $i = 1; $i <= 20; $i++ ) {
+					wp_insert_post(
+						[
+							'post_title'  => "Facet By Meta Post {$i}",
+							'post_status' => 'publish',
+							'meta_input'  => [
+								'_facet_by_meta_range_tests' => 1,
+								'_numeric_meta_field'        => $i,
+								'_non_numeric_meta_field'    => 'Non-numeric value {$i}',
+							],
+						]
+					);
+				}
+				`,
+			);
+		});
+
+		/**
+		 * Test that the Facet by Meta Range block is functional.
+		 */
+		it('Can insert, configure, and use the Facet by Meta Range block', () => {
+			cy.intercept('**/meta-range/keys*').as('keysApiRequest');
+			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
+
+			/**
+			 * Insert a Facet by Meta Range block.
+			 */
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Meta Range (ElasticPress)');
+			cy.insertBlock('Facet by Meta Range (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-meta-range').last().as('block');
+
+			/**
+			 * The block should prompt to select a field.
+			 */
+			cy.get('@block').should('contain.text', 'Facet by Meta Range');
+
+			/**
+			 * After selecting a field a preview should display.
+			 */
+			cy.wait('@keysApiRequest');
+			cy.get('@block').get('select').select('_facet_by_meta_range_tests');
+			cy.wait('@previewApiRequest');
+			cy.get('@block').get('.ep-range-facet').should('exist');
+			cy.get('@block').get('.ep-range-facet__values').should('contain.text', '1 — 20');
+
+			/**
+			 * Changes to the prefix and suffix should be reflected in the preview.
+			 */
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="text"]').eq(0).clearThenType('$');
+			cy.get('.block-editor-block-inspector input[type="text"]').eq(1).clearThenType('/day');
+			cy.get('@block')
+				.get('.ep-range-facet__values')
+				.should('contain.text', '$1/day — $20/day');
+
+			/**
+			 * It should be possible to change the field from the block inspector.
+			 */
+			cy.get('.block-editor-block-inspector select').select('_non_numeric_meta_field');
+
+			/**
+			 * A non-numeric field should show a warning.
+			 */
+			cy.get('@block').should('contain.text', 'Preview unavailable.');
+
+			/**
+			 * Changing the field black should restore a preview.
+			 */
+			cy.get('.block-editor-block-inspector select').select('_numeric_meta_field');
+			cy.get('@block').get('.ep-range-facet').should('exist');
+		});
+	});
 });
