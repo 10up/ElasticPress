@@ -160,6 +160,11 @@ class Facets extends Feature {
 		}
 
 		/**
+		 * This flag is used to differentiate filters being applied to the query and to its aggregations.
+		 */
+		$query_args['ep_facet_adding_agg_filters'] = true;
+
+		/**
 		 * Filter WP query arguments that will be used to build the aggregations filter.
 		 *
 		 * The returned `$query_args` will be used to build the aggregations filter passing
