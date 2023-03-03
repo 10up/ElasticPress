@@ -58,3 +58,16 @@ cy.elasticPress = {
 		},
 	},
 };
+
+/**
+ * Ignore ResizeObserver error.
+ *
+ * @see {@link https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded}
+ */
+Cypress.on('uncaught:exception', (err) => {
+	if (err.message?.includes('ResizeObserver loop limit exceeded')) {
+		return false;
+	}
+
+	return err;
+});
