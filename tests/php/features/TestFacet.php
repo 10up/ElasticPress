@@ -202,7 +202,7 @@ class TestFacet extends BaseTestCase {
 
 		/**
 		 * Without any function hooked to `ep_facet_agg_filters` we expect
-		 * aggregation filters to matche exactly the filter applied to the main
+		 * aggregation filters to match exactly the filter applied to the main
 		 * query.
 		 */
 		remove_all_filters( 'ep_facet_agg_filters' );
@@ -217,6 +217,34 @@ class TestFacet extends BaseTestCase {
 		$formatted_args_with_args = $facet_feature->set_agg_filters( $formatted_args, $query_args, $query );
 
 		$this->assertSame( $formatted_args['post_filter'], $formatted_args_with_args['aggs']['terms']['filter'] );
+	}
+
+	/**
+	 * Test if the `ep_facet_adding_agg_filters` flag is set in `set_agg_filters`
+	 *
+	 * @since 4.5.0
+	 * @group facets
+	 */
+	public function testSetAggFilterAddingAggFiltersFlag() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$query_args = [
+			'ep_facet'    => 1,
+			'post_type'   => 'post',
+			'post_status' => 'publish',
+		];
+
+		$check_flag = function ( $query_args ) {
+			$this->assertTrue( $query_args['ep_facet_adding_agg_filters'] );
+			return $query_args;
+		};
+		add_filter( 'ep_facet_agg_filters', $check_flag );
+
+		$previous_filter_count = did_filter( 'ep_facet_agg_filters' );
+		$facet_feature->set_agg_filters( [], $query_args, new \WP_Query() );
+		$current_filter_count = did_filter( 'ep_facet_agg_filters' );
+
+		$this->assertGreaterThan( $previous_filter_count, $current_filter_count );
 	}
 
 	/**
