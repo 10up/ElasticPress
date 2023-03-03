@@ -13,6 +13,7 @@ import { __ } from '@wordpress/i18n';
  * Range facet component.
  *
  * @param {object} props Props.
+ * @param {string} props.clearUrl Clear filter URL.
  * @param {number} props.min Minimum value.
  * @param {number} props.max Maximum value.
  * @param {string} props.prefix Value prefix.
@@ -20,7 +21,7 @@ import { __ } from '@wordpress/i18n';
  * @param {number[]} props.value Currnet value.
  * @returns {WPElement} Component element.
  */
-export default ({ min, max, prefix, suffix, value, ...props }) => {
+export default ({ clearUrl, min, max, prefix, suffix, value, ...props }) => {
 	return (
 		<div className="ep-range-facet">
 			<div className="ep-range-facet__slider">
@@ -46,6 +47,7 @@ export default ({ min, max, prefix, suffix, value, ...props }) => {
 				{suffix}
 			</div>
 			<div className="ep-range-facet__action">
+				{clearUrl ? <a href={clearUrl}>{__('Clear', 'elasticpress')}</a> : null}{' '}
 				<button type="submit">{__('Filter', 'elasticpress')}</button>
 			</div>
 		</div>

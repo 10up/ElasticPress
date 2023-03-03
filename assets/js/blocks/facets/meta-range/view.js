@@ -47,6 +47,11 @@ const App = ({ max, min }) => {
 	const suffix = useMemo(() => min.dataset.suffix, [min]);
 
 	/**
+	 * Clear URL.
+	 */
+	const clearUrl = useMemo(() => (min.value !== '' ? min.form.action : null), [min]);
+
+	/**
 	 * Handle change.
 	 *
 	 * @param {Array} value Value range.
@@ -72,6 +77,7 @@ const App = ({ max, min }) => {
 	 */
 	return (
 		<RangeFacet
+			clearUrl={clearUrl}
 			max={maxAgg}
 			min={minAgg}
 			prefix={prefix}
