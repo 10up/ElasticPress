@@ -659,7 +659,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('.post').contains('Facet By Meta Range Post 10').should('exist');
 			cy.get('.post').contains('Facet By Meta Range Post 11').should('exist');
 			cy.get('.post').contains('Facet By Meta Range Post 12').should('exist');
-			cy.get('.post').contains('Facet By Meta Range Post 19').should('not.exist');
+			cy.get('.post').contains('Facet By Meta Range Post 20').should('not.exist');
 		});
 	});
 });
