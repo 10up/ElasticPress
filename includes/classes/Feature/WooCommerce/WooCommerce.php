@@ -913,18 +913,25 @@ class WooCommerce extends Feature {
 			<div class="input-wrap">
 				<label><input name="settings[orders]" type="radio" <?php checked( $enabled ); ?> <?php disabled( $available, false, true ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
 				<label><input name="settings[orders]" type="radio" <?php checked( ! $enabled ); ?> <?php disabled( $available, false, true ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
-				<?php if ( ! $available ) : ?>
-					<p class="field-description">
-						<?php esc_html_e( 'Due to the sensitive nature of orders, this autosuggest feature is available only to ElasticPress.io customers.', 'elasticpress' ); ?>
-						<?php
-							printf(
-								'<a href="%1$s" target="_blank">%2$s</a>',
-								'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest',
-								esc_html__( 'Learn more.', 'elasticpress' )
-							);
-						?>
-					</p>
-				<?php endif; ?>
+				<p class="field-description">
+					<?php
+					$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest';
+
+					$message = ( $available ) ?
+						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+						__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable Orders Autosuggest to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
+						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+						__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
+
+					printf(
+						wp_kses( $message, 'ep-html' ),
+						'<a href="https://elasticpress.io/" target="_blank">',
+						'</a>',
+						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
+						'</a>'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 		<?php
