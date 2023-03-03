@@ -67,6 +67,7 @@ class Renderer {
 
 		$all_selected_filters = (array) $feature->get_selected();
 		$selected_filters     = $all_selected_filters[ $facet_type->get_filter_type() ] ?? [];
+
 		foreach ( $selected_filters as $filter => $values ) {
 			if ( $this->meta_field !== $filter ) {
 				continue;
@@ -76,10 +77,13 @@ class Renderer {
 			$selected_max_value = $values['_max'] ?? null;
 			unset( $all_selected_filters[ $facet_type->get_filter_type() ][ $filter ] );
 		}
-		$form_action = wp_parse_url( $feature->build_query_url( $all_selected_filters ) );
-		wp_parse_str( $form_action['query'] ?? '', $filter_fields );
+
+		$form_action = $feature->build_query_url( $all_selected_filters );
+		$action_url  = wp_parse_url( $form_action );
+
+		wp_parse_str( $action_url['query'] ?? '', $filter_fields );
 		?>
-		<form class="ep-facet-meta-range">
+		<form action="<?php echo esc_url( $form_action ); ?>" class="ep-facet-meta-range">
 			<input type="hidden" data-prefix="<?php echo esc_attr( $instance['prefix'] ); ?>" data-suffix="<?php echo esc_attr( $instance['suffix'] ); ?>" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
 			<input type="hidden" name="<?php echo esc_attr( $max_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_max_value ); ?>">
 
