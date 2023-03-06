@@ -622,6 +622,16 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block').get('.ep-range-facet').should('exist');
 
 			/**
+			 * Insert a regular Facet by Meta block.
+			 */
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
+			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-meta').last().click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector select').select('non_numeric_meta_field');
+
+			/**
 			 * Save widgets and visit the front page.
 			 */
 			cy.get('.edit-widgets-header__actions button').contains('Update').click();
@@ -636,6 +646,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block').get('.ep-range-facet').should('exist');
 			cy.get('@block').get('.ep-range-slider__thumb').as('thumbs').should('exist');
 			cy.get('@block').should('contain.text', '$1/day — $20/day');
+			cy.get('@block').get('.ep-range-facet__action a').should('not.exist');
 
 			/**
 			 * Selecting a range and pressing Filter should filter the results.
@@ -652,14 +663,41 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				);
 			cy.get('@block').should('contain.text', '$9/day — $12/day');
 			cy.get('@block').get('button').click();
+			cy.get('.post').should('have.length', 4);
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=9');
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=12');
-			cy.get('.post').should('have.length', 4);
+			cy.get('@block').get('.ep-range-facet__action a').should('exist');
 			cy.get('.post').contains('Facet By Meta Range Post 9').should('exist');
 			cy.get('.post').contains('Facet By Meta Range Post 10').should('exist');
 			cy.get('.post').contains('Facet By Meta Range Post 11').should('exist');
 			cy.get('.post').contains('Facet By Meta Range Post 12').should('exist');
+			cy.get('.post').contains('Facet By Meta Range Post 14').should('not.exist');
 			cy.get('.post').contains('Facet By Meta Range Post 20').should('not.exist');
+
+			/**
+			 * After selecting a narrow range of values it should be possible
+			 * to adjust the filter to a wider range.
+			 */
+			cy.get('@thumbs').eq(0).type('{leftArrow}{leftArrow}');
+			cy.get('@thumbs').eq(1).type('{rightArrow}{rightArrow}');
+			cy.get('@block').should('contain.text', '$7/day — $14/day');
+			cy.get('@block').get('button').click();
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=7');
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=14');
+			cy.get('.post').contains('Facet By Meta Range Post 14').should('exist');
+
+			/**
+			 * Clicking clear should clear the range parameters but not any
+			 * other facet parameters.
+			 */
+			cy.get('.wp-block-elasticpress-facet .term a').first().click();
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=7');
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=14');
+			cy.url().should('include', 'ep_meta_filter_non_numeric_meta_field=Non-numeric');
+			cy.get('@block').get('.ep-range-facet__action a').should('exist').click();
+			cy.url().should('not.include', 'ep_meta_range_filter_numeric_meta_field_min=7');
+			cy.url().should('not.include', 'ep_meta_range_filter_numeric_meta_field_max=14');
+			cy.url().should('include', 'ep_meta_filter_non_numeric_meta_field=Non-numeric');
 		});
 	});
 });
