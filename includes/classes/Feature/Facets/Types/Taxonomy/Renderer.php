@@ -47,7 +47,8 @@ class Renderer {
 		$instance = wp_parse_args(
 			$instance,
 			[
-				'title' => '',
+				'title'        => '',
+				'displayCount' => false,
 			]
 		);
 
