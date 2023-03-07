@@ -251,6 +251,10 @@ class StatusReport {
 			}
 		}
 
+		if ( ! isset( $submenu['elasticpress'] ) ) {
+			return;
+		}
+
 		foreach ( $submenu['elasticpress'] as $key => $value ) {
 			if ( 'elasticpress-status-report' === $value[2] ) {
 				$submenu['elasticpress'][ $key ][0] .= sprintf(
