@@ -48,7 +48,7 @@ class Renderer {
 			$instance,
 			[
 				'title'        => '',
-				'displayCount' => '',
+				'displayCount' => false,
 			]
 		);
 
