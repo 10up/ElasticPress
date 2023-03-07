@@ -58,14 +58,15 @@ class EP_Uninstaller {
 	 * @var array
 	 */
 	protected $transients = [
+		'ep_autosuggest_query_request_cache',
+		'ep_elasticpress_io_messages',
+		'ep_es_info',
 		'ep_es_info_response_code',
 		'ep_es_info_response_error',
-		'logging_ep_es_info',
-		'ep_wpcli_sync_interrupted',
-		'ep_wpcli_sync',
-		'ep_es_info',
-		'ep_autosuggest_query_request_cache',
 		'ep_meta_field_keys',
+		'ep_wpcli_sync',
+		'ep_wpcli_sync_interrupted',
+		'logging_ep_es_info',
 	];
 
 	/**
