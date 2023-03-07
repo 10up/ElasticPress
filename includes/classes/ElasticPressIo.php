@@ -41,15 +41,17 @@ class ElasticPressIo {
 	/**
 	 * Get messages from ElasticPress.io.
 	 *
+	 * @param bool $skip_cache Whether to fetch the API or use the cached messages. Defaults to false, i.e., use cache.
 	 * @return array ElasticPress.io messages.
 	 */
-	public function get_endpoint_messages() {
+	public function get_endpoint_messages( $skip_cache = false ) : array {
 		if ( ! Utils\is_epio() ) {
 			return [];
 		}
 
-		$messages = get_transient( self::MESSAGES_TRANSIENT_NAME );
-		if ( false !== $messages ) {
+		$transient = 'ep_elasticpress_io_messages';
+		$messages  = get_transient( $transient );
+		if ( ! $skip_cache && false !== $messages ) {
 			return $messages;
 		}
 
@@ -62,15 +64,8 @@ class ElasticPressIo {
 
 		$messages = (array) json_decode( wp_remote_retrieve_body( $response ), true );
 
-		set_transient( self::MESSAGES_TRANSIENT_NAME, $messages, HOUR_IN_SECONDS );
+		set_transient( $transient, $messages, HOUR_IN_SECONDS );
 
 		return $messages;
-	}
-
-	/**
-	 * Delete cached messages.
-	 */
-	public function delete_endpoint_messages() {
-		delete_transient( self::MESSAGES_TRANSIENT_NAME );
 	}
 }
