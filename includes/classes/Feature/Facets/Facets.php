@@ -50,8 +50,9 @@ class Facets extends Feature {
 		];
 
 		$types = [
-			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
-			'meta'     => __NAMESPACE__ . '\Types\Meta\FacetType',
+			'taxonomy'   => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
+			'meta'       => __NAMESPACE__ . '\Types\Meta\FacetType',
+			'meta-range' => __NAMESPACE__ . '\Types\MetaRange\FacetType',
 		];
 
 		/**
@@ -157,6 +158,11 @@ class Facets extends Feature {
 		if ( 'any' === $this->get_match_type() ) {
 			add_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
 		}
+
+		/**
+		 * This flag is used to differentiate filters being applied to the query and to its aggregations.
+		 */
+		$query_args['ep_facet_adding_agg_filters'] = true;
 
 		/**
 		 * Filter WP query arguments that will be used to build the aggregations filter.

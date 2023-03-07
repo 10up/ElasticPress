@@ -405,7 +405,7 @@ class Orders {
 		$endpoint = $this->get_token_endpoint();
 		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
 
-		if ( is_wp_error( $response ) ) {
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
 		}
 
