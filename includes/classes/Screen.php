@@ -44,6 +44,14 @@ class Screen {
 	public $health_info_screen;
 
 	/**
+	 * Status report instance
+	 *
+	 * @var Screen\StatusReport
+	 * @since  4.5.0
+	 */
+	public $status_report;
+
+	/**
 	 * Initialize class
 	 *
 	 * @since 3.0
@@ -53,8 +61,11 @@ class Screen {
 
 		$this->sync_screen        = new Screen\Sync();
 		$this->health_info_screen = new Screen\HealthInfo();
+		$this->status_report      = new Screen\StatusReport();
+
 		$this->sync_screen->setup();
 		$this->health_info_screen->setup();
+		$this->status_report->setup();
 	}
 
 	/**
@@ -104,6 +115,10 @@ class Screen {
 				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
 					$this->screen = 'sync';
 				}
+			} elseif ( 'elasticpress-status-report' === $_GET['page'] ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+					$this->screen = 'status-report';
+				}
 			}
 		}
 		// phpcs:enable WordPress.Security.NonceVerification
@@ -132,6 +147,9 @@ class Screen {
 				break;
 			case 'sync':
 				require_once __DIR__ . '/../partials/sync-page.php';
+				break;
+			case 'status-report':
+				require_once __DIR__ . '/../partials/status-report-page.php';
 				break;
 		}
 	}

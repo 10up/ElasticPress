@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import classnames from 'classnames';
+
+/**
  * WordPress dependencies.
  */
 import { Icon } from '@wordpress/components';
@@ -19,13 +24,22 @@ import sync from '../icons/sync';
  * @param {object} props Component props.
  * @param {boolean} props.isCli If progress is for a CLI sync.
  * @param {boolean} props.isComplete If sync is complete.
+ * @param {boolean} props.isFailed If sync has failed.
  * @param {boolean} props.isPaused If sync is paused.
  * @param {number} props.itemsProcessed Number of items processed.
  * @param {number} props.itemsTotal Total number of items.
  * @param {string} props.dateTime Start date and time.
  * @returns {WPElement} Component.
  */
-export default ({ isCli, isComplete, isPaused, itemsProcessed, itemsTotal, dateTime }) => {
+export default ({
+	isCli,
+	isComplete,
+	isFailed,
+	isPaused,
+	itemsProcessed,
+	itemsTotal,
+	dateTime,
+}) => {
 	/**
 	 * Sync progress label.
 	 */
@@ -36,6 +50,10 @@ export default ({ isCli, isComplete, isPaused, itemsProcessed, itemsTotal, dateT
 		 * @returns {string} Sync progress label.
 		 */
 		() => {
+			if (isFailed) {
+				return __('Sync failed', 'elasticpress');
+			}
+
 			if (isComplete) {
 				return __('Sync complete', 'elasticpress');
 			}
@@ -50,14 +68,14 @@ export default ({ isCli, isComplete, isPaused, itemsProcessed, itemsTotal, dateT
 
 			return __('Sync in progress', 'elasticpress');
 		},
-		[isCli, isComplete, isPaused],
+		[isCli, isComplete, isFailed, isPaused],
 	);
 
 	return (
 		<div
-			className={`ep-sync-progress ${
-				!isPaused && !isComplete ? 'ep-sync-progress--syncing' : ''
-			}`}
+			className={classnames('ep-sync-progress', {
+				'ep-sync-progress--syncing': !isPaused && !isComplete && !isFailed,
+			})}
 		>
 			<Icon icon={sync} />
 
@@ -72,7 +90,12 @@ export default ({ isCli, isComplete, isPaused, itemsProcessed, itemsTotal, dateT
 			</div>
 
 			<div className="ep-sync-progress__progress-bar">
-				<ProgressBar current={itemsProcessed} isComplete={isComplete} total={itemsTotal} />
+				<ProgressBar
+					current={itemsProcessed}
+					isComplete={isComplete}
+					isFailed={isFailed}
+					total={itemsTotal}
+				/>
 			</div>
 		</div>
 	);

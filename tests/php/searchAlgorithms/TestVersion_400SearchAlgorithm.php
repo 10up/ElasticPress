@@ -32,13 +32,13 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 */
 	public function testGetQuery() {
 		$basic = new Version_400();
-		
+
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
 
 		$query = $basic->get_query( 'indexable', $search_term, $search_fields, [] );
 
-		$model = $this->getModel( $search_term, $search_fields);
+		$model = $this->getModel( $search_term, $search_fields );
 
 		$this->assertEquals( $model, $query );
 	}
@@ -95,16 +95,14 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $basic->get_query( 'indexable', $search_term, $search_fields, [] );
 		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['boost'] );
-
-		remove_filter( 'ep_indexable_match_cross_fields_boost', $test_filter );
 	}
 
 	/**
 	 * Test filters with posts
-	 * 
+	 *
 	 * As posts also apply the legacy filters, these tests assure code honors the value of the newer filters
 	 *
-	 * @see https://github.com/10up/ElasticPress/issues/3033 
+	 * @see https://github.com/10up/ElasticPress/issues/3033
 	 * @group searchAlgorithms
 	 */
 	public function testPostFilters() {
@@ -154,8 +152,6 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
 		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['boost'] );
-
-		remove_filter( 'ep_post_match_cross_fields_boost', $test_filter );
 	}
 
 	/**
@@ -214,8 +210,6 @@ class TestVersion_400SearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $basic->get_query( 'post', $search_term, $search_fields, [] );
 		$this->assertEquals( 1234, $query['bool']['should'][2]['multi_match']['boost'] );
-
-		remove_filter( 'ep_match_cross_fields_boost', $test_filter );
 	}
 
 	/**

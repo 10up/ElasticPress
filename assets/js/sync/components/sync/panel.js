@@ -23,6 +23,7 @@ import SyncStatus from './status';
  * @param {boolean} props.isCli If sync is a CLI sync.
  * @param {boolean} props.isComplete If sync is complete.
  * @param {boolean} props.isDisabled If controls are disabled.
+ * @param {boolean} props.isFailed If sync has failed.
  * @param {boolean} props.isPaused If sync is paused.
  * @param {boolean} props.isSyncing If sync is running.
  * @param {number} props.itemsProcessed Number of items processed.
@@ -49,6 +50,7 @@ export default ({
 	isCli,
 	isComplete,
 	isDisabled,
+	isFailed,
 	isPaused,
 	isSyncing,
 	itemsProcessed,
@@ -95,7 +97,7 @@ export default ({
 							<p>
 								<Button
 									className="ep-sync-button ep-sync-button--delete"
-									disabled={isDisabled}
+									disabled={isDisabled || isSyncing}
 									isSecondary
 									isDestructive
 									onClick={onDelete}
@@ -125,6 +127,7 @@ export default ({
 								dateTime={syncStartDateTime}
 								isCli={isCli}
 								isComplete={isComplete}
+								isFailed={isFailed}
 								isPaused={isPaused}
 								itemsProcessed={itemsProcessed}
 								itemsTotal={itemsTotal}

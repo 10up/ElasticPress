@@ -11,7 +11,9 @@ namespace ElasticPress;
 use \WP_CLI as WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**

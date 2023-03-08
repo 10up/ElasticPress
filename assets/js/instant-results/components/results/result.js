@@ -7,7 +7,7 @@ import { WPElement } from '@wordpress/element';
  * Internal dependencies.
  */
 import { postTypeLabels } from '../../config';
-import { formatDate } from '../../functions';
+import { formatDate } from '../../utilities';
 import Result from '../common/result';
 
 /**

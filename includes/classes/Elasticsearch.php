@@ -627,6 +627,11 @@ class Elasticsearch {
 			// phpcs:enable
 		}
 
+		$request_id = Utils\generate_request_id();
+		if ( ! empty( $request_id ) ) {
+			$headers['X-ElasticPress-Request-ID'] = $request_id;
+		}
+
 		/**
 		 * Filter Elasticsearch request headers
 		 *
@@ -809,10 +814,11 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
+	 * @param  string $return_type Desired return type. Can be either 'bool' or 'raw'
 	 * @since  3.0
-	 * @return boolean
+	 * @return boolean|WP_Error
 	 */
-	public function put_mapping( $index, $mapping ) {
+	public function put_mapping( $index, $mapping, $return_type = 'bool' ) {
 		/**
 		 * Filter Elasticsearch mapping before put mapping
 		 *
@@ -842,15 +848,24 @@ class Elasticsearch {
 		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
-		$response_body = wp_remote_retrieve_body( $request );
+		$response_code = wp_remote_retrieve_response_code( $request );
 
-		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
+		// If WP_Error or not 200, return false or error message depends on attribute.
+		if ( is_wp_error( $request ) || 200 !== $response_code ) {
+			if ( 'bool' === $return_type ) {
+				return false;
+			}
 
-			return true;
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			}
+
+			$response_body   = wp_remote_retrieve_body( $request );
+			$parsed_response = json_decode( $response_body, true );
+			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -965,10 +980,20 @@ class Elasticsearch {
 			$this->close_index( $index );
 		}
 
-		$settings = trailingslashit( $index ) . '_settings';
-		$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
+		$settings_url = trailingslashit( $index ) . '_settings';
+		$request      = $this->remote_request( $settings_url, $request_args, [], 'update_index_settings' );
 
 		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+
+		/**
+		 * Fires after updating an index settings
+		 *
+		 * @hook ep_update_index_settings
+		 * @since 4.4.0
+		 * @param {string} $index    Index name
+		 * @param {array}  $settings Setting update array
+		 */
+		do_action( 'ep_update_index_settings', $index, $settings );
 
 		if ( $close_first ) {
 			$opened = $this->open_index( $index );
@@ -1641,13 +1666,14 @@ class Elasticsearch {
 	/**
 	 * Get all index names.
 	 *
-	 * @since 4.4.0
+	 * @param string $status Whether to return active indexables or all registered.
+	 * @since 4.4.0, 4.5.0 Added $status
 	 * @return array
 	 */
-	public function get_index_names() {
+	public function get_index_names( $status = 'active' ) {
 		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
 
-		$all_indexables = Indexables::factory()->get_all();
+		$all_indexables = Indexables::factory()->get_all( null, false, $status );
 
 		$global_indexes     = [];
 		$non_global_indexes = [];
@@ -1672,15 +1698,50 @@ class Elasticsearch {
 	 * Return all indices from the cluster.
 	 *
 	 * @since 4.4.0
-	 * @return WP_Error|array WP_Error on failure or The response
+	 * @return array Array of indices in Elasticsearch
 	 */
-	public function get_cluster_indices() {
+	public function get_cluster_indices() : array {
 		$path = '_cat/indices?format=json';
 
 		$response = $this->remote_request( $path );
 
-		return $response;
+		return (array) json_decode( wp_remote_retrieve_body( $response ), true );
+	}
 
+	/**
+	 * Given an index return its total fields limit
+	 *
+	 * @since 4.4.0
+	 * @param string $index_name The index name
+	 * @return int|null
+	 */
+	public function get_index_total_fields_limit( $index_name ) {
+		$cache_key = 'ep_total_fields_limit_' . $index_name;
+
+		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		if ( $is_network ) {
+			$cached = get_site_transient( $cache_key );
+		} else {
+			$cached = get_transient( $cache_key );
+		}
+		if ( ! empty( $cached ) ) {
+			return $cached;
+		}
+
+		$index_settings = $this->get_index_settings( $index_name );
+		if ( is_wp_error( $index_settings ) || empty( $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'] ) ) {
+			return null;
+		}
+
+		$es_field_limit = $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'];
+
+		if ( $is_network ) {
+			set_site_transient( $cache_key, $es_field_limit, DAY_IN_SECONDS );
+		} else {
+			set_transient( $cache_key, $es_field_limit, DAY_IN_SECONDS );
+		}
+
+		return (int) $es_field_limit;
 	}
 
 }

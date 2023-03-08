@@ -251,7 +251,10 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 				continue;
 			}
 
-			if ( false === strpos( $instance['content'], 'elasticpress/facet-meta' ) ) {
+			if (
+				false !== strpos( $instance['content'], 'elasticpress/facet-meta-range' )
+				|| false === strpos( $instance['content'], 'elasticpress/facet-meta' )
+			) {
 				continue;
 			}
 

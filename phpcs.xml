@@ -6,4 +6,17 @@
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
   </rule>
   <rule ref="PHPCompatibilityWP" />
+
+  <rule ref="WordPress.Security.NonceVerification.Recommended">
+      <exclude-pattern>/tests/*.php</exclude-pattern>
+  </rule>
+  <rule ref="WordPress.WP.DiscouragedFunctions.query_posts_query_posts">
+      <exclude-pattern>/tests/*.php</exclude-pattern>
+  </rule>
+  <rule ref="WordPress.WP.DiscouragedFunctions.wp_reset_query_wp_reset_query">
+      <exclude-pattern>/tests/*.php</exclude-pattern>
+  </rule>
+  <rule ref="WordPress.WP.PostsPerPage.posts_per_page_posts_per_page">
+      <exclude-pattern>/tests/*.php</exclude-pattern>
+  </rule>
 </ruleset>

@@ -50,8 +50,6 @@ class TestFeatureActivation extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -251,6 +249,74 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
 		$this->assertEquals( 1, $requirements_statuses['test'] );
+	}
+
+	/**
+	 * Test the `get_settings` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetSettings() {
+		$feature = new FeatureTest();
+
+		$default_settings = [
+			'setting_1' => 123,
+			'setting_2' => false,
+		];
+
+		$feature->default_settings = $default_settings;
+
+		$this->assertEquals( $default_settings, $feature->get_settings() );
+
+		$new_values = [
+			'setting_1' => 456,
+			'setting_2' => true,
+			'setting_3' => 'custom_string',
+		];
+
+		$filter = function() use ( $new_values ) {
+			return [
+				'test' => $new_values,
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->assertEquals( $new_values, $feature->get_settings() );
+	}
+
+	/**
+	 * Test the `get_setting` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetSetting() {
+		$feature = new FeatureTest();
+
+		$feature->default_settings = [
+			'setting_1' => 123,
+			'setting_2' => false,
+		];
+
+		$this->assertEquals( 123, $feature->get_setting( 'setting_1' ) );
+		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
+		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
+
+		$filter = function() {
+			return [
+				'test' => [
+					'setting_1' => 456,
+					'setting_3' => 'new_string',
+				],
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->assertEquals( 456, $feature->get_setting( 'setting_1' ) );
+		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
+		$this->assertEquals( 'new_string', $feature->get_setting( 'setting_3' ) );
+		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
 	}
 
 	/**

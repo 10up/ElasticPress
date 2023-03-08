@@ -299,8 +299,6 @@ class TestAdminNotices extends BaseTestCase {
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 
-		remove_filter( 'ep_elasticsearch_version', $es_version );
-
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['es_above_compat'] ) );
 	}
@@ -337,8 +335,6 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-
-		remove_filter( 'ep_elasticsearch_version', $es_version );
 
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['es_below_compat'] ) );
@@ -552,6 +548,97 @@ class TestAdminNotices extends BaseTestCase {
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertCount( 1, $notices );
 		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - Depending on the number of meta fields display a warning or an error
+	 *
+	 * Do: Show too many fields notice
+	 *
+	 * @group admin-notices
+	 * @since 4.4.0
+	 */
+	public function testTooManyFieldsNoticeInAdmin() {
+		add_filter(
+			'ep_total_field_limit',
+			function() {
+				return 24;
+			}
+		);
+		ElasticPress\Screen::factory()->set_current_screen( 'install' );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function() {
+				return [ 'meta_key_1', 'meta_key_2' ];
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 0, $notices );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function( $values ) {
+				$values[] = 'meta_key_3';
+				return $values;
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_fields', $notices );
+		$this->assertSame( 'warning', $notices['too_many_fields']['type'] );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function( $values ) {
+				$values[] = 'meta_key_4';
+				return $values;
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_fields', $notices );
+		$this->assertSame( 'error', $notices['too_many_fields']['type'] );
+	}
+
+	/**
+	 * Tests notice is show when number of posts linked with term is greater than number of items per cycle.
+	 */
+	public function testNumberOfPostsBiggerThanItemPerCycle() {
+
+		global $pagenow, $tax;
+
+		// set global variables.
+		$pagenow = 'edit-tags.php';
+		$tax     = get_taxonomy( 'category' );
+
+		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
+				],
+			]
+		);
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
 	}
 
 	/**
