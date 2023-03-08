@@ -58,7 +58,7 @@ const onSubmit = async (event) => {
 		/* eslint-disable no-alert */
 		const isConfirmed = window.confirm(
 			__(
-				'Enabling this feature will begin re-indexing your content. Do you wish to proceed?',
+				'Enabling this feature will begin re-syncing your content. Do you wish to proceed?',
 				'elasticpress',
 			),
 		);
