@@ -70,6 +70,7 @@ const PreviewUnavailable = ({ value }) => {
 	return (
 		<Warning>
 			{sprintf(
+				/* translators: %s: Field name. */
 				__(
 					'Preview unavailable. The "%s" field does not appear to contain numeric values. Select a new meta field key or populate the field with numeric values to enable filtering by range.',
 					'elasticpress',
