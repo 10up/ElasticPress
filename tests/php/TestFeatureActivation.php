@@ -252,6 +252,74 @@ class TestFeatureActivation extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `get_settings` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetSettings() {
+		$feature = new FeatureTest();
+
+		$default_settings = [
+			'setting_1' => 123,
+			'setting_2' => false,
+		];
+
+		$feature->default_settings = $default_settings;
+
+		$this->assertEquals( $default_settings, $feature->get_settings() );
+
+		$new_values = [
+			'setting_1' => 456,
+			'setting_2' => true,
+			'setting_3' => 'custom_string',
+		];
+
+		$filter = function() use ( $new_values ) {
+			return [
+				'test' => $new_values,
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->assertEquals( $new_values, $feature->get_settings() );
+	}
+
+	/**
+	 * Test the `get_setting` method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetSetting() {
+		$feature = new FeatureTest();
+
+		$feature->default_settings = [
+			'setting_1' => 123,
+			'setting_2' => false,
+		];
+
+		$this->assertEquals( 123, $feature->get_setting( 'setting_1' ) );
+		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
+		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
+
+		$filter = function() {
+			return [
+				'test' => [
+					'setting_1' => 456,
+					'setting_3' => 'new_string',
+				],
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->assertEquals( 456, $feature->get_setting( 'setting_1' ) );
+		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
+		$this->assertEquals( 'new_string', $feature->get_setting( 'setting_3' ) );
+		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
+	}
+
+	/**
 	 * Wrapper for Features::handle_feature_activation() calls in admin context.
 	 *
 	 * To avoid unnecessary updates on the `ep_feature_requirement_statuses` option,

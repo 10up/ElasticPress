@@ -60,7 +60,7 @@ class TestElasticsearch extends BaseTestCase {
 	 */
 	public function testGetDocuments() {
 
-		$post_ids = array();
+		$post_ids   = array();
 		$post_ids[] = $this->ep_factory->post->create();
 		$post_ids[] = $this->ep_factory->post->create();
 
@@ -90,7 +90,7 @@ class TestElasticsearch extends BaseTestCase {
 		$this->assertIsArray( $documents );
 		$this->assertEmpty( $documents );
 
-		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', []  );
+		$documents = ElasticPress\Elasticsearch::factory()->get_documents( $index_name, 'post', [] );
 
 		$this->assertIsArray( $documents );
 		$this->assertEmpty( $documents );
@@ -139,7 +139,6 @@ class TestElasticsearch extends BaseTestCase {
 			->setMethods( [ 'get_index_settings' ] )
 			->getMock();
 
-
 		$wrong_settings = [ '' ];
 		$right_settings = [
 			$index_name => [
@@ -157,12 +156,12 @@ class TestElasticsearch extends BaseTestCase {
 		 * 4. get_index_settings returns what we expect
 		 */
 		$elasticsearch_mock->expects( $this->exactly( 3 ) )
-             ->method( 'get_index_settings' )
-			 ->willReturnOnConsecutiveCalls(
+			->method( 'get_index_settings' )
+			->willReturnOnConsecutiveCalls(
 				[ new \WP_Error() ],
 				$wrong_settings,
 				$right_settings
-			 );
+			);
 
 		/**
 		 * Test when cached
@@ -198,5 +197,59 @@ class TestElasticsearch extends BaseTestCase {
 		} else {
 			$this->assertSame( 123, get_transient( $cache_key ) );
 		}
+	}
+
+	/**
+	 * Test the format_request_headers method
+	 *
+	 * @since 4.5.0
+	 */
+	public function testFormatRequestHeaders() {
+		/**
+		 * Test the default behavior
+		 */
+		$default_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 2, $default_headers );
+		$this->assertSame( 'application/json', $default_headers['Content-Type'] );
+		$this->assertNotEmpty( $default_headers['X-ElasticPress-Request-ID'] );
+
+		/**
+		 * Test the addition of `X-ElasticPress-API-Key` if `EP_API_KEY` is defined
+		 */
+		define( 'EP_API_KEY', 'custom_key' );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 3, $new_headers );
+		$this->assertSame( 'custom_key', $new_headers['X-ElasticPress-API-Key'] );
+
+		/**
+		 * Test the addition of `Authorization` if `ES_SHIELD` is defined
+		 */
+		define( 'ES_SHIELD', 'custom_shield' );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 4, $new_headers );
+		$this->assertSame( 'Basic ' . base64_encode( 'custom_shield' ), $new_headers['Authorization'] ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		/**
+		 * Test if an empty request ID removes `X-ElasticPress-Request-ID`
+		 */
+		add_filter( 'ep_request_id', '__return_empty_string' );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+		$this->assertArrayNotHasKey( 'X-ElasticPress-Request-ID', $new_headers );
+
+		/**
+		 * Test the `ep_format_request_headers` filter
+		 */
+		$change_headers = function( $headers ) {
+			$headers['X-Custom'] = 'totally custom';
+			return $headers;
+		};
+		add_filter( 'ep_format_request_headers', $change_headers );
+		$new_headers = ElasticPress\Elasticsearch::factory()->format_request_headers();
+
+		$this->assertCount( 4, $new_headers ); // 3 old + 1 new
+		$this->assertSame( 'totally custom', $new_headers['X-Custom'] );
 	}
 }

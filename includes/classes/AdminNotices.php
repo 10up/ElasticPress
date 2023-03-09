@@ -858,6 +858,7 @@ class AdminNotices {
 		if ( in_array( $notice, [ 'maybe_wrong_mapping' ], true ) ) {
 			$value = Elasticsearch::factory()->get_elasticsearch_version( false );
 		}
+
 		Utils\update_option( 'ep_hide_' . $notice . '_notice', $value );
 	}
 

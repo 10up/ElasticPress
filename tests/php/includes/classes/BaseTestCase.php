@@ -111,7 +111,7 @@ class BaseTestCase extends WP_UnitTestCase {
 
 		register_post_type( 'ep_test_excluded', $args );
 
-				// Post type that is excluded from search.
+		// Post type that is excluded from search.
 		$args = array(
 			'taxonomies' => array( 'post_tag', 'category' ),
 			'public'     => false,
@@ -120,6 +120,11 @@ class BaseTestCase extends WP_UnitTestCase {
 		register_post_type( 'ep_test_not_public', $args );
 	}
 
+	/**
+	 * Utilitary function to check if EP is network activated or not.
+	 *
+	 * @return boolean
+	 */
 	public function is_network_activate() {
 		return defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 	}
@@ -146,5 +151,6 @@ class BaseTestCase extends WP_UnitTestCase {
 		$this->ep_factory->term     = new TermFactory();
 		$this->ep_factory->comment  = new CommentFactory();
 		$this->ep_factory->category = new TermFactory( $this, 'category' );
+		$this->ep_factory->product  = new ProductFactory();
 	}
 }

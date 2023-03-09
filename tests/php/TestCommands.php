@@ -12,6 +12,7 @@ use ElasticPress;
 use ElasticPress\Command;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
+use ElasticPress\Command\Utility;
 
 /**
  * Commands test class
@@ -20,6 +21,8 @@ class TestCommands extends BaseTestCase {
 
 	/**
 	 * Holds Command class instance.
+	 *
+	 * @var Command
 	 */
 	protected $command;
 
@@ -30,6 +33,8 @@ class TestCommands extends BaseTestCase {
 		$this->command = new Command();
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->deactivate_all();
+		ElasticPress\Indexables::factory()->activate( 'post' );
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -180,8 +185,6 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Adding post mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -213,8 +216,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Adding post mapping for site 3', $output );
 		$this->assertStringNotContainsString( 'Adding post mapping for site 2', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -265,8 +266,6 @@ class TestCommands extends BaseTestCase {
 
 		$this->assertStringContainsString( 'Adding user mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
-		Indexables::factory()->unregister( 'user' );
 	}
 
 	/**
@@ -340,6 +339,19 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( "[\n", $output );
+
+		// clean output buffer
+		ob_clean();
+
+		/**
+		 * Test the --status flag
+		 *
+		 * @since 4.5.0
+		 */
+		$this->command->get_indices( [], [ 'status' => 'all' ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertEquals( "[\"exampleorg-post-1\",\"exampleorg-comment-1\",\"exampleorg-term-1\",\"exampleorg-user\"]\n", $output );
 	}
 
 
@@ -362,7 +374,6 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @group skip-on-multi-site
 	 */
-
 	public function testReCreateNetworkAliasOnSingleSite() {
 
 		$this->expectExceptionMessage( 'ElasticPress is not network activated.' );
@@ -393,8 +404,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -420,8 +429,20 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
+	}
 
-		Indexables::factory()->unregister( 'comment' );
+	/**
+	 * Test sync command can create an index even without the --setup flag
+	 *
+	 * @since 4.5.0
+	 */
+	public function testSyncIndexCreationWithoutSetupFlag() {
+		Indexables::factory()->get( 'post' )->delete_index();
+
+		$this->command->sync( [], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Index not present. Mapping sent', $output );
 	}
 
 	/**
@@ -451,8 +472,29 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Sync complete', $output );
 		$this->assertStringContainsString( 'Total time elapsed', $output );
 		$this->assertStringContainsString( 'Done!', $output );
+	}
 
-		Indexables::factory()->unregister( 'comment' );
+	/**
+	 * Test the sync command with the setup flag. It should delete unused indices.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testSyncWithSetupFlagDeleteUnusedIndices() {
+		// activate comments and users features
+		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'user' )->put_mapping();
+
+		$this->command->sync(
+			[],
+			[
+				'setup' => true,
+				'yes'   => true,
+			]
+		);
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Index exampleorg-comment-1 deleted', $output );
+		$this->assertStringContainsString( 'Index exampleorg-user deleted', $output );
 	}
 
 	/**
@@ -475,8 +517,6 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Indexing posts', $output );
 		$this->assertStringNotContainsString( 'Indexing comments', $output );
 		$this->assertStringContainsString( 'Sync complete', $output );
-
-		Indexables::factory()->unregister( 'comment' );
 	}
 
 	/**
@@ -941,7 +981,7 @@ class TestCommands extends BaseTestCase {
 
 		set_transient( 'ep_wpcli_sync_interrupted', true );
 
-		$this->command->should_interrupt_sync();
+		Utility::should_interrupt_sync();
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Sync was interrupted', $output );
@@ -987,11 +1027,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-indices instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated get-cluster-indexes
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-cluster-indexes
+	 */
 	public function testGetClusterIndexesThrowsDeprecatedWarning() {
 
 		$this->command->get_cluster_indexes( [], [] );
@@ -1000,11 +1040,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-cluster-indices instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated index
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated index
+	 */
 	public function testIndexThrowsDeprecatedWarning() {
 
 		// activate comments feature
@@ -1023,11 +1063,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use sync instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated clear-index
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated clear-index
+	 */
 	public function testClearIndexThrowsDeprecatedWarning() {
 
 		$this->command->clear_index( [], [] );
@@ -1036,11 +1076,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use clear-sync instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated get-indexing-status
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-indexing-status
+	 */
 	public function testGetIndexingStatusThrowsDeprecatedWarning() {
 
 		$this->command->get_indexing_status( [], [] );
@@ -1049,11 +1089,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-ongoing-sync-status instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated get-last-cli-index
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated get-last-cli-index
+	 */
 	public function testGetLastCliIndexThrowsDeprecatedWarning() {
 
 		$this->command->get_last_cli_index( [], [] );
@@ -1062,11 +1102,11 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'This command is deprecated. Please use get-last-cli-sync instead.', $output );
 	}
 
-	 /**
-	  * Test commands throws deprecated warning.
-	  *
-	  *  @expectedDeprecated stop-indexing
-	  */
+	/**
+	 * Test commands throws deprecated warning.
+	 *
+	 *  @expectedDeprecated stop-indexing
+	 */
 	public function testStopIndexingThrowsDeprecatedWarning() {
 
 		$this->command->stop_indexing( [], [] );

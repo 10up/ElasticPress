@@ -8,6 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use ElasticPress\Utils;
 
 /**
  * Dashboard test class
@@ -136,7 +137,7 @@ class TestUtils extends BaseTestCase {
 		$creds = \ElasticPress\Utils\sanitize_credentials(
 			[
 				'username' => '<strong>hello</strong> world',
-				'token' => 'able <script>alert("baker");</script>',
+				'token'    => 'able <script>alert("baker");</script>',
 			]
 		);
 
@@ -152,7 +153,7 @@ class TestUtils extends BaseTestCase {
 		$creds = \ElasticPress\Utils\sanitize_credentials(
 			[
 				'username' => 'my-user-name',
-				'token' => 'my-token',
+				'token'    => 'my-token',
 			]
 		);
 
@@ -215,5 +216,117 @@ class TestUtils extends BaseTestCase {
 		} else {
 			$this->assertStringContainsString( 'wp-admin/admin.php?page=elasticpress-sync&do_sync', $sync_url );
 		}
+	}
+
+	/**
+	 * Test the `get_request_id_base` function
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetRequestIdBase() {
+		/**
+		 * Use the `ep_index_prefix` filter so `get_index_prefix()` can return something.
+		 */
+		$custom_index_prefix = function() {
+			return 'custom-prefix';
+		};
+		add_filter( 'ep_index_prefix', $custom_index_prefix );
+		$this->assertEquals( 'customprefix', Utils\get_request_id_base() ); // `-` are removed
+
+		/**
+		 * Test the `ep_request_id_base` filter
+		 */
+		$custom_request_id_base = function( $base ) {
+			return $base . '-plus';
+		};
+		add_filter( 'ep_request_id_base', $custom_request_id_base );
+		$this->assertEquals( 'customprefix-plus', Utils\get_request_id_base() );
+	}
+
+	/**
+	 * Test the `generate_request_id` function
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGenerateRequestId() {
+		$this->assertMatchesRegularExpression( '/[0-9a-f]{32}/', Utils\generate_request_id() );
+
+		/**
+		 * Use the `ep_request_id_base` filter so `get_request_id_base()` can return something.
+		 */
+		$custom_request_id_base = function() {
+			return 'indexprefix';
+		};
+		add_filter( 'ep_request_id_base', $custom_request_id_base );
+		$this->assertMatchesRegularExpression( '/indexprefix[0-9a-f]{32}/', Utils\generate_request_id() );
+
+		/**
+		 * Test the `ep_request_id` filter
+		 */
+		$custom_request_id = function( $request_id ) {
+			$this->assertMatchesRegularExpression( '/indexprefix[0-9a-f]{32}/', $request_id );
+			return 'totally-new-request-id';
+		};
+		add_filter( 'ep_request_id', $custom_request_id );
+		$this->assertEquals( 'totally-new-request-id', Utils\generate_request_id() );
+	}
+
+	/**
+	 * Test the `get_capability` function
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetCapability() {
+		$this->assertSame( 'manage_elasticpress', Utils\get_capability() );
+
+		/**
+		 * Test the `ep_capability` filter.
+		 */
+		$change_cap_name = function( $cap ) {
+			$this->assertSame( 'manage_elasticpress', $cap );
+			return 'custom_manage_ep';
+		};
+		add_filter( 'ep_capability', $change_cap_name );
+
+		$this->assertSame( 'custom_manage_ep', Utils\get_capability() );
+	}
+
+	/**
+	 * Test the `get_network_capability` function
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetNetworkCapability() {
+		$this->assertSame( 'manage_network_elasticpress', Utils\get_network_capability() );
+
+		/**
+		 * Test the `ep_network_capability` filter.
+		 */
+		$change_cap_name = function( $cap ) {
+			$this->assertSame( 'manage_network_elasticpress', $cap );
+			return 'custom_manage_network_ep';
+		};
+		add_filter( 'ep_network_capability', $change_cap_name );
+
+		$this->assertSame( 'custom_manage_network_ep', Utils\get_network_capability() );
+	}
+
+	/**
+	 * Test the `get_post_map_capabilities` function
+	 *
+	 * @since 4.5.0
+	 */
+	public function testGetPostMapCapabilities() {
+		$expected = [
+			'edit_post'          => 'manage_elasticpress',
+			'edit_posts'         => 'manage_elasticpress',
+			'edit_others_posts'  => 'manage_elasticpress',
+			'publish_posts'      => 'manage_elasticpress',
+			'read_post'          => 'manage_elasticpress',
+			'read_private_posts' => 'manage_elasticpress',
+			'delete_post'        => 'manage_elasticpress',
+		];
+
+		$this->assertSame( $expected, Utils\get_post_map_capabilities() );
 	}
 }

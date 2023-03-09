@@ -6,11 +6,9 @@
  * @package elasticpress
  */
 
-use ElasticPress\Screen\StatusReport;
-
 defined( 'ABSPATH' ) || exit;
 
-$status_report = new StatusReport();
+$status_report = \ElasticPress\Screen::factory()->status_report;
 
 require_once __DIR__ . '/header.php';
 ?>

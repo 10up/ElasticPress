@@ -4,6 +4,7 @@ import {
 	RadioControl,
 	SelectControl,
 	Spinner,
+	ToggleControl,
 	Placeholder,
 } from '@wordpress/components';
 import { Fragment, useEffect, useState, useCallback } from '@wordpress/element';
@@ -15,7 +16,7 @@ const FacetBlockEdit = (props) => {
 	const [taxonomies, setTaxonomies] = useState({});
 	const [preview, setPreview] = useState('');
 	const [loading, setLoading] = useState(false);
-	const { facet, orderby, order } = attributes;
+	const { facet, displayCount, orderby, order } = attributes;
 
 	const blockProps = useBlockProps();
 
@@ -32,6 +33,7 @@ const FacetBlockEdit = (props) => {
 		setLoading(true);
 		const params = new URLSearchParams({
 			facet,
+			displayCount,
 			orderby,
 			order,
 		});
@@ -40,7 +42,7 @@ const FacetBlockEdit = (props) => {
 		})
 			.then((preview) => setPreview(preview))
 			.finally(() => setLoading(false));
-	}, [facet, orderby, order]);
+	}, [facet, displayCount, orderby, order]);
 
 	return (
 		<Fragment>
@@ -56,6 +58,11 @@ const FacetBlockEdit = (props) => {
 							})),
 						]}
 						onChange={(value) => setAttributes({ facet: value })}
+					/>
+					<ToggleControl
+						checked={displayCount}
+						onChange={(value) => setAttributes({ displayCount: value })}
+						label={__('Display Term Count', 'elasticpress')}
 					/>
 					<RadioControl
 						label={__('Order By', 'elasticpress')}

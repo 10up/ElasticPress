@@ -18,8 +18,8 @@ const ref = createRef();
 /**
  * Active filter component.
  *
- * @param {object}   props         Props.
- * @param {string}   props.label   Constraint label.
+ * @param {object} props Props.
+ * @param {string} props.label Constraint label.
  * @param {Function} props.onClick Click handler.
  * @returns {WPElement} Element.
  */

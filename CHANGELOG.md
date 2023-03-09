@@ -13,6 +13,74 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [4.5.0] - 2023-03-09
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+ElasticPress 4.5.0 release highlights:
+* Autosuggest for WooCommerce Orders ([#3175](https://github.com/10up/ElasticPress/pull/3175), [#3308](https://github.com/10up/ElasticPress/pull/3308), [#3321](https://github.com/10up/ElasticPress/pull/3321), [#3324](https://github.com/10up/ElasticPress/pull/3324), [#3323](https://github.com/10up/ElasticPress/pull/3323), [#3310](https://github.com/10up/ElasticPress/pull/3310), [#3349](https://github.com/10up/ElasticPress/pull/3349), [#3339](https://github.com/10up/ElasticPress/pull/3339), and [#3363](https://github.com/10up/ElasticPress/pull/3363))
+* New Facet by Meta Range block ([#3289](https://github.com/10up/ElasticPress/pull/3289), [#3342](https://github.com/10up/ElasticPress/pull/3342), [#3337](https://github.com/10up/ElasticPress/pull/3337), [#3361](https://github.com/10up/ElasticPress/pull/3361), [#3364](https://github.com/10up/ElasticPress/pull/3364), [#3368](https://github.com/10up/ElasticPress/pull/3368), and [#3365](https://github.com/10up/ElasticPress/pull/3365))
+* ElasticPress.io messages system ([#3162](https://github.com/10up/ElasticPress/pull/3162) and [#3376](https://github.com/10up/ElasticPress/pull/3376))
+* Indices of disabled features will be deleted during a full sync ([#3261](https://github.com/10up/ElasticPress/pull/3261))
+* WooCommerce Queries ([#3259](https://github.com/10up/ElasticPress/pull/3259) and [#3362](https://github.com/10up/ElasticPress/pull/3362))
+
+### Added
+- Autosuggest for WooCommerce Orders. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#3175](https://github.com/10up/ElasticPress/pull/3175), [#3308](https://github.com/10up/ElasticPress/pull/3308), [#3321](https://github.com/10up/ElasticPress/pull/3321), [#3324](https://github.com/10up/ElasticPress/pull/3324), [#3323](https://github.com/10up/ElasticPress/pull/3323), [#3310](https://github.com/10up/ElasticPress/pull/3310), [#3349](https://github.com/10up/ElasticPress/pull/3349), and [#3339](https://github.com/10up/ElasticPress/pull/3339).
+- New Facet by Meta Range block (currently in Beta.) Props [@felipeelia](https://github.com/felipeelia) via [#3289](https://github.com/10up/ElasticPress/pull/3289), [#3342](https://github.com/10up/ElasticPress/pull/3342), [#3337](https://github.com/10up/ElasticPress/pull/3337), [#3361](https://github.com/10up/ElasticPress/pull/3361), [#3363](https://github.com/10up/ElasticPress/pull/3363), [#3364](https://github.com/10up/ElasticPress/pull/3364), [#3368](https://github.com/10up/ElasticPress/pull/3368), and [#3365](https://github.com/10up/ElasticPress/pull/3365).
+- Option to display term counts in Facets blocks. Props [@felipeelia](https://github.com/felipeelia) via [#3309](https://github.com/10up/ElasticPress/pull/3309).
+- New capability for managing ElasticPress. Props [@tlovett1](https://github.com/tlovett1), [@tott](https://github.com/tott), and [@felipeelia](https://github.com/felipeelia) via [#3313](https://github.com/10up/ElasticPress/pull/3313).
+- New "Download report" button in the Status Report page. Props [@felipeelia](https://github.com/felipeelia) via [#3319](https://github.com/10up/ElasticPress/pull/3319).
+- ElasticPress.io messages system. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3162](https://github.com/10up/ElasticPress/pull/3162) and [#3376](https://github.com/10up/ElasticPress/pull/3376).
+- WP CLI commands `get-search-template`, `put-search-template`, and `delete-search-template`. Props [@oscarssanchez](https://github.com/oscarssanchez) via [#3216](https://github.com/10up/ElasticPress/pull/3216).
+- New `--status` parameter to the `get-indices` WP-CLI command. Props [@felipeelia](https://github.com/felipeelia) via [#3261](https://github.com/10up/ElasticPress/pull/3261).
+- New `ep_instant_results_per_page` filter for changing the number of results per page in Instant Results. Props [@JakePT](https://github.com/JakePT) via [#3292](https://github.com/10up/ElasticPress/pull/3292).
+- Support for `post_parent__in` and `post_parent__not_in`. Props [@MARQAS](https://github.com/MARQAS) via [#3300](https://github.com/10up/ElasticPress/pull/3300).
+- New `ep_sync_args` filter. Props [@felipeelia](https://github.com/felipeelia) and [@nickchomey](https://github.com/nickchomey) via [#3317](https://github.com/10up/ElasticPress/pull/3317).
+- "Full Sync" (Yes/No) to the Last Sync section in Status Report. Props [@felipeelia](https://github.com/felipeelia) via [#3304](https://github.com/10up/ElasticPress/pull/3304).
+- New `ep_user_register_feature` and `ep_feature_is_visible` filters. Props [@felipeelia](https://github.com/felipeelia) via [#3334](https://github.com/10up/ElasticPress/pull/3334).
+- Requests now have a new header called `X-ElasticPress-Request-ID` to help with debugging. Props [@felipeelia](https://github.com/felipeelia) via [#3307](https://github.com/10up/ElasticPress/pull/3307).
+- Compatibility with `'orderby' => 'none'` in WP_Query. Props [@felipeelia](https://github.com/felipeelia) via [#3318](https://github.com/10up/ElasticPress/pull/3318).
+- Unit tests related to the `ep_weighting_configuration_for_search` filter. Props [@felipeelia](https://github.com/felipeelia) via [#3303](https://github.com/10up/ElasticPress/pull/3303).
+- New Unit tests for the WooCoomerce feature. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3259](https://github.com/10up/ElasticPress/pull/3259).
+- Description for the `--network-wide` flag in WP-CLI commands. Props [@MARQAS](https://github.com/MARQAS) via [#3350](https://github.com/10up/ElasticPress/pull/3350).
+- New `is_available()` helper method in the Feature class. Props [@burhandodhy](https://github.com/burhandodhy) via [#3356](https://github.com/10up/ElasticPress/pull/3356).
+
+### Changed
+- Indices of disabled features will be deleted during a full sync. Mappings of needed but non-existent indices will be added even during a regular sync. Props [@felipeelia](https://github.com/felipeelia) via [#3261](https://github.com/10up/ElasticPress/pull/3261).
+- Reduced number of WooCommerce product queries automatically integrated with ElasticPress. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3259](https://github.com/10up/ElasticPress/pull/3259) and [#3362](https://github.com/10up/ElasticPress/pull/3362).
+- The number of results per page in Instant Results now matches the site's posts per page setting. Props [@JakePT](https://github.com/JakePT) via [#3292](https://github.com/10up/ElasticPress/pull/3292).
+- Under the hood improvements to the structure of Instant Results. Props [@JakePT](https://github.com/JakePT) via [#3159](https://github.com/10up/ElasticPress/pull/3159) and [#3293](https://github.com/10up/ElasticPress/pull/3293).
+- Apply the "Exclude from Search" filter directly on ES Query. Props [@burhandodhy](https://github.com/burhandodhy) via [#3266](https://github.com/10up/ElasticPress/pull/3266).
+- Avoid using Elasticsearch if query has an unsupported orderby clause. Props [@burhandodhy](https://github.com/burhandodhy) via [#3273](https://github.com/10up/ElasticPress/pull/3273).
+- E2e tests split into 2 groups to be executed in parallel. Props [@iamchughmayank](https://github.com/iamchughmayank), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia) via [#3283](https://github.com/10up/ElasticPress/pull/3283).
+- Filter command flags using `get_flag_value()`. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3301](https://github.com/10up/ElasticPress/pull/3301).
+- Code Standards are now applied to the test suite as well. Props [@felipeelia](https://github.com/felipeelia) via [#3351](https://github.com/10up/ElasticPress/pull/3351).
+- Text displayed when a feature that requires a sync is about to be enabled. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#3380](https://github.com/10up/ElasticPress/pull/3380).
+
+### Removed
+- Remove legacy filters `woocommerce_layered_nav_query_post_ids`, `woocommerce_unfiltered_product_ids`, and `ep_wp_query_search_cached_posts`. Props [@burhandodhy](https://github.com/burhandodhy) via [#3230](https://github.com/10up/ElasticPress/pull/3230).
+
+### Fixed
+- API requests for Instant Results sent on page load before the modal has been opened. Props [@JakePT](https://github.com/JakePT) via [#3159](https://github.com/10up/ElasticPress/pull/3159).
+- Prevent search queries for coupons from using Elasticsearch. Props [@burhandodhy](https://github.com/burhandodhy) via [#3222](https://github.com/10up/ElasticPress/pull/3222).
+- Thumbnails are not removed from indexed WooCommerce Products when the attachments are deleted. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3267](https://github.com/10up/ElasticPress/pull/3267).
+- Auto sync posts associated with a child term when the term parent is changed. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#3145](https://github.com/10up/ElasticPress/pull/3145).
+- Status Report page firing requests to ES twice. Props [@felipeelia](https://github.com/felipeelia) via [#3265](https://github.com/10up/ElasticPress/pull/3265).
+- Sanitization of Meta Queries. Props [@MARQAS](https://github.com/MARQAS) via [#3271](https://github.com/10up/ElasticPress/pull/3271).
+- Facets styles not enqueued more than once. Props [@felipeelia](https://github.com/felipeelia) and [@MediaMaquina](https://github.com/MediaMaquina) via [#3306](https://github.com/10up/ElasticPress/pull/3306).
+- Duplicate terms listed in Instant Results facets. Props [@felipeelia](https://github.com/felipeelia) via [#3335](https://github.com/10up/ElasticPress/pull/3335).
+- Not setting the post context when indexing a post. Props [@tomjn](https://github.com/tomjn) via [#3333](https://github.com/10up/ElasticPress/pull/3333).
+- Some utilitary methods in the Command class treated as WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3320](https://github.com/10up/ElasticPress/pull/3320).
+- Make the "Failed Queries" notice dismissible. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3348](https://github.com/10up/ElasticPress/pull/3348).
+- Undefined index `'elasticpress'` in the Status Report page. Props [@MARQAS](https://github.com/MARQAS) via [#3374](https://github.com/10up/ElasticPress/pull/3374).
+- Undefined array key `'displayCount'` error for facet. Props [@burhandodhy](https://github.com/burhandodhy) via [#3373](https://github.com/10up/ElasticPress/pull/3373).
+- Warnings on the feature setup page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3377](https://github.com/10up/ElasticPress/pull/3377).
+
+### Security
+- Bumped `http-cache-semantics` from 4.1.0 to 4.1.1. Props [@dependabot](https://github.com/dependabot) via [#3295](https://github.com/10up/ElasticPress/pull/3295).
+- Bumped `got` from 9.6.0 to 11.8.5 and `simple-bin-help` from 1.7.7 to 1.8.0. Props [@dependabot](https://github.com/dependabot) via [#3290](https://github.com/10up/ElasticPress/pull/3290).
+- Bumped `simple-git` from 3.15.1 to 3.16.0. Props [@dependabot](https://github.com/dependabot) via [#3278](https://github.com/10up/ElasticPress/pull/3278).
+- Bumped `json5` from 1.0.1 to 1.0.2. Props [@dependabot](https://github.com/dependabot) via [#3251](https://github.com/10up/ElasticPress/pull/3251).
 
 ## [4.4.1] - 2023-01-10
 
@@ -1692,6 +1760,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.5.0]: https://github.com/10up/ElasticPress/compare/4.4.1...4.5.0
 [4.4.1]: https://github.com/10up/ElasticPress/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/10up/ElasticPress/compare/4.3.1...4.4.0
 [4.3.1]: https://github.com/10up/ElasticPress/compare/4.3.0...4.3.1

@@ -178,6 +178,8 @@ class QueryLogger {
 			}
 		}
 
+		\ElasticPress\Utils\delete_option( 'ep_hide_has_failed_queries_notice' );
+
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			set_site_transient( self::CACHE_KEY, $logs_json_str, DAY_IN_SECONDS );
 		} else {
@@ -213,8 +215,16 @@ class QueryLogger {
 	 * @return array
 	 */
 	public function maybe_add_notice( array $notices ) : array {
+		if ( ! current_user_can( Utils\get_capability() ) ) {
+			return $notices;
+		}
+
 		$current_ep_screen = \ElasticPress\Screen::factory()->get_current_screen();
 		if ( 'status-report' === $current_ep_screen ) {
+			return $notices;
+		}
+
+		if ( \ElasticPress\Utils\get_option( 'ep_hide_has_failed_queries_notice' ) ) {
 			return $notices;
 		}
 
@@ -268,12 +278,17 @@ class QueryLogger {
 			}
 		}
 
+		$request_id = ( ! empty( $query['args']['headers'] ) && ! empty( $query['args']['headers']['X-ElasticPress-Request-ID'] ) ) ?
+			$query['args']['headers']['X-ElasticPress-Request-ID'] :
+			null;
+
 		$status = wp_remote_retrieve_response_code( $query['request'] );
 		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
 
 		$formatted_log = [
 			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
 			'es_req'      => $query['args']['method'] . ' ' . $query['url'],
+			'request_id'  => $request_id ?? '',
 			'timestamp'   => current_time( 'timestamp' ),
 			'query_time'  => $query_time,
 			'wp_args'     => $query['query_args'] ?? [],

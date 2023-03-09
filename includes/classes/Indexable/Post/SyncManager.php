@@ -205,6 +205,7 @@ class SyncManager extends SyncManagerAbstract {
 					'meta_key'     => $meta_key,
 					'meta_value'   => $meta_value,
 					'fields'       => 'ids',
+					'post_type'    => $indexable->get_indexable_post_types(),
 				]
 			);
 
@@ -396,9 +397,29 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		if ( IndexHelper::factory()->get_index_default_per_page() >= $tag->count ) {
+
+			$child_tags = get_term_children( $tag->term_id, $tag->taxonomy );
+			if ( empty( $child_tags ) ) {
+				return $notices;
+			}
+			foreach ( $child_tags as $child_tag_id ) {
+				$child_tag = get_term( $child_tag_id );
+				if ( ! is_wp_error( $child_tag ) && IndexHelper::factory()->get_index_default_per_page() < $child_tag->count && ! isset( $notices['edited_single_parent_term'] ) ) {
+					$notices['edited_single_parent_term'] = [
+						'html'    => sprintf(
+							/* translators: Sync Page URL */
+							__( 'Due to the number of posts associated with its child terms, you will need to <a href="%s">resync</a> after editing or deleting it.', 'elasticpress' ),
+							Utils\get_sync_url()
+						),
+						'type'    => 'warning',
+						'dismiss' => true,
+					];
+					break;
+				}
+			}
+
 			return $notices;
 		}
-
 		$notices['edited_single_term'] = [
 			'html'    => sprintf(
 				/* translators: Sync Page URL */
@@ -554,8 +575,16 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		// Find ID of all attached posts (query lifted from wp_delete_term())
-		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
+		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id ) );
 
+		// If the current term is not attached, check if the child terms are attached to the post
+		if ( empty( $object_ids ) ) {
+			$child_terms = get_term_children( $term_id, $taxonomy );
+			if ( ! empty( $child_terms ) ) {
+				$in_id      = join( ',', array_fill( 0, count( $child_terms ), '%d' ) );
+				$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", $child_terms ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			}
+		}
 		if ( ! count( $object_ids ) ) {
 			return;
 		}

@@ -74,7 +74,15 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$public_taxonomies    = array_keys( get_taxonomies( array( 'public' => true, 'show_ui' => true ), 'names' ) );
+		$public_taxonomies    = array_keys(
+			get_taxonomies(
+				array(
+					'public'  => true,
+					'show_ui' => true,
+				),
+				'names'
+			)
+		);
 		$facetable_taxonomies = array_keys( $facet_type->get_facetable_taxonomies() );
 
 		/**
@@ -201,7 +209,6 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testGetSanitizeCallback() {
-
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$test_taxonomy = 'This is a test taxonomy';
 
@@ -227,5 +234,92 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		// test sanitize_text_field runs when filter is applied.
 		$expected_result = sanitize_text_field( $test_taxonomy );
 		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
+	}
+
+	/**
+	 * Test the format_selected method.
+	 *
+	 * @todo Move this to a mock, as it is just inherited now
+	 * @since 4.5.0
+	 */
+	public function testFormatSelected() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		$original_filters = [ 'custom_type' => [ 'facet' => [ 1, 2, 3 ] ] ];
+		$new_filters      = $facet_type->format_selected( 'category', 'slug1,slug2', $original_filters );
+		$expected_filters = array_merge(
+			$original_filters,
+			[
+				$facet_type->get_filter_type() => [
+					'category' => [
+						'terms' => [
+							'slug1' => true,
+							'slug2' => true,
+						],
+					],
+				],
+			]
+		);
+
+		$this->assertSame( $new_filters, $expected_filters );
+
+		/**
+		 * Analyzing tags=slug3,slug4 should ADD tags, keeping the category index.
+		 */
+		$original_filters = $expected_filters;
+		$new_filters      = $facet_type->format_selected( 'tags', 'slug3,slug4', $original_filters );
+
+		$expected_filters[ $facet_type->get_filter_type() ]['tags'] = [
+			'terms' => [
+				'slug3' => true,
+				'slug4' => true,
+			],
+		];
+
+		$this->assertSame( $new_filters, $expected_filters );
+	}
+
+	/**
+	 * Test the add_query_params method.
+	 *
+	 * @todo Move this to a mock, as it is just inherited now
+	 * @since 4.5.0
+	 */
+	public function testAddQueryParams() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		$original_query_params = [ 'custom_name' => 'custom_value' ];
+		$selected_filters      = [
+			[
+				'custom_type' => [ 'facet' => [ 1, 2, 3 ] ],
+			],
+			$facet_type->get_filter_type() => [
+				'category' => [
+					'terms' => [
+						'slug1' => true,
+						'slug2' => true,
+					],
+				],
+				'tags'     => [
+					'terms' => [
+						'slug3' => true,
+						'slug4' => true,
+					],
+				],
+			],
+		];
+
+		$new_query_params      = $facet_type->add_query_params( $original_query_params, $selected_filters );
+		$expected_query_params = array_merge(
+			$original_query_params,
+			[
+				$facet_type->get_filter_name() . 'category' => 'slug1,slug2',
+				$facet_type->get_filter_name() . 'tags' => 'slug3,slug4',
+			]
+		);
+
+		$this->assertSame( $new_query_params, $expected_query_params );
 	}
 }

@@ -1,4 +1,6 @@
-describe('WooCommerce Feature', () => {
+/* global isEpIo */
+// eslint-disable-next-line jest/valid-describe-callback
+describe('WooCommerce Feature', { tags: '@slow' }, () => {
 	const userData = {
 		username: 'testuser',
 		email: 'testuser@example.com',
@@ -295,6 +297,146 @@ describe('WooCommerce Feature', () => {
 				});
 
 			cy.setPerIndexCycle();
+		});
+	});
+
+	/**
+	 * Test the Orders Autosuggest feature.
+	 */
+	context('Orders Autosuggest', () => {
+		before(() => {
+			cy.activatePlugin('woocommerce', 'wpCli');
+			cy.login();
+			cy.maybeEnableFeature('woocommerce');
+			cy.maybeDisableFeature('protected_content');
+		});
+
+		it('Will require a sync when enabling Orders Autosuggest', () => {
+			cy.visitAdminPage('admin.php?page=elasticpress');
+
+			/**
+			 * Enable the feature.
+			 */
+			cy.get('.ep-feature-woocommerce .settings-button').click();
+
+			if (!isEpIo) {
+				cy.get('.ep-feature-woocommerce [name="settings[orders]"][value="1"]').should(
+					'be.disabled',
+				);
+				return;
+			}
+
+			cy.get('.ep-feature-woocommerce [name="settings[orders]"][value="1"]').click();
+			cy.get('.ep-feature-woocommerce .button-primary').click();
+
+			/**
+			 * Accept the prompt asking to sync.
+			 */
+			cy.on('window:confirm', () => {
+				return true;
+			});
+
+			/**
+			 * Syncing should complete.
+			 */
+			cy.get('.ep-sync-panel').last().as('syncPanel');
+			cy.get('@syncPanel').find('.components-form-toggle').click();
+			cy.get('@syncPanel')
+				.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+				.should('contain.text', 'Mapping sent')
+				.should('contain.text', 'Sync complete');
+		});
+
+		it('Will show a navigable list of suggested results when searching orders', () => {
+			cy.visitAdminPage('edit.php?post_type=shop_order');
+
+			/**
+			 * The combobox will not render if not using ElasticPress.io.
+			 */
+			if (!isEpIo) {
+				cy.get('#posts-filter .ep-combobox__input').should('not.exist');
+				return;
+			}
+
+			/**
+			 * Prepare aliases.
+			 */
+			cy.intercept('**/api/v1/search/orders/*').as('apiRequest');
+			cy.get('#posts-filter .ep-combobox__input').as('input');
+			cy.get('#posts-filter .ep-combobox > .screen-reader-text').as('description');
+			cy.get('#posts-filter .ep-combobox__list').as('listbox');
+			cy.get('#posts-filter .search-box .button').as('submit');
+
+			/**
+			 * Search for "Antwon". 3 suggestions should appear.
+			 */
+			cy.get('@input').type('Antwon');
+			cy.wait('@apiRequest');
+			cy.get('@input').should('have.attr', 'aria-expanded', 'true');
+			cy.get('@description').should('contain.text', '4 suggestions available');
+			cy.get('@listbox').should('be.visible');
+			cy.get('@listbox').children().should('have.length', 4);
+
+			/**
+			 * It should be possible to navigate suggestions with the arrow
+			 * keys. Navigating past the beginning or end of the list should
+			 * loop around to the opposite side of the list.
+			 */
+			cy.get('@input').type('{downArrow}');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{downArrow}{downArrow}{downArrow}');
+			cy.get('@listbox').children().eq(3).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{downArrow}');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{upArrow}');
+			cy.get('@listbox').children().eq(3).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{upArrow}');
+			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('not.have.attr', 'aria-selected', 'true');
+
+			/**
+			 * Pressing escape should hide the listbox and pressing an arrow
+			 * key should bring it back.
+			 */
+			cy.get('@input').type('{esc}');
+			cy.get('@listbox').should('not.be.visible');
+			cy.get('@input').type('{downArrow}');
+			cy.get('@listbox').should('be.visible');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+
+			/**
+			 * Moving focus away from the input should hide the listbox.
+			 * Returning focus should bring it back.
+			 */
+			cy.get('@submit').focus();
+			cy.get('@listbox').should('not.be.visible');
+			cy.get('@input').focus();
+			cy.get('@listbox').should('be.visible');
+
+			/**
+			 * Partial name searches should still match.
+			 */
+			cy.get('@input').type('{backspace}{backspace}');
+			cy.wait('@apiRequest');
+			cy.get('@listbox').children().should('have.length', 4);
+
+			/**
+			 * Pressing enter on a selected item should navigate to that order.
+			 */
+			cy.get('@input').type('{downArrow}{downArrow}{enter}');
+			cy.url().should('include', 'post.php?post=');
+
+			/**
+			 * Clicking a suggestion should also navigate to that order.
+			 */
+			cy.visitAdminPage('edit.php?post_type=shop_order');
+			cy.get('@input').type('Antwon');
+			cy.wait('@apiRequest');
+			cy.get('@listbox').children().eq(1).click();
+			cy.url().should('include', 'post.php?post=');
 		});
 	});
 });

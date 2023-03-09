@@ -420,7 +420,9 @@ class Post extends Indexable {
 	 * @return bool|array
 	 */
 	public function prepare_document( $post_id ) {
+		global $post;
 		$post = get_post( $post_id );
+		setup_postdata( $post );
 
 		if ( empty( $post ) ) {
 			return false;
@@ -715,16 +717,7 @@ class Post extends Indexable {
 
 			foreach ( $object_terms as $term ) {
 				if ( ! isset( $terms_dic[ $term->term_id ] ) ) {
-					$terms_dic[ $term->term_id ] = array(
-						'term_id'          => $term->term_id,
-						'slug'             => $term->slug,
-						'name'             => $term->name,
-						'parent'           => $term->parent,
-						'term_taxonomy_id' => $term->term_taxonomy_id,
-						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
-					);
-
-					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
+					$terms_dic[ $term->term_id ] = $this->get_formatted_term( $term, $post->ID );
 
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
@@ -753,19 +746,40 @@ class Post extends Indexable {
 			return $terms;
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
-			$terms[ $parent_term->term_id ] = array(
-				'term_id'          => $parent_term->term_id,
-				'slug'             => $parent_term->slug,
-				'name'             => $parent_term->name,
-				'parent'           => $parent_term->parent,
-				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
-				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
-			);
-
-			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
+			$terms[ $parent_term->term_id ] = $this->get_formatted_term( $parent_term, $object_id );
 
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
+	}
+
+	/**
+	 * Given a term, format it to be appended to the post ES document.
+	 *
+	 * @since 4.5.0
+	 * @param \WP_Term $term    Term to be formatted
+	 * @param int      $post_id The post ID
+	 * @return array
+	 */
+	private function get_formatted_term( \WP_Term $term, int $post_id ) : array {
+		$formatted_term = [
+			'term_id'          => $term->term_id,
+			'slug'             => $term->slug,
+			'name'             => $term->name,
+			'parent'           => $term->parent,
+			'term_taxonomy_id' => $term->term_taxonomy_id,
+			'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post_id ),
+		];
+
+		/**
+		 * As the name implies, the facet attribute is used to list all terms in facets.
+		 * As in facets, the term_order associated with a post does not matter, we set it as 0 here.
+		 * Note that this is set as 0 instead of simply removed to keep backward compatibility.
+		 */
+		$term_facet               = $formatted_term;
+		$term_facet['term_order'] = 0;
+		$formatted_term['facet']  = wp_json_encode( $term_facet );
+
+		return $formatted_term;
 	}
 
 	/**
@@ -1227,6 +1241,15 @@ class Post extends Indexable {
 				continue;
 			}
 
+			/**
+			 * If `orderby` is 'none', WordPress will let the database decide on what should be used to order.
+			 * It will use the primary key ASC.
+			 */
+			if ( 'none' === $orderby_clause ) {
+				$orderby_clause = 'ID';
+				$order          = 'asc';
+			}
+
 			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
 				if ( empty( $args['meta_key'] ) ) {
 					continue;
@@ -1422,19 +1445,21 @@ class Post extends Indexable {
 		 * these filters by its usual numeric indices (see the array_values() call below.)
 		 */
 		$filters = [
-			'tax_query'        => $this->parse_tax_queries( $args, $query ),
-			'post_parent'      => $this->parse_post_parent( $args ),
-			'post__in'         => $this->parse_post__in( $args ),
-			'post_name__in'    => $this->parse_post_name__in( $args ),
-			'post__not_in'     => $this->parse_post__not_in( $args ),
-			'category__not_in' => $this->parse_category__not_in( $args ),
-			'tag__not_in'      => $this->parse_tag__not_in( $args ),
-			'author'           => $this->parse_author( $args ),
-			'post_mime_type'   => $this->parse_post_mime_type( $args ),
-			'date'             => $this->parse_date( $args ),
-			'meta_query'       => $this->parse_meta_queries( $args ),
-			'post_type'        => $this->parse_post_type( $args ),
-			'post_status'      => $this->parse_post_status( $args ),
+			'tax_query'           => $this->parse_tax_queries( $args, $query ),
+			'post_parent'         => $this->parse_post_parent( $args ),
+			'post_parent__in'     => $this->parse_post_parent__in( $args ),
+			'post_parent__not_in' => $this->parse_post_parent__not_in( $args ),
+			'post__in'            => $this->parse_post__in( $args ),
+			'post_name__in'       => $this->parse_post_name__in( $args ),
+			'post__not_in'        => $this->parse_post__not_in( $args ),
+			'category__not_in'    => $this->parse_category__not_in( $args ),
+			'tag__not_in'         => $this->parse_tag__not_in( $args ),
+			'author'              => $this->parse_author( $args ),
+			'post_mime_type'      => $this->parse_post_mime_type( $args ),
+			'date'                => $this->parse_date( $args ),
+			'meta_query'          => $this->parse_meta_queries( $args ),
+			'post_type'           => $this->parse_post_type( $args ),
+			'post_status'         => $this->parse_post_status( $args ),
 		];
 
 		/**
@@ -1737,6 +1762,52 @@ class Post extends Indexable {
 	}
 
 	/**
+	 * Parse the `post_parent__in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.5.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent__in( $args ) {
+		if ( empty( $args['post_parent__in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_parent' => array_values( (array) $args['post_parent__in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post_parent__not_in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.5.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent__not_in( $args ) {
+		if ( empty( $args['post_parent__not_in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'post_parent' => array_values( (array) $args['post_parent__not_in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
 	 * Parse the `post__in` WP Query arg and transform it into an ES query clause.
 	 *
 	 * @since 4.4.0
@@ -2002,6 +2073,7 @@ class Post extends Indexable {
 		 * @since 1.3
 		 */
 		$meta_queries = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
+		$meta_queries = ( new \WP_Meta_Query() )->sanitize_query( $meta_queries );
 
 		/**
 		 * Todo: Support meta_type
@@ -2695,5 +2767,32 @@ class Post extends Indexable {
 		);
 
 		return $meta_keys;
+	}
+
+	/**
+	 * Add a `term_suggest` field to the mapping.
+	 *
+	 * This method assumes the `edge_ngram_analyzer` analyzer was already added to the mapping.
+	 *
+	 * @since 4.5.0
+	 * @param array $mapping The mapping array
+	 * @return array
+	 */
+	public function add_term_suggest_field( array $mapping ) : array {
+		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping_properties = &$mapping['mappings']['post']['properties'];
+		} else {
+			$mapping_properties = &$mapping['mappings']['properties'];
+		}
+
+		$text_type = $mapping_properties['post_content']['type'];
+
+		$mapping_properties['term_suggest'] = array(
+			'type'            => $text_type,
+			'analyzer'        => 'edge_ngram_analyzer',
+			'search_analyzer' => 'standard',
+		);
+
+		return $mapping;
 	}
 }

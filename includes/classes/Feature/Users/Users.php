@@ -34,6 +34,8 @@ class Users extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		Indexables::factory()->register( new Indexable\User\User(), false );
+
 		parent::__construct();
 	}
 
@@ -43,9 +45,10 @@ class Users extends Feature {
 	 * @since  3.0
 	 */
 	public function setup() {
-		Indexables::factory()->register( new Indexable\User\User() );
+		Indexables::factory()->activate( 'user' );
 
 		add_action( 'init', [ $this, 'search_setup' ] );
+		add_filter( 'ep_admin_notices', [ $this, 'add_migration_notice' ] );
 	}
 
 	/**
@@ -100,6 +103,44 @@ class Users extends Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 1 );
 
+		$status->message = [
+			sprintf(
+				/* translators: ElasticPress Labs URL */
+				__( 'Due to the potential for inadvertently exposing user data on non-ElasticPress.io installations, the Users Feature will be moving to the <a href="%s">ElasticPress Labs</a> plugin as of ElasticPress 5.0.', 'elasticpress' ),
+				'https://github.com/10up/ElasticPressLabs'
+			),
+		];
+
 		return $status;
+	}
+
+	/**
+	 * Display a notice about the feature migration to ElasticPress Labs
+	 *
+	 * @since 4.5.0
+	 * @param array $notices Notices array
+	 * @return array
+	 */
+	public function add_migration_notice( $notices ) {
+		if ( ! current_user_can( Utils\get_capability() ) ) {
+			return $notices;
+		}
+
+		// Dismissed.
+		if ( Utils\get_option( 'ep_hide_users_migration_notice', false ) ) {
+			return $notices;
+		}
+
+		$notices['users_migration'] = [
+			'html'    => sprintf(
+				/* translators: ElasticPress Labs URL */
+				__( 'Due to the potential for inadvertently exposing user data on non-ElasticPress.io installations, the Users Feature will be moving to the <a href="%s">ElasticPress Labs</a> plugin as of ElasticPress 5.0.', 'elasticpress' ),
+				'https://github.com/10up/ElasticPressLabs'
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
 	}
 }

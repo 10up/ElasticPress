@@ -39,6 +39,7 @@ class ElasticPressIo extends Report {
 		$groups = [
 			$this->get_autosuggest_group(),
 			$this->get_instant_results_group(),
+			$this->get_orders_search_group(),
 		];
 
 		return array_values( array_filter( $groups ) );
@@ -144,9 +145,54 @@ class ElasticPressIo extends Report {
 	}
 
 	/**
+	 * Process the ElasticPress.io Orders Search templates.
+	 *
+	 * @since 4.5.0
+	 * @return array
+	 */
+	protected function get_orders_search_group() : array {
+		$woocommerce_feature = \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+
+		if ( ! $woocommerce_feature->is_active() ) {
+			return [];
+		}
+
+		if ( ! $woocommerce_feature->orders ) {
+			return [];
+		}
+
+		$title  = __( 'Orders Search Template', 'elasticpress' );
+		$fields = [];
+
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			$sites = Utils\get_sites();
+
+			foreach ( $sites as $site ) {
+				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+					continue;
+				}
+
+				switch_to_blog( $site['blog_id'] );
+
+				$field  = $this->get_orders_search_field();
+				$fields = array_merge( $fields, $field );
+
+				restore_current_blog();
+			}
+		} else {
+			$fields = $this->get_orders_search_field();
+		}
+
+		return [
+			'title'  => $title,
+			'fields' => $fields,
+		];
+	}
+
+	/**
 	 * Process the ElasticPress.io Instant Results template.
 	 *
-	 * @return array|null
+	 * @return array
 	 */
 	protected function get_instant_results_field() : array {
 		$index = Indexables::factory()->get( 'post' )->get_index_name();
@@ -157,6 +203,52 @@ class ElasticPressIo extends Report {
 
 		$feature  = new InstantResults\InstantResults();
 		$template = $feature->epio_get_search_template();
+
+		if ( is_wp_error( $template ) ) {
+			return [
+				$index => [
+					'label' => $index,
+					'value' => $template->get_error_message(),
+				],
+			];
+		}
+
+		return [
+			$index => [
+				'label' => $index,
+				'value' => $template,
+			],
+		];
+	}
+
+	/**
+	 * Return the report messages.
+	 *
+	 * @return array
+	 * @since 4.5.0
+	 */
+	public function get_messages() : array {
+		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages( true );
+		$messages = array_values( $messages );
+
+		return $messages;
+	}
+
+	/**
+	 * Process the ElasticPress.io Orders Search template.
+	 *
+	 * @since 4.5.0
+	 * @return array
+	 */
+	protected function get_orders_search_field() : array {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
+		if ( ! $index ) {
+			return [];
+		}
+
+		$woocommerce_feature = \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+		$template            = $woocommerce_feature->orders->get_search_template();
 
 		if ( is_wp_error( $template ) ) {
 			return [

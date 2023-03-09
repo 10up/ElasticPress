@@ -26,6 +26,13 @@ class Renderer {
 	protected $meta_field = '';
 
 	/**
+	 * Whether the term count should be displayed or not.
+	 *
+	 * @var bool
+	 */
+	protected $display_count = false;
+
+	/**
 	 * Output the widget or block HTML.
 	 *
 	 * @param array $args     Widget args
@@ -39,7 +46,8 @@ class Renderer {
 			]
 		);
 
-		$this->meta_field = $instance['facet'];
+		$this->meta_field    = $instance['facet'];
+		$this->display_count = $instance['displayCount'];
 
 		if ( ! $this->should_render() ) {
 			return;
@@ -182,6 +190,11 @@ class Renderer {
 			esc_url( $url )
 		);
 
+		$label = $value['name'];
+		if ( $this->display_count ) {
+			$label .= ' <span>(' . $value['count'] . ')</span>';
+		}
+
 		/**
 		 * Filter the label for an individual meta value.
 		 *
@@ -191,7 +204,7 @@ class Renderer {
 		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet meta value label.
 		 */
-		$label = apply_filters( 'ep_facet_meta_value_label', $value['name'], $value );
+		$label = apply_filters( 'ep_facet_meta_value_label', $label, $value );
 
 		/**
 		 * Filter the accessible label for an individual facet meta value link.

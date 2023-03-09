@@ -107,9 +107,10 @@ class Search extends Feature {
 
 		add_action( 'init', [ $this, 'register_meta' ], 20 );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
-		add_action( 'pre_get_posts', [ $this, 'exclude_posts_from_search' ] );
+		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
 		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
+		add_filter( 'ep_skip_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
 	}
 
 
@@ -707,54 +708,38 @@ class Search extends Feature {
 	/**
 	 * Exclude posts based on ep_exclude_from_search post meta.
 	 *
-	 * @param WP_Query $query WP Query
+	 * @param array    $filters Filters to be applied to the query
+	 * @param array    $args WP Query args
+	 * @param WP_Query $query WP Query object
 	 */
-	public function exclude_posts_from_search( $query ) {
+	public function exclude_posts_from_search( $filters, $args, $query ) {
 		$bypass_exclusion_from_search = is_admin() || ! $query->is_search();
 		/**
 		 * Filter whether the exclusion from the "exclude from search" checkbox should be applied
 		 *
 		 * @since 4.4.0
 		 * @hook ep_bypass_exclusion_from_search
-		 * @param  {bool}     $bypass_exclusion_from_search True means all posts will be returned
-		 * @param  {WP_Query} $query                              WP Query
+		 * @param  {bool}     $bypass_exclusion_from_search  True means all posts will be returned
+		 * @param  {WP_Query} $query                         WP Query
 		 * @return {bool} New $bypass_exclusion_from_search value
 		 */
 		if ( apply_filters( 'ep_bypass_exclusion_from_search', $bypass_exclusion_from_search, $query ) ) {
-			return;
+			return $filters;
 		}
 
-		// Get any meta query that's being added before.
-		$meta_query = (array) $query->get( 'meta_query' );
-
-		$exclude_from_search_query = [
-			'relation' => 'or',
-			[
-				'key'     => 'ep_exclude_from_search',
-				'compare' => 'NOT EXISTS',
-			],
-			[
-				'key'     => 'ep_exclude_from_search',
-				'value'   => '1',
-				'compare' => '!=',
+		$filters[] = [
+			'bool' => [
+				'must_not' => [
+					[
+						'terms' => [
+							'meta.ep_exclude_from_search.raw' => [ '1' ],
+						],
+					],
+				],
 			],
 		];
 
-		/**
-		 * If the current meta query only has an `OR` clause, wrap it with an `AND`
-		 * so the criteria here is not made "optional".
-		 */
-		if ( empty( $meta_query ) || empty( $meta_query['relation'] ) || 'and' === strtolower( $meta_query['relation'] ) ) {
-			$meta_query[] = $exclude_from_search_query;
-		} else {
-			$meta_query = [
-				'relation' => 'and',
-				$exclude_from_search_query,
-				$meta_query,
-			];
-		}
-
-		$query->set( 'meta_query', $meta_query );
+		return $filters;
 	}
 
 	/**
@@ -801,5 +786,40 @@ class Search extends Feature {
 		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : false;
 
 		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
+	}
+
+	/**
+	 * If WP_Query has unsupported orderby, skip ES query integration and use the WP query instead.
+	 *
+	 * @param bool      $skip Whether to skip ES query integration
+	 * @param \WP_Query $query WP_Query object
+	 *
+	 * @since 4.5
+	 * @return bool
+	 */
+	public function skip_query_integration( $skip, $query ) {
+		if ( ! $query instanceof \WP_Query ) {
+			return $skip;
+		}
+
+		$unsupported_orderby = [
+			'post__in',
+			'post_name__in',
+			'post_parent__in',
+			'parent',
+		];
+
+		$orderby = is_string( $query->get( 'orderby' ) ) ? explode( ' ', $query->get( 'orderby' ) ) : $query->get( 'orderby', 'date' );
+
+		$parse_orderby = array();
+		foreach ( $orderby as $key => $value ) {
+			$parse_orderby[] = is_string( $key ) ? $key : $value;
+		}
+
+		if ( array_intersect( $parse_orderby, $unsupported_orderby ) ) {
+			return true;
+		}
+
+		return $skip;
 	}
 }

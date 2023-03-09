@@ -6,21 +6,20 @@ import FocusTrap from 'focus-trap-react';
 /**
  * WordPress dependencies.
  */
-import { forwardRef, useCallback, useEffect, useRef, WPElement } from '@wordpress/element';
+import { useCallback, useEffect, useRef, WPElement } from '@wordpress/element';
 import { closeSmall, Icon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Modal components.
  *
- * @param {object}    props          Component props.
+ * @param {object} props Component props.
  * @param {WPElement} props.children Component children.
- * @param {boolean}   props.isOpen   Whether the modal is open.
- * @param {Function}  props.onClose  Callback to run when modal is closed.
- * @param {object}    ref            Ref.
+ * @param {boolean} props.isOpen Whether the modal is open.
+ * @param {Function} props.onClose Callback to run when modal is closed.
  * @returns {WPElement} React element.
  */
-const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
+export default ({ children, isOpen, onClose, ...props }) => {
 	/**
 	 * Reference to close button element.
 	 */
@@ -46,12 +45,10 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 	 * @returns {Function} Clean up function that removes events.
 	 */
 	const handleEvents = () => {
-		const { current: modalEl } = ref;
-
-		modalEl.ownerDocument.body.addEventListener('keydown', onKeyDown);
+		document.body.addEventListener('keydown', onKeyDown);
 
 		return () => {
-			modalEl.ownerDocument.body.removeEventListener('keydown', onKeyDown);
+			document.body.removeEventListener('keydown', onKeyDown);
 		};
 	};
 
@@ -61,25 +58,22 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 	 * Adds a class to the body element to allow controlling scrolling.
 	 */
 	const handleOpen = () => {
-		const { current: modalEl } = ref;
-
 		if (isOpen) {
-			modalEl.ownerDocument.body.classList.add('has-ep-search-modal');
+			document.body.classList.add('has-ep-search-modal');
 			closeRef.current.focus();
 		} else {
-			modalEl.ownerDocument.body.classList.remove('has-ep-search-modal');
+			document.body.classList.remove('has-ep-search-modal');
 		}
 	};
 
-	useEffect(handleEvents, [onKeyDown, ref]);
-	useEffect(handleOpen, [isOpen, ref]);
+	useEffect(handleEvents, [onKeyDown]);
+	useEffect(handleOpen, [isOpen]);
 
 	return (
 		<div
 			aria-hidden={!isOpen}
 			aria-modal="true"
 			className="ep-search-modal"
-			ref={ref}
 			role="dialog"
 			{...props}
 		>
@@ -102,5 +96,3 @@ const Modal = ({ children, isOpen, onClose, ...props }, ref) => {
 		</div>
 	);
 };
-
-export default forwardRef(Modal);
