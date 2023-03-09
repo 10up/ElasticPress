@@ -200,7 +200,10 @@ async function esSearch(query, searchTerm) {
 	}
 
 	try {
-		const response = await fetch(epas.endpointUrl, fetchConfig);
+		const response = await fetch(
+			epas.endpointUrl,
+			applyFilters('ep.Autosuggest.fethConfig', fetchConfig),
+		);
 
 		if (!response.ok) {
 			throw Error(response.statusText);
