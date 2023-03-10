@@ -837,6 +837,7 @@ class InstantResults extends Feature {
 
 			$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
 			$post_types = array_intersect( $post_types, $taxonomy->object_type );
+			$post_types = array_values( $post_types );
 
 			$facets[ $name ] = array(
 				'type'       => 'taxonomy',
