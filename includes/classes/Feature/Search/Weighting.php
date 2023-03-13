@@ -284,7 +284,9 @@ class Weighting {
 		 *
 		 * Setting the meta mode to 'auto' will restore the pre-5.0.0 behavior
 		 * of syncing all public meta fields, but without the ability to
-		 * add fields to make them searchable through the UI.
+		 * add fields to make them searchable through the UI. Weighting settings
+		 * will need to be changed, and a sync performed, any time this value
+		 * is changed.
 		 *
 		 * @hook ep_meta_mode
 		 * @since 5.0.0
