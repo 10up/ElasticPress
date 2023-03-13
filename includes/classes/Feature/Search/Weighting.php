@@ -272,13 +272,26 @@ class Weighting {
 	 * Returns the current meta mode.
 	 *
 	 * @return array
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 */
 	public function get_meta_mode() {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			return 'auto';
 		}
-		return get_option( 'ep_meta_mode', 'auto' );
+
+		/**
+		 * Filter meta management mode.
+		 *
+		 * Setting the meta mode to 'auto' will restore the pre-5.0.0 behavior
+		 * of syncing all public meta fields, but without the ability to
+		 * add fields to make them searchable through the UI.
+		 *
+		 * @hook ep_meta_mode
+		 * @since 5.0.0
+		 * @param string $ep_meta_mode Meta mode.
+		 * @return string New meta mode.
+		 */
+		return apply_filters( 'ep_meta_mode', 'manual' );
 	}
 
 	/**
@@ -438,10 +451,8 @@ class Weighting {
 			return;
 		}
 
-		$meta_mode = $request->get_param( 'meta_mode' );
-		$weighting = $request->get_param( 'weighting_configuration' );
-
-		update_option( 'ep_meta_mode', $meta_mode );
+		$meta_mode = $this->get_meta_mode();
+		$weighting = $request->get_json_params();
 
 		/**
 		 * If metadata is not being managed manually, remove any metadata
@@ -470,12 +481,7 @@ class Weighting {
 		 */
 		do_action( 'ep_saved_weighting_configuration' );
 
-		wp_send_json_success(
-			[
-				'meta_mode'               => $meta_mode,
-				'weighting_configuration' => $weighting,
-			]
-		);
+		wp_send_json_success( $weighting );
 
 		exit;
 	}

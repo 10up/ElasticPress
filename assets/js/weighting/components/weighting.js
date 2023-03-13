@@ -11,7 +11,6 @@ import { isEqual } from 'lodash';
  * Internal Dependencies.
  */
 import Actions from './weighting/actions';
-import MetaMode from './weighting/meta-mode';
 import PostType from './weighting/post-type';
 
 /**
@@ -34,12 +33,10 @@ const Weighting = ({
 	weightableFields,
 	weightingConfiguration,
 }) => {
-	const [currentMetaMode, setCurrentMetaMode] = useState(metaMode);
 	const [currentWeightingConfiguration, setCurrentWeightingConfiguration] = useState({
 		...weightingConfiguration,
 	});
 
-	const [savedMetaMode, setSavedMetaMode] = useState(metaMode);
 	const [savedWeightingConfiguration, setSavedWeightingConfiguration] = useState({
 		...weightingConfiguration,
 	});
@@ -50,34 +47,14 @@ const Weighting = ({
 	 * Is the current data different to the saved data.
 	 */
 	const isChanged = useMemo(
-		() =>
-			!(
-				currentMetaMode === savedMetaMode &&
-				isEqual(currentWeightingConfiguration, savedWeightingConfiguration)
-			),
-		[
-			currentWeightingConfiguration,
-			currentMetaMode,
-			savedWeightingConfiguration,
-			savedMetaMode,
-		],
+		() => !isEqual(currentWeightingConfiguration, savedWeightingConfiguration),
+		[currentWeightingConfiguration, savedWeightingConfiguration],
 	);
 
 	/**
 	 * Whether to show weighting for metadata.
 	 */
-	const showMeta = useMemo(() => currentMetaMode === 'manual', [currentMetaMode]);
-
-	/**
-	 * Handle meta mode change.
-	 *
-	 * @param {boolean} checked Is manual checked?
-	 */
-	const onChangeMetaMode = (checked) => {
-		const metaMode = checked ? 'manual' : 'auto';
-
-		setCurrentMetaMode(metaMode);
-	};
+	const showMeta = useMemo(() => metaMode === 'manual', [metaMode]);
 
 	/**
 	 * Handle data change.
@@ -99,7 +76,6 @@ const Weighting = ({
 	 * @returns {void}
 	 */
 	const onReset = () => {
-		setCurrentMetaMode(savedMetaMode);
 		setCurrentWeightingConfiguration({ ...savedWeightingConfiguration });
 	};
 
@@ -116,10 +92,7 @@ const Weighting = ({
 			setIsBusy(true);
 
 			const response = await apiFetch({
-				body: JSON.stringify({
-					meta_mode: currentMetaMode,
-					weighting_configuration: currentWeightingConfiguration,
-				}),
+				body: JSON.stringify(currentWeightingConfiguration),
 				headers: {
 					'Content-Type': 'application/json',
 				},
@@ -127,10 +100,7 @@ const Weighting = ({
 				url: apiUrl,
 			});
 
-			const { meta_mode, weighting_configuration } = response.data;
-
-			setSavedWeightingConfiguration(weighting_configuration);
-			setSavedMetaMode(meta_mode);
+			setSavedWeightingConfiguration(response.data);
 
 			noticeOperations.createNotice({
 				content: __('Search fields & weighting saved.', 'elasticpress'),
@@ -169,7 +139,6 @@ const Weighting = ({
 					)}
 				</p>
 			</div>
-			<MetaMode checked={showMeta} onChange={onChangeMetaMode} />
 			{Object.entries(weightableFields).map(([postType, { groups, label }]) => {
 				const originalValues = savedWeightingConfiguration[postType] || {};
 				const values = currentWeightingConfiguration[postType] || {};

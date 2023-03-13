@@ -3836,7 +3836,7 @@ class TestPost extends BaseTestCase {
 		$change_meta_mode = function() {
 			return 'manual';
 		};
-		add_filter( 'pre_option_ep_meta_mode', $change_meta_mode );
+		add_filter( 'ep_meta_mode', $change_meta_mode );
 
 		$weighting = ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting;
 		$this->assertSame( $weighting->get_meta_mode(), 'manual' );
