@@ -10,6 +10,7 @@ import { isEqual } from 'lodash';
 /**
  * Internal Dependencies.
  */
+import { getMetaFieldsFromWeightingConfiguration, isFieldSyncedByFeature } from '../utilities';
 import Actions from './weighting/actions';
 import PostType from './weighting/post-type';
 
@@ -21,6 +22,7 @@ import PostType from './weighting/post-type';
  * @param {'auto'|'manual'} props.metaMode Metadata management mode.
  * @param {object} props.noticeOperations Notice operations from withNotices.
  * @param {WPElement} props.noticeUI Notice UI from withNotices.
+ * @param {string} props.syncUrl Sync URL.
  * @param {object} props.weightableFields Weightable fields, indexed by post type.
  * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
@@ -30,6 +32,7 @@ const Weighting = ({
 	metaMode,
 	noticeOperations,
 	noticeUI,
+	syncUrl,
 	weightableFields,
 	weightingConfiguration,
 }) => {
@@ -50,6 +53,27 @@ const Weighting = ({
 		() => !isEqual(currentWeightingConfiguration, savedWeightingConfiguration),
 		[currentWeightingConfiguration, savedWeightingConfiguration],
 	);
+
+	/**
+	 * Is a sync going to be required?
+	 *
+	 * A sync is required whenever a new meta field is added unless that field
+	 * is already being synced by a feature. Removing a meta field does not
+	 * require a sync, but the user may choose to perform one if they need the
+	 * field removed from the index.
+	 *
+	 * @returns {boolean} Whether a sync is required.
+	 */
+	const isSyncRequired = useMemo(() => {
+		const savedMeta = getMetaFieldsFromWeightingConfiguration(savedWeightingConfiguration);
+		const currentMeta = getMetaFieldsFromWeightingConfiguration(currentWeightingConfiguration);
+
+		const newMeta = currentMeta.filter(
+			(c) => !savedMeta.includes(c) && !isFieldSyncedByFeature(c, weightableFields),
+		);
+
+		return newMeta.length > 0;
+	}, [currentWeightingConfiguration, savedWeightingConfiguration, weightableFields]);
 
 	/**
 	 * Whether to show weighting for metadata.
@@ -99,6 +123,11 @@ const Weighting = ({
 				method: 'POST',
 				url: apiUrl,
 			});
+
+			if (isSyncRequired) {
+				window.location = syncUrl;
+				return;
+			}
 
 			setSavedWeightingConfiguration(response.data);
 
@@ -157,7 +186,13 @@ const Weighting = ({
 					/>
 				);
 			})}
-			<Actions isBusy={isBusy} isChanged={isChanged} onReset={onReset} onSubmit={onSubmit} />
+			<Actions
+				isBusy={isBusy}
+				isChanged={isChanged}
+				isSyncRequired={isSyncRequired}
+				onReset={onReset}
+				onSubmit={onSubmit}
+			/>
 		</form>
 	);
 };

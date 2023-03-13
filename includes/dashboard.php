@@ -503,6 +503,7 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
 		$meta_mode               = $weighting->get_meta_mode();
+		$sync_url                = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
 		$weightable_fields       = $weighting->get_weightable_fields();
 		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
 
@@ -512,6 +513,7 @@ function action_admin_enqueue_dashboard_scripts() {
 			array(
 				'apiUrl'                 => $api_url,
 				'metaMode'               => $meta_mode,
+				'syncUrl'                => $sync_url,
 				'weightableFields'       => $weightable_fields,
 				'weightingConfiguration' => $weighting_configuration,
 			)
