@@ -28,7 +28,7 @@ export default ({ fields, isEditable, onChange, originalValues, values }) => {
 	/**
 	 * Weightable fields that can be added to the group, if it is editable.
 	 *
-	 * Fields that are automatically indexed by features are excluded, while
+	 * Fields that are automatically synced by features are excluded, while
 	 * fields that have already been added are disabled.
 	 */
 	const availableFields = useMemo(() => {
@@ -42,7 +42,7 @@ export default ({ fields, isEditable, onChange, originalValues, values }) => {
 	}, [fields, values]);
 
 	/**
-	 * Fields that are automatically indexed by features.
+	 * Fields that are automatically synced by features.
 	 */
 	const featureFields = useMemo(() => {
 		return fields.filter((f) => f.used_by_feature);
@@ -90,10 +90,10 @@ export default ({ fields, isEditable, onChange, originalValues, values }) => {
 	};
 
 	/**
-	 * Handle a change to whether fields automatically indexed by features are
+	 * Handle a change to whether fields automatically synced by features are
 	 * shown.
 	 *
-	 * @param {boolean} showFeatureFields Whether to show fields indexed by features.
+	 * @param {boolean} showFeatureFields Whether to show fields synced by features.
 	 * @returns {void}
 	 */
 	const onChangeShowFeatureFields = (showFeatureFields) => {
@@ -135,7 +135,7 @@ export default ({ fields, isEditable, onChange, originalValues, values }) => {
 				<PanelRow>
 					<ToggleControl
 						checked={showFeatureFields}
-						label={__('Show all fields that are indexed automatically', 'elasticpress')}
+						label={__('Show all fields that are synced automatically', 'elasticpress')}
 						onChange={onChangeShowFeatureFields}
 					/>
 				</PanelRow>
@@ -180,7 +180,7 @@ export default ({ fields, isEditable, onChange, originalValues, values }) => {
 						labelPosition="side"
 						onChange={onChangeToAdd}
 						options={[
-							{ value: '', label: 'Select field to index', disabled: true },
+							{ value: '', label: 'Select field to sync', disabled: true },
 							...availableFields,
 						]}
 						value={toAdd}

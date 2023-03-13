@@ -35,7 +35,7 @@ export default ({ label, onChange, onDelete, originalValue, value }) => {
 	);
 
 	/**
-	 * Handle change of indexable.
+	 * Handle change of searchable.
 	 *
 	 * @param {boolean} enabled New searchable value.
 	 * @returns {void}
