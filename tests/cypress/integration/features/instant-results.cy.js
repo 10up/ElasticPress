@@ -35,7 +35,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 	beforeEach(() => {
 		cy.deactivatePlugin(
-			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page',
+			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema',
 			'wpCli',
 		);
 		cy.login();
@@ -308,6 +308,34 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('.my-custom-result').should('exist');
 				cy.get('.ep-search-result').should('not.exist');
 			});
+		});
+
+		it('Is possible to filter the arguments schema', () => {
+			/**
+			 * The number of results should match the posts per page
+			 * setting by default.
+			 */
+			cy.maybeEnableFeature('instant-results');
+			cy.intercept('*search=block*').as('apiRequest');
+
+			/**
+			 * Activate test plugin.
+			 */
+			cy.activatePlugin('filter-instant-results-args-schema', 'wpCli');
+
+			/**
+			 * Perform a search.
+			 */
+			cy.visit('/');
+			cy.get('.wp-block-search').last().as('searchBlock');
+			cy.get('@searchBlock').find('input[type="search"]').type('block');
+			cy.get('@searchBlock').find('button').click();
+			cy.wait('@apiRequest');
+
+			/**
+			 * Results should be sorted by date.
+			 */
+			cy.get('.ep-search-sort :selected').should('contain.text', 'Date, newest to oldest');
 		});
 	});
 });
