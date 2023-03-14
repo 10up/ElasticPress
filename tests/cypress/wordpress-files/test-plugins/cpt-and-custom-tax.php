@@ -12,7 +12,7 @@
 namespace ElasticPress\Tests\E2e;
 
 /**
- * Create a CPT called "Movies".
+ * Create a CPT called "Movies" and a non-searchable CPT called "Group".
  */
 function create_post_type() {
 	register_post_type(
@@ -24,6 +24,21 @@ function create_post_type() {
 			],
 			'public'      => true,
 			'has_archive' => true,
+			'taxonomies'  => [ 'category' ],
+		]
+	);
+
+	register_post_type(
+		'group',
+		[
+			'labels'              => [
+				'name'          => __( 'Albums' ),
+				'singular_name' => __( 'Album' ),
+			],
+			'exclude_from_search' => true,
+			'has_archive'         => true,
+			'public'              => true,
+			'taxonomies'          => [ 'category' ],
 		]
 	);
 }
