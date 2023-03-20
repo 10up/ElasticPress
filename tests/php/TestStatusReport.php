@@ -280,13 +280,18 @@ class TestStatusReport extends BaseTestCase {
 		$report = new \ElasticPress\StatusReport\IndexableContent();
 
 		$this->assertSame( $expected_result, $report->get_groups() );
-		$this->assertEquals( 'Elasticsearch Indices', $report->get_title() );
+		$this->assertEquals( 'Indexable Content', $report->get_title() );
 	}
 
-
+	/**
+	 * Tests the Feature report.
+	 *
+	 * @group statusReport
+	 * @since x.x.x
+	 */
 	public function testFeatureReport() {
 		// deactivate all feature.
-		Utils\delete_option( 'ep_feature_settings');
+		Utils\delete_option( 'ep_feature_settings' );
 
 		// activate search feature.
 		\ElasticPress\Features::factory()->activate_feature( 'search' );
@@ -297,5 +302,186 @@ class TestStatusReport extends BaseTestCase {
 		$this->assertEquals( 1, count( $groups ) );
 		$this->assertEquals( 'Post Search', $groups[0]['title'] );
 		$this->assertEquals( 'Feature Settings', $report->get_title() );
+	}
+
+	/**
+	 * Tests the Failed Queries report.
+	 *
+	 * @group statusReport
+	 * @since x.x.x
+	 */
+	public function testFailedQueriesReport() {
+		$time_stamp = time();
+		$random_no  = wp_rand( 1, 100 );
+
+		add_filter(
+			'ep_query_logger_logs',
+			function( $logs ) use ( $time_stamp, $random_no ) {
+				$logs = array(
+					[
+						'wp_url'      => 'http://example.com',
+						'es_req'      => 'POST http://example.com/_search',
+						'request_id'  => $random_no,
+						'timestamp'   => $time_stamp,
+						'query_time'  => $random_no,
+						'wp_args'     => array(
+							'post_type' => 'post',
+						),
+						'status_code' => 404,
+						'body'        => wp_json_encode(
+							array(
+								'from' => 0,
+								'size' => 10,
+							)
+						),
+						'result'      => array(
+							'error' => array(
+								'root_cause' => array(
+									array(
+										'reason' => 'test',
+									),
+								),
+							),
+						),
+					],
+				);
+
+				return $logs;
+			}
+		);
+
+		$expected_result = array(
+			'error'                => array(
+				'label' => 'Error',
+				'value' => 'test',
+			),
+			'recommended_solution' => array(
+				'label' => 'Recommended Solution',
+				'value' => 'We did not recognize this error. Please consider opening a <a href="https://github.com/10up/ElasticPress/issues/new/choose">GitHub Issue</a> so we can add it to our list of supported errors. ',
+			),
+			'es_req'               => array(
+				'label' => 'Elasticsearch Request',
+				'value' => 'POST http://example.com/_search',
+			),
+			'request_id'           => array(
+				'label' => 'Request ID',
+				'value' => $random_no,
+			),
+			'query_time'           => array(
+				'label' => 'Time Spent (ms)',
+				'value' => $random_no,
+			),
+			'wp_args'              => array(
+				'label' => 'WP Query Args',
+				'value' => array(
+					'post_type' => 'post',
+				),
+			),
+			'status_code'          => array(
+				'label' => 'HTTP Status Code',
+				'value' => 404,
+			),
+			'body'                 => array(
+				'label' => 'Query Body',
+				'value' => '{"from":0,"size":10}',
+			),
+			'result'               => array(
+				'label' => 'Query Result',
+				'value' => array(
+					'error' => array(
+						'root_cause' => array(
+							array(
+								'reason' => 'test',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$query_logger = new \ElasticPress\QueryLogger();
+		$report       = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
+
+		$this->assertSame( $expected_result, $report->get_groups()[0]['fields'] );
+		$this->assertEquals( 'Failed Queries', $report->get_title() );
+	}
+
+	/**
+	 * Tests ElasticPress.io report.
+	 *
+	 * @group statusReport
+	 * @since x.x.x
+	 */
+	public function testElasticPressIoReport() {
+		\ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
+		\ElasticPress\Features::factory()->activate_feature( 'instant-results' );
+
+		$report = new \ElasticPress\StatusReport\ElasticPressIo();
+		$groups = $report->get_groups();
+
+		$this->assertEquals( 3, count( $groups ) );
+		$this->assertEquals( 'Allowed Autosuggest Parameters', $groups[0]['title'] );
+		$this->assertEquals( 'Instant Results Template', $groups[1]['title'] );
+		$this->assertEquals( 'Orders Search Template', $groups[2]['title'] );
+		$this->assertEquals( 'ElasticPress.io', $report->get_title() );
+	}
+
+	/**
+	 * Tests ElasticPress report.
+	 *
+	 * @group statusReport
+	 * @since x.x.x
+	 */
+	public function testElasticPressReport() {
+		$report = new \ElasticPress\StatusReport\ElasticPress();
+		$groups = $report->get_groups();
+
+		$expected_result = array(
+			array(
+				'title'  => 'Settings',
+				'fields' => array(
+					'host'           => array(
+						'label' => 'Elasticsearch Host URL',
+						'value' => Utils\get_host(),
+					),
+					'index_prefix'   => array(
+						'label' => 'Index Prefix',
+						'value' => Utils\get_index_prefix(),
+					),
+					'language'       => array(
+						'label' => 'Elasticsearch Language',
+						'value' => Utils\get_language(),
+					),
+					'per_page'       => array(
+						'label' => 'Content Items per Index Cycle',
+						'value' => \ElasticPress\IndexHelper::factory()->get_index_default_per_page(),
+					),
+					'network_active' => array(
+						'label' => 'Network Active',
+						'value' => is_multisite() && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK,
+					),
+				),
+			),
+			array(
+				'title'  => 'Timeouts',
+				'fields' => array(
+					'request_timeout'        => array(
+						'label' => 'Default Requests Timeout (default: 5)',
+						'value' => 5,
+					),
+					'index_document_timeout' => array(
+						'label' => 'Index Document Request Timeout (default: 15)',
+						'value' => 15,
+					),
+					'bulk_request_timeout'   => array(
+						'label' => 'Default Requests Timeout (default: 30)',
+						'value' => 30,
+					),
+				),
+			),
+		);
+
+		$this->assertSame( $expected_result, $report->get_groups() );
+		$this->assertEquals( 2, count( $groups ) );
 	}
 }
