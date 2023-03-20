@@ -404,6 +404,9 @@ class TestStatusReport extends BaseTestCase {
 
 		$this->assertSame( $expected_result, $report->get_groups()[0]['fields'] );
 		$this->assertEquals( 'Failed Queries', $report->get_title() );
+
+		// test the actions label
+		$this->assertEquals( 'Clear query log', $report->get_actions()[0]['label'] );
 	}
 
 	/**
