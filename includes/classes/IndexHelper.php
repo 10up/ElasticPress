@@ -699,6 +699,7 @@ class IndexHelper {
 
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
+
 				$wp_error_messages = $return->get_error_messages();
 
 				if ( count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ) > $logged_errors ) {
@@ -713,7 +714,7 @@ class IndexHelper {
 					}
 				}
 
-				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $wp_error_messages );
+				$this->index_meta['current_sync_item']['errors'] = array_merge( $this->index_meta['current_sync_item']['errors'], $wp_error_messages );
 
 				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
 			} elseif ( count( $failed_objects ) ) {
