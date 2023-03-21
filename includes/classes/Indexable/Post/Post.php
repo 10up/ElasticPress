@@ -1230,7 +1230,7 @@ class Post extends Indexable {
 
 		foreach ( $orderbys as $key => $value ) {
 			if ( is_string( $key ) ) {
-				$orderby_clause = $key;
+				$orderby_clause = ! empty( $args['meta_query'] ) && isset( $args['meta_query'][ $key ] ) ? 'meta.' . $args['meta_query'][ $key ]['key'] . '.raw' : $key;
 				$order          = $value;
 			} else {
 				$orderby_clause = $value;
