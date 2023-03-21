@@ -685,15 +685,54 @@ class IndexHelper {
 				}
 			}
 
+			/**
+			 * Filter the number of errors of a sync that should be stored.
+			 *
+			 * @since  4.2.0
+			 * @hook ep_sync_number_of_errors_stored
+			 * @param  {int} $number Number of errors to be logged.
+			 * @return {int} New value
+			 */
+			$logged_errors = (int) apply_filters( 'ep_sync_number_of_errors_stored', 50 );
+
+			$error_store_msg = 'Reached maximum number of errors to store';
+
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
-				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
+				$wp_error_messages = $return->get_error_messages();
 
-				$this->output( implode( "\n", $return->get_error_messages() ), 'warning' );
+				if ( count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ) > $logged_errors ) {
+					$diff = $logged_errors - count( $this->index_meta['current_sync_item']['errors'] );
+					if ( $diff > 0 ) {
+						$wp_error_messages = array_slice( $wp_error_messages, 0, $diff );
+					} else {
+						$wp_error_messages = [];
+						if ( end( $this->index_meta['current_sync_item']['errors'] ) !== $error_store_msg ) {
+							$this->index_meta['current_sync_item']['errors'][] = $error_store_msg;
+						}
+					}
+				}
+
+				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $wp_error_messages );
+
+				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
 			} elseif ( count( $failed_objects ) ) {
 				$errors_output = $this->output_index_errors( $failed_objects );
 
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
+
+				if ( $this->index_meta['current_sync_item']['failed'] + count( $failed_objects ) > $logged_errors ) {
+					$diff = $logged_errors - $this->index_meta['current_sync_item']['failed'];
+					if ( $diff > 0 ) {
+						$errors_output = array_slice( $errors_output, 0, $diff );
+					} else {
+						$errors_output = [];
+						if ( end( $this->index_meta['current_sync_item']['errors'] ) !== $error_store_msg ) {
+							$this->index_meta['current_sync_item']['errors'][] = $error_store_msg;
+						}
+					}
+				}
+
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
 				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $errors_output );
 
