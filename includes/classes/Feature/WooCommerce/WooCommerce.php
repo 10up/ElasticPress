@@ -882,10 +882,25 @@ class WooCommerce extends Feature {
 		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
 		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
 
+		// Facets on product category pages
+		add_filter( 'ep_facet_allowed_query_args', [ $this, 'facets_on_product_categories' ] );
+
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders->setup();
 		}
+	}
+
+	/**
+	 * Allow facets on product category pages
+	 *
+	 * @param array $args Post types.
+	 * @since  5.0.0
+	 * @return array New post types
+	 */
+	public function facets_on_product_categories( $args ) {
+		$args[] = 'product_cat';
+		return $args;
 	}
 
 	/**
