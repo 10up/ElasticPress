@@ -8637,4 +8637,52 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( $expected_mapping, $changed_mapping );
 	}
+
+	/**
+	 * Test meta query with named orderby.
+	 *
+	 * @since 5.0.0
+	 */
+	public function testMetaQueryWithNamedOrderBy() {
+		$post_1 = $this->ep_factory->post->create(
+			array(
+				'meta_input'   => array( 'price' => 10),
+			)
+		);
+
+		$post_2 = $this->ep_factory->post->create(
+			array(
+				'meta_input'   => array( 'price' => 5 ),
+			)
+		);
+
+		$post_3 = $this->ep_factory->post->create(
+			array(
+				'meta_input'   => array( 'price' => 1 ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			 'meta_query' => [
+				'price_clause' => [
+					'key' => 'price',
+					'compare' => 'EXISTS',
+					'type' => 'NUMERIC',
+				],
+			],
+			'orderby' => [
+				'price_clause' => 'DESC',
+			],
+		);
+
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( $post_1, $query->posts[0]->ID );
+		$this->assertEquals( $post_2, $query->posts[1]->ID );
+		$this->assertEquals( $post_3, $query->posts[2]->ID );
+	}
 }
