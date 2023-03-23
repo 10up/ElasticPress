@@ -685,18 +685,6 @@ class IndexHelper {
 				}
 			}
 
-			/**
-			 * Filter the number of errors of a current sync that should be stored.
-			 *
-			 * @since  5.0.0
-			 * @hook ep_current_sync_number_of_errors_stored
-			 * @param  {int} $number Number of errors to be logged.
-			 * @return {int} New value
-			 */
-			$logged_errors = (int) apply_filters( 'ep_current_sync_number_of_errors_stored', 50 );
-
-			$error_store_msg = __( 'Reached maximum number of errors to store', 'elasticpress' );
-
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
 
@@ -705,8 +693,7 @@ class IndexHelper {
 				$this->process_error_limit(
 					count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ),
 					count( $this->index_meta['current_sync_item']['errors'] ),
-					$wp_error_messages,
-					$logged_errors
+					$wp_error_messages
 				);
 
 				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
@@ -718,8 +705,7 @@ class IndexHelper {
 				$this->maybe_process_error_limit(
 					$this->index_meta['current_sync_item']['failed'] + count( $failed_objects ),
 					$this->index_meta['current_sync_item']['failed'],
-					$errors_output,
-					$logged_errors
+					$errors_output
 				);
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
@@ -750,14 +736,25 @@ class IndexHelper {
 	/**
 	 * If the number of errors is greater than the limit, slice the array to the limit.
 	 * If the number of errors is less than or equal the limit, add the error message to the array (if it's not there).
+	 * Merges the new errors with the existing errors.
 	 *
+	 * @since  5.0.0
 	 * @param int   $count Number of errors.
 	 * @param int   $num Number of errors to subtract from $limit.
 	 * @param array $errors Array of errors.
-	 * @param int   $limit Limit of errors.
 	 */
-	protected function maybe_process_error_limit( $count, $num, $errors, $limit ) {
+	protected function maybe_process_error_limit( $count, $num, $errors ) {
 		$error_store_msg = __( 'Reached maximum number of errors to store', 'elasticpress' );
+
+		/**
+		 * Filter the number of errors of a current sync that should be stored.
+		 *
+		 * @since  5.0.0
+		 * @hook ep_current_sync_number_of_errors_stored
+		 * @param  {int} $number Number of errors to be logged.
+		 * @return {int} New value
+		 */
+		$limit = (int) apply_filters( 'ep_current_sync_number_of_errors_stored', 50 );
 
 		if ( $limit > 0 && $count > $limit ) {
 			$diff = $limit - $num;
