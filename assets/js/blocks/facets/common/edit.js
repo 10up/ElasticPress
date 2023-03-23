@@ -12,6 +12,7 @@ import ServerSideRender from '@wordpress/server-side-render';
 /**
  * Internal dependencies.
  */
+import EmptyResponsePlaceholder from './components/empty-response-placeholder';
 import FacetDisplayCountControl from './components/facet-display-count-control';
 import FacetMetaControl from './components/facet-meta-control';
 import FacetOrderControl from './components/facet-order-control';
@@ -108,10 +109,12 @@ export default ({ attributes, name, setAttributes }) => {
 								orderby,
 								order,
 								searchPlaceholder,
+								type,
 							}}
 							block={name}
-							skipBlockSupportAttributes
+							EmptyResponsePlaceholder={EmptyResponsePlaceholder}
 							LoadingResponsePlaceholder={LoadingResponsePlaceholder}
+							skipBlockSupportAttributes
 						/>
 					</Disabled>
 				) : (
