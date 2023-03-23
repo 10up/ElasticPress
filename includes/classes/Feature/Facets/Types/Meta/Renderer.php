@@ -120,6 +120,10 @@ class Renderer {
 		 */
 		$values = apply_filters( 'ep_facet_meta_all_values', $values, $this->meta_field, $instance );
 
+		if ( empty( $values ) ) {
+			return;
+		}
+
 		echo wp_kses_post( $args['before_widget'] );
 
 		if ( ! empty( $instance['title'] ) ) {
@@ -163,7 +167,7 @@ class Renderer {
 						$value,
 						$feature->build_query_url( $field_filters )
 					);
-					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped					
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 				?>
 			</div>

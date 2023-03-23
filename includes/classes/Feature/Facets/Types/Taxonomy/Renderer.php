@@ -163,6 +163,10 @@ class Renderer {
 		 */
 		$terms_by_slug = apply_filters( 'ep_facet_taxonomy_terms', $terms_by_slug, $taxonomy );
 
+		if ( empty( $terms_by_slug ) ) {
+			return;
+		}
+
 		/**
 		 * Check to make sure all terms exist before proceeding
 		 */

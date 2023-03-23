@@ -113,10 +113,6 @@ class Block {
 	public function render_block( $attributes ) {
 		global $wp_query;
 
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block', $attributes );
-		$renderer       = new $renderer_class();
-
 		if ( $attributes['isPreview'] ) {
 			add_filter( 'ep_is_facetable', '__return_true' );
 
@@ -138,14 +134,26 @@ class Block {
 			$wp_query->query( $args );
 		}
 
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
+		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block', $attributes );
+		$renderer       = new $renderer_class();
+
 		ob_start();
 
+		$renderer->render( [], $attributes );
+
+		$block_content = ob_get_clean();
+
+		if ( empty( $block_content ) ) {
+			return;
+		}
+
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
-		?>
-		<div <?php echo wp_kses_data( $wrapper_attributes ); ?>>
-			<?php $renderer->render( [], $attributes ); ?>
-		</div>
-		<?php
-		return ob_get_clean();
+
+		return sprintf(
+			'<div %1$s>%2$s</div>',
+			wp_kses_data( $wrapper_attributes ),
+			$block_content
+		);
 	}
 }

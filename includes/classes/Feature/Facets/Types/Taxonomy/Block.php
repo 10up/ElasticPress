@@ -160,12 +160,20 @@ class Block {
 
 		ob_start();
 
+		$renderer->render( [], $attributes );
+
+		$block_content = ob_get_clean();
+
+		if ( empty( $block_content ) ) {
+			return;
+		}
+
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
-		?>
-		<div <?php echo wp_kses_data( $wrapper_attributes ); ?>>
-			<?php $renderer->render( [], $attributes ); ?>
-		</div>
-		<?php
-		return ob_get_clean();
+
+		return sprintf(
+			'<div %1$s>%2$s</div>',
+			wp_kses_data( $wrapper_attributes ),
+			$block_content
+		);
 	}
 }
