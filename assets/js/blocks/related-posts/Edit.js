@@ -62,7 +62,7 @@ const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => 
 				/>
 			</BlockControls>
 			<InspectorControls>
-				<PanelBody title={__('Related Post Settings', 'elasticpress')}>
+				<PanelBody title={__('Settings', 'elasticpress')}>
 					<QueryControls
 						numberOfItems={number}
 						onNumberOfItemsChange={(value) => setAttributes({ number: value })}

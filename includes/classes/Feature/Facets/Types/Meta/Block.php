@@ -25,6 +25,7 @@ class Block {
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
 	}
 
 	/**
@@ -38,33 +39,6 @@ class Block {
 				'methods'             => 'GET',
 				'permission_callback' => [ $this, 'check_facets_meta_rest_permission' ],
 				'callback'            => [ $this, 'get_rest_registered_metakeys' ],
-			]
-		);
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/meta/block-preview',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_meta_rest_permission' ],
-				'callback'            => [ $this, 'render_block_preview' ],
-				'args'                => [
-					'searchPlaceholder' => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'displayCount'      => [
-						'sanitize_callback' => 'rest_sanitize_boolean',
-					],
-					'facet'             => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'orderby'           => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'order'             => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
-
 			]
 		);
 	}
@@ -103,11 +77,23 @@ class Block {
 	 * Register the block.
 	 */
 	public function register_block() {
-		/**
-		 * Registering it here so translation works
-		 *
-		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
-		 */
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/facets/meta',
+			[
+				'render_callback' => [ $this, 'render_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Enqueue block editor assets.
+	 *
+	 * The block script is registered here to work around an issue with translations.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+	 * @return void
+	 */
+	public function enqueue_editor_assets() {
 		wp_register_script(
 			'ep-facets-meta-block-script',
 			EP_URL . 'dist/js/facets-meta-block-script.js',
@@ -117,21 +103,6 @@ class Block {
 		);
 
 		wp_set_script_translations( 'ep-facets-meta-block-script', 'elasticpress' );
-
-		register_block_type_from_metadata(
-			EP_PATH . 'assets/js/blocks/facets/meta',
-			[
-				'render_callback' => [ $this, 'render_block' ],
-			]
-		);
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sync_url = admin_url( 'network/admin.php?page=elasticpress-sync' );
-		} else {
-			$sync_url = admin_url( 'admin.php?page=elasticpress-sync' );
-		}
-
-		wp_localize_script( 'ep-facets-meta-block-script', 'facetMetaBlock', [ 'syncUrl' => $sync_url ] );
 	}
 
 	/**
@@ -140,106 +111,41 @@ class Block {
 	 * @param array $attributes Block attributes.
 	 */
 	public function render_block( $attributes ) {
-		$attributes = $this->parse_attributes( $attributes );
+		global $wp_query;
 
 		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block', $attributes );
 		$renderer       = new $renderer_class();
 
+		if ( $attributes['isPreview'] ) {
+			add_filter( 'ep_is_facetable', '__return_true' );
+
+			add_filter(
+				'ep_facet_meta_fields',
+				function ( $meta_fields ) use ( $attributes ) {
+					$meta_fields = [ $attributes['facet'] ];
+					return $meta_fields;
+				}
+			);
+
+			$search = Features::factory()->get_registered_feature( 'search' );
+
+			$args = [
+				'posts_per_page' => 1,
+				'post_type'      => $search->get_searchable_post_types(),
+			];
+
+			$wp_query->query( $args );
+		}
+
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
 		?>
-		<div class="wp-block-elasticpress-facet">
+		<div <?php echo wp_kses_data( $wrapper_attributes ); ?>>
 			<?php $renderer->render( [], $attributes ); ?>
 		</div>
 		<?php
 		return ob_get_clean();
-	}
-
-	/**
-	 * Outputs the block preview
-	 *
-	 * @param \WP_REST_Request $request REST request
-	 * @return string
-	 */
-	public function render_block_preview( $request ) {
-		global $wp_query;
-
-		add_filter( 'ep_is_facetable', '__return_true' );
-
-		$search = Features::factory()->get_registered_feature( 'search' );
-
-		$attributes = $this->parse_attributes(
-			[
-				'searchPlaceholder' => $request->get_param( 'searchPlaceholder' ),
-				'displayCount'      => $request->get_param( 'displayCount' ),
-				'facet'             => $request->get_param( 'facet' ),
-				'orderby'           => $request->get_param( 'orderby' ),
-				'order'             => $request->get_param( 'order' ),
-			]
-		);
-
-		add_filter(
-			'ep_facet_meta_fields',
-			function ( $meta_fields ) use ( $attributes ) {
-				$meta_fields = [ $attributes['facet'] ];
-				return $meta_fields;
-			}
-		);
-
-		$args = [
-			'post_type'      => $search->get_searchable_post_types(),
-			'posts_per_page' => 1,
-		];
-		$wp_query->query( $args );
-
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta', 'block', $attributes );
-		$renderer       = new $renderer_class();
-
-		ob_start();
-		$renderer->render( [], $attributes );
-		$block_content = ob_get_clean();
-
-		if ( empty( $block_content ) ) {
-			if ( empty( $attributes['facet'] ) ) {
-				return esc_html__( 'Preview not available', 'elasticpress' );
-			}
-
-			return sprintf(
-				/* translators: Meta field name */
-				esc_html__( 'Preview for %s not available', 'elasticpress' ),
-				esc_html( $request->get_param( 'facet' ) )
-			);
-		}
-
-		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
-		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
-	}
-
-	/**
-	 * Utilitary method to set default attributes.
-	 *
-	 * @param array $attributes Attributes passed
-	 * @return array
-	 */
-	protected function parse_attributes( $attributes ) {
-		$attributes = wp_parse_args(
-			$attributes,
-			[
-				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by meta search placeholder', 'elasticpress' ),
-				'facet'             => '',
-				'displayCount'      => false,
-				'orderby'           => 'count',
-				'order'             => 'desc',
-
-			]
-		);
-		if ( empty( $attributes['facet'] ) ) {
-			$registered_metakeys = $this->get_rest_registered_metakeys();
-			if ( ! empty( $registered_metakeys ) ) {
-				$attributes['facet'] = reset( $registered_metakeys );
-			}
-		}
-		return $attributes;
 	}
 }

@@ -25,6 +25,7 @@ class Block {
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
 	}
 
 	/**
@@ -38,30 +39,6 @@ class Block {
 				'methods'             => 'GET',
 				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
 				'callback'            => [ $this, 'get_rest_facetable_taxonomies' ],
-			]
-		);
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/block-preview',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
-				'callback'            => [ $this, 'render_block_preview' ],
-				'args'                => [
-					'facet'        => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'displayCount' => [
-						'sanitize_callback' => 'rest_sanitize_boolean',
-					],
-					'orderby'      => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'order'        => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
-
 			]
 		);
 	}
@@ -103,7 +80,7 @@ class Block {
 			}
 
 			$taxonomies[ $slug ] = [
-				'label'  => $taxonomy->label,
+				'label'  => $taxonomy->labels->singular_name,
 				'plural' => $taxonomy->labels->name,
 				'terms'  => $terms_sample,
 			];
@@ -114,23 +91,10 @@ class Block {
 
 	/**
 	 * Register the block.
+	 *
+	 * @return void
 	 */
 	public function register_block() {
-		/**
-		 * Registering it here so translation works
-		 *
-		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
-		 */
-		wp_register_script(
-			'ep-facets-block-script',
-			EP_URL . 'dist/js/facets-block-script.js',
-			Utils\get_asset_info( 'facets-block-script', 'dependencies' ),
-			Utils\get_asset_info( 'facets-block-script', 'version' ),
-			true
-		);
-
-		wp_set_script_translations( 'ep-facets-block-script', 'elasticpress' );
-
 		register_block_type_from_metadata(
 			EP_PATH . 'assets/js/blocks/facets/taxonomy',
 			[
@@ -140,12 +104,45 @@ class Block {
 	}
 
 	/**
+	 * Enqueue block editor assets.
+	 *
+	 * The block script is registered here to work around an issue with translations.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+	 * @return void
+	 */
+	public function enqueue_editor_assets() {
+		wp_register_script(
+			'ep-facets-block-script',
+			EP_URL . 'dist/js/facets-block-script.js',
+			Utils\get_asset_info( 'facets-block-script', 'dependencies' ),
+			Utils\get_asset_info( 'facets-block-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep-facets-block-script', 'elasticpress' );
+	}
+
+	/**
 	 * Render the block.
 	 *
 	 * @param array $attributes Block attributes.
 	 */
 	public function render_block( $attributes ) {
-		$attributes = $this->parse_attributes( $attributes );
+		global $wp_query;
+
+		if ( $attributes['isPreview'] ) {
+			add_filter( 'ep_is_facetable', '__return_true' );
+
+			$search = Features::factory()->get_registered_feature( 'search' );
+
+			$wp_query->query(
+				[
+					'posts_per_page' => 1,
+					'post_type'      => $search->get_searchable_post_types(),
+				]
+			);
+		}
 
 		/**
 		 * Filter the class name to be used to render the Facet.
@@ -162,89 +159,13 @@ class Block {
 		$renderer       = new $renderer_class();
 
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
 		?>
-		<div class="wp-block-elasticpress-facet">
+		<div <?php echo wp_kses_data( $wrapper_attributes ); ?>>
 			<?php $renderer->render( [], $attributes ); ?>
 		</div>
 		<?php
 		return ob_get_clean();
-	}
-
-	/**
-	 * Outputs the block preview
-	 *
-	 * @param \WP_REST_Request $request REST request
-	 * @return string
-	 */
-	public function render_block_preview( $request ) {
-		global $wp_query;
-
-		add_filter( 'ep_is_facetable', '__return_true' );
-
-		$search = Features::factory()->get_registered_feature( 'search' );
-
-		$args = [
-			'post_type'      => $search->get_searchable_post_types(),
-			'posts_per_page' => 1,
-		];
-		$wp_query->query( $args );
-
-		$attributes = $this->parse_attributes(
-			[
-				'facet'        => $request->get_param( 'facet' ),
-				'displayCount' => $request->get_param( 'displayCount' ),
-				'orderby'      => $request->get_param( 'orderby' ),
-				'order'        => $request->get_param( 'order' ),
-			]
-		);
-
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $attributes );
-		$renderer       = new $renderer_class();
-
-		ob_start();
-		$renderer->render( [], $attributes );
-		$block_content = ob_get_clean();
-
-		if ( empty( $block_content ) ) {
-			$taxonomy = get_taxonomy( $attributes['facet'] );
-			if ( ! $taxonomy ) {
-				return esc_html__( 'Invalid taxonomy selected.', 'elasticpress' );
-			}
-			return sprintf(
-				/* translators: Taxonomy name */
-				esc_html__( 'Term preview for %s not available', 'elasticpress' ),
-				esc_html( $taxonomy->labels->name )
-			);
-		}
-
-		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
-		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
-	}
-
-	/**
-	 * Utilitary method to set default attributes.
-	 *
-	 * @param array $attributes Attributes passed
-	 * @return array
-	 */
-	protected function parse_attributes( $attributes ) {
-		$attributes = wp_parse_args(
-			$attributes,
-			[
-				'facet'        => '',
-				'displayCount' => '',
-				'orderby'      => 'count',
-				'order'        => 'desc',
-
-			]
-		);
-		if ( empty( $attributes['facet'] ) ) {
-			$taxonomies = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
-			if ( ! empty( $taxonomies ) ) {
-				$attributes['facet'] = key( $taxonomies );
-			}
-		}
-		return $attributes;
 	}
 }
