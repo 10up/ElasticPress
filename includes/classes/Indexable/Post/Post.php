@@ -2416,13 +2416,16 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Filter post meta to only the allowed ones to be send to ES
+	 * Filter a list of meta keys down to those chosen by the user or
+	 * allowed via a hook.
 	 *
-	 * This function is used when the Weighting dashboard is available and the "manual" option is set in that screen.
+	 * This function is used when manual management of metadata fields is
+	 * enabled. This is the default behaviour as of 5.0.0 and controlled by the
+	 * `ep_meta_mode` filter.
 	 *
 	 * @param array   $metas Key => value pairs of post meta
 	 * @param WP_Post $post Post object
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 * @return array
 	 */
 	protected function filter_allowed_metas_manual( $metas, $post ) {
@@ -2454,7 +2457,7 @@ class Post extends Indexable {
 		 * @hook ep_prepare_meta_allowed_keys
 		 * @param {array} $keys Allowed keys
 		 * @param {WP_Post} $post Post object
-		 * @since 4.4.0
+		 * @since 5.0.0
 		 * @return {array} New keys
 		 */
 		$allowed_keys = apply_filters( 'ep_prepare_meta_allowed_keys', array_merge( $allowed_protected_keys, $selected_keys ), $post );
@@ -2471,14 +2474,16 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Filter post meta to only the allowed ones to be send to ES
+	 * Filter a list of meta keys down to public keys or protected keys
+	 * allowed via a hook.
 	 *
-	 * This function is used when the Weighting dashboard is not available (multisite) or
-	 * when the "auto" option is set in that screen.
+	 * This function is used to filter meta keys when ElasticPress is in
+	 * network mode or when the meta mode is set to `auto` via the
+	 * `ep_meta_mode` hook. This was the default behaviour prior to 5.0.0.
 	 *
 	 * @param array   $metas Key => value pairs of post meta
 	 * @param WP_Post $post Post object
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 * @return array
 	 */
 	protected function filter_allowed_metas_auto( $metas, $post ) {

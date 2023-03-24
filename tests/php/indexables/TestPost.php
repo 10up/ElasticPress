@@ -3825,7 +3825,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test to verify meta array is built correctly when meta handling is set as "Manual" in the weighting dashboard.
 	 *
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 * @group post
 	 */
 	public function testPrepareMetaManual() {

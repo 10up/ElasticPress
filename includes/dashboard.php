@@ -484,6 +484,7 @@ function action_admin_enqueue_dashboard_scripts() {
 
 	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
 		wp_enqueue_style( 'wp-edit-post' );
+
 		wp_enqueue_style(
 			'ep_weighting_styles',
 			EP_URL . 'dist/css/weighting-styles.css',
