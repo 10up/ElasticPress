@@ -77,7 +77,6 @@
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",
-      "facets-admin-styles": "./assets/css/facets-admin.css",
       "facets-styles": "./assets/css/facets.css",
       "highlighting-styles": "./assets/css/highlighting.css",
       "instant-results-styles": "./assets/css/instant-results.css",
