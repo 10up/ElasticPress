@@ -969,7 +969,7 @@ class IndexHelper {
 	 */
 	protected function output( $message_text, $type = 'info', $context = '' ) {
 		if ( $this->index_meta ) {
-			Utils\update_option( 'ep_index_meta', $this->index_meta );
+			Utils\update_option( 'ep_index_meta', $this->index_meta, false ); // VIP: Do not autoload ep_index_meta option to avoid alloption issues.
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
 			$totals = $this->get_last_index();
