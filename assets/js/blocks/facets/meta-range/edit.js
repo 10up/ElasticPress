@@ -4,7 +4,14 @@
  */
 import { getBlockType } from '@wordpress/blocks';
 import { InspectorControls, useBlockProps, Warning } from '@wordpress/block-editor';
-import { Disabled, PanelBody, Placeholder, TextControl } from '@wordpress/components';
+import {
+	Disabled,
+	PanelBody,
+	Flex,
+	FlexItem,
+	Placeholder,
+	TextControl,
+} from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
@@ -80,16 +87,22 @@ export default ({ attributes, name, setAttributes }) => {
 			<InspectorControls>
 				<PanelBody title={__('Settings', 'elasticpress')}>
 					<FacetMetaControl onChange={onChangeFacet} value={facet} />
-					<TextControl
-						label={__('Value prefix', 'elasticpress')}
-						onChange={onChangePrefix}
-						value={prefix}
-					/>
-					<TextControl
-						label={__('Value suffix', 'elasticpress')}
-						onChange={onChangeSuffix}
-						value={suffix}
-					/>
+					<Flex>
+						<FlexItem>
+							<TextControl
+								label={__('Value prefix', 'elasticpress')}
+								onChange={onChangePrefix}
+								value={prefix}
+							/>
+						</FlexItem>
+						<FlexItem>
+							<TextControl
+								label={__('Value suffix', 'elasticpress')}
+								onChange={onChangeSuffix}
+								value={suffix}
+							/>
+						</FlexItem>
+					</Flex>
 				</PanelBody>
 			</InspectorControls>
 			<div {...blockProps}>
