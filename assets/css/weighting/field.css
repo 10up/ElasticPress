@@ -1,12 +1,20 @@
 .ep-weighting-field {
 	align-items: center;
 	display: grid;
-	grid-gap: 0.5em;
+	grid-gap: 1em;
 	grid-template-columns: min(20%, 30ch) max-content auto max-content;
 	width: 100%;
 
 	& .components-base-control__field {
 		margin-bottom: 0;
+	}
+
+	& .components-checkbox-control {
+
+		& .components-base-control__field {
+			align-items: center;
+			display: flex;
+		}
 	}
 
 	& .components-range-control {
@@ -17,12 +25,14 @@
 		}
 
 		& .components-base-control__label {
+			font-size: inherit;
+			font-weight: inherit;
 			margin-bottom: 0;
+			text-transform: inherit;
 		}
 	}
 
 	@media ( max-width: 600px ) {
-		grid-gap: 1em;
 
 		& .components-range-control__wrapper {
 			display: none;

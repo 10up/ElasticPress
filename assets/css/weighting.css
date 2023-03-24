@@ -2,3 +2,7 @@
 @import "weighting/add-new.css";
 @import "weighting/field.css";
 @import "weighting/screen.css";
+
+html.wp-toolbar {
+	background: transparent;
+}
