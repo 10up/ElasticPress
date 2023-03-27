@@ -16,6 +16,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 	 * Reset weighting settings and log in before each test.
 	 */
 	beforeEach(() => {
+		cy.deactivatePlugin('auto-meta-mode', 'wpCli');
 		cy.updateWeighting();
 		cy.login();
 	});
@@ -171,7 +172,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 	it('Can add, weight and search meta fields', () => {
 		/**
 		 * Create a post with a custom field with a specific value and a post
-		 * with the valyue as content for weighting comparison purposes.
+		 * with the value as content for weighting comparison purposes.
 		 */
 		cy.wpCliEval(
 			`wp_insert_post(
@@ -212,18 +213,9 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.get('.entry-title').contains('Test meta weighting, post meta').should('not.exist');
 
 		/**
-		 * Turn on manual metadata management.
-		 */
-		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('.components-checkbox-control')
-			.contains('Customize meta sync and search (may require re-sync)')
-			.parent()
-			.find('input')
-			.check();
-
-		/**
 		 * Add the custom field to the posts index.
 		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
 		cy.get('.components-panel__header')
 			.contains('Posts')
 			.closest('.components-panel')
@@ -259,7 +251,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
 
 		/**
-		 * Both results should be returned,but the post with the value in its
+		 * Both results should be returned, but the post with the value in its
 		 * content should be returned first.
 		 */
 		cy.visit('/?s=abc123');
@@ -270,6 +262,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		 * Update the weighting so the meta field is weighted higher.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
+		cy.get('.components-panel__body-title').contains('Metadata').should('exist');
 		cy.get('.components-panel__header')
 			.contains('Posts')
 			.closest('.components-panel')
@@ -300,5 +293,28 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.visit('/?s=abc123');
 		cy.get('.entry-title').first().should('contain.text', 'Test meta weighting, post meta');
 		cy.get('.entry-title').last().should('contain.text', 'Test meta weighting, post content');
+
+		/**
+		 * Enable automatic indexing of meta management and sync.
+		 */
+		cy.activatePlugin('auto-meta-mode', 'wpCli');
+		cy.wpCli('wp elasticpress sync --yes').its('stdout').should('contain', 'Success: Done!');
+		cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+
+		/**
+		 * Weighting settings for custom fields should not be available when
+		 * using automatic management.
+		 */
+		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
+		cy.get('.components-panel__body-title').contains('Metadata').should('not.exist');
+
+		/**
+		 * With automatic meta management the post with a value in a public key
+		 * should be returned, but the post with the value in a protected key
+		 * should not be.
+		 */
+		cy.visit('/?s=abc123');
+		cy.get('.entry-title').contains('Test meta weighting, post content').should('exist');
+		cy.get('.entry-title').contains('Test meta weighting, post meta').should('exist');
 	});
 });
