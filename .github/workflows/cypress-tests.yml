@@ -72,6 +72,13 @@ jobs:
       if: always()
       run: cd bin/es-docker/ && docker-compose down
 
+    - name: Test plugin uninstall
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME}"
+
   cypress_epio:
     name: Cypress - EP.io
     runs-on: ubuntu-latest
@@ -131,3 +138,10 @@ jobs:
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress-tests delete-all-indices"
+
+    - name: Test plugin uninstall
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME}"
