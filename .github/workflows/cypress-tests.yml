@@ -76,6 +76,7 @@ jobs:
       if: always()
       run: |
         PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME} --deactivate"
 
   cypress_epio:
@@ -142,4 +143,5 @@ jobs:
       if: always()
       run: |
         PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME} --deactivate"
