@@ -10,6 +10,10 @@
 
 use ElasticPress\Utils;
 
+defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/includes/utils.php';
+
 /**
  * Class EP_Uninstaller
  */
