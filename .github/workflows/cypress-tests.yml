@@ -76,6 +76,7 @@ jobs:
       if: always()
       run: |
         PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli tests-wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"
 
@@ -143,5 +144,6 @@ jobs:
       if: always()
       run: |
         PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli tests-wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"
