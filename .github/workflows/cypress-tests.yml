@@ -77,7 +77,7 @@ jobs:
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
-        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME} --deactivate"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME}"
 
   cypress_epio:
     name: Cypress - EP.io
@@ -144,4 +144,4 @@ jobs:
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
-        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME} --deactivate"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ${PLUGIN_NAME}"
