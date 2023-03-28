@@ -35,7 +35,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 	beforeEach(() => {
 		cy.deactivatePlugin(
-			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema',
+			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema cpt-and-custom-tax',
 			'wpCli',
 		);
 		cy.login();
@@ -112,6 +112,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 			 * Can change the URL when search term is changed
 			 */
 			it('Can see instant results elements, URL changes, reload, and update after changing search term', () => {
+				cy.activatePlugin('cpt-and-custom-tax', 'wpCli');
 				cy.maybeEnableFeature('instant-results');
 
 				cy.intercept({
@@ -121,6 +122,25 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 					},
 				}).as('apiRequest');
 
+				/**
+				 * Add product category facet to test the labelling of facets
+				 * with the same name.
+				 */
+				cy.intercept('**/wp-admin/admin-ajax.php*').as('ajaxRequest');
+				cy.visitAdminPage('admin.php?page=elasticpress');
+				cy.get('.ep-feature-instant-results .settings-button').click();
+				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
+					'cat{downArrow}{enter}',
+				);
+				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
+					'prod{downArrow}{enter}{esc}',
+				);
+				cy.get('.ep-feature-instant-results .button-primary').click();
+				cy.wait('@ajaxRequest');
+
+				/**
+				 * Perform a search.
+				 */
 				cy.visit('/');
 
 				cy.get('.wp-block-search').last().as('searchBlock');
@@ -135,6 +155,14 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@searchModal').should('contain.text', 'blog');
 				// Show the number of results
 				cy.get('@searchModal').find('.ep-search-results__title').contains(/\d+/);
+
+				/**
+				 * The Category facet should specify its searchable post types.
+				 */
+				cy.get('.ep-search-panel__button').contains('Category').as('categoryFacet');
+				cy.get('@categoryFacet').should('contain', 'Posts');
+				cy.get('@categoryFacet').should('contain', 'Movies');
+				cy.get('@categoryFacet').should('not.contain', 'Albums');
 
 				cy.get('.ep-search-sidebar #ep-search-post-type-post')
 					.click()
