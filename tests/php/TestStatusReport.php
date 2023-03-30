@@ -73,7 +73,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests the WordPress report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testWordPressReport() {
 		global $wp_version;
@@ -141,7 +141,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests the Last Sync report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testLastSyncReport() {
 		$report = new \ElasticPress\StatusReport\LastSync();
@@ -199,7 +199,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests the Indices report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testIndicesReport() {
 		$report = new \ElasticPress\StatusReport\Indices();
@@ -218,7 +218,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests the Indexable Content report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testIndexableContentReport() {
 		// set screen to status report
@@ -287,7 +287,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests the Feature report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testFeatureReport() {
 		// deactivate all feature.
@@ -308,7 +308,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests the Failed Queries report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testFailedQueriesReport() {
 		$time_stamp = time();
@@ -413,7 +413,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests ElasticPress.io report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testElasticPressIoReport() {
 		\ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
@@ -433,7 +433,7 @@ class TestStatusReport extends BaseTestCase {
 	 * Tests ElasticPress report.
 	 *
 	 * @group statusReport
-	 * @since x.x.x
+	 * @since 4.5.1
 	 */
 	public function testElasticPressReport() {
 		$report = new \ElasticPress\StatusReport\ElasticPress();
