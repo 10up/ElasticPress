@@ -166,6 +166,10 @@ function register_indexable_posts() {
 		new Feature\Terms\Terms()
 	);
 
+	Features::factory()->register_feature(
+		new Feature\DidYouMean\DidYouMean()
+	);
+
 	/**
 	 * Register search algorithms
 	 */

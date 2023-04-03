@@ -34,7 +34,7 @@ class FeatureRequirementsStatus {
 	 * Returns the status of a feature
 	 *
 	 * 0 is no issues
-	 * 1 is usable but there are warnngs
+	 * 1 is usable but there are warnings
 	 * 2 is not usable
 	 *
 	 * @var    int

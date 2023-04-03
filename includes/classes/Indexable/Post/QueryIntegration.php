@@ -371,6 +371,7 @@ class QueryIntegration {
 			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
 			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
+			$query->suggested_terms       = isset( $ep_query['suggest']['ep_suggestion'] ) && isset( $ep_query['suggest']['ep_suggestion'][0] ) ? $ep_query['suggest']['ep_suggestion'][0] : [];
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
