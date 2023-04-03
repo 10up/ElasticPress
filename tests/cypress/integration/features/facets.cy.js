@@ -662,7 +662,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 					'{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}',
 				);
 			cy.get('@block').should('contain.text', '$9/day — $12/day');
-			cy.get('@block').get('button').click();
+			cy.get('@block').get('button').first().click();
 			cy.get('.post').should('have.length', 4);
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=9');
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=12');
@@ -681,7 +681,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@thumbs').eq(0).type('{leftArrow}{leftArrow}');
 			cy.get('@thumbs').eq(1).type('{rightArrow}{rightArrow}');
 			cy.get('@block').should('contain.text', '$7/day — $14/day');
-			cy.get('@block').get('button').click();
+			cy.get('@block').get('button').first().click();
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=7');
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=14');
 			cy.get('.post').contains('Facet By Meta Range Post 14').should('exist');
