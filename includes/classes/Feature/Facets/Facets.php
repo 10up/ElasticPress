@@ -513,6 +513,21 @@ class Facets extends Feature {
 	public function get_allowed_query_args() {
 		$args = array( 's', 'post_type', 'orderby' );
 
+		// Retrieve all registered query variables for public taxonomies
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->query_var ) {
+				$args[] = $taxonomy->query_var;
+			}
+		}
+		/**
+		 * To keep backward compatibility, WordPress uses  `'cat'` for default categories.
+		 * It also allows access using the `?taxonomy=<tax>&term=<term>` format.
+		 *
+		 * @see get_term_link()
+		 */
+		$args = array_merge( $args, [ 'cat', 'taxonomy', 'term' ] );
+
 		/**
 		 * Filter allowed query args
 		 *
