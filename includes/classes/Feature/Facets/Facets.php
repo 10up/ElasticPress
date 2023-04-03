@@ -50,10 +50,13 @@ class Facets extends Feature {
 		];
 
 		$types = [
-			'taxonomy'   => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
-			'meta'       => __NAMESPACE__ . '\Types\Meta\FacetType',
-			'meta-range' => __NAMESPACE__ . '\Types\MetaRange\FacetType',
+			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
 		];
+
+		if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
+			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
+		}
 
 		/**
 		 * Filter the Facet types available.
