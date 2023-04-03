@@ -3,6 +3,10 @@ describe('Autosuggest Feature', () => {
 		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
+	beforeEach(() => {
+		cy.deactivatePlugin('custom-headers-for-autosuggest', 'wpCli');
+	});
+
 	it('Can see autosuggest list', () => {
 		cy.visit('/');
 
@@ -61,5 +65,27 @@ describe('Autosuggest Feature', () => {
 			.then(($link) => {
 				cy.url().should('eq', $link.prop('href'));
 			});
+	});
+
+	it('Can see post in autosuggest list when headers are modified', () => {
+		cy.activatePlugin('custom-headers-for-autosuggest', 'wpCli');
+		cy.visit('/');
+
+		cy.intercept({
+			url: /(_search|autosuggest)$/,
+			headers: {
+				'X-Custom-Autosuggest-Header': 'MyAutosuggest',
+			},
+		}).as('apiRequest');
+
+		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
+
+		cy.wait('@apiRequest');
+
+		cy.get('.ep-autosuggest').should(($autosuggestList) => {
+			// eslint-disable-next-line no-unused-expressions
+			expect($autosuggestList).to.be.visible;
+			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
+		});
 	});
 });
