@@ -93,6 +93,12 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+
+		// VIP: VIP-specific things
+		remove_action( 'wp_update_comment_count', array( $this, 'action_sync_on_update' ), 999, 3 );
+		remove_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
+		remove_action( 'set_object_terms', array( $this, 'action_set_object_terms' ), 10, 6 );
+		// End VIP
 	}
 
 	/**
