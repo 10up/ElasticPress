@@ -508,7 +508,9 @@ class Facets extends Feature {
 	 * @since 3.6.0
 	 */
 	public function get_allowed_query_args() {
-		$args = array( 's', 'post_type', 'orderby' );
+		$default_args         = array( 's', 'post_type', 'orderby', 'cat', 'tag' );
+		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
+		$args                 = array_merge( $default_args, $indexable_taxonomies );
 
 		/**
 		 * Filter allowed query args
