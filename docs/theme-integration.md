@@ -172,6 +172,28 @@ const autosuggestQueryFilter = (query, searchText, input) => {
 
 wp.hooks.addFilter('ep.Autosuggest.query', 'myTheme/autosuggestQueryFilter', autosuggestQueryFilter);
 ```
+
+### Customize Behavior when navigating an Autosuggest Item
+
+To customize the behavior of an Autosuggest Item, you can use the ep.Autosuggest.navigateCallback filter.
+This can be used for example if you want to add a query parameter, a behavior like opening a link in a new tab, etc.
+The filter gives you two parameters: the search term and the URL.
+
+This example changes the behavior to add a "cypress" query arg with value "foobar":
+
+```
+const myNavigateCallback = (searchTerm, url) => {
+        let cypressQueryArg = new URLSearchParams(window.location.search)
+        cypressQueryArg.set('cypress', 'foobar');
+        var newURL = url + '?' + cypressQueryArg.toString();
+        window.location.href = newURL;
+  };
+  wp.hooks.addFilter(
+    'ep.Autosuggest.navigateCallback', 'myTheme/myNavigateCallback',
+    () => myNavigateCallback,
+  );",
+```
+
 ## Instant Results
 
 ### Customize the Template Used for Results
