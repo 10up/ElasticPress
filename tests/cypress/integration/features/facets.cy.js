@@ -33,6 +33,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 * Insert two Facets blocks.
 		 */
 		cy.openWidgetsPage();
+		cy.get('.components-modal__header button').click();
 		cy.openBlockInserter();
 		cy.getBlocksList().should('contain.text', 'Facet by Taxonomy (ElasticPress)');
 		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
