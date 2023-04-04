@@ -3,6 +3,11 @@ describe('Autosuggest Feature', () => {
 		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
+	beforeEach(() => {
+		cy.deactivatePlugin('filter-autosuggest-navigate-callback', 'wpCli');
+		cy.login();
+	});
+
 	it('Can see autosuggest list', () => {
 		cy.visit('/');
 
@@ -60,6 +65,20 @@ describe('Autosuggest Feature', () => {
 			.click()
 			.then(($link) => {
 				cy.url().should('eq', $link.prop('href'));
+			});
+	});
+
+	it('Can use autosuggest navigate callback filter', () => {
+		cy.activatePlugin('filter-autosuggest-navigate-callback', 'wpCli');
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog');
+
+		cy.get('.ep-autosuggest li a')
+			.first()
+			.click()
+			.then(() => {
+				cy.url().should('include', `_blank`);
 			});
 	});
 });
