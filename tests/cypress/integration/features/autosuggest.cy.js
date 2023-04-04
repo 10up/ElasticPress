@@ -73,7 +73,7 @@ describe('Autosuggest Feature', () => {
 			.first()
 			.click()
 			.then(() => {
-				cy.url().should('include', `_blank`);
+				cy.url().should('include', 'cypress=foobar');
 			});
 	});
 });
