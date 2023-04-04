@@ -32,7 +32,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 */
 		cy.openWidgetsPage();
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
@@ -42,7 +42,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 * Add a Block for searching Post comments.
 		 */
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
@@ -54,7 +54,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 * Add a Block for searching Page comments.
 		 */
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
@@ -66,7 +66,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 * Add a Block for searching Page and Post comments.
 		 */
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
