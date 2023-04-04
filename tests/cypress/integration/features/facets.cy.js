@@ -26,17 +26,17 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	});
 
 	/**
-	 * Test that the Facet by Taxonomy block is functional.
+	 * Test that the Filter by Taxonomy block is functional.
 	 */
-	it('Can insert, configure, and use the Facet by Taxonomy block', () => {
+	it('Can insert, configure, and use the Filter by Taxonomy block', () => {
 		/**
-		 * Insert two Facets blocks.
+		 * Insert two Filter blocks.
 		 */
 		cy.openWidgetsPage();
 		cy.openBlockInserter();
-		cy.getBlocksList().should('contain.text', 'Facet by Taxonomy (ElasticPress)');
-		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
-		cy.insertBlock('Facet by Taxonomy (ElasticPress)');
+		cy.getBlocksList().should('contain.text', 'Filter by Taxonomy');
+		cy.insertBlock('Filter by Taxonomy');
+		cy.insertBlock('Filter by Taxonomy');
 		cy.get('.wp-block-elasticpress-facet').last().as('block');
 
 		/**
@@ -174,7 +174,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 
 	/**
 	 * Test that the Facet widget is functional and can be transformed into the
-	 * Facet block.
+	 * Filter block.
 	 */
 	it('Can insert, configure, use, and transform the legacy Facet widget', () => {
 		/**
@@ -304,7 +304,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		cy.contains('.site-content article h2', 'A new movie').should('exist');
 	});
 
-	describe('Facet by Meta Block', () => {
+	describe('Filter by Metadata block', () => {
 		before(() => {
 			cy.wpCli('post list --meta_key=facet_by_meta_tests --meta_value=1 --format=ids').then(
 				(wpCliResponse) => {
@@ -333,16 +333,16 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		});
 
 		/**
-		 * Test that the Facet by Meta block is functional.
+		 * Test that the Filter by Metadata block is functional.
 		 */
-		it('Can insert, configure, and use the Facet by Meta block', () => {
+		it('Can insert, configure, and use the Filter by Metadata block', () => {
 			/**
-			 * Insert a Facet block.
+			 * Insert a Filter by Metadata block.
 			 */
 			cy.openWidgetsPage();
 			cy.openBlockInserter();
-			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
-			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.getBlocksList().should('contain.text', 'Filter by Metadata');
+			cy.insertBlock('Filter by Metadata');
 			cy.get('.wp-block-elasticpress-facet-meta').last().as('block1');
 
 			// Configure the block
@@ -381,8 +381,8 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 * Insert a second block.
 			 */
 			cy.openBlockInserter();
-			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
-			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.getBlocksList().should('contain.text', 'Filter by Metadata');
+			cy.insertBlock('Filter by Metadata');
 			cy.get('.wp-block-elasticpress-facet-meta').last().as('block2');
 
 			// Configure the block
@@ -526,7 +526,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		});
 	});
 
-	describe('Facet by Meta Range block', () => {
+	describe('Filter by Metadata Range block', () => {
 		before(() => {
 			/**
 			 * Clean up sample posts.
@@ -563,26 +563,26 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		});
 
 		/**
-		 * Test that the Facet by Meta Range block is functional.
+		 * Test that the Filter by Metadata Range block is functional.
 		 */
-		it('Can insert, configure, and use the Facet by Meta Range block', () => {
+		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
 			cy.intercept('**/meta-range/keys*').as('keysApiRequest');
 			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
 			cy.intercept('**/sidebars/*').as('sidebarsRest');
 
 			/**
-			 * Insert a Facet by Meta Range block.
+			 * Insert a Filter by Metadata Range block.
 			 */
 			cy.openWidgetsPage();
 			cy.openBlockInserter();
-			cy.getBlocksList().should('contain.text', 'Facet by Meta Range - Beta (ElasticPress)');
-			cy.insertBlock('Facet by Meta Range - Beta (ElasticPress)');
+			cy.getBlocksList().should('contain.text', 'Filter by Metadata Range - Beta');
+			cy.insertBlock('Filter by Metadata Range - Beta');
 			cy.get('.wp-block-elasticpress-facet-meta-range').last().as('block');
 
 			/**
 			 * The block should prompt to select a field.
 			 */
-			cy.get('@block').should('contain.text', 'Facet by Meta Range');
+			cy.get('@block').should('contain.text', 'Filter by Metadata Range');
 			cy.get('@block').get('select').should('exist');
 
 			/**
@@ -622,11 +622,11 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block').get('.ep-range-facet').should('exist');
 
 			/**
-			 * Insert a regular Facet by Meta block.
+			 * Insert a regular Filter by Metadata block.
 			 */
 			cy.openBlockInserter();
-			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
-			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.getBlocksList().should('contain.text', 'Filter by Metadata');
+			cy.insertBlock('Filter by Metadata');
 			cy.get('.wp-block-elasticpress-facet-meta').last().click();
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector select').select('non_numeric_meta_field');
