@@ -1273,7 +1273,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Function used to ouput messages coming from IndexHelper
+	 * Function used to output messages coming from IndexHelper
 	 *
 	 * @param array  $message    Message data
 	 * @param array  $args       Args sent and processed by IndexHelper

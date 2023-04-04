@@ -26,6 +26,7 @@
         "wp-content/plugins/fake-log-messages.php": "./tests/cypress/wordpress-files/test-plugins/fake-log-messages.php",
         "wp-content/plugins/enable-debug-bar.php": "./tests/cypress/wordpress-files/test-plugins/enable-debug-bar.php",
         "wp-content/plugins/filter-instant-results-per-page.php": "./tests/cypress/wordpress-files/test-plugins/filter-instant-results-per-page.php",
+        "wp-content/plugins/filter-instant-results-args-schema.php": "./tests/cypress/wordpress-files/test-plugins/filter-instant-results-args-schema.php",
         "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml"
       }
     }
