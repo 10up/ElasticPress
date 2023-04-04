@@ -319,6 +319,45 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
+	 * Test get_allowed_query_args
+	 *
+	 * @since 4.5.1
+	 * @group facets
+	 */
+	public function testGetAllowedQueryArgs() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$default_allowed_args = [
+			// Default:
+			's',
+			'post_type',
+			'orderby',
+			// Taxonomy related:
+			'cat',
+			'category_name',
+			'post_format',
+			'product_cat',
+			'product_tag',
+			'tag',
+			'taxonomy',
+			'term',
+		];
+
+		$this->assertEqualsCanonicalizing( $default_allowed_args, $facet_feature->get_allowed_query_args() );
+
+		/**
+		 * Test the `ep_facet_allowed_query_args` filter
+		 */
+		$add_allowed_query_arg = function ( $allowed ) {
+			$allowed[] = 'test';
+			return $allowed;
+		};
+		add_filter( 'ep_facet_allowed_query_args', $add_allowed_query_arg );
+
+		$this->assertEqualsCanonicalizing( array_merge( $default_allowed_args, [ 'test' ] ), $facet_feature->get_allowed_query_args() );
+	}
+
+	/**
 	 * Utilitary function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.

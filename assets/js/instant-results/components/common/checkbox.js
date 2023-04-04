@@ -15,13 +15,24 @@ import { WPElement } from '@wordpress/element';
  * @returns {WPElement} Component element.
  */
 export default ({ count, disabled, id, label, onChange, ...props }) => {
+	/**
+	 * Handle change event if checkbox is not disabled.
+	 *
+	 * @param {Event} e Change event.
+	 */
+	const maybeOnChange = (e) => {
+		if (!disabled) {
+			onChange(e);
+		}
+	};
+
 	return (
 		<div className="ep-search-checkbox">
 			<input
 				aria-disabled={disabled}
 				className="ep-search-checkbox__input"
 				id={id}
-				onChange={!disabled ? onChange : null}
+				onChange={maybeOnChange}
 				type="checkbox"
 				{...props}
 			/>{' '}
