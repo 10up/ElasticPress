@@ -14,13 +14,11 @@ add_action(
 	function() {
 		wp_add_inline_script(
 			'elasticpress-autosuggest',
-			"const epAutosuggestFetchOptions = ({ fetchOptions }) => {
-				fetchOptions.headers = {
-					'X-Custom-Autosuggest-Header': 'MyAutosuggest',
-				};
-			return fetchOptions;
+			"const epAutosuggestFetchOptions = (fetchOptions) => {
+				fetchOptions.headers['X-ElasticPress-Request-ID'] = 'CustomRequestId123';
+				return fetchOptions;
             };
-            wp.hooks.addFilter( 'ep.Autosuggest.fetchOptions', 'ep/epAutosuggestFetchOptions', () => epAutosuggestFetchOptions );",
+            wp.hooks.addFilter('ep.Autosuggest.fetchOptions', 'myTheme/epAutosuggestFetchOptions', epAutosuggestFetchOptions);",
 			'before'
 		);
 	},

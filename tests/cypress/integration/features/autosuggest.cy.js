@@ -74,7 +74,7 @@ describe('Autosuggest Feature', () => {
 		cy.intercept({
 			url: /(_search|autosuggest)$/,
 			headers: {
-				'X-Custom-Autosuggest-Header': 'MyAutosuggest',
+				'X-ElasticPress-Request-ID': 'CustomRequestId123',
 			},
 		}).as('apiRequest');
 
