@@ -3,11 +3,6 @@ describe('Autosuggest Feature', () => {
 		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
-	beforeEach(() => {
-		cy.deactivatePlugin('filter-autosuggest-navigate-callback', 'wpCli');
-		cy.login();
-	});
-
 	it('Can see autosuggest list', () => {
 		cy.visit('/');
 
