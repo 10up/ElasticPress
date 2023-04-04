@@ -50,10 +50,13 @@ class Facets extends Feature {
 		];
 
 		$types = [
-			'taxonomy'   => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
-			'meta'       => __NAMESPACE__ . '\Types\Meta\FacetType',
-			'meta-range' => __NAMESPACE__ . '\Types\MetaRange\FacetType',
+			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
 		];
+
+		if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
+			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
+		}
 
 		/**
 		 * Filter the Facet types available.
@@ -509,6 +512,21 @@ class Facets extends Feature {
 	 */
 	public function get_allowed_query_args() {
 		$args = array( 's', 'post_type', 'orderby' );
+
+		// Retrieve all registered query variables for public taxonomies
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->query_var ) {
+				$args[] = $taxonomy->query_var;
+			}
+		}
+		/**
+		 * To keep backward compatibility, WordPress uses  `'cat'` for default categories.
+		 * It also allows access using the `?taxonomy=<tax>&term=<term>` format.
+		 *
+		 * @see get_term_link()
+		 */
+		$args = array_merge( $args, [ 'cat', 'taxonomy', 'term' ] );
 
 		/**
 		 * Filter allowed query args
