@@ -88,4 +88,18 @@ describe('Autosuggest Feature', () => {
 			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
 		});
 	});
+
+	it('Can use autosuggest navigate callback filter', () => {
+		cy.activatePlugin('filter-autosuggest-navigate-callback', 'wpCli');
+
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog');
+
+		cy.get('.ep-autosuggest li a')
+			.first()
+			.click()
+			.then(() => {
+				cy.url().should('include', 'cypress=foobar');
+			});
+	});
 });

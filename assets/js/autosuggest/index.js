@@ -126,7 +126,21 @@ function goToAutosuggestItem(searchTerm, url) {
  */
 function selectItem(input, element) {
 	if (epas.action === 'navigate') {
-		return goToAutosuggestItem(input.value, element.dataset.url);
+		/**
+		 * Allow  to replace the callback function used when navigating an Autosuggest item.
+		 *
+		 * @filter ep.Autosuggest.navigateCallback
+		 * @since 4.5.1
+		 *
+		 * @param {Function} goToAutosuggestItem Autosuggest Callback.
+		 * @returns {Function} Autosuggest Callback
+		 */
+		const navigateCallback = applyFilters(
+			'ep.Autosuggest.navigateCallback',
+			goToAutosuggestItem,
+		);
+
+		return navigateCallback(input.value, element.dataset.url);
 	}
 
 	selectAutosuggestItem(input, element.innerText);
