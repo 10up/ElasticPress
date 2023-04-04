@@ -4,7 +4,7 @@
 	"name": "elasticpress/related-posts",
 	"title": "Related Posts",
 	"category": "elasticpress",
-	"description": "Display a dynamically updated list of related posts.",
+	"description": "Display a continuously updated list of related posts.",
 	"textdomain": "elasticpress",
 	"attributes": {
 		"alignment": {
