@@ -96,7 +96,28 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			return $filters;
 		}
 
-		$selected_range_filters = $all_selected_filters[ $this->get_filter_type() ];
+		/**
+		 * Filter if EP should only filter by fields selected in facets. Defaults to true.
+		 *
+		 * @since 4.5.1
+		 * @hook ep_facet_should_check_if_allowed
+		 * @param {bool} $should_check Whether it should or not check fields
+		 * @return {string} New value
+		 */
+		$should_check_if_allowed = apply_filters( 'ep_facet_should_check_if_allowed', true );
+		if ( $should_check_if_allowed ) {
+			$allowed_meta_fields = $this->get_facets_meta_fields();
+
+			$selected_range_filters = array_filter(
+				$all_selected_filters[ $this->get_filter_type() ],
+				function ( $meta_field ) use ( $allowed_meta_fields ) {
+					return in_array( $meta_field, $allowed_meta_fields, true );
+				},
+				ARRAY_FILTER_USE_KEY
+			);
+		} else {
+			$selected_range_filters = $all_selected_filters[ $this->get_filter_type() ];
+		}
 
 		$range_filters = [];
 		foreach ( $selected_range_filters as $field_name => $values ) {
