@@ -554,6 +554,10 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  4.0.0
 	 */
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		global $wpdb;
 
 		/**
