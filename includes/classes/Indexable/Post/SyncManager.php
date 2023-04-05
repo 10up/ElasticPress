@@ -554,11 +554,11 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since  4.0.0
 	 */
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
+		global $wpdb;
+
 		if ( $this->kill_sync() ) {
 			return;
 		}
-
-		global $wpdb;
 
 		/**
 		 * Filter to whether skip a sync during autosave, defaults to true
