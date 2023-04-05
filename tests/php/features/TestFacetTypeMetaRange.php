@@ -91,6 +91,12 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testAddQueryFilters() {
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_range_fields', $allow_field );
+
 		parse_str( 'ep_meta_range_filter_my_custom_field_min=5&ep_meta_range_filter_my_custom_field_max=25', $_GET );
 
 		$new_filters = $this->facet_type->add_query_filters( [] );
@@ -112,6 +118,60 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 		 */
 		$new_filters = $this->facet_type->add_query_filters( [], [ 'ep_facet_adding_agg_filters' => true ] );
 		$this->assertSame( [], $new_filters );
+	}
+
+	/**
+	 * Test add_query_filters with not allowed parameters
+	 *
+	 * @since 4.5.1
+	 * @group facets
+	 */
+	public function testAddQueryFiltersWithNotAllowedParameters() {
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_range_fields', $allow_field );
+
+		parse_str( 'ep_meta_range_filter_my_custom_field_min=5&ep_meta_range_filter_my_custom_field_max=25&ep_meta_range_filter_not_allowed_min=5&ep_meta_range_filter_not_allowed_max=25', $_GET );
+
+		// Should not have `not_allowed` yet
+		$new_filters = $this->facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'range' => [
+					'meta.my_custom_field.double' => [
+						'gte' => floatval( 5 ),
+						'lte' => floatval( 25 ),
+					],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		add_filter( 'ep_facet_should_check_if_allowed', '__return_false' );
+
+		// As we are not checking, it should have `not_allowed` now
+		$new_filters = $this->facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'range' => [
+					'meta.my_custom_field.double' => [
+						'gte' => floatval( 5 ),
+						'lte' => floatval( 25 ),
+					],
+				],
+			],
+			[
+				'range' => [
+					'meta.not_allowed.double' => [
+						'gte' => floatval( 5 ),
+						'lte' => floatval( 25 ),
+					],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
 	}
 
 	/**

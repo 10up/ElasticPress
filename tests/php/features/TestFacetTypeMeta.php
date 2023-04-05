@@ -212,6 +212,12 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_fields', $allow_field );
+
 		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet', $_GET );
 
 		$new_filters = $facet_type->add_query_filters( [] );
@@ -242,6 +248,62 @@ class TestFacetTypeMeta extends BaseTestCase {
 			[
 				'terms' => [
 					'meta.my_custom_field.raw' => [ 'dolor', 'amet' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+	}
+
+	/**
+	 * Test add_query_filters with not allowed parameters
+	 *
+	 * @since 4.5.1
+	 * @group facets
+	 */
+	public function testAddQueryFiltersWithNotAllowedParameters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['meta'];
+
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_fields', $allow_field );
+
+		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet&ep_meta_filter_not_allowed=1', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		add_filter( 'ep_facet_should_check_if_allowed', '__return_false' );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+			[
+				'term' => [
+					'meta.not_allowed.raw' => 1,
 				],
 			],
 		];
