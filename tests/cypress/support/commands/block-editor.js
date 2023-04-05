@@ -30,5 +30,5 @@ Cypress.Commands.add('getBlocksList', () => {
 
 Cypress.Commands.add('insertBlock', (blockName) => {
 	cy.get('.block-editor-inserter__search input[type="search"').clearThenType(blockName);
-	cy.get('.block-editor-block-types-list__item').contains(blockName).click();
+	cy.get('.block-editor-block-types-list__item').contains(blockName).click({ force: true });
 });
