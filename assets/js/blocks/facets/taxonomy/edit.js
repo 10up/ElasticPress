@@ -20,11 +20,14 @@ const FacetBlockEdit = (props) => {
 
 	const blockProps = useBlockProps();
 
-	const load = useCallback(async () => {
-		const taxonomies = await apiFetch({
-			path: '/elasticpress/v1/facets/taxonomies',
-		});
-		setTaxonomies(taxonomies);
+	const load = useCallback(() => {
+		const handle = async () => {
+			const taxonomies = await apiFetch({
+				path: '/elasticpress/v1/facets/taxonomies',
+			});
+			setTaxonomies(taxonomies);
+		};
+		handle();
 	}, [setTaxonomies]);
 
 	useEffect(load, [load]);
