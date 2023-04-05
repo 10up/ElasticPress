@@ -29,11 +29,14 @@ const FacetBlockEdit = (props) => {
 
 	const blockProps = useBlockProps();
 
-	const load = useCallback(async () => {
-		const metaKeys = await apiFetch({
-			path: '/elasticpress/v1/facets/meta/keys',
-		});
-		setMetaKeys(metaKeys);
+	const load = useCallback(() => {
+		const handle = async () => {
+			const metaKeys = await apiFetch({
+				path: '/elasticpress/v1/facets/meta/keys',
+			});
+			setMetaKeys(metaKeys);
+		};
+		handle();
 	}, [setMetaKeys]);
 
 	useEffect(load, [load]);
