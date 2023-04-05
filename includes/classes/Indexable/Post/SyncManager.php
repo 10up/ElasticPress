@@ -556,6 +556,10 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
 		global $wpdb;
 
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		/**
 		 * Filter to whether skip a sync during autosave, defaults to true
 		 *
