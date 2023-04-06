@@ -239,12 +239,29 @@ class QueryLogger {
 			network_admin_url( $page ) :
 			admin_url( $page );
 
-		$notices['has_failed_queries'] = [
-			'html'    => sprintf(
+		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
+		$present_indices    = count( $indices_comparison['present_indices'] );
+
+		if ( 0 === $present_indices ) {
+			$message = sprintf(
+				/* translators: %s: Sync page link. */
+				esc_html__( 'No Elasticsearch indices found. Please %s.', 'elasticpress' ),
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					Utils\get_sync_url( true ),
+					esc_html__( 'sync your content', 'elasticpress' )
+				)
+			);
+		} else {
+			$message = sprintf(
 				/* translators: Status Report URL */
 				__( 'Some ElasticPress queries failed in the last 24 hours. Please visit the <a href="%s">Status Report page</a> for more details.', 'elasticpress' ),
 				$status_report_url . '#failed-queries'
-			),
+			);
+		}
+
+		$notices['has_failed_queries'] = [
+			'html'    => $message,
 			'type'    => 'warning',
 			'dismiss' => true,
 		];
