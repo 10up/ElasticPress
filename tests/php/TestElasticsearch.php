@@ -252,4 +252,61 @@ class TestElasticsearch extends BaseTestCase {
 		$this->assertCount( 4, $new_headers ); // 3 old + 1 new
 		$this->assertSame( 'totally custom', $new_headers['X-Custom'] );
 	}
+
+	/**
+	 * Test the get_indices_comparison method
+	 *
+	 * @since 5.0.0
+	 */
+	public function testGetIndicesComparison() {
+		ElasticPress\Features::factory()->activate_feature( 'terms' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+		$term_indexable = ElasticPress\Indexables::factory()->get( 'term' );
+
+		$post_indexable->put_mapping();
+		$term_indexable->put_mapping();
+
+		/**
+		 * All indices are present
+		 */
+		$expected = [
+			'missing_indices' => [],
+			'present_indices' => [
+				$post_indexable->get_index_name(),
+				$term_indexable->get_index_name(),
+			],
+		];
+		$this->assertEqualsCanonicalizing( $expected, \ElasticPress\Elasticsearch::factory()->get_indices_comparison() );
+
+		/**
+		 * One missing index
+		 */
+		$term_indexable->delete_index();
+
+		$expected = [
+			'missing_indices' => [
+				$term_indexable->get_index_name(),
+			],
+			'present_indices' => [
+				$post_indexable->get_index_name(),
+			],
+		];
+		$this->assertEqualsCanonicalizing( $expected, \ElasticPress\Elasticsearch::factory()->get_indices_comparison() );
+
+		/**
+		 * All indices are missing
+		 */
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+
+		$expected = [
+			'missing_indices' => [
+				$post_indexable->get_index_name(),
+				$term_indexable->get_index_name(),
+			],
+			'present_indices' => [],
+		];
+		$this->assertEqualsCanonicalizing( $expected, \ElasticPress\Elasticsearch::factory()->get_indices_comparison() );
+	}
 }
