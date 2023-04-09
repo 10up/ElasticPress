@@ -115,7 +115,12 @@ Cypress.Commands.add('wpCliEval', (command) => {
 });
 
 Cypress.Commands.add('publishPost', (postData, viewPost) => {
-	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+	const newPostData = {
+		title: 'Test Post',
+		content: 'Test content.',
+		category: null,
+		...postData,
+	};
 
 	cy.visitAdminPage('post-new.php');
 	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
@@ -130,6 +135,21 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 
 	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
 	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+
+	if (newPostData.category !== null) {
+		cy.get('.edit-post-sidebar__panel-tab').first().click();
+		cy.contains('.components-panel__body-toggle', 'Categories')
+			.click()
+			.then(() => {
+				cy.get('.editor-post-taxonomies__hierarchical-terms-filter input', {
+					timeout: 10000,
+				}).type('test-category');
+
+				cy.get('.editor-post-taxonomies__hierarchical-terms-choice label').click({
+					force: true,
+				});
+			});
+	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
 		cy.get('.editor-post-save-draft').click();
