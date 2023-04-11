@@ -126,7 +126,21 @@ function goToAutosuggestItem(searchTerm, url) {
  */
 function selectItem(input, element) {
 	if (epas.action === 'navigate') {
-		return goToAutosuggestItem(input.value, element.dataset.url);
+		/**
+		 * Allow  to replace the callback function used when navigating an Autosuggest item.
+		 *
+		 * @filter ep.Autosuggest.navigateCallback
+		 * @since 4.5.1
+		 *
+		 * @param {Function} goToAutosuggestItem Autosuggest Callback.
+		 * @returns {Function} Autosuggest Callback
+		 */
+		const navigateCallback = applyFilters(
+			'ep.Autosuggest.navigateCallback',
+			goToAutosuggestItem,
+		);
+
+		return navigateCallback(input.value, element.dataset.url);
 	}
 
 	selectAutosuggestItem(input, element.innerText);
@@ -173,7 +187,7 @@ function buildSearchQuery(searchText, placeholder, { query }) {
  * @returns {object} AJAX object request
  */
 async function esSearch(query, searchTerm) {
-	const fetchConfig = {
+	const fetchOptions = {
 		body: query,
 		method: 'POST',
 		mode: 'cors',
@@ -184,23 +198,35 @@ async function esSearch(query, searchTerm) {
 
 	if (epas?.http_headers && typeof epas.http_headers === 'object') {
 		Object.keys(epas.http_headers).forEach((name) => {
-			fetchConfig.headers[name] = epas.http_headers[name];
+			fetchOptions.headers[name] = epas.http_headers[name];
 		});
 	}
 
 	// only applies headers if using ep.io endpoint
 	if (epas.addSearchTermHeader) {
-		fetchConfig.headers['EP-Search-Term'] = encodeURI(searchTerm);
+		fetchOptions.headers['EP-Search-Term'] = encodeURI(searchTerm);
 	}
 
 	// only add a request ID if using ep.io endpoint
 	const requestId = generateRequestId(epas?.requestIdBase || '');
 	if (requestId) {
-		fetchConfig.headers['X-ElasticPress-Request-ID'] = requestId;
+		fetchOptions.headers['X-ElasticPress-Request-ID'] = requestId;
 	}
 
 	try {
-		const response = await fetch(epas.endpointUrl, fetchConfig);
+		/**
+		 * Filter the Elasticsearch fetch options used for Autosuggest.
+		 *
+		 * @filter ep.Autosuggest.fetchOptions
+		 * @since 4.5.1
+		 *
+		 * @param {object} fetchOptions Options.
+		 * @returns {object} Options.
+		 */
+		const response = await fetch(
+			epas.endpointUrl,
+			applyFilters('ep.Autosuggest.fetchOptions', fetchOptions),
+		);
 
 		if (!response.ok) {
 			throw Error(response.statusText);

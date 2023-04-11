@@ -687,15 +687,28 @@ class IndexHelper {
 
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
-				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
 
-				$this->output( implode( "\n", $return->get_error_messages() ), 'warning' );
+				$wp_error_messages = $return->get_error_messages();
+
+				$this->process_error_limit(
+					count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ),
+					count( $this->index_meta['current_sync_item']['errors'] ),
+					$wp_error_messages
+				);
+
+				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
 			} elseif ( count( $failed_objects ) ) {
 				$errors_output = $this->output_index_errors( $failed_objects );
 
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
+
+				$this->maybe_process_error_limit(
+					$this->index_meta['current_sync_item']['failed'] + count( $failed_objects ),
+					$this->index_meta['current_sync_item']['failed'],
+					$errors_output
+				);
+
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
-				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $errors_output );
 
 				$this->output( $errors_output, 'warning' );
 			} else {
@@ -718,6 +731,44 @@ class IndexHelper {
 			'info',
 			'index_next_batch'
 		);
+	}
+
+	/**
+	 * If the number of errors is greater than the limit, slice the array to the limit.
+	 * If the number of errors is less than or equal the limit, add the error message to the array (if it's not there).
+	 * Merges the new errors with the existing errors.
+	 *
+	 * @since  5.0.0
+	 * @param int   $count Number of errors.
+	 * @param int   $num Number of errors to subtract from $limit.
+	 * @param array $errors Array of errors.
+	 */
+	protected function maybe_process_error_limit( $count, $num, $errors ) {
+		$error_store_msg = __( 'Reached maximum number of errors to store', 'elasticpress' );
+
+		/**
+		 * Filter the number of errors of a current sync that should be stored.
+		 *
+		 * @since  5.0.0
+		 * @hook ep_current_sync_number_of_errors_stored
+		 * @param  {int} $number Number of errors to be logged.
+		 * @return {int} New value
+		 */
+		$limit = (int) apply_filters( 'ep_current_sync_number_of_errors_stored', 50 );
+
+		if ( $limit > 0 && $count > $limit ) {
+			$diff = $limit - $num;
+			if ( $diff > 0 ) {
+				$errors = array_slice( $errors, 0, $diff );
+			} else {
+				$errors = [];
+				if ( end( $this->index_meta['current_sync_item']['errors'] ) !== $error_store_msg ) {
+					$this->index_meta['current_sync_item']['errors'][] = $error_store_msg;
+				}
+			}
+		}
+
+		$this->index_meta['current_sync_item']['errors'] = array_merge( $this->index_meta['current_sync_item']['errors'], $errors );
 	}
 
 	/**
@@ -980,7 +1031,7 @@ class IndexHelper {
 		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text[] = $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'];
+			$error_text[] = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
 		}
 
 		return $error_text;

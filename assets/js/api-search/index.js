@@ -280,29 +280,33 @@ export const ApiSearchProvider = ({
 	 *
 	 * @returns {void}
 	 */
-	const handleSearch = useCallback(async () => {
-		const { args, isOn, isPoppingState } = stateRef.current;
+	const handleSearch = useCallback(() => {
+		const handle = async () => {
+			const { args, isOn, isPoppingState } = stateRef.current;
 
-		if (!isPoppingState) {
-			pushState();
-		}
+			if (!isPoppingState) {
+				pushState();
+			}
 
-		if (!isOn) {
-			return;
-		}
+			if (!isOn) {
+				return;
+			}
 
-		const urlParams = getUrlParamsFromArgs(args, argsSchema);
+			const urlParams = getUrlParamsFromArgs(args, argsSchema);
 
-		setIsLoading(true);
+			setIsLoading(true);
 
-		const response = await fetchResults(urlParams);
+			const response = await fetchResults(urlParams);
 
-		if (!response) {
-			return;
-		}
+			if (!response) {
+				return;
+			}
 
-		setResults(response);
-		setIsLoading(false);
+			setResults(response);
+			setIsLoading(false);
+		};
+
+		handle();
 	}, [argsSchema, fetchResults, pushState]);
 
 	/**
