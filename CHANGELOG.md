@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Added
 * New `ep_instant_results_args_schema` filter for filtering Instant Results arguments schema. Props [@JakePT](https://github.com/JakePT) via [#3389](https://github.com/10up/ElasticPress/pull/3389).
 * New `ep.Autosuggest.navigateCallback` JS filter for changing the behavior of a clicked element on Autosuggest. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT) via [#3419](https://github.com/10up/.ElasticPress/pull/3419).
-* New `ep.Autosuggest.fethConfig` JS filter for filtering Elasticsearch fetch configuration of Autosuggest. Props [@tlovett1](https://github.com/,tlovett1), [@MARQAS](https://github.com/MARQAS), and [@felipeelia](https://github.com/felipeelia) via [#3382](https://github.com/10up/ElasticPress/pull/3382).
+* New `ep.Autosuggest.fetchOptions` JS filter for filtering Elasticsearch fetch configuration of Autosuggest. Props [@tlovett1](https://github.com/,tlovett1), [@MARQAS](https://github.com/MARQAS), and [@felipeelia](https://github.com/felipeelia) via [#3382](https://github.com/10up/ElasticPress/pull/3382).
 * Code linting before pushing to the repository. Props [@felipeelia](https://github.com/felipeelia) via [#3411](https://github.com/10up/ElasticPress/pull/3411).
 * Unit tests for the Status Reports feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3395](https://github.com/10up/ElasticPress/pull/3395).
 
