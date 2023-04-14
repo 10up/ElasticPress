@@ -13,6 +13,13 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [4.5.2] - 2023-04-XX
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Fixed
+* Authenticated requests for autosuggest were not being properly cached while using external object cache. Props [@felipeelia](https://github.com/felipeelia) via [#3438](https://github.com/10up/ElasticPress/pull/3438).
+
 ## [4.5.1] - 2023-04-11
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
@@ -1792,6 +1799,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.5.2]: https://github.com/10up/ElasticPress/compare/4.5.1...4.5.2
 [4.5.1]: https://github.com/10up/ElasticPress/compare/4.5.0...4.5.1
 [4.5.0]: https://github.com/10up/ElasticPress/compare/4.4.1...4.5.0
 [4.4.1]: https://github.com/10up/ElasticPress/compare/4.4.0...4.4.1
