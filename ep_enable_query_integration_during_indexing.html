@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_es_info_cache_expiration - 10up ElasticPress Hook Docs</title>
+    <title>Filter: ep_enable_query_integration_during_indexing - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_es_info_cache_expiration</h1>
+    <h1 class="page-title">Filter: ep_enable_query_integration_during_indexing</h1>
 	
 
     
@@ -43,14 +43,14 @@
 
     
 
-    <h4 class="name" id="ep_es_info_cache_expiration">apply_filters( 'ep_es_info_cache_expiration', <span class="signature">$time )</span><span class="type-signature"> &rarr; {int}</span></h4>
+    <h4 class="name" id="ep_enable_query_integration_during_indexing">apply_filters( 'ep_enable_query_integration_during_indexing', <span class="signature">$enable, $indexable_slug )</span><span class="type-signature"> &rarr; {bool}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter elasticsearch info cache expiration</p>
+    <p>Filter whether to enable query integration during indexing</p>
 </div>
 
 
@@ -84,13 +84,13 @@
 
         <tr>
             
-                <td class="name"><code>$time</code></td>
+                <td class="name"><code>$enable</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">int</span>
+<span class="param-type">bool</span>
 
 
             
@@ -100,7 +100,30 @@
 
             
 
-            <td class="description last"><p>Cache time in seconds</p></td>
+            <td class="description last"><p>To allow query integration during indexing</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$indexable_slug</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Indexable slug</p></td>
         </tr>
 
     
@@ -116,6 +139,9 @@
 
     
 
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>4.5.2</li></ul></dd>
     
 
     
@@ -141,7 +167,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Elasticsearch.php.html">includes/classes/Elasticsearch.php</a>, <a href="includes_classes_Elasticsearch.php.html#line1464">line 1464</a>
+        <a href="includes_classes_Indexable_Comment_QueryIntegration.php.html">includes/classes/Indexable/Comment/QueryIntegration.php</a>, <a href="includes_classes_Indexable_Comment_QueryIntegration.php.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -168,7 +194,7 @@
 
         
 <div class="param-desc">
-    <p>New cache time</p>
+    <p>New value</p>
 </div>
 
 
@@ -179,7 +205,7 @@
     </dt>
     <dd>
         
-<span class="param-type">int</span>
+<span class="param-type">bool</span>
 
 
     </dd>
@@ -217,14 +243,14 @@
 
     
 
-    <h4 class="name" id="ep_es_info_cache_expiration">apply_filters( 'ep_es_info_cache_expiration', <span class="signature">Time )</span><span class="type-signature"> &rarr; {int}</span></h4>
+    <h4 class="name" id="ep_enable_query_integration_during_indexing">apply_filters( 'ep_enable_query_integration_during_indexing', <span class="signature">$enable, $indexable_slug )</span><span class="type-signature"> &rarr; {bool}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter how long results of Elasticsearch version query are stored</p>
+    <p>Filter whether to enable query integration during indexing</p>
 </div>
 
 
@@ -258,13 +284,13 @@
 
         <tr>
             
-                <td class="name"><code>Time</code></td>
+                <td class="name"><code>$enable</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">int</span>
+<span class="param-type">bool</span>
 
 
             
@@ -274,7 +300,30 @@
 
             
 
-            <td class="description last"><p>in seconds</p></td>
+            <td class="description last"><p>To allow query integration during indexing</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$indexable_slug</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Indexable slug</p></td>
         </tr>
 
     
@@ -292,7 +341,7 @@
 
     
     <dt class="tag-since">Since:</dt>
-    <dd class="tag-since"><ul class="dummy"><li>23.0</li></ul></dd>
+    <dd class="tag-since"><ul class="dummy"><li>4.5.2</li></ul></dd>
     
 
     
@@ -318,7 +367,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_dashboard.php.html">includes/dashboard.php</a>, <a href="includes_dashboard.php.html#line148">line 148</a>
+        <a href="includes_classes_Indexable_Post_QueryIntegration.php.html">includes/classes/Indexable/Post/QueryIntegration.php</a>, <a href="includes_classes_Indexable_Post_QueryIntegration.php.html#line42">line 42</a>
     </li></ul></dd>
     
 
@@ -345,7 +394,7 @@
 
         
 <div class="param-desc">
-    <p>New time in seconds</p>
+    <p>New value</p>
 </div>
 
 
@@ -356,7 +405,7 @@
     </dt>
     <dd>
         
-<span class="param-type">int</span>
+<span class="param-type">bool</span>
 
 
     </dd>
@@ -394,14 +443,14 @@
 
     
 
-    <h4 class="name" id="ep_es_info_cache_expiration">apply_filters( 'ep_es_info_cache_expiration', <span class="signature">Time )</span><span class="type-signature"> &rarr; {int}</span></h4>
+    <h4 class="name" id="ep_enable_query_integration_during_indexing">apply_filters( 'ep_enable_query_integration_during_indexing', <span class="signature">$enable, $indexable_slug )</span><span class="type-signature"> &rarr; {bool}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter how long results of Elasticsearch version query are stored</p>
+    <p>Filter whether to enable query integration during indexing</p>
 </div>
 
 
@@ -435,13 +484,13 @@
 
         <tr>
             
-                <td class="name"><code>Time</code></td>
+                <td class="name"><code>$enable</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">int</span>
+<span class="param-type">bool</span>
 
 
             
@@ -451,7 +500,30 @@
 
             
 
-            <td class="description last"><p>in seconds</p></td>
+            <td class="description last"><p>To allow query integration during indexing</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$indexable_slug</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Indexable slug</p></td>
         </tr>
 
     
@@ -469,7 +541,7 @@
 
     
     <dt class="tag-since">Since:</dt>
-    <dd class="tag-since"><ul class="dummy"><li>23.0</li></ul></dd>
+    <dd class="tag-since"><ul class="dummy"><li>4.5.2</li></ul></dd>
     
 
     
@@ -495,7 +567,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_dashboard.php.html">includes/dashboard.php</a>, <a href="includes_dashboard.php.html#line313">line 313</a>
+        <a href="includes_classes_Indexable_Term_QueryIntegration.php.html">includes/classes/Indexable/Term/QueryIntegration.php</a>, <a href="includes_classes_Indexable_Term_QueryIntegration.php.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -522,7 +594,7 @@
 
         
 <div class="param-desc">
-    <p>New time in seconds</p>
+    <p>New value</p>
 </div>
 
 
@@ -533,7 +605,207 @@
     </dt>
     <dd>
         
-<span class="param-type">int</span>
+<span class="param-type">bool</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+    
+    </div>
+
+    
+</article>
+
+</section>
+
+
+
+
+
+
+
+<section>
+
+<header>
+    <h2></h2>
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+
+    <h4 class="name" id="ep_enable_query_integration_during_indexing">apply_filters( 'ep_enable_query_integration_during_indexing', <span class="signature">$enable, $indexable_slug )</span><span class="type-signature"> &rarr; {bool}</span></h4>
+
+    
+
+
+
+<div class="description">
+    <p>Filter whether to enable query integration during indexing</p>
+</div>
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>$enable</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">bool</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>To allow query integration during indexing</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$indexable_slug</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Indexable slug</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>4.5.2</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="includes_classes_Indexable_User_QueryIntegration.php.html">includes/classes/Indexable/User/QueryIntegration.php</a>, <a href="includes_classes_Indexable_User_QueryIntegration.php.html#line33">line 33</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>New value</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">bool</span>
 
 
     </dd>
