@@ -13,9 +13,15 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
-## [4.5.2] - 2023-04-XX
+## [4.5.2] - 2023-04-19
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Added
+* New `ep_enable_query_integration_during_indexing` filter. Props [@rebeccahum](https://github.com/rebeccahum) via [#3445](https://github.com/10up/ElasticPress/pull/3445).
+
+### Changed
+* Automated message sent in GitHub issues after 3 days of inactivity. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#3448](https://github.com/10up/ElasticPress/pull/3448).
 
 ### Fixed
 * Authenticated requests for autosuggest were not being properly cached while using external object cache. Props [@felipeelia](https://github.com/felipeelia) via [#3438](https://github.com/10up/ElasticPress/pull/3438).
