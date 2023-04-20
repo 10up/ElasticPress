@@ -219,7 +219,6 @@ class TestQueryLogger extends BaseTestCase {
 		 */
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		grant_super_admin( $admin_id );
-
 		wp_set_current_user( $admin_id );
 
 		$query_logger = new QueryLogger();
@@ -230,13 +229,6 @@ class TestQueryLogger extends BaseTestCase {
 		add_filter( 'ep_query_logger_logs', $add_fake_log );
 
 		\ElasticPress\Screen::factory()->set_current_screen( 'features' );
-
-		/**
-		 * Generic check
-		 */
-		$notices = $query_logger->maybe_add_notice( [] );
-		$this->assertArrayHasKey( 'has_failed_queries', $notices );
-		$this->assertStringStartsWith( 'Some ElasticPress queries failed in the last 24 hours.', $notices['has_failed_queries']['html'] );
 
 		/**
 		 * Check messages when no indices are found
@@ -250,6 +242,14 @@ class TestQueryLogger extends BaseTestCase {
 		} else {
 			$this->assertStringContainsString( 'Elasticsearch server', $notices['has_failed_queries']['html'] );
 		}
+
+		/**
+		 * Generic check (we have at least one index present)
+		 */
+		\ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+		$this->assertStringStartsWith( 'Some ElasticPress queries failed in the last 24 hours.', $notices['has_failed_queries']['html'] );
 
 		/**
 		 * No message when no failed queries

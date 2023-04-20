@@ -233,12 +233,6 @@ class QueryLogger {
 			return $notices;
 		}
 
-		$page = 'admin.php?page=elasticpress-status-report';
-
-		$status_report_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-			network_admin_url( $page ) :
-			admin_url( $page );
-
 		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
 		$present_indices    = count( $indices_comparison['present_indices'] );
 
@@ -254,6 +248,12 @@ class QueryLogger {
 				)
 			);
 		} else {
+			$page = 'admin.php?page=elasticpress-status-report';
+
+			$status_report_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+				network_admin_url( $page ) :
+				admin_url( $page );
+
 			$message = sprintf(
 				/* translators: Status Report URL */
 				__( 'Some ElasticPress queries failed in the last 24 hours. Please visit the <a href="%s">Status Report page</a> for more details.', 'elasticpress' ),
