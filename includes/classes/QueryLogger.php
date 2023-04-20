@@ -245,7 +245,8 @@ class QueryLogger {
 		if ( 0 === $present_indices ) {
 			$message = sprintf(
 				/* translators: %s: Sync page link. */
-				esc_html__( 'No Elasticsearch indices found. Please %s.', 'elasticpress' ),
+				esc_html__( 'Your site\'s content is not synced with your %1$s. Please %2$s.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io account', 'elasticpress' ) : __( 'Elasticsearch server', 'elasticpress' ),
 				sprintf(
 					'<a href="%1$s">%2$s</a>',
 					Utils\get_sync_url( true ),
