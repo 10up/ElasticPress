@@ -287,7 +287,7 @@ class TestQueryLogger extends BaseTestCase {
 		$this->assertArrayHasKey( 'has_failed_queries', $notices );
 
 		/**
-		 * No message
+		 * No message for users without the capability
 		 */
 		$author_id = $this->factory->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $author_id );
@@ -298,6 +298,9 @@ class TestQueryLogger extends BaseTestCase {
 		wp_set_current_user( $admin_id );
 		$notices = $query_logger->maybe_add_notice( [] );
 		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+
+		// Reset current screen
+		\ElasticPress\Screen::factory()->set_current_screen( null );
 	}
 
 	/**
