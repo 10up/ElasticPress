@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 4.5.0\n"
+"Project-Id-Version: ElasticPress 4.5.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-03-09T20:06:32+00:00\n"
+"POT-Creation-Date: 2023-04-19T17:08:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.7.1\n"
 "X-Domain: elasticpress\n"
@@ -208,7 +208,7 @@ msgstr ""
 #: includes/classes/Command.php:292
 #: includes/classes/Command.php:332
 #: includes/classes/Command.php:373
-#: includes/classes/IndexHelper.php:1290
+#: includes/classes/IndexHelper.php:1341
 msgid "Mapping failed: %s"
 msgstr ""
 
@@ -622,28 +622,28 @@ msgstr ""
 msgid "https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#facets"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:130
+#: includes/classes/Feature/Facets/Facets.php:133
 #: includes/classes/Feature/InstantResults/InstantResults.php:165
 msgid "Match Type"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:132
+#: includes/classes/Feature/Facets/Facets.php:135
 #: includes/classes/Feature/InstantResults/InstantResults.php:169
 msgid "Show any content tagged to <strong>all</strong> selected terms"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:133
+#: includes/classes/Feature/Facets/Facets.php:136
 #: includes/classes/Feature/InstantResults/InstantResults.php:173
 msgid "Show all content tagged to <strong>any</strong> selected term"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:134
+#: includes/classes/Feature/Facets/Facets.php:137
 #: includes/classes/Feature/InstantResults/InstantResults.php:175
 msgid "\"All\" will only show content that matches all facets. \"Any\" will show content that matches any facet."
 msgstr ""
 
 #. translators: URL
-#: includes/classes/Feature/Facets/Facets.php:498
+#: includes/classes/Feature/Facets/Facets.php:501
 msgid "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms."
 msgstr ""
 
@@ -722,8 +722,8 @@ msgid "any"
 msgstr ""
 
 #: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:117
-#: assets/js/blocks/facets/meta/edit.js:95
-#: assets/js/blocks/facets/taxonomy/edit.js:72
+#: assets/js/blocks/facets/meta/edit.js:98
+#: assets/js/blocks/facets/taxonomy/edit.js:75
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
 msgid "Count"
@@ -759,7 +759,7 @@ msgid "Faceting will  filter out any content that is not tagged to all selected 
 msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:72
-#: includes/classes/Feature/InstantResults/InstantResults.php:1016
+#: includes/classes/Feature/InstantResults/InstantResults.php:1034
 msgid "Instant Results"
 msgstr ""
 
@@ -822,16 +822,16 @@ msgstr ""
 msgid "Type"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:869
+#: includes/classes/Feature/InstantResults/InstantResults.php:873
 msgid "Price range"
 msgstr ""
 
-#: includes/classes/Feature/InstantResults/InstantResults.php:870
+#: includes/classes/Feature/InstantResults/InstantResults.php:874
 msgid "Price"
 msgstr ""
 
 #. translators: 1. elasticpress.io logo;
-#: includes/classes/Feature/InstantResults/InstantResults.php:1020
+#: includes/classes/Feature/InstantResults/InstantResults.php:1038
 msgid "Instant Results By %s"
 msgstr ""
 
@@ -1432,9 +1432,9 @@ msgstr ""
 msgid "Comment"
 msgstr ""
 
-#: includes/classes/Indexable/Comment/QueryIntegration.php:126
-#: includes/classes/Indexable/Post/QueryIntegration.php:283
-#: includes/classes/Indexable/Term/QueryIntegration.php:97
+#: includes/classes/Indexable/Comment/QueryIntegration.php:140
+#: includes/classes/Indexable/Post/QueryIntegration.php:295
+#: includes/classes/Indexable/Term/QueryIntegration.php:109
 msgid "sites is deprecated. Use site__in instead."
 msgstr ""
 
@@ -1502,31 +1502,35 @@ msgid "Skipping %1$d %2$s…"
 msgstr ""
 
 #. translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID
-#: includes/classes/IndexHelper.php:711
+#: includes/classes/IndexHelper.php:724
 msgid "Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d"
 msgstr ""
 
+#: includes/classes/IndexHelper.php:747
+msgid "Reached maximum number of errors to store"
+msgstr ""
+
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects
-#: includes/classes/IndexHelper.php:774
+#: includes/classes/IndexHelper.php:825
 msgid "Number of %1$s index errors on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of failed objects
-#: includes/classes/IndexHelper.php:782
+#: includes/classes/IndexHelper.php:833
 msgid "Number of %1$s index errors: %2$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of synced objects
-#: includes/classes/IndexHelper.php:796
+#: includes/classes/IndexHelper.php:847
 msgid "Number of %1$s indexed on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of synced objects
-#: includes/classes/IndexHelper.php:804
+#: includes/classes/IndexHelper.php:855
 msgid "Number of %1$s indexed: %2$d"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:864
+#: includes/classes/IndexHelper.php:915
 #: includes/classes/Screen/Sync.php:228
 #: assets/js/sync/components/sync/progress.js:58
 #: dist/js/sync-script.js:1
@@ -1534,26 +1538,26 @@ msgid "Sync complete"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:905
+#: includes/classes/IndexHelper.php:956
 msgid "Network alias created for %1$s"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:913
+#: includes/classes/IndexHelper.php:964
 msgid "Network alias creation failed for %1$s"
 msgstr ""
 
 #. translators: Index name
-#: includes/classes/IndexHelper.php:1142
+#: includes/classes/IndexHelper.php:1193
 msgid "Index %s deleted"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:1292
+#: includes/classes/IndexHelper.php:1343
 msgid "Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping."
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/IndexHelper.php:1296
+#: includes/classes/IndexHelper.php:1347
 msgid "Index failed: %s"
 msgstr ""
 
@@ -2249,14 +2253,14 @@ msgid "Preview unavailable. The \"%s\" field does not appear to contain numeric 
 msgstr ""
 
 #: assets/js/blocks/facets/meta-range/edit.js:98
-#: assets/js/blocks/facets/meta/edit.js:69
+#: assets/js/blocks/facets/meta/edit.js:72
 #: dist/js/facets-meta-block-script.js:1
 #: dist/js/facets-meta-range-block-script.js:1
 msgid "This is the list of meta fields indexed in Elasticsearch. If your desired field does not appear in this list please try to <a>sync your content</a>"
 msgstr ""
 
 #: assets/js/blocks/facets/meta-range/edit.js:105
-#: assets/js/blocks/facets/meta/edit.js:67
+#: assets/js/blocks/facets/meta/edit.js:70
 #: dist/js/facets-meta-block-script.js:1
 #: dist/js/facets-meta-range-block-script.js:1
 msgid "Meta Field Key"
@@ -2273,8 +2277,8 @@ msgid "Select key"
 msgstr ""
 
 #: assets/js/blocks/facets/meta-range/edit.js:232
-#: assets/js/blocks/facets/meta/edit.js:60
-#: assets/js/blocks/facets/taxonomy/edit.js:50
+#: assets/js/blocks/facets/meta/edit.js:63
+#: assets/js/blocks/facets/taxonomy/edit.js:53
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
 #: dist/js/facets-meta-range-block-script.js:1
@@ -2291,61 +2295,61 @@ msgstr ""
 msgid "Value suffix"
 msgstr ""
 
-#: assets/js/blocks/facets/meta/edit.js:62
+#: assets/js/blocks/facets/meta/edit.js:65
 #: dist/js/facets-meta-block-script.js:1
 msgid "Search Placeholder"
-msgstr ""
-
-#: assets/js/blocks/facets/meta/edit.js:88
-#: assets/js/blocks/facets/taxonomy/edit.js:65
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-msgid "Display Term Count"
 msgstr ""
 
 #: assets/js/blocks/facets/meta/edit.js:91
 #: assets/js/blocks/facets/taxonomy/edit.js:68
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
+msgid "Display Term Count"
+msgstr ""
+
+#: assets/js/blocks/facets/meta/edit.js:94
+#: assets/js/blocks/facets/taxonomy/edit.js:71
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
 msgid "Order By"
 msgstr ""
 
-#: assets/js/blocks/facets/meta/edit.js:92
-#: assets/js/blocks/facets/taxonomy/edit.js:69
+#: assets/js/blocks/facets/meta/edit.js:95
+#: assets/js/blocks/facets/taxonomy/edit.js:72
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
 msgid "The field used to order available options"
 msgstr ""
 
-#: assets/js/blocks/facets/meta/edit.js:96
-#: assets/js/blocks/facets/taxonomy/edit.js:73
+#: assets/js/blocks/facets/meta/edit.js:99
+#: assets/js/blocks/facets/taxonomy/edit.js:76
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
 msgid "Name"
-msgstr ""
-
-#: assets/js/blocks/facets/meta/edit.js:101
-#: assets/js/blocks/facets/taxonomy/edit.js:78
-#: dist/js/facets-block-script.js:1
-#: dist/js/facets-meta-block-script.js:1
-msgid "Order"
 msgstr ""
 
 #: assets/js/blocks/facets/meta/edit.js:104
 #: assets/js/blocks/facets/taxonomy/edit.js:81
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
+msgid "Order"
+msgstr ""
+
+#: assets/js/blocks/facets/meta/edit.js:107
+#: assets/js/blocks/facets/taxonomy/edit.js:84
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
 msgid "ASC"
 msgstr ""
 
-#: assets/js/blocks/facets/meta/edit.js:105
-#: assets/js/blocks/facets/taxonomy/edit.js:82
+#: assets/js/blocks/facets/meta/edit.js:108
+#: assets/js/blocks/facets/taxonomy/edit.js:85
 #: dist/js/facets-block-script.js:1
 #: dist/js/facets-meta-block-script.js:1
 msgid "DESC"
 msgstr ""
 
-#: assets/js/blocks/facets/taxonomy/edit.js:52
+#: assets/js/blocks/facets/taxonomy/edit.js:55
 #: dist/js/facets-block-script.js:1
 msgid "Taxonomy"
 msgstr ""

@@ -13,6 +13,51 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [4.5.2] - 2023-04-19
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Added
+* New `ep_enable_query_integration_during_indexing` filter. Props [@rebeccahum](https://github.com/rebeccahum) via [#3445](https://github.com/10up/ElasticPress/pull/3445).
+
+### Changed
+* Automated message sent in GitHub issues after 3 days of inactivity. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#3448](https://github.com/10up/ElasticPress/pull/3448).
+
+### Fixed
+* Authenticated requests for autosuggest were not being properly cached while using external object cache. Props [@felipeelia](https://github.com/felipeelia) via [#3438](https://github.com/10up/ElasticPress/pull/3438).
+
+## [4.5.1] - 2023-04-11
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Added
+* New `ep_instant_results_args_schema` filter for filtering Instant Results arguments schema. Props [@JakePT](https://github.com/JakePT) via [#3389](https://github.com/10up/ElasticPress/pull/3389).
+* New `ep.Autosuggest.navigateCallback` JS filter for changing the behavior of a clicked element on Autosuggest. Props [@oscarssanchez](https://github.com/oscarssanchez), [@felipeelia](https://github.com/felipeelia), and [@JakePT](https://github.com/JakePT) via [#3419](https://github.com/10up/.ElasticPress/pull/3419).
+* New `ep.Autosuggest.fetchOptions` JS filter for filtering Elasticsearch fetch configuration of Autosuggest. Props [@tlovett1](https://github.com/,tlovett1), [@MARQAS](https://github.com/MARQAS), and [@felipeelia](https://github.com/felipeelia) via [#3382](https://github.com/10up/ElasticPress/pull/3382).
+* Code linting before pushing to the repository. Props [@felipeelia](https://github.com/felipeelia) via [#3411](https://github.com/10up/ElasticPress/pull/3411).
+* Unit tests for the Status Reports feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3395](https://github.com/10up/ElasticPress/pull/3395).
+
+### Changed
+* Meta field facets now only filter based on fields selected on blocks. The new `ep_facet_should_check_if_allowed` filter reverts this behavior. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3430](https://github.com/10up/ElasticPress/pull/3430).
+
+### Fixed
+* Instant Results crashing when using taxonomies as facets that are attached to both searchable and non-searchable post types. Props [@JakePT](https://github.com/JakePT) via [#3386](https://github.com/10up/ElasticPress/pull/3386).
+* Fatal error during plugin uninstall. Props [@felipeelia](https://github.com/felipeelia) via [#3407](https://github.com/10up/ElasticPress/pull/3407).
+* Compatibility issue which prevented Instant Results from working in WordPress 6.2. Props [@JakePT](https://github.com/JakePT) via [#3417](https://github.com/10up/ElasticPress/pull/3417).
+* Fatal error while syncing on older versions of WordPress. Props [@felipeelia](https://github.com/felipeelia), [@TorlockC](https://github.com/TorlockC) via [#3420](https://github.com/10up/ElasticPress/pull/3420).
+* Facets removing taxonomy parameters in the URL when not using pretty permalinks. Props [@MARQAS](https://github.com/MARQAS) and [@felipeelia](https://github.com/felipeelia) via [#3422](https://github.com/10up/ElasticPress/pull/3422).
+* JS errors when creating Facet blocks in WP 6.2. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3429](https://github.com/10up/ElasticPress/pull/3429).
+* `ep_index_meta` option blowing up on an indexing process with many errors. Props [@rebeccahum](https://github.com/rebeccahum) and [@felipeelia](https://github.com/felipeelia) via [#3399](https://github.com/10up/ElasticPress/pull/3399).
+* Typo in `index_output` WP-CLI command help text. Props [@bratvanov](https://github.com/bratvanov) via [#3405](https://github.com/10up/ElasticPress/pull/3405).
+* React warning messages for the comments block. Props [@burhandodhy](https://github.com/burhandodhy) via [#3434](https://github.com/10up/ElasticPress/pull/3434).
+* Fixed `action_edited_term` to call `kill_sync` in SyncManager for post Indexable. Props [@rebeccahum](https://github.com/rebeccahum) via [#3432](https://github.com/10up/ElasticPress/pull/3432).
+* Undefined array key `'index'` during sync. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3435](https://github.com/10up/ElasticPress/pull/3435).
+* Meta Range Facet Block e2e tests. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3426](https://github.com/10up/ElasticPress/pull/3426).
+* Users e2e tests using WP 6.2. Props [@felipeelia](https://github.com/felipeelia) via [#3431](https://github.com/10up/ElasticPress/pull/3431).
+
+### Security
+* Bumped `webpack` from 5.75.0 to 5.76.3. Props [@dependabot](https://github.com/dependabot) via [#3412](https://github.com/10up/ElasticPress/pull/3412).
+
 ## [4.5.0] - 2023-03-09
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
@@ -1760,6 +1805,8 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.5.2]: https://github.com/10up/ElasticPress/compare/4.5.1...4.5.2
+[4.5.1]: https://github.com/10up/ElasticPress/compare/4.5.0...4.5.1
 [4.5.0]: https://github.com/10up/ElasticPress/compare/4.4.1...4.5.0
 [4.4.1]: https://github.com/10up/ElasticPress/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/10up/ElasticPress/compare/4.3.1...4.4.0

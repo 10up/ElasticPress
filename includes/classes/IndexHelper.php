@@ -1031,7 +1031,7 @@ class IndexHelper {
 		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text[] = $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'];
+			$error_text[] = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
 		}
 
 		return $error_text;
