@@ -243,7 +243,7 @@ class QueryLogger {
 				Utils\is_epio() ? __( 'ElasticPress.io account', 'elasticpress' ) : __( 'Elasticsearch server', 'elasticpress' ),
 				sprintf(
 					'<a href="%1$s">%2$s</a>',
-					Utils\get_sync_url( true ),
+					esc_url( Utils\get_sync_url( true ) ),
 					esc_html__( 'sync your content', 'elasticpress' )
 				)
 			);
