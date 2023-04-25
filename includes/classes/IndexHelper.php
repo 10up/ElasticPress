@@ -738,7 +738,7 @@ class IndexHelper {
 	 * If the number of errors is less than or equal the limit, add the error message to the array (if it's not there).
 	 * Merges the new errors with the existing errors.
 	 *
-	 * @since  5.0.0
+	 * @since  4.5.1
 	 * @param int   $count Number of errors.
 	 * @param int   $num Number of errors to subtract from $limit.
 	 * @param array $errors Array of errors.
@@ -749,7 +749,7 @@ class IndexHelper {
 		/**
 		 * Filter the number of errors of a current sync that should be stored.
 		 *
-		 * @since  5.0.0
+		 * @since  4.5.1
 		 * @hook ep_current_sync_number_of_errors_stored
 		 * @param  {int} $number Number of errors to be logged.
 		 * @return {int} New value
