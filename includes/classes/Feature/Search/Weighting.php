@@ -8,6 +8,7 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
+use ElasticPress\Feature as Feature;
 use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Utils as Utils;
 
@@ -245,6 +246,9 @@ class Weighting {
 				$current_values = $this->get_weighting_configuration();
 
 				foreach ( $post_types as $post_type ) :
+					if ( 'product' === $post_type ) {
+						continue;
+					}
 					$fields           = $this->get_weightable_fields_for_post_type( $post_type );
 					$post_type_object = get_post_type_object( $post_type );
 					?>
@@ -568,6 +572,14 @@ class Weighting {
 	 * @return array Formatted ES args
 	 */
 	public function do_weighting( $formatted_args, $args ) {
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
+		if ( ! empty( $this->args['post_type'] ) ) {
+			$args['post_type'] = ( is_array( $args['post_type'] ) ) ? $args['post_type'] : explode( ',', $args['post_type'] );
+			$args['post_type'] = array_map( 'trim', $args['post_type'] );
+			if ( in_array( 'product', $args['post_type'], true ) && 'disabled_products' === $feature_settings['search']['decaying_enabled'] ) {
+				return $formatted_args;
+			}
+		}
 
 		/**
 		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
@@ -576,7 +588,6 @@ class Weighting {
 		if ( isset( $args['search_fields'] ) && ! empty( $args['search_fields'] ) ) {
 			return $formatted_args;
 		}
-
 		$weight_config = $this->get_weighting_configuration();
 
 		/**

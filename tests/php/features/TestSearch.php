@@ -228,6 +228,65 @@ class TestSearch extends BaseTestCase {
 	}
 
 	/**
+	 * Test if decaying is disabled on products.
+	 *
+	 * @since 5.0
+	 * @group search
+	 */
+	public function testDecayingDisabledOnProducts() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Need to call this since it's hooked to init
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			[
+				'active'           => true,
+				'decaying_enabled' => 'disabled_products',
+			]
+		);
+
+		$this->ep_factory->product->create(
+			[
+				'name'        => 'Product 1',
+				'description' => 'product 1 test',
+			]
+		);
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
+
+		$query = new \WP_Query(
+			[
+				's' => 'test',
+			]
+		);
+
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+		$this->assertTrue(
+			! isset(
+				$this->fired_actions['ep_formatted_args']['query']['function_score'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertTrue(
+			isset(
+				$this->fired_actions['ep_formatted_args']['query']['bool'],
+				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
+			)
+		);
+	}
+
+
+	/**
 	 * Catch ES query args.
 	 *
 	 * @group search
