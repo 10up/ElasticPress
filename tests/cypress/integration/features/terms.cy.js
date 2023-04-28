@@ -19,6 +19,8 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 	it('Can turn the feature on', () => {
 		cy.login();
 
+		cy.maybeDisableFeature('terms');
+
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-terms .settings-button').click();
 		cy.get('.ep-feature-terms [name="settings[active]"][value="1"]').click();
@@ -27,16 +29,12 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 			return true;
 		});
 
-		cy.get('.ep-sync-progress strong', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
-
 		cy.get('.ep-sync-panel').last().as('syncPanel');
 		cy.get('@syncPanel').find('.components-form-toggle').click();
 		cy.get('@syncPanel')
 			.find('.ep-sync-messages')
-			.should('contain.text', 'Mapping sent')
-			.should('contain.text', 'Sync complete');
+			.should('contain.text', 'Sync complete')
+			.should('contain.text', 'Mapping sent');
 
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});
