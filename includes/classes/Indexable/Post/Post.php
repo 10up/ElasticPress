@@ -1017,7 +1017,7 @@ class Post extends Indexable {
 			if ( ! isset( $args[ $key ] ) ) {
 				continue;
 			}
-			$args[ $key ] = array_filter( (array) $args[ $key ] );
+			// $args[ $key ] = array_filter( (array) $args[ $key ] );
 		}
 
 		/**
