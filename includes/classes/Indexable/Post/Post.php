@@ -1017,7 +1017,28 @@ class Post extends Indexable {
 			if ( ! isset( $args[ $key ] ) ) {
 				continue;
 			}
-			// $args[ $key ] = array_filter( (array) $args[ $key ] );
+
+			$sanitized_value = array_filter( (array) $args[ $key ] );
+			if ( (array) $args[ $key ] && ! $sanitized_value ) {
+				$extra = [
+					'key'       => $key,
+					'old_value' => wp_json_encode( $args[ $key ] ),
+				];
+				if ( is_multisite() ) {
+					$extra['blog_id'] = get_current_blog_id();
+				}
+
+				if ( is_callable( '\Automattic\VIP\Logstash\log2logstash' ) ) {
+					\Automattic\VIP\Logstash\log2logstash(
+						array(
+							'severity' => 'info',
+							'feature'  => 'search_next_ep_sanitized_key',
+							'message'  => 'Found sanitized key',
+							'extra'    => $extra,
+						)
+					);
+				}
+			}
 		}
 
 		/**
