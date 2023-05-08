@@ -32,7 +32,7 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 		cy.get('.ep-sync-panel').last().as('syncPanel');
 		cy.get('@syncPanel').find('.components-form-toggle').click();
 		cy.get('@syncPanel')
-			.find('.ep-sync-messages')
+			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Sync complete')
 			.should('contain.text', 'Mapping sent');
 
