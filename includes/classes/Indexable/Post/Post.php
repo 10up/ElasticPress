@@ -1018,32 +1018,7 @@ class Post extends Indexable {
 				continue;
 			}
 
-			$sanitized_value = array_filter( (array) $args[ $key ] );
-			if ( (array) $args[ $key ] && ! $sanitized_value ) {
-				$extra = [
-					'key'       => $key,
-					'old_value' => wp_json_encode( $args[ $key ] ),
-					'args'      => wp_json_encode( $args ),
-				];
-				if ( is_multisite() ) {
-					$extra['blog_id'] = get_current_blog_id();
-				}
-
-				if ( true === wp_cache_add( md5( wp_json_encode( $extra ) ), time(), 'vip' ) && is_callable( '\Automattic\VIP\Logstash\log2logstash' ) ) {
-					if ( isset( $_SERVER['REQUEST_URI'] ) ) {
-						$extra['url'] = $_SERVER['REQUEST_URI'];
-					}
-					$extra['backtrace'] = wp_debug_backtrace_summary(); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_wp_debug_backtrace_summary
-					\Automattic\VIP\Logstash\log2logstash(
-						array(
-							'severity' => 'info',
-							'feature'  => 'search_next_ep_sanitized_key',
-							'message'  => 'Found sanitized key',
-							'extra'    => $extra,
-						)
-					);
-				}
-			}
+			$args[ $key ] = array_filter( (array) $args[ $key ] );
 		}
 
 		/**
