@@ -578,7 +578,7 @@ class Weighting {
 		$features = Features::factory();
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
-		if ( ! $search->is_decaying_enabled( $args['post_type'] ) ) {
+		if ( ! $search->is_decaying_enabled( $args['post_type'] ?? [] ) ) {
 			return $formatted_args;
 		}
 
