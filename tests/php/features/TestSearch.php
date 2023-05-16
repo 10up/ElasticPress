@@ -260,7 +260,7 @@ class TestSearch extends BaseTestCase {
 
 		$query = new \WP_Query(
 			[
-				's' => 'test',
+				's'         => 'test',
 				'post_type' => 'product',
 			]
 		);
