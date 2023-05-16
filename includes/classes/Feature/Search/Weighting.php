@@ -246,7 +246,7 @@ class Weighting {
 				$current_values = $this->get_weighting_configuration();
 
 				foreach ( $post_types as $post_type ) :
-					if ( 'product' === $post_type ) {
+					if ( 'product' === $post_type && ! $search->is_decaying_enabled( $post_type ) ) {
 						continue;
 					}
 					$fields           = $this->get_weightable_fields_for_post_type( $post_type );

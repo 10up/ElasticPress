@@ -630,8 +630,7 @@ class Search extends Feature {
 			$settings = [];
 		}
 
-		$settings    = wp_parse_args( $settings, $this->default_settings );
-		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
+		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		?>
 		<div class="field">
