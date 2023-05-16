@@ -261,6 +261,44 @@ class TestSearch extends BaseTestCase {
 		$query = new \WP_Query(
 			[
 				's' => 'test',
+				'post_type' => 'product',
+			]
+		);
+
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+		$this->assertTrue(
+			! isset(
+				$this->fired_actions['ep_formatted_args']['query']['function_score'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertTrue(
+			isset(
+				$this->fired_actions['ep_formatted_args']['query']['bool'],
+				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
+			)
+		);
+
+		// Test Decaying for any query with product in it
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			[
+				'active'           => true,
+				'decaying_enabled' => 'disabled_products_all',
+			]
+		);
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
+
+		$query = new \WP_Query(
+			[
+				's' => 'test',
 			]
 		);
 

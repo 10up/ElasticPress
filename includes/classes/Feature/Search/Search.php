@@ -429,19 +429,24 @@ class Search extends Feature {
 	/**
 	 * Returns true/false if decaying is/isn't enabled
 	 *
+	 * @param string|array $post_type Post type
+	 *
 	 * @return bool
 	 */
-	public function is_decaying_enabled() {
+	public function is_decaying_enabled( $post_type = [] ) {
 		$settings = $this->get_settings();
-
 		$settings = wp_parse_args(
 			$settings,
 			[
 				'decaying_enabled' => true,
 			]
 		);
-
-		return (bool) $settings['decaying_enabled'];
+		$decaying = (bool) $settings['decaying_enabled'];
+		// Check decaying based on WooCommerce decay settings
+		if ( ( is_array( $post_type ) && in_array( 'product', $post_type, true ) && 'disabled_products_all' === $settings['decaying_enabled'] ) || ( 'product' === $post_type && in_array( $settings['decaying_enabled'], [ 'disabled_products', 'disabled_products_all' ], true ) ) ) {
+			$decaying = false;
+		}
+		return $decaying;
 	}
 
 	/**
@@ -458,7 +463,7 @@ class Search extends Feature {
 		if ( empty( $args['s'] ) ) {
 			return $formatted_args;
 		}
-		if ( ! $this->is_decaying_enabled() || ( in_array( 'product', $args['post_type'], true ) && 'disabled_products' === $settings['decaying_enabled'] ) ) {
+		if ( ! $this->is_decaying_enabled( $args['post_type'] ) ) {
 			return $formatted_args;
 		}
 		/**
@@ -634,10 +639,16 @@ class Search extends Feature {
 			<div class="input-wrap">
 				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( (bool) $settings['decaying_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
 				<label><input name="settings[decaying_enabled]" type="radio" <?php checked( ! (bool) $settings['decaying_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label><br>
-				<?php if ( $woocommerce->is_active() ) : ?>
-					<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_products' ); ?> value="disabled_products"><?php esc_html_e( 'Disabled for products', 'elasticpress' ); ?></label><br>
-					<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_products_all' ); ?> value="disabled_products_all"><?php esc_html_e( 'Disable Weighting in any query that includes products', 'elasticpress' ); ?></label>
-				<?php endif; ?>
+				<?php
+				/**
+				 * Fires after the default Weight results by date settings
+				 *
+				 * @since  5.0.0
+				 * @hook ep_weight_settings_after_search
+				 * @param  {array} $settings settings array
+				 */
+				do_action( 'ep_weight_settings_after_search', $settings );
+				?>
 			</div>
 		</div>
 		<div class="field">

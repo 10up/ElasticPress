@@ -573,12 +573,13 @@ class Weighting {
 	 */
 	public function do_weighting( $formatted_args, $args ) {
 		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
-		if ( ! empty( $this->args['post_type'] ) ) {
-			$args['post_type'] = ( is_array( $args['post_type'] ) ) ? $args['post_type'] : explode( ',', $args['post_type'] );
-			$args['post_type'] = array_map( 'trim', $args['post_type'] );
-			if ( in_array( 'product', $args['post_type'], true ) && 'disabled_products' === $feature_settings['search']['decaying_enabled'] ) {
-				return $formatted_args;
-			}
+
+		/** Features Class @var Features $features */
+		$features = Features::factory();
+		/** Search Feature @var Feature\Search\Search $search */
+		$search = $features->get_registered_feature( 'search' );
+		if ( ! $search->is_decaying_enabled( $args['post_type'] ) ) {
+			return $formatted_args;
 		}
 
 		/**

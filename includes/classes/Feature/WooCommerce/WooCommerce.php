@@ -886,6 +886,9 @@ class WooCommerce extends Feature {
 		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders->setup();
 		}
+
+		// Add WooCommerce Settings for Weight results by date
+		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ], 10, 1 );
 	}
 
 	/**
@@ -1364,5 +1367,18 @@ class WooCommerce extends Feature {
 	 */
 	public function is_orders_autosuggest_enabled() : bool {
 		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
+	}
+
+	/**
+	 * Add weight results settings for WooCommerce settings
+	 *
+	 * @since 5.0.0
+	 * @param {array} $settings Current settings.
+	 */
+	public function add_weight_settings_search( $settings ) {
+		?>
+		<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_products' ); ?> value="disabled_products"><?php esc_html_e( 'Disabled for products', 'elasticpress' ); ?></label><br>
+		<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_products_all' ); ?> value="disabled_products_all"><?php esc_html_e( 'Disable Weighting in any query that includes products', 'elasticpress' ); ?></label>
+		<?php
 	}
 }
