@@ -367,10 +367,15 @@ class TestUtils extends BaseTestCase {
 		// array with `errors`
 		$reason_in_errors_array = [
 			'result' => [
-				'error' => [
-					'root_cause' => [
-						[
-							'reason' => 'Error reason',
+				'errors' => [
+					'some error',
+				],
+				'items'  => [
+					[
+						'index' => [
+							'error' => [
+								'reason' => 'Error reason',
+							],
 						],
 					],
 				],
