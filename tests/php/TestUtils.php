@@ -329,4 +329,64 @@ class TestUtils extends BaseTestCase {
 
 		$this->assertSame( $expected, Utils\get_post_map_capabilities() );
 	}
+
+	/**
+	 * Test the `get_elasticsearch_error_reason` function
+	 *
+	 * @since 4.6.0
+	 */
+	public function testGetElasticsearchErrorReason() {
+		// Strings should be returned without any change
+		$this->assertSame( 'Some message', Utils\get_elasticsearch_error_reason( 'Some message' ) );
+
+		// Objects will be returned after passing through var_export()
+		$object = (object) [ 'attribute' => 'this will be an object' ];
+		$return = Utils\get_elasticsearch_error_reason( $object );
+		$this->assertIsString( $return );
+		$this->assertStringContainsString( 'attribute', $return );
+		$this->assertStringContainsString( 'this will be an object', $return );
+
+		// `reason` in the array root
+		$reason_root = [ 'reason' => 'Error reason' ];
+		$this->assertSame( 'Error reason', Utils\get_elasticsearch_error_reason( $reason_root ) );
+
+		// array with `error`
+		$reason_in_single_error_array = [
+			'result' => [
+				'error' => [
+					'root_cause' => [
+						[
+							'reason' => 'Error reason',
+						],
+					],
+				],
+			],
+		];
+		$this->assertSame( 'Error reason', Utils\get_elasticsearch_error_reason( $reason_in_single_error_array ) );
+
+		// array with `errors`
+		$reason_in_errors_array = [
+			'result' => [
+				'errors' => [
+					'some error',
+				],
+				'items'  => [
+					[
+						'index' => [
+							'error' => [
+								'reason' => 'Error reason',
+							],
+						],
+					],
+				],
+			],
+		];
+		$this->assertSame( 'Error reason', Utils\get_elasticsearch_error_reason( $reason_in_errors_array ) );
+
+		// For something that is an array but does not have a format of an error, return an empty string
+		$not_an_error = [
+			'results' => [ 1, 2, 3 ],
+		];
+		$this->assertSame( '', Utils\get_elasticsearch_error_reason( $not_an_error ) );
+	}
 }
