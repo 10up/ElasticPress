@@ -1711,7 +1711,7 @@ class Elasticsearch {
 	/**
 	 * Return a comparison between which indices should be and are present in the ES server.
 	 *
-	 * @since 5.0.0
+	 * @since 4.6.0
 	 * @return array Array with `missing_indices` and `present_indices` keys.
 	 */
 	public function get_indices_comparison() {
