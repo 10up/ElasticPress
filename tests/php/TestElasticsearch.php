@@ -256,7 +256,7 @@ class TestElasticsearch extends BaseTestCase {
 	/**
 	 * Test the get_indices_comparison method
 	 *
-	 * @since 5.0.0
+	 * @since 4.6.0
 	 */
 	public function testGetIndicesComparison() {
 		ElasticPress\Features::factory()->activate_feature( 'terms' );
