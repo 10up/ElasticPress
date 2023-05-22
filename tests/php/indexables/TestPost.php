@@ -2682,6 +2682,41 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test ordering by named meta_query clauses
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 */
+	public function testNamedMetaQueryOrderbyQuery() {
+		$post_b = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'b' ] ] );
+		$post_a = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'a' ] ] );
+		$post_c = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'c' ] ] );
+		$this->ep_factory->post->create( [ 'post_title' => 'No meta_input' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'meta_query'   => [
+				'named_clause' => [
+					'key'     => 'test_key',
+					'compare' => 'EXISTS',
+				],
+			],
+			'orderby'      => 'named_clause',
+			'order'        => 'ASC',
+		);
+
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( $post_a, $query->posts[0] );
+		$this->assertEquals( $post_b, $query->posts[1] );
+		$this->assertEquals( $post_c, $query->posts[2] );
+	}
+
+	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
 	 * @since 1.2

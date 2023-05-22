@@ -1215,6 +1215,8 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_orderby( $orderbys, $default_order, $args ) {
+		global $wpdb;
+
 		$orderbys = $this->get_orderby_array( $orderbys );
 
 		$from_to = [
@@ -1259,7 +1261,18 @@ class Post extends Indexable {
 				}
 			}
 
-			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
+			if ( ! empty( $from_to[ $orderby_clause ] ) ) {
+				$orderby_clause = $from_to[ $orderby_clause ];
+			} elseif ( ! empty( $args['meta_query'] ) ) {
+				$meta_query = new \WP_Meta_Query( $args['meta_query'] );
+				// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
+				$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+				$clauses = $meta_query->get_clauses();
+				if ( ! empty( $clauses[ $orderby_clause ] ) ) {
+					$orderby_clause = 'meta.' . $clauses[ $orderby_clause ]['key'] . '.value.sortable';
+				}
+			}
 
 			$sort[] = array(
 				$orderby_clause => array(
