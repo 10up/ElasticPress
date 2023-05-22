@@ -1298,7 +1298,7 @@ class Post extends Indexable {
 			$meta_field = $args['meta_key'];
 		}
 
-		if ( ! isset( $meta_type ) || ! isset( $meta_field ) && ! empty( $args['meta_query'] ) ) {
+		if ( ( ! isset( $meta_type ) || ! isset( $meta_field ) ) && ! empty( $args['meta_query'] ) ) {
 			$meta_query = new \WP_Meta_Query( $args['meta_query'] );
 			// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
 			$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
