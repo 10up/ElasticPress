@@ -1,4 +1,5 @@
-describe('Facets Feature', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('Facets Feature', { tags: '@slow' }, () => {
 	/**
 	 * Ensure the feature is active, perform a sync, and remove test posts
 	 * before running tests.
@@ -67,6 +68,18 @@ describe('Facets Feature', () => {
 		cy.get('@block').find('.term').should('be.elementsSortedAlphabetically');
 
 		/**
+		 * Verify the display count setting on the editor.
+		 */
+		cy.get('@block')
+			.contains('.term', /\(\d*\)$/)
+			.should('not.exist');
+		cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
+		cy.wait('@blockPreview1');
+		cy.get('@block')
+			.contains('.term', /(^\(\d*\))$/)
+			.should('not.exist');
+
+		/**
 		 * Save widgets and visit the front page.
 		 */
 		cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
@@ -81,9 +94,14 @@ describe('Facets Feature', () => {
 		cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
 		cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
 		cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Categories');
+		cy.get('@firstBlock')
+			.contains('.term', /\(\d*\)$/)
+			.should('not.exist');
 		cy.get('@secondBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
 		cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
-
+		cy.get('@secondBlock')
+			.contains('.term', /(^\(\d*\))$/)
+			.should('not.exist');
 		/**
 		 * Typing in the input should filter the list of terms for that block
 		 * without affecting other blocks.
@@ -332,6 +350,7 @@ describe('Facets Feature', () => {
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 1',
+				true,
 			);
 
 			cy.intercept(
@@ -347,6 +366,18 @@ describe('Facets Feature', () => {
 			cy.get('@block1').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
 
 			/**
+			 * Verify the display count setting on the editor.
+			 */
+			cy.get('@block1')
+				.contains('.term', /\(\d*\)$/)
+				.should('not.exist');
+			cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
+			cy.wait('@blockPreview1');
+			cy.get('@block1')
+				.contains('.term', /(^\(\d*\))$/)
+				.should('not.exist');
+
+			/**
 			 * Insert a second block.
 			 */
 			cy.openBlockInserter();
@@ -359,6 +390,7 @@ describe('Facets Feature', () => {
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 2',
+				true,
 			);
 			cy.get('.block-editor-block-inspector select').select('meta_field_2');
 			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
@@ -391,10 +423,17 @@ describe('Facets Feature', () => {
 			cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
 			cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
 			cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
+			cy.get('@firstBlock')
+				.contains('.term', /(^\(\d*\))$/)
+				.should('not.exist');
+
 			cy.get('@secondBlock')
 				.find('input')
 				.should('have.attr', 'placeholder', 'Search Meta 2');
 			cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
+			cy.get('@secondBlock')
+				.contains('.term', /\(\d*\)$/)
+				.should('not.exist');
 
 			/**
 			 * Typing in the input should filter the list of terms for that block
@@ -484,6 +523,181 @@ describe('Facets Feature', () => {
 			cy.get('.wp-block-elasticpress-facet a[aria-disabled="true"]').should('not.exist');
 			cy.contains('.site-content article h2', 'Facet By Meta Post 20').should('exist');
 			cy.contains('.site-content article h2', 'Facet By Meta Post 1').should('exist');
+		});
+	});
+
+	describe('Facet by Meta Range block', () => {
+		before(() => {
+			/**
+			 * Clean up sample posts.
+			 */
+			cy.wpCli(
+				'post list --meta_key=_facet_by_meta_range_tests --meta_compare=EXISTS --format=ids',
+			).then((wpCliResponse) => {
+				if (wpCliResponse.stdout) {
+					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
+				}
+			});
+
+			/**
+			 * Create sample posts.
+			 */
+			cy.wpCliEval(
+				`
+				for ( $i = 1; $i <= 20; $i++ ) {
+					wp_insert_post(
+						[
+							'post_date_gmt' => "-20 days + {$i} days",
+							'post_title'    => "Facet By Meta Range Post {$i}",
+							'post_status'   => 'publish',
+							'meta_input'    => [
+								'_facet_by_meta_range_tests' => 1,
+								'numeric_meta_field'        => $i,
+								'non_numeric_meta_field'    => "Non-numeric value {$i}",
+							],
+						]
+					);
+				}
+				`,
+			);
+		});
+
+		/**
+		 * Test that the Facet by Meta Range block is functional.
+		 */
+		it('Can insert, configure, and use the Facet by Meta Range block', () => {
+			cy.intercept('**/meta-range/keys*').as('keysApiRequest');
+			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
+			cy.intercept('**/sidebars/*').as('sidebarsRest');
+
+			/**
+			 * Insert a Facet by Meta Range block.
+			 */
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Meta Range - Beta (ElasticPress)');
+			cy.insertBlock('Facet by Meta Range - Beta (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-meta-range').last().as('block');
+
+			/**
+			 * The block should prompt to select a field.
+			 */
+			cy.get('@block').should('contain.text', 'Facet by Meta Range');
+			cy.get('@block').get('select').should('exist');
+
+			/**
+			 * After selecting a field a preview should display.
+			 */
+			cy.wait('@keysApiRequest');
+			cy.get('@block').get('select').select('numeric_meta_field');
+			cy.wait('@previewApiRequest');
+			cy.get('@block').get('.ep-range-facet').should('exist');
+			cy.get('@block').get('.ep-range-facet__values').should('contain.text', '1 — 20');
+
+			/**
+			 * Changes to the prefix and suffix should be reflected in the preview.
+			 */
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="text"]').eq(0).clearThenType('$');
+			cy.get('.block-editor-block-inspector input[type="text"]').eq(1).clearThenType('/day');
+			cy.get('@block')
+				.get('.ep-range-facet__values')
+				.should('contain.text', '$1/day — $20/day');
+
+			/**
+			 * It should be possible to change the field from the block inspector.
+			 */
+			cy.get('.block-editor-block-inspector select').select('non_numeric_meta_field');
+
+			/**
+			 * A non-numeric field should show a warning.
+			 */
+			cy.get('@block').should('contain.text', 'Preview unavailable.');
+
+			/**
+			 * Changing the field back should restore a preview.
+			 */
+			cy.get('.block-editor-block-inspector select').select('numeric_meta_field');
+			cy.get('@block').get('.ep-range-facet').should('exist');
+
+			/**
+			 * Insert a regular Facet by Meta block.
+			 */
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Meta (ElasticPress)');
+			cy.insertBlock('Facet by Meta (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-meta').last().click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector select').select('non_numeric_meta_field');
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@sidebarsRest');
+			cy.visit('/');
+
+			/**
+			 * The block should be rendered on the front end and display the
+			 * prefix and suffix.
+			 */
+			cy.get('.wp-block-elasticpress-facet').as('block');
+			cy.get('@block').get('.ep-range-facet').should('exist');
+			cy.get('@block').get('.ep-range-slider__thumb').as('thumbs').should('exist');
+			cy.get('@block').should('contain.text', '$1/day — $20/day');
+			cy.get('@block').get('.ep-range-facet__action a').should('not.exist');
+
+			/**
+			 * Selecting a range and pressing Filter should filter the results.
+			 */
+			cy.get('@thumbs')
+				.eq(0)
+				.type(
+					'{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}',
+				);
+			cy.get('@thumbs')
+				.eq(1)
+				.type(
+					'{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}',
+				);
+			cy.get('@block').should('contain.text', '$9/day — $12/day');
+			cy.get('@block').get('button').first().click();
+			cy.get('.post').should('have.length', 4);
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=9');
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=12');
+			cy.get('@block').get('.ep-range-facet__action a').should('exist');
+			cy.get('.post').contains('Facet By Meta Range Post 9').should('exist');
+			cy.get('.post').contains('Facet By Meta Range Post 10').should('exist');
+			cy.get('.post').contains('Facet By Meta Range Post 11').should('exist');
+			cy.get('.post').contains('Facet By Meta Range Post 12').should('exist');
+			cy.get('.post').contains('Facet By Meta Range Post 14').should('not.exist');
+			cy.get('.post').contains('Facet By Meta Range Post 20').should('not.exist');
+
+			/**
+			 * After selecting a narrow range of values it should be possible
+			 * to adjust the filter to a wider range.
+			 */
+			cy.get('@thumbs').eq(0).type('{leftArrow}{leftArrow}');
+			cy.get('@thumbs').eq(1).type('{rightArrow}{rightArrow}');
+			cy.get('@block').should('contain.text', '$7/day — $14/day');
+			cy.get('@block').get('button').first().click();
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=7');
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=14');
+			cy.get('.post').contains('Facet By Meta Range Post 14').should('exist');
+
+			/**
+			 * Clicking clear should clear the range parameters but not any
+			 * other facet parameters.
+			 */
+			cy.get('.wp-block-elasticpress-facet .term a').first().click();
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=7');
+			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_max=14');
+			cy.url().should('include', 'ep_meta_filter_non_numeric_meta_field=Non-numeric');
+			cy.get('@block').get('.ep-range-facet__action a').should('exist').click();
+			cy.url().should('not.include', 'ep_meta_range_filter_numeric_meta_field_min=7');
+			cy.url().should('not.include', 'ep_meta_range_filter_numeric_meta_field_max=14');
+			cy.url().should('include', 'ep_meta_filter_non_numeric_meta_field=Non-numeric');
 		});
 	});
 });

@@ -9,8 +9,10 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 
+/**
+ * Test multisite term indexable class
+ */
 class TestTermMultisite extends BaseTestCase {
-
 
 	/**
 	 * Setup each test.
@@ -371,5 +373,92 @@ class TestTermMultisite extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, count( $query->get_terms() ) );
 
+	}
+
+	/**
+	 * Test WP Term Query with the deprecated `sites` param and with value `current`
+	 *
+	 * @since 4.4.1
+	 * @expectedDeprecated maybe_filter_query
+	 */
+	public function testTermQuerySearchWithDeprecatedSitesParamAndValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$this->ep_factory->category->create_many( 4 );
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		// test for only current site.
+		$args  = array(
+			'sites'        => 'current',
+			'taxonomy'     => 'category',
+			'hide_empty'   => false,
+			'ep_integrate' => true,
+		);
+		$query = new \WP_Term_Query( $args );
+		$terms = $query->get_terms();
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 4, count( $terms ) );
+
+		foreach ( $terms as $term ) {
+			$this->assertEquals( $sites[1]['blog_id'], $term->site_id );
+		}
+	}
+
+	/**
+	 * Test WP Term Query with the `site__in` param and with value `current`
+	 *
+	 * @since 4.4.1
+	 */
+	public function testTermQuerySearchWithSiteInParamAndValueCurrent() {
+
+		$sites = ElasticPress\Utils\get_sites();
+
+		if ( ! is_multisite() ) {
+			$this->assertEmpty( $sites );
+			return;
+		}
+
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+
+			$this->ep_factory->category->create_many( 4 );
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+			restore_current_blog();
+		}
+
+		switch_to_blog( $sites[1]['blog_id'] );
+
+		// test for only current site.
+		$args  = array(
+			'site__in'     => 'current',
+			'taxonomy'     => 'category',
+			'hide_empty'   => false,
+			'ep_integrate' => true,
+		);
+		$query = new \WP_Term_Query( $args );
+		$terms = $query->get_terms();
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 4, count( $terms ) );
+
+		foreach ( $terms as $term ) {
+			$this->assertEquals( $sites[1]['blog_id'], $term->site_id );
+		}
 	}
 }

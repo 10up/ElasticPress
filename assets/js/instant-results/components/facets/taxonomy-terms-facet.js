@@ -1,38 +1,36 @@
 /**
  * WordPress dependencies.
  */
-import { useCallback, useContext, useMemo, WPElement } from '@wordpress/element';
+import { useCallback, useMemo, WPElement } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
 import { facets, postTypeLabels } from '../../config';
-import Context from '../../context';
-import Panel from '../common/panel';
 import CheckboxList from '../common/checkbox-list';
+import Panel from '../common/panel';
 import { ActiveContraint } from '../tools/active-constraints';
 
 /**
  * Taxonomy filter component.
  *
- * @param {object}  props               Components props.
+ * @param {object} props Components props.
  * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
- * @param {string}  props.label         Facet label.
- * @param {string}  props.name          Facet name.
- * @param {Array}   props.postTypes     Facet post types.
+ * @param {string} props.label Facet label.
+ * @param {string} props.name Facet name.
+ * @param {Array} props.postTypes Facet post types.
  * @returns {WPElement} Component element.
  */
 export default ({ defaultIsOpen, label, postTypes, name }) => {
 	const {
-		state: {
-			isLoading,
-			args: { [name]: selectedTerms = [] },
-			aggregations: { [name]: { [name]: { buckets = [] } = {} } = {} } = {},
-		},
-		dispatch,
-	} = useContext(Context);
+		aggregations: { [name]: { [name]: { buckets = [] } = {} } = {} } = {},
+		args: { [name]: selectedTerms = [] },
+		isLoading,
+		search,
+	} = useApiSearch();
 
 	/**
 	 * A unique label for the facet. Adds additional context to the label if
@@ -110,7 +108,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	 * @param {string[]} terms Selected terms.
 	 */
 	const onChange = (terms) => {
-		dispatch({ type: 'APPLY_ARGS', payload: { [name]: terms } });
+		search({ [name]: terms });
 	};
 
 	/**
@@ -123,7 +121,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 
 		terms.splice(terms.indexOf(term), 1);
 
-		dispatch({ type: 'APPLY_ARGS', payload: { [name]: terms } });
+		search({ [name]: terms });
 	};
 
 	return (

@@ -199,7 +199,7 @@ class Weighting {
 			'elasticpress',
 			esc_html__( 'ElasticPress Search Fields & Weighting', 'elasticpress' ),
 			esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress-weighting',
 			[ $this, 'render_settings_page' ]
 		);
@@ -339,7 +339,7 @@ class Weighting {
 			return;
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( Utils\get_capability() ) ) {
 			return;
 		}
 
@@ -518,16 +518,6 @@ class Weighting {
 	 * @return boolean true/false depending on any fields enabled == true
 	 */
 	public function post_type_has_fields( $post_type, $args = [] ) {
-		// define keys which are irrelevant for this consideration
-
-		/**
-		 * Filter fields considered in weighting
-		 *
-		 * @hook ep_weighting_ignore_fields_in_consideration
-		 * @param  {array} $fields Current fields
-		 * @return  {array} New fields
-		 */
-		$ignore_keys   = apply_filters( 'ep_weighting_ignore_fields_in_consideration', [ 'terms.ep_custom_result.name' => true ] );
 		$weight_config = $this->get_weighting_configuration();
 
 		/**
@@ -546,7 +536,17 @@ class Weighting {
 			$weights = $weight_config[ $post_type ];
 		}
 
-		$fields = array_diff_key( $weights, $ignore_keys );
+		/**
+		 * Filter fields considered in weighting
+		 *
+		 * Define keys which are irrelevant for this consideration, like `terms.ep_custom_result.name`.
+		 *
+		 * @hook ep_weighting_ignore_fields_in_consideration
+		 * @param  {array} $fields Current fields
+		 * @return  {array} New fields
+		 */
+		$ignore_keys = apply_filters( 'ep_weighting_ignore_fields_in_consideration', [ 'terms.ep_custom_result.name' => true ] );
+		$fields      = array_diff_key( $weights, $ignore_keys );
 
 		$found_enabled = false;
 		foreach ( $fields as $field ) {

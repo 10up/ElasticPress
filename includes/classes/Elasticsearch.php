@@ -627,6 +627,11 @@ class Elasticsearch {
 			// phpcs:enable
 		}
 
+		$request_id = Utils\generate_request_id();
+		if ( ! empty( $request_id ) ) {
+			$headers['X-ElasticPress-Request-ID'] = $request_id;
+		}
+
 		/**
 		 * Filter Elasticsearch request headers
 		 *
@@ -809,10 +814,11 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
+	 * @param  string $return_type Desired return type. Can be either 'bool' or 'raw'
 	 * @since  3.0
-	 * @return boolean
+	 * @return boolean|WP_Error
 	 */
-	public function put_mapping( $index, $mapping ) {
+	public function put_mapping( $index, $mapping, $return_type = 'bool' ) {
 		/**
 		 * Filter Elasticsearch mapping before put mapping
 		 *
@@ -842,15 +848,24 @@ class Elasticsearch {
 		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
-		$response_body = wp_remote_retrieve_body( $request );
+		$response_code = wp_remote_retrieve_response_code( $request );
 
-		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
+		// If WP_Error or not 200, return false or error message depends on attribute.
+		if ( is_wp_error( $request ) || 200 !== $response_code ) {
+			if ( 'bool' === $return_type ) {
+				return false;
+			}
 
-			return true;
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			}
+
+			$response_body   = wp_remote_retrieve_body( $request );
+			$parsed_response = json_decode( $response_body, true );
+			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -1651,13 +1666,14 @@ class Elasticsearch {
 	/**
 	 * Get all index names.
 	 *
-	 * @since 4.4.0
+	 * @param string $status Whether to return active indexables or all registered.
+	 * @since 4.4.0, 4.5.0 Added $status
 	 * @return array
 	 */
-	public function get_index_names() {
+	public function get_index_names( $status = 'active' ) {
 		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
 
-		$all_indexables = Indexables::factory()->get_all();
+		$all_indexables = Indexables::factory()->get_all( null, false, $status );
 
 		$global_indexes     = [];
 		$non_global_indexes = [];
@@ -1690,6 +1706,24 @@ class Elasticsearch {
 		$response = $this->remote_request( $path );
 
 		return (array) json_decode( wp_remote_retrieve_body( $response ), true );
+	}
+
+	/**
+	 * Return a comparison between which indices should be and are present in the ES server.
+	 *
+	 * @since 4.6.0
+	 * @return array Array with `missing_indices` and `present_indices` keys.
+	 */
+	public function get_indices_comparison() {
+		$all_index_names = $this->get_index_names();
+		$cluster_indices = $this->get_cluster_indices();
+
+		$cluster_index_names = wp_list_pluck( $cluster_indices, 'index' );
+
+		return [
+			'missing_indices' => array_diff( $all_index_names, $cluster_index_names ),
+			'present_indices' => array_intersect( $all_index_names, $cluster_index_names ),
+		];
 	}
 
 	/**

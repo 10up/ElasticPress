@@ -55,7 +55,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 		};
 		add_filter( 'ep_facet_meta_filter_name', $change_filter_name );
 		$this->assertEquals( 'ep_meta_filter__', $facet_type->get_filter_name() );
-		remove_filter( 'ep_facet_meta_filter_name', $change_filter_name );
 	}
 
 	/**
@@ -81,7 +80,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 		};
 		add_filter( 'ep_facet_meta_filter_type', $change_filter_type );
 		$this->assertEquals( 'meta_', $facet_type->get_filter_type() );
-		remove_filter( 'ep_facet_meta_filter_type', $change_filter_type );
 	}
 
 	/**
@@ -139,10 +137,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$with_aggs = $facet_type->set_wp_query_aggs( [] );
 		$this->assertSame( 5, $with_aggs['ep_meta_filter_new_meta_key_1']['terms']['size'] );
 		$this->assertSame( 10000, $with_aggs['ep_meta_filter_new_meta_key_2']['terms']['size'] );
-
-		remove_filter( 'ep_facet_meta_size', $change_meta_bucket_size );
-
-		remove_filter( 'ep_facet_meta_fields', $set_facet_meta_field );
 	}
 
 	/**
@@ -206,8 +200,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 
 		$this->assertEqualsCanonicalizing( [ 'foo', 'bar', 'foobar' ], $meta_values_1 );
 		$this->assertEqualsCanonicalizing( [ 'lore', 'ipsu' ], $meta_values_2 );
-
-		remove_filter( 'ep_facet_meta_custom_meta_values', $change_meta_values );
 	}
 
 	/**
@@ -219,6 +211,12 @@ class TestFacetTypeMeta extends BaseTestCase {
 	public function testAddQueryFilters() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
+
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_fields', $allow_field );
 
 		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet', $_GET );
 
@@ -250,6 +248,62 @@ class TestFacetTypeMeta extends BaseTestCase {
 			[
 				'terms' => [
 					'meta.my_custom_field.raw' => [ 'dolor', 'amet' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+	}
+
+	/**
+	 * Test add_query_filters with not allowed parameters
+	 *
+	 * @since 4.5.1
+	 * @group facets
+	 */
+	public function testAddQueryFiltersWithNotAllowedParameters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['meta'];
+
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_fields', $allow_field );
+
+		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet&ep_meta_filter_not_allowed=1', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		add_filter( 'ep_facet_should_check_if_allowed', '__return_false' );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+			[
+				'term' => [
+					'meta.not_allowed.raw' => 1,
 				],
 			],
 		];
@@ -319,7 +373,5 @@ class TestFacetTypeMeta extends BaseTestCase {
 		// test sanitize_text_field runs when filter is applied.
 		$expected_result = sanitize_title( $test_meta );
 		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
-
-		remove_filter( 'ep_facet_default_sanitize_callback', $sanitize_function );
 	}
 }

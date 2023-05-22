@@ -2,6 +2,8 @@
 /**
  * Test the Query Logger
  *
+ * @phpcs:disable WordPress.DateTime.CurrentTimeTimestamp.Requested
+ *
  * @since 4.4.0
  * @package elasticpress
  */
@@ -67,7 +69,7 @@ class TestQueryLogger extends BaseTestCase {
 		$query_logger->expects( $this->exactly( 1 ) )->method( 'update_logs' )->willReturn( '{somejson}' );
 
 		$query_logger->log_query( [ 'query' ], 'type' );
-		$this->assertEquals( 0, did_action( 'ep_query_logger_logged_query' )  );
+		$this->assertEquals( 0, did_action( 'ep_query_logger_logged_query' ) );
 
 		add_filter(
 			'ep_query_logger_queries_to_keep',
@@ -212,7 +214,93 @@ class TestQueryLogger extends BaseTestCase {
 	 * @group queryLogger
 	 */
 	public function testMaybeAddNotice() {
-		$this->markTestIncomplete();
+		/**
+		 * Initial setup
+		 */
+		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		grant_super_admin( $admin_id );
+		wp_set_current_user( $admin_id );
+
+		$query_logger = new QueryLogger();
+
+		$add_fake_log = function() {
+			return [ 'fake-log' ];
+		};
+		add_filter( 'ep_query_logger_logs', $add_fake_log );
+
+		\ElasticPress\Screen::factory()->set_current_screen( 'features' );
+
+		/**
+		 * Check messages when no indices are found
+		 */
+		\ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+		$this->assertStringStartsWith( 'Your site&#039;s content is not synced with your', $notices['has_failed_queries']['html'] );
+		if ( \ElasticPress\Utils\is_epio() ) {
+			$this->assertStringContainsString( 'ElasticPress account', $notices['has_failed_queries']['html'] );
+		} else {
+			$this->assertStringContainsString( 'Elasticsearch server', $notices['has_failed_queries']['html'] );
+		}
+
+		/**
+		 * Generic check (we have at least one index present)
+		 */
+		\ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+		$this->assertStringStartsWith( 'Some ElasticPress queries failed in the last 24 hours.', $notices['has_failed_queries']['html'] );
+
+		/**
+		 * No message when no failed queries
+		 */
+		remove_filter( 'ep_query_logger_logs', $add_fake_log );
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertEmpty( $notices );
+		add_filter( 'ep_query_logger_logs', $add_fake_log );
+
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+
+		/**
+		 * No messages when dismissed
+		 */
+		add_filter( 'pre_site_option_ep_hide_has_failed_queries_notice', '__return_true' );
+		add_filter( 'pre_option_ep_hide_has_failed_queries_notice', '__return_true' );
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertEmpty( $notices );
+		remove_filter( 'pre_site_option_ep_hide_has_failed_queries_notice', '__return_true' );
+		remove_filter( 'pre_option_ep_hide_has_failed_queries_notice', '__return_true' );
+
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+
+		/**
+		 * No message when on status-report page
+		 */
+		\ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertEmpty( $notices );
+		\ElasticPress\Screen::factory()->set_current_screen( 'features' );
+
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+
+		/**
+		 * No message for users without the capability
+		 */
+		$author_id = $this->factory->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $author_id );
+
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertEmpty( $notices );
+
+		wp_set_current_user( $admin_id );
+		$notices = $query_logger->maybe_add_notice( [] );
+		$this->assertArrayHasKey( 'has_failed_queries', $notices );
+
+		// Reset current screen
+		\ElasticPress\Screen::factory()->set_current_screen( null );
 	}
 
 	/**
@@ -289,7 +377,7 @@ class TestQueryLogger extends BaseTestCase {
 
 		/**
 		 * Test the `ep_query_logger_should_log_query` filter
-		 * 
+		 *
 		 * Even though the `type-should-not-log` type should NOT log, this will return true
 		 */
 		add_filter(
@@ -318,6 +406,8 @@ class TestQueryLogger extends BaseTestCase {
 	/**
 	 * Test the maybe_log_delete_index method
 	 *
+	 * @param bool $expected    Expected maybe_log_delete_index return
+	 * @param int  $status_code HTTP Status Code
 	 * @dataProvider maybeDeleteIndexDataProvider
 	 * @group queryLogger
 	 */
@@ -357,6 +447,8 @@ class TestQueryLogger extends BaseTestCase {
 	/**
 	 * Test the is_query_error method with a request status code
 	 *
+	 * @param bool $expected    Expected maybe_log_delete_index return
+	 * @param int  $status_code HTTP Status Code
 	 * @dataProvider isQueryErrorWithStatusCodeDataProvider
 	 * @group queryLogger
 	 */

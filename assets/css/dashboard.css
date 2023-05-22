@@ -370,10 +370,6 @@ h2.ep-list-features {
 		margin: 0.25em 0 0.5em;
 	}
 
-	& div {
-		padding-top: 5px;
-	}
-
 	& > label,
 	& .field-name {
 		box-sizing: border-box;
@@ -386,6 +382,7 @@ h2.ep-list-features {
 	& .input-wrap {
 		display: block;
 		float: right;
+		padding-top: 5px;
 		width: 75%;
 	}
 
@@ -413,7 +410,7 @@ h2.ep-list-features {
 	}
 
 	& .components-form-token-field__input-container {
-		padding: 2px 4px;
+		border-color: #8c8f94;
 	}
 }
 
@@ -1185,4 +1182,9 @@ p.ep-totals-title {
 p.ep-totals-data {
 	font-size: 3em;
 	margin-top: 22px;
+}
+
+.feature-epio-logo {
+	margin-left: 5px;
+	vertical-align: middle;
 }

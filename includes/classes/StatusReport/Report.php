@@ -39,4 +39,14 @@ abstract class Report {
 	public function get_actions() : array {
 		return [];
 	}
+
+	/**
+	 * Return the report messages.
+	 *
+	 * @return array
+	 * @since 4.5.0
+	 */
+	public function get_messages() : array {
+		return [];
+	}
 }

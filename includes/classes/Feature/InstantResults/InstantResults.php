@@ -67,7 +67,9 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
+		$this->title = $this->get_title();
+
+		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
 
 		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
 
@@ -84,6 +86,7 @@ class InstantResults extends Feature {
 			'facets'        => 'post_type,category,post_tag',
 			'match_type'    => 'all',
 			'term_count'    => '1',
+			'per_page'      => get_option( 'posts_per_page', 6 ),
 		];
 
 		$settings = $this->get_settings() ? $this->get_settings() : array();
@@ -314,6 +317,7 @@ class InstantResults extends Feature {
 				'paramPrefix'    => 'ep-',
 				'postTypeLabels' => $this->get_post_type_labels(),
 				'termCount'      => $this->settings['term_count'],
+				'requestIdBase'  => Utils\get_request_id_base(),
 			)
 		);
 	}
@@ -831,9 +835,13 @@ class InstantResults extends Feature {
 				$slug
 			);
 
+			$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+			$post_types = array_intersect( $post_types, $taxonomy->object_type );
+			$post_types = array_values( $post_types );
+
 			$facets[ $name ] = array(
 				'type'       => 'taxonomy',
-				'post_types' => $taxonomy->object_type,
+				'post_types' => $post_types,
 				'labels'     => array(
 					'admin'    => $admin_label,
 					'frontend' => $labels->singular_name,
@@ -943,7 +951,16 @@ class InstantResults extends Feature {
 	 * @return array Search args schema.
 	 */
 	public function get_args_schema() {
-		$args = array(
+		/**
+		 * The number of resutls per page for Instant Results.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_instant_results_per_page
+		 * @param {int} $per_page Results per page.
+		 */
+		$per_page = apply_filters( 'ep_instant_results_per_page', $this->settings['per_page'] );
+
+		$args_schema = array(
 			'highlight' => array(
 				'type'          => 'string',
 				'default'       => $this->settings['highlight_tag'],
@@ -965,7 +982,7 @@ class InstantResults extends Feature {
 			),
 			'per_page'  => array(
 				'type'    => 'number',
-				'default' => 6,
+				'default' => absint( $per_page ),
 			),
 			'post_type' => array(
 				'type' => 'strings',
@@ -976,7 +993,7 @@ class InstantResults extends Feature {
 			),
 			'relation'  => array(
 				'type'          => 'string',
-				'default'       => 'and',
+				'default'       => 'all' === $this->settings['match_type'] ? 'and' : 'or',
 				'allowedValues' => [ 'and', 'or' ],
 			),
 		);
@@ -986,10 +1003,38 @@ class InstantResults extends Feature {
 
 		foreach ( $selected_facets as $key ) {
 			if ( isset( $available_facets[ $key ] ) ) {
-				$args = array_merge( $args, $available_facets[ $key ]['args'] );
+				$args_schema = array_merge( $args_schema, $available_facets[ $key ]['args'] );
 			}
 		}
-		return $args;
+
+		/**
+		 * The schema defining the API arguments used by Instant Results.
+		 *
+		 * The argument schema is used to configure the APISearchProvider
+		 * component used by Instant Results, and should conform to what is
+		 * supported by the API being used. The Instant Results UI expects
+		 * the default list of arguments to be available, so caution is advised
+		 * when adding or removing arguments.
+		 *
+		 * @since 4.5.1
+		 * @hook ep_instant_results_args_schema
+		 * @param {array} $args_schema Results per page.
+		 */
+		return apply_filters( 'ep_instant_results_args_schema', $args_schema );
 	}
 
+	/**
+	 * Returns the title.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_title() : string {
+		if ( ! Utils\is_epio() ) {
+			return esc_html__( 'Instant Results', 'elasticpress' );
+		}
+
+		/* translators: 1. elasticpress.io logo;  */
+		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
+	}
 }

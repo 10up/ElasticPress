@@ -32,23 +32,12 @@ class LastSync extends Report {
 	 * @return array
 	 */
 	public function get_groups() : array {
-		$title  = __( 'Last Sync', 'elasticpress' );
 		$fields = [];
 
 		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
 
 		if ( empty( $sync_info ) ) {
-			$fields['not_available'] = [
-				'label' => esc_html__( 'Last Sync', 'elasticpress' ),
-				'value' => esc_html__( 'Last sync info not available.', 'elasticpress' ),
-			];
-
-			return [
-				[
-					'title'  => $title,
-					'fields' => $fields,
-				],
-			];
+			return [];
 		}
 
 		if ( ! empty( $sync_info['end_time_gmt'] ) ) {
@@ -82,6 +71,10 @@ class LastSync extends Report {
 			$sync_info['method'] = $methods[ $sync_info['method'] ] ?? $sync_info['method'];
 		}
 
+		if ( isset( $sync_info['is_full_sync'] ) ) {
+			$sync_info['is_full_sync'] = $sync_info['is_full_sync'] ? esc_html__( 'Yes', 'elasticpress' ) : esc_html__( 'No', 'elasticpress' );
+		}
+
 		$labels = [
 			'total'           => esc_html__( 'Total', 'elasticpress' ),
 			'synced'          => esc_html__( 'Synced', 'elasticpress' ),
@@ -89,6 +82,7 @@ class LastSync extends Report {
 			'failed'          => esc_html__( 'Failed', 'elasticpress' ),
 			'errors'          => esc_html__( 'Errors', 'elasticpress' ),
 			'method'          => esc_html__( 'Method', 'elasticpress' ),
+			'is_full_sync'    => esc_html__( 'Full Sync', 'elasticpress' ),
 			'end_date_time'   => esc_html__( 'End Date Time', 'elasticpress' ),
 			'start_date_time' => esc_html__( 'Start Date Time', 'elasticpress' ),
 			'total_time'      => esc_html__( 'Total Time', 'elasticpress' ),
@@ -101,7 +95,7 @@ class LastSync extends Report {
 		 * the usual `array_replace(array_flip())` strategy to reorder an array adds a wrong numeric value to the
 		 * non-existent row.
 		 */
-		$preferred_order   = [ 'method', 'start_date_time', 'end_date_time', 'total_time', 'total', 'synced', 'skipped', 'failed', 'errors' ];
+		$preferred_order   = [ 'method', 'is_full_sync', 'start_date_time', 'end_date_time', 'total_time', 'total', 'synced', 'skipped', 'failed', 'errors' ];
 		$ordered_sync_info = [];
 		foreach ( $preferred_order as $field ) {
 			if ( array_key_exists( $field, $sync_info ) ) {
@@ -116,6 +110,14 @@ class LastSync extends Report {
 				'label' => $labels[ $label ] ?? $label,
 				'value' => $value,
 			];
+		}
+		$title = $sync_info['start_date_time'];
+		if ( false !== \ElasticPress\Utils\get_indexing_status() ) {
+			/* translators: last sync title */
+			$title = sprintf( __( '%s (In Progress)', 'elasticpress' ), $title );
+		}
+		if ( 'status-report' === \ElasticPress\Screen::factory()->get_current_screen() ) {
+			unset( $fields['start_date_time'] );
 		}
 
 		return [
