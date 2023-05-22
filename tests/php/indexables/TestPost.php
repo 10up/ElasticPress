@@ -8637,4 +8637,33 @@ class TestPost extends BaseTestCase {
 
 		$this->assertSame( $expected_mapping, $changed_mapping );
 	}
+
+	/**
+	 * Test negative `menu_order` values.
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 * @see https://github.com/10up/ElasticPress/issues/3440#issuecomment-1545446291
+	 */
+	public function testNegativeMenuOrder() {
+		$post_negative = $this->ep_factory->post->create( array( 'menu_order' => -2 ) );
+		$post_positive = $this->ep_factory->post->create( array( 'menu_order' => 1 ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			array(
+				'ep_integrate' => true,
+				'fields'       => 'ids',
+				'post_type'    => 'post',
+				'order'        => 'ASC',
+				'orderby'      => 'menu_order',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, count( $query->posts ) );
+		$this->assertEquals( $post_negative, $query->posts[0] );
+		$this->assertEquals( $post_positive, $query->posts[1] );
+	}
 }
