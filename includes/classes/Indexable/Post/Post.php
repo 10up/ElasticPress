@@ -453,7 +453,7 @@ class Post extends Indexable {
 		$comment_count     = absint( $post->comment_count );
 		$comment_status    = $post->comment_status;
 		$ping_status       = $post->ping_status;
-		$menu_order        = absint( $post->menu_order );
+		$menu_order        = (int) $post->menu_order;
 
 		/**
 		 * Filter to ignore invalid dates
