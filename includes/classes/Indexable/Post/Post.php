@@ -1307,7 +1307,7 @@ class Post extends Indexable {
 
 			if ( ! empty( $clauses[ $orderby_clause ] ) ) {
 				$meta_field       = $clauses[ $orderby_clause ]['key'];
-				$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] );
+				$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] ?? $clauses[ $orderby_clause ]['cast'] );
 			} else {
 				$primary_clause   = reset( $clauses );
 				$meta_field       = $primary_clause['key'];
