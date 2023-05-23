@@ -230,7 +230,7 @@ class TestSearch extends BaseTestCase {
 	/**
 	 * Test if decaying is disabled on products.
 	 *
-	 * @since 5.0
+	 * @since 4.6.0
 	 * @group search
 	 */
 	public function testDecayingDisabledOnProducts() {
@@ -240,12 +240,20 @@ class TestSearch extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
+		// Test decaying for product query when disabled_products is enabled
 		ElasticPress\Features::factory()->update_feature(
 			'search',
 			[
 				'active'           => true,
 				'decaying_enabled' => 'disabled_products',
 			]
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title'   => 'test post',
+				'post_content' => 'test post content',
+			)
 		);
 
 		$this->ep_factory->product->create(
@@ -285,7 +293,38 @@ class TestSearch extends BaseTestCase {
 			)
 		);
 
-		// Test Decaying for any query with product in it
+		// Test decaying for any query with products in it when disabled_products is enabled
+
+		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 20 );
+
+		$query = new \WP_Query(
+			[
+				's' => 'test',
+			]
+		);
+
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+		$this->assertTrue(
+			isset(
+				$this->fired_actions['ep_formatted_args']['query'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertTrue(
+			! isset(
+				$this->fired_actions['ep_formatted_args']['query']['bool'],
+				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
+			)
+		);
+
+		// Test Decaying for any query with product in it when disabled_products_all is enabled
 		ElasticPress\Features::factory()->update_feature(
 			'search',
 			[
@@ -302,6 +341,33 @@ class TestSearch extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
+		$this->assertTrue(
+			! isset(
+				$this->fired_actions['ep_formatted_args']['query']['function_score'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertTrue(
+			isset(
+				$this->fired_actions['ep_formatted_args']['query']['bool'],
+				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
+			)
+		);
+
+		// Test Decaying for product query when disabled_products_all is enabled
+		$query = new \WP_Query(
+			[
+				's'         => 'test',
+				'post_type' => 'product',
+			]
+		);
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
 		$this->assertTrue(
 			! isset(

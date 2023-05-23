@@ -888,7 +888,9 @@ class WooCommerce extends Feature {
 		}
 
 		// Add WooCommerce Settings for Weight results by date
-		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ], 10, 1 );
+		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
+		// Modify decaying based on WooCommerce Settings
+		add_filter( 'ep_decaying_enabled', [ $this, 'ep_decaying_enabled_woocommerce' ], 10, 3 );
 	}
 
 	/**
@@ -1372,7 +1374,7 @@ class WooCommerce extends Feature {
 	/**
 	 * Add weight results settings for WooCommerce settings
 	 *
-	 * @since 5.0.0
+	 * @since 4.6.0
 	 * @param {array} $settings Current settings.
 	 */
 	public function add_weight_settings_search( $settings ) {
@@ -1380,5 +1382,21 @@ class WooCommerce extends Feature {
 		<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_products' ); ?> value="disabled_products"><?php esc_html_e( 'Disabled for products', 'elasticpress' ); ?></label><br>
 		<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_products_all' ); ?> value="disabled_products_all"><?php esc_html_e( 'Disable Weighting in any query that includes products', 'elasticpress' ); ?></label>
 		<?php
+	}
+
+	/**
+	 * Enable/Disable Decaying based on WooCommerce Decay settings.
+	 *
+	 * @since 4.6.0
+	 * @param bool         $decaying Decaying
+	 * @param array        $settings  Settings
+	 * @param string|array $post_type Post type
+	 * @return bool
+	 */
+	public function ep_decaying_enabled_woocommerce( $decaying, $settings, $post_type ) {
+		if ( ( is_array( $post_type ) && in_array( 'product', $post_type, true ) && 'disabled_products_all' === $settings['decaying_enabled'] ) || ( 'product' === $post_type && in_array( $settings['decaying_enabled'], [ 'disabled_products', 'disabled_products_all' ], true ) ) ) {
+			return false;
+		}
+		return $decaying;
 	}
 }

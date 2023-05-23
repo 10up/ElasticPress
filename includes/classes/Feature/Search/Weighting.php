@@ -8,9 +8,9 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
-use ElasticPress\Feature as Feature;
+use ElasticPress\Feature;
 use ElasticPress\Indexable\Post\Post;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Controls search weighting and search fields dashboard
@@ -246,7 +246,7 @@ class Weighting {
 				$current_values = $this->get_weighting_configuration();
 
 				foreach ( $post_types as $post_type ) :
-					if ( 'product' === $post_type && ! $search->is_decaying_enabled( $post_type ) ) {
+					if ( ! $search->is_decaying_enabled( $post_type ) ) {
 						continue;
 					}
 					$fields           = $this->get_weightable_fields_for_post_type( $post_type );
@@ -572,12 +572,9 @@ class Weighting {
 	 * @return array Formatted ES args
 	 */
 	public function do_weighting( $formatted_args, $args ) {
-		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
 
-		/** Features Class @var Features $features */
 		$features = Features::factory();
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
+		$search   = $features->get_registered_feature( 'search' );
 		if ( ! $search->is_decaying_enabled( $args['post_type'] ?? [] ) ) {
 			return $formatted_args;
 		}

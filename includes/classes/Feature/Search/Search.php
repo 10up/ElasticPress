@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Feature\Search;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Feature;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 /**
  * Search feature class
@@ -442,11 +442,19 @@ class Search extends Feature {
 			]
 		);
 		$decaying = (bool) $settings['decaying_enabled'];
-		// Check decaying based on WooCommerce decay settings
-		if ( ( is_array( $post_type ) && in_array( 'product', $post_type, true ) && 'disabled_products_all' === $settings['decaying_enabled'] ) || ( 'product' === $post_type && in_array( $settings['decaying_enabled'], [ 'disabled_products', 'disabled_products_all' ], true ) ) ) {
-			$decaying = false;
-		}
-		return $decaying;
+
+		/**
+		 * Filter to modify decaying
+		 *
+		 * @hook ep_decaying_enabled
+		 * @param  {bool} $decaying Decaying
+		 * @param  {array} $settings Settings
+		 * @param  {string|array} $post_type Post type
+		 * @return {bool} Decaying
+		 * @since  4.6.0
+		 */
+		return apply_filters( 'ep_decaying_enabled', $decaying, $settings, $post_type );
+
 	}
 
 	/**
@@ -642,7 +650,7 @@ class Search extends Feature {
 				/**
 				 * Fires after the default Weight results by date settings
 				 *
-				 * @since  5.0.0
+				 * @since  4.6.0
 				 * @hook ep_weight_settings_after_search
 				 * @param  {array} $settings settings array
 				 */
