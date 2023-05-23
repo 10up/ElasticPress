@@ -573,12 +573,6 @@ class Weighting {
 	 */
 	public function do_weighting( $formatted_args, $args ) {
 
-		$features = Features::factory();
-		$search   = $features->get_registered_feature( 'search' );
-		if ( ! $search->is_decaying_enabled( $args['post_type'] ?? [] ) ) {
-			return $formatted_args;
-		}
-
 		/**
 		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
 		 * overridden by some custom code
