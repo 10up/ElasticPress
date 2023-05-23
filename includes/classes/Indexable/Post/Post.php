@@ -1250,16 +1250,11 @@ class Post extends Indexable {
 				$order          = 'asc';
 			}
 
-			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
-				if ( empty( $args['meta_key'] ) ) {
-					continue;
-				} else {
-					$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
-					$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
-				}
+			if ( ! empty( $from_to[ $orderby_clause ] ) ) {
+				$orderby_clause = $from_to[ $orderby_clause ];
+			} else {
+				$orderby_clause = $this->parse_orderby_meta_fields( $orderby_clause, $args );
 			}
-
-			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
 
 			$sort[] = array(
 				$orderby_clause => array(
@@ -1269,6 +1264,66 @@ class Post extends Indexable {
 		}
 
 		return $sort;
+	}
+
+	/**
+	 * Try to parse orderby meta fields
+	 *
+	 * @since 4.6.0
+	 * @param string $orderby_clause Current orderby value
+	 * @param array  $args           Query args
+	 * @return string New orderby value
+	 */
+	protected function parse_orderby_meta_fields( $orderby_clause, $args ) {
+		global $wpdb;
+
+		$from_to_metatypes = [
+			'num'      => 'long',
+			'numeric'  => 'long',
+			'binary'   => 'value.sortable',
+			'char'     => 'value.sortable',
+			'date'     => 'date',
+			'datetime' => 'datetime',
+			'decimal'  => 'double',
+			'signed'   => 'long',
+			'time'     => 'time',
+			'unsigned' => 'long',
+		];
+
+		if ( preg_match( '/^meta_value_?(.*)/', $orderby_clause, $match_type ) ) {
+			$meta_type = $from_to_metatypes[ strtolower( $match_type[1] ) ] ?? 'value.sortable';
+		}
+
+		if ( ! empty( $args['meta_key'] ) ) {
+			$meta_field = $args['meta_key'];
+		}
+
+		if ( ( ! isset( $meta_type ) || ! isset( $meta_field ) ) && ! empty( $args['meta_query'] ) ) {
+			$meta_query = new \WP_Meta_Query( $args['meta_query'] );
+			// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
+			$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+			$clauses = $meta_query->get_clauses();
+
+			if ( ! empty( $clauses[ $orderby_clause ] ) ) {
+				$meta_field       = $clauses[ $orderby_clause ]['key'];
+				$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] ?? $clauses[ $orderby_clause ]['cast'] );
+			} else {
+				$primary_clause   = reset( $clauses );
+				$meta_field       = $primary_clause['key'];
+				$clause_meta_type = strtolower( $primary_clause['type'] ?? $primary_clause['cast'] );
+			}
+
+			if ( ! isset( $meta_type ) ) {
+				$meta_type = $from_to_metatypes[ $clause_meta_type ] ?? 'value.sortable';
+			}
+		}
+
+		if ( isset( $meta_type ) && isset( $meta_field ) ) {
+			$orderby_clause = "meta.{$meta_field}.{$meta_type}";
+		}
+
+		return $orderby_clause;
 	}
 
 	/**
