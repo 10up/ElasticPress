@@ -56,6 +56,7 @@ class Facets extends Feature {
 		if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
 			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
 			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
+			$types['post-type']  = __NAMESPACE__ . '\Types\PostType\FacetType';
 		}
 
 		/**
