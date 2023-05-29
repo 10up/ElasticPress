@@ -103,7 +103,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 */
 	public function add_query_filters( $filters ) {
 		if ( ! empty( $filters['terms']['post_type.raw'] ) ) {
-			return;
+			return $filters;
 		}
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
@@ -111,12 +111,12 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$post_types = $this->get_facetable_post_types();
 
 		if ( empty( $post_types ) ) {
-			return;
+			return $filters;
 		}
 
 		$selected_filters = $feature->get_selected();
 		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
-			return;
+			return $filters;
 		}
 
 		foreach ( $selected_filters['ep_post_type']['post_type']['terms'] as $post_type => $value ) {
