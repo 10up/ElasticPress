@@ -47,6 +47,9 @@ class BaseTestCase extends WP_UnitTestCase {
 	public function set_up() {
 
 		$this->setup_factory();
+
+		\ElasticPress\setup_roles();
+
 		parent::set_up();
 	}
 

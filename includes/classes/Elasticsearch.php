@@ -1710,6 +1710,24 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Return a comparison between which indices should be and are present in the ES server.
+	 *
+	 * @since 4.6.0
+	 * @return array Array with `missing_indices` and `present_indices` keys.
+	 */
+	public function get_indices_comparison() {
+		$all_index_names = $this->get_index_names();
+		$cluster_indices = $this->get_cluster_indices();
+
+		$cluster_index_names = wp_list_pluck( $cluster_indices, 'index' );
+
+		return [
+			'missing_indices' => array_diff( $all_index_names, $cluster_index_names ),
+			'present_indices' => array_intersect( $all_index_names, $cluster_index_names ),
+		];
+	}
+
+	/**
 	 * Given an index return its total fields limit
 	 *
 	 * @since 4.4.0
