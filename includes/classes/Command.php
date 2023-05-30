@@ -290,7 +290,7 @@ class Command extends WP_CLI_Command {
 							sprintf(
 								/* translators: Error message */
 								esc_html__( 'Mapping failed: %s', 'elasticpress' ),
-								$result->get_error_message()
+								Utils\get_elasticsearch_error_reason( $result->get_error_message() )
 							)
 						);
 					}
@@ -330,7 +330,7 @@ class Command extends WP_CLI_Command {
 						sprintf(
 							/* translators: Error message */
 							esc_html__( 'Mapping failed: %s', 'elasticpress' ),
-							$result->get_error_message()
+							Utils\get_elasticsearch_error_reason( $result->get_error_message() )
 						)
 					);
 				}
@@ -371,7 +371,7 @@ class Command extends WP_CLI_Command {
 					sprintf(
 						/* translators: Error message */
 						esc_html__( 'Mapping failed: %s', 'elasticpress' ),
-						$result->get_error_message()
+						Utils\get_elasticsearch_error_reason( $result->get_error_message() )
 					)
 				);
 			}
