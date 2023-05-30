@@ -130,19 +130,20 @@ class DidYouMean extends Feature {
 
 		$html = sprintf( '<span class="ep-suggested-spell-term">%s: <a href="%s">%s</a>?</span>', esc_html__( 'Did you mean', 'elasticpress' ), get_search_link( $term ), $term );
 
-		$html .= $this->get_alternatives( $query );
+		$html .= $this->get_alternatives_terms( $query );
+		$terms = $query->suggested_terms['options'] ?? [];
 
 		/**
-		 * Filter the Did You Mean HTML output.
+		 * Filter the did you mean suggested term HTML.
 		 *
 		 * @since 4.6.0
-		 * @hook ep_did_you_mean_suggestion_html
+		 * @hook ep_did_you_mean_suggested_term_html
 		 * @param {string}   $html The HTML output.
+		 * @param {array}    $terms All suggested terms.
 		 * @param {WP_Query} $query The WP_Query object.
-		 * @param {string}   $term The suggested term.
 		 * @return {string}  New $html value
 		 */
-		return apply_filters( 'ep_did_you_mean_suggestion_html', $html, $query, $term );
+		return apply_filters( 'ep_did_you_mean_suggestion_html', $html, $terms, $query );
 	}
 
 	/**
@@ -241,9 +242,9 @@ class DidYouMean extends Feature {
 	 * Returns the list of other suggestions
 	 *
 	 * @param WP_Query $query WP_Query object
-	 * @return string|boolean
+	 * @return string|false
 	 */
-	protected function get_alternatives( $query ) {
+	protected function get_alternatives_terms( $query ) {
 		global $wp_query;
 
 		if ( ! $query && $wp_query->is_main_query() && $wp_query->is_search() ) {
@@ -258,9 +259,10 @@ class DidYouMean extends Feature {
 
 		// If there are posts, we don't need to show the list of suggestions.
 		if ( 'list' !== $settings['search_behavior'] || $query->found_posts ) {
-			return '';
+			return false;
 		}
 
+		$options = $query->suggested_terms['options'] ?? [];
 		array_shift( $options );
 
 		if ( empty( $options ) ) {
@@ -277,7 +279,6 @@ class DidYouMean extends Feature {
 		$html .= '</div>';
 
 		return $html;
-
 	}
 
 	/**
