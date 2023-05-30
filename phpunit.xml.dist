@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <phpunit
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
   bootstrap="tests/php/bootstrap.php"
   backupGlobals="false"
   colors="true"
@@ -27,4 +27,9 @@
       <directory prefix="Test" suffix=".php">./tests/php/</directory>
     </testsuite>
   </testsuites>
+  <groups>
+    <exclude>
+      <group>skip-on-multi-site</group>
+    </exclude>
+  </groups>
 </phpunit>

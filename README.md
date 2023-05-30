@@ -4,7 +4,7 @@
 
 [![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Tests Status](https://github.com/10up/ElasticPress/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/wordpress/plugin/tested/elasticpress?label=WordPress) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
 
-* Check out the [ElasticPress Docs](http://10up.github.io/ElasticPress/)
+* Check out the [ElasticPress Docs](https://10up.github.io/ElasticPress/)
 
 **Please note:** as of ElasticPress 4.0.0 `trunk` is the stable branch, built assets were removed from the `develop` branch, a ZIP with the plugin and its built assets are available on the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and will include a build script should you want to build assets from a branch.  As such, please ensure you have updated any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
 
@@ -14,9 +14,9 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ## Documentation
 
-ElasticPress has an in depth documentation site. [Visit the docs ☞](http://10up.github.io/ElasticPress/)
-
-ElasticPress FAQs and tutorials can be found on our support site. [Visit the support site ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Docs website ☞](https://10up.github.io/ElasticPress/)
+* [Support site with FAQs and tutorials ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Security Policy ☞](https://github.com/10up/ElasticPress/blob/develop/SECURITY.md)
 
 ## Requirements and Compatibility
 
@@ -25,7 +25,7 @@ ElasticPress FAQs and tutorials can be found on our support site. [Visit the sup
 ElasticPress requires these software with the following versions:
 
 * [Elasticsearch](https://www.elastic.co) 5.2+ **ElasticSearch max version supported: 7.10**
-* [WordPress](http://wordpress.org) 5.6+
+* [WordPress](https://wordpress.org) 5.6+
 * [PHP](https://php.net/) 7.0+
 
 ### Compatibility
@@ -73,5 +73,5 @@ Please read [CODE_OF_CONDUCT.md](https://github.com/10up/elasticpress/blob/devel
 ## Like what you see?
 
 <p align="center">
-<a href="http://10up.com/contact/"><img src="https://10up.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
+<a href="https://10up.com/contact/"><img src="https://10up.com/uploads/2016/10/10up-Github-Banner.png" width="850"></a>
 </p>

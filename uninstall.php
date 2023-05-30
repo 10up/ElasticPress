@@ -8,6 +8,12 @@
  * @since   1.7
  */
 
+use ElasticPress\Utils;
+
+defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/includes/utils.php';
+
 /**
  * Class EP_Uninstaller
  */
@@ -47,6 +53,7 @@ class EP_Uninstaller {
 		'ep_hide_auto_activate_sync_notice',
 		'ep_hide_using_autosuggest_defaults_notice',
 		'ep_hide_yellow_health_notice',
+		'ep_hide_users_migration_notice',
 	];
 
 	/**
@@ -55,13 +62,15 @@ class EP_Uninstaller {
 	 * @var array
 	 */
 	protected $transients = [
+		'ep_autosuggest_query_request_cache',
+		'ep_elasticpress_io_messages',
+		'ep_es_info',
 		'ep_es_info_response_code',
 		'ep_es_info_response_error',
-		'logging_ep_es_info',
-		'ep_wpcli_sync_interrupted',
+		'ep_meta_field_keys',
 		'ep_wpcli_sync',
-		'ep_es_info',
-		'ep_autosuggest_query_request_cache',
+		'ep_wpcli_sync_interrupted',
+		'logging_ep_es_info',
 	];
 
 	/**
@@ -70,7 +79,6 @@ class EP_Uninstaller {
 	 * Perform some checks to make sure plugin can/should be uninstalled
 	 *
 	 * @since 1.7
-	 * @return EP_Uninstaller
 	 */
 	public function __construct() {
 
@@ -94,6 +102,7 @@ class EP_Uninstaller {
 
 		// Uninstall ElasticPress.
 		$this->clean_options_and_transients();
+		$this->remove_elasticpress_capability();
 	}
 
 	/**
@@ -130,6 +139,21 @@ class EP_Uninstaller {
 	}
 
 	/**
+	 * Delete all transients of the total fields limit.
+	 */
+	protected function delete_total_fields_limit_transients() {
+		global $wpdb;
+
+		$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_total_fields_limit_%'" );
+
+		foreach ( $related_posts_transients as $related_posts_transient ) {
+			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
+			delete_site_transient( $related_posts_transient );
+			delete_transient( $related_posts_transient );
+		}
+	}
+
+	/**
 	 * Cleanup options and transients
 	 *
 	 * Deletes ElasticPress options and transients.
@@ -153,6 +177,7 @@ class EP_Uninstaller {
 				$this->delete_options();
 				$this->delete_transients();
 				$this->delete_related_posts_transients();
+				$this->delete_total_fields_limit_transients();
 
 				restore_current_blog();
 			}
@@ -160,7 +185,18 @@ class EP_Uninstaller {
 			$this->delete_options();
 			$this->delete_transients();
 			$this->delete_related_posts_transients();
+			$this->delete_total_fields_limit_transients();
 		}
+	}
+
+	/**
+	 * Remove the ElasticPress' capability
+	 *
+	 * @since 4.5.0
+	 */
+	protected function remove_elasticpress_capability() {
+		$role = get_role( 'administrator' );
+		$role->remove_cap( Utils\get_capability() );
 	}
 
 	/**

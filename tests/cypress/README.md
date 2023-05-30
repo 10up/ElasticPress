@@ -21,5 +21,32 @@ ElasticPress e2e tests use [Cypress](https://www.cypress.io/), [wp-env](https://
 ### Reset
 
 * Destroy the WP env: `npm run env destroy`
-* Restart WP env and redo initial setup: `npm run env start && npm run cypress:setup`
+* Restart WP env and redo initial setup: `npm run env:start && npm run cypress:setup`
 * Open Cypress: `npm run cypress:open`
+
+## Troubleshooting
+
+### WSL
+
+#### `Error: Could not connect to Elasticsearch`
+
+Run `./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_HOST http://host.docker.internal:8890/"`
+
+#### `Error while loading shared libraries: ...`
+
+Run `sudo apt update && sudo apt install libatk1.0-0 libatk-bridge2.0-0 libcups2 libgtk-3-0 libgbm-dev libasound2 xvfb`
+
+#### `Command was killed with SIGILL (Invalid machine instruction)`
+
+Make sure you have `xvfb` installed
+
+#### `Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")`
+
+```
+export LIBGL_ALWAYS_INDIRECT=1
+export DISPLAY=:0
+```
+
+### Running tests with ElasticPress.io
+
+To run tests locally using an ElasticPress.io endpoint, in place of running `npm run cypress:setup` during setup, run: `./bin/setup-cypress-env.sh --ep-host="https://" --es-shield="username:password" --ep-index-prefix="username"`, with the arguments populated with the details for your ElasticPress.io endpoint.

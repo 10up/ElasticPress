@@ -11,8 +11,12 @@ Cypress.Commands.add('openBlockSettingsSidebar', () => {
 });
 
 Cypress.Commands.add('openBlockInserter', () => {
-	cy.get('body').then(($el) => {
-		if ($el.hasClass('widgets-php')) {
+	cy.get('body').then(($body) => {
+		// If already open, skip.
+		if ($body.find('.edit-widgets-layout__inserter-panel-content').length > 0) {
+			return;
+		}
+		if ($body.hasClass('widgets-php')) {
 			cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		} else {
 			cy.get('.edit-post-header-toolbar__inserter-toggle').click();
@@ -25,6 +29,6 @@ Cypress.Commands.add('getBlocksList', () => {
 });
 
 Cypress.Commands.add('insertBlock', (blockName) => {
-	cy.get('.block-editor-inserter__search input[type="search"').type(blockName);
-	cy.get('.block-editor-block-types-list__item').contains(blockName).click();
+	cy.get('.block-editor-inserter__search input[type="search"').clearThenType(blockName);
+	cy.get('.block-editor-block-types-list__item').contains(blockName).click({ force: true });
 });

@@ -92,7 +92,7 @@ class TestUser extends BaseTestCase {
 					'user_num'   => 5,
 					'long_key'   => 'here is a text field',
 				],
-			],
+			]
 		);
 
 		$user_2 = $this->ep_factory->user->create(
@@ -139,8 +139,6 @@ class TestUser extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -262,10 +260,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( empty( $user->elasticsearch ) );
-		}
-
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $user_query->query_vars );
 		$this->assertEquals( 5, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
 
@@ -277,10 +272,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 5, count( $user_query->results ) );
 		$this->assertEquals( 5, $user_query->total_users );
 	}
@@ -313,10 +305,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 20, count( $user_query->results ) );
 		$this->assertEquals( 20, $user_query->total_users );
 	}
@@ -347,10 +336,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertNotEquals( $first_user->ID, $user_query->results[0]->ID );
 	}
 
@@ -380,10 +366,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertNotEquals( $first_user->ID, $user_query->results[0]->ID );
 	}
 
@@ -403,10 +386,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertTrue( in_array( 'editor', $user_query->results[0]->roles, true ) );
 	}
@@ -427,10 +407,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 1, $user_query->results[0]->ID );
 	}
@@ -451,10 +428,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 4, $user_query->total_users );
 	}
 
@@ -474,10 +448,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
 	}
@@ -498,10 +469,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
 	}
@@ -522,10 +490,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 4, $user_query->total_users );
 	}
 
@@ -545,10 +510,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'mike', $user_query->results[0]->user_nicename );
 	}
@@ -569,10 +531,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'mike', $user_query->results[0]->user_nicename );
 	}
@@ -593,10 +552,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 4, $user_query->total_users );
 	}
 
@@ -616,9 +572,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		foreach ( $user_query->results as $user ) {
 			$this->assertFalse( in_array( 'editor', $user_query->results[0]->roles, true ) );
@@ -644,9 +598,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		foreach ( $user_query->results as $user ) {
 			$this->assertTrue( ( in_array( 'editor', $user_query->results[0]->roles, true ) || in_array( 'author', $user_query->results[0]->roles, true ) ) );
@@ -669,9 +621,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
 
@@ -740,9 +690,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
 
@@ -810,9 +758,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
 
@@ -880,9 +826,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		$users_id_fetched = wp_list_pluck( $user_query->results, 'ID' );
 
@@ -949,9 +893,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		foreach ( $user_query->results as $key => $user ) {
 			if ( ! empty( $user_query->results[ $key - 1 ] ) ) {
@@ -976,9 +918,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		foreach ( $user_query->results as $key => $user ) {
 			if ( ! empty( $user_query->results[ $key - 1 ] ) ) {
@@ -1004,9 +944,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		foreach ( $user_query->results as $key => $user ) {
 			if ( ! empty( $user_query->results[ $key - 1 ] ) ) {
@@ -1032,10 +970,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 0, $user_query->total_users );
 
 		// This value exists
@@ -1068,10 +1003,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 4, $user_query->total_users );
 	}
 
@@ -1095,10 +1027,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'value1', get_user_meta( $user_query->results[0]->ID, 'user_1_key', true ) );
 	}
@@ -1124,10 +1053,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'value2', get_user_meta( $user_query->results[0]->ID, 'user_2_key', true ) );
 	}
@@ -1156,10 +1082,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'value1', get_user_meta( $user_query->results[0]->ID, 'user_1_key', true ) );
 	}
@@ -1189,10 +1112,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 2, $user_query->total_users );
 	}
 
@@ -1221,10 +1141,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 	}
 
@@ -1242,10 +1159,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user3-editor', $user_query->results[0]->user_login );
 	}
@@ -1264,10 +1178,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user3-editor', $user_query->results[0]->user_login );
 	}
@@ -1289,10 +1200,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
 	}
@@ -1314,10 +1222,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user1-author', $user_query->results[0]->user_login );
 	}
@@ -1386,9 +1291,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 
 		$ep_users = $user_query->results;
 
@@ -1479,9 +1382,7 @@ class TestUser extends BaseTestCase {
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 		$this->assertEquals( 1, $query->total_users );
-		foreach ( $query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $query->query_vars['elasticsearch_success'] );
 
 		// Search accross all blogs.
 		$query = new \WP_User_Query(
@@ -1493,9 +1394,7 @@ class TestUser extends BaseTestCase {
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 		$this->assertEquals( 2, $query->total_users );
-		foreach ( $query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
+		$this->assertTrue( $query->query_vars['elasticsearch_success'] );
 	}
 
 	/**
@@ -1517,7 +1416,7 @@ class TestUser extends BaseTestCase {
 
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'user2-contributor', $user_query->results[0]->user_login );
-		$this->assertTrue( $user_query->results[0]->elasticsearch );
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 	}
 
 	/**
@@ -1539,7 +1438,7 @@ class TestUser extends BaseTestCase {
 
 		$this->assertEquals( 1, $user_query->total_users );
 		$this->assertEquals( 'test_admin', $user_query->results[0]->user_login );
-		$this->assertTrue( $user_query->results[0]->elasticsearch );
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 	}
 
 	/**
@@ -1569,10 +1468,10 @@ class TestUser extends BaseTestCase {
 
 		$user_order = array();
 		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
 			$user_order[] = $user->user_login;
 		}
 
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 		$this->assertEquals( $expected_user_order, $user_order );
 	}
 
@@ -1606,10 +1505,7 @@ class TestUser extends BaseTestCase {
 			]
 		);
 
-		foreach ( $user_query->results as $user ) {
-			$this->assertTrue( $user->elasticsearch );
-		}
-
+		$this->assertTrue( $user_query->query_vars['elasticsearch_success'] );
 	}
 
 	/**

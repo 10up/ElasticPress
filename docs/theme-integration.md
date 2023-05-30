@@ -172,6 +172,28 @@ const autosuggestQueryFilter = (query, searchText, input) => {
 
 wp.hooks.addFilter('ep.Autosuggest.query', 'myTheme/autosuggestQueryFilter', autosuggestQueryFilter);
 ```
+
+### Customize Behavior when navigating an Autosuggest Item
+
+To customize the behavior of an Autosuggest Item, you can use the ep.Autosuggest.navigateCallback filter.
+This can be used for example if you want to add a query parameter, a behavior like opening a link in a new tab, etc.
+The filter gives you two parameters: the search term and the URL.
+
+This example changes the behavior to add a "cypress" query arg with value "foobar":
+
+```
+const myNavigateCallback = (searchTerm, url) => {
+        let cypressQueryArg = new URLSearchParams(window.location.search)
+        cypressQueryArg.set('cypress', 'foobar');
+        var newURL = url + '?' + cypressQueryArg.toString();
+        window.location.href = newURL;
+  };
+  wp.hooks.addFilter(
+    'ep.Autosuggest.navigateCallback', 'myTheme/myNavigateCallback',
+    () => myNavigateCallback,
+  );",
+```
+
 ## Instant Results
 
 ### Customize the Template Used for Results
@@ -359,4 +381,17 @@ document.getElementById('search-blocks').addEventListener('click', () => {
 	window.epInstantResults.openModal({ search: "blocks" });
 });
 </script>
+```
+
+### Change the number of results per page
+
+As of ElasticPress 4.5.0 Instant Results will display the same number of results per page as the number of posts per page set in _Settings > Reading_. The `ep_instant_results_per_page` filter can be used to change the number of results per page independently of the number of posts per page:
+
+```
+add_filter(
+	'ep_instant_results_per_page',
+	function() {
+		return 12;
+	}
+);
 ```

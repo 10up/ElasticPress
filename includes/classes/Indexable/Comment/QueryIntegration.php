@@ -38,11 +38,25 @@ class QueryIntegration {
 	/**
 	 * Sets up the appropriate actions and filters.
 	 *
+	 * @param string $indexable_slug Indexable slug. Optional.
+	 *
 	 * @since 3.6.0
 	 */
-	public function __construct() {
+	public function __construct( $indexable_slug = 'comment' ) {
+		/**
+		 * Filter whether to enable query integration during indexing
+		 *
+		 * @since 4.5.2
+		 * @hook ep_enable_query_integration_during_indexing
+		 *
+		 * @param {bool} $enable To allow query integration during indexing
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, $indexable_slug );
+
 		// Check if we are currently indexing
-		if ( Utils\is_indexing() ) {
+		if ( Utils\is_indexing() && ! $allow_query_integration_during_indexing ) {
 			return;
 		}
 
@@ -113,6 +127,8 @@ class QueryIntegration {
 			return $new_comments;
 		}
 
+		$new_comments = [];
+
 		$formatted_args = $this->indexable->format_args( $query->query_vars );
 
 		$scope = 'current';
@@ -121,15 +137,17 @@ class QueryIntegration {
 		$site__not_in = [];
 
 		if ( ! empty( $query->query_vars['sites'] ) ) {
-
 			_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
-			$site__in = (array) $query->query_vars['sites'];
-			$scope    = 'all' === $query->query_vars['sites'] ? 'all' : $site__in;
 		}
 
-		if ( ! empty( $query->query_vars['site__in'] ) ) {
-			$site__in = (array) $query->query_vars['site__in'];
-			$scope    = 'all' === $query->query_vars['site__in'] ? 'all' : $site__in;
+		if ( ! empty( $query->query_vars['site__in'] ) || ! empty( $query->query_vars['sites'] ) ) {
+			$site__in = ! empty( $query->query_vars['site__in'] ) ? (array) $query->query_vars['site__in'] : (array) $query->query_vars['sites'];
+
+			if ( in_array( 'all', $site__in, true ) ) {
+				$scope = 'all';
+			} elseif ( in_array( 'current', $site__in, true ) ) {
+				$site__in = (array) get_current_blog_id();
+			}
 		}
 
 		if ( ! empty( $query->query_vars['site__not_in'] ) ) {

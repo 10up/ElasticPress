@@ -51,8 +51,12 @@ class Facets extends Feature {
 
 		$types = [
 			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
-			'meta'     => __NAMESPACE__ . '\Types\Meta\FacetType',
 		];
+
+		if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
+			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
+		}
 
 		/**
 		 * Filter the Facet types available.
@@ -104,6 +108,7 @@ class Facets extends Feature {
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
@@ -156,6 +161,11 @@ class Facets extends Feature {
 		if ( 'any' === $this->get_match_type() ) {
 			add_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
 		}
+
+		/**
+		 * This flag is used to differentiate filters being applied to the query and to its aggregations.
+		 */
+		$query_args['ep_facet_adding_agg_filters'] = true;
 
 		/**
 		 * Filter WP query arguments that will be used to build the aggregations filter.
@@ -351,11 +361,16 @@ class Facets extends Feature {
 						continue;
 					}
 
-					if ( ! is_array( $agg ) || empty( $agg['buckets'] ) ) {
+					if ( ! is_array( $agg ) || ( empty( $agg['buckets'] ) && empty( $agg['value'] ) ) ) {
 						continue;
 					}
 
 					$GLOBALS['ep_facet_aggs'][ $key ] = [];
+
+					if ( ! empty( $agg['value'] ) ) {
+						$GLOBALS['ep_facet_aggs'][ $key ] = $agg['value'];
+						continue;
+					}
 
 					foreach ( $agg['buckets'] as $bucket ) {
 						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
@@ -374,29 +389,20 @@ class Facets extends Feature {
 	public function get_selected() {
 		$allowed_args = $this->get_allowed_query_args();
 
-		$filters            = [];
-		$filter_names       = [];
-		$sanitize_callbacks = [];
+		$filters      = [];
+		$filter_names = [];
 		foreach ( $this->types as $type_obj ) {
-			$filter_type = $type_obj->get_filter_type();
-
-			$filters[ $filter_type ]            = [];
-			$filter_names[ $filter_type ]       = $type_obj->get_filter_name();
-			$sanitize_callbacks[ $filter_type ] = $type_obj->get_sanitize_callback();
+			$filter_names[ $type_obj->get_filter_name() ] = $type_obj;
 		}
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$key = sanitize_key( $key );
 
-			foreach ( $filter_names as $filter_type => $filter_name ) {
+			foreach ( $filter_names as $filter_name => $type_obj ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
-					$facet             = str_replace( $filter_name, '', $key );
-					$sanitize_callback = $sanitize_callbacks[ $filter_type ];
-					$terms             = explode( ',', trim( $value, ',' ) );
+					$facet = str_replace( $filter_name, '', $key );
 
-					$filters[ $filter_type ][ $facet ] = array(
-						'terms' => array_fill_keys( array_map( $sanitize_callback, $terms ), true ),
-					);
+					$filters = $type_obj->format_selected( $facet, $value, $filters );
 				}
 			}
 
@@ -416,20 +422,13 @@ class Facets extends Feature {
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {
-		$query_param = array();
+		$query_params = array();
 
 		foreach ( $this->types as $type_obj ) {
-			$filter_type = $type_obj->get_filter_type();
-
-			if ( ! empty( $filters[ $filter_type ] ) ) {
-				$type_filters = $filters[ $filter_type ];
-
-				foreach ( $type_filters as $facet => $filter ) {
-					if ( ! empty( $filter['terms'] ) ) {
-						$query_param[ $type_obj->get_filter_name() . $facet ] = implode( ',', array_keys( $filter['terms'] ) );
-					}
-				}
+			if ( empty( $filters[ $type_obj->get_filter_type() ] ) ) {
+				continue;
 			}
+			$query_params = $type_obj->add_query_params( $query_params, $filters );
 		}
 
 		$feature      = Features::factory()->get_registered_feature( 'facets' );
@@ -438,22 +437,22 @@ class Facets extends Feature {
 		if ( ! empty( $filters ) ) {
 			foreach ( $filters as $filter => $value ) {
 				if ( in_array( $filter, $allowed_args, true ) ) {
-					$query_param[ $filter ] = $value;
+					$query_params[ $filter ] = $value;
 				}
 			}
 		}
 
-		$query_string = build_query( $query_param );
+		$query_string = build_query( $query_params );
 
 		/**
 		 * Filter facet query string
 		 *
 		 * @hook ep_facet_query_string
 		 * @param  {string} $query_string Current query string
-		 * @param  {array} $query_param Query parameters
+		 * @param  {array}  $query_params Query parameters
 		 * @return  {string} New query string
 		 */
-		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_param );
+		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_params );
 
 		$url        = $_SERVER['REQUEST_URI'];
 		$pagination = strpos( $url, '/page' );
@@ -513,6 +512,21 @@ class Facets extends Feature {
 	 */
 	public function get_allowed_query_args() {
 		$args = array( 's', 'post_type', 'orderby' );
+
+		// Retrieve all registered query variables for public taxonomies
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->query_var ) {
+				$args[] = $taxonomy->query_var;
+			}
+		}
+		/**
+		 * To keep backward compatibility, WordPress uses  `'cat'` for default categories.
+		 * It also allows access using the `?taxonomy=<tax>&term=<term>` format.
+		 *
+		 * @see get_term_link()
+		 */
+		$args = array_merge( $args, [ 'cat', 'taxonomy', 'term' ] );
 
 		/**
 		 * Filter allowed query args

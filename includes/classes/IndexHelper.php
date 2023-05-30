@@ -4,7 +4,7 @@
  *
  * @since 4.0.0
  * @see docs/indexing-process.md
- * @see http://10up.github.io/ElasticPress/tutorial-indexing-process.html
+ * @see https://10up.github.io/ElasticPress/tutorial-indexing-process.html
  * @package elasticpress
  */
 
@@ -69,7 +69,17 @@ class IndexHelper {
 		add_filter( 'wp_php_error_message', [ $this, 'wp_handle_index_error' ], 10, 2 );
 
 		$this->index_meta = Utils\get_indexing_status();
-		$this->args       = $args;
+
+		/**
+		 * Filter the sync arguments
+		 *
+		 * @since 4.5.0
+		 * @hook ep_sync_args
+		 * @param {array} $args Sync arguments
+		 * @param {array} $index_meta Current index meta
+		 * @return {array} New sync arguments
+		 */
+		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
 			$this->build_index_meta();
@@ -111,6 +121,11 @@ class IndexHelper {
 			'offset' :
 			'id_range';
 
+		$starting_indices = array_intersect(
+			Elasticsearch::factory()->get_index_names( 'all' ),
+			wp_list_pluck( Elasticsearch::factory()->get_cluster_indices(), 'index' )
+		);
+
 		$this->index_meta = [
 			'method'            => ! empty( $this->args['method'] ) ? $this->args['method'] : 'web',
 			'put_mapping'       => ! empty( $this->args['put_mapping'] ),
@@ -121,6 +136,7 @@ class IndexHelper {
 			'network_alias'     => [],
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
+			'starting_indices'  => $starting_indices,
 			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
@@ -131,8 +147,8 @@ class IndexHelper {
 			],
 		];
 
-		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true ) );
-		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true ) );
+		$global_indexables     = $this->filter_indexables( Indexables::factory()->get_all( true, true, 'all' ) );
+		$non_global_indexables = $this->filter_indexables( Indexables::factory()->get_all( false, true, 'all' ) );
 
 		$is_network_wide = isset( $this->args['network_wide'] ) && ! is_null( $this->args['network_wide'] );
 
@@ -151,22 +167,15 @@ class IndexHelper {
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexables as $indexable ) {
-					$sync_stack_item = [
-						'url'         => untrailingslashit( $site['domain'] . $site['path'] ),
-						'blog_id'     => (int) $site['blog_id'],
-						'indexable'   => $indexable,
-						'put_mapping' => ! empty( $this->args['put_mapping'] ),
-					];
+					$this->add_sync_item_to_stack(
+						[
+							'url'       => untrailingslashit( $site['domain'] . $site['path'] ),
+							'blog_id'   => (int) $site['blog_id'],
+							'indexable' => $indexable,
+						]
+					);
 
-					$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-					$objects_to_index = $this->get_objects_to_index();
-
-					$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
-					$this->index_meta['sync_stack'][] = $sync_stack_item;
-
-					if ( ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
+					if ( Indexables::factory()->is_active( $indexable ) && ! in_array( $indexable, $this->index_meta['network_alias'], true ) ) {
 						$this->index_meta['network_alias'][] = $indexable;
 					}
 				}
@@ -175,36 +184,22 @@ class IndexHelper {
 			restore_current_blog();
 		} else {
 			foreach ( $non_global_indexables as $indexable ) {
-				$sync_stack_item = [
-					'url'         => untrailingslashit( home_url() ),
-					'blog_id'     => (int) get_current_blog_id(),
-					'indexable'   => $indexable,
-					'put_mapping' => ! empty( $this->args['put_mapping'] ),
-				];
-
-				$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-				$objects_to_index = $this->get_objects_to_index();
-
-				$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
-				$this->index_meta['sync_stack'][] = $sync_stack_item;
+				$this->add_sync_item_to_stack(
+					[
+						'url'       => untrailingslashit( home_url() ),
+						'blog_id'   => (int) get_current_blog_id(),
+						'indexable' => $indexable,
+					]
+				);
 			}
 		}
 
 		foreach ( $global_indexables as $indexable ) {
-			$sync_stack_item = [
-				'indexable'   => $indexable,
-				'put_mapping' => ! empty( $this->args['put_mapping'] ),
-			];
-
-			$this->index_meta['current_sync_item'] = $sync_stack_item;
-
-			$objects_to_index = $this->get_objects_to_index();
-
-			$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
-
-			$this->index_meta['sync_stack'][] = $sync_stack_item;
+			$this->add_sync_item_to_stack(
+				[
+					'indexable' => $indexable,
+				]
+			);
 		}
 
 		$this->index_meta['current_sync_item'] = false;
@@ -284,9 +279,12 @@ class IndexHelper {
 				]
 			);
 
-			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
+			$indexable_slug = $this->index_meta['current_sync_item']['indexable'];
+			$indexable      = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
-			if ( ! empty( $this->index_meta['current_sync_item']['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+			if ( ! Indexables::factory()->is_active( $indexable_slug ) ) {
+				return $this->process_not_active_indexable_sync_item();
+			} elseif ( ! empty( $this->index_meta['current_sync_item']['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$this->output_success(
 					sprintf(
 						/* translators: 1: Indexable name, 2: Site ID */
@@ -351,7 +349,7 @@ class IndexHelper {
 		$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
 
 		$indexable->delete_index();
-		$result = $indexable->put_mapping();
+		$result = $indexable->put_mapping( 'raw' );
 
 		/**
 		 * Fires after sync put mapping is completed
@@ -381,11 +379,19 @@ class IndexHelper {
 		 */
 		do_action( 'ep_dashboard_put_mapping', $this->index_meta, 'start' );
 
-		if ( $result ) {
-			$this->output_success( esc_html__( 'Mapping sent', 'elasticpress' ) );
-		} else {
-			$this->output_error( esc_html__( 'Mapping failed', 'elasticpress' ) );
+		if ( is_wp_error( $result ) ) {
+			$this->on_error_update_and_clean( array( 'message' => $result->get_error_message() ), 'mapping' );
+			return;
 		}
+
+		$index_exists = in_array( $indexable->get_index_name(), $this->index_meta['starting_indices'], true );
+		if ( $index_exists ) {
+			$message = esc_html__( 'Mapping sent', 'elasticpress' );
+		} else {
+			$message = esc_html__( 'Index not present. Mapping sent', 'elasticpress' );
+		}
+
+		$this->output_success( $message );
 	}
 
 	/**
@@ -402,7 +408,7 @@ class IndexHelper {
 
 		$this->index_meta['from']                       = $this->index_meta['offset'];
 		$this->index_meta['found_items']                = (int) $this->current_query['total_objects'];
-		$this->index_meta['current_sync_item']['total'] = $this->index_meta['found_items'];
+		$this->index_meta['current_sync_item']['total'] = (int) $this->index_meta['current_sync_item']['found_items'];
 
 		if ( 'offset' === $this->index_meta['pagination_method'] ) {
 			$indexable = Indexables::factory()->get( $this->index_meta['current_sync_item']['indexable'] );
@@ -465,15 +471,7 @@ class IndexHelper {
 		 */
 		do_action( "ep_pre_{$this->args['method']}_index", $this->index_meta, ( $this->index_meta['start'] ? 'start' : false ), $indexable );
 
-		/**
-		 * Filter number of items to index per cycle in the dashboard
-		 *
-		 * @since  2.1
-		 * @hook ep_index_default_per_page
-		 * @param  {int} Entries per cycle
-		 * @return  {int} New number of entries
-		 */
-		$per_page = apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+		$per_page = $this->get_index_default_per_page();
 
 		if ( ! empty( $this->args['per_page'] ) ) {
 			$per_page = $this->args['per_page'];
@@ -484,7 +482,8 @@ class IndexHelper {
 		}
 
 		$args = [
-			'per_page' => absint( $per_page ),
+			'per_page'   => absint( $per_page ),
+			'ep_sync_id' => uniqid(),
 		];
 
 		if ( ! $indexable->support_indexing_advanced_pagination || 'offset' === $this->index_meta['pagination_method'] ) {
@@ -688,15 +687,28 @@ class IndexHelper {
 
 			if ( is_wp_error( $return ) ) {
 				$this->index_meta['current_sync_item']['failed'] += count( $queued_items );
-				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $return->get_error_messages() );
 
-				$this->output( implode( "\n", $return->get_error_messages() ), 'warning' );
+				$wp_error_messages = $return->get_error_messages();
+
+				$this->maybe_process_error_limit(
+					count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ),
+					count( $this->index_meta['current_sync_item']['errors'] ),
+					$wp_error_messages
+				);
+
+				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
 			} elseif ( count( $failed_objects ) ) {
 				$errors_output = $this->output_index_errors( $failed_objects );
 
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items ) - count( $failed_objects );
+
+				$this->maybe_process_error_limit(
+					$this->index_meta['current_sync_item']['failed'] + count( $failed_objects ),
+					$this->index_meta['current_sync_item']['failed'],
+					$errors_output
+				);
+
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
-				$this->index_meta['current_sync_item']['errors']  = array_merge( $this->index_meta['current_sync_item']['errors'], $errors_output );
 
 				$this->output( $errors_output, 'warning' );
 			} else {
@@ -719,6 +731,44 @@ class IndexHelper {
 			'info',
 			'index_next_batch'
 		);
+	}
+
+	/**
+	 * If the number of errors is greater than the limit, slice the array to the limit.
+	 * If the number of errors is less than or equal the limit, add the error message to the array (if it's not there).
+	 * Merges the new errors with the existing errors.
+	 *
+	 * @since  4.5.1
+	 * @param int   $count Number of errors.
+	 * @param int   $num Number of errors to subtract from $limit.
+	 * @param array $errors Array of errors.
+	 */
+	protected function maybe_process_error_limit( $count, $num, $errors ) {
+		$error_store_msg = __( 'Reached maximum number of errors to store', 'elasticpress' );
+
+		/**
+		 * Filter the number of errors of a current sync that should be stored.
+		 *
+		 * @since  4.5.1
+		 * @hook ep_current_sync_number_of_errors_stored
+		 * @param  {int} $number Number of errors to be logged.
+		 * @return {int} New value
+		 */
+		$limit = (int) apply_filters( 'ep_current_sync_number_of_errors_stored', 50 );
+
+		if ( $limit > 0 && $count > $limit ) {
+			$diff = $limit - $num;
+			if ( $diff > 0 ) {
+				$errors = array_slice( $errors, 0, $diff );
+			} else {
+				$errors = [];
+				if ( end( $this->index_meta['current_sync_item']['errors'] ) !== $error_store_msg ) {
+					$this->index_meta['current_sync_item']['errors'][] = $error_store_msg;
+				}
+			}
+		}
+
+		$this->index_meta['current_sync_item']['errors'] = array_merge( $this->index_meta['current_sync_item']['errors'], $errors );
 	}
 
 	/**
@@ -817,9 +867,10 @@ class IndexHelper {
 	 * @since 4.2.0
 	 */
 	protected function update_last_index() {
-		$start_time = $this->index_meta['start_time'];
-		$totals     = $this->index_meta['totals'];
-		$method     = $this->index_meta['method'];
+		$start_time   = $this->index_meta['start_time'];
+		$totals       = $this->index_meta['totals'];
+		$method       = $this->index_meta['method'];
+		$is_full_sync = $this->index_meta['put_mapping'];
 
 		$this->index_meta = null;
 
@@ -831,6 +882,7 @@ class IndexHelper {
 		$totals['end_time_gmt']    = time();
 		$totals['total_time']      = microtime( true ) - $start_time;
 		$totals['method']          = $method;
+		$totals['is_full_sync']    = $is_full_sync;
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 		Utils\update_option( 'ep_last_index', $totals, false );
 	}
@@ -885,6 +937,11 @@ class IndexHelper {
 		$sites = Utils\get_sites();
 
 		foreach ( $sites as $site ) {
+
+			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
+				continue;
+			}
+
 			switch_to_blog( $site['blog_id'] );
 			$indexes[] = $indexable->get_index_name();
 			restore_current_blog();
@@ -974,7 +1031,7 @@ class IndexHelper {
 		$error_text = [];
 
 		foreach ( $failed_objects as $object ) {
-			$error_text[] = $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'];
+			$error_text[] = ! empty( $object['index'] ) ? $object['index']['_id'] . ' (' . $indexable->labels['singular'] . '): [' . $object['index']['error']['type'] . '] ' . $object['index']['error']['reason'] : (string) $object;
 		}
 
 		return $error_text;
@@ -1074,6 +1131,72 @@ class IndexHelper {
 	}
 
 	/**
+	 * Given an array, create a new sync item and add it to the stack.
+	 *
+	 * @since 4.5.0
+	 * @param array $sync_stack_item The new sync item
+	 */
+	protected function add_sync_item_to_stack( array $sync_stack_item ) {
+		$indexable_slug   = $sync_stack_item['indexable'];
+		$indexable_object = Indexables::factory()->get( $indexable_slug );
+
+		if ( ! $indexable_object ) {
+			return;
+		}
+
+		$index_exists = in_array( $indexable_object->get_index_name(), $this->index_meta['starting_indices'], true );
+
+		$sync_stack_item['put_mapping'] = ! empty( $this->args['put_mapping'] ) || ! $index_exists;
+
+		if ( ! Indexables::factory()->is_active( $indexable_slug ) ) {
+			array_unshift( $this->index_meta['sync_stack'], $sync_stack_item );
+			return;
+		}
+
+		// This is needed, because get_objects_to_index() calculates its total based on the current sync item.
+		$this->index_meta['current_sync_item'] = $sync_stack_item;
+
+		$objects_to_index = $this->get_objects_to_index();
+
+		$sync_stack_item['found_items'] = $objects_to_index['total_objects'] ?? 0;
+
+		$this->index_meta['sync_stack'][] = $sync_stack_item;
+	}
+
+	/**
+	 * Processes an indexable that is not active.
+	 *
+	 * If running a full sync, delete the index of an unused indexable.
+	 *
+	 * @since 4.5.0
+	 */
+	protected function process_not_active_indexable_sync_item() {
+		$current_sync_item = $this->index_meta['current_sync_item'];
+
+		$this->index_meta['current_sync_item'] = null;
+
+		if ( empty( $current_sync_item['put_mapping'] ) ) {
+			return;
+		}
+
+		$indexable = Indexables::factory()->get( $current_sync_item['indexable'] );
+
+		if ( ! in_array( $indexable->get_index_name(), $this->index_meta['starting_indices'], true ) ) {
+			return;
+		}
+
+		$indexable->delete_index();
+
+		$this->output_success(
+			sprintf(
+				/* translators: Index name */
+				esc_html__( 'Index %s deleted', 'elasticpress' ),
+				$indexable->get_index_name()
+			)
+		);
+	}
+
+	/**
 	 * Resets some values to reduce memory footprint.
 	 */
 	protected function stop_the_insanity() {
@@ -1142,6 +1265,7 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
 
@@ -1190,9 +1314,10 @@ class IndexHelper {
 	 * Logs the error and clears the sync status, preventing the sync status from being stuck.
 	 *
 	 * @since 4.2.0
-	 * @param array $error Error information retrieved from error_get_last().
+	 * @param array  $error Error information retrieved from error_get_last().
+	 * @param string $context Context of the error.
 	 */
-	protected function on_error_update_and_clean( $error ) {
+	protected function on_error_update_and_clean( $error, $context = 'sync' ) {
 		$this->update_totals_from_current_sync_item();
 
 		$totals = $this->index_meta['totals'];
@@ -1210,13 +1335,41 @@ class IndexHelper {
 		 */
 		do_action( 'ep_after_sync_error', $error );
 
-		$this->output_error(
-			sprintf(
+		switch ( $context ) {
+			case 'mapping':
+				$message = sprintf(
+					/* translators: Error message */
+					esc_html__( 'Mapping failed: %s', 'elasticpress' ),
+					Utils\get_elasticsearch_error_reason( $error['message'] )
+				);
+				$message .= "\n";
+				$message .= esc_html__( 'Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping.', 'elasticpress' );
+				break;
+			default:
 				/* translators: Error message */
-				esc_html__( 'Index failed: %s', 'elasticpress' ),
-				$error['message']
-			)
-		);
+				$message = sprintf( esc_html__( 'Index failed: %s', 'elasticpress' ), $error['message'] );
+				break;
+		}
+
+		$this->output_error( $message );
+	}
+
+	/**
+	 * Return the default number of documents to be sent to Elasticsearch on each batch.
+	 *
+	 * @since 4.4.0
+	 * @return integer
+	 */
+	public function get_index_default_per_page() : int {
+		/**
+		 * Filter number of items to index per cycle in the dashboard
+		 *
+		 * @since  2.1
+		 * @hook ep_index_default_per_page
+		 * @param  {int} Entries per cycle
+		 * @return  {int} New number of entries
+		 */
+		return (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
 	}
 
 	/**

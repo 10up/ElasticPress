@@ -1449,8 +1449,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -1491,8 +1489,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -1552,9 +1548,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		remove_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
-		remove_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
 	}
 
 	/**
@@ -1743,8 +1736,6 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( $post_id_1, $post_ids );
 		$this->assertContains( $post_id_1, $post_ids );
 		$this->assertNotContains( $post_id_0, $post_ids );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1790,8 +1781,6 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -1832,7 +1821,7 @@ class TestPost extends BaseTestCase {
 				'tags_input'   => array( 'superterm' ),
 				'post_author'  => $user_id,
 				'meta_input'   => array( 'test_key' => 'meta value' ),
-			),
+			)
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -2418,8 +2407,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 'Ordertest 222', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertest 111', $query->posts[1]->post_title );
 		$this->assertEquals( 'ordertesr', $query->posts[2]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2510,8 +2497,6 @@ class TestPost extends BaseTestCase {
 
 			$i++;
 		}
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2542,8 +2527,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'ordertet', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2604,8 +2587,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertest', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertet', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2638,8 +2619,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( 'ordertestt', $query->posts[0]->post_title );
 		$this->assertEquals( 'Ordertest', $query->posts[1]->post_title );
-
-		remove_filter( 'ep_search_algorithm_version', array( $this, 'set_algorithm_34' ) );
 	}
 
 	/**
@@ -2670,6 +2649,71 @@ class TestPost extends BaseTestCase {
 		 */
 		$this->assertEquals( 3, $query->post_count );
 		$this->assertEquals( 3, $query->found_posts );
+	}
+
+	/**
+	 * Test orderby 'none'
+	 *
+	 * In this case, EP should order by ID ASC, as this is the behavior used by the database.
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testNoneOrderbyQuery() {
+		$posts   = [];
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 1' ) );
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 2' ) );
+		$posts[] = $this->ep_factory->post->create( array( 'post_title' => 'ordertest 3' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'orderby'      => 'none',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( $posts, $query->posts );
+	}
+
+	/**
+	 * Test ordering by named meta_query clauses
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 */
+	public function testNamedMetaQueryOrderbyQuery() {
+		$post_b = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'b' ] ] );
+		$post_a = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'a' ] ] );
+		$post_c = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'c' ] ] );
+		$this->ep_factory->post->create( [ 'post_title' => 'No meta_input' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'meta_query'   => [
+				'named_clause' => [
+					'key'     => 'test_key',
+					'compare' => 'EXISTS',
+				],
+			],
+			'orderby'      => 'named_clause',
+			'order'        => 'ASC',
+		);
+
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( $post_a, $query->posts[0] );
+		$this->assertEquals( $post_b, $query->posts[1] );
+		$this->assertEquals( $post_c, $query->posts[2] );
 	}
 
 	/**
@@ -3090,7 +3134,7 @@ class TestPost extends BaseTestCase {
 					'test_key'  => 'value1',
 					'test_key2' => 'value',
 				),
-			),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
@@ -3137,54 +3181,54 @@ class TestPost extends BaseTestCase {
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
-				'meta_input'   => array( 'test_key' => date('Ymd') - 5 ),
-			),
+				'meta_input'   => array( 'test_key' => gmdate( 'Ymd' ) - 5 ),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
 				'meta_input'   => array(
-					'test_key'  => date('Ymd') + 5,
-					'test_key2' => date('Ymd') + 6,
+					'test_key'  => gmdate( 'Ymd' ) + 5,
+					'test_key2' => gmdate( 'Ymd' ) + 6,
 				),
-			),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'the post content findme',
 				'meta_input'   => array(
-					'test_key'  => date('Ymd') + 5,
-					'test_key2' => date('Ymd') + 6,
+					'test_key'  => gmdate( 'Ymd' ) + 5,
+					'test_key2' => gmdate( 'Ymd' ) + 6,
 				),
-			),
+			)
 		);
 
 		$post = new \ElasticPress\Indexable\Post\Post();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 		$args = array(
 			'ep_integrate' => true,
-			'meta_key' => 'test_key',
-			'meta_query' => array(
+			'meta_key'     => 'test_key',
+			'meta_query'   => array(
 				'relation' => 'or',
 				array(
 					'key'     => 'test_key',
-					'value'   => date('Ymd'),
+					'value'   => gmdate( 'Ymd' ),
 					'compare' => '<=',
-					'type' => 'NUMERIC',
+					'type'    => 'NUMERIC',
 				),
 				array(
 					'key'     => 'test_key2',
-					'value'   => date('Ymd'),
+					'value'   => gmdate( 'Ymd' ),
 					'compare' => '>=',
-					'type' => 'NUMERIC',
+					'type'    => 'NUMERIC',
 				),
 			),
-			'orderby' => 'meta_value_num',
-			'order' => 'ASC',
+			'orderby'      => 'meta_value_num',
+			'order'        => 'ASC',
 		);
 
 		$query = new \WP_Query( $args );
-		$args = $post->format_args($args, new \WP_Query() );
+		$args  = $post->format_args( $args, new \WP_Query() );
 
 		$outer_must = $args['post_filter']['bool']['must'][0]['bool']['must'];
 
@@ -3250,6 +3294,48 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test the sanitization of an empty meta query
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testMetaQueryEmptySanitization() {
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'the post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value1',
+					'test_key2' => 'value',
+				),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'post content findme',
+				'meta_input'   => array(
+					'test_key'  => 'value',
+					'test_key2' => 'value2',
+					'test_key3' => 'value',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		$args = array(
+			's'          => 'findme',
+			'meta_query' => array(
+				0 => array(),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -3667,7 +3753,6 @@ class TestPost extends BaseTestCase {
 			$this->assertNull( $post['post_modified_gmt'] );
 		}
 		$this->assertNotNull( $post );
-		remove_filter( 'ep_indexable_post_status', array( $this, 'mock_indexable_post_status' ), 10 );
 	}
 
 	/**
@@ -3836,10 +3921,15 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( is_array( $recognizable_time ) && 6 === count( $recognizable_time ) );
 		$this->assertTrue( is_array( $recognizable_time ) && array_key_exists( 'datetime', $recognizable_time ) && '2020-01-20 00:00:00' === $recognizable_time['datetime'] );
 		$this->assertTrue( is_array( $relative_format ) && 6 === count( $relative_format ) );
-		$this->assertTrue( is_array( $relative_format ) && array_key_exists( 'datetime', $relative_format ) && date( 'Y-m-d H:i:s', strtotime( '+1 year' ) ) === $relative_format['datetime'] );
+		$this->assertTrue( is_array( $relative_format ) && array_key_exists( 'datetime', $relative_format ) && gmdate( 'Y-m-d H:i:s', strtotime( '+1 year' ) ) === $relative_format['datetime'] );
 
 	}
 
+	/**
+	 * Test meta date preparation
+	 *
+	 * @group post
+	 */
 	public function testMetaValueTypeDate() {
 		$meta_types = array();
 
@@ -4368,6 +4458,40 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'           => 'findme',
+			'post_parent' => 0,
+			'fields'      => 'ids',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( $parent_post, $query->posts[0] );
+
+		// Test post_parent__in and post_parent__not_in queries
+		$args = array(
+			's'               => 'findme',
+			'post_parent__in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$args = array(
+			's'                   => 'findme',
+			'post_parent__not_in' => array( $parent_post ),
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
 	}
 
 	/**
@@ -6019,6 +6143,17 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( $post_id_4, $post_ids[0] );
 		$this->assertCount( 1, $results['objects'] );
 		$this->assertEquals( 4, $results['total_objects'] );
+
+		// Test it pulls the post with passwords when password protected feature is enabled.
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$results = $indexable_post_object->query_db(
+			[
+				'per_page' => 1,
+			]
+		);
+		$this->assertEquals( 4, $results['total_objects'] );
 	}
 
 	/**
@@ -6503,46 +6638,47 @@ class TestPost extends BaseTestCase {
 
 		$last_filter = end( $args['post_filter']['bool']['must'] );
 		$this->assertSame( [ 'my_custom_field.raw' => 'my_custom_value' ], $last_filter['term'] );
-
-		remove_filter( 'ep_post_filters', $add_es_filter );
 	}
 
 	/**
-	 * Tests additional order by parameters in parse_orderby().
+	 * Data provider for the testParseOrderby method.
 	 *
-	 * @return void
+	 * @since 4.6.0
+	 * @return array
+	 */
+	public function parseOrderbyDataProvider() {
+		return [
+			[ 'type', 'post_type.raw' ],
+			[ 'modified', 'post_modified' ],
+			[ 'relevance', '_score' ],
+			[ 'date', 'post_date' ],
+			[ 'name', 'post_name.raw' ],
+			[ 'title', 'post_title.sortable' ],
+		];
+	}
+
+	/**
+	 * Test the parse_orderby() method (without meta values)
+	 *
+	 * @param string $orderby Orderby value
+	 * @param string $es_key  The related ES field
+	 * @dataProvider parseOrderbyDataProvider
 	 * @group post
 	 */
-	public function testParseOrderBy() {
+	public function testParseOrderby( $orderby, $es_key ) {
+		$method_executed = false;
 
-		// Post type.
 		$query_args = [
 			'ep_integrate' => true,
-			'orderby'      => 'type',
+			'orderby'      => $orderby,
 			'order'        => 'asc',
 		];
 
-		$assert_callback = function( $args ) {
+		$assert_callback = function( $args ) use ( &$method_executed, $es_key ) {
+			$method_executed = true;
 
-			$this->assertArrayHasKey( 'post_type.raw', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['post_type.raw']['order'] );
-
-			return $args;
-		};
-
-		// We need to run tests inside a callback because parse_orderby()
-		// is a protected function.
-		add_filter( 'ep_formatted_args', $assert_callback );
-		$query = new \WP_Query( $query_args );
-		remove_filter( 'ep_formatted_args', $assert_callback );
-
-		// Post modified.
-		$query_args['orderby'] = 'modified';
-
-		$assert_callback = function( $args ) {
-
-			$this->assertArrayHasKey( 'post_modified', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['post_modified']['order'] );
+			$this->assertArrayHasKey( $es_key, $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ $es_key ]['order'] );
 
 			return $args;
 		};
@@ -6552,14 +6688,81 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
 
-		// Meta value.
-		$query_args['orderby']  = 'meta_value';
-		$query_args['meta_key'] = 'custom_meta_key';
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
 
-		$assert_callback = function( $args ) {
+	/**
+	 * Data provider for following methods:
+	 *
+	 * - testParseOrderbyMetaValueParams
+	 * - testParseOrderbyMetaValueWithoutMetaKeyParams
+	 * - testParseOrderbyMetaQueryTypes
+	 *
+	 * @since 4.6.0
+	 * @return array
+	 */
+	public function parseOrderbyMetaDataProvider() {
+		$numeric = [ 2, 1, 3 ];
+		$char    = [ 'b', 'a', 'c' ];
 
-			$this->assertArrayHasKey( 'meta.custom_meta_key.raw', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['meta.custom_meta_key.raw']['order'] );
+		$timestamps = [
+			strtotime( '2 days ago' ),
+			strtotime( '5 days ago' ),
+			strtotime( '1 days ago' ),
+		];
+
+		$date     = [ gmdate( 'Y-m-d', $timestamps[0] ), gmdate( 'Y-m-d', $timestamps[1] ), gmdate( 'Y-m-d', $timestamps[2] ) ];
+		$datetime = [ gmdate( 'Y-m-d 14:00:00', $timestamps[0] ), gmdate( 'Y-m-d 10:00:00', $timestamps[0] ), gmdate( 'Y-m-d 23:30:00', $timestamps[0] ) ];
+		$time     = [ '14:00', '10:00', '23:30' ];
+
+		return [
+			[ '', 'value.sortable', $char ],
+			[ 'NUM', 'long', $numeric ],
+			[ 'NUMERIC', 'long', $numeric ],
+			[ 'BINARY', 'value.sortable', $char ],
+			[ 'CHAR', 'value.sortable', $char ],
+			[ 'DATE', 'date', $date ],
+			[ 'DATETIME', 'datetime', $datetime ],
+			[ 'DECIMAL', 'double', [ 0.2, 0.1, 0.3 ] ],
+			[ 'SIGNED', 'long', $numeric ],
+			[ 'TIME', 'time', $time ],
+			[ 'UNSIGNED', 'long', $numeric ],
+		];
+	}
+
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with `'meta_value*'` and `'meta_key'` parameters
+	 *
+	 * @param string $meta_value_type Meta value type (as in WP)
+	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @param array  $meta_values     Meta values for post creation
+	 * @since 4.6.0
+	 * @dataProvider parseOrderbyMetaDataProvider
+	 * @group post
+	 */
+	public function testParseOrderbyMetaValueParams( $meta_value_type, $es_type, $meta_values ) {
+		$method_executed = false;
+
+		$posts = [];
+		foreach ( $meta_values as $value ) {
+			$posts[] = $this->ep_factory->post->create( [ 'meta_input' => [ 'custom_meta_key' => $value ] ] );
+		}
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query_args = [
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'orderby'      => 'meta_value' . ( $meta_value_type ? "_{$meta_value_type}" : '' ),
+			'order'        => 'asc',
+			'meta_key'     => 'custom_meta_key',
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
+			$method_executed = true;
+
+			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -6569,14 +6772,42 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
 
-		// Meta value number.
-		$query_args['orderby']  = 'meta_value_num';
-		$query_args['meta_key'] = 'custom_price';
+		$this->assertTrue( $method_executed );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $posts[1], $query->posts[0] );
+		$this->assertSame( $posts[0], $query->posts[1] );
+		$this->assertSame( $posts[2], $query->posts[2] );
+	}
 
-		$assert_callback = function( $args ) {
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with `'meta_value*'` parameters
+	 *
+	 * @param string $meta_value_type Meta value type (as in WP)
+	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @since 4.6.0
+	 * @dataProvider parseOrderbyMetaDataProvider
+	 * @group post
+	 */
+	public function testParseOrderbyMetaValueWithoutMetaKeyParams( $meta_value_type, $es_type ) {
+		$method_executed = false;
 
-			$this->assertArrayHasKey( 'meta.custom_price.long', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['meta.custom_price.long']['order'] );
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => 'meta_value' . ( $meta_value_type ? "_{$meta_value_type}" : '' ),
+			'order'        => 'asc',
+			'meta_query'   => [
+				[
+					'key'     => 'custom_meta_key',
+					'compare' => 'EXISTS',
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
+			$method_executed = true;
+
+			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -6585,6 +6816,55 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_formatted_args', $assert_callback );
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
+
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with named meta queries
+	 *
+	 * @param string $meta_value_type Meta value type (as in WP)
+	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @since 4.6.0
+	 * @dataProvider parseOrderbyMetaDataProvider
+	 * @group post
+	 */
+	public function testParseOrderbyMetaQueryTypes( $meta_value_type, $es_type ) {
+		$method_executed = false;
+
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => 'named_clause',
+			'order'        => 'asc',
+			'meta_query'   => [
+				[
+					'key'  => 'unused_key',
+					'type' => 'NUMERIC',
+				],
+				'named_clause' => [
+					'key'  => 'custom_meta_key',
+					'type' => $meta_value_type,
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
+			$method_executed = true;
+
+			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
 	}
 
 	/**
@@ -6681,8 +6961,6 @@ class TestPost extends BaseTestCase {
 			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
 			remove_filter( 'ep_post_mapping_file', $assert_callback );
 		}
-
-		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 
 	/**
@@ -7194,7 +7472,7 @@ class TestPost extends BaseTestCase {
 					'common_meta_one' => 'lorem',
 					'common_meta_two' => 'ipsum',
 				),
-			),
+			)
 		);
 		$this->ep_factory->post->create(
 			array(
@@ -7203,7 +7481,7 @@ class TestPost extends BaseTestCase {
 					'common_meta_one' => 'lorem',
 					'common_meta_two' => 'ipsum',
 				),
-			),
+			)
 		);
 
 		delete_metadata( 'post', null, 'common_meta_one', 'lorem', true );
@@ -7383,6 +7661,48 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests parent term edition when child term is attached to post
+	 *
+	 * @return void
+	 * @group  post
+	 */
+	public function testParentEditedTerm() {
+		$post = $this->ep_factory->post->create_and_get();
+
+		$tax_name = rand_str( 32 );
+		register_taxonomy( $tax_name, $post->post_type, array( 'label' => $tax_name ) );
+		register_taxonomy_for_object_type( $tax_name, $post->post_type );
+
+		$term_1_name = rand_str( 32 );
+		$term_1      = wp_insert_term( $term_1_name, $tax_name );
+
+		$term_2_name = rand_str( 32 );
+		$term_2      = wp_insert_term( $term_2_name, $tax_name, array( 'parent' => $term_1['term_id'] ) );
+
+		wp_set_object_terms( $post->ID, array( $term_2['term_id'] ), $tax_name, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$test_tag = get_term_by( 'id', $term_1['term_id'], $tax_name );
+
+		wp_update_term(
+			$test_tag->term_id,
+			$tax_name,
+			[
+				'slug' => 'parent-term',
+				'name' => 'Parent Term',
+			]
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$document = ElasticPress\Indexables::factory()->get( 'post' )->get( $post->ID );
+		$this->assertEquals( 'parent-term', $document['terms'][ $tax_name ][1]['slug'] );
+		$this->assertEquals( 'Parent Term', $document['terms'][ $tax_name ][1]['name'] );
+	}
+
+	/**
 	 * Tests post without meta value.
 	 *
 	 * @return void
@@ -7488,8 +7808,6 @@ class TestPost extends BaseTestCase {
 
 		$search_algorithm = $post_indexable->get_search_algorithm( '', [], [] );
 		$this->assertSame( $version_35, $search_algorithm );
-
-		remove_filter( 'ep_post_search_algorithm', $set_version_35 );
 	}
 
 	/**
@@ -7589,5 +7907,945 @@ class TestPost extends BaseTestCase {
 		$this->assertCount( 2, $distinct_values_2 );
 		$this->assertContains( 'lorem', $distinct_values_2 );
 		$this->assertContains( 'ipsum', $distinct_values_2 );
+	}
+
+	/**
+	 * Tests search term wrapped in html tags.
+	 */
+	public function testHighlightTags() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test content',
+				'post_title'   => 'test title',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_content );
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_title );
+
+		// bypass the highlighting the search term
+		add_filter( 'ep_highlight_should_add_clause', '__return_false' );
+
+		$query = new \WP_Query( $args );
+
+		$this->assertEquals( 'test content', $query->posts[0]->post_content );
+		$this->assertEquals( 'test title', $query->posts[0]->post_title );
+	}
+
+	/**
+	 * Tests the `ep_bypass_exclusion_from_search` filter
+	 */
+	public function testExcludeFromSearchQueryBypassFilter() {
+		$this->ep_factory->post->create_many(
+			2,
+			array(
+				'post_content' => 'find me in search',
+				'meta_input'   => array( 'ep_exclude_from_search' => false ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$bypass = function( $should_bypass, $query ) {
+			$this->assertInstanceOf( \WP_Query::class, $query );
+			return true;
+		};
+		add_filter( 'ep_bypass_exclusion_from_search', $bypass, 10, 2 );
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+
+		remove_filter( 'ep_bypass_exclusion_from_search', $bypass, 10, 2 );
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
+	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
+	 */
+	public function testExcludeFromSearchQuery() {
+
+		$this->ep_factory->post->create_many(
+			2,
+			array(
+				'post_content' => 'find me in search',
+				'meta_input'   => array( 'ep_exclude_from_search' => false ),
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
+	 * Tests search term is wrapped in html tag with custom class
+	 */
+	public function testHighlightTagsWithCustomClass() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test content',
+				'post_title'   => 'test title',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_highlighting_class',
+			function( $class ) {
+				return 'my-custom-class';
+			}
+		);
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertStringContainsString( '<mark class=\'my-custom-class\'>test</mark>', $query->posts[0]->post_content );
+		$this->assertStringContainsString( '<mark class=\'my-custom-class\'>test</mark>', $query->posts[0]->post_title );
+
+	}
+
+	/**
+	 * Tests search term is wrapped in html tag only for tite.
+	 */
+	public function testHighlightTagsOnlyForTitle() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test content',
+				'post_title'   => 'test title',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_highlighting_fields',
+			function( $fields ) {
+				return array( 'post_title' );
+			}
+		);
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_title );
+		$this->assertStringNotContainsString( '<mark class=\'ep-highlight\'>test</mark>', $query->posts[0]->post_content );
+	}
+
+	/**
+	 * Test get_the_excerpt() has HTML tags when highlight_excerpt is enabled.
+	 */
+	public function testExcerptHasHiglightHTMLTags() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+				'highlight_excerpt' => true,
+			)
+		);
+
+		$this->ep_factory->post->create( array( 'post_excerpt' => 'test excerpt' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$expected_result = '<mark class=\'ep-highlight\'>test</mark> excerpt';
+		$this->assertEquals( $expected_result, $query->posts[0]->post_excerpt );
+		$this->assertEquals( $expected_result, get_the_excerpt( $query->posts[0] ) );
+
+		// test post without excerpt
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'new post',
+				'post_excerpt' => '',
+			)
+		);
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'new',
+		);
+		$query = new \WP_Query( $args );
+
+		// using StringContainsString because the_content filter adds the break line.
+		$this->assertStringContainsString( '<mark class=\'ep-highlight\'>new</mark> post', get_the_excerpt( $query->posts[0] ) );
+	}
+
+	/**
+	 * Tests highlight parameters are not added to the query when search term is empty.
+	 */
+	public function testHighlightTagsNotSetWhenSearchIsEmpty() {
+
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			array(
+				'active'            => true,
+				'highlight_enabled' => true,
+			)
+		);
+
+		$this->ep_factory->post->create( array( 'post_content' => 'test content' ) );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_action(
+			'pre_http_request',
+			function( $preempt, $parsed_args, $url ) {
+
+				$body = json_decode( $parsed_args['body'], true );
+				$this->assertArrayNotHasKey( 'highlight', $body );
+				return $preempt;
+			},
+			10,
+			3
+		);
+
+		$args  = array(
+			's'            => '',
+			'ep_integrate' => true,
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Tests exclude from search only works on the search query.
+	 */
+	public function testExcludeFromSearchOnlyRunOnSearchQuery() {
+
+		$this->ep_factory->post->create_many(
+			5,
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			'ep_integrate' => true,
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
+
+		$args  = array(
+			's' => 'test',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
+	}
+
+	/**
+	 * Test exclude from search when meta query is set.
+	 */
+	public function testExcludeFromSearchQueryWithMetaQuery() {
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array(
+					'ep_exclude_from_search' => true,
+					'test_key'               => 'test',
+				),
+			)
+		);
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array(
+					'ep_exclude_from_search' => false,
+					'test_key'               => 'test',
+				),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's'          => 'test',
+			'meta_query' => array(
+				array(
+					'key'   => 'test_key',
+					'value' => 'test',
+				),
+			),
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+
+	}
+
+	/**
+	 * Test exclude from search filter doesn't apply for admin quries.
+	 *
+	 * @since 4.4.0
+	 */
+	public function testExcludeFromSearchFilterDoesNotApplyForAdminQueries() {
+
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		$this->ep_factory->post->create_many(
+			5,
+			array(
+				'post_content' => 'test post',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'test post',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+		$this->assertEquals( 5, $query->post_count );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys_db
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetDistinctMetaFieldKeysDb() {
+		global $wpdb;
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db( true ) );
+
+		// Make sure it works if no allowed protected key is found
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', '__return_empty_array' );
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db( true ) );
+		$this->assertEmpty( $wpdb->last_error );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', '__return_empty_array' );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db` filter
+		 */
+		$return_custom_array = function() {
+			return [ 'totally_custom_key' ];
+		};
+		add_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
+
+		// It should not send any new SQL query
+		$num_queries = $wpdb->num_queries;
+		$this->assertGreaterThan( 0, $num_queries );
+
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db( true ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		remove_filter( 'ep_post_pre_meta_keys_db', $return_custom_array );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db` filter
+		 */
+		$return_custom_array = function( $meta_keys ) {
+			return array_merge( $meta_keys, [ 'custom_key' ] );
+		};
+		add_filter( 'ep_post_meta_keys_db', $return_custom_array );
+
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db( true ) );
+	}
+
+	/**
+	 * Tests get_distinct_meta_field_keys_db_per_post_type
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 * @expectedIncorrectUsage ElasticPress\Indexable\Post\Post::get_distinct_meta_field_keys_db_per_post_type
+	 */
+	public function testGetDistinctMetaFieldKeysDbPerPostType() {
+		global $wpdb;
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		// Without setting the correct screen, this should throw a _doing_it_wrong
+		$this->assertSame( [], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+
+		$this->setupDistinctMetaFieldKeysDbPerPostType();
+
+		$meta_keys = [ '_private_key', 'test_key_1', 'test_key_2' ];
+		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+
+		/**
+		 * Test the `ep_post_pre_meta_keys_db_per_post_type` filter
+		 */
+		$return_custom_array = function( $meta_keys, $post_type ) {
+			$this->assertSame( $post_type, 'ep_test' );
+			return [ 'totally_custom_key' ];
+		};
+		add_filter( 'ep_post_pre_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
+
+		// It should not send any new SQL query
+		$num_queries = $wpdb->num_queries;
+		$this->assertGreaterThan( 0, $num_queries );
+
+		$this->assertSame( [ 'totally_custom_key' ], $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		remove_filter( 'ep_post_pre_meta_keys_db_per_post_type', $return_custom_array );
+
+		/**
+		 * Test the `ep_post_meta_keys_db_per_post_type` filter
+		 */
+		$return_custom_array = function( $meta_keys, $post_type ) {
+			$this->assertSame( $post_type, 'ep_test' );
+			return array_merge( $meta_keys, [ 'custom_key' ] );
+		};
+		add_filter( 'ep_post_meta_keys_db_per_post_type', $return_custom_array, 10, 2 );
+
+		$this->assertSame( array_merge( $meta_keys, [ 'custom_key' ] ), $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+	}
+
+
+	/**
+	 * Tests the filters in get_lazy_post_type_ids
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetLazyPostTypeIdsFilters() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->setupDistinctMetaFieldKeysDbPerPostType();
+
+		/**
+		 * Test the `ep_post_meta_by_type_ids_per_page` and `ep_post_meta_by_type_number_of_pages` filters
+		 */
+		$custom_number_of_ids = function( $per_page, $post_type ) {
+			$this->assertSame( 11000, $per_page );
+			$this->assertSame( $post_type, 'ep_test' );
+			return 1;
+		};
+		add_filter( 'ep_post_meta_by_type_ids_per_page', $custom_number_of_ids, 10, 2 );
+
+		$custom_number_of_pages = function( $pages, $per_page, $post_type ) {
+			$this->assertSame( 1, $per_page );
+			$this->assertSame( $post_type, 'ep_test' );
+			return 1;
+		};
+		add_filter( 'ep_post_meta_by_type_number_of_pages', $custom_number_of_pages, 10, 3 );
+
+		// All meta keys from the first post
+		$this->assertCount( 3, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
+	}
+
+	/**
+	 * Tests get_indexable_meta_keys_per_post_type
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetIndexableMetaKeysPerPostType() {
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'  => 'ep_test',
+				'meta_input' => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			]
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'  => 'ep_test_2',
+				'meta_input' => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			]
+		);
+
+		$meta_keys = [ 'test_key_1', 'test_key_2' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
+
+		$change_allowed_meta = function () {
+			return [ 'test_key_1' => 'meta value 1' ];
+		};
+		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
+
+		$meta_keys = [ 'test_key_1' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
+	}
+
+	/**
+	 * Tests get_predicted_indexable_meta_keys
+	 *
+	 * @since 4.4.0
+	 * @group post
+	 */
+	public function testGetPredictedIndexableMetaKeys() {
+		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'  => 'ep_test',
+				'meta_input' => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			]
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'  => 'ep_test_2',
+				'meta_input' => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			]
+		);
+
+		$meta_keys = [ 'test_key_1', 'test_key_2', 'test_key_3' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+
+		$change_allowed_meta = function () {
+			return [ 'test_key_1' => 'meta value 1' ];
+		};
+		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
+
+		$meta_keys = [ 'test_key_1' ];
+		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
+	}
+
+	/**
+	 * Tests put_mapping method.
+	 *
+	 * @since 4.4.1
+	 */
+	public function testPutMappingThrowsError() {
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		$this->assertTrue( $mapping );
+
+		// Try to put mapping again to trigger error `resource_already_exists_exception`. Expect false as it defaults to return a bool
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+		$this->assertFalse( $mapping );
+
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping( 'raw' );
+		$this->assertInstanceOf( 'WP_Error', $mapping );
+		$this->assertEquals( 400, $mapping->get_error_code() );
+
+		// Try to put mapping again to trigger WP_Error by providing an empty host.
+		add_filter( 'ep_pre_request_host', '__return_empty_string' );
+		$mapping = ElasticPress\Indexables::factory()->get( 'post' )->put_mapping( 'raw' );
+
+		$this->assertInstanceOf( 'WP_Error', $mapping );
+		$this->assertEquals( 'http_request_failed', $mapping->get_error_code() );
+		remove_filter( 'ep_pre_request_host', '__return_empty_string' );
+	}
+
+	/**
+	 * Utilitary function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
+	 *
+	 * @return void
+	 */
+	protected function setupDistinctMetaFieldKeysDbPerPostType() {
+		ElasticPress\Screen::factory()->set_current_screen( 'status-report' );
+
+		$this->ep_factory->post->create(
+			[
+				'post_type'  => 'ep_test',
+				'meta_input' => [
+					'_private_key' => 'private-meta',
+					'test_key_1'   => 'meta value 1',
+					'test_key_2'   => 'meta value 2.1',
+				],
+			]
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_type'  => 'ep_test_2',
+				'meta_input' => [
+					'test_key_2' => 'meta value 2.2',
+					'test_key_3' => 'meta value 3',
+				],
+			]
+		);
+	}
+
+	/**
+	 * Tests that deleting a thumbnail updates the meta value of all the linked indexable posts
+	 *
+	 * @since 4.5.0
+	 */
+	public function testDeletingThumbnailUpdateRelatedIndexablePost() {
+		$product_id = $this->ep_factory->post->create(
+			array(
+				'post_type' => 'product',
+			)
+		);
+
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$product_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		set_post_thumbnail( $product_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $product_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $product_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_delete_attachment( $thumbnail_id, true );
+		$this->assertEquals( '', get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
+		$this->assertArrayNotHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+
+	/**
+	 * Tests that deleting a thumbnail does not update the meta value of all the linked non-indexable posts
+	 *
+	 * @since 4.5.0
+	 */
+	public function testDeletingThumbnailShouldNotUpdateRelatedNonIndexablePost() {
+		$product_id = $this->ep_factory->post->create(
+			array(
+				'post_type' => 'product',
+			)
+		);
+
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$product_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		set_post_thumbnail( $product_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $product_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $product_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Remove product from indexable post types.
+		add_filter(
+			'ep_indexable_post_types',
+			function( $post_types ) {
+				unset( $post_types['product'] );
+				return $post_types;
+			}
+		);
+
+		wp_delete_attachment( $thumbnail_id, true );
+		$this->assertEquals( '', get_post_meta( $product_id, '_thumbnail_id', true ) );
+
+		$ep_post = ElasticPress\Indexables::factory()->get( 'post' )->get( $product_id );
+		$this->assertArrayHasKey( '_thumbnail_id', $ep_post['meta'] );
+	}
+
+	/**
+	 * Test that query with unsupported orderby does not use EP.
+	 *
+	 * @since 4.5.0
+	 */
+	public function testQueryWithUnSupportedOrderByDoesNotUseEP() {
+		// test for post__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post__in title',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and with different sort orders
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array(
+					'post__in' => 'DESC',
+					'title'    => 'ASC',
+				),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post__in with fallback to a title and without orders.
+		$query = new \WP_Query(
+			array(
+				'orderby'      => array( 'post__in', 'title' ),
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post_name__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post_name__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for post_parent__in
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'post_parent__in',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+
+		// test for parent
+		$query = new \WP_Query(
+			array(
+				'orderby'      => 'parent',
+				'ep_integrate' => true,
+			)
+		);
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test the `add_ngram_analyzer` method
+	 *
+	 * @todo Move this to a mock, as it is just inherited now
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testAddNgramAnalyzer() {
+		$post_indexable   = ElasticPress\Indexables::factory()->get( 'post' );
+		$changed_mapping  = $post_indexable->add_ngram_analyzer( [] );
+		$expected_mapping = [
+			'settings' => [
+				'analysis' => [
+					'analyzer' => [
+						'edge_ngram_analyzer' => [
+							'type'      => 'custom',
+							'tokenizer' => 'standard',
+							'filter'    => [
+								'lowercase',
+								'edge_ngram',
+							],
+						],
+					],
+				],
+			],
+		];
+
+		$this->assertSame( $expected_mapping, $changed_mapping );
+	}
+
+	/**
+	 * Test the `add_term_suggest_field` method with the ES 7 mapping
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testAddTermSuggestFieldEs7() {
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+
+		$original_mapping = [
+			'mappings' => [
+				'properties' => [
+					'post_content' => [ 'type' => 'text' ],
+				],
+			],
+		];
+		$changed_mapping  = $post_indexable->add_term_suggest_field( $original_mapping );
+
+		$expected_mapping = [
+			'mappings' => [
+				'properties' => [
+					'post_content' => [ 'type' => 'text' ],
+					'term_suggest' => [
+						'type'            => 'text',
+						'analyzer'        => 'edge_ngram_analyzer',
+						'search_analyzer' => 'standard',
+					],
+				],
+			],
+		];
+
+		$this->assertSame( $expected_mapping, $changed_mapping );
+	}
+
+	/**
+	 * Test the `add_term_suggest_field` method with the ES 5 mapping
+	 *
+	 * @since 4.5.0
+	 * @group post
+	 */
+	public function testAddTermSuggestFieldEs5() {
+		$change_es_version = function() {
+			return '5.6';
+		};
+		add_filter( 'ep_elasticsearch_version', $change_es_version );
+
+		$post_indexable = ElasticPress\Indexables::factory()->get( 'post' );
+
+		$original_mapping = [
+			'mappings' => [
+				'post' => [
+					'properties' => [
+						'post_content' => [ 'type' => 'text' ],
+					],
+				],
+			],
+		];
+		$changed_mapping  = $post_indexable->add_term_suggest_field( $original_mapping );
+
+		$expected_mapping = [
+			'mappings' => [
+				'post' => [
+					'properties' => [
+						'post_content' => [ 'type' => 'text' ],
+						'term_suggest' => [
+							'type'            => 'text',
+							'analyzer'        => 'edge_ngram_analyzer',
+							'search_analyzer' => 'standard',
+						],
+					],
+				],
+			],
+		];
+
+		$this->assertSame( $expected_mapping, $changed_mapping );
+	}
+
+	/**
+	 * Test negative `menu_order` values.
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 * @see https://github.com/10up/ElasticPress/issues/3440#issuecomment-1545446291
+	 */
+	public function testNegativeMenuOrder() {
+		$post_negative = $this->ep_factory->post->create( array( 'menu_order' => -2 ) );
+		$post_positive = $this->ep_factory->post->create( array( 'menu_order' => 1 ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			array(
+				'ep_integrate' => true,
+				'fields'       => 'ids',
+				'post_type'    => 'post',
+				'order'        => 'ASC',
+				'orderby'      => 'menu_order',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, count( $query->posts ) );
+		$this->assertEquals( $post_negative, $query->posts[0] );
+		$this->assertEquals( $post_positive, $query->posts[1] );
 	}
 }

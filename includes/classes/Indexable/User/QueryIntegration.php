@@ -30,9 +30,21 @@ class QueryIntegration {
 	 * @since 3.6.0 Added $indexable_slug
 	 */
 	public function __construct( $indexable_slug = 'user' ) {
+		/**
+		 * Filter whether to enable query integration during indexing
+		 *
+		 * @since 4.5.2
+		 * @hook ep_enable_query_integration_during_indexing
+		 *
+		 * @param {bool} $enable To allow query integration during indexing
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, $indexable_slug );
+
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
 		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
-		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug ) ) {
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug ) && ! $allow_query_integration_during_indexing ) {
 			return;
 		}
 
@@ -91,11 +103,12 @@ class QueryIntegration {
 			 *
 			 * $query->elasticsearch_success = true;
 			 */
+			$query->query_vars['elasticsearch_success'] = true;
 
 			$fields    = $query->get( 'fields' );
 			$new_users = [];
 
-			if ( 'all_with_meta' === $fields ) {
+			if ( in_array( $fields, [ 'all', 'all_with_meta' ], true ) ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document['ID'];
 				}
@@ -115,7 +128,7 @@ class QueryIntegration {
 
 					$new_users[] = $user;
 				}
-			} elseif ( is_string( $fields ) && ! empty( $fields ) && 'all' !== $fields ) {
+			} elseif ( is_string( $fields ) && ! empty( $fields ) ) {
 				foreach ( $ep_query['documents'] as $document ) {
 					$new_users[] = $document[ $fields ];
 				}

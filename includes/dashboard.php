@@ -115,7 +115,10 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'target'         => true,
 		];
 
-		$ep_tags['a'] = $atts;
+		$ep_tags['a'] = array_merge(
+			$atts,
+			[ 'target' => true ]
+		);
 
 		return $ep_tags;
 	}
@@ -203,11 +206,10 @@ function maybe_skip_install() {
 
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 		$redirect_url = network_admin_url( 'admin.php?page=elasticpress' );
-		update_site_option( 'ep_skip_install', true );
 	} else {
 		$redirect_url = admin_url( 'admin.php?page=elasticpress' );
-		update_option( 'ep_skip_install', true );
 	}
+	Utils\update_option( 'ep_skip_install', true );
 
 	wp_safe_redirect( $redirect_url );
 	exit;
@@ -236,6 +238,7 @@ function maybe_clear_es_info_cache() {
 
 	if ( ! empty( $_GET['ep-retry'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
+		exit();
 	}
 }
 
@@ -298,22 +301,11 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
 function maybe_notice( $force = false ) {
 	// Admins only.
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_super_admin() ) {
+		if ( ! is_super_admin() || ! is_network_admin() ) {
 			return false;
 		}
 	} else {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-	}
-
-	// If in network mode, don't output notice in admin and vice-versa.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_network_admin() ) {
-			return false;
-		}
-	} else {
-		if ( is_network_admin() ) {
+		if ( is_network_admin() || ! current_user_can( Utils\get_capability() ) ) {
 			return false;
 		}
 	}
@@ -378,7 +370,7 @@ function action_wp_ajax_ep_notice_dismiss() {
 		exit;
 	}
 
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( Utils\get_capability() ) ) {
 		wp_send_json_error();
 		exit;
 	}
@@ -439,11 +431,7 @@ function action_wp_ajax_ep_save_feature() {
 
 	// Since we deactivated, delete auto activate notice.
 	if ( empty( $_POST['settings']['active'] ) ) {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_option( 'ep_feature_auto_activated_sync' );
-		} else {
-			delete_option( 'ep_feature_auto_activated_sync' );
-		}
+		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 	}
 
 	wp_send_json_success( $data );
@@ -476,7 +464,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ], true ) ) {
 		wp_enqueue_style(
 			'ep_admin_styles',
 			EP_URL . 'dist/css/dashboard-styles.css',
@@ -604,16 +592,11 @@ function action_admin_init() {
 		check_admin_referer( 'elasticpress-options' );
 
 		$language = sanitize_text_field( $_POST['ep_language'] );
-		update_site_option( 'ep_language', $language );
+		Utils\update_option( 'ep_language', $language );
 
 		if ( isset( $_POST['ep_host'] ) ) {
 			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
-			update_site_option( 'ep_host', $host );
-		}
-
-		if ( isset( $_POST['ep_prefix'] ) ) {
-			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-			update_site_option( 'ep_prefix', $prefix );
+			Utils\update_option( 'ep_host', $host );
 		}
 
 		if ( isset( $_POST['ep_credentials'] ) ) {
@@ -622,15 +605,14 @@ function action_admin_init() {
 				'token'    => '',
 			];
 
-			update_site_option( 'ep_credentials', $credentials );
+			Utils\update_option( 'ep_credentials', $credentials );
 		}
 
 		if ( isset( $_POST['ep_bulk_setting'] ) ) {
-			update_site_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+			Utils\update_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
 		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
-		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
 		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
 		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
 		register_setting(
@@ -674,11 +656,7 @@ function resolve_screen() {
  * @return void
  */
 function action_admin_menu() {
-	$capability = 'manage_options';
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$capability = 'manage_network';
-	}
+	$capability = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_network_capability() : Utils\get_capability();
 
 	add_menu_page(
 		'ElasticPress',
@@ -722,6 +700,15 @@ function action_admin_menu() {
 		esc_html__( 'Index Health', 'elasticpress' ),
 		$capability,
 		'elasticpress-health',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+
+	add_submenu_page(
+		'elasticpress',
+		esc_html__( 'ElasticPress Status Report', 'elasticpress' ),
+		esc_html__( 'Status Report', 'elasticpress' ),
+		$capability,
+		'elasticpress-status-report',
 		__NAMESPACE__ . '\resolve_screen'
 	);
 }

@@ -9,7 +9,7 @@ describe('User Indexable', () => {
 		cy.wpCli(`wp user get ${newUserData.userLogin} --field=ID`, true).then((wpCliResponse) => {
 			if (wpCliResponse.code === 0) {
 				cy.wpCli(`wp user delete ${newUserData.userLogin} --yes --network`);
-				cy.wpCli('wp elasticpress index --setup --yes');
+				cy.wpCli('wp elasticpress sync --setup --yes');
 			}
 		});
 
@@ -66,7 +66,7 @@ describe('User Indexable', () => {
 		cy.get('.query-results').should('contain.text', '"user_email": "testuser@example.com"');
 
 		// Test if the user is still found a reindex.
-		cy.wpCli('wp elasticpress index --setup --yes');
+		cy.wpCli('wp elasticpress sync --setup --yes');
 
 		searchUser();
 
@@ -118,7 +118,7 @@ describe('User Indexable', () => {
 		cy.wpCli(`wp user get ${newUserData.userLogin} --field=ID`, true).then((wpCliResponse) => {
 			if (wpCliResponse.code === 0) {
 				cy.wpCli(`wp user delete ${newUserData.userLogin} --yes --network`);
-				cy.wpCli('wp elasticpress index --setup --yes');
+				cy.wpCli('wp elasticpress sync --setup --yes');
 			}
 		});
 
@@ -127,7 +127,7 @@ describe('User Indexable', () => {
 		cy.get('#username').clearThenType(newUserData.userLogin);
 		cy.get('#email').clearThenType(newUserData.userEmail);
 		cy.get('#add-user').click();
-		cy.get('#message.updated').should('be.visible');
+		cy.get('#message.notice-success').should('be.visible');
 
 		// Searching for it should not return anything.
 		searchUser('nobloguser');

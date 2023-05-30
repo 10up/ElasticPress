@@ -52,6 +52,62 @@ function get_epio_credentials() {
 }
 
 /**
+ * Get WP capability needed for a user to interact with ElasticPress in the admin
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function get_capability() : string {
+	/**
+	 * Filter the WP capability needed to interact with ElasticPress in the admin
+	 *
+	 * @since 4.5.0
+	 * @hook ep_capability
+	 * @param  {bool} $capability Capability name. Defaults to `'elasticpress_manage'`
+	 * @return {bool} New capability value
+	 */
+	return apply_filters( 'ep_capability', 'manage_elasticpress' );
+}
+
+/**
+ * Get WP capability needed for a user to interact with ElasticPress in the network admin
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function get_network_capability() : string {
+	/**
+	 * Filter the WP capability needed to interact with ElasticPress in the network admin
+	 *
+	 * @since 4.5.0
+	 * @hook ep_network_capability
+	 * @param  {bool} $capability Capability name. Defaults to `'manage_network_elasticpress'`
+	 * @return {bool} New capability value
+	 */
+	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress' );
+}
+
+/**
+ * Get mapped capabilities for post types
+ *
+ * @since 4.5.0
+ * @return array
+ */
+function get_post_map_capabilities() : array {
+	$capability = get_capability();
+
+	return [
+		'edit_post'          => $capability,
+		'edit_posts'         => $capability,
+		'edit_others_posts'  => $capability,
+		'publish_posts'      => $capability,
+		'read_post'          => $capability,
+		'read_private_posts' => $capability,
+		'delete_post'        => $capability,
+	];
+}
+
+/**
  * Get shield credentials
  *
  * @since  3.0
@@ -77,14 +133,15 @@ function get_shield_credentials() {
  * @return string|bool
  */
 function get_index_prefix() {
-	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-		$prefix = EP_INDEX_PREFIX;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
-		$prefix = get_site_option( 'ep_prefix', false );
+	if ( defined( 'EP_INDEX_PREFIX' ) && \EP_INDEX_PREFIX ) {
+		$prefix = \EP_INDEX_PREFIX;
 	} elseif ( is_epio() ) {
-		$prefix = get_option( 'ep_prefix', false );
-
-		if ( '-' !== substr( $prefix, - 1 ) ) {
+		$credentials = get_epio_credentials();
+		$prefix      = $credentials['username'];
+		if (
+			( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) &&
+			( '-' !== substr( $prefix, - 1 ) )
+		) {
 			$prefix .= '-';
 		}
 	} else {
@@ -670,4 +727,94 @@ function get_asset_info( $slug, $attribute = null ) {
 	}
 
 	return $asset;
+}
+
+/**
+ * Return the Sync Page URL.
+ *
+ * @since 4.4.0
+ * @param boolean $do_sync Whether the link should or should not start a resync.
+ * @return string
+ */
+function get_sync_url( bool $do_sync = false ) : string {
+	$page = 'admin.php?page=elasticpress-sync';
+	if ( $do_sync ) {
+		$page .= '&do_sync';
+	}
+	return ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+		network_admin_url( $page ) :
+		admin_url( $page );
+}
+
+/**
+ * Generate a common prefix to be used while generating a request ID.
+ *
+ * Uses the return of `get_index_prefix()` by default.
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function get_request_id_base() {
+	/**
+	 * Filter the base of requests IDs. Uses the return of `get_index_prefix()` by default.
+	 *
+	 * @hook ep_request_id_base
+	 * @since 4.5.0
+	 * @param {string} $request_id_base Request ID base
+	 * @return {string} New Request ID base
+	 */
+	return apply_filters( 'ep_request_id_base', str_replace( '-', '', get_index_prefix() ) );
+}
+
+/**
+ * Generate a Request ID.
+ *
+ * The function concatenates the indices prefix to a random UUID4.
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function generate_request_id() : string {
+	$uuid = str_replace( '-', '', wp_generate_uuid4() );
+
+	/**
+	 * Filter the ID generated to identify a request.
+	 *
+	 * @hook ep_request_id
+	 * @since 4.5.0
+	 * @param {string} $request_id Request ID. By default formed by the indices prefix and a random UUID4.
+	 * @return {string} New Request ID
+	 */
+	return apply_filters( 'ep_request_id', get_request_id_base() . $uuid );
+}
+
+/**
+ * Given an Elasticsearch response, try to find an error message.
+ *
+ * @since 4.6.0
+ * @param mixed $response The Elasticsearch response
+ * @return string
+ */
+function get_elasticsearch_error_reason( $response ) : string {
+	if ( is_string( $response ) ) {
+		return $response;
+	}
+
+	if ( ! is_array( $response ) ) {
+		return var_export( $response, true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+	}
+
+	if ( ! empty( $response['reason'] ) ) {
+		return $response['reason'];
+	}
+
+	if ( ! empty( $response['result']['error'] ) && ! empty( $response['result']['error']['root_cause'][0]['reason'] ) ) {
+		return $response['result']['error']['root_cause'][0]['reason'];
+	}
+
+	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) && ! empty( $response['result']['items'][0]['index']['error']['reason'] ) ) {
+		return $response['result']['items'][0]['index']['error']['reason'];
+	}
+
+	return '';
 }

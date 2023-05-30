@@ -1,4 +1,5 @@
-describe('Terms Feature', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('Terms Feature', { tags: '@slow' }, () => {
 	const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing'];
 
 	before(() => {
@@ -18,6 +19,8 @@ describe('Terms Feature', () => {
 	it('Can turn the feature on', () => {
 		cy.login();
 
+		cy.maybeDisableFeature('terms');
+
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.get('.ep-feature-terms .settings-button').click();
 		cy.get('.ep-feature-terms [name="settings[active]"][value="1"]').click();
@@ -30,8 +33,8 @@ describe('Terms Feature', () => {
 		cy.get('@syncPanel').find('.components-form-toggle').click();
 		cy.get('@syncPanel')
 			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Mapping sent')
-			.should('contain.text', 'Sync complete');
+			.should('contain.text', 'Sync complete')
+			.should('contain.text', 'Mapping sent');
 
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});

@@ -1,6 +1,7 @@
-describe('Post Search Feature', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('Post Search Feature', { tags: '@slow' }, () => {
 	before(() => {
-		cy.wpCli('elasticpress index --setup --yes');
+		cy.wpCli('elasticpress sync --setup --yes');
 	});
 
 	it('Can use Elasticsearch for the default WP search', () => {

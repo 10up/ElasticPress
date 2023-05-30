@@ -17,6 +17,7 @@ import SyncPanel from './sync/panel';
  * @param {boolean} props.isComplete If sync is complete.
  * @param {boolean} props.isDeleting If sync is a delete and sync.
  * @param {boolean} props.isEpio If ElasticPress is using ElasticPress.io.
+ * @param {boolean} props.isFailed If sync has failed.
  * @param {boolean} props.isPaused If sync is paused.
  * @param {boolean} props.isSyncing If sync is running.
  * @param {number} props.itemsProcessed Number of items processed.
@@ -32,7 +33,7 @@ import SyncPanel from './sync/panel';
  * @param {string} props.syncStartDateTime Date and time of current sync in ISO 8601.
  * @returns {WPElement} Sync page component.
  */
-export default ({ isCli, isComplete, isDeleting, isEpio, isSyncing, log, ...props }) => {
+export default ({ isCli, isComplete, isDeleting, isEpio, isFailed, isSyncing, log, ...props }) => {
 	const isInitialSync = props.lastSyncDateTime === null;
 
 	return (
@@ -59,10 +60,11 @@ export default ({ isCli, isComplete, isDeleting, isEpio, isSyncing, log, ...prop
 				}
 				isComplete={isComplete}
 				isDisabled={(isSyncing && isDeleting) || (isSyncing && isCli)}
+				isFailed={isFailed}
 				isSyncing={isSyncing && !isDeleting}
 				logMessages={log.filter((m) => !m.isDeleting)}
 				showLastSync
-				showProgress={!isDeleting && (isSyncing || isComplete)}
+				showProgress={!isDeleting && (isSyncing || isComplete || isFailed)}
 				showSync
 				{...props}
 			/>
@@ -76,10 +78,11 @@ export default ({ isCli, isComplete, isDeleting, isEpio, isSyncing, log, ...prop
 					)}
 					isComplete={isComplete}
 					isDisabled={(isSyncing && !isDeleting) || (isSyncing && isCli)}
+					isFailed={isFailed}
 					isSyncing={isSyncing && isDeleting}
 					logMessages={log.filter((m) => m.isDeleting)}
 					showDelete
-					showProgress={isDeleting && (isSyncing || isComplete)}
+					showProgress={isDeleting && (isSyncing || isComplete || isFailed)}
 					warningMessage={__(
 						'All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happening, searches will use the default WordPress results',
 						'elasticpress',

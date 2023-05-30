@@ -13,12 +13,12 @@
     },
     {
       "name": "10up",
-      "homepage": "http://10up.com"
+      "homepage": "https://10up.com"
     },
     {
       "name": "Aaron Holbrook",
       "email": "aaron@10up.com",
-      "homepage": "http://aaronjholbrook.com"
+      "homepage": "https://aaronjholbrook.com"
     }
   ],
   "repositories": [
@@ -38,8 +38,8 @@
     "yoast/phpunit-polyfills": "^1.0"
   },
   "scripts": {
-    "lint": "phpcs elasticpress.php includes --runtime-set testVersion 7.0-",
-    "lint-fix": "phpcbf elasticpress.php includes",
+    "lint": "phpcs . -s --runtime-set testVersion 7.0-",
+    "lint-fix": "phpcbf .",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",
     "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true"

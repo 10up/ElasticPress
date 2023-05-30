@@ -104,6 +104,13 @@ class Search extends Feature {
 		add_filter( 'ep_formatted_args', [ $this, 'add_search_highlight_tags' ], 10, 2 );
 		add_filter( 'ep_highlighting_tag', [ $this, 'get_highlighting_tag' ] );
 		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
+
+		add_action( 'init', [ $this, 'register_meta' ], 20 );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
+		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
+		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
+		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
+		add_filter( 'ep_skip_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
 	}
 
 
@@ -256,10 +263,6 @@ class Search extends Feature {
 			return;
 		}
 
-		if ( empty( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			return;
-		}
-
 		$settings = $this->get_settings();
 
 		if ( ! $settings ) {
@@ -270,7 +273,7 @@ class Search extends Feature {
 
 		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
-			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ] );
+			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
 			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
 		}
 	}
@@ -279,10 +282,12 @@ class Search extends Feature {
 	 * Called by allow_excerpt_html
 	 * logic for the excerpt filter allowing the currently selected tag.
 	 *
-	 * @param string $text - excerpt string
-	 * @return string $text - the new excerpt
+	 * @param string  $text excerpt string
+	 * @param WP_Post $post Post Object
+	 *
+	 * @return string $text the new excerpt
 	 */
-	public function ep_highlight_excerpt( $text ) {
+	public function ep_highlight_excerpt( $text, $post ) {
 
 		$settings = $this->get_settings();
 
@@ -294,7 +299,7 @@ class Search extends Feature {
 
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
-			$text = get_the_content( '' );
+			$text = get_the_content( '', false, $post );
 			$text = apply_filters( 'the_content', $text );
 			$text = str_replace( '\]\]\>', ']]&gt;', $text );
 			$text = strip_tags( $text, '<' . esc_html( $settings['highlight_tag'] ) . '>' );
@@ -591,17 +596,6 @@ class Search extends Feature {
 
 		if ( method_exists( $query, 'is_search' ) && $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 			$enabled = true;
-
-			/**
-			 * WordPress have to be version 4.6 or newer to have "fields" support
-			 * since it requires the "posts_pre_query" filter.
-			 *
-			 * @see WP_Query::get_posts
-			 */
-			$fields = $query->get( 'fields' );
-			if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ! empty( $fields ) ) {
-				$enabled = false;
-			}
 		}
 
 		/**
@@ -675,5 +669,157 @@ class Search extends Feature {
 		<?php endif; ?>
 
 		<?php
+	}
+
+	/**
+	 * Registers post meta for exclude from search feature.
+	 */
+	public function register_meta() {
+		register_post_meta(
+			'',
+			'ep_exclude_from_search',
+			[
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'boolean',
+			]
+		);
+	}
+
+	/**
+	 * Enqueue block editor assets.
+	 */
+	public function enqueue_block_editor_assets() {
+		global $post;
+
+		if ( ! $post instanceof \WP_Post ) {
+			return;
+		}
+
+		wp_enqueue_script(
+			'ep-search-editor',
+			EP_URL . '/dist/js/search-editor-script.js',
+			Utils\get_asset_info( 'search-editor-script', 'dependencies' ),
+			Utils\get_asset_info( 'search-editor-script', 'version' ),
+			true
+		);
+	}
+
+	/**
+	 * Exclude posts based on ep_exclude_from_search post meta.
+	 *
+	 * @param array    $filters Filters to be applied to the query
+	 * @param array    $args WP Query args
+	 * @param WP_Query $query WP Query object
+	 */
+	public function exclude_posts_from_search( $filters, $args, $query ) {
+		$bypass_exclusion_from_search = is_admin() || ! $query->is_search();
+		/**
+		 * Filter whether the exclusion from the "exclude from search" checkbox should be applied
+		 *
+		 * @since 4.4.0
+		 * @hook ep_bypass_exclusion_from_search
+		 * @param  {bool}     $bypass_exclusion_from_search  True means all posts will be returned
+		 * @param  {WP_Query} $query                         WP Query
+		 * @return {bool} New $bypass_exclusion_from_search value
+		 */
+		if ( apply_filters( 'ep_bypass_exclusion_from_search', $bypass_exclusion_from_search, $query ) ) {
+			return $filters;
+		}
+
+		$filters[] = [
+			'bool' => [
+				'must_not' => [
+					[
+						'terms' => [
+							'meta.ep_exclude_from_search.raw' => [ '1' ],
+						],
+					],
+				],
+			],
+		];
+
+		return $filters;
+	}
+
+	/**
+	 * Outputs the checkbox to exclude a post from search.
+	 *
+	 * @param WP_POST $post Post object.
+	 */
+	public function output_exclude_from_search_setting( $post ) {
+
+		$searchable_post_types = $this->get_searchable_post_types();
+		if ( ! in_array( $post->post_type, $searchable_post_types, true ) ) {
+			return;
+		}
+		?>
+		<div class="misc-pub-section">
+			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ) ); ?>>
+			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from search results', 'elasticpress' ); ?></label>
+			<p class="howto"><?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?></p>
+			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Saves exclude from search meta.
+	 *
+	 * @param int     $post_id The post ID.
+	 * @param WP_Post $post Post object.
+	 */
+	public function save_exclude_from_search_meta( $post_id, $post ) {
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['ep-exclude-from-search-nonce'] ) || ! wp_verify_nonce( $_POST['ep-exclude-from-search-nonce'], 'save-exclude-from-search' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : false;
+
+		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
+	}
+
+	/**
+	 * If WP_Query has unsupported orderby, skip ES query integration and use the WP query instead.
+	 *
+	 * @param bool      $skip Whether to skip ES query integration
+	 * @param \WP_Query $query WP_Query object
+	 *
+	 * @since 4.5
+	 * @return bool
+	 */
+	public function skip_query_integration( $skip, $query ) {
+		if ( ! $query instanceof \WP_Query ) {
+			return $skip;
+		}
+
+		$unsupported_orderby = [
+			'post__in',
+			'post_name__in',
+			'post_parent__in',
+			'parent',
+		];
+
+		$orderby = is_string( $query->get( 'orderby' ) ) ? explode( ' ', $query->get( 'orderby' ) ) : $query->get( 'orderby', 'date' );
+
+		$parse_orderby = array();
+		foreach ( $orderby as $key => $value ) {
+			$parse_orderby[] = is_string( $key ) ? $key : $value;
+		}
+
+		if ( array_intersect( $parse_orderby, $unsupported_orderby ) ) {
+			return true;
+		}
+
+		return $skip;
 	}
 }

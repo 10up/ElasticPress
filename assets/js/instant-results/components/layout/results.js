@@ -1,13 +1,13 @@
 /**
  * Internal depenencies.
  */
-import { useContext, useEffect, useRef, WPElement } from '@wordpress/element';
+import { useEffect, useRef, WPElement } from '@wordpress/element';
 import { _n, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import Context from '../../context';
+import { useApiSearch } from '../../../api-search';
 import Pagination from '../results/pagination';
 import Result from '../results/result';
 import Sort from '../tools/sort';
@@ -19,14 +19,13 @@ import Sort from '../tools/sort';
  */
 export default () => {
 	const {
-		state: {
-			args: { offset, per_page },
-			searchResults,
-			searchedTerm,
-			totalResults,
-		},
-		dispatch,
-	} = useContext(Context);
+		args: { offset, per_page },
+		nextPage,
+		previousPage,
+		searchResults,
+		searchTerm,
+		totalResults,
+	} = useApiSearch();
 
 	const headingRef = useRef();
 
@@ -34,14 +33,14 @@ export default () => {
 	 * Handle clicking next.
 	 */
 	const onNext = () => {
-		dispatch({ type: 'NEXT_PAGE' });
+		nextPage();
 	};
 
 	/**
 	 * Handle clicking previous.
 	 */
 	const onPrevious = () => {
-		dispatch({ type: 'PREVIOUS_PAGE' });
+		previousPage();
 	};
 
 	/**
@@ -55,7 +54,7 @@ export default () => {
 		<div className="ep-search-results">
 			<header className="ep-search-results__header">
 				<h1 className="ep-search-results__title" ref={headingRef} role="status">
-					{searchedTerm
+					{searchTerm
 						? sprintf(
 								/* translators: %1$d: results count. %2$s: Search term. */
 								_n(
@@ -65,7 +64,7 @@ export default () => {
 									'elasticpress',
 								),
 								totalResults,
-								searchedTerm,
+								searchTerm,
 						  )
 						: sprintf(
 								/* translators: %d: results count. */

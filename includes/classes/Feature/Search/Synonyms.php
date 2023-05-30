@@ -172,7 +172,7 @@ class Synonyms {
 			'elasticpress',
 			esc_html__( 'ElasticPress Synonyms', 'elasticpress' ),
 			esc_html__( 'Synonyms', 'elasticpress' ),
-			'manage_options',
+			Utils\get_capability(),
 			'elasticpress-synonyms',
 			[ $this, 'admin_page' ]
 		);
@@ -249,7 +249,7 @@ class Synonyms {
 			'show_ui'            => false,
 			'show_in_menu'       => false,
 			'query_var'          => true,
-			'capability_type'    => 'post',
+			'capabilities'       => Utils\get_post_map_capabilities(),
 			'has_archive'        => false,
 			'hierarchical'       => false,
 			'menu_position'      => 100,
@@ -408,6 +408,7 @@ class Synonyms {
 		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
 		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		$post_id = false;
+		$update  = false;
 
 		if ( wp_verify_nonce( $nonce, $this->get_nonce_action() ) ) {
 			$synonyms = filter_input( INPUT_POST, $this->get_synonym_field(), FILTER_CALLBACK, [ 'options' => 'wp_strip_all_tags' ] );
@@ -636,7 +637,7 @@ class Synonyms {
 	 */
 	public function example_synonym_list( $as_array = false ) {
 		$lines = [
-			__( '# Defined sets ( equivalent synonyms).', 'elasticpress' ),
+			__( '# Defined sets (equivalent synonyms).', 'elasticpress' ),
 			'sneakers, tennis shoes, trainers, runners',
 			'',
 			__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),

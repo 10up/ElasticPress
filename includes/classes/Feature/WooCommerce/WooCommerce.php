@@ -8,10 +8,11 @@
 
 namespace ElasticPress\Feature\WooCommerce;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Indexables;
+use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -21,6 +22,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WooCommerce feature class
  */
 class WooCommerce extends Feature {
+	/**
+	 * If enabled, receive the Orders object instance
+	 *
+	 * @since 4.5.0
+	 * @var null|Orders
+	 */
+	public $orders = null;
+
 	/**
 	 * Initialize feature setting it's config
 	 *
@@ -37,7 +46,15 @@ class WooCommerce extends Feature {
 
 		$this->requires_install_reindex = true;
 
+		$this->setting_requires_install_reindex = 'orders';
+
 		$this->available_during_installation = true;
+
+		$this->default_settings = [
+			'orders' => '0',
+		];
+
+		$this->orders = new Orders();
 
 		parent::__construct();
 	}
@@ -143,17 +160,8 @@ class WooCommerce extends Feature {
 	 * @return  array
 	 */
 	public function convert_post_object_to_id( $posts ) {
-		$new_posts = [];
-
-		foreach ( $posts as $post ) {
-			if ( is_object( $post ) ) {
-				$new_posts[] = $post->ID;
-			} else {
-				$new_posts[] = $post;
-			}
-		}
-
-		return $new_posts;
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
+		return $posts;
 	}
 
 	/**
@@ -209,24 +217,9 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function disallow_duplicated_query( $value, $query ) {
-		global $pagenow;
-
-		/**
-		 * Make sure we're on edit.php in admin dashboard.
-		 */
-		if ( 'edit.php' !== $pagenow || ! is_admin() || 'shop_order' !== $query->get( 'post_type' ) ) {
-			return $value;
-		}
-
-		/**
-		 * Check if EP API request was already done. If request was sent return its results.
-		 */
-		if ( isset( $query->elasticsearch_success ) && $query->elasticsearch_success ) {
-			return $query->posts;
-		}
+		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
 
 		return $value;
-
 	}
 
 	/**
@@ -306,13 +299,30 @@ class WooCommerce extends Feature {
 		$post_type = $query->get( 'post_type', false );
 
 		// Act only on a defined subset of all indexable post types here
+		$post_types = array(
+			'shop_order',
+			'shop_order_refund',
+			'product_variation',
+		);
+
+		$is_main_post_type_archive = $query->is_main_query() && $query->is_post_type_archive( 'product' );
+		$has_ep_integrate_set_true = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
+		if ( $is_main_post_type_archive || $has_ep_integrate_set_true ) {
+			$post_types[] = 'product';
+		}
+
+		/**
+		 * Expands or contracts the post_types eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_default_supported_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
+
 		$supported_post_types = array_intersect(
-			array(
-				'product',
-				'shop_order',
-				'shop_order_refund',
-				'product_variation',
-			),
+			$supported_post_types,
 			Indexables::factory()->get( 'post' )->get_indexable_post_types()
 		);
 
@@ -390,8 +400,10 @@ class WooCommerce extends Feature {
 		$query->query['ep_integrate']      = true;
 
 		if ( ! empty( $s ) ) {
-			// Search query
-			if ( 'shop_order' === $post_type ) {
+
+			$searchable_post_types = $this->get_admin_searchable_post_types();
+
+			if ( in_array( $post_type, $searchable_post_types, true ) ) {
 				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
 				if ( ctype_digit( $s ) ) {
 					$default_search_fields[] = 'ID';
@@ -579,6 +591,27 @@ class WooCommerce extends Feature {
 		return 'date';
 	}
 
+
+	/**
+	 * Returns the WooCommerce-oriented post types in admin that EP will search
+	 *
+	 * @since 4.4.0
+	 * @return mixed|void
+	 */
+	public function get_admin_searchable_post_types() {
+		$searchable_post_types = array( 'shop_order' );
+
+		/**
+		 * Filter admin searchable WooCommerce post types
+		 *
+		 * @hook ep_woocommerce_admin_searchable_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		return apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+	}
+
 	/**
 	 * Make search coupons don't go through ES
 	 *
@@ -588,7 +621,11 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function blacklist_coupons( $enabled, $query ) {
-		if ( method_exists( $query, 'get' ) && 'shop_coupon' === $query->get( 'post_type' ) ) {
+		if ( is_admin() ) {
+			return $enabled;
+		}
+
+		if ( 'shop_coupon' === $query->get( 'post_type' ) && empty( $query->query_vars['ep_integrate'] ) ) {
 			return false;
 		}
 
@@ -604,7 +641,9 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function bypass_order_permissions_check( $override, $post_id ) {
-		if ( 'shop_order' === get_post_type( $post_id ) ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		if ( in_array( get_post_type( $post_id ), $searchable_post_types, true ) ) {
 			return true;
 		}
 
@@ -622,11 +661,19 @@ class WooCommerce extends Feature {
 	 * @param \WP_Query $query Current query
 	 */
 	public function maybe_hook_woocommerce_search_fields( $query ) {
-		global $pagenow, $wp, $wc_list_table;
+		global $pagenow, $wp, $wc_list_table, $wp_filter;
 
 		if ( ! $this->should_integrate_with_query( $query ) ) {
 			return;
 		}
+
+		/**
+		 * Determines actions to be applied, or removed, if doing a WooCommerce serarch
+		 *
+		 * @hook ep_woocommerce_hook_search_fields
+		 * @since  4.4.0
+		 */
+		do_action( 'ep_woocommerce_hook_search_fields' );
 
 		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['s'] ) || 'shop_order' !== $wp->query_vars['post_type'] || ! isset( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
@@ -651,7 +698,10 @@ class WooCommerce extends Feature {
 		}
 
 		global $pagenow;
-		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || 'shop_order' !== $wp->query_vars['post_type'] ||
+
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || ! in_array( $wp->query_vars['post_type'], $searchable_post_types, true ) ||
 			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
 			return;
 		}
@@ -676,8 +726,10 @@ class WooCommerce extends Feature {
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
 		// Make sure it is only WooCommerce orders we touch.
-		if ( 'shop_order' !== $post_args['post_type'] ) {
+		if ( ! in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
 			return $post_args;
 		}
 
@@ -805,9 +857,10 @@ class WooCommerce extends Feature {
 		if ( ! function_exists( 'WC' ) ) {
 			return;
 		}
+
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-		add_filter( 'ep_elasticpress_enabled', [ $this, 'blacklist_coupons' ], 10, 2 );
+		add_filter( 'ep_integrate_search_queries', [ $this, 'blacklist_coupons' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'whitelist_meta_keys' ], 10, 2 );
 		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
@@ -824,6 +877,15 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
+
+		// Custom product ordering
+		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
+		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
+
+		// Orders Autosuggest feature.
+		if ( $this->is_orders_autosuggest_enabled() ) {
+			$this->orders->setup();
+		}
 	}
 
 	/**
@@ -834,6 +896,44 @@ class WooCommerce extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * Dashboard WooCommerce settings
+	 *
+	 * @since 4.5.0
+	 */
+	public function output_feature_box_settings() {
+		$available = $this->is_orders_autosuggest_available();
+		$enabled   = $this->is_orders_autosuggest_enabled();
+		?>
+		<div class="field">
+			<div class="field-name status"><?php esc_html_e( 'Orders Autosuggest', 'elasticpress' ); ?></div>
+			<div class="input-wrap">
+				<label><input name="settings[orders]" type="radio" <?php checked( $enabled ); ?> <?php disabled( $available, false, true ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[orders]" type="radio" <?php checked( ! $enabled ); ?> <?php disabled( $available, false, true ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
+				<p class="field-description">
+					<?php
+					$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest';
+
+					$message = ( $available ) ?
+						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+						__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable Orders Autosuggest to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
+						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+						__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
+
+					printf(
+						wp_kses( $message, 'ep-html' ),
+						'<a href="https://elasticpress.io/" target="_blank">',
+						'</a>',
+						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
+						'</a>'
+					);
+					?>
+				</p>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -947,7 +1047,9 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function keep_order_fields( $skip, $post_args ) {
-		if ( 'shop_order' === $post_args['post_type'] ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		if ( in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
 			return true;
 		}
 
@@ -967,7 +1069,11 @@ class WooCommerce extends Feature {
 			return $post_meta;
 		}
 
-		$product        = wc_get_product( $post );
+		$product = wc_get_product( $post );
+		if ( ! $product ) {
+			return $post_meta;
+		}
+
 		$variations_ids = $product->get_children();
 
 		$post_meta['_variations_skus'] = array_reduce(
@@ -1054,13 +1160,22 @@ class WooCommerce extends Feature {
 			$query->set( 's', sanitize_text_field( $search_term ) ); // phpcs:ignore WordPress.Security.NonceVerification
 
 			/**
-			 * Filter to skip integration with WooCommerce Admin Product List.
+			 * Filter the fields used in WooCommerce Admin Product Search.
+			 *
+			 * ```
+			 * add_filter(
+			 *     'ep_woocommerce_admin_products_list_search_fields',
+			 *     function ( $wc_admin_search_fields ) {
+			 *         $wc_admin_search_fields['meta'][] = 'custom_field';
+			 *         return $wc_admin_search_fields;
+			 *     }
+			 * );
+			 * ```
 			 *
 			 * @hook ep_woocommerce_admin_products_list_search_fields
 			 * @since 4.2.0
-			 * @param {bool}  $integrate  True to integrate, false to preserve original behavior. Defaults to true.
-			 * @param {array} $query_vars Query vars.
-			 * @return {bool} New integrate value
+			 * @param {array} $wc_admin_search_fields Fields to be used in the WooCommerce Admin Product Search
+			 * @return {array} New fields
 			 */
 			$search_fields = apply_filters(
 				'ep_woocommerce_admin_products_list_search_fields',
@@ -1118,6 +1233,14 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
+			return false;
+		}
+
+		if ( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return false;
+		}
+
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -1126,8 +1249,7 @@ class WooCommerce extends Feature {
 		 * @param  {WP_Query} $query WP Query to evaluate
 		 * @return  {bool} New skip value
 		 */
-		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ||
-			( isset( $query->query_vars['ep_integrate'] ) && ! filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) ) {
+		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
 			return false;
 		}
 
@@ -1135,13 +1257,10 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
-		$product_name = $query->get( 'product', false );
-
-		$post_parent = $query->get( 'post_parent', false );
-
 		/**
 		 * Do nothing for single product queries
 		 */
+		$product_name = $query->get( 'product', false );
 		if ( ! empty( $product_name ) || $query->is_single() ) {
 			return false;
 		}
@@ -1149,6 +1268,7 @@ class WooCommerce extends Feature {
 		/**
 		 * ElasticPress does not yet support post_parent queries
 		 */
+		$post_parent = $query->get( 'post_parent', false );
 		if ( ! empty( $post_parent ) ) {
 			return false;
 		}
@@ -1160,13 +1280,89 @@ class WooCommerce extends Feature {
 			return false;
 		}
 
+		return true;
+	}
+
+	/**
+	 * Depending on the number of products display an admin notice in the custom sort screen for WooCommerce Products
+	 *
+	 * @since 4.4.0
+	 * @param array $notices Current ElasticPress admin notices
+	 * @return array
+	 */
+	public function maybe_display_notice_about_product_ordering( $notices ) {
+		global $pagenow, $wp_query;
+
 		/**
-		 * Cant hook into WC API yet
+		 * Make sure we're on edit.php in admin dashboard.
 		 */
-		if ( defined( 'WC_API_REQUEST' ) && WC_API_REQUEST ) {
-			return false;
+		if ( ! is_admin() || 'edit.php' !== $pagenow || empty( $wp_query->query['orderby'] ) || 'menu_order title' !== $wp_query->query['orderby'] ) {
+			return $notices;
 		}
 
-		return true;
+		$documents_per_page_sync = IndexHelper::factory()->get_index_default_per_page();
+		if ( $documents_per_page_sync >= $wp_query->found_posts ) {
+			return $notices;
+		}
+
+		$notices['woocommerce_custom_sort'] = [
+			'html'    => sprintf(
+				/* translators: Sync Page URL */
+				__( 'Due to the number of products in the site, you will need to <a href="%s">resync</a> after applying a custom sort order.', 'elasticpress' ),
+				Utils\get_sync_url()
+			),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
+	}
+
+	/**
+	 * Conditionally resync products after applying a custom order.
+	 *
+	 * @since 4.4.0
+	 * @param int   $sorting_id  ID of post dragged and dropped
+	 * @param array $menu_orders Post IDs and their new menu_order value
+	 */
+	public function action_sync_on_woocommerce_sort_single( $sorting_id, $menu_orders ) {
+
+		$documents_per_page_sync = IndexHelper::factory()->get_index_default_per_page();
+		if ( $documents_per_page_sync < count( $menu_orders ) ) {
+			return;
+		}
+
+		$sync_manager = Indexables::factory()->get( 'post' )->sync_manager;
+		foreach ( $menu_orders as $post_id => $order ) {
+			$sync_manager->add_to_queue( $post_id );
+		}
+	}
+
+	/**
+	 * Whether orders autosuggest is available or not
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_available() : bool {
+		/**
+		 * Whether the autosuggest feature is available for non
+		 * ElasticPress.io customers.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_woocommerce_orders_autosuggest_available
+		 * @param {boolean} $available Whether the feature is available.
+		 */
+		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
+	}
+
+	/**
+	 * Whether orders autosuggest is enabled or not
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_enabled() : bool {
+		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
 	}
 }

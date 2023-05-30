@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -46,6 +46,8 @@ class Upgrades {
 			'3.5.3' => [ 'upgrade_3_5_3', 'init' ],
 			'3.6.6' => [ 'upgrade_3_6_6', 'init' ],
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
+			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
+			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -60,11 +62,7 @@ class Upgrades {
 		 * Note: if a upgrade routine method is hooked to some action,
 		 * this code will be executed *earlier* than the routine method.
 		 */
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		} else {
-			update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
-		}
+		Utils\update_option( 'ep_version', sanitize_text_field( EP_VERSION ) );
 
 		add_filter( 'ep_admin_notices', [ $this, 'resync_notice_4_0_0_instant_results' ] );
 	}
@@ -184,6 +182,28 @@ class Upgrades {
 	}
 
 	/**
+	 * Upgrade routine of v4.4.0.
+	 *
+	 * Delete the ep_prefix option, as that is now obtained via ep_credentials
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/2739
+	 */
+	public function upgrade_4_4_0() {
+		Utils\delete_option( 'ep_prefix' );
+	}
+
+	/**
+	 * Upgrade routine of v4.5.0.
+	 *
+	 * Add the ElasticPress capability to admins
+	 *
+	 * @see https://github.com/10up/ElasticPress/pull/3313
+	 */
+	public function upgrade_4_5_0() {
+		setup_roles();
+	}
+
+	/**
 	 * Adjust the upgrade sync notice to warn users about Instant Results.
 	 *
 	 * As 4.0.0 introduces this new feature and it requires a resync, admin users
@@ -289,11 +309,7 @@ class Upgrades {
 		}
 
 		if ( $need_upgrade_sync ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_need_upgrade_sync', true );
-			} else {
-				update_option( 'ep_need_upgrade_sync', true );
-			}
+			Utils\update_option( 'ep_need_upgrade_sync', true );
 		}
 	}
 

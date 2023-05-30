@@ -3,7 +3,7 @@ name: Linting
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "16"
+  NODE_VERSION: "18"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
@@ -74,13 +74,11 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.0'
+        tools: cs2pr
         coverage: none
 
     - name: composer install
       run: composer install
 
     - name: PHPCS check
-      uses: chekalsky/phpcs-action@v1
-      with:
-        enable_warnings: true
-        phpcs_bin_path: './vendor/bin/phpcs elasticpress.php includes --runtime-set testVersion 7.0-'
+      run: './vendor/bin/phpcs . -q --report=checkstyle --runtime-set testVersion 7.0- | cs2pr'

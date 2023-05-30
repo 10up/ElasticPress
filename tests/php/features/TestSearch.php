@@ -44,8 +44,6 @@ class TestSearch extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -253,7 +251,7 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
 		// a tag that is in the array of allowed tags
-		$allowed_tag  = 'span';
+		$allowed_tag    = 'span';
 		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
 		$this->assertTrue( 'span' === $search_feature->get_highlighting_tag( $allowed_tag ) );
@@ -273,7 +271,7 @@ class TestSearch extends BaseTestCase {
 
 		// a tag that is not in the array of allowed tags
 		$not_allowed_tag = 'div';
-		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$search_feature  = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
 		$this->assertTrue( 'mark' === $search_feature->get_highlighting_tag( $not_allowed_tag ) );
 	}
@@ -294,9 +292,9 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
-				'active' 			=> true,
+				'active'            => true,
 				'highlight_enabled' => true,
-				'highlight_tag' 	=> 'span',
+				'highlight_tag'     => 'span',
 			)
 		);
 
@@ -326,7 +324,7 @@ class TestSearch extends BaseTestCase {
 			array(
 				'active'            => true,
 				'highlight_enabled' => true,
-				'highlight_tag'     => 'div'
+				'highlight_tag'     => 'div',
 			)
 		);
 
@@ -354,7 +352,7 @@ class TestSearch extends BaseTestCase {
 			array(
 				'active'            => true,
 				'highlight_enabled' => true,
-				'highlight_excerpt' => true
+				'highlight_excerpt' => true,
 			)
 		);
 

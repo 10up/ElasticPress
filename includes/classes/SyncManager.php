@@ -185,7 +185,7 @@ abstract class SyncManager {
 		}
 
 		// Bulk sync them all.
-		Indexables::factory()->get( $this->indexable_slug )->bulk_index( array_keys( $this->sync_queue ) );
+		Indexables::factory()->get( $this->indexable_slug )->bulk_index_dynamically( array_keys( $this->sync_queue ) );
 
 		/**
 		 * Make sure to reset sync queue in case an shutdown happens before a redirect

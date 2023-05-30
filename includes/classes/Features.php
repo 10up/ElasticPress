@@ -49,7 +49,7 @@ class Features {
 	}
 
 	/**
-	 * Dectivate a feature
+	 * Deactivate a feature
 	 *
 	 * @param  string $slug Feature slug
 	 * @param  bool   $force Whether to force deactivation
@@ -67,10 +67,7 @@ class Features {
 	 * @return boolean
 	 */
 	public function register_feature( Feature $feature ) {
-		$feature_args['slug'] = $feature->slug;
-
 		$this->registered_features[ $feature->slug ] = $feature;
-
 		return true;
 	}
 
@@ -99,57 +96,92 @@ class Features {
 	 * @return array|bool
 	 */
 	public function update_feature( $slug, $settings, $force = true ) {
+		/**
+		 * Get the feature being saved.
+		 */
 		$feature = $this->get_registered_feature( $slug );
 
 		if ( empty( $feature ) ) {
 			return false;
 		}
 
-		$original_state = $feature->is_active();
+		/**
+		 * Get whether the feature was already active, and the value of the
+		 * setting that requires a reindex, if it exists.
+		 */
+		$was_active  = $feature->is_active();
+		$setting_was = $feature->get_reindex_setting();
 
-		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
+		/**
+		 * Prepare settings
+		 */
+		$saved_settings   = Utils\get_option( 'ep_feature_settings', [] );
+		$feature_settings = isset( $saved_settings[ $slug ] ) ? $saved_settings[ $slug ] : [ 'force_inactive' => false ];
 
-		if ( empty( $feature_settings[ $slug ] ) ) {
-			// If doesn't exist, merge with feature defaults
-			$feature_settings[ $slug ] = wp_parse_args( $settings, $feature->default_settings );
-		} else {
-			// If exist just merge changed values into current
-			$feature_settings[ $slug ] = wp_parse_args( $settings, $feature_settings[ $slug ] );
+		$new_feature_settings = $feature->default_settings;
+		$new_feature_settings = wp_parse_args( $feature_settings, $new_feature_settings );
+		$new_feature_settings = wp_parse_args( $settings, $new_feature_settings );
+
+		$new_feature_settings['active']         = (bool) $new_feature_settings['active'];
+		$new_feature_settings['force_inactive'] = $new_feature_settings['active'] ? false : (bool) $new_feature_settings['force_inactive'];
+
+		/**
+		 * Flag if the feature was deactivated by a forced update.
+		 */
+		if ( $force && $was_active && ! $new_feature_settings['active'] ) {
+			$new_feature_settings['force_inactive'] = true;
 		}
 
-		// Make sure active is a proper bool
-		$feature_settings[ $slug ]['active'] = (bool) $feature_settings[ $slug ]['active'];
+		/**
+		 * Save the settings.
+		 */
+		$new_settings = wp_parse_args( [ $slug => $new_feature_settings ], $saved_settings );
+		$new_settings = apply_filters( 'ep_sanitize_feature_settings', $new_settings, $feature );
 
-		if ( $feature_settings[ $slug ]['active'] ) {
-			$feature_settings[ $slug ]['force_inactive'] = false;
-		}
+		Utils\update_option( 'ep_feature_settings', $new_settings );
 
-		// This means someone has explicitly deactivated the feature
-		if ( $force ) {
-			if ( ! (bool) $settings['active'] && $original_state ) {
-				$feature_settings[ $slug ]['force_inactive'] = true;
-			}
-		}
-
-		$sanitize_feature_settings = apply_filters( 'ep_sanitize_feature_settings', $feature_settings, $feature );
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			update_site_option( 'ep_feature_settings', $sanitize_feature_settings );
-		} else {
-			update_option( 'ep_feature_settings', $sanitize_feature_settings );
-		}
+		/**
+		 * Prepare response.
+		 */
+		$is_active = $new_settings[ $slug ]['active'];
 
 		$data = array(
-			'active'  => $sanitize_feature_settings[ $slug ]['active'],
+			'active'  => $is_active,
 			'reindex' => false,
+			'setting' => '',
 		);
 
-		if ( $feature_settings[ $slug ]['active'] && ! $original_state ) {
+		/**
+		 * If the feature requires reindexing on activation, return whether
+		 * reindexing is required.
+		 */
+		if ( $is_active && ! $was_active ) {
 			if ( ! empty( $feature->requires_install_reindex ) ) {
 				$data['reindex'] = true;
 			}
 
 			$feature->post_activation();
+		}
+
+		/**
+		 * If the feature has a setting that requires reindexing, return
+		 * whether reindexing is required and the new value of the setting.
+		 */
+		$setting = $feature->setting_requires_install_reindex;
+
+		if ( $setting ) {
+			$setting_is = ! empty( $new_settings[ $slug ][ $setting ] )
+				? $new_settings[ $slug ][ $setting ]
+				: '';
+
+			$data['setting'] = $setting_is;
+
+			/**
+			 * If the setting has changed, a reindex is required.
+			 */
+			if ( $is_active && $setting_is && $setting_is !== $setting_was ) {
+				$data['reindex'] = true;
+			}
 		}
 
 		/**
@@ -194,11 +226,7 @@ class Features {
 		$is_wp_cli = defined( 'WP_CLI' ) && \WP_CLI;
 
 		if ( $is_wp_cli || is_admin() ) {
-			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				update_site_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
-			} else {
-				update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
-			}
+			Utils\update_option( 'ep_feature_requirement_statuses', $new_requirement_statuses );
 		}
 
 		/**
@@ -242,11 +270,7 @@ class Features {
 						$this->activate_feature( $slug );
 
 						if ( $feature->requires_install_reindex ) {
-							if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-								update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-							} else {
-								update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-							}
+							Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 						}
 					}
 				} else {
@@ -259,11 +283,7 @@ class Features {
 
 							// Need to activate and maybe set a sync notice
 							if ( $feature->requires_install_reindex ) {
-								if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-									update_site_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-								} else {
-									update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-								}
+								Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 							}
 						} elseif ( $feature->is_active() && ! $active ) {
 							// Just deactivate, don't force

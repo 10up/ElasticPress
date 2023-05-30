@@ -11,6 +11,8 @@ namespace ElasticPress\Screen;
 use ElasticPress\IndexHelper;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
+use ElasticPress\Stats;
+use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -174,9 +176,12 @@ class Sync {
 
 		$ep_last_index = IndexHelper::factory()->get_last_index();
 
-		if ( ! empty( $ep_last_index ) ) {
+		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
+		$sync_required      = count( $indices_comparison['missing_indices'] ) > 0;
+
+		if ( ! empty( $ep_last_index ) && ! $sync_required ) {
 			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
-			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) ? true : false;
+			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) || ! empty( $ep_last_index['errors'] ) ? true : false;
 		}
 
 		/**
