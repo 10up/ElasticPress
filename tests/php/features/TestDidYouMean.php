@@ -178,8 +178,8 @@ class TestDidYouMean extends BaseTestCase {
 		$expected_result = '<span class="ep-suggested-spell-term">Did you mean: test filter is working ?</span>';
 		add_filter(
 			'ep_did_you_mean_suggestion_html',
-			function( $html, $query, $term ) use ( $expected_result ) {
-				$this->assertEquals( 'test', $term );
+			function( $html, $terms, $query ) use ( $expected_result ) {
+				$this->assertEquals( 'test', $terms[0]['text'] );
 				$this->assertInstanceOf( '\WP_Query', $query );
 				return $expected_result;
 			},
