@@ -233,18 +233,36 @@ class QueryLogger {
 			return $notices;
 		}
 
-		$page = 'admin.php?page=elasticpress-status-report';
+		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
+		$present_indices    = count( $indices_comparison['present_indices'] );
 
-		$status_report_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-			network_admin_url( $page ) :
-			admin_url( $page );
+		if ( 0 === $present_indices ) {
+			$message = sprintf(
+				/* translators: %s: Sync page link. */
+				esc_html__( 'Your site\'s content is not synced with your %1$s. Please %2$s.', 'elasticpress' ),
+				Utils\is_epio() ? __( 'ElasticPress.io account', 'elasticpress' ) : __( 'Elasticsearch server', 'elasticpress' ),
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( Utils\get_sync_url( true ) ),
+					esc_html__( 'sync your content', 'elasticpress' )
+				)
+			);
+		} else {
+			$page = 'admin.php?page=elasticpress-status-report';
 
-		$notices['has_failed_queries'] = [
-			'html'    => sprintf(
+			$status_report_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+				network_admin_url( $page ) :
+				admin_url( $page );
+
+			$message = sprintf(
 				/* translators: Status Report URL */
 				__( 'Some ElasticPress queries failed in the last 24 hours. Please visit the <a href="%s">Status Report page</a> for more details.', 'elasticpress' ),
 				$status_report_url . '#failed-queries'
-			),
+			);
+		}
+
+		$notices['has_failed_queries'] = [
+			'html'    => $message,
 			'type'    => 'warning',
 			'dismiss' => true,
 		];

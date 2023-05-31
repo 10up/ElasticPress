@@ -690,7 +690,7 @@ class IndexHelper {
 
 				$wp_error_messages = $return->get_error_messages();
 
-				$this->process_error_limit(
+				$this->maybe_process_error_limit(
 					count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ),
 					count( $this->index_meta['current_sync_item']['errors'] ),
 					$wp_error_messages
@@ -738,7 +738,7 @@ class IndexHelper {
 	 * If the number of errors is less than or equal the limit, add the error message to the array (if it's not there).
 	 * Merges the new errors with the existing errors.
 	 *
-	 * @since  5.0.0
+	 * @since  4.5.1
 	 * @param int   $count Number of errors.
 	 * @param int   $num Number of errors to subtract from $limit.
 	 * @param array $errors Array of errors.
@@ -749,7 +749,7 @@ class IndexHelper {
 		/**
 		 * Filter the number of errors of a current sync that should be stored.
 		 *
-		 * @since  5.0.0
+		 * @since  4.5.1
 		 * @hook ep_current_sync_number_of_errors_stored
 		 * @param  {int} $number Number of errors to be logged.
 		 * @return {int} New value
@@ -1337,8 +1337,11 @@ class IndexHelper {
 
 		switch ( $context ) {
 			case 'mapping':
-				/* translators: Error message */
-				$message  = sprintf( esc_html__( 'Mapping failed: %s', 'elasticpress' ), $error['message'] );
+				$message = sprintf(
+					/* translators: Error message */
+					esc_html__( 'Mapping failed: %s', 'elasticpress' ),
+					Utils\get_elasticsearch_error_reason( $error['message'] )
+				);
 				$message .= "\n";
 				$message .= esc_html__( 'Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping.', 'elasticpress' );
 				break;
