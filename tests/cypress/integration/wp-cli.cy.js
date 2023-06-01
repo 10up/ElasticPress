@@ -366,7 +366,7 @@ describe('WP-CLI Commands', { tags: '@slow' }, () => {
 
 		cy.wpCli('wp elasticpress stop-sync').its('stdout').should('contain', 'Done');
 
-		cy.wpCli('wp elasticpress clear-sync').its('stdout').should('contain', 'Index cleared');
+		cy.wpCli('wp elasticpress clear-sync').its('stdout').should('contain', 'Sync cleared');
 	});
 
 	it('can send an HTTP request to Elasticsearch', () => {
