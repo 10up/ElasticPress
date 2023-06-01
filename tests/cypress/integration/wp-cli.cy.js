@@ -127,6 +127,17 @@ describe('WP-CLI Commands', { tags: '@slow' }, () => {
 
 			cy.deactivatePlugin('fake-log-messages');
 		});
+
+		it('Can stop ongoing syncs with the --force flag', () => {
+			// mock the sync process
+			cy.wpCliEval(
+				`update_option('ep_index_meta', [ 'indexing' => true ] ); set_transient('ep_sync_interrupted', true);`,
+			);
+
+			cy.wpCli('wp elasticpress sync --force --yes')
+				.its('stdout')
+				.should('contain', 'Sync cleared');
+		});
 	});
 
 	it('Can delete the index of current blog if user runs wp elasticpress delete-index', () => {
