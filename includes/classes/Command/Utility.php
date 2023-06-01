@@ -160,8 +160,8 @@ class Utility {
 		} else {
 			$options = $wpdb->options;
 
+			// phpcs:disable
 			$should_interrupt_sync = $wpdb->get_var(
-				// phpcs:disable
 				$wpdb->prepare(
 					"
 						SELECT option_value
@@ -171,8 +171,8 @@ class Utility {
 					",
 					"_transient_{$transient}"
 				)
-				// phpcs:enable
 			);
+			// phpcs:enable
 		}
 
 		return $should_interrupt_sync ? (bool) $should_interrupt_sync : null;
