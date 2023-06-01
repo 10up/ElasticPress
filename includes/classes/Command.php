@@ -728,7 +728,12 @@ class Command extends WP_CLI_Command {
 		$force_option = \WP_CLI\Utils\get_flag_value( $assoc_args, 'force', false );
 
 		if ( $setup_option ) {
-			WP_CLI::confirm( esc_html__( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
+			$message = sprintf(
+				/* translators: ElasticPress.io or Elasticsearch */
+				esc_html__( 'Syncing with the --setup option will delete your existing index in %s. Are you sure you want to delete your Elasticsearch index', 'elasticpress' ),
+				Utils\is_epio() ? 'ElasticPress.io' : 'Elasticsearch'
+			);
+			WP_CLI::confirm( $message, $assoc_args );
 		}
 
 		if ( $force_option ) {
