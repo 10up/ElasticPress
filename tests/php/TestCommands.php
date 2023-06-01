@@ -609,8 +609,7 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command can ask for confirmation when setup flag is set
 	 */
 	public function testSyncAskForConfirmationWhenSetupIsPassed() {
-
-		$this->expectExceptionMessage( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?' );
+		$this->expectExceptionMessage( 'Syncing with the --setup option will delete your existing index in Elasticsearch. Are you sure you want to delete your Elasticsearch index' );
 
 		$this->command->sync( [], [ 'setup' => true ] );
 	}
