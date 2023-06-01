@@ -668,6 +668,9 @@ class Command extends WP_CLI_Command {
 	 * [--setup]
 	 * : Clear the index first and re-send the put mapping. Use `--yes` to skip the confirmation
 	 *
+	 * [--force]
+	 * : Stop any ongoing sync
+	 *
 	 * [--per-page=<per_page_number>]
 	 * : Determine the amount of posts to be indexed per bulk index (or cycle)
 	 *
@@ -722,9 +725,14 @@ class Command extends WP_CLI_Command {
 	 */
 	public function sync( $args, $assoc_args ) {
 		$setup_option = \WP_CLI\Utils\get_flag_value( $assoc_args, 'setup', false );
+		$force_option = \WP_CLI\Utils\get_flag_value( $assoc_args, 'force', false );
 
 		if ( $setup_option ) {
 			WP_CLI::confirm( esc_html__( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?', 'elasticpress' ), $assoc_args );
+		}
+
+		if ( $force_option ) {
+			WP_CLI::confirm( esc_html__( 'Are you sure you want to stop any other ongoing sync?', 'elasticpress' ), $assoc_args );
 		}
 
 		if ( ! function_exists( 'pcntl_signal' ) ) {
@@ -737,7 +745,12 @@ class Command extends WP_CLI_Command {
 		$this->maybe_change_host( $assoc_args );
 		$this->maybe_change_index_prefix( $assoc_args );
 		$this->connect_check();
-		$this->index_occurring();
+
+		if ( $force_option ) {
+			$this->clear_sync();
+		} else {
+			$this->index_occurring();
+		}
 
 		$indexables = null;
 
@@ -994,7 +1007,7 @@ class Command extends WP_CLI_Command {
 		 */
 		do_action( 'ep_cli_after_clear_index' );
 
-		WP_CLI::log( esc_html__( 'Index cleared.', 'elasticpress' ) );
+		WP_CLI::log( esc_html__( 'Sync cleared.', 'elasticpress' ) );
 	}
 
 	/**
