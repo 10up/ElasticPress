@@ -70,8 +70,8 @@ class Renderer {
 				'value'       => $post_type,
 				'name'        => ucfirst( $post_type ),
 				'count'       => 0,
-				'is_selected' => ! empty( $selected_filters[ $facet_type->get_filter_type() ]['post_type']['terms'][ $post_type ] ) ?
-					$selected_filters[ $facet_type->get_filter_type() ]['post_type']['terms'][ $post_type ] :
+				'is_selected' => ! empty( $selected_filters[ $facet_type->get_filter_type() ]['terms'][ $post_type ] ) ?
+					$selected_filters[ $facet_type->get_filter_type() ]['terms'][ $post_type ] :
 					false,
 			];
 
@@ -114,9 +114,9 @@ class Renderer {
 
 					$field_filters = $selected_filters;
 					if ( $facetable_post_type_data['is_selected'] ) {
-						unset( $field_filters[ $facet_type->get_filter_type() ]['post_type']['terms'][ $facetable_post_type_data['value'] ] );
+						unset( $field_filters[ $facet_type->get_filter_type() ]['terms'][ $facetable_post_type_data['value'] ] );
 					} else {
-						$field_filters[ $facet_type->get_filter_type() ]['post_type']['terms'][ $facetable_post_type_data['value'] ] = 1;
+						$field_filters[ $facet_type->get_filter_type() ]['terms'][ $facetable_post_type_data['value'] ] = 1;
 					}
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $this->get_post_type_value_html( $facetable_post_type_data, $feature->build_query_url( $field_filters ) );

@@ -50,7 +50,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 * @param   {string} Facet filter name
 		 * @return  {string} New facet filter name
 		 */
-		return apply_filters( 'ep_facet_post_type_filter_name', 'ep_post_type_filter_' );
+		return apply_filters( 'ep_facet_post_type_filter_name', 'ep_post_type_filter' );
 	}
 
 	/**
@@ -134,7 +134,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 */
 		$filters[] = [
 			'terms' => [
-				'post_type.raw' => array_keys( $selected_filters[ $this->get_filter_type() ]['post_type']['terms'] ),
+				'post_type.raw' => array_keys( $selected_filters[ $this->get_filter_type() ]['terms'] ),
 			],
 		];
 
@@ -158,5 +158,40 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 * @return {array} The array of facetable post types.
 		 */
 		return apply_filters( 'ep_facetable_post_types', $searchable_post_types );
+	}
+
+	/**
+	 * Format selected values.
+	 *
+	 * @param string $facet   Facet name
+	 * @param mixed  $value   Facet value
+	 * @param array  $filters Selected filters
+	 * @return array
+	 */
+	public function format_selected( string $facet, $value, array $filters ) {
+		$terms = explode( ',', trim( $value, ',' ) );
+
+		$filters[ $this->get_filter_type() ] = [
+			'terms' => array_fill_keys( array_map( $this->get_sanitize_callback(), $terms ), true ),
+		];
+
+		return $filters;
+	}
+
+	/**
+	 * Add selected filters to the query string.
+	 *
+	 * @param array $query_params Existent query parameters
+	 * @param array $filters      Selected filters
+	 * @return array
+	 */
+	public function add_query_params( array $query_params, array $filters ) : array {
+		$selected = $filters[ $this->get_filter_type() ] ?? [];
+
+		if ( ! empty( $selected['terms'] ) ) {
+			$query_params[ $this->get_filter_name() ] = implode( ',', array_keys( $selected['terms'] ) );
+		}
+
+		return $query_params;
 	}
 }

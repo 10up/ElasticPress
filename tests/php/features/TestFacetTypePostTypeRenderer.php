@@ -16,7 +16,6 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 	/**
 	 * Test render
 	 *
-	 * @since 4.6.0
 	 * @group facets
 	 */
 	public function testRenderer() {
