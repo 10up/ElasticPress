@@ -164,7 +164,7 @@ class Block {
 			}
 
 			return sprintf(
-				/* translators: Meta field name */
+				/* translators: Post type name */
 				esc_html__( 'Preview for %s not available', 'elasticpress' ),
 				esc_html( $request->get_param( 'facet' ) )
 			);
@@ -184,7 +184,7 @@ class Block {
 		$attributes = wp_parse_args(
 			$attributes,
 			[
-				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by meta search placeholder', 'elasticpress' ),
+				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by post type search placeholder', 'elasticpress' ),
 				'facet'             => '',
 				'displayCount'      => false,
 				'orderby'           => 'count',

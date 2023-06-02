@@ -70,7 +70,9 @@ class Renderer {
 				'value'       => $post_type,
 				'name'        => ucfirst( $post_type ),
 				'count'       => 0,
-				'is_selected' => ! empty( $selected_filters['ep_post_type']['post_type']['terms'][ $post_type ] ) ? $selected_filters['ep_post_type']['post_type']['terms'][ $post_type ] : false,
+				'is_selected' => ! empty( $selected_filters[ $facet_type->get_filter_type() ]['post_type']['terms'][ $post_type ] ) ?
+					$selected_filters[ $facet_type->get_filter_type() ]['post_type']['terms'][ $post_type ] :
+					false,
 			];
 
 			if ( ! empty( $GLOBALS['ep_facet_aggs']['post_type'][ $post_type ] ) ) {

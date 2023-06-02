@@ -29,7 +29,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * Setup hooks and filters for feature
 	 */
 	public function setup() {
-		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ], 9999 );
+		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		$this->block = new Block();
@@ -62,7 +62,9 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		/**
 		 * Filter the facet filter type. Used by the Facet feature to organize filters.
 		 *
-		 * @hook ep_facet_filter_type
+		 * Note: Do not set is as `post_type`, as it will conflict with the post_type query parameter if set.
+		 *
+		 * @hook ep_facet_post_type_filter_type
 		 * @since 4.6.0
 		 * @param   {string} Facet filter type
 		 * @return  {string} New facet filter type
@@ -74,7 +76,6 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * Add post type fields to facets aggs
 	 *
 	 * @param array $facet_aggs Facet Aggs array.
-	 * @since 4.6.0
 	 * @return array
 	 */
 	public function set_wp_query_aggs( $facet_aggs ) {
@@ -86,7 +87,16 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$facet_aggs['post_type'] = array(
 			'terms' => array(
-				'size'  => apply_filters( 'ep_facet_post_type_size', 10000, 'post_type' ),
+				/**
+				 * Filter the number of different values (and their count) for post types returned by Elasticsearch.
+				 *
+				 * @since 4.6.0
+				 * @hook ep_facet_post_type_size
+				 * @param {int}    $size       The number of different values. Default: 10000
+				 * @param {array} $post_types Post types
+				 * @return {int} The new number of different values
+				 */
+				'size'  => apply_filters( 'ep_facet_post_type_size', 10000, $post_types ),
 				'field' => 'post_type.raw',
 			),
 		);
@@ -97,7 +107,6 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	/**
 	 * Add selected filters to the Facet filter in the ES query
 	 *
-	 * @since 4.6.0
 	 * @param array $filters Current Facet filters
 	 * @return array
 	 */
@@ -119,11 +128,15 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			return $filters;
 		}
 
-		foreach ( $selected_filters['ep_post_type']['post_type']['terms'] as $post_type => $value ) {
-			if ( $value ) {
-				$filters[0]['terms']['post_type.raw'][] = $post_type;
-			}
-		}
+		/**
+		 * As there is no content with two post types,
+		 * if we have a list of types we want *any* content that matches *any* type.
+		 */
+		$filters[] = [
+			'terms' => [
+				'post_type.raw' => array_keys( $selected_filters[ $this->get_filter_type() ]['post_type']['terms'] ),
+			],
+		];
 
 		return $filters;
 	}
@@ -134,16 +147,16 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array Array of post types.
 	 */
 	public function get_facetable_post_types() {
-		$indexable_post_types = \ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
+		$searchable_post_types = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
 
 		/**
 		 * Filter post types that are facetable.
 		 *
 		 * @since 4.6.0
 		 * @hook ep_facetable_post_types
-		 * @param {array} $indexable_post_types Array of post indexable types.
+		 * @param {array} $searchable_post_types Array of searchable post types.
 		 * @return {array} The array of facetable post types.
 		 */
-		return apply_filters( 'ep_facetable_post_types', $indexable_post_types );
+		return apply_filters( 'ep_facetable_post_types', $searchable_post_types );
 	}
 }

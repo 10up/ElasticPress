@@ -2,6 +2,7 @@
 /**
  * Test post type facet type feature
  *
+ * @since 4.6.0
  * @package elasticpress
  */
 
@@ -25,7 +26,6 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 	/**
 	 * Test get_post_type_value_html
 	 *
-	 * @since 4.6.0
 	 * @group facets
 	 */
 	public function testGetPostTypeValueHtml() {
