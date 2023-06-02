@@ -45,9 +45,6 @@ class Block {
 					'displayCount'      => [
 						'sanitize_callback' => 'rest_sanitize_boolean',
 					],
-					'facet'             => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
 					'orderby'           => [
 						'sanitize_callback' => 'sanitize_text_field',
 					],
@@ -137,7 +134,6 @@ class Block {
 			[
 				'searchPlaceholder' => $request->get_param( 'searchPlaceholder' ),
 				'displayCount'      => $request->get_param( 'displayCount' ),
-				'facet'             => $request->get_param( 'facet' ),
 				'orderby'           => $request->get_param( 'orderby' ),
 				'order'             => $request->get_param( 'order' ),
 			]
@@ -159,15 +155,7 @@ class Block {
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
-			if ( empty( $attributes['facet'] ) ) {
-				return esc_html__( 'Preview not available', 'elasticpress' );
-			}
-
-			return sprintf(
-				/* translators: Post type name */
-				esc_html__( 'Preview for %s not available', 'elasticpress' ),
-				esc_html( $request->get_param( 'facet' ) )
-			);
+			return esc_html__( 'Preview for post types not available', 'elasticpress' );
 		}
 
 		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
@@ -185,7 +173,6 @@ class Block {
 			$attributes,
 			[
 				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by post type search placeholder', 'elasticpress' ),
-				'facet'             => '',
 				'displayCount'      => false,
 				'orderby'           => 'count',
 				'order'             => 'desc',

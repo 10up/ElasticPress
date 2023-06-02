@@ -11,10 +11,6 @@
 			"type": "string",
 			"default": "Search"
 		},
-		"facet": {
-			"type": "string",
-			"default": ""
-		},
 		"displayCount": {
 			"type": "boolean",
 			"default": false

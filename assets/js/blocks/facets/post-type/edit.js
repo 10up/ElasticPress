@@ -15,7 +15,7 @@ const FacetBlockEdit = (props) => {
 	const { attributes, setAttributes } = props;
 	const [preview, setPreview] = useState('');
 	const [loading, setLoading] = useState(false);
-	const { searchPlaceholder, facet, displayCount, orderby, order } = attributes;
+	const { searchPlaceholder, displayCount, orderby, order } = attributes;
 
 	const blockProps = useBlockProps();
 
@@ -23,7 +23,6 @@ const FacetBlockEdit = (props) => {
 		setLoading(true);
 		const params = new URLSearchParams({
 			searchPlaceholder,
-			facet,
 			displayCount,
 			orderby,
 			order,
@@ -33,7 +32,7 @@ const FacetBlockEdit = (props) => {
 		})
 			.then((preview) => setPreview(preview))
 			.finally(() => setLoading(false));
-	}, [searchPlaceholder, facet, displayCount, orderby, order]);
+	}, [searchPlaceholder, displayCount, orderby, order]);
 
 	return (
 		<Fragment>
