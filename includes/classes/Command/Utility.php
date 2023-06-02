@@ -158,21 +158,19 @@ class Utility {
 			*/
 			$should_interrupt_sync = wp_cache_get( $transient, 'transient', true );
 		} else {
-			$options = $wpdb->options;
-
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery
 			$should_interrupt_sync = $wpdb->get_var(
-				// phpcs:disable
 				$wpdb->prepare(
 					"
 						SELECT option_value
-						FROM $options
+						FROM $wpdb->options
 						WHERE option_name = %s
 						LIMIT 1
 					",
 					"_transient_{$transient}"
 				)
-				// phpcs:enable
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery
 		}
 
 		return $should_interrupt_sync ? (bool) $should_interrupt_sync : null;
