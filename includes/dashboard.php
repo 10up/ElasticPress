@@ -192,7 +192,7 @@ function maybe_skip_install() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['nonce'] ), 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 		return;
 	}
 
@@ -375,7 +375,7 @@ function action_wp_ajax_ep_notice_dismiss() {
 		exit;
 	}
 
-	AdminNotices::factory()->dismiss_notice( $_POST['notice'] );
+	AdminNotices::factory()->dismiss_notice( sanitize_key( $_POST['notice'] ) );
 
 	wp_send_json_success();
 }
@@ -413,9 +413,9 @@ function action_wp_ajax_ep_cancel_index() {
  * @since  2.2
  */
 function action_wp_ajax_ep_save_feature() {
-	$_POST = wp_unslash( $_POST );
+	$post = wp_unslash( $_POST );
 
-	if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
+	if ( empty( $post['feature'] ) || empty( $post['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 		wp_send_json_error();
 		exit;
 	}
@@ -427,10 +427,10 @@ function action_wp_ajax_ep_save_feature() {
 		exit;
 	}
 
-	$data = Features::factory()->update_feature( $_POST['feature'], $_POST['settings'] );
+	$data = Features::factory()->update_feature( $post['feature'], $post['settings'] );
 
 	// Since we deactivated, delete auto activate notice.
-	if ( empty( $_POST['settings']['active'] ) ) {
+	if ( empty( $post['settings']['active'] ) ) {
 		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 	}
 
@@ -586,21 +586,22 @@ function action_admin_enqueue_dashboard_scripts() {
  * @return void
  */
 function action_admin_init() {
+	$post = wp_unslash( $_POST );
 
 	// Save options for multisite.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $_POST['ep_language'] ) ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $post['ep_language'] ) ) {
 		check_admin_referer( 'elasticpress-options' );
 
-		$language = sanitize_text_field( $_POST['ep_language'] );
+		$language = sanitize_text_field( $post['ep_language'] );
 		Utils\update_option( 'ep_language', $language );
 
-		if ( isset( $_POST['ep_host'] ) ) {
-			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
+		if ( isset( $post['ep_host'] ) ) {
+			$host = esc_url_raw( trim( $post['ep_host'] ) );
 			Utils\update_option( 'ep_host', $host );
 		}
 
-		if ( isset( $_POST['ep_credentials'] ) ) {
-			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
+		if ( isset( $post['ep_credentials'] ) ) {
+			$credentials = ( isset( $post['ep_credentials'] ) ) ? Utils\sanitize_credentials( $post['ep_credentials'] ) : [
 				'username' => '',
 				'token'    => '',
 			];
@@ -608,8 +609,8 @@ function action_admin_init() {
 			Utils\update_option( 'ep_credentials', $credentials );
 		}
 
-		if ( isset( $_POST['ep_bulk_setting'] ) ) {
-			Utils\update_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
+		if ( isset( $post['ep_bulk_setting'] ) ) {
+			Utils\update_option( 'ep_bulk_setting', intval( $post['ep_bulk_setting'] ) );
 		}
 	} else {
 		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );

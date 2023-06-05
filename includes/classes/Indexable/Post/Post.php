@@ -245,7 +245,7 @@ class Post extends Indexable {
 		 * The if below will pass if `has_password` is false but not null.
 		 */
 		if ( isset( $query_args['has_password'] ) && ! $query_args['has_password'] ) {
-			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" );
+			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 			$post_count -= $posts_with_password;
 		}
@@ -797,7 +797,7 @@ class Post extends Indexable {
 		$term_orders = wp_cache_get( $cache_key );
 
 		if ( false === $term_orders ) {
-			$results = $wpdb->get_results(
+			$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prepare(
 					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
 					$object_id
@@ -2562,8 +2562,8 @@ class Post extends Indexable {
 			$allowed_protected_keys_sql = " OR meta_key IN ( {$placeholders} ) ";
 		}
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$meta_keys = $wpdb->get_col(
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 			$wpdb->prepare(
 				"SELECT DISTINCT meta_key
 					FROM {$wpdb->postmeta}
@@ -2572,8 +2572,9 @@ class Post extends Indexable {
 				'\_%',
 				...$allowed_protected_keys
 			)
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
 		sort( $meta_keys );
 
 		// Make sure the size of the transient will not be bigger than 1MB
@@ -2753,7 +2754,12 @@ class Post extends Indexable {
 	protected function get_lazy_post_type_ids( string $post_type ) {
 		global $wpdb;
 
-		$total = $wpdb->get_var( $wpdb->prepare( "SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
+		$total = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s",
+				$post_type
+			)
+		);
 
 		if ( ! $total ) {
 			return [];
@@ -2786,7 +2792,7 @@ class Post extends Indexable {
 
 		for ( $page = 0; $page < $pages; $page++ ) {
 			$start = $per_page * $page;
-			$ids   = $wpdb->get_col(
+			$ids   = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 				$wpdb->prepare(
 					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s LIMIT %d, %d",
 					$post_type,
@@ -2813,7 +2819,7 @@ class Post extends Indexable {
 		}
 
 		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
-		$meta_keys    = $wpdb->get_col(
+		$meta_keys    = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ( {$placeholders} )",

@@ -455,7 +455,7 @@ class Facets extends Feature {
 		 */
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_params );
 
-		$url        = $_SERVER['REQUEST_URI'];
+		$url        = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$pagination = strpos( $url, '/page' );
 		if ( false !== $pagination ) {
 			$url = substr( $url, 0, $pagination );
