@@ -57,6 +57,7 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'remove_fields_from_password_protected' ], 11, 2 );
 		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
 		add_filter( 'ep_skip_autosave_sync', '__return_false' );
+		add_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected' ], 10, 2 );
 
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
@@ -412,5 +413,17 @@ class ProtectedContent extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Bypass the default check for password protected posts.
+	 *
+	 * @since 4.6.0
+	 * @param null|bool $new_skip Short-circuit flag
+	 * @param bool      $skip     Current value of $skip
+	 * @return bool
+	 */
+	public function sync_password_protected( $new_skip, bool $skip ) : bool {
+		return $skip;
 	}
 }

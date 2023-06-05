@@ -8848,4 +8848,34 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( $post_negative, $query->posts[0] );
 		$this->assertEquals( $post_positive, $query->posts[1] );
 	}
+
+	/**
+	 * Test the `kill_sync_for_password_protected` method
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 */
+	public function testKillSyncForPasswordProtected() {
+		$pw_post    = $this->ep_factory->post->create( [ 'post_password' => 'password' ] );
+		$no_pw_post = $this->ep_factory->post->create( [] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$sync_manager = ElasticPress\Indexables::factory()->get( 'post' )->sync_manager;
+
+		$this->assertTrue( $sync_manager->kill_sync_for_password_protected( false, $pw_post ) );
+		$this->assertFalse( $sync_manager->kill_sync_for_password_protected( false, $no_pw_post ) );
+
+		/**
+		 * Test the `ep_pre_kill_sync_for_password_protected` filter
+		 */
+		$dont_kill_pw_post = function ( $short_circuit, $skip, $object_id ) use ( $pw_post ) {
+			$this->assertNull( $short_circuit );
+			$this->assertFalse( $skip );
+			$this->assertSame( $pw_post, $object_id );
+			return false;
+		};
+		add_filter( 'ep_pre_kill_sync_for_password_protected', $dont_kill_pw_post, 10, 3 );
+		$this->assertFalse( $sync_manager->kill_sync_for_password_protected( false, $pw_post ) );
+	}
 }

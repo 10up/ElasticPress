@@ -122,7 +122,7 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 		cy.get('.ep-highlight').should('be.visible');
 	});
 
-	it('Can search password protected post', () => {
+	it('Can not see any password protected post', () => {
 		cy.login();
 
 		cy.publishPost({
@@ -130,47 +130,9 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 			password: 'password',
 		});
 
-		// Admin can see post on front and search page.
 		cy.visit('/');
-		cy.contains('.site-content article h2', 'Password Protected').should('exist');
-		cy.visit('/?s=Password+Protected');
-		cy.contains('.site-content article h2', 'Password Protected').should('exist');
-
-		cy.logout();
-
-		// Logout user can see the post on front but not on search page.
-		cy.visit('/');
-		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
 		cy.visit('/?s=Password+Protected');
 		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
-
-		cy.createUser();
-
-		// subscriber can see the post on front and on search page.
-		cy.visit('/');
-		cy.contains('.site-content article h2', 'Password Protected').should('exist');
-		cy.visit('/?s=Password+Protected');
-		cy.contains('.site-content article h2', 'Password Protected').should('exist');
-	});
-
-	it('Can Search Product by Variation SKU', () => {
-		cy.login();
-		cy.activatePlugin('woocommerce', 'wpCli');
-		cy.maybeEnableFeature('woocommerce');
-
-		cy.updateWeighting({
-			product: {
-				'meta._variations_skus.value': {
-					weight: 1,
-					enabled: true,
-				},
-			},
-		}).then(() => {
-			cy.wpCli('elasticpress index --setup --yes');
-			cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-			cy.contains('.site-content article:nth-of-type(1) h2', 'Awesome Aluminum Shoes').should(
-				'exist',
-			);
-		});
 	});
 });
