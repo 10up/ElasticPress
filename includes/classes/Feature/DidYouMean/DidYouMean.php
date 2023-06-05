@@ -170,6 +170,7 @@ class DidYouMean extends Feature {
 		 * Filter the search analyzer use for the did you mean feature.
 		 *
 		 * @hook ep_search_suggestion_analyzer
+		 * @since 4.6.0
 		 * @param {array} $search_analyzer Search analyzer
 		 * @param {array} $formatted_args Formatted Elasticsearch query
 		 * @param {array} $args WP_Query arguments

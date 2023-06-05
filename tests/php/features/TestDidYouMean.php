@@ -240,4 +240,46 @@ class TestDidYouMean extends BaseTestCase {
 		];
 		$this->assertSame( $expected_result, $mapping['mappings']['post']['properties']['post_content']['fields'] );
 	}
+
+	/**
+	 * Test `ep_search_suggestion_analyzer` filter.
+	 */
+	public function testSearchAnalyzerFilter() {
+		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$search_analyzer = [
+			'term' => [
+				'field' => 'post_content',
+			],
+		];
+
+		add_filter(
+			'ep_search_suggestion_analyzer',
+			function() use ( $search_analyzer ) {
+				return $search_analyzer;
+			}
+		);
+
+		add_filter(
+			'ep_query_request_args',
+			function( $request_args, $path, $index, $type, $query, $query_args, $query_object ) use ( $search_analyzer ) {
+				$this->assertEquals( $search_analyzer, $query['suggest']['ep_suggestion'] );
+				return $request_args;
+			},
+			10,
+			7
+		);
+
+		$query = new \WP_Query(
+			[
+				's' => 'teet',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 'Test post', $query->posts[0]->post_content );
+
+	}
 }
