@@ -136,7 +136,7 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 		cy.get('body').then(($body) => {
 			const $button = $body.find('.edit-post-post-visibility__toggle');
 			if (!$button.is(':visible')) {
-				cy.get('.edit-widgets-header__actions button[aria-label="Settings"]').click();
+				cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
 			}
 		});
 		cy.get('.edit-post-post-visibility__toggle').click();
