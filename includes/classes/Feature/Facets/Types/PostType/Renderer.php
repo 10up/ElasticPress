@@ -171,7 +171,7 @@ class Renderer {
 		 * performed by visiting the link, such as whether the filter will be
 		 * added or removed.
 		 *
-		* @since 4.6.0
+		 * @since 4.6.0
 		 * @hook ep_facet_post_type_value_accessible_label
 		 * @param {string}  $label Facet post-type value accessible label.
 		 * @param {array}   $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
