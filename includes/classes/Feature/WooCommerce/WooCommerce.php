@@ -1394,6 +1394,9 @@ class WooCommerce extends Feature {
 	 * @return bool
 	 */
 	public function ep_decaying_enabled_woocommerce( $decaying, $settings, $args ) {
+		if ( ! isset( $args['post_type'] ) ) {
+			return $decaying;
+		}
 		if ( ! is_array( $args['post_type'] ) && 'product' !== $args['post_type'] ) {
 			return $decaying;
 		}
