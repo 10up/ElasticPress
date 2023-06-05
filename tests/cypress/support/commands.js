@@ -137,11 +137,11 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 			const $button = $body.find('.edit-post-post-visibility__toggle');
 			if (!$button.is(':visible')) {
 				cy.get('.edit-widgets-header__actions button[aria-label="Settings"]').click();
-				cy.get('.edit-post-post-visibility__toggle').click();
-				cy.get('.editor-post-visibility__radio').check('password');
-				cy.get('.editor-post-visibility__password-input').type(newPostData.password);
 			}
 		});
+		cy.get('.edit-post-post-visibility__toggle').click();
+		cy.get('.editor-post-visibility__radio').check('password');
+		cy.get('.editor-post-visibility__password-input').type(newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
