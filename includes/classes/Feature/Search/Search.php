@@ -775,7 +775,7 @@ class Search extends Feature {
 			return;
 		}
 
-		if ( ! isset( $_POST['ep-exclude-from-search-nonce'] ) || ! wp_verify_nonce( $_POST['ep-exclude-from-search-nonce'], 'save-exclude-from-search' ) ) {
+		if ( ! isset( $_POST['ep-exclude-from-search-nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ep-exclude-from-search-nonce'] ), 'save-exclude-from-search' ) ) {
 			return;
 		}
 

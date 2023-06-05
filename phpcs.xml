@@ -4,6 +4,7 @@
 
   <rule ref="10up-Default">
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
+    <exclude name="WordPress.DB.SlowDBQuery" />
   </rule>
   <rule ref="PHPCompatibilityWP" />
 
@@ -17,6 +18,9 @@
       <exclude-pattern>/tests/*.php</exclude-pattern>
   </rule>
   <rule ref="WordPress.WP.PostsPerPage.posts_per_page_posts_per_page">
+      <exclude-pattern>/tests/*.php</exclude-pattern>
+  </rule>
+  <rule ref="WordPress.DB.DirectDatabaseQuery">
       <exclude-pattern>/tests/*.php</exclude-pattern>
   </rule>
 </ruleset>
