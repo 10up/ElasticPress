@@ -862,7 +862,14 @@ class Elasticsearch {
 
 			$response_body   = wp_remote_retrieve_body( $request );
 			$parsed_response = json_decode( $response_body, true );
-			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
+			if ( is_array( $parsed_response ) ) {
+				$status = $parsed_response['status'] ?? 'status-not-set';
+				$error  = $parsed_response['error'] ?? 'error-not-set';
+			} else {
+				$status = $response_code;
+				$error  = $response_body;
+			}
+			return new \WP_Error( $status, $error );
 		}
 
 		return true;
