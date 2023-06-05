@@ -58,7 +58,7 @@ class Block {
 	}
 
 	/**
-	 * Check permissions of the /facets/taxonomies REST endpoint.
+	 * Check permissions of the /facets/post-type/* REST endpoints.
 	 *
 	 * @return WP_Error|true
 	 */
@@ -101,10 +101,12 @@ class Block {
 	 * Render the block.
 	 *
 	 * @param array $attributes Block attributes.
+	 * @return string
 	 */
 	public function render_block( $attributes ) {
 		$attributes = $this->parse_attributes( $attributes );
 
+		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'post-type', 'block', $attributes );
 		$renderer       = new $renderer_class();
 

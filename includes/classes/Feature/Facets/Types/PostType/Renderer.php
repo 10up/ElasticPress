@@ -156,12 +156,12 @@ class Renderer {
 		 * Filter the label for an individual post-type value.
 		 *
 		* @since 4.6.0
-		 * @hook ep_post_type_value_label
+		 * @hook ep_facet_post_type_value_label
 		 * @param {string} $label Facet post-type value label.
 		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet post-type value label.
 		 */
-		$label = apply_filters( 'ep_post_type_value_label', $label, $value );
+		$label = apply_filters( 'ep_facet_post_type_value_label', $label, $value );
 
 		/**
 		 * Filter the accessible label for an individual facet post-type value link.
@@ -172,13 +172,13 @@ class Renderer {
 		 * added or removed.
 		 *
 		* @since 4.6.0
-		 * @hook ep_post_type_value_accessible_label
+		 * @hook ep_facet_post_type_value_accessible_label
 		 * @param {string}  $label Facet post-type value accessible label.
 		 * @param {array}   $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet term accessible label.
 		 */
 		$accessible_label = apply_filters(
-			'ep_post_type_value_accessible_label',
+			'ep_facet_post_type_value_accessible_label',
 			$value['is_selected']
 				/* translators: %s: Filter term name. */
 				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $label )
@@ -246,7 +246,7 @@ class Renderer {
 	/**
 	 * Given an array of values, reorder them.
 	 *
-	 * @param array  $values  Multidimentional array of values. Each value should have (string) `name`, (int) `count`, and (bool) `is_selected`.
+	 * @param array  $values  Multidimensional array of values. Each value should have (string) `name`, (int) `count`, and (bool) `is_selected`.
 	 * @param string $orderby Key to be used to order.
 	 * @param string $order   ASC or DESC.
 	 * @return array

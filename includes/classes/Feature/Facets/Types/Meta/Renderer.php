@@ -311,7 +311,7 @@ class Renderer {
 	/**
 	 * Given an array of values, reorder them.
 	 *
-	 * @param array  $values  Multidimentional array of values. Each value should have (string) `name`, (int) `count`, and (bool) `is_selected`.
+	 * @param array  $values  Multidimensional array of values. Each value should have (string) `name`, (int) `count`, and (bool) `is_selected`.
 	 * @param string $orderby Key to be used to order.
 	 * @param string $order   ASC or DESC.
 	 * @return array

@@ -63,12 +63,12 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 		$this->assertEquals( $html, $renderer->get_post_type_value_html( $value, $url ) );
 
 		/**
-		 * Test the `ep_post_type_value_label` filter
+		 * Test the `ep_facet_post_type_value_label` filter
 		 */
 		$change_label = function( $label, $value ) {
 			return ( 'page' === $value['value'] ) ? 'Different Label' : $label;
 		};
-		add_filter( 'ep_post_type_value_label', $change_label, 10, 2 );
+		add_filter( 'ep_facet_post_type_value_label', $change_label, 10, 2 );
 
 		$accessible_label = 'Apply filter: Different Label';
 		$link             = '<a aria-label="' . $accessible_label . '" aria-role="link" aria-disabled="true" rel="nofollow"><div class="ep-checkbox " role="presentation"></div>Different Label</a>';
@@ -76,15 +76,15 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 
 		$this->assertEquals( $html, $renderer->get_post_type_value_html( $value, $url ) );
 
-		remove_filter( 'ep_post_type_value_label', $change_label );
+		remove_filter( 'ep_facet_post_type_value_label', $change_label );
 
 		/**
-		 * Test the `ep_post_type_value_accessible_label` filter
+		 * Test the `ep_facet_post_type_value_accessible_label` filter
 		 */
 		$change_accessible_label = function( $label, $value ) {
 			return ( 'page' === $value['value'] ) ? 'Apply filter!' : $label;
 		};
-		add_filter( 'ep_post_type_value_accessible_label', $change_accessible_label, 10, 2 );
+		add_filter( 'ep_facet_post_type_value_accessible_label', $change_accessible_label, 10, 2 );
 
 		$accessible_label = 'Apply filter!';
 		$link             = '<a aria-label="' . $accessible_label . '" aria-role="link" aria-disabled="true" rel="nofollow"><div class="ep-checkbox " role="presentation"></div>' . $value['name'] . '</a>';
@@ -92,7 +92,7 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 
 		$this->assertEquals( $html, $renderer->get_post_type_value_html( $value, $url ) );
 
-		remove_filter( 'ep_post_type_value_accessible_label', $change_label );
+		remove_filter( 'ep_facet_post_type_value_accessible_label', $change_label );
 
 		/**
 		 * Test the `ep_facet_post_type_value_html` filter
