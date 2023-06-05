@@ -429,11 +429,11 @@ class Search extends Feature {
 	/**
 	 * Returns true/false if decaying is/isn't enabled
 	 *
-	 * @param string|array $post_type Post type
+	 * @param array $args WP_Query args
 	 *
 	 * @return bool
 	 */
-	public function is_decaying_enabled( $post_type = [] ) {
+	public function is_decaying_enabled( $args = [] ) {
 		$settings = $this->get_settings();
 		$settings = wp_parse_args(
 			$settings,
@@ -449,11 +449,11 @@ class Search extends Feature {
 		 * @hook ep_decaying_enabled
 		 * @param  {bool} $decaying Decaying
 		 * @param  {array} $settings Settings
-		 * @param  {string|array} $post_type Post type
+		 * @param  {array} $args WP_Query args
 		 * @return {bool} Decaying
 		 * @since  4.6.0
 		 */
-		return apply_filters( 'ep_decaying_enabled', $decaying, $settings, $post_type );
+		return apply_filters( 'ep_decaying_enabled', $decaying, $settings, $args );
 
 	}
 
@@ -471,7 +471,7 @@ class Search extends Feature {
 		if ( empty( $args['s'] ) ) {
 			return $formatted_args;
 		}
-		if ( ! $this->is_decaying_enabled( $args['post_type'] ) ) {
+		if ( ! $this->is_decaying_enabled( $args ) ) {
 			return $formatted_args;
 		}
 		/**
