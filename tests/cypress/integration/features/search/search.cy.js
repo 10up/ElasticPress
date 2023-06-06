@@ -121,4 +121,18 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 
 		cy.get('.ep-highlight').should('be.visible');
 	});
+
+	it('Can not see any password protected post', () => {
+		cy.login();
+
+		cy.publishPost({
+			title: 'Password Protected',
+			password: 'password',
+		});
+
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
+	});
 });
