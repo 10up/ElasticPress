@@ -280,6 +280,5 @@ class TestDidYouMean extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 'Test post', $query->posts[0]->post_content );
-
 	}
 }
