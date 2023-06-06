@@ -441,20 +441,20 @@ class Search extends Feature {
 				'decaying_enabled' => true,
 			]
 		);
-		$decaying = (bool) $settings['decaying_enabled'];
+
+		$is_decaying_enabled = (bool) $settings['decaying_enabled'];
 
 		/**
 		 * Filter to modify decaying
 		 *
-		 * @hook ep_decaying_enabled
-		 * @param  {bool} $decaying Decaying
-		 * @param  {array} $settings Settings
-		 * @param  {array} $args WP_Query args
+		 * @hook ep_is_decaying_enabled
+		 * @since 4.6.0
+		 * @param {bool}  $is_decaying_enabled Whether decay by date is enabled or not
+		 * @param {array} $settings            Settings
+		 * @param {array} $args                WP_Query args
 		 * @return {bool} Decaying
-		 * @since  4.6.0
 		 */
-		return apply_filters( 'ep_decaying_enabled', $decaying, $settings, $args );
-
+		return apply_filters( 'ep_is_decaying_enabled', $is_decaying_enabled, $settings, $args );
 	}
 
 	/**
@@ -466,14 +466,14 @@ class Search extends Feature {
 	 * @return array
 	 */
 	public function weight_recent( $formatted_args, $args ) {
-		$settings = $this->get_settings();
-
 		if ( empty( $args['s'] ) ) {
 			return $formatted_args;
 		}
+
 		if ( ! $this->is_decaying_enabled( $args ) ) {
 			return $formatted_args;
 		}
+
 		/**
 		 * Filter search date weighting scale
 		 *
@@ -484,6 +484,7 @@ class Search extends Feature {
 		 * @return  {string} New decay function
 		 */
 		$decay_function = apply_filters( 'epwr_decay_function', 'exp', $formatted_args, $args );
+
 		/**
 		 * Filter search date weighting field
 		 *

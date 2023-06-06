@@ -577,6 +577,7 @@ class Weighting {
 		if ( isset( $args['search_fields'] ) && ! empty( $args['search_fields'] ) ) {
 			return $formatted_args;
 		}
+
 		$weight_config = $this->get_weighting_configuration();
 
 		/**

@@ -151,19 +151,16 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue(
-			isset(
-				$this->fired_actions['ep_formatted_args']['query'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
+		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
+
+		/**
+		 * Test the `ep_is_decaying_enabled` filter
+		 */
+		add_filter( 'ep_is_decaying_enabled', '__return_true' );
+		$this->assertTrue( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+		add_filter( 'ep_is_decaying_enabled', '__return_false' );
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+
 	}
 
 	/**
@@ -207,129 +204,13 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue(
-			! isset(
-				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
+		$this->assertDecayDisabled( $this->fired_actions['ep_formatted_args']['query'] );
 		$this->assertTrue(
 			isset(
 				$this->fired_actions['ep_formatted_args']['query']['bool'],
 				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
 			)
 		);
-	}
-
-	/**
-	 * Test if decaying is disabled on products.
-	 *
-	 * @since 4.6.0
-	 * @group search
-	 */
-	public function testDecayingDisabledOnProducts() {
-		ElasticPress\Features::factory()->activate_feature( 'search' );
-		ElasticPress\Features::factory()->setup_features();
-
-		// Need to call this since it's hooked to init
-		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-
-		// Test decaying for product query when disabled_only_products is enabled
-		ElasticPress\Features::factory()->update_feature(
-			'search',
-			[
-				'active'           => true,
-				'decaying_enabled' => 'disabled_only_products',
-			]
-		);
-
-		$this->ep_factory->post->create(
-			array(
-				'post_title'   => 'test post',
-				'post_content' => 'test post content',
-			)
-		);
-
-		$this->ep_factory->product->create(
-			[
-				'name'        => 'Product 1',
-				'description' => 'product 1 test',
-			]
-		);
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
-
-		$query = new \WP_Query(
-			[
-				's'         => 'test',
-				'post_type' => 'product',
-			]
-		);
-
-		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
-
-		// Test decaying for any query with products in it when disabled_only_products is enabled
-
-		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ), 20 );
-
-		$query = new \WP_Query(
-			[
-				's' => 'test',
-			]
-		);
-
-		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertDecayDisabled( $this->fired_actions['ep_formatted_args']['query'] );
-
-		// Test Decaying for any query with product in it when disabled_includes_products is enabled
-		ElasticPress\Features::factory()->update_feature(
-			'search',
-			[
-				'active'           => true,
-				'decaying_enabled' => 'disabled_includes_products',
-			]
-		);
-
-		add_filter( 'ep_formatted_args', array( $this, 'catch_ep_formatted_args' ) );
-
-		$query = new \WP_Query(
-			[
-				's' => 'test',
-			]
-		);
-
-		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
-
-		// Test Decaying for product query when disabled_includes_products is enabled
-		$query = new \WP_Query(
-			[
-				's'         => 'test',
-				'post_type' => 'product',
-			]
-		);
-		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
-	}
-
-
-	/**
-	 * Catch ES query args.
-	 *
-	 * @group search
-	 * @param array $args ES query args.
-	 */
-	public function catch_ep_formatted_args( $args ) {
-		$this->fired_actions['ep_formatted_args'] = $args;
-		return $args;
 	}
 
 	/**
@@ -454,59 +335,4 @@ class TestSearch extends BaseTestCase {
 
 		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
-
-	/**
-	 * Assert function to check if Decay is enabled
-	 *
-	 * @group search
-	 * @param array $query ES query
-	 */
-	public function assertDecayEnabled( $query ) {
-		$this->assertTrue(
-			! isset(
-				$query['function_score'],
-				$query['function_score']['functions'],
-				$query['function_score']['functions'][0],
-				$query['function_score']['functions'][0]['exp'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
-		$this->assertTrue(
-			isset(
-				$query['bool'],
-				$query['bool']['should']
-			)
-		);
-	}
-	/**
-	 * Assert function to check if Decay is disabled
-	 *
-	 * @group search
-	 * @param array $query ES query
-	 */
-	public function assertDecayDisabled( $query ) {
-		$this->assertTrue(
-			isset(
-				$query,
-				$query['function_score'],
-				$query['function_score']['functions'],
-				$query['function_score']['functions'][0],
-				$query['function_score']['functions'][0]['exp'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$query['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
-		$this->assertTrue(
-			! isset(
-				$query['bool'],
-				$query['bool']['should']
-			)
-		);
-	}
-
 }
