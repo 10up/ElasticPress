@@ -609,8 +609,7 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command can ask for confirmation when setup flag is set
 	 */
 	public function testSyncAskForConfirmationWhenSetupIsPassed() {
-
-		$this->expectExceptionMessage( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?' );
+		$this->expectExceptionMessage( 'Syncing with the --setup option will delete your existing index in Elasticsearch. Are you sure you want to delete your Elasticsearch index' );
 
 		$this->command->sync( [], [ 'setup' => true ] );
 	}
@@ -637,6 +636,38 @@ class TestCommands extends BaseTestCase {
 				'yes'   => true,
 			]
 		);
+	}
+
+	/**
+	 * Test sync command with the force flag.
+	 *
+	 * @since 4.6.0
+	 */
+	public function testSyncWithForceFlag() {
+		// mock indexing
+		add_filter( 'ep_is_indexing', '__return_true' );
+
+		$this->command->sync(
+			[],
+			[
+				'force' => true,
+				'yes'   => true,
+			]
+		);
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Sync cleared.', $output );
+	}
+
+	/**
+	 * Test sync command can ask for confirmation when force flag is set
+	 *
+	 * @since 4.6.0
+	 */
+	public function testSyncAskForConfirmationWhenForceIsPassed() {
+		$this->expectExceptionMessage( 'Are you sure you want to stop any other ongoing sync?' );
+
+		$this->command->sync( [], [ 'force' => true ] );
 	}
 
 	/**
@@ -733,7 +764,7 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
-	 * Test delete-index command can delete all the indexes if network-wide flag is set.
+	 * Test the clear-sync command
 	 *
 	 * @group skip-on-single-site
 	 */
@@ -742,7 +773,7 @@ class TestCommands extends BaseTestCase {
 		$this->command->clear_sync( [], [] );
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertStringContainsString( 'Index cleared.', $output );
+		$this->assertStringContainsString( 'Sync cleared.', $output );
 	}
 
 	/**

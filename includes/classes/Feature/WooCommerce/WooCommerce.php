@@ -523,7 +523,7 @@ class WooCommerce extends Feature {
 		 * Also make sure the orderby param affects only the main query
 		 */
 		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$orderby = sanitize_text_field( $_GET['orderby'] ); // phpcs:ignore WordPress.Security.NonceVerification
+			$orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
 			switch ( $orderby ) { // phpcs:ignore WordPress.Security.NonceVerification
 				case 'popularity':
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
@@ -706,9 +706,13 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
-		unset( $wp->query_vars['post__in'] );
-		$wp->query_vars['s'] = $search_key_safe;
+		// phpcs:disable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+		if ( isset( $_GET['s'] ) ) {
+			$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+			unset( $wp->query_vars['post__in'] );
+			$wp->query_vars['s'] = $search_key_safe;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
 	}
 
 	/**
@@ -1001,6 +1005,10 @@ class WooCommerce extends Feature {
 			return $args;
 		}
 
+		$min_price = ! empty( $_GET['min_price'] ) ? sanitize_text_field( wp_unslash( $_GET['min_price'] ) ) : null;
+		$max_price = ! empty( $_GET['max_price'] ) ? sanitize_text_field( wp_unslash( $_GET['max_price'] ) ) : null;
+		// phpcs:enable WordPress.Security.NonceVerification
+
 		if ( $query->is_search() ) {
 			/**
 			 * This logic is iffy but the WC price filter widget is not intended for use with search anyway
@@ -1008,12 +1016,12 @@ class WooCommerce extends Feature {
 			$old_query = $args['query']['bool'];
 			unset( $args['query']['bool']['should'] );
 
-			if ( ! empty( $_GET['min_price'] ) ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $_GET['min_price'];
+			if ( ! empty( $min_price ) ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $min_price;
 			}
 
-			if ( ! empty( $_GET['max_price'] ) ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $_GET['max_price'];
+			if ( ! empty( $max_price ) ) {
+				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $max_price;
 			}
 
 			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
@@ -1021,19 +1029,18 @@ class WooCommerce extends Feature {
 		} else {
 			unset( $args['query']['match_all'] );
 
-			$args['query']['range']['meta._price.long']['gte'] = ! empty( $_GET['min_price'] ) ? $_GET['min_price'] : 0;
+			$args['query']['range']['meta._price.long']['gte'] = ! empty( $min_price ) ? $min_price : 0;
 
-			if ( ! empty( $_GET['min_price'] ) ) {
-				$args['query']['range']['meta._price.long']['gte'] = $_GET['min_price'];
+			if ( ! empty( $min_price ) ) {
+				$args['query']['range']['meta._price.long']['gte'] = $min_price;
 			}
 
-			if ( ! empty( $_GET['max_price'] ) ) {
-				$args['query']['range']['meta._price.long']['lte'] = $_GET['max_price'];
+			if ( ! empty( $max_price ) ) {
+				$args['query']['range']['meta._price.long']['lte'] = $max_price;
 			}
 
 			$args['query']['range']['meta._price.long']['boost'] = 2.0;
 		}
-		// phpcs:enable WordPress.Security.NonceVerification
 
 		return $args;
 	}
@@ -1160,7 +1167,7 @@ class WooCommerce extends Feature {
 		}
 
 		// WooCommerce unsets the search term right after using it to fetch product IDs. Here we add it back.
-		$search_term = ! empty( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$search_term = ! empty( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		if ( ! empty( $search_term ) ) {
 			$query->set( 's', sanitize_text_field( $search_term ) ); // phpcs:ignore WordPress.Security.NonceVerification
 
@@ -1200,7 +1207,7 @@ class WooCommerce extends Feature {
 
 		// Sets the meta query for `product_type` if needed. Also removed from the WP_Query by WC in `WC_Admin_List_Table_Products::query_filters()`.
 		$product_type_query = $query->get( 'product_type', '' );
-		$product_type_url   = ! empty( $_GET['product_type'] ) ? sanitize_text_field( $_GET['product_type'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$product_type_url   = ! empty( $_GET['product_type'] ) ? sanitize_text_field( wp_unslash( $_GET['product_type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		$allowed_prod_types = [ 'virtual', 'downloadable' ];
 		if ( empty( $product_type_query ) && ! empty( $product_type_url ) && in_array( $product_type_url, $allowed_prod_types, true ) ) {
 			$meta_query   = $query->get( 'meta_query', [] );
@@ -1213,7 +1220,7 @@ class WooCommerce extends Feature {
 
 		// Sets the meta query for `stock_status` if needed.
 		$stock_status_query   = $query->get( 'stock_status', '' );
-		$stock_status_url     = ! empty( $_GET['stock_status'] ) ? sanitize_text_field( $_GET['stock_status'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$stock_status_url     = ! empty( $_GET['stock_status'] ) ? sanitize_text_field( wp_unslash( $_GET['stock_status'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		$allowed_stock_status = [ 'instock', 'outofstock', 'onbackorder' ];
 		if ( empty( $stock_status_query ) && ! empty( $stock_status_url ) && in_array( $stock_status_url, $allowed_stock_status, true ) ) {
 			$meta_query   = $query->get( 'meta_query', [] );

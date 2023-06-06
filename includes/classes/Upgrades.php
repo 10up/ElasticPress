@@ -148,6 +148,7 @@ class Upgrades {
 			return;
 		}
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
 		$synonyms_example_ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_content = %s LIMIT 100",
@@ -155,6 +156,7 @@ class Upgrades {
 				$synonyms->example_synonym_list()
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery
 
 		if ( ! $synonyms_example_ids ) {
 			return;

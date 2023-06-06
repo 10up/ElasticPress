@@ -86,7 +86,7 @@ class Screen {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification
-		if ( ! empty( $_GET['page'] ) && false !== strpos( $_GET['page'], 'elasticpress' ) ) {
+		if ( ! empty( $_GET['page'] ) && false !== strpos( sanitize_key( $_GET['page'] ), 'elasticpress' ) ) {
 			$install_status = Installer::factory()->get_install_status();
 
 			$this->screen = 'install';

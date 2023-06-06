@@ -71,4 +71,36 @@ describe('Protected Content Feature', () => {
 		cy.visitAdminPage('edit.php?post_status=draft&post_type=post');
 		cy.getTotal(1);
 	});
+
+	it('Can search password protected post', () => {
+		cy.login();
+		cy.maybeEnableFeature('protected_content');
+
+		cy.publishPost({
+			title: 'Password Protected',
+			password: 'password',
+		});
+
+		// Admin can see post on front and search page.
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+
+		cy.logout();
+
+		// Logout user can see the post on front but not on search page.
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
+
+		cy.createUser({ login: true });
+
+		// subscriber can see the post on front and on search page.
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('exist');
+	});
 });
