@@ -890,6 +890,11 @@ class WooCommerce extends Feature {
 		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders->setup();
 		}
+
+		// Add WooCommerce Settings for Weight results by date
+		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
+		// Modify decaying based on WooCommerce Settings
+		add_filter( 'ep_is_decaying_enabled', [ $this, 'maybe_disable_decaying' ], 10, 3 );
 	}
 
 	/**
@@ -1372,4 +1377,49 @@ class WooCommerce extends Feature {
 	public function is_orders_autosuggest_enabled() : bool {
 		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
 	}
+
+	/**
+	 * Add weight by date settings related to WooCommerce
+	 *
+	 * @since 4.6.0
+	 * @param array $settings Current settings.
+	 */
+	public function add_weight_settings_search( $settings ) {
+		?>
+		<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_only_products' ); ?> value="disabled_only_products"><?php esc_html_e( 'Disabled for product only queries', 'elasticpress' ); ?></label><br>
+		<label><input name="settings[decaying_enabled]" type="radio" <?php checked( $settings['decaying_enabled'], 'disabled_includes_products' ); ?> value="disabled_includes_products"><?php esc_html_e( 'Disabled for any query that includes products', 'elasticpress' ); ?></label>
+		<?php
+	}
+
+	/**
+	 * Conditionally disable decaying by date based on WooCommerce Decay settings.
+	 *
+	 * @since 4.6.0
+	 * @param bool  $is_decaying_enabled Whether decay by date is enabled or not
+	 * @param array $settings            Settings
+	 * @param array $args                WP_Query args
+	 * @return bool
+	 */
+	public function maybe_disable_decaying( $is_decaying_enabled, $settings, $args ) {
+		if ( ! in_array( $settings['decaying_enabled'], [ 'disabled_only_products', 'disabled_includes_products' ], true ) ) {
+			return $is_decaying_enabled;
+		}
+
+		if ( ! isset( $args['post_type'] ) || ! in_array( 'product', (array) $args['post_type'], true ) ) {
+			return $is_decaying_enabled;
+		}
+
+		$post_types = (array) $args['post_type'];
+
+		if ( 'disabled_only_products' === $settings['decaying_enabled'] && count( $post_types ) > 1 ) {
+			return $is_decaying_enabled;
+		}
+
+		if ( 'disabled_includes_products' === $settings['decaying_enabled'] && ! in_array( 'product', $post_types, true ) ) {
+			return $is_decaying_enabled;
+		}
+
+		return false;
+	}
+
 }
