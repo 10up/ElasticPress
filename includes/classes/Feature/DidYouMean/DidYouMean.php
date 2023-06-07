@@ -46,6 +46,7 @@ class DidYouMean extends Feature {
 		add_filter( 'ep_post_formatted_args', [ $this, 'add_query_args' ], 10, 3 );
 		add_filter( 'ep_integrate_search_queries', [ $this, 'set_ep_suggestion' ], 10, 2 );
 		add_action( 'template_redirect', [ $this, 'automatically_redirect_user' ] );
+		add_action( 'ep_suggestions', [ $this, 'the_output' ] );
 	}
 
 	/**
@@ -128,22 +129,22 @@ class DidYouMean extends Feature {
 			return false;
 		}
 
-		$html = sprintf( '<span class="ep-suggested-spell-term">%s: <a href="%s">%s</a>?</span>', esc_html__( 'Did you mean', 'elasticpress' ), get_search_link( $term ), $term );
+		$html = sprintf( '<span class="ep-spell-suggestion">%s: <a href="%s">%s</a>?</span>', esc_html__( 'Did you mean', 'elasticpress' ), get_search_link( $term ), $term );
 
 		$html .= $this->get_alternatives_terms( $query );
 		$terms = $query->suggested_terms['options'] ?? [];
 
 		/**
-		 * Filter the did you mean suggested term HTML.
+		 * Filter the did you mean suggested HTML.
 		 *
 		 * @since 4.6.0
-		 * @hook ep_did_you_mean_suggested_term_html
+		 * @hook ep_suggestion_html
 		 * @param {string}   $html The HTML output.
 		 * @param {array}    $terms All suggested terms.
 		 * @param {WP_Query} $query The WP_Query object.
 		 * @return {string}  New $html value
 		 */
-		return apply_filters( 'ep_did_you_mean_suggestion_html', $html, $terms, $query );
+		return apply_filters( 'ep_suggestion_html', $html, $terms, $query );
 	}
 
 	/**
@@ -228,11 +229,11 @@ class DidYouMean extends Feature {
 		$settings = $this->get_settings();
 		?>
 		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Search Behavior when no result found.', 'elasticpress' ); ?></div>
+			<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[search_behavior]" type="radio" <?php checked( ! (bool) $settings['search_behavior'] ); ?> value="0"><?php esc_html_e( 'Default', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[search_behavior]" type="radio" <?php checked( ! (bool) $settings['search_behavior'] ); ?> value="0"><?php esc_html_e( 'Display a top suggestion', 'elasticpress' ); ?></label><br>
 				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'list' ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'redirect' ); ?> value="redirect"><?php esc_html_e( 'Automatically redirects user to top suggestion', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'redirect' ); ?> value="redirect"><?php esc_html_e( 'Automatically redirect the user to the top suggestion', 'elasticpress' ); ?></label><br>
 			</div>
 		</div>
 		<?php
@@ -319,7 +320,76 @@ class DidYouMean extends Feature {
 		}
 
 		$url = get_search_link( $term );
+		$url = add_query_arg(
+			[
+				'ep_suggestion_original_term' => $wp_query->query_vars['s'],
+			],
+			$url
+		);
+
 		wp_safe_redirect( $url );
 		exit;
+	}
+
+	/**
+	 * Display a message to the user when the original search term has no results and the user is redirected to the suggested term.
+	 *
+	 * @return string
+	 */
+	public function get_original_search_term() {
+		global $wp_query;
+
+		if ( ! $wp_query->is_main_query() || ! $wp_query->is_search() ) {
+			return;
+		}
+
+		if ( ! isset( $_GET['ep_suggestion_original_term'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
+		$settings = $this->get_settings();
+		if ( 'redirect' !== $settings['search_behavior'] ) {
+			return;
+		}
+
+		$original_term = sanitize_text_field( wp_unslash( $_GET['ep_suggestion_original_term'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$html = sprintf(
+			'<div class="ep-original-search-term-message">
+			<span class="result">%s</span><strong>%s</strong>
+			<br/>
+			<span class="no-result">%s</span><strong>%s</strong>
+			</div>',
+			esc_html__( 'Showing results for: ', 'elasticpress' ),
+			esc_html( $original_term ),
+			esc_html__( 'No results for: ', 'elasticpress' ),
+			esc_html( $wp_query->query_vars['s'] )
+		);
+
+		 /**
+		  * Filter the HTML output for the original search term.
+		  *
+		  * @since 4.6.0
+		  * @hook ep_suggestion_original_search_term_html
+		  * @param {string} $html HTML output
+		  * @param {string} $original_term Original search term
+		  * @param {string} $search_term Search term
+		  * @param {WP_Query} $wp_query WP_Query object
+		  * @return {string} New HTML output
+		  */
+		return apply_filters( 'ep_suggestion_original_search_term_html', $html, $original_term, $wp_query->query_vars['s'], $wp_query );
+	}
+
+	/**
+	 * Returns the suggestion
+	 *
+	 * @param WP_Query $query WP_Query object. Default set to false.
+	 * @return void
+	 */
+	public function the_output( $query = false ) {
+		$html  = $this->get_original_search_term();
+		$html .= $this->get_suggestion( $query );
+
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }

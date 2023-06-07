@@ -128,7 +128,7 @@ class TestDidYouMean extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 
-		$expected = sprintf( '<span class="ep-suggested-spell-term">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
 		$this->assertEquals( $expected, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
 	}
 
@@ -155,7 +155,7 @@ class TestDidYouMean extends BaseTestCase {
 
 		$query = $query->query( $args );
 
-		$expected = sprintf( '<span class="ep-suggested-spell-term">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
 		$this->assertEquals( $expected, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion() );
 	}
 
@@ -168,16 +168,16 @@ class TestDidYouMean extends BaseTestCase {
 	}
 
 	/**
-	 * Tests that get_suggestion method filter `ep_did_you_mean_suggestion_html`.
+	 * Tests that get_suggestion method filter `ep_suggestion_html`.
 	 */
 	public function testGetSearchSuggestionMethodFilter() {
 		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$expected_result = '<span class="ep-suggested-spell-term">Did you mean: test filter is working ?</span>';
+		$expected_result = '<span class="ep-spell-suggestion">Did you mean: test filter is working ?</span>';
 		add_filter(
-			'ep_did_you_mean_suggestion_html',
+			'ep_suggestion_html',
 			function( $html, $terms, $query ) use ( $expected_result ) {
 				$this->assertEquals( 'test', $terms[0]['text'] );
 				$this->assertInstanceOf( '\WP_Query', $query );
