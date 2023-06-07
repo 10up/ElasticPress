@@ -292,17 +292,13 @@ class TestDidYouMean extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$filter = function() {
-			return [
-				'did-you-mean' => [
-					'search_behavior' => 'redirect',
-					'active'          => true,
-				],
-			];
-		};
-
-		add_filter( 'pre_site_option_ep_feature_settings', $filter );
-		add_filter( 'pre_option_ep_feature_settings', $filter );
+		ElasticPress\Features::factory()->update_feature(
+			'did-you-mean',
+			[
+				'active'          => true,
+				'search_behavior' => 'redirect',
+			]
+		);
 
 		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
 
@@ -340,17 +336,13 @@ class TestDidYouMean extends BaseTestCase {
 			]
 		);
 
-		$filter = function() {
-			return [
-				'did-you-mean' => [
-					'search_behavior' => 'redirect',
-					'active'          => true,
-				],
-			];
-		};
-
-		add_filter( 'pre_site_option_ep_feature_settings', $filter );
-		add_filter( 'pre_option_ep_feature_settings', $filter );
+		ElasticPress\Features::factory()->update_feature(
+			'did-you-mean',
+			[
+				'active'          => true,
+				'search_behavior' => 'redirect',
+			]
+		);
 
 		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
 
@@ -381,17 +373,13 @@ class TestDidYouMean extends BaseTestCase {
 			]
 		);
 
-		$filter = function() {
-			return [
-				'did-you-mean' => [
-					'search_behavior' => 'redirect',
-					'active'          => true,
-				],
-			];
-		};
-
-		add_filter( 'pre_site_option_ep_feature_settings', $filter );
-		add_filter( 'pre_option_ep_feature_settings', $filter );
+		ElasticPress\Features::factory()->update_feature(
+			'did-you-mean',
+			[
+				'active'          => true,
+				'search_behavior' => 'redirect',
+			]
+		);
 
 		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
 
