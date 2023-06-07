@@ -117,6 +117,10 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
+		new Feature\DidYouMean\DidYouMean()
+	);
+
+	Features::factory()->register_feature(
 		new Feature\WooCommerce\WooCommerce()
 	);
 

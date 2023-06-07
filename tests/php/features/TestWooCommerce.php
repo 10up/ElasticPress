@@ -1187,4 +1187,84 @@ class TestWooCommerce extends BaseTestCase {
 		remove_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
 		$this->assertFalse( $woocommerce_feature->is_orders_autosuggest_enabled() );
 	}
+
+	/**
+	 * Test if decaying is disabled on products.
+	 *
+	 * @since 4.6.0
+	 * @dataProvider decayingDisabledOnProductsProvider
+	 * @group woocommerce
+	 *
+	 * @param string       $setting   Value for `decaying_enabled`
+	 * @param array|string $post_type Post types to be queried
+	 * @param string       $assert    Assert method name (`assertDecayDisabled` or `assertDecayEnabled`)
+	 */
+	public function testDecayingDisabledOnProducts( $setting, $post_type, $assert ) {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Test decaying for product query when disabled_only_products is enabled
+		ElasticPress\Features::factory()->update_feature(
+			'search',
+			[
+				'active'           => true,
+				'decaying_enabled' => $setting,
+			]
+		);
+
+		$query          = new \WP_Query();
+		$query_args     = [
+			's'         => 'test',
+			'post_type' => $post_type,
+		];
+		$formatted_args = \ElasticPress\Indexables::factory()->get( 'post' )->format_args( $query_args, $query );
+
+		$this->$assert( $formatted_args['query'] );
+	}
+
+	/**
+	 * Data provider for the testDecayingDisabledOnProducts method.
+	 *
+	 * @since 4.6.0
+	 * @return array
+	 */
+	public function decayingDisabledOnProductsProvider() : array {
+		return [
+			[
+				'disabled_only_products',
+				'product',
+				'assertDecayDisabled',
+			],
+			[
+				'disabled_only_products',
+				[ 'product' ],
+				'assertDecayDisabled',
+			],
+			[
+				'disabled_only_products',
+				[ 'product', 'post' ],
+				'assertDecayEnabled',
+			],
+			[
+				'disabled_includes_products',
+				'product',
+				'assertDecayDisabled',
+			],
+			[
+				'disabled_includes_products',
+				[ 'product' ],
+				'assertDecayDisabled',
+			],
+			[
+				'disabled_includes_products',
+				[ 'product', 'post' ],
+				'assertDecayDisabled',
+			],
+			[
+				'disabled_includes_products',
+				[ 'post', 'page' ],
+				'assertDecayEnabled',
+			],
+		];
+	}
 }
