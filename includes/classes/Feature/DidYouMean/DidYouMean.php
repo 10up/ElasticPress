@@ -142,7 +142,7 @@ class DidYouMean extends Feature {
 		 * @param {string}   $html The HTML output.
 		 * @param {array}    $terms All suggested terms.
 		 * @param {WP_Query} $query The WP_Query object.
-		 * @return {string}  New $html value
+		 * @return {string}  New HTML output
 		 */
 		return apply_filters( 'ep_suggestion_html', $html, $terms, $query );
 	}
@@ -371,11 +371,11 @@ class DidYouMean extends Feature {
 		 *
 		 * @since 4.6.0
 		 * @hook ep_suggestion_original_search_term_html
-		 * @param string $html HTML output
-		 * @param string $search_term Suggested search term
-		 * @param string $original_term Original search term
-		 * @param WP_Query $wp_query WP_Query object
-		 * @return string New HTML output
+		 * @param {string} $html HTML output
+		 * @param {string} $search_term Suggested search term
+		 * @param {string} $original_term Original search term
+		 * @param {WP_Query} $wp_query WP_Query object
+		 * @return {string} New HTML output
 		 */
 		return apply_filters( 'ep_suggestion_original_search_term_html', $html, $wp_query->query_vars['s'], $original_term, $wp_query );
 	}
