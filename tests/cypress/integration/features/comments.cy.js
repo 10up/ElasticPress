@@ -246,8 +246,8 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('@syncPanel').find('.components-form-toggle').click();
 		cy.get('@syncPanel')
 			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete')
+			.should('contain.text', 'Mapping sent')
 			// check that the number of approved comments is the same as the default.
 			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
 

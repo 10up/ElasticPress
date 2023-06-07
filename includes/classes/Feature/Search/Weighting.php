@@ -8,8 +8,9 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
+use ElasticPress\Feature;
 use ElasticPress\Indexable\Post\Post;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Controls search weighting and search fields dashboard
@@ -220,8 +221,8 @@ class Weighting {
 				<input type="hidden" name="action" value="ep-weighting">
 				<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
 				<?php
-				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
-					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
+				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+					if ( sanitize_key( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
 						?>
 						<div class="notice notice-success is-dismissible">
 							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
@@ -335,7 +336,7 @@ class Weighting {
 	 * Handles processing the new weighting values and saving them to the elasticpress.io service
 	 */
 	public function handle_save() {
-		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-weighting-nonce'], 'save-weighting' ) ) {
+		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ep-weighting-nonce'] ), 'save-weighting' ) ) {
 			return;
 		}
 

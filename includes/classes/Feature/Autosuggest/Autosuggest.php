@@ -628,7 +628,7 @@ class Autosuggest extends Feature {
 		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
 		// If we do not have object caching we cache only one value for 5 minutes in a transient.
 		if ( wp_using_ext_object_cache() ) {
-			$cache_key = md5( wp_json_encode( $query['url'] ) . wp_json_encode( $args ) );
+			$cache_key = md5( wp_json_encode( $query['url'] ) . wp_json_encode( $args['body'] ) );
 			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
 			if ( false === $request ) {
 				$request = wp_remote_request( $query['url'], $args );
@@ -740,7 +740,7 @@ class Autosuggest extends Feature {
 	 * Send the allowed parameters for autosuggest to ElasticPress.io.
 	 */
 	public function epio_send_autosuggest_allowed() {
-		if ( empty( $_REQUEST['ep_epio_nonce'] ) || ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
+		if ( empty( $_REQUEST['ep_epio_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ep_epio_nonce'] ), 'ep-epio-set-autosuggest' ) ) {
 			return;
 		}
 		if ( empty( $_GET['ep_epio_set_autosuggest'] ) ) {

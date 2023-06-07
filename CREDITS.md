@@ -209,6 +209,8 @@ Thank you to all the people who have already contributed to this repository via 
 [Paolo Burzacca (@paoloburzacca)](https://github.com/paoloburzacca),
 [Anjula Hettige (@anjulahettige)](https://github.com/anjulahettige),
 [Mayank Chugh (@iamchughmayank)](https://github.com/iamchughmayank),
+[Boyan Bratvanov (@bratvanov)](https://github.com/bratvanov),
+[Alexander Z (@TorlockC)](https://github.com/TorlockC),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

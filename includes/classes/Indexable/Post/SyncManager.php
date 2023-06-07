@@ -87,6 +87,9 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
 		add_action( 'deleted_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
 		add_action( 'delete_post_metadata', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+
+		// Prevents password protected posts from being indexed
+		add_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ], 10, 2 );
 	}
 
 	/**
@@ -106,6 +109,7 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+		remove_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ] );
 	}
 
 	/**
@@ -556,6 +560,10 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
 		global $wpdb;
 
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		/**
 		 * Filter to whether skip a sync during autosave, defaults to true
 		 *
@@ -575,14 +583,21 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		// Find ID of all attached posts (query lifted from wp_delete_term())
-		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id ) );
+		$object_ids = (array) $wpdb->get_col( // phpcs:disable WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id )
+		);
 
 		// If the current term is not attached, check if the child terms are attached to the post
 		if ( empty( $object_ids ) ) {
 			$child_terms = get_term_children( $term_id, $taxonomy );
 			if ( ! empty( $child_terms ) ) {
 				$in_id      = join( ',', array_fill( 0, count( $child_terms ), '%d' ) );
-				$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", $child_terms ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				$object_ids = (array) $wpdb->get_col( // phpcs:disable WordPress.DB.DirectDatabaseQuery
+					$wpdb->prepare(
+						"SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+						$child_terms
+					)
+				);
 			}
 		}
 		if ( ! count( $object_ids ) ) {
@@ -872,5 +887,40 @@ class SyncManager extends SyncManagerAbstract {
 		);
 
 		return $is_max_count_bigger;
+	}
+
+	/**
+	 * Prevent a password protected post from being indexed.
+	 *
+	 * @since 4.6.0
+	 * @param bool $skip      Whether should skip or not before checking for a password
+	 * @param int  $object_id The Post ID
+	 * @return bool New value of $skip
+	 */
+	public function kill_sync_for_password_protected( $skip, $object_id ) {
+		/**
+		 * Short-circuits the process of checking if a post should be indexed or not depending on its password.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.6.0
+		 * @hook ep_pre_kill_sync_for_password_protected
+		 * @param {null} $new_skip     Whether should skip or not before checking for a password
+		 * @param {bool} $current_skip Current value
+		 * @param {int}  $object_id    The Post ID
+		 * @return {null|bool} New value of $skip or `null` to keep default behavior.
+		 */
+		$skip_filter = apply_filters( 'ep_pre_kill_sync_for_password_protected', null, $skip, $object_id );
+		if ( ! is_null( $skip_filter ) ) {
+			return $skip_filter;
+		}
+
+		if ( $skip ) {
+			return $skip;
+		}
+
+		$post = get_post( $object_id );
+
+		return ! empty( $post->post_password );
 	}
 }

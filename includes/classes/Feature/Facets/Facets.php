@@ -50,10 +50,14 @@ class Facets extends Feature {
 		];
 
 		$types = [
-			'taxonomy'   => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
-			'meta'       => __NAMESPACE__ . '\Types\Meta\FacetType',
-			'meta-range' => __NAMESPACE__ . '\Types\MetaRange\FacetType',
+			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
 		];
+
+		if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
+			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
+			$types['post-type']  = __NAMESPACE__ . '\Types\PostType\FacetType';
+		}
 
 		/**
 		 * Filter the Facet types available.
@@ -431,7 +435,7 @@ class Facets extends Feature {
 		 */
 		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_params );
 
-		$url        = $_SERVER['REQUEST_URI'];
+		$url        = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
 		$pagination = strpos( $url, '/page' );
 		if ( false !== $pagination ) {
 			$url = substr( $url, 0, $pagination );
@@ -489,6 +493,21 @@ class Facets extends Feature {
 	 */
 	public function get_allowed_query_args() {
 		$args = array( 's', 'post_type', 'orderby' );
+
+		// Retrieve all registered query variables for public taxonomies
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->query_var ) {
+				$args[] = $taxonomy->query_var;
+			}
+		}
+		/**
+		 * To keep backward compatibility, WordPress uses  `'cat'` for default categories.
+		 * It also allows access using the `?taxonomy=<tax>&term=<term>` format.
+		 *
+		 * @see get_term_link()
+		 */
+		$args = array_merge( $args, [ 'cat', 'taxonomy', 'term' ] );
 
 		/**
 		 * Filter allowed query args

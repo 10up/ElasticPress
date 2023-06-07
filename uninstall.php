@@ -10,6 +10,10 @@
 
 use ElasticPress\Utils;
 
+defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/includes/utils.php';
+
 /**
  * Class EP_Uninstaller
  */
@@ -125,7 +129,9 @@ class EP_Uninstaller {
 	protected function delete_related_posts_transients() {
 		global $wpdb;
 
-		$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
+		$related_posts_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'"
+		);
 
 		foreach ( $related_posts_transients as $related_posts_transient ) {
 			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
@@ -140,7 +146,9 @@ class EP_Uninstaller {
 	protected function delete_total_fields_limit_transients() {
 		global $wpdb;
 
-		$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_total_fields_limit_%'" );
+		$related_posts_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_total_fields_limit_%'"
+		);
 
 		foreach ( $related_posts_transients as $related_posts_transient ) {
 			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );

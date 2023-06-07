@@ -209,12 +209,35 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$selected_filters = $feature->get_selected();
+
 		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
 			return $filters;
 		}
 
-		$meta_fields = $selected_filters[ $this->get_filter_type() ];
-		$match_type  = $feature->get_match_type();
+		/**
+		 * Filter if EP should only filter by fields selected in facets. Defaults to true.
+		 *
+		 * @since 4.5.1
+		 * @hook ep_facet_should_check_if_allowed
+		 * @param {bool} $should_check Whether it should or not check fields
+		 * @return {string} New value
+		 */
+		$should_check_if_allowed = apply_filters( 'ep_facet_should_check_if_allowed', true );
+		if ( $should_check_if_allowed ) {
+			$allowed_meta_fields = $this->get_facets_meta_fields();
+
+			$meta_fields = array_filter(
+				$selected_filters[ $this->get_filter_type() ],
+				function ( $meta_field ) use ( $allowed_meta_fields ) {
+					return in_array( $meta_field, $allowed_meta_fields, true );
+				},
+				ARRAY_FILTER_USE_KEY
+			);
+		} else {
+			$meta_fields = $selected_filters[ $this->get_filter_type() ];
+		}
+
+		$match_type = $feature->get_match_type();
 
 		foreach ( $meta_fields as $meta_field => $values ) {
 			if ( 'any' === $match_type ) {

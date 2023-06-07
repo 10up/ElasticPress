@@ -106,8 +106,11 @@ class StatusReport {
 		 */
 		$filtered_reports = apply_filters( 'ep_status_report_reports', $reports );
 
-		$skipped_reports = ! empty( $_GET['ep-skip-reports'] ) ? (array) $_GET['ep-skip-reports'] : []; // phpcs:ignore WordPress.Security.NonceVerification
-		$skipped_reports = array_map( 'sanitize_text_field', $skipped_reports );
+		// phpcs:disable WordPress.Security.NonceVerification
+		$skipped_reports = isset( $_GET['ep-skip-reports'] ) ?
+			array_map( 'sanitize_text_field', (array) wp_unslash( $_GET['ep-skip-reports'] ) ) :
+			[];
+		// phpcs:enable WordPress.Security.NonceVerification
 
 		$filtered_reports = array_filter(
 			$filtered_reports,

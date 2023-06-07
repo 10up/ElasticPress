@@ -44,7 +44,7 @@ class Block {
 	}
 
 	/**
-	 * Check permissions of the /facets/taxonomies REST endpoint.
+	 * Check permissions of the /facets/meta/* REST endpoints.
 	 *
 	 * @return WP_Error|true
 	 */
@@ -109,6 +109,7 @@ class Block {
 	 * Render the block.
 	 *
 	 * @param array $attributes Block attributes.
+	 * @return string
 	 */
 	public function render_block( $attributes ) {
 		global $wp_query;

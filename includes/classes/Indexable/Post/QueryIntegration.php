@@ -39,9 +39,21 @@ class QueryIntegration {
 	 * @since 3.6.0 Added $indexable_slug
 	 */
 	public function __construct( $indexable_slug = 'post' ) {
+		/**
+		 * Filter whether to enable query integration during indexing
+		 *
+		 * @since 4.5.2
+		 * @hook ep_enable_query_integration_during_indexing
+		 *
+		 * @param {bool} $enable To allow query integration during indexing
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, $indexable_slug );
+
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
 		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
-		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) && ! $allow_query_integration_during_indexing ) {
 			return;
 		}
 
@@ -359,6 +371,7 @@ class QueryIntegration {
 			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
 			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
+			$query->suggested_terms       = isset( $ep_query['suggest']['ep_suggestion'] ) && isset( $ep_query['suggest']['ep_suggestion'][0] ) ? $ep_query['suggest']['ep_suggestion'][0] : [];
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.

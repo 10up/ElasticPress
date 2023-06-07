@@ -14,9 +14,9 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ## Documentation
 
-ElasticPress has an in depth documentation site. [Visit the docs ☞](https://10up.github.io/ElasticPress/)
-
-ElasticPress FAQs and tutorials can be found on our support site. [Visit the support site ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Docs website ☞](https://10up.github.io/ElasticPress/)
+* [Support site with FAQs and tutorials ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Security Policy ☞](https://github.com/10up/ElasticPress/blob/develop/SECURITY.md)
 
 ## Requirements and Compatibility
 
