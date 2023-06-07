@@ -9,6 +9,11 @@ import { __ } from '@wordpress/i18n';
 import { addQueryArgs } from '@wordpress/url';
 
 /**
+ * Internal dependencies.
+ */
+import icon from './icon';
+
+/**
  * Related Posts block edit component.
  *
  * @param {object} props Component props.
@@ -72,7 +77,7 @@ const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => 
 
 			<div className={className}>
 				{displayPosts === false || displayPosts.length === 0 ? (
-					<Placeholder icon="admin-post" label={__('Related Posts', 'elasticpress')}>
+					<Placeholder icon={icon} label={__('Related Posts', 'elasticpress')}>
 						{posts === false ? (
 							<Spinner />
 						) : (

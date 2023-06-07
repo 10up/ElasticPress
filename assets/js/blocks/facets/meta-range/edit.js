@@ -19,6 +19,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
+import icon from './icon';
 import LoadingResponsePlaceholder from '../common/components/loading-response-placeholder';
 import FacetMetaControl from '../common/components/facet-meta-control';
 import RangeFilter from '../common/components/range-filter';
@@ -132,7 +133,7 @@ export default ({ attributes, name, setAttributes }) => {
 						</Warning>
 					)
 				) : (
-					<Placeholder label={title}>
+					<Placeholder icon={icon} label={title}>
 						<FacetMetaControl onChange={onChangeFacet} value={facet} />
 					</Placeholder>
 				)}

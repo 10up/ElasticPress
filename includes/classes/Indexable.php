@@ -1210,7 +1210,7 @@ abstract class Indexable {
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );
 		} catch ( \Throwable $th ) {
-			return new \Exception( 'Meta fields not available.', 0 );
+			throw new \Exception( 'Meta fields not available.', 0 );
 		}
 
 		return $meta_keys;

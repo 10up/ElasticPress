@@ -12,6 +12,7 @@ import ServerSideRender from '@wordpress/server-side-render';
 /**
  * Internal dependencies.
  */
+import icon from './icon';
 import EmptyResponsePlaceholder from './components/empty-response-placeholder';
 import FacetDisplayCountControl from './components/facet-display-count-control';
 import FacetMetaControl from './components/facet-meta-control';
@@ -118,7 +119,7 @@ export default ({ attributes, name, setAttributes }) => {
 						/>
 					</Disabled>
 				) : (
-					<Placeholder label={title}>
+					<Placeholder icon={icon} label={title}>
 						<FacetControl onChange={onChangeFacet} value={facet} />
 					</Placeholder>
 				)}
