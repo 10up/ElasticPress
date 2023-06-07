@@ -23,7 +23,7 @@ class DidYouMean extends Feature {
 
 		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
 
-		$this->summary = __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience.', 'elasticpress' );
+		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
 
@@ -217,7 +217,7 @@ class DidYouMean extends Feature {
 			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
 		}
 
-		return parent::requirements_status();
+		return new FeatureRequirementsStatus( 1 );
 	}
 
 	/**
@@ -231,7 +231,7 @@ class DidYouMean extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[search_behavior]" type="radio" <?php checked( ! (bool) $settings['search_behavior'] ); ?> value="0"><?php esc_html_e( 'Display a top suggestion', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[search_behavior]" type="radio" <?php checked( ! (bool) $settings['search_behavior'] ); ?> value="0"><?php esc_html_e( 'Display the top suggestion', 'elasticpress' ); ?></label><br>
 				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'list' ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
 				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'redirect' ); ?> value="redirect"><?php esc_html_e( 'Automatically redirect the user to the top suggestion', 'elasticpress' ); ?></label><br>
 			</div>
@@ -334,7 +334,7 @@ class DidYouMean extends Feature {
 	/**
 	 * Return a message to the user when the original search term has no results and the user is redirected to the suggested term.
 	 *
-	 * @return string
+	 * @return string|void
 	 */
 	public function get_original_search_term() {
 		global $wp_query;
@@ -386,10 +386,10 @@ class DidYouMean extends Feature {
 	 * @param WP_Query $query WP_Query object. Default set to false.
 	 * @return void
 	 */
-	public function the_output( $query = false ) {
-		$html  = $this->get_original_search_term();
+	public function the_output( $query = null ) {
+		$html  = $this->get_original_search_term( $query );
 		$html .= $this->get_suggestion( $query );
 
-		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses_post( $html );
 	}
 }
