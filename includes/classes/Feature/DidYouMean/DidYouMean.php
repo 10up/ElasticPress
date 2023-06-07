@@ -23,7 +23,7 @@ class DidYouMean extends Feature {
 
 		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
 
-		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results', 'elasticpress' );
+		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results.', 'elasticpress' );
 
 		$this->requires_install_reindex = true;
 
