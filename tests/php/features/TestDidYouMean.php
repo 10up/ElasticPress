@@ -59,7 +59,7 @@ class TestDidYouMean extends BaseTestCase {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
 		$status   = $instance->requirements_status();
 
-		$this->assertEquals( 0, $status->code );
+		$this->assertEquals( 1, $status->code );
 		$this->assertEquals( null, $status->message );
 	}
 
@@ -296,6 +296,7 @@ class TestDidYouMean extends BaseTestCase {
 			return [
 				'did-you-mean' => [
 					'search_behavior' => 'redirect',
+					'active'          => true,
 				],
 			];
 		};
@@ -321,6 +322,85 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertStringContainsString( '<div class="ep-original-search-term-message">', $html );
 		$this->assertStringContainsString( '<span class="result">Showing results for: </span><strong>teet</strong>', $html );
 		$this->assertStringContainsString( '<span class="no-result">No results for: </span><strong>Original Term</strong>', $html );
+	}
 
+	/**
+	 * Test `ep_suggestions` action for main query.
+	 */
+	public function testEPSuggestionsAction() {
+		global $wp_the_query, $wp_query;
+
+		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'teet',
+			]
+		);
+
+		$filter = function() {
+			return [
+				'did-you-mean' => [
+					'search_behavior' => 'redirect',
+					'active'          => true,
+				],
+			];
+		};
+
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
+
+		// mock the query as main query
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		ob_start();
+		do_action( 'ep_suggestions' );
+		$output = ob_get_clean();
+
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
+		$this->assertStringContainsString( $expected, $output );
+		$this->assertStringContainsString( '<span class="result">Showing results for: </span><strong>teet</strong>', $output );
+	}
+
+	/**
+	 * Test `ep_suggestions` action for other than main query.
+	 */
+	public function testEPSuggestionsActionOtherThanMainQuery() {
+		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'teet',
+			]
+		);
+
+		$filter = function() {
+			return [
+				'did-you-mean' => [
+					'search_behavior' => 'redirect',
+					'active'          => true,
+				],
+			];
+		};
+
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
+
+		ob_start();
+		do_action( 'ep_suggestions', $query );
+		$output = ob_get_clean();
+
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
+		$this->assertStringContainsString( $expected, $output );
+		$this->assertStringContainsString( '<span class="result">Showing results for: </span><strong>teet</strong>', $output );
 	}
 }

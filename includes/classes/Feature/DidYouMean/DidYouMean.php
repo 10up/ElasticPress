@@ -334,12 +334,23 @@ class DidYouMean extends Feature {
 	/**
 	 * Return a message to the user when the original search term has no results and the user is redirected to the suggested term.
 	 *
+	 * @param WP_Query $query WP_Query object
+	 *
 	 * @return string|void
 	 */
-	public function get_original_search_term() {
+	public function get_original_search_term( $query = null ) {
 		global $wp_query;
 
-		if ( ! $wp_query->is_main_query() || ! $wp_query->is_search() ) {
+		$settings = $this->get_settings();
+		if ( empty( $settings['active'] ) ) {
+			return false;
+		}
+
+		if ( ! $query && $wp_query->is_main_query() && $wp_query->is_search() ) {
+			$query = $wp_query;
+		}
+
+		if ( ! is_a( $query, '\WP_Query' ) ) {
 			return;
 		}
 
@@ -361,7 +372,7 @@ class DidYouMean extends Feature {
 			<span class="no-result">%s</span><strong>%s</strong>
 			</div>',
 			esc_html__( 'Showing results for: ', 'elasticpress' ),
-			esc_html( $wp_query->query_vars['s'] ),
+			esc_html( $query->query_vars['s'] ),
 			esc_html__( 'No results for: ', 'elasticpress' ),
 			esc_html( $original_term )
 		);
@@ -374,16 +385,16 @@ class DidYouMean extends Feature {
 		 * @param {string} $html HTML output
 		 * @param {string} $search_term Suggested search term
 		 * @param {string} $original_term Original search term
-		 * @param {WP_Query} $wp_query WP_Query object
+		 * @param {WP_Query} $query WP_Query object
 		 * @return {string} New HTML output
 		 */
-		return apply_filters( 'ep_suggestion_original_search_term_html', $html, $wp_query->query_vars['s'], $original_term, $wp_query );
+		return apply_filters( 'ep_suggestion_original_search_term_html', $html, $query->query_vars['s'], $original_term, $query );
 	}
 
 	/**
 	 * Returns the suggestion
 	 *
-	 * @param WP_Query $query WP_Query object. Default set to false.
+	 * @param WP_Query $query WP_Query object
 	 * @return void
 	 */
 	public function the_output( $query = null ) {
