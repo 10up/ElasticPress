@@ -132,7 +132,7 @@ class FailedQueries extends Report {
 	 * If a nonce is present, clear the logs
 	 */
 	protected function maybe_clear_logs() {
-		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'ep-clear-logged-queries' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'ep-clear-logged-queries' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 
