@@ -281,4 +281,46 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 'Test post', $query->posts[0]->post_content );
 	}
+
+	/**
+	 * Test that function returns the original search term when no results are found.
+	 */
+	public function testGetOriginalSearchTerm() {
+		global $wp_the_query, $wp_query;
+
+		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$filter = function() {
+			return [
+				'did-you-mean' => [
+					'search_behavior' => 'redirect',
+				],
+			];
+		};
+
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		parse_str( 'ep_suggestion_original_term=Original Term', $_GET );
+
+		$query = new \WP_Query(
+			[
+				's' => 'teet',
+			]
+		);
+
+		// mock the query as main query
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$html = ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_original_search_term();
+		$this->assertStringContainsString( '<div class="ep-original-search-term-message">', $html );
+		$this->assertStringContainsString( '<span class="result">Showing results for: </span><strong>teet</strong>', $html );
+		$this->assertStringContainsString( '<span class="no-result">No results for: </span><strong>Original Term</strong>', $html );
+
+	}
 }
