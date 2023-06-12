@@ -391,4 +391,65 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertStringContainsString( $expected, $output );
 		$this->assertStringContainsString( '<span class="result">Showing results for: </span><strong>teet</strong>', $output );
 	}
+
+	/**
+	 * Test that a suggestion is removed from the list when the score is lower than the "ep_suggestion_minimum_score` value.
+	 */
+	public function testSuggestionRemovedFromListIfScoreIsLowerThanThreshold() {
+		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// mock the score.
+		add_filter(
+			'ep_es_query_results',
+			function( $response ) {
+				$response['suggest']['ep_suggestion'][0]['options'][0]['score'] = '3.730e-6';
+				return $response;
+			}
+		);
+
+		$query = new \WP_Query(
+			[
+				's' => 'woo-vneck-tee-blue',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEmpty( $query->suggested_terms['options'] );
+	}
+
+	/**
+	 * Test that `ep_suggestion_minimum_score` filter works.
+	 */
+	public function testEPSuggestionMinimumScoreFilter() {
+		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'woo-vneck-tee-blue',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNotEmpty( $query->suggested_terms['options'] );
+
+		add_filter(
+			'ep_suggestion_minimum_score',
+			function() {
+				return 0.1;
+			}
+		);
+
+		$query = new \WP_Query(
+			[
+				's' => 'woo-vneck-tee-blue',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEmpty( $query->suggested_terms['options'] );
+
+	}
 }

@@ -371,7 +371,7 @@ class QueryIntegration {
 			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
 			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
-			$query->suggested_terms       = isset( $ep_query['suggest']['ep_suggestion'] ) && isset( $ep_query['suggest']['ep_suggestion'][0] ) ? $ep_query['suggest']['ep_suggestion'][0] : [];
+			$query->suggested_terms       = $this->maybe_sanitize_suggestion( $ep_query );
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
@@ -561,5 +561,43 @@ class QueryIntegration {
 			$new_posts[]         = $post;
 		}
 		return $new_posts;
+	}
+
+	/**
+	 * Remove any suggestion that has a score lower than the minimum score.
+	 *
+	 * @since 4.6.0
+	 *
+	 * @param array $ep_query The query array.
+	 *
+	 * @return array
+	 */
+	protected function maybe_sanitize_suggestion( $ep_query ) {
+
+		if ( ! isset( $ep_query['suggest']['ep_suggestion'] ) || ! isset( $ep_query['suggest']['ep_suggestion'][0] ) ) {
+			return [];
+		}
+
+		$suggestion = $ep_query['suggest']['ep_suggestion'][0];
+
+		/**
+		 * Filter the score for a suggestion. If the score is lower than this, it will be removed.
+		 *
+		 * @since 4.6.0
+		 * @param float $max_score The minimum score allowed.
+		 * @return float
+		 */
+		$max_score = (float) apply_filters( 'ep_suggestion_minimum_score', 0.0001 );
+
+		$sanitized_options = [];
+		foreach ( $suggestion['options'] as $option ) {
+			if ( number_format( $option['score'], 10 ) > $max_score ) {
+				$sanitized_options[] = $option;
+			}
+		}
+
+		$suggestion['options'] = $sanitized_options;
+
+		return $suggestion;
 	}
 }
