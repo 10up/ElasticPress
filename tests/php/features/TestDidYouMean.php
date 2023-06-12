@@ -393,7 +393,7 @@ class TestDidYouMean extends BaseTestCase {
 	}
 
 	/**
-	 * Test that a suggestion is removed from the list when the score is lower than the "ep_suggestion_minimum_score` value.
+	 * Test maybe_sanitize_suggestion method.
 	 */
 	public function testSuggestionRemovedFromListIfScoreIsLowerThanThreshold() {
 		$this->ep_factory->post->create( [ 'post_content' => 'V Neck Tee Shirt' ] );
@@ -450,6 +450,5 @@ class TestDidYouMean extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEmpty( $query->suggested_terms['options'] );
-
 	}
 }

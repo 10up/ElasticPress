@@ -567,14 +567,11 @@ class QueryIntegration {
 	 * Remove any suggestion that has a score lower than the minimum score.
 	 *
 	 * @since 4.6.0
-	 *
 	 * @param array $ep_query The query array.
-	 *
 	 * @return array
 	 */
 	protected function maybe_sanitize_suggestion( $ep_query ) {
-
-		if ( ! isset( $ep_query['suggest']['ep_suggestion'] ) || ! isset( $ep_query['suggest']['ep_suggestion'][0] ) ) {
+		if ( ! isset( $ep_query['suggest']['ep_suggestion'], $ep_query['suggest']['ep_suggestion'][0] ) ) {
 			return [];
 		}
 
@@ -584,19 +581,17 @@ class QueryIntegration {
 		 * Filter the score for a suggestion. If the score is lower than this, it will be removed.
 		 *
 		 * @since 4.6.0
-		 * @param float $max_score The minimum score allowed.
+		 * @param float $min_score The minimum score allowed.
 		 * @return float
 		 */
-		$max_score = (float) apply_filters( 'ep_suggestion_minimum_score', 0.0001 );
+		$min_score = (float) apply_filters( 'ep_suggestion_minimum_score', 0.0001 );
 
-		$sanitized_options = [];
-		foreach ( $suggestion['options'] as $option ) {
-			if ( number_format( $option['score'], 10 ) > $max_score ) {
-				$sanitized_options[] = $option;
+		$suggestion['options'] = array_filter(
+			$suggestion['options'],
+			function( $option ) use ( $min_score ) {
+				return number_format( $option['score'], 10 ) > $min_score;
 			}
-		}
-
-		$suggestion['options'] = $sanitized_options;
+		);
 
 		return $suggestion;
 	}
