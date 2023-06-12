@@ -805,15 +805,15 @@ function get_elasticsearch_error_reason( $response ) : string {
 	}
 
 	if ( ! empty( $response['reason'] ) ) {
-		return $response['reason'];
+		return (string) $response['reason'];
 	}
 
 	if ( ! empty( $response['result']['error'] ) && ! empty( $response['result']['error']['root_cause'][0]['reason'] ) ) {
-		return $response['result']['error']['root_cause'][0]['reason'];
+		return (string) $response['result']['error']['root_cause'][0]['reason'];
 	}
 
 	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) && ! empty( $response['result']['items'][0]['index']['error']['reason'] ) ) {
-		return $response['result']['items'][0]['index']['error']['reason'];
+		return (string) $response['result']['items'][0]['index']['error']['reason'];
 	}
 
 	return '';
