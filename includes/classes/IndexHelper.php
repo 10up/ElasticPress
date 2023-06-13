@@ -4,7 +4,7 @@
  *
  * @since 4.0.0
  * @see docs/indexing-process.md
- * @see https://10up.github.io/ElasticPress/tutorial-indexing-process.html
+ * @see https://elasticpress.zendesk.com/hc/en-us/articles/16672117103501-Sync-Process
  * @package elasticpress
  */
 

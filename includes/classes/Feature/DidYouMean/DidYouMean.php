@@ -56,7 +56,17 @@ class DidYouMean extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php esc_html_e( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience.', 'elasticpress' ); ?></p>
+		<p>
+			<?php
+			echo wp_kses_post(
+				sprintf(
+					/* translators: Tutorial URL */
+					__( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="%s">this tutorial</a>.', 'elasticpress' ),
+					'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean'
+				)
+			);
+			?>
+		</p>
 		<?php
 	}
 
