@@ -132,7 +132,7 @@ class FailedQueries extends Report {
 	 * If a nonce is present, clear the logs
 	 */
 	protected function maybe_clear_logs() {
-		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'ep-clear-logged-queries' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'ep-clear-logged-queries' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			return;
 		}
 
@@ -146,15 +146,7 @@ class FailedQueries extends Report {
 	 * @return array The error in index 0, solution in index 1
 	 */
 	public function analyze_log( $log ) {
-		$error = '';
-
-		if ( ! empty( $log['result']['error'] ) && ! empty( $log['result']['error']['root_cause'][0]['reason'] ) ) {
-			$error = $log['result']['error']['root_cause'][0]['reason'];
-		}
-
-		if ( ! empty( $log['result']['errors'] ) && ! empty( $log['result']['items'] ) && ! empty( $log['result']['items'][0]['index']['error']['reason'] ) ) {
-			$error = $log['result']['items'][0]['index']['error']['reason'];
-		}
+		$error = Utils\get_elasticsearch_error_reason( $log );
 
 		$solution = ( ! empty( $error ) ) ?
 			$this->maybe_suggest_solution_for_es( $error ) :

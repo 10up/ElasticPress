@@ -1,12 +1,12 @@
 <?php
 /**
- * Class responsible for rendering the filters.
+ * Class responsible for rendering the post type filters.
  *
- * @since 4.3.0
+ * @since 4.6.0
  * @package elasticpress
  */
 
-namespace ElasticPress\Feature\Facets\Types\Meta;
+namespace ElasticPress\Feature\Facets\Types\PostType;
 
 use ElasticPress\Features as Features;
 
@@ -18,13 +18,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Facets render class
  */
 class Renderer {
-	/**
-	 * Holds the meta field selected.
-	 *
-	 * @var string
-	 */
-	protected $meta_field = '';
-
 	/**
 	 * Whether the term count should be displayed or not.
 	 *
@@ -46,7 +39,6 @@ class Renderer {
 			]
 		);
 
-		$this->meta_field    = $instance['facet'];
 		$this->display_count = $instance['displayCount'];
 
 		if ( ! $this->should_render() ) {
@@ -65,60 +57,28 @@ class Renderer {
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
-		$facet_type = $feature->types['meta'];
+		$facet_type = $feature->types['post-type'];
 
-		$selected_meta    = $this->get_selected_meta();
 		$selected_filters = $feature->get_selected();
 
-		/**
-		 * Get all the terms so we know if we should output the widget
-		 */
-		$raw_values = $facet_type->get_meta_values( $instance['facet'] );
+		$facetable_post_types = $facet_type->get_facetable_post_types();
 
 		$values = [];
 
-		foreach ( $raw_values as $raw_value ) {
-			$values[ $raw_value ] = [
-				'value'       => $raw_value,
-				'name'        => $raw_value,
+		foreach ( $facetable_post_types as $post_type ) {
+			$values[ $post_type ] = [
+				'value'       => $post_type,
+				'name'        => ucfirst( $post_type ),
 				'count'       => 0,
-				'is_selected' => in_array( $raw_value, $selected_meta, true ),
+				'is_selected' => ! empty( $selected_filters[ $facet_type->get_filter_type() ]['terms'][ $post_type ] ) ?
+					$selected_filters[ $facet_type->get_filter_type() ]['terms'][ $post_type ] :
+					false,
 			];
 
-			if ( ! empty( $GLOBALS['ep_facet_aggs'][ $facet_type->get_filter_name() . $this->meta_field ][ $raw_value ] ) ) {
-				$values[ $raw_value ]['count'] = (int) $GLOBALS['ep_facet_aggs'][ $facet_type->get_filter_name() . $this->meta_field ][ $raw_value ];
+			if ( ! empty( $GLOBALS['ep_facet_aggs']['post_type'][ $post_type ] ) ) {
+				$values[ $post_type ]['count'] = (int) $GLOBALS['ep_facet_aggs']['post_type'][ $post_type ];
 			}
 		}
-
-		/**
-		 * Filter meta values, their labels, and count.
-		 *
-		 * If you need to display a value with a different label:
-		 * ```
-		 * add_filter(
-		 *     'ep_facet_meta_all_values',
-		 *     function( $values, $meta_field ) {
-		 *         if ( 'my_field' !== $meta_field ) {
-		 *             return $values;
-		 *         }
-		 *         if ( isset( $values['unreadable_value'] ) ) {
-		 *             $values['unreadable_value']['name'] = 'My Readable Value';
-		 *         }
-		 *         return $values;
-		 *     },
-		 *     10,
-		 *     2
-		 * );
-		 * ```
-		 *
-		 * @hook ep_facet_meta_values_with_count
-		 * @since 4.3.0
-		 * @param {array}  $values     Values with names and counts
-		 * @param {string} $meta_field Meta field
-		 * @param {array}  $instance   Block info
-		 * @return {array} New values
-		 */
-		$values = apply_filters( 'ep_facet_meta_all_values', $values, $this->meta_field, $instance );
 
 		echo wp_kses_post( $args['before_widget'] );
 
@@ -131,12 +91,12 @@ class Renderer {
 		 *
 		 * @hook ep_facet_search_threshold
 		 * @param  {int}    $search_threshold Search threshold
-		 * @param  {string} $taxonomy         Current taxonomy
+		 * @param  {string} $type             Facet type
 		 * @param  {string} $context          Hint about where the value will be used
 		 * @param  {array}  $instance         Block instance
 		 * @return  {int} New threshold
 		 */
-		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, $this->meta_field, 'meta', $instance );
+		$search_threshold = apply_filters( 'ep_facet_search_threshold', 15, 'post-type', 'post-type', $instance );
 		?>
 		<div class="terms <?php if ( count( $values ) > $search_threshold ) : ?>searchable<?php endif; ?>">
 			<?php if ( count( $values ) > $search_threshold ) : ?>
@@ -149,21 +109,18 @@ class Renderer {
 				$order   = $instance['order'] ?? 'desc';
 
 				$values = $this->order_values( $values, $orderby, $order );
-				foreach ( $values as $raw_value => $value ) {
+				foreach ( $values as $facetable_post_type_data ) {
+					$field_filters = $selected_filters;
 
 					$field_filters = $selected_filters;
-					if ( $value['is_selected'] ) {
-						unset( $field_filters[ $facet_type->get_filter_type() ][ $this->meta_field ]['terms'][ $raw_value ] );
+					if ( $facetable_post_type_data['is_selected'] ) {
+						unset( $field_filters[ $facet_type->get_filter_type() ]['terms'][ $facetable_post_type_data['value'] ] );
 					} else {
-						$field_filters[ $facet_type->get_filter_type() ][ $this->meta_field ]['terms'][ $raw_value ] = 1;
+						$field_filters[ $facet_type->get_filter_type() ]['terms'][ $facetable_post_type_data['value'] ] = 1;
 					}
-
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_meta_value_html(
-						$value,
-						$feature->build_query_url( $field_filters )
-					);
-					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped					
+					echo $this->get_post_type_value_html( $facetable_post_type_data, $feature->build_query_url( $field_filters ) );
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 				?>
 			</div>
@@ -184,7 +141,7 @@ class Renderer {
 	 * @param string $url   Filter URL.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_meta_value_html( array $value, string $url ) : string {
+	public function get_post_type_value_html( $value, $url ) : string {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
@@ -192,36 +149,36 @@ class Renderer {
 
 		$label = $value['name'];
 		if ( $this->display_count ) {
-			$label .= ' <span>(' . $value['count'] . ')</span>';
+			$label .= ' <span>(' . esc_html( $value['count'] ) . ')</span>';
 		}
 
 		/**
-		 * Filter the label for an individual meta value.
+		 * Filter the label for an individual post-type value.
 		 *
-		 * @since 4.3.0
-		 * @hook ep_facet_meta_value_label
-		 * @param {string} $label Facet meta value label.
+		* @since 4.6.0
+		 * @hook ep_facet_post_type_value_label
+		 * @param {string} $label Facet post-type value label.
 		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
-		 * @return {string} Individual facet meta value label.
+		 * @return {string} Individual facet post-type value label.
 		 */
-		$label = apply_filters( 'ep_facet_meta_value_label', $label, $value );
+		$label = apply_filters( 'ep_facet_post_type_value_label', $label, $value );
 
 		/**
-		 * Filter the accessible label for an individual facet meta value link.
+		 * Filter the accessible label for an individual facet post-type value link.
 		 *
 		 * Used as the aria-label attribute for filter links. The accessible
 		 * label should include additional context around what action will be
 		 * performed by visiting the link, such as whether the filter will be
 		 * added or removed.
 		 *
-		 * @since 4.3.0
-		 * @hook ep_facet_meta_value_accessible_label
-		 * @param {string}  $label Facet meta value accessible label.
+		 * @since 4.6.0
+		 * @hook ep_facet_post_type_value_accessible_label
+		 * @param {string}  $label Facet post-type value accessible label.
 		 * @param {array}   $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet term accessible label.
 		 */
 		$accessible_label = apply_filters(
-			'ep_facet_meta_value_accessible_label',
+			'ep_facet_post_type_value_accessible_label',
 			$value['is_selected']
 				/* translators: %s: Filter term name. */
 				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $label )
@@ -249,20 +206,20 @@ class Renderer {
 		);
 
 		/**
-		 * Filter the HTML for an individual facet meta value.
+		 * Filter the HTML for an individual facet post-type value.
 		 *
 		 * For term search to work correctly the outermost wrapper of the term
 		 * HTML must have data-term-name and data-term-slug attributes set to
 		 * lowercase versions of the term name and slug respectively.
 		 *
-		 * @since 4.3.0
-		 * @hook ep_facet_meta_value_html
-		 * @param {string} $html  Facet meta value HTML.
+		 * @since 4.6.0
+		 * @hook ep_facet_post_type_value_html
+		 * @param {string} $html  Facet post-type value HTML.
 		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @param {string} $url   Filter URL.
-		 * @return {string} Individual facet meta value HTML.
+		 * @return {string} Individual facet post-typ value HTML.
 		 */
-		return apply_filters( 'ep_facet_meta_value_html', $html, $value, $url );
+		return apply_filters( 'ep_facet_post_type_value_html', $html, $value, $url );
 	}
 
 	/**
@@ -272,10 +229,6 @@ class Renderer {
 	 */
 	protected function should_render() : bool {
 		global $wp_query;
-
-		if ( empty( $this->meta_field ) ) {
-			return false;
-		}
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 		if ( $wp_query->get( 'ep_facet', false ) && ! $feature->is_facetable( $wp_query ) ) {
@@ -288,24 +241,6 @@ class Renderer {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Get selected values.
-	 *
-	 * @return array
-	 */
-	protected function get_selected_meta() : array {
-		$feature = Features::factory()->get_registered_feature( 'facets' );
-
-		$selected_filters = $feature->get_selected();
-		$selected_meta    = [];
-
-		if ( isset( $selected_filters['meta'][ $this->meta_field ] ) && isset( $selected_filters['meta'][ $this->meta_field ]['terms'] ) ) {
-			$selected_meta = array_map( 'trim', array_keys( $selected_filters['meta'][ $this->meta_field ]['terms'] ) );
-		}
-
-		return $selected_meta;
 	}
 
 	/**

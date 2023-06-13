@@ -151,19 +151,16 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue(
-			isset(
-				$this->fired_actions['ep_formatted_args']['query'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
+		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
+
+		/**
+		 * Test the `ep_is_decaying_enabled` filter
+		 */
+		add_filter( 'ep_is_decaying_enabled', '__return_true' );
+		$this->assertTrue( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+		add_filter( 'ep_is_decaying_enabled', '__return_false' );
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+
 	}
 
 	/**
@@ -207,35 +204,13 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue(
-			! isset(
-				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
+		$this->assertDecayDisabled( $this->fired_actions['ep_formatted_args']['query'] );
 		$this->assertTrue(
 			isset(
 				$this->fired_actions['ep_formatted_args']['query']['bool'],
 				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
 			)
 		);
-	}
-
-	/**
-	 * Catch ES query args.
-	 *
-	 * @group search
-	 * @param array $args ES query args.
-	 */
-	public function catch_ep_formatted_args( $args ) {
-		$this->fired_actions['ep_formatted_args'] = $args;
-		return $args;
 	}
 
 	/**

@@ -211,6 +211,8 @@ Thank you to all the people who have already contributed to this repository via 
 [Mayank Chugh (@iamchughmayank)](https://github.com/iamchughmayank),
 [Boyan Bratvanov (@bratvanov)](https://github.com/bratvanov),
 [Alexander Z (@TorlockC)](https://github.com/TorlockC),
+[Nabi (@navidabdi)](https://github.com/navidabdi)
+[Dmitry Seleznyov (@selim13)](https://github.com/selim13)
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

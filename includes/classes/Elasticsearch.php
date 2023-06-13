@@ -468,6 +468,7 @@ class Elasticsearch {
 					'found_documents' => $total_hits,
 					'documents'       => $documents,
 					'aggregations'    => $response['aggregations'] ?? [],
+					'suggest'         => $response['suggest'] ?? [],
 				],
 				$response,
 				$query,
@@ -862,7 +863,14 @@ class Elasticsearch {
 
 			$response_body   = wp_remote_retrieve_body( $request );
 			$parsed_response = json_decode( $response_body, true );
-			return new \WP_Error( $parsed_response['status'], $parsed_response['error'] );
+			if ( is_array( $parsed_response ) ) {
+				$status = $parsed_response['status'] ?? 'status-not-set';
+				$error  = $parsed_response['error'] ?? 'error-not-set';
+			} else {
+				$status = $response_code;
+				$error  = $response_body;
+			}
+			return new \WP_Error( $status, $error );
 		}
 
 		return true;
@@ -1706,6 +1714,24 @@ class Elasticsearch {
 		$response = $this->remote_request( $path );
 
 		return (array) json_decode( wp_remote_retrieve_body( $response ), true );
+	}
+
+	/**
+	 * Return a comparison between which indices should be and are present in the ES server.
+	 *
+	 * @since 4.6.0
+	 * @return array Array with `missing_indices` and `present_indices` keys.
+	 */
+	public function get_indices_comparison() {
+		$all_index_names = $this->get_index_names();
+		$cluster_indices = $this->get_cluster_indices();
+
+		$cluster_index_names = wp_list_pluck( $cluster_indices, 'index' );
+
+		return [
+			'missing_indices' => array_diff( $all_index_names, $cluster_index_names ),
+			'present_indices' => array_intersect( $all_index_names, $cluster_index_names ),
+		];
 	}
 
 	/**

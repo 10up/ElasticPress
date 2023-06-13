@@ -787,3 +787,34 @@ function generate_request_id() : string {
 	 */
 	return apply_filters( 'ep_request_id', get_request_id_base() . $uuid );
 }
+
+/**
+ * Given an Elasticsearch response, try to find an error message.
+ *
+ * @since 4.6.0
+ * @param mixed $response The Elasticsearch response
+ * @return string
+ */
+function get_elasticsearch_error_reason( $response ) : string {
+	if ( is_string( $response ) ) {
+		return $response;
+	}
+
+	if ( ! is_array( $response ) ) {
+		return var_export( $response, true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+	}
+
+	if ( ! empty( $response['reason'] ) ) {
+		return (string) $response['reason'];
+	}
+
+	if ( ! empty( $response['result']['error'] ) && ! empty( $response['result']['error']['root_cause'][0]['reason'] ) ) {
+		return (string) $response['result']['error']['root_cause'][0]['reason'];
+	}
+
+	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) && ! empty( $response['result']['items'][0]['index']['error']['reason'] ) ) {
+		return (string) $response['result']['items'][0]['index']['error']['reason'];
+	}
+
+	return '';
+}

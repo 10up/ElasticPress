@@ -700,4 +700,98 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.url().should('include', 'ep_meta_filter_non_numeric_meta_field=Non-numeric');
 		});
 	});
+
+	describe('Facet by Post Type', () => {
+		/**
+		 * Test that the Facet by Post Type block is functional.
+		 */
+		it('Can insert, configure, and use the Facet by Post Type block', () => {
+			/**
+			 * Insert a Facet block.
+			 */
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Facet by Post Type (ElasticPress)');
+			cy.insertBlock('Facet by Post Type (ElasticPress)');
+			cy.get('.wp-block-elasticpress-facet-post-type').last().as('block');
+
+			// Configure the block
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
+				'Search Post Type',
+				true,
+			);
+
+			cy.intercept(
+				'/wp-json/elasticpress/v1/facets/post-type/block-preview*displayCount=true*',
+			).as('blockPreview');
+
+			/**
+			 * Verify the display count setting on the editor.
+			 */
+			cy.get('@block')
+				.contains('.term', /\(\d*\)$/)
+				.should('not.exist');
+			cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
+			cy.wait('@blockPreview');
+			cy.get('@block')
+				.contains('.term', /(^\(\d*\))$/)
+				.should('not.exist');
+
+			// Configure the block
+			cy.get('@block').click();
+			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
+
+			cy.intercept(
+				'/wp-json/elasticpress/v1/facets/post-type/block-preview*orderby=name&order=asc*',
+			).as('blockPreview2');
+			cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+			cy.wait('@blockPreview2');
+
+			/**
+			 * Verify the block has the expected output in the editor based on the
+			 * block's settings.
+			 */
+			cy.get('@block').find('.term').should('be.elementsSortedAlphabetically');
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@sidebarsRest');
+			cy.visit('/');
+
+			/**
+			 * Verify the blocks have the expected output on the front-end based on
+			 * their settings.
+			 */
+			cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
+			cy.get('@firstBlock').find('.term').should('be.elementsSortedAlphabetically');
+			cy.get('@firstBlock')
+				.contains('.term', /(^\(\d*\))$/)
+				.should('not.exist');
+
+			cy.get('@firstBlock').contains('.term', 'Post').click();
+
+			/**
+			 * Selecting that term should lead to the correct URL, mark the correct
+			 * item as checked, and all articles being displayed should have the
+			 * selected category.
+			 */
+			cy.url().should('include', 'ep_post_type_filter=post');
+			cy.get('@firstBlock')
+				.contains('.term', 'Post')
+				.find('.ep-checkbox')
+				.should('have.class', 'checked');
+
+			/**
+			 * Clicking selected facet should remove it while keeping any other
+			 * facets active.
+			 */
+			cy.get('@firstBlock').contains('.term', 'Post').click();
+			cy.url().should('not.include', 'ep_post_type_filter=post');
+		});
+	});
 });
