@@ -227,21 +227,25 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	public function get_facets_meta_fields() {
 		$facets_meta_fields = [];
 
-		$widget_block_instances = ( new \WP_Widget_Block() )->get_settings();
-		foreach ( $widget_block_instances as $instance ) {
-			if ( ! isset( $instance['content'] ) ) {
-				continue;
-			}
+		if ( current_theme_supports( 'block-templates' ) ) {
+			$facets_meta_fields = $this->block_template_meta_fields( 'elasticpress/facet-meta-range' );
+		} else {
+			$widget_block_instances = ( new \WP_Widget_Block() )->get_settings();
+			foreach ( $widget_block_instances as $instance ) {
+				if ( ! isset( $instance['content'] ) ) {
+					continue;
+				}
 
-			if ( false === strpos( $instance['content'], 'elasticpress/facet-meta-range' ) ) {
-				continue;
-			}
+				if ( false === strpos( $instance['content'], 'elasticpress/facet-meta-range' ) ) {
+					continue;
+				}
 
-			if ( ! preg_match_all( '/"facet":"(.*?)"/', $instance['content'], $matches ) ) {
-				continue;
-			}
+				if ( ! preg_match_all( '/"facet":"(.*?)"/', $instance['content'], $matches ) ) {
+					continue;
+				}
 
-			$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
+				$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
+			}
 		}
 
 		/**
