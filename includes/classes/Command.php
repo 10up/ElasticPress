@@ -689,6 +689,9 @@ class Command extends WP_CLI_Command {
 	 * [--show-nobulk-errors]
 	 * : Display the error message returned from Elasticsearch when a post fails to index while not using the /_bulk endpoint
 	 *
+	 * [--stop-on-error]
+	 * : Stop indexing if an error is encountered and display the error.
+	 *
 	 * [--offset=<offset_number>]
 	 * : Skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
 	 *
@@ -800,8 +803,14 @@ class Command extends WP_CLI_Command {
 			'static_bulk'    => $static_bulk,
 		];
 
-		if ( isset( $assoc_args['show-errors'] ) || ( isset( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $assoc_args['show-nobulk-errors'] ) && $no_bulk ) ) {
+		$show_errors = isset( $assoc_args['show-errors'] ) || ( isset( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $assoc_args['show-nobulk-errors'] ) && $no_bulk );
+
+		if ( $show_errors ) {
 			$index_args['show_errors'] = true;
+		}
+
+		if ( isset( $assoc_args['stop-on-error'] ) && $show_errors ) {
+			$index_args['stop_on_error'] = true;
 		}
 
 		if ( ! empty( $assoc_args['post-ids'] ) ) {
@@ -1301,6 +1310,12 @@ class Command extends WP_CLI_Command {
 	public function index_output( $message, $args, $index_meta, $context ) {
 		static $time_elapsed = 0, $counter = 0;
 
+		// Special treatment if stop-on-error flag is set.
+		if ( ! empty( $args['stop_on_error'] ) && in_array( $message['status'], [ 'error', 'warning' ] ) ) {
+			$this->clear_sync();
+			WP_CLI::error( $message['message'] );
+		}
+
 		switch ( $message['status'] ) {
 			case 'success':
 				WP_CLI::success( $message['message'] );
@@ -1310,6 +1325,7 @@ class Command extends WP_CLI_Command {
 				if ( empty( $args['show_errors'] ) ) {
 					return;
 				}
+
 				WP_CLI::warning( $message['message'] );
 				break;
 
