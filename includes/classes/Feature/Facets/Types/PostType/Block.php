@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets block class
  */
-class Block {
+class Block extends \ElasticPress\Feature\Facets\Block {
 	/**
 	 * Hook block functionality.
 	 */

@@ -20,13 +20,11 @@ abstract class Block {
 
 	/**
 	 * Register facet block.
-	 *
-	 * @return mixed
 	 */
 	abstract public function register_block();
 
 	/**
-	 * Setup REST endpoints for ƒacet feature.
+	 * Setup REST endpoints for facet feature.
 	 */
 	abstract public function setup_endpoints();
 
@@ -47,9 +45,9 @@ abstract class Block {
 	abstract public function render_block_preview( $request );
 
 	/**
-	 * Get the facet block name.
+	 * Check if the current user has permission to view the facets REST endpoint.
 	 *
-	 * @return string|\WP_Error The block name.
+	 * @return string|\WP_Error
 	 */
 	public function check_facets_rest_permission() {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
