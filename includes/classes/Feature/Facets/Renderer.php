@@ -66,7 +66,10 @@ abstract class Renderer {
 	/**
 	 * Get the markup for an individual facet item.
 	 *
+	 * @param array|object $item        Facet item.
+	 * @param string       $url         URL for the facet item.
+	 * @param bool         $is_selected Whether the facet item is selected or not.
 	 * @return string|null
 	 */
-	abstract public function get_facet_item_value_html();
+	abstract public function get_facet_item_value_html( $item, string $url, bool $is_selected );
 }

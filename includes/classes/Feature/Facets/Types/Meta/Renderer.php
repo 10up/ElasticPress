@@ -149,10 +149,10 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 				$order   = $instance['order'] ?? 'desc';
 
 				$values = $this->order_values( $values, $orderby, $order );
-				foreach ( $values as $raw_value => $value ) {
+				foreach ( $values as $raw_value => $item ) {
 
 					$field_filters = $selected_filters;
-					if ( $value['is_selected'] ) {
+					if ( $item['is_selected'] ) {
 						unset( $field_filters[ $facet_type->get_filter_type() ][ $this->meta_field ]['terms'][ $raw_value ] );
 					} else {
 						$field_filters[ $facet_type->get_filter_type() ][ $this->meta_field ]['terms'][ $raw_value ] = 1;
@@ -160,8 +160,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 					echo $this->get_facet_item_value_html(
-						$value,
-						$feature->build_query_url( $field_filters )
+						$item,
+						$feature->build_query_url( $field_filters ),
+						$item['is_selected']
 					);
 					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
@@ -180,19 +181,20 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	/**
 	 * Get the markup for an individual facet item.
 	 *
-	 * @param array  $value Value.
+	 * @param array  $item  Facet item.
 	 * @param string $url   Filter URL.
+	 * @param bool   $is_selected Whether the facet item is selected or not.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_facet_item_value_html( array $value, string $url ) : string {
+	public function get_facet_item_value_html( $item, string $url, $is_selected ) : string {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
 		);
 
-		$label = $value['name'];
+		$label = $item['name'];
 		if ( $this->display_count ) {
-			$label .= ' <span>(' . $value['count'] . ')</span>';
+			$label .= ' <span>(' . $item['count'] . ')</span>';
 		}
 
 		/**
@@ -201,10 +203,10 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 * @since 4.3.0
 		 * @hook ep_facet_meta_value_label
 		 * @param {string} $label Facet meta value label.
-		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
+		 * @param {array}  $item Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet meta value label.
 		 */
-		$label = apply_filters( 'ep_facet_meta_value_label', $label, $value );
+		$label = apply_filters( 'ep_facet_meta_value_label', $label, $item );
 
 		/**
 		 * Filter the accessible label for an individual facet meta value link.
@@ -217,34 +219,34 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 * @since 4.3.0
 		 * @hook ep_facet_meta_value_accessible_label
 		 * @param {string}  $label Facet meta value accessible label.
-		 * @param {array}   $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
+		 * @param {array}   $item Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @return {string} Individual facet term accessible label.
 		 */
 		$accessible_label = apply_filters(
 			'ep_facet_meta_value_accessible_label',
-			$value['is_selected']
+			$is_selected
 				/* translators: %s: Filter term name. */
 				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $label )
 				/* translators: %s: Filter term name. */
 				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), $label ),
-			$value
+			$item
 		);
 
 		$link = sprintf(
 			'<a aria-label="%1$s" %2$s rel="nofollow"><div class="ep-checkbox %3$s" role="presentation"></div>%4$s</a>',
 			esc_attr( $accessible_label ),
-			$value['count'] ? $href : 'aria-role="link" aria-disabled="true"',
-			$value['is_selected'] ? 'checked' : '',
+			$item['count'] ? $href : 'aria-role="link" aria-disabled="true"',
+			$is_selected ? 'checked' : '',
 			wp_kses_post( $label )
 		);
 
 		$html = sprintf(
 			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
 			0,
-			$value['is_selected'] ? 'selected' : '',
-			! $value['count'] ? 'empty-term' : '',
-			esc_attr( strtolower( $value['value'] ) ),
-			esc_attr( strtolower( $value['value'] ) ),
+			$is_selected ? 'selected' : '',
+			! $item['count'] ? 'empty-term' : '',
+			esc_attr( strtolower( $item['value'] ) ),
+			esc_attr( strtolower( $item['value'] ) ),
 			$link
 		);
 
@@ -258,11 +260,11 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 * @since 4.3.0
 		 * @hook ep_facet_meta_value_html
 		 * @param {string} $html  Facet meta value HTML.
-		 * @param {array}  $value Value array. It contains `value`, `name`, `count`, and `is_selected`.
+		 * @param {array}  $item Value array. It contains `value`, `name`, `count`, and `is_selected`.
 		 * @param {string} $url   Filter URL.
 		 * @return {string} Individual facet meta value HTML.
 		 */
-		return apply_filters( 'ep_facet_meta_value_html', $html, $value, $url );
+		return apply_filters( 'ep_facet_meta_value_html', $html, $item, $url );
 	}
 
 	/**
