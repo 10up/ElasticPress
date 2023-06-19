@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets render class
  */
-class Renderer {
+class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	/**
 	 * Holds the meta field selected.
 	 *

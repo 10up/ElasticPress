@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets render class
  */
-class Renderer {
+class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	/**
 	 * Whether the term count should be displayed or not.
 	 *
@@ -522,5 +522,14 @@ class Renderer {
 		}
 
 		return array_values( $ordered_terms );
+	}
+
+	/**
+	 * Placeholder method to implement the should_render() method. Yet to be implemented.
+	 *
+	 * @return bool
+	 */
+	protected function should_render(): bool {
+		return true;
 	}
 }
