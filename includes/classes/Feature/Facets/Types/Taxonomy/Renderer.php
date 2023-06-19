@@ -232,7 +232,7 @@ class Renderer {
 							}
 
 							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-							echo $this->get_facet_term_html(
+							echo $this->get_facet_item_value_html(
 								$term,
 								$feature->build_query_url( $new_filters ),
 								true
@@ -295,7 +295,7 @@ class Renderer {
 								}
 
 								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-								echo $this->get_facet_term_html(
+								echo $this->get_facet_item_value_html(
 									$term,
 									$feature->build_query_url( $new_filters ),
 									$selected
@@ -324,7 +324,7 @@ class Renderer {
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_facet_term_html(
+					echo $this->get_facet_item_value_html(
 						$term,
 						$feature->build_query_url( $new_filters )
 					);
@@ -366,9 +366,24 @@ class Renderer {
 	 * @param WP_Term $term     Term object.
 	 * @param string  $url      Filter URL.
 	 * @param boolean $selected Whether the term is currently selected.
+	 * @since 4.2.0, 4.7.0 deprecated in favor of a method in the abstract renderer class..
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_facet_term_html( $term, $url, $selected = false ) {
+	protected function get_facet_term_html( $term, $url, $selected = false ) {
+		_deprecated_function( __FUNCTION__, '4.7.0', '$this->renderer->get_facet_item_value_html()' );
+
+		return $this->get_facet_term_html( $term, $url, $selected );
+	}
+
+	/**
+	 * Get the markup for an individual facet item.
+	 *
+	 * @param WP_Term $term     Term object.
+	 * @param string  $url      Filter URL.
+	 * @param boolean $selected Whether the term is currently selected.
+	 * @return string HTML for an individual facet term.
+	 */
+	public function get_facet_item_value_html( $term, $url, $selected = false ) {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )

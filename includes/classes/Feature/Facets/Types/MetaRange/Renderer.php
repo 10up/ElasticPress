@@ -121,4 +121,13 @@ class Renderer {
 
 		return true;
 	}
+
+	/**
+	 * Placeholder method to implement the individual item HTML. Yet to be implemented.
+	 *
+	 * @return null
+	 */
+	public function get_facet_item_value_html() {
+		return null;
+	}
 }

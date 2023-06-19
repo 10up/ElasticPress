@@ -159,11 +159,11 @@ class Renderer {
 					}
 
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_meta_value_html(
+					echo $this->get_facet_item_value_html(
 						$value,
 						$feature->build_query_url( $field_filters )
 					);
-					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped					
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 				?>
 			</div>
@@ -184,7 +184,7 @@ class Renderer {
 	 * @param string $url   Filter URL.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_meta_value_html( array $value, string $url ) : string {
+	public function get_facet_item_value_html( array $value, string $url ) : string {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
@@ -306,34 +306,5 @@ class Renderer {
 		}
 
 		return $selected_meta;
-	}
-
-	/**
-	 * Given an array of values, reorder them.
-	 *
-	 * @param array  $values  Multidimensional array of values. Each value should have (string) `name`, (int) `count`, and (bool) `is_selected`.
-	 * @param string $orderby Key to be used to order.
-	 * @param string $order   ASC or DESC.
-	 * @return array
-	 */
-	protected function order_values( array $values, string $orderby = 'count', $order = 'desc' ) : array {
-		$orderby = strtolower( $orderby );
-		$orderby = in_array( $orderby, [ 'name', 'count' ], true ) ? $orderby : 'count';
-
-		$order = strtoupper( $order );
-		$order = in_array( $order, [ 'ASC', 'DESC' ], true ) ? $order : 'DESC';
-
-		$values = wp_list_sort( $values, $orderby, $order, true );
-
-		$selected = [];
-		foreach ( $values as $key => $value ) {
-			if ( $value['is_selected'] ) {
-				$selected[ $key ] = $value;
-				unset( $values[ $key ] );
-			}
-		}
-		$values = $selected + $values;
-
-		return $values;
 	}
 }
