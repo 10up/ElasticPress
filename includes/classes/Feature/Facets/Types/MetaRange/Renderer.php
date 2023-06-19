@@ -26,6 +26,13 @@ class Renderer {
 	protected $meta_field = '';
 
 	/**
+	 * Property required by the abstract class. Yet to be implemented.
+	 *
+	 * @var bool
+	 */
+	protected $display_count = false;
+
+	/**
 	 * Output the widget or block HTML.
 	 *
 	 * @param array $args     Widget args
