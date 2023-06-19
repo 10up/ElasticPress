@@ -934,31 +934,34 @@ class TestCommands extends BaseTestCase {
 	 * Expect an error message that stops the sync instead of a warning.
 	 */
 	public function testSyncStopOnError() {
-		add_filter( 'http_response', function( $request ) {
-			$fake_request = json_decode( wp_remote_retrieve_body( $request ) );
+		add_filter(
+			'http_response',
+			function( $request ) {
+				$fake_request = json_decode( wp_remote_retrieve_body( $request ) );
 
-			if (  ! empty( $fake_request->items ) ) {
-				$fake_request->errors = true;
+				if ( ! empty( $fake_request->items ) ) {
+					$fake_request->errors = true;
 
-				$fake_item = new \stdClass();
-				$fake_item->index = new \stdClass();
-				$fake_item->index->error = new \stdClass();
-				$fake_item->index->status = 400;
-				$fake_item->index->_id = 10;
-				$fake_item->index->type = '_doc';
-				$fake_item->index->_index = 'dummy-index';
-				$fake_item->index->error->reason = 'my dummy error reason';
-				$fake_item->index->error->type = 'my dummy error type';
+					$fake_item                       = new \stdClass();
+					$fake_item->index                = new \stdClass();
+					$fake_item->index->error         = new \stdClass();
+					$fake_item->index->status        = 400;
+					$fake_item->index->_id           = 10;
+					$fake_item->index->type          = '_doc';
+					$fake_item->index->_index        = 'dummy-index';
+					$fake_item->index->error->reason = 'my dummy error reason';
+					$fake_item->index->error->type   = 'my dummy error type';
 
-				$fake_request->items[0] = $fake_item;
+					$fake_request->items[0] = $fake_item;
 
-				$request['body'] = wp_json_encode( $fake_request );
+					$request['body'] = wp_json_encode( $fake_request );
+
+					return $request;
+				}
 
 				return $request;
 			}
-
-			return $request;
-		} );
+		);
 
 		Indexables::factory()->get( 'post' )->delete_index();
 
@@ -966,12 +969,15 @@ class TestCommands extends BaseTestCase {
 
 		$this->expectExceptionMessage( '10 (Post): [my dummy error type] my dummy error reason' );
 
-		$this->command->sync( [], [
-			'setup' => true,
-			'show-errors' => true,
-			'stop-on-error' => true,
-			'yes' => true,
-		] );
+		$this->command->sync(
+			[],
+			[
+				'setup'         => true,
+				'show-errors'   => true,
+				'stop-on-error' => true,
+				'yes'           => true,
+			]
+		);
 	}
 
 	/**
