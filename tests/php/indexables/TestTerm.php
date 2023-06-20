@@ -40,7 +40,7 @@ class TestTerm extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'term' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
 
 		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'terms' )->search_setup();
@@ -144,11 +144,11 @@ class TestTerm extends BaseTestCase {
 			}
 		);
 
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
 
 		$term = wp_insert_term( 'term name', 'category' );
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->get_sync_queue() ) );
 
 		ElasticPress\Indexables::factory()->get( 'term' )->index( $term['term_id'] );
 
@@ -190,11 +190,11 @@ class TestTerm extends BaseTestCase {
 	public function testTermSyncOnMetaUpdate() {
 		$term = wp_insert_term( 'term name', 'category' );
 
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
 
 		update_term_meta( $term['term_id'], 'test_key', true );
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->get_sync_queue() ) );
 		$this->assertTrue( ! empty( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->add_to_queue( $term['term_id'] ) ) );
 	}
 
