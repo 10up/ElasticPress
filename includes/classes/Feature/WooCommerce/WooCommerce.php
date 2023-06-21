@@ -284,7 +284,7 @@ class WooCommerce extends Feature {
 
 		if ( ! empty( $s ) ) {
 
-			$searchable_post_types = $this->get_admin_searchable_post_types();
+			$searchable_post_types = $this->orders->get_admin_searchable_post_types();
 
 			if ( in_array( $post_type, $searchable_post_types, true ) ) {
 				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
