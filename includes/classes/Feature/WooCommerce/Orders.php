@@ -41,6 +41,7 @@ class Orders {
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
+		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 	}
@@ -224,11 +225,11 @@ class Orders {
 	 * @param WP_Query $wp WP Query
 	 */
 	public function search_order( $wp ) {
+		global $pagenow;
+
 		if ( ! $this->woocommerce->should_integrate_with_query( $wp ) ) {
 			return;
 		}
-
-		global $pagenow;
 
 		$searchable_post_types = $this->get_admin_searchable_post_types();
 
