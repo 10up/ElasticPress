@@ -332,6 +332,7 @@ class TestWooCommerce extends BaseTestCase {
 	 *
 	 * @since 4.2.0
 	 * @group woocommerce
+	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::add_variations_skus_meta
 	 */
 	public function testAddVariationsSkusMeta() {
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -369,6 +370,7 @@ class TestWooCommerce extends BaseTestCase {
 	 *
 	 * @since 4.2.0
 	 * @group woocommerce
+	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::translate_args_admin_products_list
 	 */
 	public function testTranslateArgsAdminProductsList() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
@@ -411,6 +413,7 @@ class TestWooCommerce extends BaseTestCase {
 	 *
 	 * @since 4.2.0
 	 * @group woocommerce
+	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::translate_args_admin_products_list
 	 */
 	public function testEPWoocommerceAdminProductsListSearchFields() {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
