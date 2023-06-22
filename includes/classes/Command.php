@@ -1310,12 +1310,6 @@ class Command extends WP_CLI_Command {
 	public function index_output( $message, $args, $index_meta, $context ) {
 		static $time_elapsed = 0, $counter = 0;
 
-		// Special treatment if stop-on-error flag is set.
-		if ( ! empty( $args['stop_on_error'] ) && in_array( $message['status'], [ 'error', 'warning' ], true ) ) {
-			$this->clear_sync();
-			WP_CLI::error( $message['message'] );
-		}
-
 		switch ( $message['status'] ) {
 			case 'success':
 				WP_CLI::success( $message['message'] );

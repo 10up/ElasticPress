@@ -710,7 +710,11 @@ class IndexHelper {
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
 
-				$this->output( $errors_output, 'warning' );
+				if ( ! empty( $this->args['stop_on_error'] ) ) {
+					$this->output( $errors_output, 'error' );
+				} else {
+					$this->output( $errors_output, 'warning' );
+				}
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
