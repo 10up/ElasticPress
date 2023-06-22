@@ -397,4 +397,50 @@ class Orders {
 
 		$this->maybe_set_search_fields( $query );
 	}
+
+	/**
+	 * Handle calls to OrdersAutosuggest methods
+	 *
+	 * @param string $method_name The method name
+	 * @param array  $arguments   Array of arguments
+	 */
+	public function __call( $method_name, $arguments ) {
+		$orders_autosuggest_methods = [
+			'after_update_feature',
+			'check_token_permission',
+			'enqueue_admin_assets',
+			'epio_delete_search_template',
+			'epio_get_search_template',
+			'epio_save_search_template',
+			'filter_term_suggest',
+			'get_args_schema',
+			'get_search_endpoint',
+			'get_search_template',
+			'get_template_endpoint',
+			'get_token',
+			'get_token_endpoint',
+			'intercept_search_request',
+			'is_integrated_request',
+			'post_statuses',
+			'post_types',
+			'mapping',
+			'maybe_query_password_protected_posts',
+			'maybe_set_posts_where',
+			'refresh_token',
+			'rest_api_init',
+			'set_search_fields',
+		];
+
+		if ( in_array( $method_name, $orders_autosuggest_methods, true ) ) {
+			_deprecated_function(
+				__METHOD__,
+				'4.7.0',
+				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
+			);
+
+			if ( $this->woocommerce->is_orders_autosuggest_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
+				call_user_func_array( [ $this->woocommerce->orders_autosuggest, $method_name ], $arguments );
+			}
+		}
+	}
 }

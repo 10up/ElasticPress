@@ -21,6 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class OrdersAutosuggest {
 	/**
+	 * The name of the index.
+	 *
+	 * @var string
+	 */
+	protected $index;
+
+	/**
 	 * Initialize feature.
 	 *
 	 * @return void
