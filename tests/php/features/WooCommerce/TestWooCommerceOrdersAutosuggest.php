@@ -31,7 +31,8 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 *
-	 * @group WooCommerceOrdersAutosuggest
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -51,7 +52,8 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	/**
 	 * Test the `filter_term_suggest` method
 	 *
-	 * @group WooCommerceOrdersAutosuggest
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testFilterTermSuggest() {
 		$order = [
@@ -104,7 +106,8 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 *
 	 * This method steps into WooCommerce functionality a bit.
 	 *
-	 * @group WooCommerceOrdersAutosuggest
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testFilterTermSuggestWithCustomOrderId() {
 		$shop_order_1 = new \WC_Order();
@@ -147,7 +150,8 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	/**
 	 * Test the `mapping` method with the ES 7 mapping
 	 *
-	 * @group WooCommerceOrdersAutosuggest
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testMappingEs7() {
 		$original_mapping = [
@@ -192,7 +196,8 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	/**
 	 * Test the `mapping` method with the ES 5 mapping
 	 *
-	 * @group WooCommerceOrdersAutosuggest
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testMappingEs5() {
 		$change_es_version = function() {
@@ -247,7 +252,8 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	/**
 	 * Test the `set_search_fields` method
 	 *
-	 * @group WooCommerceOrdersAutosuggest
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testSetSearchFields() {
 		$original_search_fields = [ 'old_search_field' ];

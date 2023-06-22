@@ -279,14 +279,29 @@ class Orders {
 		$post_types = [ 'shop_order', 'shop_order_refund' ];
 
 		/**
-		 * Expands or contracts the post_types eligible for indexing.
+		 * DEPRECATED. Expands or contracts the post_types eligible for indexing.
 		 *
 		 * @hook ep_woocommerce_default_supported_post_types
 		 * @since 4.4.0
 		 * @param  {array} $post_types Post types
 		 * @return  {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
+		$supported_post_types = apply_filters_deprecated(
+			'ep_woocommerce_default_supported_post_types',
+			[ $post_types ],
+			'4.7.0',
+			'ep_woocommerce_orders_supported_post_types'
+		);
+
+		/**
+		 * Expands or contracts the post_types related to orders eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_orders_supported_post_types
+		 * @since 4.7.0
+		 * @param {array} $post_types Post types
+		 * @return {array} New post types
+		 */
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
@@ -302,7 +317,7 @@ class Orders {
 	 * @param \WP_Query $query The WP_Query
 	 * @return \WP_Query
 	 */
-	public function maybe_set_search_fields( \WP_Query $query ) {
+	protected function maybe_set_search_fields( \WP_Query $query ) {
 		$search_term = $this->woocommerce->get_search_term( $query );
 		if ( empty( $search_term ) ) {
 			return $query;

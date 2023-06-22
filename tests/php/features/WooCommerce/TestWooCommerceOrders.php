@@ -15,6 +15,24 @@ use ElasticPress;
  */
 class TestWooCommerceOrders extends TestWooCommerce {
 	/**
+	 * Orders instance
+	 *
+	 * @var Orders
+	 */
+	protected $orders;
+
+	/**
+	 * Setup each test.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->orders = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders;
+	}
+
+	/**
 	 * Test search integration is on for shop orders
 	 *
 	 * @group woocommerce
@@ -215,6 +233,59 @@ class TestWooCommerceOrders extends TestWooCommerce {
 	}
 
 	/**
+	 * Test the `get_admin_searchable_post_types` method
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function testGetAdminSearchablePostTypes() {
+		$default_post_types = $this->orders->get_admin_searchable_post_types();
+		$this->assertSame( $default_post_types, [ 'shop_order' ] );
+
+		/**
+		 * Test the `ep_woocommerce_admin_searchable_post_types` filter
+		 */
+		$add_post_type = function ( $post_types ) {
+			$post_types[] = 'shop_order_custom';
+			return $post_types;
+		};
+		add_filter( 'ep_woocommerce_admin_searchable_post_types', $add_post_type );
+
+		$new_post_types = $this->orders->get_admin_searchable_post_types();
+		$this->assertSame( $new_post_types, [ 'shop_order', 'shop_order_custom' ] );
+	}
+
+	/**
+	 * Test the `get_supported_post_types` method
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function testGetSupportedPostTypes() {
+		$default_supported = $this->orders->get_supported_post_types();
+		$this->assertSame( $default_supported, [] );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$default_supported = $this->orders->get_supported_post_types();
+		$this->assertSame( $default_supported, [ 'shop_order', 'shop_order_refund' ] );
+
+		/**
+		 * Test the `ep_woocommerce_orders_supported_post_types` filter
+		 */
+		$add_post_type = function( $post_types ) {
+			$post_types[] = 'shop_order_custom';
+			return $post_types;
+		};
+		add_filter( 'ep_woocommerce_orders_supported_post_types', $add_post_type );
+
+		$custom_supported = $this->orders->get_supported_post_types();
+		$this->assertSame( $custom_supported, [ 'shop_order', 'shop_order_refund' ] );
+	}
+
+	/**
 	 * Test if methods moved to OrdersAutosuggest are correctly flagged
 	 *
 	 * @param string $method The method name
@@ -225,8 +296,7 @@ class TestWooCommerceOrders extends TestWooCommerce {
 	 */
 	public function testOrdersAutosuggestMethods( $method, $args ) {
 		$this->setExpectedDeprecated( "\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method}" );
-		$orders = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders;
-		$orders->$method( ...$args );
+		$this->orders->$method( ...$args );
 	}
 
 	/**

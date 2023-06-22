@@ -15,6 +15,24 @@ use ElasticPress;
  */
 class TestWooCommerceProduct extends TestWooCommerce {
 	/**
+	 * Products instance
+	 *
+	 * @var Products
+	 */
+	protected $products;
+
+	/**
+	 * Setup each test.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function set_up() {
+		parent::set_up();
+		$this->products = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products;
+	}
+
+	/**
 	 * Test products post type query does not get integrated when the feature is active
 	 *
 	 * @group woocommerce
@@ -888,5 +906,119 @@ class TestWooCommerceProduct extends TestWooCommerce {
 				'assertDecayEnabled',
 			],
 		];
+	}
+
+	/**
+	 * Test the `get_supported_post_types` method
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testGetSupportedPostTypes() {
+		$query = new \WP_Query( [] );
+
+		$default_supported = $this->products->get_supported_post_types( $query );
+		$this->assertSame( $default_supported, [] );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$default_supported = $this->products->get_supported_post_types( $query );
+		$this->assertSame( $default_supported, [ 'product_variation' ] );
+
+		/**
+		 * Test the `ep_woocommerce_products_supported_post_types` filter
+		 */
+		$add_post_type = function( $post_types, $filter_query ) use ( $query ) {
+			$this->assertSame( $filter_query, $query );
+			$post_types[] = 'post';
+			return $post_types;
+		};
+		add_filter( 'ep_woocommerce_products_supported_post_types', $add_post_type, 10, 2 );
+
+		$custom_supported = $this->products->get_supported_post_types( $query );
+		$this->assertSame( $custom_supported, [ 'product_variation', 'post' ] );
+
+		$this->markTestIncomplete( 'This test should also test the addition of the `product` post type under some circumstances.' );
+	}
+
+	/**
+	 * Test the `get_supported_taxonomies` method
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testGetSupportedTaxonomies() {
+		$default_supported = $this->products->get_supported_taxonomies();
+		$expected          = [
+			'product_cat',
+			'product_tag',
+			'product_type',
+			'product_visibility',
+			'product_shipping_class',
+		];
+		$this->assertSame( $default_supported, $expected );
+
+		/**
+		 * Test the `ep_woocommerce_products_supported_taxonomies` filter
+		 */
+		$add_taxonomy = function( $taxonomies ) {
+			$taxonomies[] = 'custom_category';
+			return $taxonomies;
+		};
+		add_filter( 'ep_woocommerce_products_supported_taxonomies', $add_taxonomy );
+
+		$custom_supported = $this->products->get_supported_taxonomies();
+		$this->assertSame( $custom_supported, array_merge( $expected, [ 'custom_category' ] ) );
+	}
+
+	/**
+	 * Test the `get_orderby_meta_mapping` method
+	 *
+	 * @dataProvider orderbyMetaMappingDataProvider
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 *
+	 * @param string $meta_key   Original meta key value
+	 * @param string $translated Expected translated version
+	 */
+	public function testOrderbyMetaMapping( $meta_key, $translated ) {
+		$this->assertSame( $this->products->get_orderby_meta_mapping( $meta_key ), $translated );
+	}
+
+	/**
+	 * Data provider for the testOrderbyMetaMapping method.
+	 *
+	 * @return array
+	 */
+	public function orderbyMetaMappingDataProvider() {
+		return [
+			[ 'ID', 'ID' ],
+			[ 'title', 'title date' ],
+			[ 'menu_order', 'menu_order title date' ],
+			[ 'menu_order title', 'menu_order title date' ],
+			[ 'total_sales', 'meta.total_sales.double date' ],
+			[ '_wc_average_rating', 'meta._wc_average_rating.double date' ],
+			[ '_price', 'meta._price.double date' ],
+			[ '_sku', 'meta._sku.value.sortable date' ],
+			[ 'custom_parameter', 'date' ],
+		];
+	}
+
+	/**
+	 * Test the `orderby_meta_mapping` filter
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testOrderbyMetaMappingFilter() {
+		$add_value = function ( $mapping ) {
+			$mapping['custom_parameter'] = 'meta.custom_parameter.long';
+			return $mapping;
+		};
+		add_filter( 'orderby_meta_mapping', $add_value );
+
+		$this->assertSame( $this->products->get_orderby_meta_mapping( 'custom_parameter' ), 'meta.custom_parameter.long' );
 	}
 }
