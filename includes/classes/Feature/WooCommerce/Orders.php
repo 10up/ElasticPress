@@ -44,6 +44,7 @@ class Orders {
 		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 	}
 
 	/**
@@ -245,5 +246,155 @@ class Orders {
 			$wp->query_vars['s'] = $search_key_safe;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+	}
+
+	/**
+	 * Determines whether or not ES should be integrating with the provided query
+	 *
+	 * @param \WP_Query $query Query we might integrate with
+	 * @return bool
+	 */
+	public function should_integrate_with_query( \WP_Query $query ) : bool {
+		/**
+		 * Check the post type
+		 */
+		$supported_post_types = $this->get_supported_post_types( $query );
+		$post_type            = $query->get( 'post_type', false );
+		if ( ! empty( $post_type ) &&
+			( in_array( $post_type, $supported_post_types, true ) ||
+			( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) )
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the supported post types for Order related queries
+	 *
+	 * @return array
+	 */
+	public function get_supported_post_types() : array {
+		$post_types = [ 'shop_order', 'shop_order_refund' ];
+
+		/**
+		 * Expands or contracts the post_types eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_default_supported_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
+
+		$supported_post_types = array_intersect(
+			$supported_post_types,
+			Indexables::factory()->get( 'post' )->get_indexable_post_types()
+		);
+
+		return $supported_post_types;
+	}
+
+	/**
+	 * If the query has a search term, add the order fields that need to be searched.
+	 *
+	 * @param \WP_Query $query The WP_Query
+	 * @return \WP_Query
+	 */
+	public function maybe_set_search_fields( \WP_Query $query ) {
+		$search_term = $this->woocommerce->get_search_term( $query );
+		if ( empty( $search_term ) ) {
+			return $query;
+		}
+
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		$post_type = $query->get( 'post_type', false );
+		if ( ! in_array( $post_type, $searchable_post_types, true ) ) {
+			return $query;
+		}
+
+		$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
+		if ( ctype_digit( $search_term ) ) {
+			$default_search_fields[] = 'ID';
+		}
+		$search_fields = $query->get( 'search_fields', $default_search_fields );
+
+		$search_fields['meta'] = array_map(
+			'wc_clean',
+			/**
+			 * Filter shop order meta fields to search for WooCommerce
+			 *
+			 * @hook shop_order_search_fields
+			 * @param  {array} $fields Shop order fields
+			 * @return  {array} New fields
+			 */
+			apply_filters(
+				'shop_order_search_fields',
+				array(
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+					'_items',
+				)
+			)
+		);
+
+		$query->set(
+			'search_fields',
+			/**
+			 * Filter all the shop order fields to search for WooCommerce
+			 *
+			 * @hook ep_woocommerce_shop_order_search_fields
+			 * @since 4.0.0
+			 * @param {array}    $fields Shop order fields
+			 * @param {WP_Query} $query  WP Query
+			 * @return {array} New fields
+			 */
+			apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
+		);
+	}
+
+	/**
+	 * Translate args to ElasticPress compat format. This is the meat of what the feature does
+	 *
+	 * @param  \WP_Query $query WP Query
+	 */
+	public function translate_args( $query ) {
+		if ( ! $this->woocommerce->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		$query->set( 'ep_integrate', true );
+
+		/**
+		 * Make sure filters are suppressed
+		 */
+		$query->query['suppress_filters'] = false;
+		$query->set( 'suppress_filters', false );
+
+		$this->maybe_set_search_fields( $query );
 	}
 }

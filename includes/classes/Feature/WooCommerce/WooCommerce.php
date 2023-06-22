@@ -97,8 +97,6 @@ class WooCommerce extends Feature {
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
 
-		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
-
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders_autosuggest->setup();
@@ -106,372 +104,17 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * Translate args to ElasticPress compat format. This is the meat of what the feature does
+	 * Given a WP_Query object, return its search term (if any)
 	 *
-	 * @param  WP_Query $query WP Query
-	 * @since  2.1
+	 * This method also accounts for the `'search'` parameter used by
+	 * WooCommerce, in addition to the regular `'s'` parameter.
+	 *
+	 * @param \WP_Query $query The WP_Query object
+	 * @return string
 	 */
-	public function translate_args( $query ) {
-		if ( ! $this->should_integrate_with_query( $query ) ) {
-			return;
-		}
-
-		// Flag to check and make sure we are in a WooCommerce specific query
-		$integrate = false;
-
-		/**
-		 * Force ElasticPress if we are querying WC taxonomy
-		 */
-		$tax_query = $query->get( 'tax_query', [] );
-
-		$supported_taxonomies = array(
-			'product_cat',
-			'product_tag',
-			'product_type',
-			'product_visibility',
-			'product_shipping_class',
-		);
-
-		// Add in any attribute taxonomies that exist
-		$attribute_taxonomies = wc_get_attribute_taxonomy_names();
-
-		$supported_taxonomies = array_merge( $supported_taxonomies, $attribute_taxonomies );
-
-		/**
-		 * Filter supported custom taxonomies for WooCommerce integration
-		 *
-		 * @param {array} $supported_taxonomies An array of default taxonomies.
-		 * @hook ep_woocommerce_supported_taxonomies
-		 * @since 2.3.0
-		 * @return  {array} New taxonomies
-		 */
-		$supported_taxonomies = apply_filters( 'ep_woocommerce_supported_taxonomies', $supported_taxonomies );
-
-		if ( ! empty( $tax_query ) ) {
-
-			/**
-			 * First check if already set taxonomies are supported WC taxes
-			 */
-			foreach ( $tax_query as $taxonomy_array ) {
-				if ( isset( $taxonomy_array['taxonomy'] ) && in_array( $taxonomy_array['taxonomy'], $supported_taxonomies, true ) ) {
-					$integrate = true;
-				}
-			}
-		}
-
-		/**
-		 * Next check if any taxonomies are in the root of query vars (shorthand form)
-		 */
-		foreach ( $supported_taxonomies as $taxonomy ) {
-			$term = $query->get( $taxonomy, false );
-
-			if ( ! empty( $term ) ) {
-				$integrate = true;
-
-				$tax_query[] = array(
-					'taxonomy' => $taxonomy,
-					'field'    => 'slug',
-					'terms'    => (array) $term,
-				);
-			}
-		}
-
-		/**
-		 * Force ElasticPress if product post type query
-		 */
-		$post_type = $query->get( 'post_type', false );
-
-		// Act only on a defined subset of all indexable post types here
-		$post_types = array(
-			'shop_order',
-			'shop_order_refund',
-			'product_variation',
-		);
-
-		$is_main_post_type_archive = $query->is_main_query() && $query->is_post_type_archive( 'product' );
-		$has_ep_integrate_set_true = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
-		if ( $is_main_post_type_archive || $has_ep_integrate_set_true ) {
-			$post_types[] = 'product';
-		}
-
-		/**
-		 * Expands or contracts the post_types eligible for indexing.
-		 *
-		 * @hook ep_woocommerce_default_supported_post_types
-		 * @since 4.4.0
-		 * @param  {array} $post_types Post types
-		 * @return  {array} New post types
-		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_default_supported_post_types', $post_types );
-
-		$supported_post_types = array_intersect(
-			$supported_post_types,
-			Indexables::factory()->get( 'post' )->get_indexable_post_types()
-		);
-
-		// For orders it queries an array of shop_order and shop_order_refund post types, hence an array_diff
-		if ( ! empty( $post_type ) && ( in_array( $post_type, $supported_post_types, true ) || ( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) ) ) {
-			$integrate = true;
-		}
-
-		/**
-		 * If we have a WooCommerce specific query, lets hook it to ElasticPress and make the query ElasticSearch friendly
-		 */
-		if ( ! $integrate ) {
-			return;
-		}
-
-		// Set tax_query again since we may have added things
-		$query->set( 'tax_query', $tax_query );
-
-		// Default to product if no post type is set
-		if ( empty( $post_type ) ) {
-			$post_type = 'product';
-			$query->set( 'post_type', 'product' );
-		}
-
-		// Handles the WC Top Rated Widget
-		if ( has_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) ) ) {
-			remove_filter( 'posts_clauses', array( WC()->query, 'order_by_rating_post_clauses' ) );
-			$query->set( 'orderby', 'meta_value_num' );
-			$query->set( 'meta_key', '_wc_average_rating' );
-		}
-
-		/**
-		 * WordPress have to be version 4.6 or newer to have "fields" support
-		 * since it requires the "posts_pre_query" filter.
-		 *
-		 * @see WP_Query::get_posts
-		 */
-		$fields = $query->get( 'fields', false );
-		if ( ! version_compare( get_bloginfo( 'version' ), '4.6', '>=' ) && ( 'ids' === $fields || 'id=>parent' === $fields ) ) {
-			$query->set( 'fields', 'default' );
-		}
-
-		/**
-		 * Handle meta queries
-		 */
-		$meta_query = $query->get( 'meta_query', [] );
-		$meta_key   = $query->get( 'meta_key', false );
-		$meta_value = $query->get( 'meta_value', false );
-
-		if ( ! empty( $meta_key ) && ! empty( $meta_value ) ) {
-			$meta_query[] = array(
-				'key'   => $meta_key,
-				'value' => $meta_value,
-			);
-
-			$query->set( 'meta_query', $meta_query );
-		}
-
-		/**
-		 * Make sure filters are suppressed
-		 */
-		$query->query['suppress_filters'] = false;
-		$query->set( 'suppress_filters', false );
-
-		// Integrate with WooCommerce custom searches as well
+	public function get_search_term( \WP_Query $query ) : string {
 		$search = $query->get( 'search' );
-		if ( ! empty( $search ) ) {
-			$s = $search;
-			$query->set( 's', $s );
-		} else {
-			$s = $query->get( 's' );
-		}
-
-		$query->query_vars['ep_integrate'] = true;
-		$query->query['ep_integrate']      = true;
-
-		if ( ! empty( $s ) ) {
-
-			$searchable_post_types = $this->orders->get_admin_searchable_post_types();
-
-			if ( in_array( $post_type, $searchable_post_types, true ) ) {
-				$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
-				if ( ctype_digit( $s ) ) {
-					$default_search_fields[] = 'ID';
-				}
-				$search_fields = $query->get( 'search_fields', $default_search_fields );
-
-				$search_fields['meta'] = array_map(
-					'wc_clean',
-					/**
-					 * Filter shop order meta fields to search for WooCommerce
-					 *
-					 * @hook shop_order_search_fields
-					 * @param  {array} $fields Shop order fields
-					 * @return  {array} New fields
-					 */
-					apply_filters(
-						'shop_order_search_fields',
-						array(
-							'_order_key',
-							'_billing_company',
-							'_billing_address_1',
-							'_billing_address_2',
-							'_billing_city',
-							'_billing_postcode',
-							'_billing_country',
-							'_billing_state',
-							'_billing_email',
-							'_billing_phone',
-							'_shipping_address_1',
-							'_shipping_address_2',
-							'_shipping_city',
-							'_shipping_postcode',
-							'_shipping_country',
-							'_shipping_state',
-							'_billing_last_name',
-							'_billing_first_name',
-							'_shipping_first_name',
-							'_shipping_last_name',
-							'_items',
-						)
-					)
-				);
-
-				$query->set(
-					'search_fields',
-					/**
-					 * Filter all the shop order fields to search for WooCommerce
-					 *
-					 * @hook ep_woocommerce_shop_order_search_fields
-					 * @since 4.0.0
-					 * @param {array}    $fields Shop order fields
-					 * @param {WP_Query} $query  WP Query
-					 * @return {array} New fields
-					 */
-					apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
-				);
-			} elseif ( 'product' === $post_type && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-				$search_fields = $query->get( 'search_fields', array( 'post_title', 'post_content', 'post_excerpt' ) );
-
-				// Remove author_name from this search.
-				$search_fields = $this->remove_author( $search_fields );
-
-				foreach ( $search_fields as $field_key => $field ) {
-					if ( 'author_name' === $field ) {
-						unset( $search_fields[ $field_key ] );
-					}
-				}
-
-				$search_fields['meta']       = ( ! empty( $search_fields['meta'] ) ) ? $search_fields['meta'] : [];
-				$search_fields['taxonomies'] = ( ! empty( $search_fields['taxonomies'] ) ) ? $search_fields['taxonomies'] : [];
-
-				$search_fields['meta']       = array_merge( $search_fields['meta'], array( '_sku' ) );
-				$search_fields['taxonomies'] = array_merge( $search_fields['taxonomies'], array( 'category', 'post_tag', 'product_tag', 'product_cat' ) );
-
-				$query->set( 'search_fields', $search_fields );
-			}
-		} else {
-			/**
-			 * For default sorting by popularity (total_sales) and rating
-			 * Woocommerce doesn't set the orderby correctly.
-			 * These lines will check the meta_key and correct the orderby based on that.
-			 * And this won't run in search result and only run in main query
-			 */
-			$meta_key = $query->get( 'meta_key', false );
-			if ( $meta_key && $query->is_main_query() ) {
-				switch ( $meta_key ) {
-					case 'total_sales':
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
-						$query->set( 'order', 'DESC' );
-						break;
-					case '_wc_average_rating':
-						$query->set( 'orderby', $this->get_orderby_meta_mapping( '_wc_average_rating' ) );
-						$query->set( 'order', 'DESC' );
-						break;
-				}
-			}
-		}
-
-		/**
-		 * Set orderby and order for price/popularity when GET param not set
-		 */
-		if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
-			switch ( $query->query_vars['orderby'] ) {
-				case 'price':
-					$query->set( 'order', $query->query_vars['order'] );
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-					break;
-				case 'popularity':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
-					$query->set( 'order', 'DESC' );
-					break;
-			}
-		}
-
-		/**
-		 * Set orderby from GET param
-		 * Also make sure the orderby param affects only the main query
-		 */
-		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
-			switch ( $orderby ) { // phpcs:ignore WordPress.Security.NonceVerification
-				case 'popularity':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
-					$query->set( 'order', 'DESC' );
-					break;
-				case 'price':
-					$query->set( 'order', $query->get( 'order', 'ASC' ) );
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-					break;
-				case 'price-desc':
-					$query->set( 'order', 'DESC' );
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-					break;
-				case 'rating':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_wc_average_rating' ) );
-					$query->set( 'order', 'DESC' );
-					break;
-				case 'date':
-				case 'title':
-				case 'ID':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( $orderby ) );
-					break;
-				case 'sku':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_sku' ) );
-					break;
-				default:
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
-			}
-		}
-	}
-
-	/**
-	 * Fetch the ES related meta mapping for orderby
-	 *
-	 * @param array $meta_key The meta key to get the mapping for.
-	 * @since  2.1
-	 * @return string    The mapped meta key.
-	 */
-	public function get_orderby_meta_mapping( $meta_key ) {
-		/**
-		 * Filter WooCommerce to Elasticsearch meta mapping
-		 *
-		 * @hook orderby_meta_mapping
-		 * @param  {array} $mapping Meta mapping
-		 * @return  {array} New mapping
-		 */
-		$mapping = apply_filters(
-			'orderby_meta_mapping',
-			array(
-				'ID'                 => 'ID',
-				'title'              => 'title date',
-				'menu_order'         => 'menu_order title date',
-				'menu_order title'   => 'menu_order title date',
-				'total_sales'        => 'meta.total_sales.double date',
-				'_wc_average_rating' => 'meta._wc_average_rating.double date',
-				'_price'             => 'meta._price.double date',
-				'_sku'               => 'meta._sku.value.sortable date',
-			)
-		);
-
-		if ( isset( $mapping[ $meta_key ] ) ) {
-			return $mapping[ $meta_key ];
-		}
-
-		return 'date';
+		return ( ! empty( $search ) ) ? $search : $query->get( 's', '' );
 	}
 
 	/**
@@ -541,23 +184,6 @@ class WooCommerce extends Feature {
 			</div>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Remove the author_name from search fields.
-	 *
-	 * @param array $search_fields Array of search fields.
-	 * @since  3.0
-	 * @return array
-	 */
-	public function remove_author( $search_fields ) {
-		foreach ( $search_fields as $field_key => $field ) {
-			if ( 'author_name' === $field ) {
-				unset( $search_fields[ $field_key ] );
-			}
-		}
-
-		return $search_fields;
 	}
 
 	/**
@@ -668,6 +294,41 @@ class WooCommerce extends Feature {
 		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
 	}
 
+	/**
+	 * DEPRECATED. Translate args to ElasticPress compat format. This is the meat of what the feature does
+	 *
+	 * @param  \WP_Query $query WP Query
+	 * @since  2.1
+	 */
+	public function translate_args( $query ) {
+		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->translate_args() OR \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders->translate_args()" );
+		$this->products->translate_args( $query );
+		$this->orders->translate_args( $query );
+	}
+
+	/**
+	 * DEPRECATED. Fetch the ES related meta mapping for orderby
+	 *
+	 * @param array $meta_key The meta key to get the mapping for.
+	 * @since  2.1
+	 * @return string    The mapped meta key.
+	 */
+	public function get_orderby_meta_mapping( $meta_key ) {
+		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->get_orderby_meta_mapping()" );
+		return $this->products->get_orderby_meta_mapping( $meta_key );
+	}
+
+	/**
+	 * DEPRECATED. Remove the author_name from search fields.
+	 *
+	 * @param array $search_fields Array of search fields.
+	 * @since  3.0
+	 * @return array
+	 */
+	public function remove_author( $search_fields ) {
+		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->remove_author()" );
+		return $this->products->remove_author( $search_fields );
+	}
 
 	/**
 	 * DEPRECATED. Index Woocommerce meta
