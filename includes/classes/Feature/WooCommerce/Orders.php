@@ -433,7 +433,7 @@ class Orders {
 
 		if ( in_array( $method_name, $orders_autosuggest_methods, true ) ) {
 			_deprecated_function(
-				__METHOD__,
+				"\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method_name}", // phpcs:ignore
 				'4.7.0',
 				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
 			);

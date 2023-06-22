@@ -213,4 +213,52 @@ class TestWooCommerceOrders extends TestWooCommerce {
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
 	}
+
+	/**
+	 * Test if methods moved to OrdersAutosuggest are correctly flagged
+	 *
+	 * @param string $method The method name
+	 * @param array  $args   Method arguments
+	 * @dataProvider ordersAutosuggestMethodsDataProvider
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function testOrdersAutosuggestMethods( $method, $args ) {
+		$this->setExpectedDeprecated( "\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method}" );
+		$orders = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders;
+		$orders->$method( ...$args );
+	}
+
+	/**
+	 * Data provider for the testOrdersAutosuggestMethods method.
+	 *
+	 * @return array
+	 */
+	public function ordersAutosuggestMethodsDataProvider() : array {
+		return [
+			[ 'after_update_feature', [ 'test', [], [] ] ],
+			[ 'check_token_permission', [] ],
+			[ 'enqueue_admin_assets', [ '' ] ],
+			[ 'epio_delete_search_template', [] ],
+			[ 'epio_get_search_template', [] ],
+			[ 'epio_save_search_template', [] ],
+			[ 'filter_term_suggest', [ [] ] ],
+			[ 'get_args_schema', [] ],
+			[ 'get_search_endpoint', [] ],
+			[ 'get_search_template', [] ],
+			[ 'get_template_endpoint', [] ],
+			[ 'get_token', [] ],
+			[ 'get_token_endpoint', [] ],
+			[ 'intercept_search_request', [ (object) [] ] ],
+			[ 'is_integrated_request', [ true, [] ] ],
+			[ 'post_statuses', [ [] ] ],
+			[ 'post_types', [ [] ] ],
+			[ 'mapping', [ [] ] ],
+			[ 'maybe_query_password_protected_posts', [ [] ] ],
+			[ 'maybe_set_posts_where', [ '', new \WP_Query( [] ) ] ],
+			[ 'refresh_token', [] ],
+			[ 'rest_api_init', [] ],
+			[ 'set_search_fields', [] ],
+		];
+	}
 }

@@ -244,7 +244,7 @@ class TestWooCommerceProduct extends TestWooCommerce {
 	}
 
 	/**
-	 *  Test the product query order.
+	 * Test the product query order.
 	 *
 	 * @param string $product_arg_key Field slug
 	 * @param array  $query_args      Query array
