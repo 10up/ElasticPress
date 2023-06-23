@@ -564,21 +564,20 @@ class Products {
 	 * @return bool
 	 */
 	public function maybe_disable_decaying( $is_decaying_enabled, $settings, $args ) {
+		// If the decay setting isn't a WooCommerce related option, return
 		if ( ! in_array( $settings['decaying_enabled'], [ 'disabled_only_products', 'disabled_includes_products' ], true ) ) {
 			return $is_decaying_enabled;
 		}
 
+		// If the query is not dealing with products, return
 		if ( ! isset( $args['post_type'] ) || ! in_array( 'product', (array) $args['post_type'], true ) ) {
 			return $is_decaying_enabled;
 		}
 
 		$post_types = (array) $args['post_type'];
 
+		// If set to disable decay on product-only queries and have more than one post type, return
 		if ( 'disabled_only_products' === $settings['decaying_enabled'] && count( $post_types ) > 1 ) {
-			return $is_decaying_enabled;
-		}
-
-		if ( 'disabled_includes_products' === $settings['decaying_enabled'] && ! in_array( 'product', $post_types, true ) ) {
 			return $is_decaying_enabled;
 		}
 
