@@ -322,4 +322,32 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 		$this->assertSame( $new_query_params, $expected_query_params );
 	}
+
+	/**
+	 * Test the ep_facet_tax_special_slug_taxonomies filter runs.
+	 *
+	 * @return void
+	 */
+	public function testEpFacetSpecialSlugTaxonomiesFilter() {
+		add_filter(
+			'ep_facet_tax_special_slug_taxonomies',
+			function( $special_slug_taxonomies, $selected_filters ) {
+				foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
+					$special_slug_taxonomies[ $taxonomy ] = 'testmyfilter';
+				}
+				return $special_slug_taxonomies;
+			},
+			10,
+			2
+		);
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		parse_str( 'ep_filter_taxonomy=dolor,amet', $_GET );
+
+		$facet_type->add_query_filters( [] );
+
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_facet_tax_special_slug_taxonomies' ) );
+	}
 }

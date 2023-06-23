@@ -881,7 +881,7 @@ class WooCommerce extends Feature {
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
-		add_filter( 'ep_facet_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
+		add_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
 
 		// Custom product ordering
 		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );

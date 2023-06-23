@@ -358,27 +358,6 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
-	 * Test the ep_facet_special_slug_taxonomies filter runs.
-	 *
-	 * @return void
-	 */
-	public function testEpFacetSpecialSlugTaxonomiesFilter() {
-		add_filter(
-			'ep_facet_special_slug_taxonomies',
-			function( $special_slug_taxonomies, $selected_filters ) {
-				foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
-					$special_slug_taxonomies[ $taxonomy ] = 'testmyfilter';
-				}
-				return $special_slug_taxonomies;
-			},
-			10,
-			2
-		);
-
-		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_facet_special_slug_taxonomies' ) );
-	}
-
-	/**
 	 * Utilitary function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.
