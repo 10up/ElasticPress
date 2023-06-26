@@ -730,6 +730,31 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		return $language;
 	}
 
+	if ( 'ep_site_default' === $ep_language ) {
+		// If multisite, check options.
+		if ( is_multisite() ) {
+			// Don't check blog option when installing.
+			if ( wp_installing() ) {
+				$ms_locale = get_site_option( 'WPLANG' );
+			} else {
+				$ms_locale = get_option( 'WPLANG' );
+				if ( false === $ms_locale ) {
+					$ms_locale = get_site_option( 'WPLANG' );
+				}
+			}
+
+			if ( false !== $ms_locale ) {
+				$locale = $ms_locale;
+			}
+		} else {
+			$db_locale = get_option( 'WPLANG' );
+			if ( false !== $db_locale ) {
+				$locale = $db_locale;
+			}
+		}
+		$ep_language = $locale;
+	}
+
 	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 	$translations = wp_get_available_translations();
 
