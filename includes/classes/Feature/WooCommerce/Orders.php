@@ -25,7 +25,7 @@ class Orders {
 	 *
 	 * @var string
 	 */
-	private $index;
+	protected $index;
 	
 	/**
 	 * Initialize feature.
