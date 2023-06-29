@@ -3887,6 +3887,45 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test to verify that empty meta key should be excluded before sync.
+	 *
+	 * @since 4.7.0
+	 * @group post
+	 */
+	public function testEmptyMetaKey() {
+		global $wpdb;
+		$post_id      = $this->ep_factory->post->create();
+		$post         = get_post( $post_id );
+		$meta_key     = '';
+		$meta_value_1 = 'Meta value for empty key';
+		$meta_values  = array(
+			'value 1',
+			'value 2',
+		);
+		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => $meta_key,
+				'meta_value' => $meta_value_1,
+			),
+			array( '%d', '%s', '%s' )
+		);
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE meta_key=%s AND post_id = %d", $meta_key, $post_id ) );
+
+		$this->assertSame( $meta_key, $row->meta_key );
+		$this->assertSame( $meta_value_1, $row->meta_value );
+
+		$meta_data = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+
+		$this->assertTrue( is_array( $meta_data ) && 1 === count( $meta_data ) );
+		$this->assertTrue( is_array( $meta_data ) && array_key_exists( 'test_meta_1', $meta_data ) );
+
+	}
+
+	/**
 	 * Test meta preparation
 	 *
 	 * @since 1.7
