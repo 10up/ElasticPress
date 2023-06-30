@@ -533,8 +533,12 @@ class SearchOrdering extends Feature {
 			}
 		}
 
-		update_post_meta( $post_id, 'pointers', $final_order_data );
 		update_post_meta( $post_id, 'search_term', $post->post_title );
+		if ( ! empty( $final_order_data ) ) {
+			update_post_meta( $post_id, 'pointers', $final_order_data );
+		} else {
+			delete_post_meta( $post_id, 'pointers' );
+		}
 	}
 
 	/**
