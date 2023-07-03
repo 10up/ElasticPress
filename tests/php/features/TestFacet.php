@@ -106,7 +106,7 @@ class TestFacet extends BaseTestCase {
 		$this->assertArrayHasKey( 'post_type', $selected );
 		$this->assertSame( 'posttype', $selected['post_type'] );
 
-		// test when filter is empty
+		// test when filter value is empty.
 		parse_str( 'ep_filter_category=&ep_filter_othertax=amet&s=', $_GET );
 		$selected = $facet_feature->get_selected();
 		$this->assertArrayNotHasKey( 'category', $selected['taxonomies'] );
