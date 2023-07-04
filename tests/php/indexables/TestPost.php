@@ -8073,6 +8073,27 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that post meta value should be empty when it is not set.
+	 */
+	public function testMetaValueNotSet() {
+		$post_ids    = array();
+		$post_ids[0] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'find me in search',
+			)
+		);
+		$post_ids[1] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
+		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
+	}
+
+	/**
 	 * Tests search term is wrapped in html tag with custom class
 	 */
 	public function testHighlightTagsWithCustomClass() {
