@@ -6868,6 +6868,55 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with multiple meta fields
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/3509
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testParseOrderbyMetaMultiple() {
+		$method_executed = false;
+
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => [
+				'meta_field1'             => 'desc',
+				'meta.meta_field3.double' => 'asc',
+				'meta.meta_field2.double' => 'asc',
+			],
+			'meta_query'   => [
+				'date_clause' => [
+					'key'     => 'meta_field2',
+					'value'   => '20230622',
+					'compare' => '>=',
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed ) {
+			$method_executed = true;
+
+			$expected_sort = [
+				[ 'meta_field1' => [ 'order' => 'desc' ] ],
+				[ 'meta.meta_field3.double' => [ 'order' => 'asc' ] ],
+				[ 'meta.meta_field2.double' => [ 'order' => 'asc' ] ],
+			];
+
+			$this->assertSame( $expected_sort, $args['sort'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
+
+	/**
 	 * Tests additional nested tax queries in parse_tax_query().
 	 *
 	 * @return void
