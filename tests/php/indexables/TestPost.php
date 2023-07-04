@@ -3889,7 +3889,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test to verify that empty meta key should be excluded before sync.
 	 *
-	 * @since 4.7.0
+	 * @since 4.6.1
 	 * @group post
 	 */
 	public function testEmptyMetaKey() {
@@ -8113,6 +8113,9 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests that post meta value should be empty when it is not set.
+	 *
+	 * @since 4.6.1
+	 * @group post
 	 */
 	public function testMetaValueNotSet() {
 		$post_ids    = array();
