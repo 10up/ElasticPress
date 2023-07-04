@@ -3920,9 +3920,9 @@ class TestPost extends BaseTestCase {
 
 		$meta_data = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
 
-		$this->assertTrue( is_array( $meta_data ) && 1 === count( $meta_data ) );
-		$this->assertTrue( is_array( $meta_data ) && array_key_exists( 'test_meta_1', $meta_data ) );
-
+		$this->assertIsArray( $meta_data );
+		$this->assertCount( 1, $meta_data );
+		$this->assertArrayHasKey( 'test_meta_1', $meta_data );
 	}
 
 	/**
