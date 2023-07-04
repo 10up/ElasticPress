@@ -8042,7 +8042,6 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
 		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
-
 	}
 
 	/**
