@@ -936,7 +936,9 @@ class Post extends Indexable {
 		$prepared_meta  = [];
 
 		foreach ( $filtered_metas as $key => $value ) {
-			$prepared_meta[ $key ] = maybe_unserialize( $value );
+			if ( ! empty( $key ) ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
+			}
 		}
 
 		/**
