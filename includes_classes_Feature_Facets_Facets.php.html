@@ -434,6 +434,9 @@ class Facets extends Feature {
 
 			foreach ( $filter_names as $filter_name => $type_obj ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
+					if ( empty( $value ) ) {
+						continue;
+					}
 					$facet = str_replace( $filter_name, '', $key );
 
 					$filters = $type_obj->format_selected( $facet, $value, $filters );

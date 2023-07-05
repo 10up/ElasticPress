@@ -43,7 +43,7 @@
 
     
 
-    <h4 class="name" id="ep_facet_search_get_terms_args">apply_filters( 'ep_facet_search_get_terms_args', <span class="signature">$query, $post_type, $args )</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="ep_facet_search_get_terms_args">apply_filters( 'ep_facet_search_get_terms_args', <span class="signature">$terms_args, $args, $instance )</span><span class="type-signature"> &rarr; {array}</span></h4>
 
     
 
@@ -84,7 +84,7 @@
 
         <tr>
             
-                <td class="name"><code>$query</code></td>
+                <td class="name"><code>$terms_args</code></td>
             
 
             <td class="type">
@@ -100,30 +100,7 @@
 
             
 
-            <td class="description last"><p>Weighting query</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>$post_type</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Post type</p></td>
+            <td class="description last"><p>Array of arguments passed to get_terms()</p></td>
         </tr>
 
     
@@ -146,7 +123,30 @@
 
             
 
-            <td class="description last"><p>WP Query arguments</p></td>
+            <td class="description last"><p>Widget args</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$instance</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Instance settings</p></td>
         </tr>
 
     
@@ -217,7 +217,7 @@
 
         
 <div class="param-desc">
-    <p>New query</p>
+    <p>New terms args</p>
 </div>
 
 
