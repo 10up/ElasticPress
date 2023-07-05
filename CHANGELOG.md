@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
-## [4.6.1] - 2023-07-XX
+## [4.6.1] - 2023-07-05
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
 
@@ -21,12 +21,12 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Add doc url for "Did You Mean" feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3529](https://github.com/10up/ElasticPress/pull/3529).
 
 ### Changed
-* Use wp_cache_supports over wp_cache_supports_group_flush. Props [@spacedmonkey](https://github.com/spacedmonkey) via [#3501](https://github.com/10up/ElasticPress/pull/3501).
+* Use `wp_cache_supports` over `wp_cache_supports_group_flush`. Props [@spacedmonkey](https://github.com/spacedmonkey) via [#3501](https://github.com/10up/ElasticPress/pull/3501).
 * Update the `ep_exclude_from_search` post meta only if it is set or has some value. Props [@MARQAS](https://github.com/MARQAS) and [@columbian-chris](https://github.com/columbian-chris) via [#3521](https://github.com/10up/ElasticPress/pull/3521).
 
 ### Fixed
 * Deprecation notice in `ElasticPress\Feature\WooCommerce\Orders`. Props [@mwidmann](https://github.com/mwidmann) via [#3507](https://github.com/10up/ElasticPress/pull/3507).
-* Restrict applying a facet filter to the query if the filter value is empty. Props [@burhandodhy](https://github.com/burhandodhy) via [#3524](https://github.com/10up/ElasticPress/pull/3524).
+* Don't apply a facet filter to the query if the filter value is empty. Props [@burhandodhy](https://github.com/burhandodhy) via [#3524](https://github.com/10up/ElasticPress/pull/3524).
 * Syncing a post with empty post meta key. Props [@MARQAS](https://github.com/MARQAS) and [@oscarssanchez](https://github.com/oscarssanchez) via [#3516](https://github.com/10up/ElasticPress/pull/3516).
 * Order by clauses with Elasticsearch field formats are not changed anymore. Props [@felipeelia](https://github.com/felipeelia) and [@tlovett1](https://github.com/tlovett1) via [#3512](https://github.com/10up/ElasticPress/pull/3512).
 * Failed Query logs are automatically cleared on refreshing the "Status Report" page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3533](https://github.com/10up/ElasticPress/pull/3533).
