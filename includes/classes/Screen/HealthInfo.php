@@ -37,7 +37,7 @@ class HealthInfo {
 
 		$debug_info['ep-last-sync'] = [
 			'label'  => esc_html__( 'ElasticPress - Last Sync', 'elasticpress' ),
-			'fields' => $first_group['fields'],
+			'fields' => $first_group['fields'] ?? [],
 		];
 
 		return $debug_info;
