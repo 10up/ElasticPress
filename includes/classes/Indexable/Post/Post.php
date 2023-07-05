@@ -936,7 +936,9 @@ class Post extends Indexable {
 		$prepared_meta  = [];
 
 		foreach ( $filtered_metas as $key => $value ) {
-			$prepared_meta[ $key ] = maybe_unserialize( $value );
+			if ( ! empty( $key ) ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
+			}
 		}
 
 		/**
@@ -1290,6 +1292,12 @@ class Post extends Indexable {
 			'unsigned' => 'long',
 		];
 
+		// Code is targeting Elasticsearch directly
+		if ( preg_match( '/^meta\.(.*?)\.(.*)/', $orderby_clause, $match_meta ) ) {
+			return $orderby_clause;
+		}
+
+		// WordPress meta_value_* compatibility
 		if ( preg_match( '/^meta_value_?(.*)/', $orderby_clause, $match_type ) ) {
 			$meta_type = $from_to_metatypes[ strtolower( $match_type[1] ) ] ?? 'value.sortable';
 		}
@@ -1298,25 +1306,48 @@ class Post extends Indexable {
 			$meta_field = $args['meta_key'];
 		}
 
-		if ( ( ! isset( $meta_type ) || ! isset( $meta_field ) ) && ! empty( $args['meta_query'] ) ) {
-			$meta_query = new \WP_Meta_Query( $args['meta_query'] );
-			// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
-			$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
+		// Already have everything needed
+		if ( isset( $meta_type ) && isset( $meta_field ) ) {
+			return "meta.{$meta_field}.{$meta_type}";
+		}
 
-			$clauses = $meta_query->get_clauses();
+		// Don't have any other ways to guess
+		if ( empty( $args['meta_query'] ) ) {
+			return $orderby_clause;
+		}
 
-			if ( ! empty( $clauses[ $orderby_clause ] ) ) {
-				$meta_field       = $clauses[ $orderby_clause ]['key'];
-				$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] ?? $clauses[ $orderby_clause ]['cast'] );
+		$meta_query = new \WP_Meta_Query( $args['meta_query'] );
+		// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
+		$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		$clauses = $meta_query->get_clauses();
+
+		// If it refers to a named meta_query clause
+		if ( ! empty( $clauses[ $orderby_clause ] ) ) {
+			$meta_field       = $clauses[ $orderby_clause ]['key'];
+			$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] ?? $clauses[ $orderby_clause ]['cast'] );
+		} else {
+			/**
+			 * At this point we:
+			 * 1. Try to find the meta key in any meta_query clause and use the type WP found
+			 * 2. If ordering by `meta_value*`, use the first meta_query clause
+			 * 3. Give up and use the orderby clause as is (code could be capturing it later on)
+			 */
+			$meta_keys_and_types = wp_list_pluck( $clauses, 'cast', 'key' );
+			if ( isset( $meta_keys_and_types[ $orderby_clause ] ) ) {
+				$meta_field       = $orderby_clause;
+				$clause_meta_type = strtolower( $meta_keys_and_types[ $orderby_clause ] ?? $meta_keys_and_types[ $orderby_clause ] );
+			} elseif ( isset( $meta_type ) ) {
+				$primary_clause = reset( $clauses );
+				$meta_field     = $primary_clause['key'];
 			} else {
-				$primary_clause   = reset( $clauses );
-				$meta_field       = $primary_clause['key'];
-				$clause_meta_type = strtolower( $primary_clause['type'] ?? $primary_clause['cast'] );
+				unset( $meta_type );
+				unset( $meta_field );
 			}
+		}
 
-			if ( ! isset( $meta_type ) ) {
-				$meta_type = $from_to_metatypes[ $clause_meta_type ] ?? 'value.sortable';
-			}
+		if ( ! isset( $meta_type ) && isset( $clause_meta_type ) ) {
+			$meta_type = $from_to_metatypes[ $clause_meta_type ] ?? 'value.sortable';
 		}
 
 		if ( isset( $meta_type ) && isset( $meta_field ) ) {
