@@ -146,14 +146,33 @@ class EP_Uninstaller {
 	protected function delete_total_fields_limit_transients() {
 		global $wpdb;
 
-		$related_posts_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$total_fields_limit_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_total_fields_limit_%'"
 		);
 
-		foreach ( $related_posts_transients as $related_posts_transient ) {
-			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
-			delete_site_transient( $related_posts_transient );
-			delete_transient( $related_posts_transient );
+		foreach ( $total_fields_limit_transients as $total_fields_limit_transient ) {
+			$total_fields_limit_transient = str_replace( '_transient_', '', $total_fields_limit_transient );
+			delete_site_transient( $total_fields_limit_transient );
+			delete_transient( $total_fields_limit_transient );
+		}
+	}
+
+	/**
+	 * Delete all transients of indices default analyzer's language.
+	 *
+	 * @since 4.7.0
+	 */
+	protected function delete_default_analyzer_language_transients() {
+		global $wpdb;
+
+		$default_analyzer_language_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_default_analyzer_language_%'"
+		);
+
+		foreach ( $default_analyzer_language_transients as $default_analyzer_language_transient ) {
+			$default_analyzer_language_transient = str_replace( '_transient_', '', $default_analyzer_language_transient );
+			delete_site_transient( $default_analyzer_language_transient );
+			delete_transient( $default_analyzer_language_transient );
 		}
 	}
 
@@ -182,6 +201,7 @@ class EP_Uninstaller {
 				$this->delete_transients();
 				$this->delete_related_posts_transients();
 				$this->delete_total_fields_limit_transients();
+				$this->delete_default_analyzer_language_transients();
 
 				restore_current_blog();
 			}
@@ -190,6 +210,7 @@ class EP_Uninstaller {
 			$this->delete_transients();
 			$this->delete_related_posts_transients();
 			$this->delete_total_fields_limit_transients();
+			$this->delete_default_analyzer_language_transients();
 		}
 	}
 

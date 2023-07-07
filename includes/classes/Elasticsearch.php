@@ -1742,7 +1742,31 @@ class Elasticsearch {
 	 * @return int|null
 	 */
 	public function get_index_total_fields_limit( $index_name ) {
-		$cache_key = 'ep_total_fields_limit_' . $index_name;
+		return (int) $this->get_cached_index_setting( 'total_fields_limit', 'index.mapping.total_fields.limit', $index_name );
+	}
+
+	/**
+	 * Given an index return its default analyzer's language
+	 *
+	 * @since 4.7.0
+	 * @param string $index_name The index name
+	 * @return string|null
+	 */
+	public function get_index_default_analyzer_language( $index_name ) {
+		return $this->get_cached_index_setting( 'default_analyzer_language', 'index.analysis.analyzer.default.language', $index_name );
+	}
+
+	/**
+	 * Return a cached version of an index setting
+	 *
+	 * @since 4.7.0
+	 * @param string $setting_name The setting name in ElasticPress
+	 * @param string $setting_path The setting path in the Elasticsearch response
+	 * @param string $index_name   The index name
+	 * @return mixed
+	 */
+	protected function get_cached_index_setting( $setting_name, $setting_path, $index_name ) {
+		$cache_key = "ep_{$setting_name}_{$index_name}";
 
 		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 		if ( $is_network ) {
@@ -1755,19 +1779,18 @@ class Elasticsearch {
 		}
 
 		$index_settings = $this->get_index_settings( $index_name );
-		if ( is_wp_error( $index_settings ) || empty( $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'] ) ) {
+		if ( is_wp_error( $index_settings ) || empty( $index_settings[ $index_name ]['settings'][ $setting_path ] ) ) {
 			return null;
 		}
 
-		$es_field_limit = $index_settings[ $index_name ]['settings']['index.mapping.total_fields.limit'];
+		$setting_value = $index_settings[ $index_name ]['settings'][ $setting_path ];
 
 		if ( $is_network ) {
-			set_site_transient( $cache_key, $es_field_limit, DAY_IN_SECONDS );
+			set_site_transient( $cache_key, $setting_value, DAY_IN_SECONDS );
 		} else {
-			set_transient( $cache_key, $es_field_limit, DAY_IN_SECONDS );
+			set_transient( $cache_key, $setting_value, DAY_IN_SECONDS );
 		}
 
-		return (int) $es_field_limit;
+		return $setting_value;
 	}
-
 }

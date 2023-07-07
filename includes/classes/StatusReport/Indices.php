@@ -79,6 +79,11 @@ class Indices extends Report {
 				'value' => $elasticsearch->get_index_total_fields_limit( $index['index'] ),
 			];
 
+			$fields['default_analyzer_language'] = [
+				'label' => 'default_analyzer_language',
+				'value' => $elasticsearch->get_index_default_analyzer_language( $index['index'] ),
+			];
+
 			$groups[] = [
 				'title'  => $index['index'],
 				'fields' => $fields,
