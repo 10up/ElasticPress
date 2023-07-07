@@ -722,6 +722,8 @@ function action_admin_menu() {
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context = '' ) {
+	global $locale, $wp_local_package;
+
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -730,29 +732,15 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		return $language;
 	}
 
+	/**
+	 * WordPress does not reset the language when switch_blog() is called.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/49263
+	 */
 	if ( 'ep_site_default' === $ep_language ) {
-		// If multisite, check options.
-		if ( is_multisite() ) {
-			// Don't check blog option when installing.
-			if ( wp_installing() ) {
-				$ms_locale = get_site_option( 'WPLANG' );
-			} else {
-				$ms_locale = get_option( 'WPLANG' );
-				if ( false === $ms_locale ) {
-					$ms_locale = get_site_option( 'WPLANG' );
-				}
-			}
-
-			if ( false !== $ms_locale ) {
-				$locale = $ms_locale;
-			}
-		} else {
-			$db_locale = get_option( 'WPLANG' );
-			if ( false !== $db_locale ) {
-				$locale = $db_locale;
-			}
-		}
-		$ep_language = $locale;
+		$locale           = null;
+		$wp_local_package = null;
+		$ep_language      = get_locale();
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
