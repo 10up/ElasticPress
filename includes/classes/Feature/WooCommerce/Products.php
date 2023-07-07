@@ -903,17 +903,13 @@ class Products {
 		/**
 		 * Set orderby and order for price/popularity when GET param not set
 		 */
-		if ( isset( $query->query_vars['orderby'], $query->query_vars['order'] ) && $query->is_main_query() ) {
-			switch ( $query->query_vars['orderby'] ) {
-				case 'price':
-					$query->set( 'order', $query->query_vars['order'] );
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
-					break;
-				case 'popularity':
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
-					$query->set( 'order', 'DESC' );
-					break;
-			}
+		$orderby = $query->get( 'orderby', null );
+		if ( $orderby && in_array( $orderby, [ 'price', 'popularity' ], true ) ) {
+			$order = $query->get( 'order', 'DESC' );
+			$query->set( 'order', $order );
+
+			$orderby_field = 'price' === $orderby ? '_price' : 'total_sales';
+			$query->set( 'orderby', $this->get_orderby_meta_mapping( $orderby_field ) );
 		}
 
 		/**
