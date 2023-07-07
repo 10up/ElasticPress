@@ -141,38 +141,33 @@ class EP_Uninstaller {
 	}
 
 	/**
-	 * Delete all transients of the total fields limit.
+	 * DEPRECATED. Delete all transients of the total fields limit.
 	 */
 	protected function delete_total_fields_limit_transients() {
-		global $wpdb;
-
-		$total_fields_limit_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_total_fields_limit_%'"
-		);
-
-		foreach ( $total_fields_limit_transients as $total_fields_limit_transient ) {
-			$total_fields_limit_transient = str_replace( '_transient_', '', $total_fields_limit_transient );
-			delete_site_transient( $total_fields_limit_transient );
-			delete_transient( $total_fields_limit_transient );
-		}
+		_doing_it_wrong( __METHOD__, 'delete_indices_settings_transients() should be call instead.', 'ElasticPress 4.7.0' );
 	}
 
 	/**
-	 * Delete all transients of indices default analyzer's language.
+	 * Delete all transients for cached indices settings.
 	 *
 	 * @since 4.7.0
 	 */
-	protected function delete_default_analyzer_language_transients() {
+	protected function delete_indices_settings_transients() {
 		global $wpdb;
 
-		$default_analyzer_language_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_default_analyzer_language_%'"
+		$indices_settings_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name
+				FROM {$wpdb->prefix}options
+				WHERE option_name
+					LIKE '_transient_ep_total_fields_limit_%'
+					OR LIKE '_transient_ep_default_analyzer_language_%'
+					OR LIKE '_transient_ep_snowball_filter_language_%'"
 		);
 
-		foreach ( $default_analyzer_language_transients as $default_analyzer_language_transient ) {
-			$default_analyzer_language_transient = str_replace( '_transient_', '', $default_analyzer_language_transient );
-			delete_site_transient( $default_analyzer_language_transient );
-			delete_transient( $default_analyzer_language_transient );
+		foreach ( $indices_settings_transients as $indices_settings_transient ) {
+			$indices_settings_transient = str_replace( '_transient_', '', $indices_settings_transient );
+			delete_site_transient( $indices_settings_transient );
+			delete_transient( $indices_settings_transient );
 		}
 	}
 
@@ -200,8 +195,7 @@ class EP_Uninstaller {
 				$this->delete_options();
 				$this->delete_transients();
 				$this->delete_related_posts_transients();
-				$this->delete_total_fields_limit_transients();
-				$this->delete_default_analyzer_language_transients();
+				$this->delete_indices_settings_transients();
 
 				restore_current_blog();
 			}
@@ -209,8 +203,7 @@ class EP_Uninstaller {
 			$this->delete_options();
 			$this->delete_transients();
 			$this->delete_related_posts_transients();
-			$this->delete_total_fields_limit_transients();
-			$this->delete_default_analyzer_language_transients();
+			$this->delete_indices_settings_transients();
 		}
 	}
 
