@@ -828,6 +828,10 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'Turkish',
 	];
 
+	$es_snowball_similar = [
+		'Brazilian' => 'Portuguese',
+	];
+
 	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
 		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
 			$language = $analyzer_name;
@@ -836,11 +840,12 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 	}
 
 	if ( 'filter_ewp_snowball' === $context ) {
-		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
-			return ucfirst( $language );
+		$uc_first_language = ucfirst( $language );
+		if ( in_array( $uc_first_language, $es_snowball_languages, true ) ) {
+			return $uc_first_language;
 		}
 
-		return 'English';
+		return $es_snowball_similar[ $uc_first_language ] ?? 'English';
 	}
 
 	return $language;
