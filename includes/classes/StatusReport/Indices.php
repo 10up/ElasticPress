@@ -84,6 +84,11 @@ class Indices extends Report {
 				'value' => $elasticsearch->get_index_default_analyzer_language( $index['index'] ),
 			];
 
+			$fields['snowball_filter_language'] = [
+				'label' => 'snowball_filter_language',
+				'value' => $elasticsearch->get_index_snowball_filter_language( $index['index'] ),
+			];
+
 			$groups[] = [
 				'title'  => $index['index'],
 				'fields' => $fields,

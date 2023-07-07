@@ -1742,7 +1742,7 @@ class Elasticsearch {
 	 * @return int|null
 	 */
 	public function get_index_total_fields_limit( $index_name ) {
-		return (int) $this->get_cached_index_setting( 'total_fields_limit', 'index.mapping.total_fields.limit', $index_name );
+		return $this->get_cached_index_setting( 'total_fields_limit', 'index.mapping.total_fields.limit', $index_name );
 	}
 
 	/**
@@ -1754,6 +1754,17 @@ class Elasticsearch {
 	 */
 	public function get_index_default_analyzer_language( $index_name ) {
 		return $this->get_cached_index_setting( 'default_analyzer_language', 'index.analysis.analyzer.default.language', $index_name );
+	}
+
+	/**
+	 * Given an index return its snowball filter language
+	 *
+	 * @since 4.7.0
+	 * @param string $index_name The index name
+	 * @return string|null
+	 */
+	public function get_index_snowball_filter_language( $index_name ) {
+		return $this->get_cached_index_setting( 'snowball_filter_language', 'index.analysis.filter.ewp_snowball.language', $index_name );
 	}
 
 	/**
