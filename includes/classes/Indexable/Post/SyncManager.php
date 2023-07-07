@@ -76,9 +76,9 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 
 		// Clear field limit cache
-		add_action( 'ep_update_index_settings', [ $this, 'clear_total_fields_limit_cache' ] );
-		add_action( 'ep_sync_put_mapping', [ $this, 'clear_total_fields_limit_cache' ] );
-		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_total_fields_limit_cache' ] );
+		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_sync_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 
 		// Clear distinct meta field per post type cache
 		add_action( 'wp_insert_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
@@ -743,13 +743,28 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 4.4.0
 	 */
 	public function clear_total_fields_limit_cache() {
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-		$cache_key = 'ep_total_fields_limit_' . $indexable->get_index_name();
+		_deprecated_function( __METHOD__, '4.5.0', '\ElasticPress\Indexable\Post\SyncManager::clear_index_settings_cache()' );
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_transient( $cache_key );
-		} else {
-			delete_transient( $cache_key );
+		$this->clear_index_settings_cache();
+	}
+
+	/**
+	 * Clear the cache of specific index settings
+	 *
+	 * @since 4.7.0
+	 */
+	public function clear_index_settings_cache() {
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+
+		$settings = [ 'total_fields_limit', 'default_analyzer_language', 'snowball_filter_language' ];
+		foreach ( $settings as $setting ) {
+			$cache_key = 'ep_' . $setting . '_' . $indexable->get_index_name();
+
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				delete_site_transient( $cache_key );
+			} else {
+				delete_transient( $cache_key );
+			}
 		}
 	}
 

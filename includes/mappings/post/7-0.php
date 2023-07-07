@@ -72,7 +72,7 @@ return array(
 					 * @param  {array<string>} $filters Default filters
 					 * @return {array<string>} New filters
 					 */
-					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ) ),
+					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
 					/**
 					 * Filter Elasticsearch default analyzer's char_filter
 					 *
@@ -115,14 +115,7 @@ return array(
 				),
 				'ewp_snowball'       => array(
 					'type'     => 'snowball',
-					/**
-					 * Filter Elasticsearch default language in mapping
-					 *
-					 * @hook ep_analyzer_language
-					 * @param  {string} $lang Default language
-					 * @param {string} $lang_context Language context
-					 * @return {string} New language
-					 */
+					/* This filter is documented above */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
 				'edge_ngram'         => array(
@@ -130,6 +123,12 @@ return array(
 					'max_gram' => 10,
 					'min_gram' => 3,
 					'type'     => 'edge_ngram',
+				),
+				'ep_stop'            => array(
+					'type'        => 'stop',
+					'ignore_case' => true,
+					/* This filter is documented above */
+					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
 				),
 			),
 			'normalizer' => array(
