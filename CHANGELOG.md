@@ -13,6 +13,27 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [4.6.1] - 2023-07-05
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Added
+* Add doc url for "Did You Mean" feature. Props [@burhandodhy](https://github.com/burhandodhy) via [#3529](https://github.com/10up/ElasticPress/pull/3529).
+
+### Changed
+* Use `wp_cache_supports` over `wp_cache_supports_group_flush`. Props [@spacedmonkey](https://github.com/spacedmonkey) via [#3501](https://github.com/10up/ElasticPress/pull/3501).
+* Update the `ep_exclude_from_search` post meta only if it is set or has some value. Props [@MARQAS](https://github.com/MARQAS) and [@columbian-chris](https://github.com/columbian-chris) via [#3521](https://github.com/10up/ElasticPress/pull/3521).
+
+### Fixed
+* Deprecation notice in `ElasticPress\Feature\WooCommerce\Orders`. Props [@mwidmann](https://github.com/mwidmann) via [#3507](https://github.com/10up/ElasticPress/pull/3507).
+* Don't apply a facet filter to the query if the filter value is empty. Props [@burhandodhy](https://github.com/burhandodhy) via [#3524](https://github.com/10up/ElasticPress/pull/3524).
+* Syncing a post with empty post meta key. Props [@MARQAS](https://github.com/MARQAS) and [@oscarssanchez](https://github.com/oscarssanchez) via [#3516](https://github.com/10up/ElasticPress/pull/3516).
+* Order by clauses with Elasticsearch field formats are not changed anymore. Props [@felipeelia](https://github.com/felipeelia) and [@tlovett1](https://github.com/tlovett1) via [#3512](https://github.com/10up/ElasticPress/pull/3512).
+* Failed Query logs are automatically cleared on refreshing the "Status Report" page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3533](https://github.com/10up/ElasticPress/pull/3533).
+* Warning message on Health page when Last Sync information is not available. Props [@burhandodhy](https://github.com/burhandodhy) via [#3530](https://github.com/10up/ElasticPress/pull/3530).
+* Deprecation notice: json_encode(): Passing null to parameter #2. Props [@burhandodhy](https://github.com/burhandodhy) via [#3532](https://github.com/10up/ElasticPress/pull/3532).
+* Documentation of the `ep_facet_search_get_terms_args` filter. Props [@burhandodhy](https://github.com/burhandodhy) via [#3525](https://github.com/10up/ElasticPress/pull/3525).
+
 ## [4.6.0] - 2023-06-13
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
@@ -1831,6 +1852,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.6.1]: https://github.com/10up/ElasticPress/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/10up/ElasticPress/compare/4.5.2...4.6.0
 [4.5.2]: https://github.com/10up/ElasticPress/compare/4.5.1...4.5.2
 [4.5.1]: https://github.com/10up/ElasticPress/compare/4.5.0...4.5.1

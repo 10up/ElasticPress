@@ -660,7 +660,7 @@ class Autosuggest extends Feature {
 	public function delete_cached_query() {
 		global $wp_object_cache;
 		if ( wp_using_ext_object_cache() ) {
-			if ( function_exists( 'wp_cache_supports_group_flush' ) && wp_cache_supports_group_flush() ) {
+			if ( function_exists( 'wp_cache_supports' ) && wp_cache_supports( 'flush_group' ) ) {
 				wp_cache_flush_group( 'ep_autosuggest' );
 			} else {
 				// Try to delete the entire group.
