@@ -18,12 +18,15 @@ on:
 
 jobs:
   cypress_local:
-    name: Cypress - Local
+    name: Cypress - Local - ${{ matrix.core.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
+        core:
+          - {name: 'WP latest', version: 'latest'}
+          - {name: 'WP minimum', version: 'WordPress/WordPress#5.6'}
 
     steps:
     - name: Checkout
@@ -44,6 +47,9 @@ jobs:
 
     - name: Install dependencies
       run: npm ci --include=dev
+
+    - name: Set the core version
+      run: ./bin/set-core-version.js ${{ matrix.core.version }}
 
     - name: Set up WP environment with Elasticsearch
       run: npm run env:start
