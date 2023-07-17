@@ -792,7 +792,6 @@ class Search extends Feature {
 				<?php else : ?>
 					<?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?>
 				<?php endif; ?>
-
 			</p>
 			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
 		</div>
