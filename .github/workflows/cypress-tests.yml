@@ -18,7 +18,7 @@ on:
 
 jobs:
   cypress_local:
-    name: Cypress - Local - ${{ matrix.core.name }}
+    name: Local - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -88,12 +88,15 @@ jobs:
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"
 
   cypress_epio:
-    name: Cypress - EP.io
+    name: EP.io - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
+        core:
+          - {name: 'WP latest', version: 'latest'}
+          - {name: 'WP minimum', version: 'WordPress/WordPress#5.6'}
 
     steps:
     - name: Checkout
@@ -114,6 +117,9 @@ jobs:
 
     - name: Install dependencies
       run: npm ci --include=dev
+
+    - name: Set the core version
+      run: ./bin/set-core-version.js ${{ matrix.core.version }}
 
     - name: Set up WP environment
       run: |
