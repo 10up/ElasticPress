@@ -617,12 +617,24 @@ class Products {
 	}
 
 	/**
-	 * Determines whether or not ES should be integrating with the provided query
+	 * Determines whether or not ES should be integrating with the provided query.
+	 *
+	 * A product-related query will be integrated if:
+	 * * Is the main query OR is a search OR has `ep_integrate` set as true
+	 * * Is querying a supported taxonomy like product attributes
+	 * * Is querying a supported post type like `product`
 	 *
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
 	public function should_integrate_with_query( \WP_Query $query ) : bool {
+		$has_ep_integrate = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
+		$is_search        = '' !== $this->woocommerce->get_search_term( $query );
+
+		if ( ! $query->is_main_query() && ! $is_search && ! $has_ep_integrate ) {
+			return false;
+		}
+
 		/**
 		 * Check for taxonomies
 		 */

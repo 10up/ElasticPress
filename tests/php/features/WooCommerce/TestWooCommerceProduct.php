@@ -63,19 +63,14 @@ class TestWooCommerceProduct extends TestWooCommerce {
 	}
 
 	/**
-	 * Test products post type query does get integrated when querying WC product_cat taxonomy
+	 * Test products post type query does not get automatically integrated when querying WC product_cat taxonomy
 	 *
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
 	public function testProductsPostTypeQueryProductCatTax() {
-		ElasticPress\Features::factory()->activate_feature( 'admin' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
-
-		$this->ep_factory->post->create();
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
 			'tax_query' => array(
@@ -89,15 +84,75 @@ class TestWooCommerceProduct extends TestWooCommerce {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNull( $query->elasticsearch_success );
 
 		$args = [ 'product_cat' => 'cat' ];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test WC product_cat taxonomy queries do get automatically integrated when ep_integrate is set to true
+	 *
+	 * @since 4.7.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductsPostTypeQueryProductCatTaxWhenEPIntegrateSetTrue() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$args = [
+			'product_cat'  => 'cat',
+			'ep_integrate' => true,
+		];
 
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
 	}
 
+	/**
+	 * Test WC product_cat taxonomy queries do get automatically integrated for the main query
+	 *
+	 * @since 4.7.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductsPostTypeQueryProductCatTaxWhenMainQuery() {
+		global $wp_the_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$args = [
+			'product_cat'  => 'cat',
+		];
+
+		$wp_the_query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+	}
+
+	/**
+	 * Test products post type query does get automatically integrated for the main query
+	 *
+	 * @since 4.7.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductsPostTypeQueryProductWhenMainQuery() {
+		global $wp_the_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$wp_the_query->query( [ 'post_type' => 'product' ] );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+	}
 
 	/**
 	 * Test search integration is on in general for product searches
