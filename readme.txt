@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 6.2
-Stable tag:   4.6.0
+Stable tag:   4.6.1
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,30 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 4.6.1 - 2023-07-05 =
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+__Added:__
+
+* Add doc url for "Did You Mean" feature. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Changed:__
+
+* Use `wp_cache_supports` over `wp_cache_supports_group_flush`. Props [@spacedmonkey](https://github.com/spacedmonkey).
+* Update the `ep_exclude_from_search` post meta only if it is set or has some value. Props [@MARQAS](https://github.com/MARQAS) and [@columbian-chris](https://github.com/columbian-chris).
+
+__Fixed:__
+
+* Deprecation notice in `ElasticPress\Feature\WooCommerce\Orders`. Props [@mwidmann](https://github.com/mwidmann).
+* Don't apply a facet filter to the query if the filter value is empty. Props [@burhandodhy](https://github.com/burhandodhy).
+* Syncing a post with empty post meta key. Props [@MARQAS](https://github.com/MARQAS) and [@oscarssanchez](https://github.com/oscarssanchez).
+* Order by clauses with Elasticsearch field formats are not changed anymore. Props [@felipeelia](https://github.com/felipeelia) and [@tlovett1](https://github.com/tlovett1).
+* Failed Query logs are automatically cleared on refreshing the "Status Report" page. Props [@burhandodhy](https://github.com/burhandodhy).
+* Warning message on Health page when Last Sync information is not available. Props [@burhandodhy](https://github.com/burhandodhy).
+* Deprecation notice: json_encode(): Passing null to parameter #2. Props [@burhandodhy](https://github.com/burhandodhy).
+* Documentation of the `ep_facet_search_get_terms_args` filter. Props [@burhandodhy](https://github.com/burhandodhy).
 
 = 4.6.0 - 2023-06-13 =
 
