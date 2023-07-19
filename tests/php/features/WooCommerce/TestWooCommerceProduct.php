@@ -128,7 +128,7 @@ class TestWooCommerceProduct extends TestWooCommerce {
 		ElasticPress\Features::factory()->setup_features();
 
 		$args = [
-			'product_cat'  => 'cat',
+			'product_cat' => 'cat',
 		];
 
 		$wp_the_query->query( $args );
