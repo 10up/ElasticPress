@@ -251,10 +251,6 @@ class Orders {
 	/**
 	 * Determines whether or not ES should be integrating with the provided query
 	 *
-	 * An order-related query will be integrated if:
-	 * * Is the main query OR is a search OR has `ep_integrate` set as true
-	 * * Is querying a supported post type like `order`
-	 *
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
