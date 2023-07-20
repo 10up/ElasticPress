@@ -56,6 +56,7 @@ export default (state, action) => {
 			const {
 				hits: { hits, total },
 				aggregations,
+				suggest,
 			} = action.response;
 
 			/**
@@ -67,6 +68,7 @@ export default (state, action) => {
 			newState.searchResults = hits;
 			newState.searchTerm = newState.args.search;
 			newState.totalResults = totalNumber;
+			newState.suggestedTerms = suggest?.ep_suggestion?.[0]?.options || [];
 
 			break;
 		}

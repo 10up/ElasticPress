@@ -107,6 +107,7 @@ export const ApiSearchProvider = ({
 		searchResults: [],
 		searchedTerm: '',
 		totalResults: 0,
+		suggestedTerms: [],
 	});
 
 	/**
@@ -119,7 +120,7 @@ export const ApiSearchProvider = ({
 	stateRef.current = state;
 
 	/**
-	 * Clear facet contraints.
+	 * Clear facet constraints.
 	 *
 	 * @returns {void}
 	 */
@@ -128,7 +129,7 @@ export const ApiSearchProvider = ({
 	}, []);
 
 	/**
-	 * Clear search resu;ts.
+	 * Clear search results.
 	 *
 	 * @returns {void}
 	 */
@@ -325,8 +326,16 @@ export const ApiSearchProvider = ({
 	/**
 	 * Provide state to context.
 	 */
-	const { aggregations, args, isLoading, isOn, searchResults, searchTerm, totalResults } =
-		stateRef.current;
+	const {
+		aggregations,
+		args,
+		isLoading,
+		isOn,
+		searchResults,
+		searchTerm,
+		totalResults,
+		suggestedTerms,
+	} = stateRef.current;
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
@@ -347,6 +356,7 @@ export const ApiSearchProvider = ({
 		previousPage,
 		totalResults,
 		turnOff,
+		suggestedTerms,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;

@@ -301,6 +301,8 @@ class InstantResults extends Feature {
 		 */
 		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$this->index}", $this->index );
 
+		$did_you_mean_settings = \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_settings();
+
 		wp_localize_script(
 			'elasticpress-instant-results',
 			'epInstantResults',
@@ -318,6 +320,8 @@ class InstantResults extends Feature {
 				'postTypeLabels' => $this->get_post_type_labels(),
 				'termCount'      => $this->settings['term_count'],
 				'requestIdBase'  => Utils\get_request_id_base(),
+				'isDidYouMean'   => $did_you_mean_settings['active'],
+				'searchBehavior' => $did_you_mean_settings['search_behavior'],
 			)
 		);
 	}
@@ -952,7 +956,7 @@ class InstantResults extends Feature {
 	 */
 	public function get_args_schema() {
 		/**
-		 * The number of resutls per page for Instant Results.
+		 * The number of results per page for Instant Results.
 		 *
 		 * @since 4.5.0
 		 * @hook ep_instant_results_per_page
