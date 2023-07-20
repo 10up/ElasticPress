@@ -1565,4 +1565,29 @@ class Command extends WP_CLI_Command {
 		$instant_results->epio_delete_search_template();
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
+
+	/**
+	 * Get an index settings
+	 *
+	 * ## OPTIONS
+	 *
+	 * <index_name>
+	 * : Index name
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-index-settings
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_index_settings( $args, $assoc_args ) {
+		$response = Elasticsearch::factory()->get_index_settings( $args[0] );
+		$pretty   = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+
+		$this->pretty_json_encode( $response, $pretty );
+	}
 }
