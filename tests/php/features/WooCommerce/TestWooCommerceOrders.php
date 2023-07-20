@@ -102,7 +102,7 @@ class TestWooCommerceOrders extends TestWooCommerce {
 
 
 	/**
-	 * Test Shop Order post type query does not get automatically integrated when the protected content feature is activated.
+	 * Test Shop Order post type query does get integrated when the protected content feature is activated.
 	 *
 	 * @group woocommerce
 	 * @group woocommerce-orders
@@ -126,7 +126,7 @@ class TestWooCommerceOrders extends TestWooCommerce {
 		);
 		$query = new \WP_Query( $args );
 
-		$this->assertNull( $query->elasticsearch_success );
+		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
 	}
@@ -158,46 +158,6 @@ class TestWooCommerceOrders extends TestWooCommerce {
 		$query = new \WP_Query( $args );
 
 		$this->assertNull( $query->elasticsearch_success );
-	}
-
-	/**
-	 * Test Shop Order post type query does get integrated when the protected content feature is activated and ep_integrate is set to true.
-	 *
-	 * @since 4.7.0
-	 * @group woocommerce
-	 * @group woocommerce-orders
-	 */
-	public function testShopOrderPostTypeQueryWhenEPIntegrateSetTrue() {
-		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
-		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
-		ElasticPress\Features::factory()->setup_features();
-
-		$args  = array(
-			'post_type'    => 'shop_order',
-			'ep_integrate' => true,
-		);
-		$query = new \WP_Query( $args );
-
-		$this->assertTrue( $query->elasticsearch_success );
-	}
-
-	/**
-	 * Test Shop Order post type query does get integrated when the protected content feature is activated and it is the main query.
-	 *
-	 * @since 4.7.0
-	 * @group woocommerce
-	 * @group woocommerce-orders
-	 */
-	public function testShopOrderPostTypeQueryWhenMainQuery() {
-		global $wp_the_query;
-
-		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
-		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
-		ElasticPress\Features::factory()->setup_features();
-
-		$wp_the_query->query( [ 'post_type' => 'shop_order' ] );
-
-		$this->assertTrue( $wp_the_query->elasticsearch_success );
 	}
 
 	/**

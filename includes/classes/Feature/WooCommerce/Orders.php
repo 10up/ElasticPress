@@ -249,7 +249,7 @@ class Orders {
 	}
 
 	/**
-	 * Determines whether or not ES should be integrating with the provided query.
+	 * Determines whether or not ES should be integrating with the provided query
 	 *
 	 * An order-related query will be integrated if:
 	 * * Is the main query OR is a search OR has `ep_integrate` set as true
@@ -259,12 +259,6 @@ class Orders {
 	 * @return bool
 	 */
 	public function should_integrate_with_query( \WP_Query $query ) : bool {
-		$has_ep_integrate = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
-
-		if ( ! $query->is_main_query() && ! $query->is_search() && ! $has_ep_integrate ) {
-			return false;
-		}
-
 		/**
 		 * Check the post type
 		 */
