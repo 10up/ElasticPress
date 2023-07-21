@@ -818,3 +818,49 @@ function get_elasticsearch_error_reason( $response ) : string {
 
 	return '';
 }
+
+/**
+ * Use the correct set_transient option function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient  Transient name. Expected to not be SQL-escaped.
+ *                           Must be 172 characters or fewer in length.
+ * @param mixed  $value      Transient value. Must be serializable if non-scalar.
+ *                           Expected to not be SQL-escaped.
+ * @param int    $expiration Optional. Time until expiration in seconds. Default 0 (no expiration).
+ * @return bool True if the value was set, false otherwise.
+ */
+function set_transient( $transient, $value, $expiration = 0 ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \set_site_transient( $transient, $value, $expiration );
+	}
+	return \set_transient( $transient, $value, $expiration );
+}
+
+/**
+ * Use the correct get_transient function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return mixed Value of transient.
+ */
+function get_transient( $transient ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \get_site_transient( $transient );
+	}
+	return \get_transient( $transient );
+}
+
+/**
+ * Use the correct delete_transient function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return bool True if the transient was deleted, false otherwise.
+ */
+function delete_transient( $transient ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \delete_site_transient( $transient );
+	}
+	return \delete_transient( $transient );
+}
