@@ -326,6 +326,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	/**
 	 * Test the ep_facet_tax_special_slug_taxonomies filter runs.
 	 *
+	 * @since 4.7.0
 	 * @return void
 	 */
 	public function testEpFacetSpecialSlugTaxonomiesFilter() {
