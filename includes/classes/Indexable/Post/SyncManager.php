@@ -75,9 +75,9 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
 		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 
-		// Clear field limit cache
+		// Clear index settings cache
 		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
-		add_action( 'ep_sync_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
 		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 
 		// Clear distinct meta field per post type cache
@@ -110,6 +110,11 @@ class SyncManager extends SyncManagerAbstract {
 		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ] );
+
+		// Clear index settings cache
+		remove_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**
@@ -744,18 +749,6 @@ class SyncManager extends SyncManagerAbstract {
 	 */
 	public function clear_total_fields_limit_cache() {
 		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Indexable\Post\SyncManager::clear_index_settings_cache()' );
-	}
-
-	/**
-	 * Clear the cache of the total fields limit
-	 *
-	 * @since 4.7.0
-	 */
-	public function clear_index_settings_cache() {
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-		$cache_key = 'ep_index_settings_' . $indexable->get_index_name();
-
-		Utils\delete_transient( $cache_key );
 	}
 
 	/**

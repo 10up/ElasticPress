@@ -851,6 +851,16 @@ class Elasticsearch {
 
 		$response_code = wp_remote_retrieve_response_code( $request );
 
+		/**
+		 * Fires after sending a put mapping request
+		 *
+		 * @hook ep_after_put_mapping
+		 * @since 4.7.0
+		 * @param {string}         $index   Index name
+		 * @param {WP_Error|array} $request The response or WP_Error on failure.
+		 */
+		do_action( 'ep_after_put_mapping', $index, $request );
+
 		// If WP_Error or not 200, return false or error message depends on attribute.
 		if ( is_wp_error( $request ) || 200 !== $response_code ) {
 			if ( 'bool' === $return_type ) {
@@ -956,7 +966,7 @@ class Elasticsearch {
 		$transient_key = "ep_index_settings_{$index}";
 
 		if ( ! $force_refresh ) {
-			$cache = get_transient( $transient_key );
+			$cache = Utils\get_transient( $transient_key );
 			if ( false !== $cache ) {
 				return $cache;
 			}
@@ -967,7 +977,7 @@ class Elasticsearch {
 
 		$response_code = wp_remote_retrieve_response_code( $request );
 		if ( is_wp_error( $request ) || 200 !== $response_code ) {
-			set_transient( $transient_key, $request, MINUTE_IN_SECONDS );
+			Utils\set_transient( $transient_key, $request, MINUTE_IN_SECONDS );
 			return $request;
 		}
 
