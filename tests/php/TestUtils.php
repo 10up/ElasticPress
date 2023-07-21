@@ -397,17 +397,17 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function test_set_transient() {
-		Utils\set_transient( 'foo', 'bar', 1 );
-
 		$filter_name = is_multisite() ?
 			'expiration_of_site_transient_foo' :
 			'expiration_of_transient_foo';
 
 		$check_expiration = function ( $expiration ) {
-			$this->assertSame( 10, $expiration );
+			$this->assertSame( 1, $expiration );
 			return $expiration;
 		};
 		add_filter( $filter_name, $check_expiration );
+
+		Utils\set_transient( 'foo', 'bar', 1 );
 
 		$this->assertSame( 1, did_filter( $filter_name ) );
 	}
