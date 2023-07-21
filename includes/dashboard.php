@@ -722,12 +722,25 @@ function action_admin_menu() {
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context = '' ) {
+	global $locale, $wp_local_package;
+
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
 	// Bail early if no EP language is set.
 	if ( empty( $ep_language ) ) {
 		return $language;
+	}
+
+	/**
+	 * WordPress does not reset the language when switch_blog() is called.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/49263
+	 */
+	if ( 'ep_site_default' === $ep_language ) {
+		$locale           = null;
+		$wp_local_package = null;
+		$ep_language      = get_locale();
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
@@ -815,6 +828,10 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'Turkish',
 	];
 
+	$es_snowball_similar = [
+		'Brazilian' => 'Portuguese',
+	];
+
 	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
 		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
 			$language = $analyzer_name;
@@ -823,11 +840,12 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 	}
 
 	if ( 'filter_ewp_snowball' === $context ) {
-		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
-			return ucfirst( $language );
+		$uc_first_language = ucfirst( $language );
+		if ( in_array( $uc_first_language, $es_snowball_languages, true ) ) {
+			return $uc_first_language;
 		}
 
-		return 'English';
+		return $es_snowball_similar[ $uc_first_language ] ?? 'English';
 	}
 
 	if ( 'filter_ep_stop' === $context ) {
