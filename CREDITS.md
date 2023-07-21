@@ -213,6 +213,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Alexander Z (@TorlockC)](https://github.com/TorlockC),
 [Nabi (@navidabdi)](https://github.com/navidabdi)
 [Dmitry Seleznyov (@selim13)](https://github.com/selim13)
+[Martin Widmann (@mwidmann)](https://github.com/mwidmann)
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

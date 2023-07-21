@@ -13,7 +13,7 @@ use ElasticPress;
 /**
  * WC Orders test class
  */
-class TestWooCommerceOrders extends BaseTestCase {
+class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	/**
 	 * Instance of the feature
 	 *
@@ -24,14 +24,15 @@ class TestWooCommerceOrders extends BaseTestCase {
 	/**
 	 * Orders instance
 	 *
-	 * @var \ElasticPress\Feature\WooCommerce\Orders
+	 * @var \ElasticPress\Feature\WooCommerce\OrdersAutosuggest
 	 */
-	public $orders;
+	public $orders_autosuggest;
 
 	/**
 	 * Setup each test.
 	 *
-	 * @group WooCommerceOrders
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -45,13 +46,14 @@ class TestWooCommerceOrders extends BaseTestCase {
 
 		ElasticPress\Features::factory()->setup_features();
 
-		$this->orders = $this->woocommerce_feature->orders;
+		$this->orders_autosuggest = $this->woocommerce_feature->orders_autosuggest;
 	}
 
 	/**
 	 * Test the `filter_term_suggest` method
 	 *
-	 * @group WooCommerceOrders
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testFilterTermSuggest() {
 		$order = [
@@ -70,7 +72,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 			],
 		];
 
-		$order_with_suggest = $this->orders->filter_term_suggest( $order );
+		$order_with_suggest = $this->orders_autosuggest->filter_term_suggest( $order );
 
 		$this->assertArrayHasKey( 'term_suggest', $order_with_suggest );
 		$this->assertContains( '_billing_email_example', $order_with_suggest['term_suggest'] );
@@ -86,16 +88,16 @@ class TestWooCommerceOrders extends BaseTestCase {
 		);
 
 		unset( $order['post_type'] );
-		$order_with_suggest = $this->orders->filter_term_suggest( $order );
+		$order_with_suggest = $this->orders_autosuggest->filter_term_suggest( $order );
 		$this->assertArrayNotHasKey( 'term_suggest', $order_with_suggest );
 
 		$order['post_type'] = 'not_shop_order';
-		$order_with_suggest = $this->orders->filter_term_suggest( $order );
+		$order_with_suggest = $this->orders_autosuggest->filter_term_suggest( $order );
 		$this->assertArrayNotHasKey( 'term_suggest', $order_with_suggest );
 
 		$order['post_type'] = 'shop_order';
 		unset( $order['meta'] );
-		$order_with_suggest = $this->orders->filter_term_suggest( $order );
+		$order_with_suggest = $this->orders_autosuggest->filter_term_suggest( $order );
 		$this->assertArrayNotHasKey( 'term_suggest', $order_with_suggest );
 	}
 
@@ -104,7 +106,8 @@ class TestWooCommerceOrders extends BaseTestCase {
 	 *
 	 * This method steps into WooCommerce functionality a bit.
 	 *
-	 * @group WooCommerceOrders
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testFilterTermSuggestWithCustomOrderId() {
 		$shop_order_1 = new \WC_Order();
@@ -115,7 +118,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 		$shop_order_id_1 = (string) $shop_order_1->get_id();
 
 		$prepared_shop_order = ElasticPress\Indexables::factory()->get( 'post' )->prepare_document( $shop_order_id_1 );
-		$order_with_suggest  = $this->orders->filter_term_suggest( $prepared_shop_order );
+		$order_with_suggest  = $this->orders_autosuggest->filter_term_suggest( $prepared_shop_order );
 
 		$this->assertSame(
 			[
@@ -133,7 +136,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 		};
 		add_filter( 'woocommerce_order_number', $set_custom_order_id );
 
-		$order_with_suggest = $this->orders->filter_term_suggest( $prepared_shop_order );
+		$order_with_suggest = $this->orders_autosuggest->filter_term_suggest( $prepared_shop_order );
 
 		$this->assertSame(
 			[
@@ -147,7 +150,8 @@ class TestWooCommerceOrders extends BaseTestCase {
 	/**
 	 * Test the `mapping` method with the ES 7 mapping
 	 *
-	 * @group WooCommerceOrders
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testMappingEs7() {
 		$original_mapping = [
@@ -157,7 +161,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 				],
 			],
 		];
-		$changed_mapping  = $this->orders->mapping( $original_mapping );
+		$changed_mapping  = $this->orders_autosuggest->mapping( $original_mapping );
 
 		$expected_mapping = [
 			'mappings' => [
@@ -192,7 +196,8 @@ class TestWooCommerceOrders extends BaseTestCase {
 	/**
 	 * Test the `mapping` method with the ES 5 mapping
 	 *
-	 * @group WooCommerceOrders
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testMappingEs5() {
 		$change_es_version = function() {
@@ -210,7 +215,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 			],
 		];
 
-		$changed_mapping = $this->orders->mapping( $original_mapping );
+		$changed_mapping = $this->orders_autosuggest->mapping( $original_mapping );
 
 		$expected_mapping = [
 			'mappings' => [
@@ -247,7 +252,8 @@ class TestWooCommerceOrders extends BaseTestCase {
 	/**
 	 * Test the `set_search_fields` method
 	 *
-	 * @group WooCommerceOrders
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testSetSearchFields() {
 		$original_search_fields = [ 'old_search_field' ];
@@ -261,7 +267,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 			]
 		);
 
-		$changed_search_fields = $this->orders->set_search_fields( $original_search_fields, $wp_query );
+		$changed_search_fields = $this->orders_autosuggest->set_search_fields( $original_search_fields, $wp_query );
 
 		$this->assertSame( $original_search_fields, $changed_search_fields );
 
@@ -274,7 +280,7 @@ class TestWooCommerceOrders extends BaseTestCase {
 			]
 		);
 
-		$changed_search_fields = $this->orders->set_search_fields( $original_search_fields, $wp_query );
+		$changed_search_fields = $this->orders_autosuggest->set_search_fields( $original_search_fields, $wp_query );
 
 		$expected_fields = [
 			'meta.order_number.value',
