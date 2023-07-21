@@ -96,19 +96,6 @@ class WooCommerce extends Feature {
 		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
-		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
-		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
-		add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
-		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
-		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ], 10, 2 );
-		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
-		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
-		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
-		add_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
-
-		// Custom product ordering
-		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
-		add_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ], 10, 2 );
 
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {
