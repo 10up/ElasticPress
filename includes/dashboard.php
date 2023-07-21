@@ -771,7 +771,7 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'czech'      => [ 'cs' ],
 		'danish'     => [ 'da' ],
 		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
-		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
+		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_US', 'en_ZA' ],
 		'estonian'   => [ 'et' ],
 		'finnish'    => [ 'fi' ],
 		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
@@ -846,6 +846,10 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		}
 
 		return $es_snowball_similar[ $uc_first_language ] ?? 'English';
+	}
+
+	if ( 'filter_ep_stop' === $context ) {
+		return "_{$language}_";
 	}
 
 	if ( 'filter_ep_stop' === $context ) {

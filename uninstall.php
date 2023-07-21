@@ -81,10 +81,14 @@ class EP_Uninstaller {
 	 * @since 1.7
 	 */
 	public function __construct() {
-
 		// Exit if accessed directly.
 		if ( ! defined( 'ABSPATH' ) ) {
 			$this->exit_uninstaller();
+		}
+
+		// If testing, do not do anything automatically
+		if ( defined( 'EP_UNIT_TESTS' ) && EP_UNIT_TESTS ) {
+			return;
 		}
 
 		// EP_MANUAL_SETTINGS_RESET is used by the `settings-reset` WP-CLI command.
@@ -124,51 +128,41 @@ class EP_Uninstaller {
 	}
 
 	/**
-	 * Delete all transients of the Related Posts feature.
+	 * Delete remaining transients by their option names.
+	 *
+	 * @since 4.7.0
 	 */
-	protected function delete_related_posts_transients() {
+	protected function delete_transients_by_option_name() {
 		global $wpdb;
 
-		$related_posts_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			"SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'"
+		$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name
+			FROM {$wpdb->prefix}options
+			WHERE
+				option_name LIKE '_transient_ep_total_fields_limit_%'
+				OR option_name LIKE '_transient_ep_related_posts_%'
+			"
 		);
 
-		foreach ( $related_posts_transients as $related_posts_transient ) {
-			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
-			delete_site_transient( $related_posts_transient );
-			delete_transient( $related_posts_transient );
+		foreach ( $transients as $transient ) {
+			$transient_name = str_replace( '_transient_', '', $transient );
+			delete_site_transient( $transient_name );
+			delete_transient( $transient_name );
 		}
+	}
+
+	/**
+	 * DEPRECATED. Delete all transients of the Related Posts feature.
+	 */
+	protected function delete_related_posts_transients() {
+		_deprecated_function( __METHOD__, '4.7.0', '\EP_Uninstaller::delete_transients_by_name()' );
 	}
 
 	/**
 	 * DEPRECATED. Delete all transients of the total fields limit.
 	 */
 	protected function delete_total_fields_limit_transients() {
-		_doing_it_wrong( __METHOD__, 'delete_indices_settings_transients() should be call instead.', 'ElasticPress 4.7.0' );
-	}
-
-	/**
-	 * Delete all transients for cached indices settings.
-	 *
-	 * @since 4.7.0
-	 */
-	protected function delete_indices_settings_transients() {
-		global $wpdb;
-
-		$indices_settings_transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			"SELECT option_name
-				FROM {$wpdb->prefix}options
-				WHERE option_name
-					LIKE '_transient_ep_total_fields_limit_%'
-					OR LIKE '_transient_ep_default_analyzer_language_%'
-					OR LIKE '_transient_ep_snowball_filter_language_%'"
-		);
-
-		foreach ( $indices_settings_transients as $indices_settings_transient ) {
-			$indices_settings_transient = str_replace( '_transient_', '', $indices_settings_transient );
-			delete_site_transient( $indices_settings_transient );
-			delete_transient( $indices_settings_transient );
-		}
+		_deprecated_function( __METHOD__, '4.7.0', '\EP_Uninstaller::delete_transients_by_name()' );
 	}
 
 	/**
@@ -194,16 +188,14 @@ class EP_Uninstaller {
 
 				$this->delete_options();
 				$this->delete_transients();
-				$this->delete_related_posts_transients();
-				$this->delete_indices_settings_transients();
+				$this->delete_transients_by_option_name();
 
 				restore_current_blog();
 			}
 		} else {
 			$this->delete_options();
 			$this->delete_transients();
-			$this->delete_related_posts_transients();
-			$this->delete_indices_settings_transients();
+			$this->delete_transients_by_option_name();
 		}
 	}
 

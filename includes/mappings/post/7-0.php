@@ -115,7 +115,7 @@ return array(
 				),
 				'ewp_snowball'       => array(
 					'type'     => 'snowball',
-					/* This filter is documented above */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
 				'edge_ngram'         => array(
@@ -124,12 +124,12 @@ return array(
 					'min_gram' => 3,
 					'type'     => 'edge_ngram',
 				),
-				'ep_stop'            => array(
+				'ep_stop'            => [
 					'type'        => 'stop',
 					'ignore_case' => true,
-					/* This filter is documented above */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
-				),
+				],
 			),
 			'normalizer' => array(
 				'lowerasciinormalizer' => array(
