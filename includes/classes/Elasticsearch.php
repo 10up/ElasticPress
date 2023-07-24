@@ -975,17 +975,25 @@ class Elasticsearch {
 		$endpoint = trailingslashit( $index ) . '_settings?flat_settings=true';
 		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
 
-		$response_code = wp_remote_retrieve_response_code( $request );
-		if ( is_wp_error( $request ) || 200 !== $response_code ) {
+		if ( is_wp_error( $request ) ) {
 			Utils\set_transient( $transient_key, $request, MINUTE_IN_SECONDS );
 			return $request;
+		}
+
+		if ( wp_remote_retrieve_response_code( $request ) !== 200 ) {
+			Utils\set_transient( $transient_key, $request, MINUTE_IN_SECONDS );
+			return new \WP_Error(
+				'ep_get_index_settings_failed',
+				esc_html__( 'Error while getting the index settings.', 'elasticpress' ),
+				$request
+			);
 		}
 
 		$response_body = wp_remote_retrieve_body( $request );
 
 		$settings = json_decode( $response_body, true );
 
-		set_transient( $transient_key, $settings, DAY_IN_SECONDS );
+		Utils\set_transient( $transient_key, $settings, DAY_IN_SECONDS );
 
 		return $settings;
 	}
