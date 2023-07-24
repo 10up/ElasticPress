@@ -36,16 +36,16 @@ class TestUninstall extends BaseTestCase {
 	 * @group uninstall
 	 */
 	public function test_delete_transients_by_option_name() {
-		set_transient( 'ep_total_fields_limit_test', 'test' );
-		set_transient( 'ep_total_fields_limit_test_2', 'test' );
+		set_transient( 'ep_index_settings_test', 'test' );
+		set_transient( 'ep_index_settings_test_2', 'test' );
 		set_transient( 'ep_related_posts_test', 'test' );
 		set_transient( 'ep_related_posts_test_2', 'test' );
 
 		$method = $this->get_protected_method( 'delete_transients_by_option_name' );
 		$method->invoke( $this->uninstaller );
 
-		$this->assertFalse( get_transient( 'ep_total_fields_limit_test' ) );
-		$this->assertFalse( get_transient( 'ep_total_fields_limit_test_2' ) );
+		$this->assertFalse( get_transient( 'ep_index_settings_test' ) );
+		$this->assertFalse( get_transient( 'ep_index_settings_test_2' ) );
 		$this->assertFalse( get_transient( 'ep_related_posts_test' ) );
 		$this->assertFalse( get_transient( 'ep_related_posts_test_2' ) );
 	}

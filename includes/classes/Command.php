@@ -1585,7 +1585,7 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function get_index_settings( $args, $assoc_args ) {
-		$response = Elasticsearch::factory()->get_index_settings( $args[0] );
+		$response = Elasticsearch::factory()->get_index_settings( $args[0], true );
 		$pretty   = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
 
 		$this->pretty_json_encode( $response, $pretty );
