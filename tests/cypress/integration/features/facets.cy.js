@@ -711,8 +711,8 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.openWidgetsPage();
 			cy.openBlockInserter();
-			cy.getBlocksList().should('contain.text', 'Facet by Post Type (ElasticPress)');
-			cy.insertBlock('Facet by Post Type (ElasticPress)');
+			cy.getBlocksList().should('contain.text', 'Filter by Post Type');
+			cy.insertBlock('Filter by Post Type');
 			cy.get('.wp-block-elasticpress-facet-post-type').last().as('block');
 
 			// Configure the block
