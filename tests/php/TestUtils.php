@@ -10,8 +10,6 @@ namespace ElasticPressTest;
 use ElasticPress;
 use ElasticPress\Utils;
 
-use function ElasticPress\Utils\get_language;
-
 /**
  * Dashboard test class
  */
@@ -453,7 +451,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function test_get_language() {
-		$this->assertSame( 'ep_site_default', get_language() );
+		$this->assertSame( 'ep_site_default', Utils\get_language() );
 
 		$set_lang_via_option = function() {
 			return 'custom_via_option';
@@ -464,7 +462,7 @@ class TestUtils extends BaseTestCase {
 			add_filter( 'pre_option_ep_language', $set_lang_via_option );
 		}
 
-		$this->assertSame( 'custom_via_option', get_language() );
+		$this->assertSame( 'custom_via_option', Utils\get_language() );
 
 		/**
 		 * Test the `ep_default_language` filter
@@ -475,6 +473,6 @@ class TestUtils extends BaseTestCase {
 		};
 		add_filter( 'ep_default_language', $set_lang_via_filter );
 
-		$this->assertSame( 'custom_via_filter', get_language() );
+		$this->assertSame( 'custom_via_filter', Utils\get_language() );
 	}
 }
