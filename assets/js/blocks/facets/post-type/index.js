@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { registerBlockType } from '@wordpress/blocks';
-import icon from './icon';
+import icon from '../common/icon';
 
 /**
  * Internal dependencies.
