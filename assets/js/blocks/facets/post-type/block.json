@@ -6,7 +6,7 @@
 	"textdomain": "elasticpress",
 	"name": "elasticpress/facet-post-type",
 	"icon": "feedback",
-	"category": "widgets",
+	"category": "elasticpress",
 	"attributes": {
 		"searchPlaceholder": {
 			"type": "string",
