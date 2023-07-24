@@ -389,4 +389,58 @@ class TestUtils extends BaseTestCase {
 		];
 		$this->assertSame( '', Utils\get_elasticsearch_error_reason( $not_an_error ) );
 	}
+
+	/**
+	 * Test the `set_transient` function
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_set_transient() {
+		$filter_name = is_multisite() ?
+			'expiration_of_site_transient_foo' :
+			'expiration_of_transient_foo';
+
+		$check_expiration = function ( $expiration ) {
+			$this->assertSame( 1, $expiration );
+			return $expiration;
+		};
+		add_filter( $filter_name, $check_expiration );
+
+		Utils\set_transient( 'foo', 'bar', 1 );
+
+		$this->assertSame( 1, did_filter( $filter_name ) );
+	}
+
+	/**
+	 * Test the `get_transient` function
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_get_transient() {
+		Utils\get_transient( 'foo' );
+
+		$filter_name = is_multisite() ?
+			'pre_site_transient_foo' :
+			'pre_transient_foo';
+
+		$this->assertSame( 1, did_filter( $filter_name ) );
+	}
+
+	/**
+	 * Test the `delete_transient` function
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_delete_transient() {
+		Utils\delete_transient( 'foo' );
+
+		$filter_name = is_multisite() ?
+			'delete_site_transient_foo' :
+			'delete_transient_foo';
+
+		$this->assertSame( 1, did_action( $filter_name ) );
+	}
 }
