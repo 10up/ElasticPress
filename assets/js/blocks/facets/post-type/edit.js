@@ -1,15 +1,12 @@
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import {
-	PanelBody,
-	RadioControl,
-	TextControl,
-	ToggleControl,
-	Spinner,
-	Placeholder,
-} from '@wordpress/components';
+import { PanelBody, Spinner, Placeholder } from '@wordpress/components';
 import { Fragment, useEffect, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
+
+import FacetDisplayCountControl from '../common/components/facet-display-count-control';
+import FacetOrderControl from '../common/components/facet-order-control';
+import FacetSearchPlaceholderControl from '../common/components/facet-search-placeholder-control';
 
 const FacetBlockEdit = (props) => {
 	const { attributes, setAttributes } = props;
@@ -34,39 +31,51 @@ const FacetBlockEdit = (props) => {
 			.finally(() => setLoading(false));
 	}, [searchPlaceholder, displayCount, orderby, order]);
 
+	/**
+	 * Display count change handler.
+	 *
+	 * @param {boolean} displayCount Display count?
+	 * @returns {void}
+	 */
+	const onChangeDisplayCount = (displayCount) => {
+		setAttributes({ displayCount });
+	};
+
+	/**
+	 * Facet change handler.
+	 *
+	 * @param {object} value Value.
+	 * @param {string} value.orderby Order by value.
+	 * @param {string} value.order Order value.
+	 * @returns {void}
+	 */
+	const onChangeOrder = ({ orderby, order }) => {
+		setAttributes({ orderby, order });
+	};
+
+	/**
+	 * Search placeholder change handler.
+	 *
+	 * @param {string} searchPlaceholder Search placeholder.
+	 * @returns {void}
+	 */
+	const onChangeSearchPlaceholder = (searchPlaceholder) => {
+		setAttributes({ searchPlaceholder });
+	};
+
 	return (
 		<Fragment>
 			<InspectorControls>
 				<PanelBody title={__('Facet Settings', 'elasticpress')}>
-					<TextControl
-						label={__('Search Placeholder', 'elasticpress')}
+					<FacetSearchPlaceholderControl
+						onChange={onChangeSearchPlaceholder}
 						value={searchPlaceholder}
-						onChange={(value) => setAttributes({ searchPlaceholder: value })}
 					/>
-					<ToggleControl
+					<FacetDisplayCountControl
 						checked={displayCount}
-						onChange={(value) => setAttributes({ displayCount: value })}
-						label={__('Display Term Count', 'elasticpress')}
+						onChange={onChangeDisplayCount}
 					/>
-					<RadioControl
-						label={__('Order By', 'elasticpress')}
-						help={__('The field used to order available options', 'elasticpress')}
-						selected={orderby}
-						options={[
-							{ label: __('Count', 'elasticpress'), value: 'count' },
-							{ label: __('Name', 'elasticpress'), value: 'name' },
-						]}
-						onChange={(value) => setAttributes({ orderby: value })}
-					/>
-					<RadioControl
-						label={__('Order', 'elasticpress')}
-						selected={order}
-						options={[
-							{ label: __('ASC', 'elasticpress'), value: 'asc' },
-							{ label: __('DESC', 'elasticpress'), value: 'desc' },
-						]}
-						onChange={(value) => setAttributes({ order: value })}
-					/>
+					<FacetOrderControl onChange={onChangeOrder} orderby={orderby} order={order} />
 				</PanelBody>
 			</InspectorControls>
 
