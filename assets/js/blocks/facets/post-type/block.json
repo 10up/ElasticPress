@@ -4,6 +4,7 @@
 	"title": "Filter by Post Type",
 	"description": "Let visitors filter your content by post type.",
 	"textdomain": "elasticpress",
+	"keywords": ["post type", "facets"],
 	"name": "elasticpress/facet-post-type",
 	"icon": "feedback",
 	"category": "elasticpress",
