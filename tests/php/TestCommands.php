@@ -1033,6 +1033,31 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test get-index-settings command returns an index settings.
+	 *
+	 * @since 4.7.0
+	 */
+	public function testGetIndexSettings() {
+		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( '{', $output );
+		$this->assertStringContainsString( 'index.mapping.total_fields.limit', $output );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with --pretty flag
+		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( "{\n", $output );
+
+		// clean output buffer
+		ob_clean();
+	}
+
+	/**
 	 * Test commands throws an error if indexing is already happening.
 	 */
 	public function testThrowsErrorIfIndexingIsAlreadyHappening() {
