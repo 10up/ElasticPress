@@ -89,7 +89,7 @@ class InstantResults extends Feature {
 			'per_page'      => get_option( 'posts_per_page', 6 ),
 		];
 
-		$settings = $this->get_settings();
+		$this->settings = $this->get_settings();
 
 		$this->requires_install_reindex = true;
 
