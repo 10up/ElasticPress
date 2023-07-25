@@ -935,7 +935,7 @@ class TestCommands extends BaseTestCase {
 	 *
 	 * @since 4.7.0
 	 */
-	public function testSyncStopOnError() {
+	public function test_sync_stop_on_error() {
 		add_filter(
 			'http_response',
 			function( $request ) {
