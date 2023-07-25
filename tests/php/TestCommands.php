@@ -932,6 +932,8 @@ class TestCommands extends BaseTestCase {
 	/**
 	 * Test sync command with stop-on-error flag.
 	 * Expect an error message that stops the sync instead of a warning.
+	 *
+	 * @since 4.7.0
 	 */
 	public function testSyncStopOnError() {
 		add_filter(
