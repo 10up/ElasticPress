@@ -739,14 +739,12 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				.contains('.term', /(^\(\d*\))$/)
 				.should('not.exist');
 
-			// Configure the block
-			cy.get('@block').click();
-			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
-
 			cy.intercept(
 				'/wp-json/elasticpress/v1/facets/post-type/block-preview*orderby=name&order=asc*',
 			).as('blockPreview2');
-			cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
+			cy.get('.block-editor-block-inspector .components-select-control__input').select(
+				'name/asc',
+			);
 			cy.wait('@blockPreview2');
 
 			/**
