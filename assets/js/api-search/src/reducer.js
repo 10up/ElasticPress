@@ -31,6 +31,8 @@ export default (state, action) => {
 		case 'SEARCH': {
 			newState.args = { ...newState.args, ...action.args, offset: 0 };
 			newState.isOn = true;
+			newState.searchTerm = action.args.search;
+			newState.args.search = action.args.search;
 			break;
 		}
 		case 'SEARCH_FOR': {
