@@ -38,7 +38,7 @@ jobs:
     - name: Setup Elasticsearch
       uses: getong/elasticsearch-action@v1.2
       with:
-        elasticsearch version: '7.5.0'
+        elasticsearch version: '7.10.2'
 
     - name: Set standard 10up cache directories
       run: |
@@ -91,7 +91,7 @@ jobs:
     - name: Setup Elasticsearch
       uses: getong/elasticsearch-action@v1.2
       with:
-        elasticsearch version: '7.5.0'
+        elasticsearch version: '7.10.2'
 
     - name: Set standard 10up cache directories
       run: |
