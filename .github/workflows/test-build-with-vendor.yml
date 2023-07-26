@@ -1,0 +1,44 @@
+name: Build with vendor (test)
+on:
+  push:
+    branches:
+      - 'feature/ci-container'
+
+jobs:
+  wordpress:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.0' # Minimum required version
+        coverage: none
+
+    - name: composer install
+      run: composer install --no-dev -o
+
+    - name: install node v18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Setup
+      run: 'echo "VERSION=$(grep -Po ''\"version\": \"[0-9\\.]+\"'' package.json | grep -Po ''[0-9\\.]+'')" >> $GITHUB_ENV'
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v3
+      with:
+        name: cypress-artifact
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}
+
