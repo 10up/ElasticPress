@@ -9,12 +9,13 @@
 
 namespace ElasticPress;
 
+use \Psr\Container\ContainerInterface;
+use \Psr\Container\NotFoundExceptionInterface;
+
 /**
- * (semi-)PSR11 compliant container class
- *
- * Although type hinting will work, we do not implement the interfaces yet.
+ * PSR11 compliant container class
  */
-final class Container {
+final class Container implements ContainerInterface {
 	/**
 	 * Hold all instances
 	 *
@@ -27,13 +28,13 @@ final class Container {
 	 *
 	 * @param string $id Identifier of the entry to look for.
 	 *
-	 * @throws \Exception No entry was found for **this** identifier.
+	 * @throws NotFoundExceptionInterface No entry was found for **this** identifier.
 	 *
 	 * @return mixed Entry.
 	 */
 	public function get( string $id ) {
 		if ( ! isset( $this->instances[ $id ] ) ) {
-			throw new \Exception( 'Class not found' );
+			throw new NotFoundExceptionInterface( 'Class not found' );
 		}
 
 		return $this->instances[ $id ];
