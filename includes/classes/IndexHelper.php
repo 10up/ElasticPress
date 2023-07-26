@@ -703,7 +703,7 @@ class IndexHelper {
 					$wp_error_messages
 				);
 
-				$this->queue_message( implode( "\n", $wp_error_messages ), 'warning' );
+				$this->queue_message( $wp_error_messages, 'warning' );
 			} elseif ( count( $failed_objects ) ) {
 				$errors_output = $this->output_index_errors( $failed_objects );
 
@@ -717,7 +717,7 @@ class IndexHelper {
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
 
-				$this->queue_message( implode( "\n", $errors_output ), 'warning' );
+				$this->queue_message( $errors_output, 'warning' );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
