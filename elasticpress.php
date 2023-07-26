@@ -89,13 +89,27 @@ if ( $network_activated ) {
 }
 
 /**
+ * Return the ElasticPress container
+ *
+ * @since 4.7.0
+ * @return Container
+ */
+function get_container() {
+	static $container = null;
+
+	if ( ! $container ) {
+		$container = new Container();
+	}
+
+	return $container;
+}
+
+/**
  * Sets up the indexables and features.
  *
  * @return void
  */
 function register_indexable_posts() {
-	global $wp_version;
-
 	/**
 	 * Handle indexables
 	 */
@@ -177,18 +191,7 @@ function register_indexable_posts() {
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_350() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_400() );
 
-	/**
-	 * Filter the query logger object
-	 *
-	 * @since 4.4.0
-	 * @hook ep_query_logger
-	 * @param {QueryLogger} $query_logger Default query logger
-	 * @return {QueryLogger} New query logger
-	 */
-	$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
-	if ( method_exists( $query_logger, 'setup' ) ) {
-		$query_logger->setup();
-	}
+	get_container()->set( '\ElasticPress\QueryLogger', new \ElasticPress\QueryLogger(), true );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
