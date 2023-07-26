@@ -35,7 +35,6 @@
   "require-dev": {
     "10up/phpcs-composer": "dev-master",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^9.5",
     "phpcompatibility/phpcompatibility-wp": "*",
     "yoast/phpunit-polyfills": "^1.0"
   },
@@ -55,6 +54,9 @@
     "allow-plugins": {
       "composer/installers": true,
       "dealerdirect/phpcodesniffer-composer-installer": true
+    },
+    "platform": {
+      "php": "7.0"
     }
   }
 }
