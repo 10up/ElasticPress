@@ -32,7 +32,7 @@ final class Container implements ContainerInterface {
 	 *
 	 * @return mixed Entry.
 	 */
-	public function get( string $id ) {
+	public function get( $id ) {
 		if ( ! isset( $this->instances[ $id ] ) ) {
 			throw new NotFoundExceptionInterface( 'Class not found' );
 		}
@@ -48,7 +48,7 @@ final class Container implements ContainerInterface {
 	 *
 	 * @return bool
 	 */
-	public function has( string $id ): bool {
+	public function has( $id ) : bool {
 		return isset( $this->instances[ $id ] );
 	}
 
