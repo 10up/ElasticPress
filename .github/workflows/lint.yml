@@ -73,12 +73,12 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.0'
+        php-version: '8.2'
         tools: cs2pr
         coverage: none
 
     - name: composer install
-      run: composer install
+      run: composer install --ignore-platform-reqs
 
     - name: PHPCS check
       run: './vendor/bin/phpcs . -q --report=checkstyle --runtime-set testVersion 7.0- | cs2pr'
