@@ -71,18 +71,6 @@ final class Container {
 		 */
 		$instance = apply_filters( 'ep_container_set', $instance, $id );
 
-		if ( '\ElasticPress\QueryLogger' === $id ) {
-			/**
-			 * Filter the query logger object
-			 *
-			 * @since 4.4.0
-			 * @hook ep_query_logger
-			 * @param {QueryLogger} $query_logger Default query logger
-			 * @return {QueryLogger} New query logger
-			 */
-			$instance = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
-		}
-
 		$this->instances[ $id ] = $instance;
 
 		if ( $setup && method_exists( $instance, 'setup' ) ) {
