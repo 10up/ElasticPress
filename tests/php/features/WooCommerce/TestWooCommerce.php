@@ -354,4 +354,29 @@ class TestWooCommerce extends BaseTestCase {
 			[ 'post_title', 'post_content' ]
 		);
 	}
+
+	/**
+	 * Test add_taxonomy_attributes.
+	 *
+	 * @since 4.7.0
+	 */
+	public function add_taxonomy_attributes() {
+		$test_attribute_taxonomies = [
+			'my_dummy_attribute' => 'my_dummy_attribute_name'
+		];
+
+		$attribute_taxonomies = $test_attribute_taxonomies;
+
+		$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+			$test_attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+		}
+
+		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+
+		$add_taxonomy_attributes = $woocommerce_feature->add_taxonomy_attributes( $attribute_taxonomies );
+
+		$this->assertEquals( $test_attribute_taxonomies, $add_taxonomy_attributes );
+	}
 }
