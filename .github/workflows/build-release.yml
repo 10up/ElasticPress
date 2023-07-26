@@ -1,0 +1,31 @@
+name: Build Release
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.0' # Minimum required version
+        coverage: none
+
+    - name: composer install
+      run: composer install --no-dev -o
+
+    - name: install node v18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Build
+      run: |
+        npm ci
+        npm run build
