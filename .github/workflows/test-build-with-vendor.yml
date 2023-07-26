@@ -1,4 +1,4 @@
-name: Build with vendor (test)
+name: Zip with vendor (test)
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/build-release.yml
+    uses: ./.github/workflows/build-plugin.yml
 
   wordpress:
     name: Build Zip
