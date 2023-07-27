@@ -361,23 +361,35 @@ class TestWooCommerce extends BaseTestCase {
 	 * @since 4.7.0
 	 * @group woocommerce
 	 */
-	public function add_taxonomy_attributes() {
-		$test_attribute_taxonomies = [
-			'my_dummy_attribute' => 'my_dummy_attribute_name'
-		];
+	public function test_add_taxonomy_attributes() {
+		$attributes = wc_get_attribute_taxonomies();
 
-		$attribute_taxonomies = $test_attribute_taxonomies;
+		$slugs = wp_list_pluck( $attributes, 'attribute_name' );
 
-		$all_attr_taxonomies = wc_get_attribute_taxonomies();
+		if ( ! in_array( 'my_color', $slugs ) ) {
 
-		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
-			$test_attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+			$args = array(
+				'slug'          => 'my_color',
+				'name'          => 'My color',
+				'type'          => 'select',
+				'orderby'       => 'menu_order',
+				'has_archives'  => false,
+			);
+
+			wc_create_attribute( $args );
 		}
 
-		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+		$facet_feature = ElasticPress\Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$add_taxonomy_attributes = $woocommerce_feature->add_taxonomy_attributes( $attribute_taxonomies );
+		parse_str( 'ep_filter_taxonomy=dolor,amet&ep_filter_my_color=red', $_GET );
 
-		$this->assertEquals( $test_attribute_taxonomies, $add_taxonomy_attributes );
+		$query_filters = $facet_type->add_query_filters( [] );
+
+		$sample_test[0]['term'] = ['terms.taxonomy.slug' => 'dolor'];
+		$sample_test[1]['term'] = ['terms.taxonomy.slug' => 'amet'];
+		$sample_test[2]['term'] = ['terms.pa_my_color.slug' => 'red'];
+
+		$this->assertEquals( $sample_test, $query_filters );
 	}
 }
