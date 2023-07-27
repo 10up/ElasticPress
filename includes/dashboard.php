@@ -722,6 +722,8 @@ function action_admin_menu() {
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context = '' ) {
+	global $locale, $wp_local_package;
+
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -730,15 +732,26 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		return $language;
 	}
 
+	/**
+	 * WordPress does not reset the language when switch_blog() is called.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/49263
+	 */
+	if ( 'ep_site_default' === $ep_language ) {
+		$locale           = null;
+		$wp_local_package = null;
+		$ep_language      = get_locale();
+	}
+
 	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 	$translations = wp_get_available_translations();
 
-	// Bail early if not in the array of available translations.
-	if ( empty( $translations[ $ep_language ]['english_name'] ) ) {
-		return $language;
+	// Default to en_US if not in the array of available translations.
+	if ( ! empty( $translations[ $ep_language ]['english_name'] ) ) {
+		$wp_language = $translations[ $ep_language ]['language'];
+	} else {
+		$wp_language = 'en_US';
 	}
-
-	$wp_language = $translations[ $ep_language ]['language'];
 
 	/**
 	 * Languages supported in Elasticsearch mappings.
@@ -758,7 +771,7 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'czech'      => [ 'cs' ],
 		'danish'     => [ 'da' ],
 		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
-		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
+		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_US', 'en_ZA' ],
 		'estonian'   => [ 'et' ],
 		'finnish'    => [ 'fi' ],
 		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
@@ -815,6 +828,10 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'Turkish',
 	];
 
+	$es_snowball_similar = [
+		'Brazilian' => 'Portuguese',
+	];
+
 	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
 		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
 			$language = $analyzer_name;
@@ -823,11 +840,16 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 	}
 
 	if ( 'filter_ewp_snowball' === $context ) {
-		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
-			return ucfirst( $language );
+		$uc_first_language = ucfirst( $language );
+		if ( in_array( $uc_first_language, $es_snowball_languages, true ) ) {
+			return $uc_first_language;
 		}
 
-		return 'English';
+		return $es_snowball_similar[ $uc_first_language ] ?? 'English';
+	}
+
+	if ( 'filter_ep_stop' === $context ) {
+		return "_{$language}_";
 	}
 
 	return $language;

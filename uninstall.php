@@ -139,7 +139,7 @@ class EP_Uninstaller {
 			"SELECT option_name
 			FROM {$wpdb->prefix}options
 			WHERE
-				option_name LIKE '_transient_ep_total_fields_limit_%'
+				option_name LIKE '_transient_ep_index_settings_%'
 				OR option_name LIKE '_transient_ep_related_posts_%'
 			"
 		);

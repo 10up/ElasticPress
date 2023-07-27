@@ -20,6 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Sync manager class
  */
 class SyncManager extends SyncManagerAbstract {
+	/**
+	 * Indexable slug
+	 *
+	 * @since 4.7.0
+	 * @var   string
+	 */
+	public $indexable_slug = 'user';
 
 	/**
 	 * Setup actions and filters
@@ -38,6 +45,11 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'updated_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 		add_action( 'added_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
 		add_action( 'deleted_user_meta', [ $this, 'action_queue_meta_sync' ], 10, 4 );
+
+		// Clear index settings cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 
 		// @todo Handle deleted meta
 	}
