@@ -359,6 +359,7 @@ class TestWooCommerce extends BaseTestCase {
 	 * Test add_taxonomy_attributes.
 	 *
 	 * @since 4.7.0
+	 * @group woocommerce
 	 */
 	public function add_taxonomy_attributes() {
 		$test_attribute_taxonomies = [
