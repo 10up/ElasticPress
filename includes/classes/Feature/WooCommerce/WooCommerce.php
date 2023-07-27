@@ -96,7 +96,7 @@ class WooCommerce extends Feature {
 		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
-		add_filter( 'ep_facet_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
+		add_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
 
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {

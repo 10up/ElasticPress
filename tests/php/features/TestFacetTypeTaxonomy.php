@@ -329,26 +329,29 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	 * @since 4.7.0
 	 * @return void
 	 */
-	public function testEpFacetSpecialSlugTaxonomiesFilter() {
+	public function test_ep_facet_special_slug_taxonomies_filter() {
 		add_filter(
 			'ep_facet_tax_special_slug_taxonomies',
-			function( $special_slug_taxonomies, $selected_filters ) {
-				foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
-					$special_slug_taxonomies[ $taxonomy ] = 'testmyfilter';
-				}
+			function( $special_slug_taxonomies ) {
+				$special_slug_taxonomies['testmyfilter'] = 'testmyfilterchangedfilter';
 				return $special_slug_taxonomies;
 			},
-			10,
-			2
+			99999,
 		);
 
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		parse_str( 'ep_filter_taxonomy=dolor,amet', $_GET );
+		parse_str( 'ep_filter_taxonomy=dolor,amet&ep_filter_testmyfilter=dolor,amet', $_GET );
 
-		$facet_type->add_query_filters( [] );
+		$query_filters = $facet_type->add_query_filters( [] );
 
+		$sample_test[0]['term'] = ['terms.taxonomy.slug' => 'dolor'];
+		$sample_test[1]['term'] = ['terms.taxonomy.slug' => 'amet'];
+		$sample_test[2]['term'] = ['terms.testmyfilterchangedfilter.slug' => 'dolor'];
+		$sample_test[3]['term'] = ['terms.testmyfilterchangedfilter.slug' => 'amet'];
+
+		$this->assertEquals( $sample_test, $query_filters );
 		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_facet_tax_special_slug_taxonomies' ) );
 	}
 }
