@@ -653,10 +653,11 @@ class WooCommerce extends Feature {
 	/**
 	 * Add taxonomies that should be woocommerce attributes.
 	 *
+	 * @since 4.7.0
 	 * @param array $attribute_taxonomies  Attribute taxonomies.
 	 * @return array $attribute_taxonomies Attribute taxonomies.
 	 */
-	public function add_taxonomy_attributes( $attribute_taxonomies ) {
+	public function add_taxonomy_attributes( array $attribute_taxonomies ) : array {
 		$all_attr_taxonomies = wc_get_attribute_taxonomies();
 
 		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
