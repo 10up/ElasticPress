@@ -1551,6 +1551,93 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test attach media
+	 *
+	 * @since 4.7.0
+	 * @group post
+	 */
+	public function testAttachMedia() {
+		add_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
+		add_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
+
+		$attachment     = $this->ep_factory->post->create_and_get(
+			array(
+				'post_content' => 'findme test 1',
+				'post_type'    => 'attachment',
+			)
+		);
+		$parent_post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+
+		$this->assertEquals( 0, $attachment->post_parent );
+
+		wp_update_post(
+			array(
+				'ID'          => $attachment->ID,
+				'post_parent' => $parent_post_id,
+			)
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'post_type'    => 'attachment',
+			'post_status'  => 'any',
+			'ep_integrate' => true,
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $parent_post_id, $query->posts[0]->post_parent );
+	}
+
+	/**
+	 * Test detach media
+	 *
+	 * @since 4.7.0
+	 * @group post
+	 */
+	public function testDetachMedia() {
+		add_filter( 'ep_indexable_post_types', array( $this, 'addAttachmentPostType' ) );
+		add_filter( 'ep_indexable_post_status', array( $this, 'addAttachmentPostStatus' ) );
+
+		$parent_post = $this->ep_factory->post->create_and_get( array( 'post_content' => 'findme test 2' ) );
+		$attachment  = $this->ep_factory->post->create_and_get(
+			array(
+				'post_content' => 'findme test 1',
+				'post_type'    => 'attachment',
+				'post_parent'  => $parent_post->ID,
+			)
+		);
+
+		$this->assertEquals( $parent_post->ID, $attachment->post_parent );
+
+		wp_update_post(
+			array(
+				'ID'          => $attachment->ID,
+				'post_parent' => 0,
+			)
+		);
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'post_type'    => 'attachment',
+			'post_status'  => 'any',
+			'ep_integrate' => true,
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 0, $query->posts[0]->post_parent );
+	}
+
+	/**
 	 * Test a query with no post type on non-search query. Should default to `post` post type
 	 *
 	 * @since 1.3
