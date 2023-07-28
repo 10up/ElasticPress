@@ -216,7 +216,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 * Filter for treatment special slugs in taxonomies. This is used in case you need to change the default taxonomy slug.
 		 *
 		 * @since 4.7.0
-		 * @hook ep_facet_tax_special_slug_taxonomies.
+		 * @hook ep_facet_tax_special_slug_taxonomies
 		 * @param  {array} $special_taxonomies Taxonomies with special slugs.
 		 * @param  {array} $selected_filters Selected filters.
 		 * @return {array} New taxonomies with special slugs.
