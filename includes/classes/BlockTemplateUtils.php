@@ -16,6 +16,27 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Block Template Utils class
  */
 class BlockTemplateUtils {
+	const CACHE_KEY = 'ep_blocks';
+
+	/**
+	 * Hook cache cleanup calls
+	 */
+	public function setup() {
+		add_action( 'save_post_wp_template', [ $this, 'regenerate_cache' ] );
+		add_action( 'save_post_wp_template_part', [ $this, 'regenerate_cache' ] );
+		add_action( 'switch_theme', [ $this, 'regenerate_cache' ] );
+	}
+
+	/**
+	 * Delete and regenerate the cache
+	 */
+	public function regenerate_cache() {
+		delete_transient( self::CACHE_KEY );
+
+		$all_blocks = $this->get_all_blocks_in_all_templates();
+		set_transient( self::CACHE_KEY, $all_blocks, MONTH_IN_SECONDS );
+	}
+
 	/**
 	 * Given a block name, return all its instances across all block templates
 	 *
@@ -41,6 +62,11 @@ class BlockTemplateUtils {
 	 * @return array
 	 */
 	public function get_all_blocks_in_all_templates() : array {
+		$cache = get_transient( self::CACHE_KEY );
+		if ( $cache ) {
+			return $cache;
+		}
+
 		$all_blocks = [];
 
 		$template_types = [ 'wp_template', 'wp_template_part' ];
@@ -60,6 +86,8 @@ class BlockTemplateUtils {
 				}
 			}
 		}
+
+		set_transient( self::CACHE_KEY, $all_blocks, MONTH_IN_SECONDS );
 
 		return $all_blocks;
 	}

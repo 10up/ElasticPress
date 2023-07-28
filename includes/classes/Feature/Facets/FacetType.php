@@ -100,7 +100,7 @@ abstract class FacetType {
 	 * @return array
 	 */
 	protected function block_template_meta_fields( string $block_name ) : array {
-		$block_template_utils = new \ElasticPress\BlockTemplateUtils();
+		$block_template_utils = \ElasticPress\get_container()->get( '\ElasticPress\BlockTemplateUtils' );
 		$ep_blocks            = $block_template_utils->get_specific_block_in_all_templates( $block_name );
 
 		return array_filter(
