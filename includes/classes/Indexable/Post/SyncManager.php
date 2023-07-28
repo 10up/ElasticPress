@@ -933,6 +933,12 @@ class SyncManager extends SyncManagerAbstract {
 	 * @param int    $parent_id     Attachment parent ID
 	 */
 	public function action_sync_on_media_attach( $action, $attachment_id, $parent_id ) {
+		$indexable            = Indexables::factory()->get( $this->indexable_slug );
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( ! in_array( 'attachment', $indexable_post_types, true ) ) {
+			return;
+		}
 		$this->action_sync_on_update( $attachment_id );
 	}
 }
