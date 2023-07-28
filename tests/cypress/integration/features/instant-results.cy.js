@@ -336,6 +336,25 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('.my-custom-result').should('exist');
 				cy.get('.ep-search-result').should('not.exist');
 			});
+
+			it('Can display a suggestion', () => {
+				cy.maybeEnableFeature('instant-results');
+				cy.maybeEnableFeature('did-you-mean');
+
+				cy.wpCli('wp elasticpress sync --setup --yes');
+
+				/**
+				 * Perform a search.
+				 */
+				cy.intercept('*search=wordpre*').as('apiRequest');
+				cy.visit('/');
+				cy.get('.wp-block-search').last().as('searchBlock');
+				cy.get('@searchBlock').find('input[type="search"]').type('wordpre');
+				cy.get('@searchBlock').find('button').click();
+				cy.get('.ep-search-modal').should('be.visible');
+				cy.wait('@apiRequest');
+				cy.get('.ep-spell-suggestion a').should('have.text', 'wordpress');
+			});
 		});
 
 		it('Is possible to filter the arguments schema', () => {
