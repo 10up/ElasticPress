@@ -208,7 +208,6 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$selected_filters = $feature->get_selected();
 
-
 		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
 			return;
 		}

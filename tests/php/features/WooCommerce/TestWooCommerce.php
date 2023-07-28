@@ -366,14 +366,14 @@ class TestWooCommerce extends BaseTestCase {
 
 		$slugs = wp_list_pluck( $attributes, 'attribute_name' );
 
-		if ( ! in_array( 'my_color', $slugs ) ) {
+		if ( ! in_array( 'my_color', $slugs, true ) ) {
 
 			$args = array(
-				'slug'          => 'my_color',
-				'name'          => 'My color',
-				'type'          => 'select',
-				'orderby'       => 'menu_order',
-				'has_archives'  => false,
+				'slug'         => 'my_color',
+				'name'         => 'My color',
+				'type'         => 'select',
+				'orderby'      => 'menu_order',
+				'has_archives' => false,
 			);
 
 			wc_create_attribute( $args );
@@ -386,9 +386,9 @@ class TestWooCommerce extends BaseTestCase {
 
 		$query_filters = $facet_type->add_query_filters( [] );
 
-		$sample_test[0]['term'] = ['terms.taxonomy.slug' => 'dolor'];
-		$sample_test[1]['term'] = ['terms.taxonomy.slug' => 'amet'];
-		$sample_test[2]['term'] = ['terms.pa_my_color.slug' => 'red'];
+		$sample_test[0]['term']['terms.taxonomy.slug']    = 'dolor';
+		$sample_test[1]['term']['terms.taxonomy.slug']    = 'amet';
+		$sample_test[2]['term']['terms.pa_my_color.slug'] = 'red';
 
 		$this->assertEquals( $sample_test, $query_filters );
 	}

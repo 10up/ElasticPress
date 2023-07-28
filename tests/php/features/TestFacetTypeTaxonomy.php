@@ -336,7 +336,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 				$special_slug_taxonomies['testmyfilter'] = 'testmyfilterchangedfilter';
 				return $special_slug_taxonomies;
 			},
-			99999,
+			99999
 		);
 
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
@@ -346,10 +346,10 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 		$query_filters = $facet_type->add_query_filters( [] );
 
-		$sample_test[0]['term'] = ['terms.taxonomy.slug' => 'dolor'];
-		$sample_test[1]['term'] = ['terms.taxonomy.slug' => 'amet'];
-		$sample_test[2]['term'] = ['terms.testmyfilterchangedfilter.slug' => 'dolor'];
-		$sample_test[3]['term'] = ['terms.testmyfilterchangedfilter.slug' => 'amet'];
+		$sample_test[0]['term']['terms.taxonomy.slug']                  = 'dolor';
+		$sample_test[1]['term']['terms.taxonomy.slug']                  = 'amet';
+		$sample_test[2]['term']['terms.testmyfilterchangedfilter.slug'] = 'dolor';
+		$sample_test[3]['term']['terms.testmyfilterchangedfilter.slug'] = 'amet';
 
 		$this->assertEquals( $sample_test, $query_filters );
 		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_facet_tax_special_slug_taxonomies' ) );
