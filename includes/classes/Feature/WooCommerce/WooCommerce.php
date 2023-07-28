@@ -96,7 +96,6 @@ class WooCommerce extends Feature {
 		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
 		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
-		add_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
 
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {
@@ -648,21 +647,5 @@ class WooCommerce extends Feature {
 	public function maybe_disable_decaying( $is_decaying_enabled, $settings, $args ) {
 		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->maybe_disable_decaying()" );
 		return $this->products->maybe_disable_decaying( $is_decaying_enabled, $settings, $args );
-	}
-
-	/**
-	 * Add taxonomies that should be woocommerce attributes.
-	 *
-	 * @since 4.7.0
-	 * @param array $attribute_taxonomies  Attribute taxonomies.
-	 * @return array $attribute_taxonomies Attribute taxonomies.
-	 */
-	public function add_taxonomy_attributes( array $attribute_taxonomies ) : array {
-		$all_attr_taxonomies = wc_get_attribute_taxonomies();
-
-		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
-			$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
-		}
-		return $attribute_taxonomies;
 	}
 }
