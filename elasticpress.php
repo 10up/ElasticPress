@@ -29,6 +29,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+// Require Composer autoloader if it exists.
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+}
+
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
@@ -89,13 +94,27 @@ if ( $network_activated ) {
 }
 
 /**
+ * Return the ElasticPress container
+ *
+ * @since 4.7.0
+ * @return Container
+ */
+function get_container() {
+	static $container = null;
+
+	if ( ! $container ) {
+		$container = new Container();
+	}
+
+	return $container;
+}
+
+/**
  * Sets up the indexables and features.
  *
  * @return void
  */
 function register_indexable_posts() {
-	global $wp_version;
-
 	/**
 	 * Handle indexables
 	 */
@@ -186,9 +205,7 @@ function register_indexable_posts() {
 	 * @return {QueryLogger} New query logger
 	 */
 	$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
-	if ( method_exists( $query_logger, 'setup' ) ) {
-		$query_logger->setup();
-	}
+	get_container()->set( '\ElasticPress\QueryLogger', $query_logger, true );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
