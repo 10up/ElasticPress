@@ -248,7 +248,7 @@ class ElasticPressIo extends Report {
 		}
 
 		$woocommerce_feature = \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
-		$template            = $woocommerce_feature->orders->get_search_template();
+		$template            = $woocommerce_feature->orders_autosuggest->get_search_template();
 
 		if ( is_wp_error( $template ) ) {
 			return [
