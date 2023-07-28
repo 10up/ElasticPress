@@ -1590,4 +1590,46 @@ class Command extends WP_CLI_Command {
 
 		$this->pretty_json_encode( $response, $pretty );
 	}
+
+	/**
+	 * Get a specific content in Elasticsearch
+	 *
+	 * ## OPTIONS
+	 *
+	 * <indexable>
+	 * : Indexable slug. Example: `post`
+	 *
+	 * <ID>
+	 * : Content ID
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get( $args, $assoc_args ) {
+		$indexables = Indexables::factory();
+
+		$indexable = $indexables->get( $args[0] );
+		if ( ! $indexable || ! $indexables->is_active( $args[0] ) ) {
+			$message = wp_sprintf(
+				/* translators: list of active indexables slugs */
+				esc_html__( 'Indexable not found or inactive. Active indexables are: %l', 'elasticpress' ),
+				$indexables->get_all( null, true )
+			);
+			WP_CLI::error( $message );
+		}
+
+		$object = $indexable->get( $args[1] );
+		if ( ! $object ) {
+			WP_CLI::error( esc_html__( 'Not found', 'elasticpress' ) );
+		}
+
+		$pretty = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+
+		$this->pretty_json_encode( $object, $pretty );
+	}
 }

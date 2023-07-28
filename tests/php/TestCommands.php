@@ -1052,9 +1052,54 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringStartsWith( "{\n", $output );
+	}
+
+	/**
+	 * Test the `get` method
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get() {
+		$post_id = $this->ep_factory->post->create();
+
+		$this->command->get( [ 'post', $post_id ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( '{', $output );
+		$this->assertStringContainsString( '"post_id":' . $post_id, $output );
 
 		// clean output buffer
 		ob_clean();
+
+		// test with --pretty flag
+		$this->command->get( [ 'post', $post_id ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( "{\n", $output );
+		$this->assertStringContainsString( '"post_id": ' . $post_id, $output );
+	}
+
+	/**
+	 * Test the `get` method when an indexable does not exist
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_wrong_indexable() {
+		$this->expectException( '\Exception' );
+		$this->command->get( [ 'absent', '1' ], [] );
+	}
+
+	/**
+	 * Test the `get` method when a post is not found
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_not_found() {
+		$this->expectExceptionMessage( 'Not found' );
+		$this->command->get( [ 'post', '99999' ], [] );
 	}
 
 	/**
