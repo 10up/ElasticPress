@@ -210,6 +210,7 @@ class Upgrades {
 	 * Upgrade routine of v4.7.0.
 	 *
 	 * Remove old total_fields_limit transients
+	 * Remove cached autosuggest requests
 	 *
 	 * @see https://github.com/10up/ElasticPress/pull/3552
 	 */
@@ -227,6 +228,11 @@ class Upgrades {
 			delete_site_transient( $transient_name );
 			delete_transient( $transient_name );
 		}
+
+		if ( function_exists( 'wp_cache_supports' ) && wp_cache_supports( 'flush_group' ) ) {
+			wp_cache_flush_group( 'ep_autosuggest' );
+		}
+		delete_transient( 'ep_autosuggest_query_request_cache' );
 	}
 
 	/**
