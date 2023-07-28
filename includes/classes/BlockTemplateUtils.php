@@ -33,8 +33,8 @@ class BlockTemplateUtils {
 	public function regenerate_cache() {
 		delete_transient( self::CACHE_KEY );
 
-		$all_blocks = $this->get_all_blocks_in_all_templates();
-		set_transient( self::CACHE_KEY, $all_blocks, MONTH_IN_SECONDS );
+		// Simply calling it will reset the transient (if the `ep_blocks_pre_all_blocks` filter isn't in use.)
+		$this->get_all_blocks_in_all_templates();
 	}
 
 	/**
@@ -62,8 +62,23 @@ class BlockTemplateUtils {
 	 * @return array
 	 */
 	public function get_all_blocks_in_all_templates() : array {
+		/**
+		 * Short-circuits the process of getting all blocks of a template.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.7.0
+		 * @hook ep_blocks_pre_all_blocks
+		 * @param {null}   $meta_keys Blocks array
+		 * @return {null|array} Blocks array or `null` to keep default behavior
+		 */
+		$pre_all_blocks = apply_filters( 'ep_blocks_pre_all_blocks', null );
+		if ( null !== $pre_all_blocks ) {
+			return (array) $pre_all_blocks;
+		}
+
 		$cache = get_transient( self::CACHE_KEY );
-		if ( $cache ) {
+		if ( is_array( $cache ) ) {
 			return $cache;
 		}
 
