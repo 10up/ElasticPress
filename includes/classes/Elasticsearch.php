@@ -1711,6 +1711,68 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Reindex content
+	 *
+	 * @since 4.2.0
+	 *
+	 * @param string $index  Index name
+	 * @param string $source Source host URL
+	 * @return WP_Error|string
+	 */
+	public function reindex( $index, $source ) {
+		$parsed_url = wp_parse_url( $source );
+
+		$scheme   = isset( $parsed_url['scheme'] ) ? $parsed_url['scheme'] . '://' : '';
+		$host     = isset( $parsed_url['host'] ) ? $parsed_url['host'] : '';
+		$port     = isset( $parsed_url['port'] ) ? ':' . $parsed_url['port'] : ':80';
+		$user     = isset( $parsed_url['user'] ) ? $parsed_url['user'] : '';
+		$pass     = isset( $parsed_url['pass'] ) ? ':' . $parsed_url['pass'] : '';
+		$pass     = ( $user || $pass ) ? "$pass@" : '';
+		$path     = isset( $parsed_url['path'] ) ? $parsed_url['path'] : '';
+		$query    = isset( $parsed_url['query'] ) ? '?' . $parsed_url['query'] : '';
+		$fragment = isset( $parsed_url['fragment'] ) ? '#' . $parsed_url['fragment'] : '';
+		$source   = "$scheme$user$pass$host$port$path$query$fragment";
+
+		$content = [
+			'max_docs' => 1000,
+			'source'   => [
+				'remote' => [
+					'host' => 'http://elasticsearch5:9200/', // @todo untrailingslashit( $source ),
+				],
+				'index'  => $index,
+			],
+			'dest'     => [
+				'index' => $index,
+			],
+		];
+
+		$request_args = [
+			'body'    => wp_json_encode( $content ),
+			'method'  => 'POST',
+			'headers' => [
+				'Content-Type' => 'application/json',
+			],
+		];
+
+		$request = $this->remote_request( '_reindex', $request_args, [], 'reindex' );
+
+		if ( is_wp_error( $request ) ) {
+			return $request;
+		}
+
+		$response_code = absint( wp_remote_retrieve_response_code( $request ) );
+		$is_valid_res  = ( $response_code >= 200 && $response_code <= 299 );
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		if ( ! $is_valid_res ) {
+			return new \WP_Error( $response_code, $response_body );
+		}
+
+		return $response_body;
+	}
+
+	/**
 	 * Query logging. Don't log anything to the queries property when
 	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
 	 * want to access the query outside of the ElasticPress plugin. This
