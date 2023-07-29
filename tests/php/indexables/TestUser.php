@@ -1599,4 +1599,31 @@ class TestUser extends BaseTestCase {
 		$this->assertEquals( $user_1, $results['objects'][0]->ID );
 	}
 
+	/**
+	 * Test if the mapping applies the ep_stop filter correctly
+	 *
+	 * @since 4.7.0
+	 * @group user
+	 */
+	public function test_mapping_ep_stop_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'user' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+
+		$change_lang = function( $lang, $context ) {
+			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
+		};
+		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$indexable->put_mapping();
+
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+	}
 }

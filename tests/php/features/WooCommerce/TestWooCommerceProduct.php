@@ -63,19 +63,14 @@ class TestWooCommerceProduct extends TestWooCommerce {
 	}
 
 	/**
-	 * Test products post type query does get integrated when querying WC product_cat taxonomy
+	 * Test products post type query does not get automatically integrated when querying WC product_cat taxonomy
 	 *
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
 	public function testProductsPostTypeQueryProductCatTax() {
-		ElasticPress\Features::factory()->activate_feature( 'admin' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 		ElasticPress\Features::factory()->setup_features();
-
-		$this->ep_factory->post->create();
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
 			'tax_query' => array(
@@ -89,15 +84,75 @@ class TestWooCommerceProduct extends TestWooCommerce {
 
 		$query = new \WP_Query( $args );
 
-		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNull( $query->elasticsearch_success );
 
 		$args = [ 'product_cat' => 'cat' ];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertNull( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test WC product_cat taxonomy queries do get automatically integrated when ep_integrate is set to true
+	 *
+	 * @since 4.7.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductsPostTypeQueryProductCatTaxWhenEPIntegrateSetTrue() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$args = [
+			'product_cat'  => 'cat',
+			'ep_integrate' => true,
+		];
 
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
 	}
 
+	/**
+	 * Test WC product_cat taxonomy queries do get automatically integrated for the main query
+	 *
+	 * @since 4.7.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductsPostTypeQueryProductCatTaxWhenMainQuery() {
+		global $wp_the_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$args = [
+			'product_cat' => 'cat',
+		];
+
+		$wp_the_query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+	}
+
+	/**
+	 * Test products post type query does get automatically integrated for the main query
+	 *
+	 * @since 4.7.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductsPostTypeQueryProductWhenMainQuery() {
+		global $wp_the_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$wp_the_query->query( [ 'post_type' => 'product' ] );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+	}
 
 	/**
 	 * Test search integration is on in general for product searches
@@ -1020,5 +1075,43 @@ class TestWooCommerceProduct extends TestWooCommerce {
 		add_filter( 'orderby_meta_mapping', $add_value );
 
 		$this->assertSame( $this->products->get_orderby_meta_mapping( 'custom_parameter' ), 'meta.custom_parameter.long' );
+	}
+
+	/**
+	 * Test add_taxonomy_attributes.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function test_add_taxonomy_attributes() {
+		$attributes = wc_get_attribute_taxonomies();
+
+		$slugs = wp_list_pluck( $attributes, 'attribute_name' );
+
+		if ( ! in_array( 'my_color', $slugs, true ) ) {
+
+			$args = array(
+				'slug'         => 'my_color',
+				'name'         => 'My color',
+				'type'         => 'select',
+				'orderby'      => 'menu_order',
+				'has_archives' => false,
+			);
+
+			wc_create_attribute( $args );
+		}
+
+		$facet_feature = ElasticPress\Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		parse_str( 'ep_filter_taxonomy=dolor,amet&ep_filter_my_color=red', $_GET );
+
+		$query_filters = $facet_type->add_query_filters( [] );
+
+		$sample_test[0]['term']['terms.taxonomy.slug']    = 'dolor';
+		$sample_test[1]['term']['terms.taxonomy.slug']    = 'amet';
+		$sample_test[2]['term']['terms.pa_my_color.slug'] = 'red';
+
+		$this->assertEquals( $sample_test, $query_filters );
 	}
 }

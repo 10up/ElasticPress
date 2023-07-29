@@ -49,8 +49,8 @@ class Products {
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ], 10, 2 );
 		add_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ], 10, 2 );
 		add_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
-
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+		add_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
 
 		// Custom product ordering
 		add_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
@@ -617,12 +617,24 @@ class Products {
 	}
 
 	/**
-	 * Determines whether or not ES should be integrating with the provided query
+	 * Determines whether or not ES should be integrating with the provided query.
+	 *
+	 * A product-related query will be integrated if:
+	 * * Is the main query OR is a search OR has `ep_integrate` set as true
+	 * * Is querying a supported taxonomy like product attributes
+	 * * Is querying a supported post type like `product`
 	 *
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
 	public function should_integrate_with_query( \WP_Query $query ) : bool {
+		$has_ep_integrate = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
+		$is_search        = '' !== $this->woocommerce->get_search_term( $query );
+
+		if ( ! $query->is_main_query() && ! $is_search && ! $has_ep_integrate ) {
+			return false;
+		}
+
 		/**
 		 * Check for taxonomies
 		 */
@@ -982,5 +994,20 @@ class Products {
 		}
 
 		return 'date';
+	}
+
+	/**
+	 * Add taxonomies that should be woocommerce attributes.
+	 *
+	 * @param array $attribute_taxonomies  Attribute taxonomies.
+	 * @return array $attribute_taxonomies Attribute taxonomies.
+	 */
+	public function add_taxonomy_attributes( array $attribute_taxonomies ) : array {
+		$all_attr_taxonomies = wc_get_attribute_taxonomies();
+
+		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
+			$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
+		}
+		return $attribute_taxonomies;
 	}
 }

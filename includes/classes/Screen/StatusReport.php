@@ -78,8 +78,7 @@ class StatusReport {
 	public function get_reports() : array {
 		$reports = [];
 
-		/* this filter is documented in elasticpress.php */
-		$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+		$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
 
 		if ( $query_logger ) {
 			$reports['failed-queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
