@@ -441,6 +441,9 @@ class Weighting {
 		}
 
 		if ( is_array( $fieldset ) && isset( $fieldset['fields'] ) ) {
+			if ( ! is_array( $fieldset['fields'] ) ) {
+				$fieldset['fields'] = [];
+			}
 			// Add any fields to the search that aren't already in there (weighting handled in next step)
 			foreach ( $weights as $field => $settings ) {
 				if ( ! in_array( $field, $fieldset['fields'], true ) ) {
@@ -492,7 +495,7 @@ class Weighting {
 				// else: Leave anything that isn't explicitly disabled alone. Could have been added by search_fields, and if it is not present in the UI, we shouldn't touch it here
 
 				// If fieldset has fuzziness enabled and fuzziness is disabled for this field, unset the field
-				if ( isset( $fieldset['fuzziness'] ) && $fieldset['fuzziness'] && isset( $weights[ $field ]['fuzziness'] ) && false === $weights[ $field ]['fuzziness'] ) {
+				if ( isset( $fieldset['fuzziness'] ) && $fieldset['fuzziness'] && isset( $weights[ $field ] ) && isset( $weights[ $field ]['fuzziness'] ) && false === $weights[ $field ]['fuzziness'] ) {
 					unset( $fieldset['fields'][ $key ] );
 				}
 			}
