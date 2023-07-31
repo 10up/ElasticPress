@@ -23,9 +23,8 @@ before(() => {
 
 		update_option( 'ep_feature_settings', $features );
 
-		$index_names = WP_CLI::runcommand('elasticpress get-indices', [ 'return' => true ] );
-
-		echo wp_json_encode( [ 'indexNames' => json_decode( $index_names ), 'isEpIo' => $is_epio ] );
+		$index_names = \\ElasticPress\\Elasticsearch::factory()->get_index_names( true );
+		echo wp_json_encode( [ 'indexNames' => $index_names, 'isEpIo' => $is_epio ] );
 		`,
 	).then((wpCliResponse) => {
 		const wpCliRespObj = JSON.parse(wpCliResponse.stdout);
