@@ -65,7 +65,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function testIsSiteIndexableByDefault() {
-		delete_option( 'ep_indexable' );
+		delete_site_meta( get_current_blog_id(), 'ep_indexable' );
 
 		$this->assertTrue( ElasticPress\Utils\is_site_indexable() );
 	}
@@ -77,7 +77,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function testIsSiteIndexableByDefaultSpam() {
-		delete_option( 'ep_indexable' );
+		delete_site_meta( get_current_blog_id(), 'ep_indexable' );
 
 		if ( is_multisite() ) {
 			update_blog_status( get_current_blog_id(), 'spam', 1 );
@@ -97,7 +97,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function testIsSiteIndexableDisabled() {
-		update_option( 'ep_indexable', 'no' );
+		update_site_meta( get_current_blog_id(), 'ep_indexable', 'no' );
 
 		if ( is_multisite() ) {
 			$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
