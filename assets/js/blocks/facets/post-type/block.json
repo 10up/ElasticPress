@@ -32,7 +32,7 @@
 		"color": {
 			"background": true,
 			"link": true,
-			"text": true
+			"text": false
 		},
 		"html": false,
 		"position": {
