@@ -206,6 +206,8 @@ function register_indexable_posts() {
 	 */
 	$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
 	get_container()->set( '\ElasticPress\QueryLogger', $query_logger, true );
+
+	get_container()->set( '\ElasticPress\BlockTemplateUtils', new \ElasticPress\BlockTemplateUtils(), true );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
