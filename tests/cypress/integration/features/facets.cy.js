@@ -5,15 +5,20 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	 * before running tests.
 	 */
 	before(() => {
-		cy.maybeEnableFeature('facets');
-		cy.wpCli('elasticpress sync --setup --yes');
-		cy.wpCli('post list --s="A new" --ep_integrate=false --format=ids').then(
-			(wpCliResponse) => {
-				if (wpCliResponse.stdout) {
-					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
-				}
-			},
-		);
+		cy.wpCliEval(`
+			\\ElasticPress\\Features::factory()->activate_feature('facets' );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
+			$posts = new \\WP_Query(
+				[
+					's'            => 'A new',
+					'ep_integrate' => false,
+					'fields'       => 'ids',
+				]
+			);
+			foreach ( $posts->posts as $post ) {
+				wp_delete_post( $post, true );
+			}
+		`);
 	});
 
 	/**
@@ -257,12 +262,21 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	it('Does not change post types being displayed', () => {
 		cy.wpCliEval(
 			`
-			WP_CLI::runcommand( 'plugin activate cpt-and-custom-tax' );
-			WP_CLI::runcommand( 'post create --post_title="A new page" --post_type="page" --post_status="publish"' );
-			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
-			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
-
-			// tax_input does not seem to work properly in WP-CLI.
+			activate_plugin( 'cpt-and-custom-tax.php' );
+			wp_insert_post(
+				[
+					'post_title'  => 'A new page',
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+				]
+			);
+			wp_insert_post(
+				[
+					'post_title'  => 'A new post',
+					'post_type'   => 'post',
+					'post_status' => 'publish',
+				]
+			);
 			$movie_id = wp_insert_post(
 				[
 					'post_title'  => 'A new movie',
@@ -273,35 +287,34 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			if ( $movie_id ) {
 				wp_set_object_terms( $movie_id, 'action', 'genre' );
 				WP_CLI::runcommand( 'elasticpress sync --include=' . $movie_id );
-				WP_CLI::runcommand( 'rewrite flush' );
 			}
 			`,
-		);
+		).then(() => {
+			/**
+			 * Give Elasticsearch some time to process the post.
+			 *
+			 */
+			// eslint-disable-next-line cypress/no-unnecessary-waiting
+			cy.wait(2000);
 
-		/**
-		 * Give Elasticsearch some time to process the post.
-		 *
-		 */
-		// eslint-disable-next-line cypress/no-unnecessary-waiting
-		cy.wait(2000);
+			// Blog page
+			cy.visit('/');
+			cy.contains('.site-content article h2', 'A new page').should('not.exist');
+			cy.contains('.site-content article h2', 'A new post').should('exist');
+			cy.contains('.site-content article h2', 'A new movie').should('not.exist');
 
-		// Blog page
-		cy.visit('/');
-		cy.contains('.site-content article h2', 'A new page').should('not.exist');
-		cy.contains('.site-content article h2', 'A new post').should('exist');
-		cy.contains('.site-content article h2', 'A new movie').should('not.exist');
+			// Specific taxonomy archive
+			cy.visit('/?genre=action');
+			cy.contains('.site-content article h2', 'A new page').should('not.exist');
+			cy.contains('.site-content article h2', 'A new post').should('not.exist');
+			cy.contains('.site-content article h2', 'A new movie').should('exist');
 
-		// Specific taxonomy archive
-		cy.visit('/blog/genre/action/');
-		cy.contains('.site-content article h2', 'A new page').should('not.exist');
-		cy.contains('.site-content article h2', 'A new post').should('not.exist');
-		cy.contains('.site-content article h2', 'A new movie').should('exist');
-
-		// Search
-		cy.visit('/?s=new');
-		cy.contains('.site-content article h2', 'A new page').should('exist');
-		cy.contains('.site-content article h2', 'A new post').should('exist');
-		cy.contains('.site-content article h2', 'A new movie').should('exist');
+			// Search
+			cy.visit('/?s=new');
+			cy.contains('.site-content article h2', 'A new page').should('exist');
+			cy.contains('.site-content article h2', 'A new post').should('exist');
+			cy.contains('.site-content article h2', 'A new movie').should('exist');
+		});
 	});
 
 	describe('Facet by Meta Block', () => {
