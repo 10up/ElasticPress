@@ -1197,6 +1197,7 @@ abstract class Indexable {
 	 * @since 4.3.0
 	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
 	 * @return array
+	 * @throws \Exception An exception if meta fields are not available.
 	 */
 	public function get_distinct_meta_field_keys( $blog_id = null ) {
 		$mapping = $this->get_mapping();
