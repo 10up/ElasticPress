@@ -216,11 +216,13 @@ class Upgrades {
 	public function upgrade_4_7_0() {
 		global $wpdb;
 
-		$sites = \get_sites( [ 'number' => 0 ] );
-		foreach ( $sites as $site ) {
-			$blog_option = get_blog_option( $site->blog_id, 'ep_indexable' );
-			if ( $blog_option ) {
-				update_site_meta( $site->blog_id, 'ep_indexable', $blog_option );
+		if ( is_multisite() ) {
+			$sites = \get_sites( [ 'number' => 0 ] );
+			foreach ( $sites as $site ) {
+				$blog_option = get_blog_option( $site->blog_id, 'ep_indexable' );
+				if ( $blog_option ) {
+					update_site_meta( $site->blog_id, 'ep_indexable', $blog_option );
+				}
 			}
 		}
 
