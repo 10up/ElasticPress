@@ -183,7 +183,7 @@ function is_site_indexable( $blog_id = null ) {
 
 	$site = get_site( $blog_id );
 
-	$is_indexable = get_site_meta( (int) $blog_id, 'ep_indexable', true );
+	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
 
 	return 'no' !== $is_indexable && ! $site['deleted'] && ! $site['archived'] && ! $site['spam'];
 }
