@@ -1,8 +1,10 @@
-name: Build and Tag
+name: Build with vendor (test)
+
 on:
-  push:
+  pull_request:
     branches:
-      - 'trunk'
+      - develop
+      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
 jobs:
   wordpress:
@@ -34,15 +36,14 @@ jobs:
     - name: Setup
       run: 'echo "VERSION=$(grep -Po ''\"version\": \"[0-9\\.]+\"'' package.json | grep -Po ''[0-9\\.]+'')" >> $GITHUB_ENV'
 
-    - name: Tag
-      run: |
-        echo "Releasing version $VERSION ..."
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git checkout -b "release-$VERSION"
-        git add -f dist/*
-        git commit --no-verify -m "Release $VERSION"
-        git tag "$VERSION"
-        git push --tags
-      env:
-        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Zip
+      run: npm run build:zip
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v3
+      with:
+        name: cypress-artifact
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}/elasticpress.zip
+

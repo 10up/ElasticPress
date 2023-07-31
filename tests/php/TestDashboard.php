@@ -19,6 +19,8 @@ class TestDashboard extends BaseTestCase {
 	 */
 	public function set_up() {
 		remove_filter( 'translations_api', __NAMESPACE__ . '\skip_translations_api' );
+
+		parent::set_up();
 	}
 
 	/**
@@ -26,6 +28,8 @@ class TestDashboard extends BaseTestCase {
 	 */
 	public function tear_down() {
 		tests_add_filter( 'translations_api', __NAMESPACE__ . '\skip_translations_api' );
+
+		parent::tear_down();
 	}
 
 	/**
@@ -68,6 +72,15 @@ class TestDashboard extends BaseTestCase {
 		};
 		add_filter( 'ep_default_language', $existing_lang );
 		$this->assertSame( 'English', Dashboard\use_language_in_setting( '', 'filter_ewp_snowball' ) );
+
+		/**
+		 * Test similar languages
+		 */
+		$existing_lang = function () {
+			return 'pt_BR';
+		};
+		add_filter( 'ep_default_language', $existing_lang );
+		$this->assertSame( 'Portuguese', Dashboard\use_language_in_setting( '', 'filter_ewp_snowball' ) );
 	}
 
 	/**
@@ -89,5 +102,41 @@ class TestDashboard extends BaseTestCase {
 		};
 		add_filter( 'ep_default_language', $existing_lang );
 		$this->assertSame( '_english_', Dashboard\use_language_in_setting( '', 'filter_ep_stop' ) );
+	}
+
+	/**
+	 * Test the `use_language_in_setting` function when on multisite using `ep_site_default`
+	 *
+	 * @group skip-on-single-site
+	 * @group dashboard
+	 */
+	public function test_use_language_in_setting_for_multisite() {
+		$site_pt_br = wp_insert_site(
+			[
+				'domain'  => 'example.org',
+				'path'    => '/pt_BR',
+				'options' => [
+					'WPLANG' => 'pt_BR',
+				],
+			]
+		);
+		$site_he_il = wp_insert_site(
+			[
+				'domain'  => 'example.org',
+				'path'    => '/he_IL',
+				'options' => [
+					'WPLANG' => 'he_IL',
+				],
+			]
+		);
+
+		switch_to_blog( $site_pt_br );
+		$this->assertSame( 'brazilian', Dashboard\use_language_in_setting() );
+
+		/*
+		 * Hebrew is not a language supported by Elasticsearch out-of-the-box, so it should fallback to English.
+		 */
+		switch_to_blog( $site_he_il );
+		$this->assertSame( 'english', Dashboard\use_language_in_setting() );
 	}
 }

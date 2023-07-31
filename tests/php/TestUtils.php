@@ -443,4 +443,36 @@ class TestUtils extends BaseTestCase {
 
 		$this->assertSame( 1, did_action( $filter_name ) );
 	}
+
+	/**
+	 * Test the `get_language()` method
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_get_language() {
+		$this->assertSame( 'ep_site_default', Utils\get_language() );
+
+		$set_lang_via_option = function() {
+			return 'custom_via_option';
+		};
+		if ( is_multisite() ) {
+			add_filter( 'pre_site_option_ep_language', $set_lang_via_option );
+		} else {
+			add_filter( 'pre_option_ep_language', $set_lang_via_option );
+		}
+
+		$this->assertSame( 'custom_via_option', Utils\get_language() );
+
+		/**
+		 * Test the `ep_default_language` filter
+		 */
+		$set_lang_via_filter = function( $ep_language ) {
+			$this->assertSame( 'custom_via_option', $ep_language );
+			return 'custom_via_filter';
+		};
+		add_filter( 'ep_default_language', $set_lang_via_filter );
+
+		$this->assertSame( 'custom_via_filter', Utils\get_language() );
+	}
 }

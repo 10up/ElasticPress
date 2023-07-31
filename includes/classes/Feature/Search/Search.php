@@ -124,12 +124,6 @@ class Search extends Feature {
 	public function enqueue_scripts() {
 		$settings = $this->get_settings();
 
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		if ( true !== $settings['highlight_enabled'] ) {
 			return;
 		}
@@ -164,12 +158,6 @@ class Search extends Feature {
 
 		// get current config
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		if ( true !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
@@ -269,12 +257,6 @@ class Search extends Feature {
 
 		$settings = $this->get_settings();
 
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
@@ -294,12 +276,6 @@ class Search extends Feature {
 	public function ep_highlight_excerpt( $text, $post ) {
 
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
@@ -438,12 +414,6 @@ class Search extends Feature {
 	 */
 	public function is_decaying_enabled( $args = [] ) {
 		$settings = $this->get_settings();
-		$settings = wp_parse_args(
-			$settings,
-			[
-				'decaying_enabled' => true,
-			]
-		);
 
 		$is_decaying_enabled = (bool) $settings['decaying_enabled'];
 
@@ -637,13 +607,6 @@ class Search extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		?>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
