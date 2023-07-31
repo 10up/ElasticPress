@@ -502,7 +502,7 @@ class Autosuggest extends Feature {
 		 */
 		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
 
-		add_filter( 'ep_intercept_remote_request', [ $this->intercept_remote_request() ] );
+		add_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
 		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 2 );
@@ -547,7 +547,7 @@ class Autosuggest extends Feature {
 
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
-		remove_filter( 'ep_intercept_remote_request', [ $this->intercept_remote_request() ] );
+		remove_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 
 		return [
 			'body'        => $this->autosuggest_query,
