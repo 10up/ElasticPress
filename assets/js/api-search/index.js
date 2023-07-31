@@ -105,6 +105,7 @@ export const ApiSearchProvider = ({
 		isOn: defaultIsOn,
 		isPoppingState: false,
 		searchResults: [],
+		searchedTerm: '',
 		totalResults: 0,
 	});
 
