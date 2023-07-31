@@ -369,10 +369,10 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @since 4.2.0, 4.7.0 deprecated in favor of a method in the abstract renderer class..
 	 * @return string HTML for an individual facet term.
 	 */
-	protected function get_facet_term_html( $term, $url, $selected = false ) {
+	public function get_facet_term_html( $term, $url, $selected = false ) {
 		_deprecated_function( __FUNCTION__, '4.7.0', '$this->renderer->get_facet_item_value_html()' );
 
-		return $this->get_facet_term_html( $term, $url, $selected );
+		return $this->get_facet_item_value_html( $term, $url, $selected );
 	}
 
 	/**

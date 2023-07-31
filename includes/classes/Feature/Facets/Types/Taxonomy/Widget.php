@@ -61,14 +61,14 @@ class Widget extends WP_Widget {
 	 * @since 3.6.3, 4.2.0 deprecated in favor of a method in the renderer.
 	 * @return string HTML for an individual facet term.
 	 */
-	protected function get_facet_term_html( $term, $url, $selected = false ) {
+	public function get_facet_term_html( $term, $url, $selected = false ) {
 		_deprecated_function( __FUNCTION__, '4.2.0', '$this->renderer->get_facet_term_html()' );
 
 		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', [] );
 		$renderer       = new $renderer_class();
 
-		return $renderer->get_facet_term_html( $term, $url, $selected );
+		return $renderer->get_facet_item_value_html( $term, $url, $selected );
 	}
 
 	/**
