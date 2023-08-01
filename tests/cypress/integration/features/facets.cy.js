@@ -303,7 +303,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.contains('.site-content article h2', 'A new movie').should('not.exist');
 
 			// Specific taxonomy archive
-			cy.visit('//blog/genre/action/');
+			cy.visit('/blog/genre/action/');
 			cy.contains('.site-content article h2', 'A new page').should('not.exist');
 			cy.contains('.site-content article h2', 'A new post').should('not.exist');
 			cy.contains('.site-content article h2', 'A new movie').should('exist');
