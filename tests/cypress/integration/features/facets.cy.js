@@ -282,12 +282,11 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 					'post_title'  => 'A new movie',
 					'post_type'   => 'movie',
 					'post_status' => 'publish',
+					'tax_input'   => [
+						'genre' => 'action',
+					],
 				]
 			);
-			if ( $movie_id ) {
-				wp_set_object_terms( $movie_id, 'action', 'genre' );
-				WP_CLI::runcommand( 'elasticpress sync --include=' . $movie_id );
-			}
 			`,
 		).then(() => {
 			/**
@@ -304,7 +303,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.contains('.site-content article h2', 'A new movie').should('not.exist');
 
 			// Specific taxonomy archive
-			cy.visit('/?genre=action');
+			cy.visit('//blog/genre/action/');
 			cy.contains('.site-content article h2', 'A new page').should('not.exist');
 			cy.contains('.site-content article h2', 'A new post').should('not.exist');
 			cy.contains('.site-content article h2', 'A new movie').should('exist');
