@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createRoot } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -15,8 +15,8 @@ import Modal from './apps/modal';
  */
 const init = () => {
 	const el = document.getElementById('ep-instant-results');
-
-	render(
+	const root = createRoot(el);
+	root.render(
 		<ApiSearchProvider
 			apiEndpoint={apiEndpoint}
 			apiHost={apiHost}
