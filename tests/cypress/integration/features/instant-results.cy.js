@@ -353,7 +353,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@searchBlock').find('button').click();
 				cy.get('.ep-search-modal').should('be.visible');
 				cy.wait('@apiRequest');
-				cy.get('.ep-spell-suggestion a').should('have.text', 'wordpress');
+				cy.get('.ep-search-suggestion a').should('have.text', 'wordpress');
 			});
 		});
 

@@ -1,8 +1,8 @@
 /**
  * WordPress dependencies.
  */
-import { __ } from '@wordpress/i18n';
-import { WPElement } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
+import { WPElement, createInterpolateElement } from '@wordpress/element';
 
 import { showSuggestions, suggestionsBehavior } from '../../config';
 
@@ -27,11 +27,21 @@ export default (props) => {
 			{showSuggestions && suggestedTerms && suggestedTerms?.[0]?.text && (
 				<div className="ep-search-suggestion">
 					<p>
-						{__('Did you mean: ', 'elasticpress')}
-						{/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-						<a onClick={() => onClick(suggestedTerms?.[0]?.text)} href="#">
-							{suggestedTerms?.[0]?.text}
-						</a>
+						{createInterpolateElement(
+							sprintf(
+								__('Did you mean: <a>%s</a>', 'elasticpress'),
+								suggestedTerms?.[0]?.text,
+							),
+							{
+								a: (
+									// eslint-disable-next-line jsx-a11y/control-has-associated-label, jsx-a11y/anchor-has-content, jsx-a11y/anchor-is-valid
+									<a
+										href="#"
+										onClick={() => onClick(suggestedTerms?.[0]?.text)}
+									/>
+								),
+							},
+						)}
 					</p>
 				</div>
 			)}
