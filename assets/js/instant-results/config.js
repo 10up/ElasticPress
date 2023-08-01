@@ -20,6 +20,8 @@ const {
 	taxonomyLabels,
 	termCount,
 	requestIdBase,
+	showSuggestions,
+	searchBehavior,
 } = window.epInstantResults;
 
 /**
@@ -76,4 +78,6 @@ export {
 	taxonomyLabels,
 	termCount,
 	requestIdBase,
+	showSuggestions,
+	searchBehavior,
 };
