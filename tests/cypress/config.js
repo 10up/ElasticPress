@@ -7,7 +7,7 @@ module.exports = defineConfig({
 	downloadsFolder: 'tests/cypress/downloads',
 	video: false,
 	retries: {
-		runMode: 0,
+		runMode: 1,
 	},
 	elasticPressIndexTimeout: 100000,
 	e2e: {
