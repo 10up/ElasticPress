@@ -198,7 +198,7 @@ class TestCommands extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$blog_id = $this->factory->blog->create();
-		update_blog_option( $blog_id, 'ep_indexable', 'no' );
+		update_site_meta( $blog_id, 'ep_indexable', 'no' );
 
 		$this->factory->blog->create();
 

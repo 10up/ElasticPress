@@ -177,17 +177,15 @@ function is_epio() {
  * @return boolean
  */
 function is_site_indexable( $blog_id = null ) {
-	if ( is_multisite() ) {
-		$site = get_site( $blog_id );
-
-		$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
-
-		if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
-			return false;
-		}
+	if ( ! is_multisite() ) {
+		return true;
 	}
 
-	return true;
+	$site = get_site( $blog_id );
+
+	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
+
+	return 'no' !== $is_indexable && ! $site['deleted'] && ! $site['archived'] && ! $site['spam'];
 }
 
 /**
