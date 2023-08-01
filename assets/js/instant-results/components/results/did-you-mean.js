@@ -4,7 +4,7 @@
 import { __ } from '@wordpress/i18n';
 import { WPElement } from '@wordpress/element';
 
-import { showSuggestions, searchBehavior } from '../../config';
+import { showSuggestions, suggestionsBehavior } from '../../config';
 
 /**
  * Did you mean component.
@@ -37,7 +37,7 @@ export default (props) => {
 			)}
 
 			{showSuggestions &&
-				searchBehavior === 'list' &&
+				suggestionsBehavior === 'list' &&
 				totalResults === 0 &&
 				otherTerms.length > 0 && (
 					<div>

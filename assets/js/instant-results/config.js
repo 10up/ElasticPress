@@ -21,7 +21,7 @@ const {
 	termCount,
 	requestIdBase,
 	showSuggestions,
-	searchBehavior,
+	suggestionsBehavior,
 } = window.epInstantResults;
 
 /**
@@ -79,5 +79,5 @@ export {
 	termCount,
 	requestIdBase,
 	showSuggestions,
-	searchBehavior,
+	suggestionsBehavior,
 };
