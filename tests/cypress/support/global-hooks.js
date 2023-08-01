@@ -23,7 +23,7 @@ before(() => {
 
 		update_option( 'ep_feature_settings', $features );
 
-		$index_names = \\ElasticPress\\Elasticsearch::factory()->get_index_names( true );
+		$index_names = \\ElasticPress\\Elasticsearch::factory()->get_index_names( 'active' );
 		echo wp_json_encode( [ 'indexNames' => $index_names, 'isEpIo' => $is_epio ] );
 		`,
 	).then((wpCliResponse) => {
