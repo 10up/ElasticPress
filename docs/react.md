@@ -1,7 +1,1 @@
-
-Are you looking to integrate ElasticPress into your React application or headless WordPress website? ElasticPress has a [React component library](https://github.com/10up/elasticpress-react).
-
-Install via npm:
-```
-npm install @10up/elasticpress-react --save
-```
+This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16672275120013-React-Components](https://elasticpress.zendesk.com/hc/en-us/articles/16672275120013-React-Components).

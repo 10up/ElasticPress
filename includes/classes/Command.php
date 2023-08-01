@@ -1516,7 +1516,7 @@ class Command extends WP_CLI_Command {
 	 * @param boolean $pretty_print_flag Whether it should or not be formatted.
 	 */
 	protected function pretty_json_encode( $json_obj, $pretty_print_flag ) {
-		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
+		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : 0;
 		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
 	}
 
@@ -1564,5 +1564,30 @@ class Command extends WP_CLI_Command {
 		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
 		$instant_results->epio_delete_search_template();
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
+	 * Get an index settings
+	 *
+	 * ## OPTIONS
+	 *
+	 * <index_name>
+	 * : Index name
+	 *
+	 * [--pretty]
+	 * : Use this flag to render a pretty-printed version of the JSON response.
+	 *
+	 * @subcommand get-index-settings
+	 *
+	 * @since 4.7.0
+	 *
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function get_index_settings( $args, $assoc_args ) {
+		$response = Elasticsearch::factory()->get_index_settings( $args[0], true );
+		$pretty   = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+
+		$this->pretty_json_encode( $response, $pretty );
 	}
 }

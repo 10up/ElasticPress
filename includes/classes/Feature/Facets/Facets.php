@@ -122,12 +122,6 @@ class Facets extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
@@ -381,6 +375,9 @@ class Facets extends Feature {
 
 			foreach ( $filter_names as $filter_name => $type_obj ) {
 				if ( 0 === strpos( $key, $filter_name ) ) {
+					if ( empty( $value ) ) {
+						continue;
+					}
 					$facet = str_replace( $filter_name, '', $key );
 
 					$filters = $type_obj->format_selected( $facet, $value, $filters );
@@ -592,12 +589,7 @@ class Facets extends Feature {
 	 * @return string
 	 */
 	public function get_match_type() {
-		$settings = wp_parse_args(
-			$this->get_settings(),
-			array(
-				'match_type' => 'all',
-			)
-		);
+		$settings = $this->get_settings();
 
 		/**
 		 * Filter the match type of all facets. Can be 'all' or 'any'.

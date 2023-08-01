@@ -177,17 +177,15 @@ function is_epio() {
  * @return boolean
  */
 function is_site_indexable( $blog_id = null ) {
-	if ( is_multisite() ) {
-		$site = get_site( $blog_id );
-
-		$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
-
-		if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
-			return false;
-		}
+	if ( ! is_multisite() ) {
+		return true;
 	}
 
-	return true;
+	$site = get_site( $blog_id );
+
+	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
+
+	return 'no' !== $is_indexable && ! $site['deleted'] && ! $site['archived'] && ! $site['spam'];
 }
 
 /**
@@ -495,13 +493,8 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
  * @return string Default EP language.
  */
 function get_language() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$ep_language = get_site_option( 'ep_language' );
-	} else {
-		$ep_language = get_option( 'ep_language' );
-	}
-
-	$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
+	$ep_language = get_option( 'ep_language' );
+	$ep_language = ! empty( $ep_language ) ? $ep_language : 'ep_site_default';
 
 	/**
 	 * Filter the default language to use at index time
@@ -805,16 +798,62 @@ function get_elasticsearch_error_reason( $response ) : string {
 	}
 
 	if ( ! empty( $response['reason'] ) ) {
-		return $response['reason'];
+		return (string) $response['reason'];
 	}
 
 	if ( ! empty( $response['result']['error'] ) && ! empty( $response['result']['error']['root_cause'][0]['reason'] ) ) {
-		return $response['result']['error']['root_cause'][0]['reason'];
+		return (string) $response['result']['error']['root_cause'][0]['reason'];
 	}
 
 	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) && ! empty( $response['result']['items'][0]['index']['error']['reason'] ) ) {
-		return $response['result']['items'][0]['index']['error']['reason'];
+		return (string) $response['result']['items'][0]['index']['error']['reason'];
 	}
 
 	return '';
+}
+
+/**
+ * Use the correct set_transient option function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient  Transient name. Expected to not be SQL-escaped.
+ *                           Must be 172 characters or fewer in length.
+ * @param mixed  $value      Transient value. Must be serializable if non-scalar.
+ *                           Expected to not be SQL-escaped.
+ * @param int    $expiration Optional. Time until expiration in seconds. Default 0 (no expiration).
+ * @return bool True if the value was set, false otherwise.
+ */
+function set_transient( $transient, $value, $expiration = 0 ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \set_site_transient( $transient, $value, $expiration );
+	}
+	return \set_transient( $transient, $value, $expiration );
+}
+
+/**
+ * Use the correct get_transient function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return mixed Value of transient.
+ */
+function get_transient( $transient ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \get_site_transient( $transient );
+	}
+	return \get_transient( $transient );
+}
+
+/**
+ * Use the correct delete_transient function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return bool True if the transient was deleted, false otherwise.
+ */
+function delete_transient( $transient ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \delete_site_transient( $transient );
+	}
+	return \delete_transient( $transient );
 }

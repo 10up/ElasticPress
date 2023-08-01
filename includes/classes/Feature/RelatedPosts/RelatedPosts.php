@@ -346,7 +346,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://10up.github.io/ElasticPress/tutorial-features.html#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 }

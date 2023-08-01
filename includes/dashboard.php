@@ -47,7 +47,6 @@ function setup() {
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
-	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
 	add_action( 'rest_api_init', __NAMESPACE__ . '\setup_endpoint' );
 	add_action( 'block_categories_all', __NAMESPACE__ . '\block_categories' );
 	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\block_assets' );
@@ -60,7 +59,7 @@ function setup() {
 	 * @param  {bool}  $show True to show.
 	 * @return {bool}  New value
 	 */
-	$show_indexing_option_on_multisite = apply_filters( 'ep_show_indexing_option_on_multisite', true );
+	$show_indexing_option_on_multisite = apply_filters( 'ep_show_indexing_option_on_multisite', defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK );
 
 	if ( $show_indexing_option_on_multisite ) {
 		add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
@@ -724,6 +723,8 @@ function action_admin_menu() {
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context = '' ) {
+	global $locale, $wp_local_package;
+
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -732,15 +733,26 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		return $language;
 	}
 
+	/**
+	 * WordPress does not reset the language when switch_blog() is called.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/49263
+	 */
+	if ( 'ep_site_default' === $ep_language ) {
+		$locale           = null;
+		$wp_local_package = null;
+		$ep_language      = get_locale();
+	}
+
 	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 	$translations = wp_get_available_translations();
 
-	// Bail early if not in the array of available translations.
-	if ( empty( $translations[ $ep_language ]['english_name'] ) ) {
-		return $language;
+	// Default to en_US if not in the array of available translations.
+	if ( ! empty( $translations[ $ep_language ]['english_name'] ) ) {
+		$wp_language = $translations[ $ep_language ]['language'];
+	} else {
+		$wp_language = 'en_US';
 	}
-
-	$wp_language = $translations[ $ep_language ]['language'];
 
 	/**
 	 * Languages supported in Elasticsearch mappings.
@@ -760,7 +772,7 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'czech'      => [ 'cs' ],
 		'danish'     => [ 'da' ],
 		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
-		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
+		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_US', 'en_ZA' ],
 		'estonian'   => [ 'et' ],
 		'finnish'    => [ 'fi' ],
 		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
@@ -817,6 +829,10 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'Turkish',
 	];
 
+	$es_snowball_similar = [
+		'Brazilian' => 'Portuguese',
+	];
+
 	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
 		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
 			$language = $analyzer_name;
@@ -825,11 +841,16 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 	}
 
 	if ( 'filter_ewp_snowball' === $context ) {
-		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
-			return ucfirst( $language );
+		$uc_first_language = ucfirst( $language );
+		if ( in_array( $uc_first_language, $es_snowball_languages, true ) ) {
+			return $uc_first_language;
 		}
 
-		return 'English';
+		return $es_snowball_similar[ $uc_first_language ] ?? 'English';
+	}
+
+	if ( 'filter_ep_stop' === $context ) {
+		return "_{$language}_";
 	}
 
 	return $language;
@@ -857,21 +878,23 @@ function filter_blogs_columns( $columns ) {
  * @return void | string
  */
 function add_blogs_column( $column_name, $blog_id ) {
+	if ( 'elasticpress' !== $column_name ) {
+		return;
+	}
+
 	$site = get_site( $blog_id );
 	if ( $site->deleted || $site->archived || $site->spam ) {
 		return;
 	}
-	if ( 'elasticpress' === $column_name ) {
-		$is_indexable = get_blog_option( $blog_id, 'ep_indexable', 'yes' );
 
-		printf(
-			'<input %1$s class="index-toggle" data-blog-id="%2$s" disabled type="checkbox">',
-			checked( $is_indexable, 'yes', false ),
-			esc_attr( $blog_id )
-		);
-	}
+	$is_indexable = get_site_meta( $blog_id, 'ep_indexable', true );
+	$is_indexable = '' !== $is_indexable ? $is_indexable : 'yes';
 
-	return $column_name;
+	printf(
+		'<input %1$s class="index-toggle" data-blog-id="%2$s" disabled type="checkbox">',
+		checked( $is_indexable, 'yes', false ),
+		esc_attr( $blog_id )
+	);
 }
 
 /**
@@ -884,8 +907,13 @@ function action_wp_ajax_ep_site_admin() {
 	if ( - 1 === $blog_id || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
 		return wp_send_json_error();
 	}
-	$old    = get_blog_option( $blog_id, 'ep_indexable' );
+
+	/**
+	 * NOTE: This will be removed in ElasticPress 5.0.0. Implementations should rely on site_meta since 4.7.0.
+	 */
 	$result = update_blog_option( $blog_id, 'ep_indexable', $checked );
+
+	$result = update_site_meta( $blog_id, 'ep_indexable', $checked );
 	$data   = [
 		'blog_id' => $blog_id,
 		'result'  => $result,

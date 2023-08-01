@@ -102,13 +102,6 @@ class Autosuggest extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		?>
 		<div class="field">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
@@ -356,9 +349,8 @@ class Autosuggest extends Feature {
 			return;
 		}
 
-		$host         = Utils\get_host();
-		$endpoint_url = false;
-		$settings     = $this->get_settings();
+		$host     = Utils\get_host();
+		$settings = $this->get_settings();
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
@@ -366,18 +358,12 @@ class Autosuggest extends Feature {
 			if ( Utils\is_epio() ) {
 				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
 			} else {
-				if ( ! $settings ) {
-					$settings = [];
-				}
-
-				$settings = wp_parse_args( $settings, $this->default_settings );
-
-				if ( empty( $settings['endpoint_url'] ) ) {
-					return;
-				}
-
 				$endpoint_url = $settings['endpoint_url'];
 			}
+		}
+
+		if ( empty( $endpoint_url ) ) {
+			return;
 		}
 
 		wp_enqueue_script(
@@ -660,7 +646,7 @@ class Autosuggest extends Feature {
 	public function delete_cached_query() {
 		global $wp_object_cache;
 		if ( wp_using_ext_object_cache() ) {
-			if ( function_exists( 'wp_cache_supports_group_flush' ) && wp_cache_supports_group_flush() ) {
+			if ( function_exists( 'wp_cache_supports' ) && wp_cache_supports( 'flush_group' ) ) {
 				wp_cache_flush_group( 'ep_autosuggest' );
 			} else {
 				// Try to delete the entire group.
