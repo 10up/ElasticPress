@@ -110,8 +110,11 @@ class Search extends Feature {
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
 		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
-		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
+		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ] );
 		add_filter( 'ep_skip_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
+
+		add_action( 'attachment_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ], 15 );
+		add_action( 'edit_attachment', [ $this, 'save_exclude_from_search_meta' ] );
 	}
 
 
@@ -120,12 +123,6 @@ class Search extends Feature {
 	 */
 	public function enqueue_scripts() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		if ( true !== $settings['highlight_enabled'] ) {
 			return;
@@ -161,12 +158,6 @@ class Search extends Feature {
 
 		// get current config
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		if ( true !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
@@ -266,12 +257,6 @@ class Search extends Feature {
 
 		$settings = $this->get_settings();
 
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
@@ -291,12 +276,6 @@ class Search extends Feature {
 	public function ep_highlight_excerpt( $text, $post ) {
 
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
@@ -435,12 +414,6 @@ class Search extends Feature {
 	 */
 	public function is_decaying_enabled( $args = [] ) {
 		$settings = $this->get_settings();
-		$settings = wp_parse_args(
-			$settings,
-			[
-				'decaying_enabled' => true,
-			]
-		);
 
 		$is_decaying_enabled = (bool) $settings['decaying_enabled'];
 
@@ -634,13 +607,6 @@ class Search extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		?>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
@@ -775,7 +741,6 @@ class Search extends Feature {
 	 * @param WP_POST $post Post object.
 	 */
 	public function output_exclude_from_search_setting( $post ) {
-
 		$searchable_post_types = $this->get_searchable_post_types();
 		if ( ! in_array( $post->post_type, $searchable_post_types, true ) ) {
 			return;
@@ -784,7 +749,13 @@ class Search extends Feature {
 		<div class="misc-pub-section">
 			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ) ); ?>>
 			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from search results', 'elasticpress' ); ?></label>
-			<p class="howto"><?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?></p>
+			<p class="howto">
+				<?php if ( 'attachment' === $post->post_type ) : ?>
+					<?php esc_html_e( 'Excludes this media from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?>
+				<?php else : ?>
+					<?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?>
+				<?php endif; ?>
+			</p>
 			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
 		</div>
 		<?php
@@ -793,11 +764,9 @@ class Search extends Feature {
 	/**
 	 * Saves exclude from search meta.
 	 *
-	 * @param int     $post_id The post ID.
-	 * @param WP_Post $post Post object.
+	 * @param int $post_id The post ID.
 	 */
-	public function save_exclude_from_search_meta( $post_id, $post ) {
-
+	public function save_exclude_from_search_meta( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
@@ -810,9 +779,12 @@ class Search extends Feature {
 			return;
 		}
 
-		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : false;
+		if ( isset( $_POST['ep_exclude_from_search'] ) ) {
+			update_post_meta( $post_id, 'ep_exclude_from_search', true );
+		} else {
+			delete_post_meta( $post_id, 'ep_exclude_from_search' );
+		}
 
-		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
 	}
 
 	/**

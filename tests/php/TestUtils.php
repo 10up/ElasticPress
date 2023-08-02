@@ -63,9 +63,10 @@ class TestUtils extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 * @group utils
+	 * @group skip-on-single-site
 	 */
 	public function testIsSiteIndexableByDefault() {
-		delete_option( 'ep_indexable' );
+		delete_site_meta( get_current_blog_id(), 'ep_indexable' );
 
 		$this->assertTrue( ElasticPress\Utils\is_site_indexable() );
 	}
@@ -75,19 +76,16 @@ class TestUtils extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 * @group utils
+	 * @group skip-on-single-site
 	 */
 	public function testIsSiteIndexableByDefaultSpam() {
-		delete_option( 'ep_indexable' );
+		delete_site_meta( get_current_blog_id(), 'ep_indexable' );
 
-		if ( is_multisite() ) {
-			update_blog_status( get_current_blog_id(), 'spam', 1 );
+		update_blog_status( get_current_blog_id(), 'spam', 1 );
 
-			$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
+		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
 
-			update_blog_status( get_current_blog_id(), 'spam', 0 );
-		} else {
-			$this->assertTrue( ElasticPress\Utils\is_site_indexable() );
-		}
+		update_blog_status( get_current_blog_id(), 'spam', 0 );
 	}
 
 	/**
@@ -95,15 +93,11 @@ class TestUtils extends BaseTestCase {
 	 *
 	 * @since 3.2
 	 * @group utils
+	 * @group skip-on-single-site
 	 */
 	public function testIsSiteIndexableDisabled() {
-		update_option( 'ep_indexable', 'no' );
-
-		if ( is_multisite() ) {
-			$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
-		} else {
-			$this->assertTrue( ElasticPress\Utils\is_site_indexable() );
-		}
+		update_site_meta( get_current_blog_id(), 'ep_indexable', 'no' );
+		$this->assertFalse( ElasticPress\Utils\is_site_indexable() );
 	}
 
 	/**
@@ -388,5 +382,91 @@ class TestUtils extends BaseTestCase {
 			'results' => [ 1, 2, 3 ],
 		];
 		$this->assertSame( '', Utils\get_elasticsearch_error_reason( $not_an_error ) );
+	}
+
+	/**
+	 * Test the `set_transient` function
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_set_transient() {
+		$filter_name = is_multisite() ?
+			'expiration_of_site_transient_foo' :
+			'expiration_of_transient_foo';
+
+		$check_expiration = function ( $expiration ) {
+			$this->assertSame( 1, $expiration );
+			return $expiration;
+		};
+		add_filter( $filter_name, $check_expiration );
+
+		Utils\set_transient( 'foo', 'bar', 1 );
+
+		$this->assertSame( 1, did_filter( $filter_name ) );
+	}
+
+	/**
+	 * Test the `get_transient` function
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_get_transient() {
+		Utils\get_transient( 'foo' );
+
+		$filter_name = is_multisite() ?
+			'pre_site_transient_foo' :
+			'pre_transient_foo';
+
+		$this->assertSame( 1, did_filter( $filter_name ) );
+	}
+
+	/**
+	 * Test the `delete_transient` function
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_delete_transient() {
+		Utils\delete_transient( 'foo' );
+
+		$filter_name = is_multisite() ?
+			'delete_site_transient_foo' :
+			'delete_transient_foo';
+
+		$this->assertSame( 1, did_action( $filter_name ) );
+	}
+
+	/**
+	 * Test the `get_language()` method
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 */
+	public function test_get_language() {
+		$this->assertSame( 'ep_site_default', Utils\get_language() );
+
+		$set_lang_via_option = function() {
+			return 'custom_via_option';
+		};
+		if ( is_multisite() ) {
+			add_filter( 'pre_site_option_ep_language', $set_lang_via_option );
+		} else {
+			add_filter( 'pre_option_ep_language', $set_lang_via_option );
+		}
+
+		$this->assertSame( 'custom_via_option', Utils\get_language() );
+
+		/**
+		 * Test the `ep_default_language` filter
+		 */
+		$set_lang_via_filter = function( $ep_language ) {
+			$this->assertSame( 'custom_via_option', $ep_language );
+			return 'custom_via_filter';
+		};
+		add_filter( 'ep_default_language', $set_lang_via_filter );
+
+		$this->assertSame( 'custom_via_filter', Utils\get_language() );
 	}
 }

@@ -198,7 +198,7 @@ class TestCommands extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$blog_id = $this->factory->blog->create();
-		update_blog_option( $blog_id, 'ep_indexable', 'no' );
+		update_site_meta( $blog_id, 'ep_indexable', 'no' );
 
 		$this->factory->blog->create();
 
@@ -1076,6 +1076,31 @@ class TestCommands extends BaseTestCase {
 		add_filter( 'ep_host', '__return_empty_string' );
 
 		$this->command->sync( [], [] );
+	}
+
+	/**
+	 * Test get-index-settings command returns an index settings.
+	 *
+	 * @since 4.7.0
+	 */
+	public function testGetIndexSettings() {
+		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( '{', $output );
+		$this->assertStringContainsString( 'index.mapping.total_fields.limit', $output );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with --pretty flag
+		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( "{\n", $output );
+
+		// clean output buffer
+		ob_clean();
 	}
 
 	/**

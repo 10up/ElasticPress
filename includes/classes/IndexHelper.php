@@ -2,8 +2,11 @@
 /**
  * Index Helper
  *
+ * NOTE: As explained in the doc linked below, the dashboard sync exits after each output()
+ * call, to respond to the AJAX request. That means this script will be called several times
+ * while syncing via dashboard, relying on the index_meta to pick it up where it stopped.
+ *
  * @since 4.0.0
- * @see docs/indexing-process.md
  * @see https://elasticpress.zendesk.com/hc/en-us/articles/16672117103501-Sync-Process
  * @package elasticpress
  */
@@ -85,6 +88,9 @@ class IndexHelper {
 			$this->build_index_meta();
 		}
 
+		// For the dashboard, this will be called and exit the script until the queue is empty again.
+		$this->flush_messages_queue();
+
 		while ( $this->has_items_to_be_processed() ) {
 			$this->process_sync_item();
 		}
@@ -137,6 +143,7 @@ class IndexHelper {
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
 			'starting_indices'  => $starting_indices,
+			'messages_queue'    => [],
 			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
@@ -696,7 +703,7 @@ class IndexHelper {
 					$wp_error_messages
 				);
 
-				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
+				$this->queue_message( $wp_error_messages, 'warning' );
 			} elseif ( count( $failed_objects ) ) {
 				$errors_output = $this->output_index_errors( $failed_objects );
 
@@ -709,12 +716,9 @@ class IndexHelper {
 				);
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
+				$error_type = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
-				if ( ! empty( $this->args['stop_on_error'] ) ) {
-					$this->output( $errors_output, 'error' );
-				} else {
-					$this->output( $errors_output, 'warning' );
-				}
+				$this->queue_message( $errors_output, $error_type );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
@@ -722,19 +726,18 @@ class IndexHelper {
 
 		$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $this->current_query['objects'] )->ID;
 
-		$this->output(
-			sprintf(
-				/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
-				esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
-				esc_html( strtolower( $indexable->labels['plural'] ) ),
-				$this->index_meta['from'],
-				$this->index_meta['offset'],
-				$this->index_meta['found_items'],
-				$this->index_meta['current_sync_item']['last_processed_object_id']
-			),
-			'info',
-			'index_next_batch'
+		$summary = sprintf(
+			/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
+			esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
+			esc_html( strtolower( $indexable->labels['plural'] ) ),
+			$this->index_meta['from'],
+			$this->index_meta['offset'],
+			$this->index_meta['found_items'],
+			$this->index_meta['current_sync_item']['last_processed_object_id']
 		);
+
+		$this->queue_message( $summary, 'info', 'index_next_batch' );
+		$this->flush_messages_queue();
 	}
 
 	/**
@@ -1374,6 +1377,47 @@ class IndexHelper {
 		 * @return  {int} New number of entries
 		 */
 		return (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+	}
+
+	/**
+	 * Add a message to the queue
+	 *
+	 * @since 4.7.0
+	 * @param string|array $message_text Message to be outputted
+	 * @param string       $type         Type of message
+	 * @param string       $context      Context of the output
+	 */
+	protected function queue_message( $message_text, string $type, string $context = '' ) {
+		$this->index_meta['messages_queue'][] = [
+			'text'    => $message_text,
+			'type'    => $type,
+			'context' => $context,
+		];
+	}
+
+	/**
+	 * Display messages in the queue.
+	 *
+	 * NOTE: As the dashboard sync exits after every output call (to respond the AJAX request),
+	 * this will just output one message. As the method is called every time the script is called,
+	 * all messages will be displayed but one at a time.
+	 *
+	 * @since 4.7.0
+	 */
+	protected function flush_messages_queue() {
+		if ( ! is_array( $this->index_meta['messages_queue'] ) ) {
+			return;
+		}
+
+		$messages_count = count( $this->index_meta['messages_queue'] );
+		if ( 0 === $messages_count ) {
+			return;
+		}
+
+		for ( $i = 0; $i < $messages_count; $i++ ) {
+			$next_message = array_shift( $this->index_meta['messages_queue'] );
+			$this->output( $next_message['text'], $next_message['type'], $next_message['context'] );
+		}
 	}
 
 	/**

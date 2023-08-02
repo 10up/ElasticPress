@@ -244,6 +244,13 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
 		}
 
+		if ( current_theme_supports( 'block-templates' ) ) {
+			$facets_meta_fields = array_merge(
+				$facets_meta_fields,
+				$this->block_template_meta_fields( 'elasticpress/facet-meta-range' )
+			);
+		}
+
 		/**
 		 * Filter meta fields to be used in aggregations related to meta range blocks.
 		 *
