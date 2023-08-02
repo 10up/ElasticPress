@@ -942,28 +942,29 @@ class TestCommands extends BaseTestCase {
 
 		$fake_request = [
 			'errors' => true,
+			'items'  => [
+				[
+					'index' => [
+						'error' => [
+							'reason' => 'my dummy error reason',
+							'type'   => 'my dummy error type'
+						],
+						'status' => 400,
+						'_id'    => '10',
+						'type'   => '_doc',
+						'_index' => 'dummy-index'
+					]
+				]
+			]
 		];
-
-		$fake_item                       = new \stdClass();
-		$fake_item->items                = new \stdClass();
-		$fake_item->index                = new \stdClass();
-		$fake_item->index->error         = new \stdClass();
-		$fake_item->index->status        = 400;
-		$fake_item->index->_id           = 10;
-		$fake_item->index->type          = '_doc';
-		$fake_item->index->_index        = 'dummy-index';
-		$fake_item->index->error->reason = 'my dummy error reason';
-		$fake_item->index->error->type   = 'my dummy error type';
-
-		$fake_request->items[0] = $fake_item;
 
 		$elasticsearch_mock->expects( $this->exactly( 1 ) )
 			->method( 'remote_request' )
 			->willReturn( $fake_request );
 
 		$index_args = [
-			'method'         => 'cli',
-			'output_method'  => [ $this->command, 'index_output' ],
+			'method'        => 'cli',
+			'output_method' => [ $this->command, 'index_output' ],
 			'stop_on_error' => true,
 			'show-errors'   => false
 		];
