@@ -277,16 +277,15 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 					'post_status' => 'publish',
 				]
 			);
+
 			$movie_id = wp_insert_post(
 				[
 					'post_title'  => 'A new movie',
 					'post_type'   => 'movie',
 					'post_status' => 'publish',
-					'tax_input'   => [
-						'genre' => 'action',
-					],
 				]
 			);
+			wp_set_object_terms( $movie_id, 'action', 'genre' );
 			`,
 		).then(() => {
 			/**
