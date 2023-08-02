@@ -50,6 +50,15 @@ export default () => {
 		headingRef.current.scrollIntoView({ behavior: 'smooth' });
 	}, [offset]);
 
+	/**
+	 * Note: highlighting is redone here because the unified highlight type is not supported in ES5
+	 */
+	const regex = new RegExp(`\\b(${searchTerm})`, 'gi');
+	searchResults.forEach((hit, index) => {
+		const resultsText = hit._source.post_title.replace(regex, (word) => `<mark>${word}</mark>`);
+		searchResults[index].highlight.post_title = resultsText;
+	});
+
 	return (
 		<div className="ep-search-results">
 			<header className="ep-search-results__header">
