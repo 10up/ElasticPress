@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { createRoot } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -9,5 +9,10 @@ import { createRoot } from '@wordpress/element';
 import { Pointers } from './pointers';
 
 const el = document.getElementById('ordering-app');
-const root = createRoot(el);
-root.render(<Pointers />);
+
+if (typeof createRoot === 'function') {
+	const root = createRoot(el);
+	root.render(<Pointers />);
+} else {
+	render(<Pointers />, el);
+}
