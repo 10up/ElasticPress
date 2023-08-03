@@ -157,4 +157,34 @@ class Block {
 			$block_content
 		);
 	}
+
+	/**
+	 * Outputs the block preview
+	 *
+	 * @param \WP_REST_Request $request REST request
+	 * @return string
+	 */
+	public function render_block_preview( $request ) {
+		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Meta\render_block()' );
+
+		$attributes = $request->get_params();
+
+		return $this->render_block( $attributes );
+	}
+
+	/**
+	 * Utilitary method to set default attributes.
+	 *
+	 * @param array $attributes Attributes passed
+	 * @return array
+	 */
+	protected function parse_attributes( $attributes ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Since the Meta facets is only available as a block, attribute parsing is now left to block.json.', 'elasticpress' ),
+			'4.7.0'
+		);
+
+		return $attributes;
+	}
 }
