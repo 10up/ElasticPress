@@ -936,43 +936,45 @@ class TestCommands extends BaseTestCase {
 	 * @since 4.7.0
 	 */
 	public function test_sync_stop_on_error() {
-		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\IndexHelper::class )
-			->setMethods( [ 'bulk_index_dynamically' ] )
-			->getMock();
+		add_filter(
+			'http_response',
+			function( $request ) {
+				$fake_request = json_decode( wp_remote_retrieve_body( $request ) );
 
-		$fake_request = [
-			'errors' => true,
-			'items'  => [
-				[
-					'index' => [
-						'error' => [
-							'reason' => 'my dummy error reason',
-							'type'   => 'my dummy error type'
-						],
-						'status' => 400,
-						'_id'    => '10',
-						'type'   => '_doc',
-						'_index' => 'dummy-index'
-					]
-				]
-			]
-		];
+				if ( ! empty( $fake_request->items ) ) {
+					$fake_request->errors = true;
 
-		$elasticsearch_mock->expects( $this->exactly( 1 ) )
-			->method( 'bulk_index_dynamically' )
-			->willReturn( $fake_request );
+					$fake_item                       = new \stdClass();
+					$fake_item->index                = new \stdClass();
+					$fake_item->index->error         = new \stdClass();
+					$fake_item->index->status        = 400;
+					$fake_item->index->_id           = 10;
+					$fake_item->index->type          = '_doc';
+					$fake_item->index->_index        = 'dummy-index';
+					$fake_item->index->error->reason = 'my dummy error reason';
+					$fake_item->index->error->type   = 'my dummy error type';
 
-		$index_args = [
-			'method'        => 'cli',
-			'output_method' => [ $this->command, 'index_output' ],
-			'stop_on_error' => true,
-			'show-errors'   => false
-		];
+					$fake_request->items[0] = $fake_item;
+
+					$request['body'] = wp_json_encode( $fake_request );
+
+					return $request;
+				}
+
+				return $request;
+			}
+		);
+		Indexables::factory()->get( 'post' )->delete_index();
+
+		$this->ep_factory->post->create_many( 1 );
 
 		$this->expectExceptionMessage( '10 (Post): [my dummy error type] my dummy error reason' );
 
-		ElasticPress\IndexHelper::factory()->full_index(
-			$index_args
+		$this->command->sync(
+			[],
+			[
+				'stop-on-error' => true,
+			]
 		);
 	}
 
