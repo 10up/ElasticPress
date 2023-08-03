@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -16,18 +16,34 @@ import Modal from './apps/modal';
 const init = () => {
 	const el = document.getElementById('ep-instant-results');
 
-	render(
-		<ApiSearchProvider
-			apiEndpoint={apiEndpoint}
-			apiHost={apiHost}
-			argsSchema={argsSchema}
-			paramPrefix={paramPrefix}
-			requestIdBase={requestIdBase}
-		>
-			<Modal />
-		</ApiSearchProvider>,
-		el,
-	);
+	if (typeof createRoot === 'function') {
+		const root = createRoot(el);
+		root.render(
+			<ApiSearchProvider
+				apiEndpoint={apiEndpoint}
+				apiHost={apiHost}
+				argsSchema={argsSchema}
+				paramPrefix={paramPrefix}
+				requestIdBase={requestIdBase}
+			>
+				<Modal />
+			</ApiSearchProvider>,
+			el,
+		);
+	} else {
+		render(
+			<ApiSearchProvider
+				apiEndpoint={apiEndpoint}
+				apiHost={apiHost}
+				argsSchema={argsSchema}
+				paramPrefix={paramPrefix}
+				requestIdBase={requestIdBase}
+			>
+				<Modal />
+			</ApiSearchProvider>,
+			el,
+		);
+	}
 };
 
 window.addEventListener('DOMContentLoaded', init);
