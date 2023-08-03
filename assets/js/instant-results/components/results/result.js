@@ -17,9 +17,9 @@ import Result from '../common/result';
  * @param {object} props.hit Elasticsearch hit.
  * @returns {WPElement} Component element.
  */
-export default ({ hit }) => {
+export default ({ hit, searchTerm, highlightTag }) => {
 	const {
-		highlight: { post_title: title, post_content_plain: postContent = [] },
+		highlight: { post_content_plain: postContent = [] },
 		_source: {
 			meta: { _wc_average_rating: [{ value: averageRating } = {}] = [] },
 			permalink: url,
@@ -30,6 +30,21 @@ export default ({ hit }) => {
 			thumbnail,
 		},
 	} = hit;
+
+	/**
+	 * Note: highlighting is redone here because the unified highlight type is not supported in ES5
+	 */
+	const regex = new RegExp(`\\b(${searchTerm})`, 'gi');
+	let title;
+
+	if (highlightTag === '' || highlightTag === undefined) {
+		title = hit._source.post_title;
+	} else {
+		title = hit._source.post_title.replace(
+			regex,
+			(word) => `<${highlightTag}>${word}</${highlightTag}>`,
+		);
+	}
 
 	const date = postType === 'post' ? formatDate(postDate) : null;
 	const excerpt = postContent.join('…');
