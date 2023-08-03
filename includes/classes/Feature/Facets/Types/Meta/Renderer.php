@@ -309,4 +309,17 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 
 		return $selected_meta;
 	}
+
+	/**
+	 * DEPRECATED. Get the markup for an individual facet item.
+	 *
+	 * @param array  $value Value.
+	 * @param string $url   Filter URL.
+	 * @return string HTML for an individual facet term.
+	 */
+	public function get_meta_value_html( array $value, string $url ) : string {
+		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Meta\Renderer::get_facet_item_value_html()' );
+
+		return $this->get_facet_item_value_html( $value, $url, $value['is_selected'] );
+	}
 }

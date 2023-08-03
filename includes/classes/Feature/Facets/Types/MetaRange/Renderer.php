@@ -121,16 +121,4 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 
 		return true;
 	}
-
-	/**
-	 * Placeholder method to implement the individual item HTML. Yet to be implemented.
-	 *
-	 * @param array  $item        Facet item.
-	 * @param string $url         URL for the facet item.
-	 * @param bool   $is_selected Whether the facet item is selected or not.
-	 * @return null
-	 */
-	public function get_facet_item_value_html( $item, $url, $is_selected ) {
-		return null;
-	}
 }

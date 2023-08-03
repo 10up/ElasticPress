@@ -230,4 +230,15 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		}
 		return $attributes;
 	}
+
+	/**
+	 * DEPRECATED. Check permissions of the /facets/meta/* REST endpoints.
+	 *
+	 * @return WP_Error|true
+	 */
+	public function check_facets_meta_rest_permission() {
+		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Meta\Block::check_facets_rest_permission()' );
+
+		return $this->check_facets_rest_permission();
+	}
 }

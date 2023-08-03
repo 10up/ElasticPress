@@ -2,8 +2,8 @@
 /**
  * Abstract Facet Renderer class.
  *
- * @since  4.7
- * @package  elasticpress
+ * @since 4.7.0
+ * @package elasticpress
  */
 
 namespace ElasticPress\Feature\Facets;
@@ -32,7 +32,9 @@ abstract class Renderer {
 	 *
 	 * @return bool
 	 */
-	abstract protected function should_render() : bool;
+	protected function should_render() : bool {
+		return true;
+	}
 
 	/**
 	 * Given an array of values, reorder them.
@@ -71,5 +73,7 @@ abstract class Renderer {
 	 * @param bool         $is_selected Whether the facet item is selected or not.
 	 * @return string|null
 	 */
-	abstract public function get_facet_item_value_html( $item, string $url, bool $is_selected );
+	public function get_facet_item_value_html( $item, string $url, bool $is_selected ) {
+		return null;
+	}
 }

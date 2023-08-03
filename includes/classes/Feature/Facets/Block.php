@@ -2,8 +2,8 @@
 /**
  * Abstract Facet Block class.
  *
- * @since  4.7
- * @package  elasticpress
+ * @since 4.7.0
+ * @package elasticpress
  */
 
 namespace ElasticPress\Feature\Facets;

@@ -366,7 +366,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param WP_Term $term     Term object.
 	 * @param string  $url      Filter URL.
 	 * @param boolean $selected Whether the term is currently selected.
-	 * @since 4.2.0, 4.7.0 deprecated in favor of a method in the abstract renderer class..
+	 * @since 4.2.0, 4.7.0 deprecated in favor of a method in the abstract renderer class.
 	 * @return string HTML for an individual facet term.
 	 */
 	public function get_facet_term_html( $term, $url, $selected = false ) {
@@ -522,14 +522,5 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		}
 
 		return array_values( $ordered_terms );
-	}
-
-	/**
-	 * Placeholder method to implement the should_render() method. Yet to be implemented.
-	 *
-	 * @return bool
-	 */
-	protected function should_render(): bool {
-		return true;
 	}
 }
