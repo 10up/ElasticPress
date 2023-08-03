@@ -716,7 +716,7 @@ class IndexHelper {
 				);
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
-				$error_type = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
+				$error_type                                       = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
 				$this->queue_message( $errors_output, $error_type );
 			} else {
