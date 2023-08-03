@@ -15,6 +15,8 @@ import Result from '../common/result';
  *
  * @param {object} props Component props.
  * @param {object} props.hit Elasticsearch hit.
+ * @param {object} props.searchTerm Search term from input search.
+ * @param {object} props.highlightTag Selected highlight tag.
  * @returns {WPElement} Component element.
  */
 export default ({ hit, searchTerm, highlightTag }) => {
