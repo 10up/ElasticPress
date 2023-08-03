@@ -57,7 +57,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 3 );
+		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 2 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -930,9 +930,8 @@ class SyncManager extends SyncManagerAbstract {
 	 * @since 4.7.0
 	 * @param string $action        Attach/detach action
 	 * @param int    $attachment_id The attachment ID
-	 * @param int    $parent_id     Attachment parent ID
 	 */
-	public function action_sync_on_media_attach( $action, $attachment_id, $parent_id ) {
+	public function action_sync_on_media_attach( $action, $attachment_id ) {
 		$indexable            = Indexables::factory()->get( $this->indexable_slug );
 		$indexable_post_types = $indexable->get_indexable_post_types();
 
