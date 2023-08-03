@@ -689,6 +689,9 @@ class Command extends WP_CLI_Command {
 	 * [--show-nobulk-errors]
 	 * : Display the error message returned from Elasticsearch when a post fails to index while not using the /_bulk endpoint
 	 *
+	 * [--stop-on-error]
+	 * : Stop indexing if an error is encountered and display the error.
+	 *
 	 * [--offset=<offset_number>]
 	 * : Skip the first n posts (don't forget to remove the `--setup` flag when resuming or the index will be emptied before starting again).
 	 *
@@ -800,7 +803,14 @@ class Command extends WP_CLI_Command {
 			'static_bulk'    => $static_bulk,
 		];
 
-		if ( isset( $assoc_args['show-errors'] ) || ( isset( $assoc_args['show-bulk-errors'] ) && ! $no_bulk ) || ( isset( $assoc_args['show-nobulk-errors'] ) && $no_bulk ) ) {
+		$index_args['stop_on_error'] = WP_CLI\Utils\get_flag_value( $assoc_args, 'stop-on-error', false );
+
+		$show_errors = $index_args['stop_on_error'] ||
+			WP_CLI\Utils\get_flag_value( $assoc_args, 'show-errors', false ) ||
+			( WP_CLI\Utils\get_flag_value( $assoc_args, 'show-bulk-errors', false ) && ! $no_bulk ) ||
+			( WP_CLI\Utils\get_flag_value( $assoc_args, 'show-nobulk-errors', false ) && $no_bulk );
+
+		if ( $show_errors ) {
 			$index_args['show_errors'] = true;
 		}
 
@@ -1310,6 +1320,7 @@ class Command extends WP_CLI_Command {
 				if ( empty( $args['show_errors'] ) ) {
 					return;
 				}
+
 				WP_CLI::warning( $message['message'] );
 				break;
 

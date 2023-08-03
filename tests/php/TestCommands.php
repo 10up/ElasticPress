@@ -198,7 +198,7 @@ class TestCommands extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$blog_id = $this->factory->blog->create();
-		update_blog_option( $blog_id, 'ep_indexable', 'no' );
+		update_site_meta( $blog_id, 'ep_indexable', 'no' );
 
 		$this->factory->blog->create();
 
@@ -927,6 +927,55 @@ class TestCommands extends BaseTestCase {
 		$this->assertStringContainsString( 'Transport:', $output );
 		$this->assertStringContainsString( 'Context:', $output );
 		$this->assertStringContainsString( 'Response:', $output );
+	}
+
+	/**
+	 * Test sync command with stop-on-error flag.
+	 * Expect an error message that stops the sync instead of a warning.
+	 *
+	 * @since 4.7.0
+	 */
+	public function test_sync_stop_on_error() {
+		add_filter(
+			'http_response',
+			function( $request ) {
+				$fake_request = json_decode( wp_remote_retrieve_body( $request ) );
+
+				if ( ! empty( $fake_request->items ) ) {
+					$fake_request->errors = true;
+
+					$fake_item                       = new \stdClass();
+					$fake_item->index                = new \stdClass();
+					$fake_item->index->error         = new \stdClass();
+					$fake_item->index->status        = 400;
+					$fake_item->index->_id           = 10;
+					$fake_item->index->type          = '_doc';
+					$fake_item->index->_index        = 'dummy-index';
+					$fake_item->index->error->reason = 'my dummy error reason';
+					$fake_item->index->error->type   = 'my dummy error type';
+
+					$fake_request->items[0] = $fake_item;
+
+					$request['body'] = wp_json_encode( $fake_request );
+
+					return $request;
+				}
+
+				return $request;
+			}
+		);
+		Indexables::factory()->get( 'post' )->delete_index();
+
+		$this->ep_factory->post->create();
+
+		$this->expectExceptionMessage( '10 (Post): [my dummy error type] my dummy error reason' );
+
+		$this->command->sync(
+			[],
+			[
+				'stop-on-error' => true,
+			]
+		);
 	}
 
 	/**
