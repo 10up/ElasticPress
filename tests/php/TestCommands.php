@@ -966,7 +966,7 @@ class TestCommands extends BaseTestCase {
 		);
 		Indexables::factory()->get( 'post' )->delete_index();
 
-		$this->ep_factory->post->create_many( 1 );
+		$this->ep_factory->post->create();
 
 		$this->expectExceptionMessage( '10 (Post): [my dummy error type] my dummy error reason' );
 
