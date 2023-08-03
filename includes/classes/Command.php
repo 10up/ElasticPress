@@ -1391,64 +1391,18 @@ class Command extends WP_CLI_Command {
 	 * @param array $assoc_args Associative CLI args.
 	 */
 	public function request( $args, $assoc_args ) {
-		$pretty             = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
-		$debug_http_request = \WP_CLI\Utils\get_flag_value( $assoc_args, 'debug-http-request' );
-		$path               = $args[0];
-		$method             = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
-		$body               = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
-		$request_args       = [
+		$pretty       = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
+		$path         = $args[0];
+		$method       = isset( $assoc_args['method'] ) ? $assoc_args['method'] : 'GET';
+		$body         = isset( $assoc_args['body'] ) ? $assoc_args['body'] : '';
+		$request_args = [
 			'method' => $method,
 		];
 		if ( 'GET' !== $method && ! empty( $body ) ) {
 			$request_args['body'] = $body;
 		}
 
-		if ( ! empty( $debug_http_request ) ) {
-			add_filter(
-				'http_api_debug',
-				function ( $response, $context, $transport, $request_args, $url ) {
-					// phpcs:disable WordPress.PHP.DevelopmentFunctions
-					WP_CLI::line(
-						sprintf(
-							/* translators: URL of the request */
-							esc_html__( 'URL: %s', 'elasticpress' ),
-							$url
-						)
-					);
-					WP_CLI::line(
-						sprintf(
-							/* translators: Request arguments (outputted with print_r()) */
-							esc_html__( 'Request Args: %s', 'elasticpress' ),
-							print_r( $request_args, true )
-						)
-					);
-					WP_CLI::line(
-						sprintf(
-							/* translators: HTTP transport used */
-							esc_html__( 'Transport: %s', 'elasticpress' ),
-							$transport
-						)
-					);
-					WP_CLI::line(
-						sprintf(
-							/* translators: Context under which the http_api_debug hook is fired */
-							esc_html__( 'Context: %s', 'elasticpress' ),
-							$context
-						)
-					);
-					WP_CLI::line(
-						sprintf(
-							/* translators: HTTP response (outputted with print_r()) */
-							esc_html__( 'Response: %s', 'elasticpress' ),
-							print_r( $response, true )
-						)
-					);
-					// phpcs:enable WordPress.PHP.DevelopmentFunctions
-				},
-				10,
-				5
-			);
-		}
+		$this->maybe_add_http_api_debug_filter( $assoc_args );
 		$response = Elasticsearch::factory()->remote_request( $path, $request_args, [], 'wp_cli_request' );
 
 		if ( is_wp_error( $response ) ) {
@@ -1602,6 +1556,9 @@ class Command extends WP_CLI_Command {
 	 * <ID>
 	 * : Content ID
 	 *
+	 * [--debug-http-request]
+	 * : Enable debugging
+	 *
 	 * [--pretty]
 	 * : Use this flag to render a pretty-printed version of the JSON response.
 	 *
@@ -1623,13 +1580,72 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( $message );
 		}
 
+		$this->maybe_add_http_api_debug_filter( $assoc_args );
+
 		$object = $indexable->get( $args[1] );
 		if ( ! $object ) {
-			WP_CLI::error( esc_html__( 'Not found', 'elasticpress' ) );
+			WP_CLI::error( $object );
 		}
 
 		$pretty = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
 
 		$this->pretty_json_encode( $object, $pretty );
+	}
+
+	/**
+	 * Given associative CLI args, conditionally displays HTTP debug info
+	 *
+	 * @since 4.7.0
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	protected function maybe_add_http_api_debug_filter( $assoc_args ) {
+		$debug_http_request = \WP_CLI\Utils\get_flag_value( $assoc_args, 'debug-http-request' );
+
+		if ( ! empty( $debug_http_request ) ) {
+			add_filter(
+				'http_api_debug',
+				function ( $response, $context, $transport, $request_args, $url ) {
+					// phpcs:disable WordPress.PHP.DevelopmentFunctions
+					WP_CLI::line(
+						sprintf(
+							/* translators: URL of the request */
+							esc_html__( 'URL: %s', 'elasticpress' ),
+							$url
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: Request arguments (outputted with print_r()) */
+							esc_html__( 'Request Args: %s', 'elasticpress' ),
+							print_r( $request_args, true )
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: HTTP transport used */
+							esc_html__( 'Transport: %s', 'elasticpress' ),
+							$transport
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: Context under which the http_api_debug hook is fired */
+							esc_html__( 'Context: %s', 'elasticpress' ),
+							$context
+						)
+					);
+					WP_CLI::line(
+						sprintf(
+							/* translators: HTTP response (outputted with print_r()) */
+							esc_html__( 'Response: %s', 'elasticpress' ),
+							print_r( $response, true )
+						)
+					);
+					// phpcs:enable WordPress.PHP.DevelopmentFunctions
+				},
+				10,
+				5
+			);
+		}
 	}
 }
