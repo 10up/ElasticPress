@@ -959,7 +959,7 @@ class TestCommands extends BaseTestCase {
 		];
 
 		$elasticsearch_mock->expects( $this->exactly( 1 ) )
-			->method( 'remote_request' )
+			->method( 'bulk_index_dynamically' )
 			->willReturn( $fake_request );
 
 		$index_args = [
