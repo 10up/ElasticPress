@@ -1595,7 +1595,7 @@ class Command extends WP_CLI_Command {
 
 		$object = $indexable->get( $args[1] );
 		if ( ! $object ) {
-			WP_CLI::error( $object );
+			WP_CLI::error( esc_html__( 'Not found', 'elasticpress' ) );
 		}
 
 		$pretty = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
