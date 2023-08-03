@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 
 /**
  * Internal dependences.
@@ -10,7 +10,6 @@ import FacetSelector from './components/facet-selector';
 
 document.addEventListener('DOMContentLoaded', () => {
 	const input = document.getElementById('feature_instant_results_facets');
-
 	const {
 		className,
 		dataset: { fieldName },
@@ -19,14 +18,28 @@ document.addEventListener('DOMContentLoaded', () => {
 		value,
 	} = input;
 
-	render(
-		<FacetSelector
-			className={className}
-			data-field-name={fieldName}
-			defaultValue={value}
-			id={id}
-			name={name}
-		/>,
-		input.parentElement,
-	);
+	if (typeof createRoot === 'function') {
+		const root = createRoot(input.parentElement);
+
+		root.render(
+			<FacetSelector
+				className={className}
+				data-field-name={fieldName}
+				defaultValue={value}
+				id={id}
+				name={name}
+			/>,
+		);
+	} else {
+		render(
+			<FacetSelector
+				className={className}
+				data-field-name={fieldName}
+				defaultValue={value}
+				id={id}
+				name={name}
+			/>,
+			input.parentElement,
+		);
+	}
 });
