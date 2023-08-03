@@ -3,7 +3,7 @@
  */
 import { SelectControl } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { __, _x } from '@wordpress/i18n';
 
 /**
  * Facet sorting control component.
@@ -25,13 +25,19 @@ export default ({ onChange, orderby, order }) => {
 			value: 'count/asc',
 		},
 		{
-			/* translators: label for ordering posts by title in ascending order */
-			label: __('A → Z', 'elasticpress'),
+			label: _x(
+				'A → Z',
+				'label for ordering posts by title in ascending order',
+				'elasticpress',
+			),
 			value: 'name/asc',
 		},
 		{
-			/* translators: label for ordering posts by title in descending order */
-			label: __('Z → A', 'elasticpress'),
+			label: _x(
+				'Z → A',
+				'label for ordering posts by title in descending order',
+				'elasticpress',
+			),
 			value: 'name/desc',
 		},
 	];
