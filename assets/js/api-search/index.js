@@ -107,6 +107,7 @@ export const ApiSearchProvider = ({
 		searchResults: [],
 		totalResults: 0,
 		isFirstSearch: true,
+		searchTerm: '',
 	});
 
 	/**
