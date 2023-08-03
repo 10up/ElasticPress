@@ -1101,9 +1101,74 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringStartsWith( "{\n", $output );
+	}
+
+	/**
+	 * Test the `get` command
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get() {
+		$post_id = $this->ep_factory->post->create();
+
+		$this->command->get( [ 'post', $post_id ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( '{', $output );
+		$this->assertStringContainsString( '"post_id":' . $post_id, $output );
 
 		// clean output buffer
 		ob_clean();
+
+		// test with --pretty flag
+		$this->command->get( [ 'post', $post_id ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( "{\n", $output );
+		$this->assertStringContainsString( '"post_id": ' . $post_id, $output );
+	}
+
+	/**
+	 * Test the `get` command when an indexable does not exist
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_wrong_indexable() {
+		$this->expectException( '\Exception' );
+		$this->command->get( [ 'absent', '1' ], [] );
+	}
+
+	/**
+	 * Test the `get` command when a post is not found
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_not_found() {
+		$this->expectExceptionMessage( 'Not found' );
+		$this->command->get( [ 'post', '99999' ], [] );
+	}
+
+	/**
+	 * Test the `get` command when `--debug-http-request` is passed
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_debug_http_request() {
+		$this->expectExceptionMessage( 'Not found' );
+
+		// test with --debug-http-request flag
+		$this->command->get( [ 'post', '99999' ], [ 'debug-http-request' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'URL:', $output );
+		$this->assertStringContainsString( 'Request Args:', $output );
+		$this->assertStringContainsString( 'Transport:', $output );
+		$this->assertStringContainsString( 'Context:', $output );
+		$this->assertStringContainsString( 'Response:', $output );
 	}
 
 	/**
