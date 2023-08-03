@@ -166,7 +166,8 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$settings = wp_parse_args(
 			$settings,
 			array(
-				'match_type' => 'all',
+				'match_type'         => 'all',
+				'match_type_between' => 'all',
 			)
 		);
 
@@ -184,7 +185,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			];
 		}
 
-		if ( ! empty( $selected_filters['taxonomies'] ) && 'any' === $settings['match_type'] ) {
+		if ( ! empty( $selected_filters['taxonomies'] ) && 'any' === $settings['match_type_between'] ) {
 			$tax_query['relation'] = 'or';
 		}
 

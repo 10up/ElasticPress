@@ -306,6 +306,7 @@ class TestFacet extends BaseTestCase {
 			return 'any';
 		};
 		add_filter( 'ep_facet_match_type', $change_match_type );
+		add_filter( 'ep_facet_match_type_between', $change_match_type );
 
 		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
 		$expected_filter = [
