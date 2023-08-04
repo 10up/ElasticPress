@@ -19,7 +19,7 @@ import Sort from '../tools/sort';
  */
 export default () => {
 	const {
-		args: { offset, per_page },
+		args: { offset, per_page, highlight },
 		nextPage,
 		previousPage,
 		searchResults,
@@ -90,7 +90,7 @@ export default () => {
 			</header>
 
 			{searchResults.map((hit) => (
-				<Result key={hit._id} hit={hit} />
+				<Result key={hit._id} hit={hit} searchTerm={searchTerm} highlightTag={highlight} />
 			))}
 
 			<Pagination
