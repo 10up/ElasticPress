@@ -250,13 +250,9 @@ class Command extends WP_CLI_Command {
 				$assoc_args['network-wide'] = 0;
 			}
 
-			$sites = Utils\get_sites( $assoc_args['network-wide'] );
+			$sites = Utils\get_sites( $assoc_args['network-wide'], true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexable_objects as $indexable ) {
@@ -513,7 +509,7 @@ class Command extends WP_CLI_Command {
 			if ( ! is_numeric( $assoc_args['network-wide'] ) ) {
 				$assoc_args['network-wide'] = 0;
 			}
-			$sites = Utils\get_sites( $assoc_args['network-wide'] );
+			$sites = Utils\get_sites( $assoc_args['network-wide'], false );
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site['blog_id'] );
@@ -628,14 +624,10 @@ class Command extends WP_CLI_Command {
 	 * @return array|bool
 	 */
 	private function create_network_alias_helper( Indexable $indexable ) {
-		$sites   = Utils\get_sites();
+		$sites   = Utils\get_sites( 0, true );
 		$indexes = [];
 
 		foreach ( $sites as $site ) {
-			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-				continue;
-			}
-
 			switch_to_blog( $site['blog_id'] );
 
 			$indexes[] = $indexable->get_index_name();
