@@ -106,6 +106,7 @@ class EP_Uninstaller {
 
 		// Uninstall ElasticPress.
 		$this->clean_options_and_transients();
+		$this->clean_site_meta();
 		$this->remove_elasticpress_capability();
 	}
 
@@ -196,6 +197,18 @@ class EP_Uninstaller {
 			$this->delete_options();
 			$this->delete_transients();
 			$this->delete_transients_by_option_name();
+		}
+	}
+
+	/**
+	 * Delete all site meta
+	 *
+	 * @since 4.7.0
+	 */
+	protected function clean_site_meta() {
+		$sites = Utils\get_sites();
+		foreach ( $sites as $site ) {
+			delete_site_meta( $site->blog_id, 'ep_indexable' );
 		}
 	}
 
