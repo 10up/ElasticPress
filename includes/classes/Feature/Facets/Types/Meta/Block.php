@@ -181,7 +181,7 @@ class Block {
 	protected function parse_attributes( $attributes ) {
 		_doing_it_wrong(
 			__METHOD__,
-			esc_html__( 'Since the Meta facets is only available as a block, attribute parsing is now left to block.json.', 'elasticpress' ),
+			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
 			'4.7.0'
 		);
 

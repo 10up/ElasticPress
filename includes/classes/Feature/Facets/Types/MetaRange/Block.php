@@ -209,4 +209,20 @@ class Block {
 
 		return $meta_keys;
 	}
+
+	/**
+	 * Utilitary method to set default attributes.
+	 *
+	 * @param array $attributes Attributes passed
+	 * @return array
+	 */
+	protected function parse_attributes( $attributes ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
+			'4.7.0'
+		);
+
+		return $attributes;
+	}
 }

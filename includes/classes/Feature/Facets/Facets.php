@@ -188,6 +188,20 @@ class Facets extends Feature {
 	}
 
 	/**
+	 * Output scripts for widget admin
+	 *
+	 * @param  string $hook WP hook
+	 * @since  2.5
+	 */
+	public function admin_scripts( $hook ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Facets no longer require admin styles.', 'elasticpress' ),
+			'4.7.0'
+		);
+	}
+
+	/**
 	 * Output front end facets styles
 	 *
 	 * @since 2.5
