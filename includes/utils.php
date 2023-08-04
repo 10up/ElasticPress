@@ -302,7 +302,6 @@ function get_site( $site_id ) {
  * @return array
  */
 function get_sites( $limit = 0, $only_indexable = false ) {
-
 	if ( ! is_multisite() ) {
 		return [];
 	}
@@ -324,7 +323,7 @@ function get_sites( $limit = 0, $only_indexable = false ) {
 					[
 						'key'     => 'ep_indexable',
 						'value'   => 'no',
-						'compare' => '<>',
+						'compare' => '!=',
 					],
 					[
 						'key'     => 'ep_indexable',
