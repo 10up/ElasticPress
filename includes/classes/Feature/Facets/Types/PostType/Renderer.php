@@ -119,7 +119,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 						$field_filters[ $facet_type->get_filter_type() ]['terms'][ $facetable_post_type_data['value'] ] = 1;
 					}
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_facet_item_value_html( $facetable_post_type_data, $feature->build_query_url( $field_filters ), $facetable_post_type_data['is_selected'] );
+					echo $this->get_facet_item_value_html( $facetable_post_type_data, $feature->build_query_url( $field_filters ) );
 					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				}
 				?>
@@ -139,10 +139,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @param array  $item Facet item.
 	 * @param string $url   Filter URL.
-	 * @param bool   $is_selected Whether the facet item is selected or not.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_facet_item_value_html( $item, $url, $is_selected ) : string {
+	public function get_facet_item_value_html( $item, $url ) : string {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
@@ -180,7 +179,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 */
 		$accessible_label = apply_filters(
 			'ep_facet_post_type_value_accessible_label',
-			$is_selected
+			$item['is_selected']
 				/* translators: %s: Filter term name. */
 				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $label )
 				/* translators: %s: Filter term name. */
@@ -192,14 +191,14 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 			'<a aria-label="%1$s" %2$s rel="nofollow"><div class="ep-checkbox %3$s" role="presentation"></div>%4$s</a>',
 			esc_attr( $accessible_label ),
 			$item['count'] ? $href : 'aria-role="link" aria-disabled="true"',
-			$is_selected ? 'checked' : '',
+			$item['is_selected'] ? 'checked' : '',
 			wp_kses_post( $label )
 		);
 
 		$html = sprintf(
 			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
 			0,
-			$is_selected ? 'selected' : '',
+			$item['is_selected'] ? 'selected' : '',
 			! $item['count'] ? 'empty-term' : '',
 			esc_attr( strtolower( $item['value'] ) ),
 			esc_attr( strtolower( $item['value'] ) ),

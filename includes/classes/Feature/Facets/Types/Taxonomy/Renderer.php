@@ -370,9 +370,10 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @return string HTML for an individual facet term.
 	 */
 	public function get_facet_term_html( $term, $url, $selected = false ) {
+		$term['selected'] = $selected;
 		_deprecated_function( __FUNCTION__, '4.7.0', '$this->renderer->get_facet_item_value_html()' );
 
-		return $this->get_facet_item_value_html( $term, $url, $selected );
+		return $this->get_facet_item_value_html( $term, $url );
 	}
 
 	/**
@@ -380,10 +381,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @param WP_Term $item     Facet item Term object.
 	 * @param string  $url      Filter URL.
-	 * @param boolean $is_selected Whether the term is currently selected.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_facet_item_value_html( $item, $url, $is_selected = false ) {
+	public function get_facet_item_value_html( $item, $url ) {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
@@ -404,7 +404,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term label.
 		 */
-		$label = apply_filters( 'ep_facet_widget_term_label', $label, $item, $is_selected );
+		$label = apply_filters( 'ep_facet_widget_term_label', $label, $item, $item['is_selected'] );
 
 		/**
 		 * Filter the accessible label for an individual facet term link.
@@ -423,27 +423,27 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 */
 		$accessible_label = apply_filters(
 			'ep_facet_widget_term_accessible_label',
-			$is_selected
+			$item['is_selected']
 				/* translators: %s: Filter term name. */
 				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $item->name )
 				/* translators: %s: Filter term name. */
 				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), $item->name ),
 			$item,
-			$is_selected
+			$item['is_selected']
 		);
 
 		$link = sprintf(
 			'<a aria-label="%1$s" %2$s rel="nofollow"><div class="ep-checkbox %3$s" role="presentation"></div>%4$s</a>',
 			esc_attr( $accessible_label ),
 			$item->count ? $href : 'aria-role="link" aria-disabled="true"',
-			$is_selected ? 'checked' : '',
+			$item['is_selected'] ? 'checked' : '',
 			wp_kses_post( $label )
 		);
 
 		$html = sprintf(
 			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
 			absint( $item->level ),
-			$is_selected ? 'selected' : '',
+			$item['is_selected'] ? 'selected' : '',
 			! $item->count ? 'empty-term' : '',
 			esc_attr( strtolower( $item->name ) ),
 			esc_attr( strtolower( $item->slug ) ),
@@ -457,7 +457,10 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 * HTML must have data-term-name and data-term-slug attributes set to
 		 * lowercase versions of the term name and slug respectively.
 		 *
+		 * Kept for retro compatibility.
+		 *
 		 * @since 3.6.3
+		 * @deprecated 4.7.0
 		 * @hook ep_facet_widget_term_html
 		 * @param {string} $html Facet term HTML.
 		 * @param {WP_Term} $term Term object.
@@ -465,7 +468,23 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term HTML.
 		 */
-		return apply_filters( 'ep_facet_widget_term_html', $html, $item, $url, $is_selected );
+		$html = apply_filters_deprecated( 'ep_facet_widget_term_html', array( $html, $item, $url, $item['is_selected'] ), '4.7.0', 'ep_facet_taxonomy_value_html' );
+
+		/**
+		 * Filter the HTML for an individual facet post-type value.
+		 *
+		 * For term search to work correctly the outermost wrapper of the term
+		 * HTML must have data-term-name and data-term-slug attributes set to
+		 * lowercase versions of the term name and slug respectively.
+		 *
+		 * @since 4.7.0
+		 * @hook ep_facet_taxonomy_value_html
+		 * @param {string} $html  Facet post-type value HTML.
+		 * @param {array}  $item Value array. It contains `value`, `name`, `count`, and `is_selected`.
+		 * @param {string} $url   Filter URL.
+		 * @return {string} Individual facet taxonomy value HTML.
+		 */
+		return apply_filters( 'ep_facet_taxonomy_value_html', $html, $item, $url );
 	}
 
 	/**

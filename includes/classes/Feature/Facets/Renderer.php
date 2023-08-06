@@ -70,10 +70,9 @@ abstract class Renderer {
 	 *
 	 * @param array|object $item        Facet item.
 	 * @param string       $url         URL for the facet item.
-	 * @param bool         $is_selected Whether the facet item is selected or not.
 	 * @return string|null
 	 */
-	public function get_facet_item_value_html( $item, string $url, bool $is_selected ) {
+	public function get_facet_item_value_html( $item, string $url ) {
 		return null;
 	}
 }
