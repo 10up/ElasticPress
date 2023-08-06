@@ -47,7 +47,7 @@ abstract class Block {
 	/**
 	 * Check if the current user has permission to view the facets REST endpoint.
 	 *
-	 * @return string|\WP_Error
+	 * @return true|\WP_Error
 	 */
 	public function check_facets_rest_permission() {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {

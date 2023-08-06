@@ -36,7 +36,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			'facets/taxonomies',
 			[
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
+				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
 				'callback'            => [ $this, 'get_rest_facetable_taxonomies' ],
 			]
 		);
@@ -45,7 +45,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			'facets/block-preview',
 			[
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_taxonomies_rest_permission' ],
+				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
 				'callback'            => [ $this, 'render_block_preview' ],
 				'args'                => [
 					'facet'        => [
@@ -67,11 +67,23 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	}
 
 	/**
-	 * Check permissions of the /facets/taxonomies and facets/block-preview REST endpoints.
+	 * DEPRECATED Check permissions of the /facets/taxonomies and facets/block-preview REST endpoints.
 	 *
+	 * @deprecated 4.7.0
 	 * @return WP_Error|true
 	 */
 	public function check_facets_taxonomies_rest_permission() {
+		_deprecated_function( __FUNCTION__, '4.7.0', '$this->check_facets_rest_permission()' );
+
+		return $this->check_facets_rest_permission();
+	}
+
+	/**
+	 * Check permissions of the /facets/taxonomies and facets/block-preview REST endpoints.
+	 *
+	 * @return true|\WP_Error
+	 */
+	public function check_facets_rest_permission() {
 		if ( ! is_user_logged_in() ) {
 			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
 		}
