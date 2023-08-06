@@ -58,6 +58,8 @@ export default (state, action) => {
 				aggregations,
 			} = action.response;
 
+			newState.isFirstSearch = false;
+
 			/**
 			 * Total number of items.
 			 */
