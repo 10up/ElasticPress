@@ -37,45 +37,53 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		cy.getBlocksList().should('contain.text', 'Filter by Taxonomy');
 		cy.insertBlock('Filter by Taxonomy');
 		cy.insertBlock('Filter by Taxonomy');
-		cy.get('.wp-block-elasticpress-facet').last().as('block');
+		cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
+		cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
 
 		/**
 		 * Verify that the blocks are inserted into the editor, and contain the
 		 * expected content.
 		 */
-		cy.get('@block').find('input').should('have.attr', 'placeholder', 'Search Categories');
+		cy.get('@firstBlock').find('select').should('contain', 'Select taxonomy');
+		cy.get('@secondBlock').find('select').should('contain', 'Select taxonomy');
 
 		/**
-		 * Set the second block to use Tags and sort by name in ascending order.
+		 * Set the first block to use Categories.
 		 */
-		cy.get('@block').click();
+		cy.get('@firstBlock').click();
 		cy.openBlockSettingsSidebar();
-		cy.get('.block-editor-block-inspector select').select('post_tag');
-		cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
-
-		// Make sure it waits for the correct request.
-		cy.intercept('/wp-json/elasticpress/v1/facets/block-preview*orderby=name&order=asc*').as(
-			'blockPreview1',
-		);
-		cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
-		cy.wait('@blockPreview1');
+		cy.get('.block-editor-block-inspector select').first().select('category');
 
 		/**
-		 * Verify the block has the expected output in the editor based on the
+		 * Set the last block to use Tags and sort by name in ascending order.
+		 */
+		cy.get('@secondBlock').click();
+		cy.get('.block-editor-block-inspector select').first().select('post_tag');
+		cy.get('.block-editor-block-inspector select').last().select('name/asc');
+
+		/**
+		 * Make sure it waits for the correct request.
+		 */
+		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
+		cy.wait('@blockPreview');
+
+		/**
+		 * Verify the blocks have the expected output in the editor based on the
 		 * block's settings.
 		 */
-		cy.get('@block').find('input').should('have.attr', 'placeholder', 'Search Tags');
-		cy.get('@block').find('.term').should('be.elementsSortedAlphabetically');
+		cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Categories');
+		cy.get('@secondBlock').find('input').should('have.attr', 'placeholder', 'Search Tags');
+		cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
 
 		/**
 		 * Verify the display count setting on the editor.
 		 */
-		cy.get('@block')
+		cy.get('@secondBlock')
 			.contains('.term', /\(\d*\)$/)
 			.should('not.exist');
 		cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
-		cy.wait('@blockPreview1');
-		cy.get('@block')
+		cy.wait('@blockPreview');
+		cy.get('@secondBlock')
 			.contains('.term', /(^\(\d*\))$/)
 			.should('not.exist');
 
@@ -246,8 +254,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@block').click();
 		cy.get('.block-editor-block-inspector option[value="post_tag"]').should('be.selected');
-		cy.get('.block-editor-block-inspector input[value="name"]').should('be.checked');
-		cy.get('.block-editor-block-inspector input[value="asc"]').should('be.checked');
+		cy.get('.block-editor-block-inspector option[value="name/asc"]').should('be.selected');
 	});
 
 	/**
@@ -353,11 +360,11 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				true,
 			);
 
-			cy.intercept(
-				'/wp-json/elasticpress/v1/facets/meta/block-preview*facet=meta_field_1*',
-			).as('blockPreview1');
-			cy.get('.block-editor-block-inspector select').select('meta_field_1');
-			cy.wait('@blockPreview1');
+			cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet-meta*').as(
+				'blockPreview',
+			);
+			cy.get('.block-editor-block-inspector select').first().select('meta_field_1');
+			cy.wait('@blockPreview');
 
 			/**
 			 * Verify that the blocks are inserted into the editor, and contain the
@@ -372,7 +379,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				.contains('.term', /\(\d*\)$/)
 				.should('not.exist');
 			cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
-			cy.wait('@blockPreview1');
+			cy.wait('@blockPreview');
 			cy.get('@block1')
 				.contains('.term', /(^\(\d*\))$/)
 				.should('not.exist');
@@ -392,14 +399,9 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				'Search Meta 2',
 				true,
 			);
-			cy.get('.block-editor-block-inspector select').select('meta_field_2');
-			cy.get('.block-editor-block-inspector input[type="radio"][value="name"]').click();
-
-			cy.intercept(
-				'/wp-json/elasticpress/v1/facets/meta/block-preview*orderby=name&order=asc*',
-			).as('blockPreview2');
-			cy.get('.block-editor-block-inspector input[type="radio"][value="asc"]').click();
-			cy.wait('@blockPreview2');
+			cy.get('.block-editor-block-inspector select').first().select('meta_field_2');
+			cy.get('.block-editor-block-inspector select').last().select('name/asc');
+			cy.wait('@blockPreview');
 
 			/**
 			 * Verify the block has the expected output in the editor based on the
@@ -566,7 +568,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 * Test that the Filter by Metadata Range block is functional.
 		 */
 		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
-			cy.intercept('**/meta-range/keys*').as('keysApiRequest');
+			cy.intercept('**/meta/keys*').as('keysApiRequest');
 			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
 			cy.intercept('**/sidebars/*').as('sidebarsRest');
 
@@ -608,7 +610,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * It should be possible to change the field from the block inspector.
 			 */
-			cy.get('.block-editor-block-inspector select').select('non_numeric_meta_field');
+			cy.get('.block-editor-block-inspector select').first().select('non_numeric_meta_field');
 
 			/**
 			 * A non-numeric field should show a warning.
@@ -618,7 +620,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * Changing the field back should restore a preview.
 			 */
-			cy.get('.block-editor-block-inspector select').select('numeric_meta_field');
+			cy.get('.block-editor-block-inspector select').first().select('numeric_meta_field');
 			cy.get('@block').get('.ep-range-facet').should('exist');
 
 			/**
@@ -629,7 +631,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.insertBlock('Filter by Metadata');
 			cy.get('.wp-block-elasticpress-facet-meta').last().click();
 			cy.openBlockSettingsSidebar();
-			cy.get('.block-editor-block-inspector select').select('non_numeric_meta_field');
+			cy.get('.block-editor-block-inspector select').first().select('non_numeric_meta_field');
 
 			/**
 			 * Save widgets and visit the front page.
