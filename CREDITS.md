@@ -214,6 +214,8 @@ Thank you to all the people who have already contributed to this repository via 
 [Nabi (@navidabdi)](https://github.com/navidabdi)
 [Dmitry Seleznyov (@selim13)](https://github.com/selim13)
 [Martin Widmann (@mwidmann)](https://github.com/mwidmann)
+[xxx (@wildberrylillet)](https://github.com/wildberrylillet)
+[@tomi10up](https://github.com/tomi10up)
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
