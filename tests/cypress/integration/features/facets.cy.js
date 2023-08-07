@@ -37,8 +37,8 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		cy.getBlocksList().should('contain.text', 'Filter by Taxonomy');
 		cy.insertBlock('Filter by Taxonomy');
 		cy.insertBlock('Filter by Taxonomy');
-		cy.get('.wp-block-elasticpress-facet').first().as('firstBlock');
-		cy.get('.wp-block-elasticpress-facet').last().as('secondBlock');
+		cy.get('.wp-block.wp-block-elasticpress-facet').first().as('firstBlock');
+		cy.get('.wp-block.wp-block-elasticpress-facet').last().as('secondBlock');
 
 		/**
 		 * Verify that the blocks are inserted into the editor, and contain the
@@ -88,6 +88,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			.should('not.exist');
 
 		/**
+		 * Test that the block supports changing styles.
+		 */
+		cy.get('@secondBlock').supportsBlockColors(true);
+		cy.get('@secondBlock').supportsBlockTypography(true);
+		cy.get('@secondBlock').supportsBlockDimensions(true);
+
+		/**
 		 * Save widgets and visit the front page.
 		 */
 		cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
@@ -110,14 +117,22 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		cy.get('@secondBlock')
 			.contains('.term', /(^\(\d*\))$/)
 			.should('not.exist');
+
+		/**
+		 * Verify that the block supports changing styles.
+		 */
+		cy.get('@secondBlock').supportsBlockColors();
+		cy.get('@secondBlock').supportsBlockTypography();
+		cy.get('@secondBlock').supportsBlockDimensions();
+
 		/**
 		 * Typing in the input should filter the list of terms for that block
 		 * without affecting other blocks.
 		 */
 		cy.get('@firstBlock').find('input').as('firstBlockSearch').clearThenType('Parent C');
-		cy.get('@firstBlock').contains('.term', 'Parent Category').should('be.visible');
-		cy.get('@firstBlock').contains('.term', 'Child Category').should('not.be.visible');
-		cy.get('@secondBlock').contains('.term', 'content').should('be.visible');
+		cy.get('@firstBlock').contains('.term', 'Parent Category').should('not.have.class', 'hide');
+		cy.get('@firstBlock').contains('.term', 'Child Category').should('have.class', 'hide');
+		cy.get('@secondBlock').contains('.term.hide').should('not.exist');
 
 		/**
 		 * Clearing the input should restore previously hidden terms and allow
@@ -350,10 +365,10 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.openBlockInserter();
 			cy.getBlocksList().should('contain.text', 'Filter by Metadata');
 			cy.insertBlock('Filter by Metadata');
-			cy.get('.wp-block-elasticpress-facet-meta').last().as('block1');
+			cy.get('.wp-block.wp-block-elasticpress-facet-meta').last().as('firstBlock');
 
 			// Configure the block
-			cy.get('@block1').click();
+			cy.get('@firstBlock').click();
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 1',
@@ -370,17 +385,17 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 * Verify that the blocks are inserted into the editor, and contain the
 			 * expected content.
 			 */
-			cy.get('@block1').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
+			cy.get('@firstBlock').find('input').should('have.attr', 'placeholder', 'Search Meta 1');
 
 			/**
 			 * Verify the display count setting on the editor.
 			 */
-			cy.get('@block1')
+			cy.get('@firstBlock')
 				.contains('.term', /\(\d*\)$/)
 				.should('not.exist');
 			cy.get('.block-editor-block-inspector .components-form-toggle__input').click();
 			cy.wait('@blockPreview');
-			cy.get('@block1')
+			cy.get('@firstBlock')
 				.contains('.term', /(^\(\d*\))$/)
 				.should('not.exist');
 
@@ -390,10 +405,10 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.openBlockInserter();
 			cy.getBlocksList().should('contain.text', 'Filter by Metadata');
 			cy.insertBlock('Filter by Metadata');
-			cy.get('.wp-block-elasticpress-facet-meta').last().as('block2');
+			cy.get('.wp-block.wp-block-elasticpress-facet-meta').last().as('secondBlock');
 
 			// Configure the block
-			cy.get('@block2').click();
+			cy.get('@secondBlock').click();
 			cy.openBlockSettingsSidebar();
 			cy.get('.block-editor-block-inspector input[type="text"]').clearThenType(
 				'Search Meta 2',
@@ -407,8 +422,17 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 * Verify the block has the expected output in the editor based on the
 			 * block's settings.
 			 */
-			cy.get('@block2').find('input').should('have.attr', 'placeholder', 'Search Meta 2');
-			cy.get('@block2').find('.term').should('be.elementsSortedAlphabetically');
+			cy.get('@secondBlock')
+				.find('input')
+				.should('have.attr', 'placeholder', 'Search Meta 2');
+			cy.get('@secondBlock').find('.term').should('be.elementsSortedAlphabetically');
+
+			/**
+			 * Test that the block supports changing styles.
+			 */
+			cy.get('@secondBlock').supportsBlockColors(true);
+			cy.get('@secondBlock').supportsBlockTypography(true);
+			cy.get('@secondBlock').supportsBlockDimensions(true);
 
 			/**
 			 * Save widgets and visit the front page.
@@ -436,6 +460,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@secondBlock')
 				.contains('.term', /\(\d*\)$/)
 				.should('not.exist');
+
+			/**
+			 * Verify that the block supports changing styles.
+			 */
+			cy.get('@secondBlock').supportsBlockColors();
+			cy.get('@secondBlock').supportsBlockTypography();
+			cy.get('@secondBlock').supportsBlockDimensions();
 
 			/**
 			 * Typing in the input should filter the list of terms for that block
@@ -579,7 +610,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.openBlockInserter();
 			cy.getBlocksList().should('contain.text', 'Filter by Metadata Range - Beta');
 			cy.insertBlock('Filter by Metadata Range - Beta');
-			cy.get('.wp-block-elasticpress-facet-meta-range').last().as('block');
+			cy.get('.wp-block.wp-block-elasticpress-facet-meta-range').last().as('block');
 
 			/**
 			 * The block should prompt to select a field.
@@ -624,6 +655,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block').get('.ep-range-facet').should('exist');
 
 			/**
+			 * Test that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors(true);
+			cy.get('@block').supportsBlockTypography(true);
+			cy.get('@block').supportsBlockDimensions(true);
+
+			/**
 			 * Insert a regular Filter by Metadata block.
 			 */
 			cy.openBlockInserter();
@@ -649,6 +687,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block').get('.ep-range-slider__thumb').as('thumbs').should('exist');
 			cy.get('@block').should('contain.text', '$1/day — $20/day');
 			cy.get('@block').get('.ep-range-facet__action a').should('not.exist');
+
+			/**
+			 * Verify that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors();
+			cy.get('@block').supportsBlockTypography();
+			cy.get('@block').supportsBlockDimensions();
 
 			/**
 			 * Selecting a range and pressing Filter should filter the results.
@@ -715,7 +760,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.openBlockInserter();
 			cy.getBlocksList().should('contain.text', 'Filter by Post Type');
 			cy.insertBlock('Filter by Post Type');
-			cy.get('.wp-block-elasticpress-facet-post-type').last().as('block');
+			cy.get('.wp-block.wp-block-elasticpress-facet-post-type').last().as('block');
 
 			// Configure the block
 			cy.get('@block').click();
@@ -725,9 +770,9 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				true,
 			);
 
-			cy.intercept(
-				'/wp-json/elasticpress/v1/facets/post-type/block-preview*displayCount=true*',
-			).as('blockPreview');
+			cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet-post-type*').as(
+				'blockPreview',
+			);
 
 			/**
 			 * Verify the display count setting on the editor.
@@ -740,20 +785,23 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.get('@block')
 				.contains('.term', /(^\(\d*\))$/)
 				.should('not.exist');
-
-			cy.intercept(
-				'/wp-json/elasticpress/v1/facets/post-type/block-preview*orderby=name&order=asc*',
-			).as('blockPreview2');
 			cy.get('.block-editor-block-inspector .components-select-control__input').select(
 				'name/asc',
 			);
-			cy.wait('@blockPreview2');
+			cy.wait('@blockPreview');
 
 			/**
 			 * Verify the block has the expected output in the editor based on the
 			 * block's settings.
 			 */
 			cy.get('@block').find('.term').should('be.elementsSortedAlphabetically');
+
+			/**
+			 * Test that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors(true);
+			cy.get('@block').supportsBlockTypography(true);
+			cy.get('@block').supportsBlockDimensions(true);
 
 			/**
 			 * Save widgets and visit the front page.
@@ -774,6 +822,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				.should('not.exist');
 
 			cy.get('@firstBlock').contains('.term', 'Post').click();
+
+			/**
+			 * Verify that the block supports changing styles.
+			 */
+			cy.get('@firstBlock').supportsBlockColors();
+			cy.get('@firstBlock').supportsBlockTypography();
+			cy.get('@firstBlock').supportsBlockDimensions();
 
 			/**
 			 * Selecting that term should lead to the correct URL, mark the correct

@@ -85,6 +85,13 @@ describe('Related Posts Feature', () => {
 			.should('have.length', 2);
 
 		/**
+		 * Test that the block supports changing styles.
+		 */
+		cy.get('@block').supportsBlockColors(true);
+		cy.get('@block').supportsBlockTypography(true);
+		cy.get('@block').supportsBlockDimensions(true);
+
+		/**
 		 * Clicking a related post link in the editor shouldn't change the URL.
 		 */
 		cy.get('@block').find('a').first().click();
@@ -105,6 +112,13 @@ describe('Related Posts Feature', () => {
 			.find('li')
 			.should('contain', 'Test related posts block #')
 			.should('have.length', 2);
+
+		/**
+		 * Verify that the block supports changing styles.
+		 */
+		cy.get('@block').supportsBlockColors();
+		cy.get('@block').supportsBlockTypography();
+		cy.get('@block').supportsBlockDimensions();
 	});
 
 	/**
