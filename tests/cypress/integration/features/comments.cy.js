@@ -78,6 +78,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@allBlock').supportsBlockColors(true);
 		cy.get('@allBlock').supportsBlockTypography(true);
+		cy.get('@allBlock').supportsBlockDimensions(true);
 
 		/**
 		 * Save widgets and visit the front page.
@@ -111,8 +112,9 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		/**
 		 * Verify that the block supports changing styles.
 		 */
-		cy.get('@allBlock').supportsBlockColors(true);
-		cy.get('@allBlock').supportsBlockTypography(true);
+		cy.get('@allBlock').supportsBlockColors();
+		cy.get('@allBlock').supportsBlockTypography();
+		cy.get('@allBlock').supportsBlockDimensions();
 
 		/**
 		 * Verify the post comments block has the expected markup and returns

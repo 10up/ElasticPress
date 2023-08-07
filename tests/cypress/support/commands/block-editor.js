@@ -67,3 +67,19 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 	cy.wrap(subject).should('have.css', 'font-size', '16px');
 	cy.wrap(subject).should('have.css', 'line-height', '32px');
 });
+
+Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject, isEdit) => {
+	if (isEdit) {
+		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+		cy.get('.block-editor-block-inspector button[aria-label="Dimensions options"]').click();
+
+		cy.get('.popover-slot button[aria-label="Show Padding').click().type('{esc}');
+
+		cy.get('.component-spacing-sizes-control button[aria-label="Set custom size"]').click();
+		cy.get('.component-spacing-sizes-control input[type="number"]').clearThenType('10');
+
+		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+	}
+
+	cy.wrap(subject).should('have.css', 'padding', '10px');
+});

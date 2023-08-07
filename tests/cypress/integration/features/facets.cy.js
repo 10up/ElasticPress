@@ -92,6 +92,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@secondBlock').supportsBlockColors(true);
 		cy.get('@secondBlock').supportsBlockTypography(true);
+		cy.get('@secondBlock').supportsBlockDimensions(true);
 
 		/**
 		 * Save widgets and visit the front page.
@@ -122,6 +123,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@secondBlock').supportsBlockColors();
 		cy.get('@secondBlock').supportsBlockTypography();
+		cy.get('@secondBlock').supportsBlockDimensions();
 
 		/**
 		 * Typing in the input should filter the list of terms for that block
@@ -430,6 +432,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@secondBlock').supportsBlockColors(true);
 			cy.get('@secondBlock').supportsBlockTypography(true);
+			cy.get('@secondBlock').supportsBlockDimensions(true);
 
 			/**
 			 * Save widgets and visit the front page.
@@ -463,6 +466,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@secondBlock').supportsBlockColors();
 			cy.get('@secondBlock').supportsBlockTypography();
+			cy.get('@secondBlock').supportsBlockDimensions();
 
 			/**
 			 * Typing in the input should filter the list of terms for that block
@@ -655,6 +659,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@block').supportsBlockColors(true);
 			cy.get('@block').supportsBlockTypography(true);
+			cy.get('@block').supportsBlockDimensions(true);
 
 			/**
 			 * Insert a regular Filter by Metadata block.
@@ -688,6 +693,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@block').supportsBlockColors();
 			cy.get('@block').supportsBlockTypography();
+			cy.get('@block').supportsBlockDimensions();
 
 			/**
 			 * Selecting a range and pressing Filter should filter the results.
@@ -795,6 +801,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@block').supportsBlockColors(true);
 			cy.get('@block').supportsBlockTypography(true);
+			cy.get('@block').supportsBlockDimensions(true);
 
 			/**
 			 * Save widgets and visit the front page.
@@ -821,6 +828,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@firstBlock').supportsBlockColors();
 			cy.get('@firstBlock').supportsBlockTypography();
+			cy.get('@firstBlock').supportsBlockDimensions();
 
 			/**
 			 * Selecting that term should lead to the correct URL, mark the correct

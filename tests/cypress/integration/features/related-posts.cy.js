@@ -89,6 +89,7 @@ describe('Related Posts Feature', () => {
 		 */
 		cy.get('@block').supportsBlockColors(true);
 		cy.get('@block').supportsBlockTypography(true);
+		cy.get('@block').supportsBlockDimensions(true);
 
 		/**
 		 * Clicking a related post link in the editor shouldn't change the URL.
@@ -117,6 +118,7 @@ describe('Related Posts Feature', () => {
 		 */
 		cy.get('@block').supportsBlockColors();
 		cy.get('@block').supportsBlockTypography();
+		cy.get('@block').supportsBlockDimensions();
 	});
 
 	/**
