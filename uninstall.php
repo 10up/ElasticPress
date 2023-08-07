@@ -182,7 +182,7 @@ class EP_Uninstaller {
 				delete_site_transient( $transient );
 			}
 
-			$sites = get_sites();
+			$sites = \get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site->blog_id );
@@ -206,9 +206,13 @@ class EP_Uninstaller {
 	 * @since 4.7.0
 	 */
 	protected function clean_site_meta() {
+		if ( ! is_multisite() ) {
+			return;
+		}
+
 		$sites = Utils\get_sites();
 		foreach ( $sites as $site ) {
-			delete_site_meta( $site->blog_id, 'ep_indexable' );
+			delete_site_meta( $site['blog_id'], 'ep_indexable' );
 		}
 	}
 
