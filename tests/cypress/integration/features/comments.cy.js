@@ -67,13 +67,17 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 */
 		cy.openBlockInserter();
 		cy.insertBlock('Search Comments');
-		cy.get('.wp-block-elasticpress-comments')
-			.last()
-			.find('.rich-text')
-			.clearThenType('Search comments on pages and posts');
+		cy.get('.wp-block.wp-block-elasticpress-comments').last().as('allBlock');
+		cy.get('allBlock').find('.rich-text').clearThenType('Search comments on pages and posts');
 		cy.openBlockSettingsSidebar();
 		cy.get('.components-checkbox-control__input').eq(1).click();
 		cy.get('.components-checkbox-control__input').eq(2).click();
+
+		/**
+		 * Test that the block supports changing styles.
+		 */
+		cy.get('@allBlock').supportsBlockColors(true);
+		cy.get('@allBlock').supportsBlockTypography(true);
 
 		/**
 		 * Save widgets and visit the front page.
@@ -103,6 +107,12 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('@allInput').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@allBlock').find('li').should('contain', 'Contributor comment.');
+
+		/**
+		 * Verify that the block supports changing styles.
+		 */
+		cy.get('@allBlock').supportsBlockColors(true);
+		cy.get('@allBlock').supportsBlockTypography(true);
 
 		/**
 		 * Verify the post comments block has the expected markup and returns

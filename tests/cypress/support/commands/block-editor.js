@@ -32,3 +32,38 @@ Cypress.Commands.add('insertBlock', (blockName) => {
 	cy.get('.block-editor-inserter__search input[type="search"').clearThenType(blockName);
 	cy.get('.block-editor-block-types-list__item').contains(blockName).click({ force: true });
 });
+
+Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isEdit) => {
+	if (isEdit) {
+		cy.get('.block-editor-block-inspector').as('blockInspector');
+
+		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+		cy.get('.block-editor-block-inspector button').contains('Background').click();
+
+		cy.get('.popover-slot button[aria-label="Color: Black"').click();
+
+		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+	}
+
+	cy.wrap(subject).should('have.css', 'background-color', 'rgb(0, 0, 0)');
+});
+
+Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject, isEdit) => {
+	if (isEdit) {
+		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+		cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
+
+		cy.get('.popover-slot button[aria-label="Show Font size').click();
+		cy.get('.popover-slot button[aria-label="Show Line height').click().type('{esc}');
+
+		cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
+		cy.get('.block-editor-block-inspector li[role="option"]').contains('Extra small').click();
+
+		cy.get('.block-editor-line-height-control input').clearThenType(2);
+
+		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+	}
+
+	cy.wrap(subject).should('have.css', 'font-size', '16px');
+	cy.wrap(subject).should('have.css', 'line-height', '32px');
+});
