@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets block class
  */
-class Block {
+class Block extends \ElasticPress\Feature\Facets\Block {
 	/**
 	 * Hook block funcionality.
 	 */
@@ -73,7 +73,7 @@ class Block {
 			'facets/meta-range/keys',
 			[
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_meta_rest_permission' ],
+				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
 				'callback'            => [ $this, 'get_rest_registered_metakeys' ],
 			]
 		);
@@ -82,7 +82,7 @@ class Block {
 			'facets/meta-range/block-preview',
 			[
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_meta_rest_permission' ],
+				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
 				'callback'            => [ $this, 'render_block_preview' ],
 				'args'                => [
 					'facet' => [
@@ -95,16 +95,15 @@ class Block {
 	}
 
 	/**
-	 * Check permissions of the /facets/meta-range/* REST endpoints.
+	 * DEPRECATED. Check permissions of the /facets/meta-range/* REST endpoints.
 	 *
+	 * @deprecated 4.7.0
 	 * @return WP_Error|true
 	 */
 	public function check_facets_meta_rest_permission() {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
-		}
+		_deprecated_function( __FUNCTION__, '4.7.0', '$this->check_facets_rest_permission()' );
 
-		return true;
+		return $this->check_facets_rest_permission();
 	}
 
 	/**
