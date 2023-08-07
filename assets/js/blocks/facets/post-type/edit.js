@@ -1,35 +1,25 @@
+/**
+ * WordPress dependencies.
+ */
 import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, Spinner, Placeholder } from '@wordpress/components';
-import { Fragment, useEffect, useState } from '@wordpress/element';
-import apiFetch from '@wordpress/api-fetch';
+import { Disabled, PanelBody } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import ServerSideRender from '@wordpress/server-side-render';
 
+/**
+ * Internal dependencies.
+ */
+import EmptyResponsePlaceholder from '../common/components/empty-response-placeholder';
 import FacetDisplayCountControl from '../common/components/facet-display-count-control';
 import FacetOrderControl from '../common/components/facet-order-control';
 import FacetSearchPlaceholderControl from '../common/components/facet-search-placeholder-control';
+import LoadingResponsePlaceholder from '../common/components/loading-response-placeholder';
 
 const FacetBlockEdit = (props) => {
-	const { attributes, setAttributes } = props;
-	const [preview, setPreview] = useState('');
-	const [loading, setLoading] = useState(false);
+	const { attributes, name, setAttributes } = props;
 	const { searchPlaceholder, displayCount, orderby, order } = attributes;
 
 	const blockProps = useBlockProps();
-
-	useEffect(() => {
-		setLoading(true);
-		const params = new URLSearchParams({
-			searchPlaceholder,
-			displayCount,
-			orderby,
-			order,
-		});
-		apiFetch({
-			path: `/elasticpress/v1/facets/post-type/block-preview?${params}`,
-		})
-			.then((preview) => setPreview(preview))
-			.finally(() => setLoading(false));
-	}, [searchPlaceholder, displayCount, orderby, order]);
 
 	/**
 	 * Display count change handler.
@@ -64,7 +54,7 @@ const FacetBlockEdit = (props) => {
 	};
 
 	return (
-		<Fragment>
+		<>
 			<InspectorControls>
 				<PanelBody title={__('Facet Settings', 'elasticpress')}>
 					<FacetSearchPlaceholderControl
@@ -80,15 +70,20 @@ const FacetBlockEdit = (props) => {
 			</InspectorControls>
 
 			<div {...blockProps}>
-				{loading && (
-					<Placeholder>
-						<Spinner />
-					</Placeholder>
-				)}
-				{/* eslint-disable-next-line react/no-danger */}
-				{!loading && <div dangerouslySetInnerHTML={{ __html: preview }} />}
+				<Disabled>
+					<ServerSideRender
+						attributes={{
+							...attributes,
+							isPreview: true,
+						}}
+						block={name}
+						EmptyResponsePlaceholder={EmptyResponsePlaceholder}
+						LoadingResponsePlaceholder={LoadingResponsePlaceholder}
+						skipBlockSupportAttributes
+					/>
+				</Disabled>
 			</div>
-		</Fragment>
+		</>
 	);
 };
 export default FacetBlockEdit;
