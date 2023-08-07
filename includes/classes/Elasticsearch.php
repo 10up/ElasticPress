@@ -1740,7 +1740,9 @@ class Elasticsearch {
 	 * @return array
 	 */
 	public function get_index_names( $status = 'active' ) {
-		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_sites() : array( array( 'blog_id' => get_current_blog_id() ) );
+		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+			Utils\get_sites( 0, true ) :
+			array( array( 'blog_id' => get_current_blog_id() ) );
 
 		$all_indexables = Indexables::factory()->get_all( null, false, $status );
 
@@ -1753,9 +1755,6 @@ class Elasticsearch {
 			}
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
 				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
 			}
 		}
