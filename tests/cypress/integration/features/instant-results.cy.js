@@ -148,6 +148,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@searchBlock').find('.wp-block-search__input').type('blog');
 				cy.get('@searchBlock').find('.wp-block-search__button').click();
 				cy.get('.ep-search-modal').as('searchModal').should('be.visible'); // Should be visible immediatly
+				cy.get('@searchModal')
+					.find('.ep-search-results__title')
+					.contains('Loading results');
+				cy.url().should('include', 'search=blog');
 				cy.url().should('include', 'search=blog');
 
 				cy.wait('@apiRequest');
@@ -172,6 +176,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 				// Show the modal in the same state after a reload
 				cy.reload();
+				cy.get('@searchModal')
+					.find('.ep-search-results__title')
+					.contains('Loading results');
+				cy.url().should('include', 'search=blog');
 				cy.wait('@apiRequest');
 				cy.get('@searchModal').should('be.visible').should('contain.text', 'blog');
 
