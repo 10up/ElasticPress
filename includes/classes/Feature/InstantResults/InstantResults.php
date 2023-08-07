@@ -82,11 +82,12 @@ class InstantResults extends Feature {
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'highlight_tag' => 'mark',
-			'facets'        => 'post_type,category,post_tag',
-			'match_type'    => 'all',
-			'term_count'    => '1',
-			'per_page'      => get_option( 'posts_per_page', 6 ),
+			'highlight_tag'   => 'mark',
+			'facets'          => 'post_type,category,post_tag',
+			'match_type'      => 'all',
+			'term_count'      => '1',
+			'per_page'        => get_option( 'posts_per_page', 6 ),
+			'search_behavior' => '0',
 		];
 
 		$this->settings = $this->get_settings();
@@ -131,7 +132,7 @@ class InstantResults extends Feature {
 			return;
 		}
 
-		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
+		$highlight_tags   = array( 'mark', 'span', 'strong', 'em', 'i' );
 		?>
 
 		<div class="field">
@@ -185,8 +186,20 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-
 		<?php
+		$show_suggestions = \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active();
+
+		if ( $show_suggestions ) :
+			?>
+			<div class="field">
+				<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
+				<div class="input-wrap">
+					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], '0' ); ?> <?php disabled( $show_suggestions, false ); ?> value="0"><?php esc_html_e( 'Display the top suggestion', 'elasticpress' ); ?></label><br>
+					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], 'list' ); ?> <?php disabled( $show_suggestions, false ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
+				</div>
+			</div>
+			<?php
+		endif;
 	}
 
 	/**
@@ -299,8 +312,6 @@ class InstantResults extends Feature {
 		 */
 		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$this->index}", $this->index );
 
-		$did_you_mean_settings = \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_settings();
-
 		wp_localize_script(
 			'elasticpress-instant-results',
 			'epInstantResults',
@@ -318,8 +329,8 @@ class InstantResults extends Feature {
 				'postTypeLabels'      => $this->get_post_type_labels(),
 				'termCount'           => $this->settings['term_count'],
 				'requestIdBase'       => Utils\get_request_id_base(),
-				'showSuggestions'     => $did_you_mean_settings['active'],
-				'suggestionsBehavior' => $did_you_mean_settings['search_behavior'],
+				'showSuggestions'     => \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active(),
+				'suggestionsBehavior' => $this->settings['search_behavior'],
 			)
 		);
 	}
