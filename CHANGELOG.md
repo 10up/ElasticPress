@@ -43,6 +43,13 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ### Deprecated
 
+* `Autosuggest::delete_cached_query()` was deprecated without a replacement
+* `EP_Uninstaller::delete_related_posts_transients()` and `EP_Uninstaller::delete_total_fields_limit_transients()` was merged into `EP_Uninstaller::delete_transients_by_name`
+* The `ep_woocommerce_default_supported_post_types` filter was split into `ep_woocommerce_orders_supported_post_types` and `ep_woocommerce_products_supported_post_types`
+* The `ep_woocommerce_supported_taxonomies` filter is now `ep_woocommerce_products_supported_taxonomies`
+* All old `WooCommerce\Orders` methods were migrated to the new `WooCommerce\OrdersAutosuggest` class
+* The `Elasticsearch::clear_total_fields_limit_cache()` method was replaced by `Elasticsearch::clear_index_settings_cache()`
+* Several methods that were previously part of the `WooCommerce\WooCommerce` class were moved to the new `WooCommerce\Product` class
 
 ### Fixed
 * Same error message being displayed more than once on the Dashboard sync. Props [@felipeelia](https://github.com/felipeelia), [@MARQAS](https://github.com/MARQAS), [@tott](https://github.com/tott), and [@wildberrylillet](https://github.com/wildberrylillet) via [#3557](https://github.com/10up/ElasticPress/pull/3557).
@@ -51,7 +58,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Highlighting returning inaccurate post title when partial/no term match on Instant Results. Props [@oscarssanchez](https://github.com/oscarssanchez), [@JakePT](https://github.com/JakePT), and [@tomi10up](https://github.com/tomi10up) via [#3575](https://github.com/10up/ElasticPress/pull/3575).
 
 ### Security
-* Bumped `word-wrapv` from 1.2.3 to 1.2.4. Props [@dependabot](https://github.com/dependabot) via [#3543](https://github.com/10up/ElasticPress/pull/3543).
+* Bumped `word-wrap` from 1.2.3 to 1.2.4. Props [@dependabot](https://github.com/dependabot) via [#3543](https://github.com/10up/ElasticPress/pull/3543).
 
 ## [4.6.1] - 2023-07-05
 
