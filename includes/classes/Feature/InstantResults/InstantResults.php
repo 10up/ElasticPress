@@ -155,7 +155,7 @@ class InstantResults extends Feature {
 			</div>
 		</div>
 		<div class="field">
-			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></label>
+			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Filters', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
 				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" name="settings[facets]" id="feature_instant_results_facets">
 			</div>
@@ -171,7 +171,7 @@ class InstantResults extends Feature {
 					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
 					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
 				</label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<div class="field">
