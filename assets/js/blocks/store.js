@@ -2,7 +2,6 @@
  * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
-import { createReduxStore } from '@wordpress/data';
 
 const initialState = {
 	metaKeys: [],
@@ -131,13 +130,13 @@ const resolvers = {
 	},
 };
 
-const store = createReduxStore('elasticpress', {
+const store = {
 	reducer,
 	controls,
 	selectors,
 	resolvers,
 	actions,
 	initialState,
-});
+};
 
 export default store;

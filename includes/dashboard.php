@@ -48,8 +48,13 @@ function setup() {
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
 	add_action( 'rest_api_init', __NAMESPACE__ . '\setup_endpoint' );
-	add_action( 'block_categories_all', __NAMESPACE__ . '\block_categories' );
 	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\block_assets' );
+
+	if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+		add_action( 'block_categories_all', __NAMESPACE__ . '\block_categories' );
+	} else {
+		add_action( 'block_categories', __NAMESPACE__ . '\block_categories' );
+	}
 
 	/**
 	 * Filter whether to show 'ElasticPress Indexing' option on Multisite in admin UI or not.

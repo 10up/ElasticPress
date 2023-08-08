@@ -1,14 +1,20 @@
 /**
  * WordPress dependencies.
  */
-import { register } from '@wordpress/data';
+import { createReduxStore, register, registerStore } from '@wordpress/data';
 
 /**
  * Internal dependencies.
  */
-import store from './store';
+import options from './store';
 
 /**
  * Register data store.
  */
-register(store);
+if (typeof createReduxStore === 'function') {
+	const store = createReduxStore('elasticpress', options);
+
+	register(store);
+} else {
+	registerStore('elasticpress', options);
+}
