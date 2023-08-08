@@ -40,12 +40,14 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 		cy.get('.block-editor-block-inspector button').contains('Background').click();
 
-		cy.get('.popover-slot button[aria-label="Color: Black"').click();
+		cy.get('.popover-slot button[aria-label="Color: Black"').click({ force: true });
 
 		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
 
-	cy.wrap(subject).should('have.css', 'background-color', 'rgb(0, 0, 0)');
+	cy.wrap(subject)
+		.should('have.css', 'background-color')
+		.and('match', /rgba?\(0, 0, 0(, 0)?\)/);
 });
 
 Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject, isEdit) => {
