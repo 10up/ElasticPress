@@ -62,7 +62,7 @@ describe('Related Posts Feature', () => {
 		 * Verify that the block is inserted into the editor, and contains the
 		 * expected content.
 		 */
-		cy.get('.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('.wp-block.wp-block-elasticpress-related-posts').first().as('block');
 		cy.get('@block')
 			.find('li')
 			.should('contain', 'Test related posts block #')
