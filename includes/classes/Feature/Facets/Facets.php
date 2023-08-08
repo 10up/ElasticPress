@@ -37,7 +37,7 @@ class Facets extends Feature {
 	public function __construct() {
 		$this->slug = 'facets';
 
-		$this->title = esc_html__( 'Facets', 'elasticpress' );
+		$this->title = esc_html__( 'Filters', 'elasticpress' );
 
 		$this->summary = __( 'Add controls to your website to filter content by one or more taxonomies.', 'elasticpress' );
 
@@ -128,7 +128,7 @@ class Facets extends Feature {
 			<div class="input-wrap">
 				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
 				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<?php
@@ -490,7 +490,7 @@ class Facets extends Feature {
 		<p>
 			<?php
 			// translators: URL
-			echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
+			echo wp_kses_post( sprintf( __( "Adds <a href='%s'>Filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
 			?>
 		</p>
 		<?php
