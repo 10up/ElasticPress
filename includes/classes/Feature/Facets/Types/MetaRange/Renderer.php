@@ -17,13 +17,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets render class
  */
-class Renderer {
+class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	/**
 	 * Holds the meta field selected.
 	 *
 	 * @var string
 	 */
 	protected $meta_field = '';
+
+	/**
+	 * Property required by the abstract class. Yet to be implemented.
+	 *
+	 * @var bool
+	 */
+	protected $display_count = false;
 
 	/**
 	 * Output the widget or block HTML.

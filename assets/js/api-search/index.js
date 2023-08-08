@@ -106,6 +106,7 @@ export const ApiSearchProvider = ({
 		isPoppingState: false,
 		searchResults: [],
 		totalResults: 0,
+		suggestedTerms: [],
 		isFirstSearch: true,
 		searchTerm: '',
 	});
@@ -120,7 +121,7 @@ export const ApiSearchProvider = ({
 	stateRef.current = state;
 
 	/**
-	 * Clear facet contraints.
+	 * Clear facet constraints.
 	 *
 	 * @returns {void}
 	 */
@@ -129,7 +130,7 @@ export const ApiSearchProvider = ({
 	}, []);
 
 	/**
-	 * Clear search resu;ts.
+	 * Clear search results.
 	 *
 	 * @returns {void}
 	 */
@@ -334,6 +335,7 @@ export const ApiSearchProvider = ({
 		searchResults,
 		searchTerm,
 		totalResults,
+		suggestedTerms,
 		isFirstSearch,
 	} = stateRef.current;
 
@@ -356,6 +358,7 @@ export const ApiSearchProvider = ({
 		previousPage,
 		totalResults,
 		turnOff,
+		suggestedTerms,
 		isFirstSearch,
 	};
 

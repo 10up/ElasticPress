@@ -11,6 +11,7 @@ import { useApiSearch } from '../../../api-search';
 import Pagination from '../results/pagination';
 import Result from '../results/result';
 import Sort from '../tools/sort';
+import DidYouMean from '../results/did-you-mean';
 
 /**
  * Search results component.
@@ -25,6 +26,8 @@ export default () => {
 		searchResults,
 		searchTerm,
 		totalResults,
+		searchFor,
+		suggestedTerms,
 		isFirstSearch,
 	} = useApiSearch();
 
@@ -88,7 +91,11 @@ export default () => {
 
 				<Sort />
 			</header>
-
+			<DidYouMean
+				searchFor={searchFor}
+				suggestedTerms={suggestedTerms}
+				totalResults={totalResults}
+			/>
 			{searchResults.map((hit) => (
 				<Result key={hit._id} hit={hit} searchTerm={searchTerm} highlightTag={highlight} />
 			))}

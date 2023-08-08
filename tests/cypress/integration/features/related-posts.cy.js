@@ -62,7 +62,7 @@ describe('Related Posts Feature', () => {
 		 * Verify that the block is inserted into the editor, and contains the
 		 * expected content.
 		 */
-		cy.get('.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('.wp-block.wp-block-elasticpress-related-posts').first().as('block');
 		cy.get('@block')
 			.find('li')
 			.should('contain', 'Test related posts block #')
@@ -93,8 +93,11 @@ describe('Related Posts Feature', () => {
 
 		/**
 		 * Clicking a related post link in the editor shouldn't change the URL.
+		 *
+		 * By default, Cypress does not allow a click on an element with `pointer-events: none`,
+		 * hence why `{ force: true }`
 		 */
-		cy.get('@block').find('a').first().click();
+		cy.get('@block').find('a').first().click({ force: true });
 		cy.url().should('include', 'wp-admin/post.php');
 
 		/**
