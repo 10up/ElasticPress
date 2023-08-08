@@ -67,7 +67,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 */
 		cy.openBlockInserter();
 		cy.insertBlock('Search Comments');
-		cy.get('.wp-block.wp-block-elasticpress-comments').last().as('allBlock');
+		cy.get('.wp-block-elasticpress-comments').last().as('allBlock');
 		cy.get('allBlock').find('.rich-text').clearThenType('Search comments on pages and posts');
 		cy.openBlockSettingsSidebar();
 		cy.get('.components-checkbox-control__input').eq(1).click();
