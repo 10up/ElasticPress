@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Exclude Media Attachments from search results. Props [@burhandodhy](https://github.com/burhandodhy) via [#3539](https://github.com/10up/ElasticPress/pull/3539).
 * New `Default to Site Language` option in the language dropdown in ElasticPress' settings page. Props [@felipeelia](https://github.com/felipeelia) via [#3550](https://github.com/10up/ElasticPress/pull/3550).
 * Compatibility with block themes for the Facet meta blocks. Props [@felipeelia](https://github.com/felipeelia) via [#3498](https://github.com/10up/ElasticPress/pull/3498).
+* Integrate Did You Mean feature in the Instant Results. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3564](https://github.com/10up/ElasticPress/pull/3564).
 * New `ep_stop` filter, that changes the stop words used according to the language set. Props [@felipeelia](https://github.com/felipeelia) via [#3549](https://github.com/10up/ElasticPress/pull/3549).
 * New `get-index-settings` WP-CLI command. Props [@felipeelia](https://github.com/felipeelia) via [#3547](https://github.com/10up/ElasticPress/pull/3547).
 * New `ep_facet_tax_special_slug_taxonomies` filter. Props [@oscarssanchez](https://github.com/oscarssanchez) via [#3506](https://github.com/10up/ElasticPress/pull/3506).
@@ -40,6 +41,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * In a multisite, if a site is indexable or not is now stored in site meta, instead of a blog option. Props [@felipeelia](https://github.com/felipeelia) via [#3571](https://github.com/10up/ElasticPress/pull/3571).
 * Autosuggest authenticated requests are not cached anymore and are only sent during the sync process or when the weighting dashboard is saved. Props [@felipeelia](https://github.com/felipeelia) and [@kovshenin](https://github.com/kovshenin) via [#3566](https://github.com/10up/ElasticPress/pull/3566).
 * Use `createRoot` instead of `render` to render elements. Props [@oscarssanchez](https://github.com/oscarssanchez), [@burhandodhy](https://github.com/burhandodhy), and [@JakePT](https://github.com/JakePT) via [#3573](https://github.com/10up/ElasticPress/pull/3573).
+* Moved methods to abstract Facet classes. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3499](https://github.com/10up/ElasticPress/pull/3499).
 
 ### Deprecated
 
@@ -50,6 +52,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * All old `WooCommerce\Orders` methods were migrated to the new `WooCommerce\OrdersAutosuggest` class
 * The `Elasticsearch::clear_total_fields_limit_cache()` method was replaced by `Elasticsearch::clear_index_settings_cache()`
 * Several methods that were previously part of the `WooCommerce\WooCommerce` class were moved to the new `WooCommerce\Product` class
+* Several methods that were specific to Facet types were moved to the new `Block` and `Renderer` abstract classes
 
 ### Fixed
 * Same error message being displayed more than once on the Dashboard sync. Props [@felipeelia](https://github.com/felipeelia), [@MARQAS](https://github.com/MARQAS), [@tott](https://github.com/tott), and [@wildberrylillet](https://github.com/wildberrylillet) via [#3557](https://github.com/10up/ElasticPress/pull/3557).
