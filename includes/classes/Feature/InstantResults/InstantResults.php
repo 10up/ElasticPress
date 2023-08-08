@@ -132,7 +132,7 @@ class InstantResults extends Feature {
 			return;
 		}
 
-		$highlight_tags   = array( 'mark', 'span', 'strong', 'em', 'i' );
+		$highlight_tags = [ 'mark', 'span', 'strong', 'em', 'i' ];
 		?>
 
 		<div class="field">
