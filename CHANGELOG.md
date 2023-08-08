@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 * New `Default to Site Language` option in the language dropdown in ElasticPress' settings page. Props [@felipeelia](https://github.com/felipeelia) via [#3550](https://github.com/10up/ElasticPress/pull/3550).
 * Compatibility with block themes for the Facet meta blocks. Props [@felipeelia](https://github.com/felipeelia) via [#3498](https://github.com/10up/ElasticPress/pull/3498).
 * Integrate Did You Mean feature in the Instant Results. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3564](https://github.com/10up/ElasticPress/pull/3564).
+* All blocks now support styling features in themes that support them. Props [@JakePT](https://github.com/JakePT) via [#3403](https://github.com/10up/ElasticPress/pull/3403).
+* Descriptions and keywords have been added to all blocks. Props [@JakePT](https://github.com/JakePT) via [#3403](https://github.com/10up/ElasticPress/pull/3403).
 * New `ep_stop` filter, that changes the stop words used according to the language set. Props [@felipeelia](https://github.com/felipeelia) via [#3549](https://github.com/10up/ElasticPress/pull/3549).
 * New `get-index-settings` WP-CLI command. Props [@felipeelia](https://github.com/felipeelia) via [#3547](https://github.com/10up/ElasticPress/pull/3547).
 * New `ep_facet_tax_special_slug_taxonomies` filter. Props [@oscarssanchez](https://github.com/oscarssanchez) via [#3506](https://github.com/10up/ElasticPress/pull/3506).
@@ -34,6 +36,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ### Changed
 * WooCommerce feature only integrates with queries that are the main query, a search, or have ep_integrate set as true. Props [@felipeelia](https://github.com/felipeelia) via [#3546](https://github.com/10up/ElasticPress/pull/3546).
+* Miscellaneous changes to all blocks, including their category, names, and code structure. Props [@JakePT](https://github.com/JakePT), [@oscarssanchez](https://github.com/oscarssanchez), and [@felipeelia](https://github.com/felipeelia) via [#3403](https://github.com/10up/ElasticPress/pull/3403).
+* The Facets feature was renamed to Filters. Props [@JakePT](https://github.com/JakePT) and [@felipeelia](https://github.com/felipeelia) via [#3403](https://github.com/10up/ElasticPress/pull/3403) and [#3581](https://github.com/10up/ElasticPress/pull/3581).
 * The WooCommerce feature was refactored, separating code related to products and orders. Props [@felipeelia](https://github.com/felipeelia) via [#3502](https://github.com/10up/ElasticPress/pull/3502).
 * Transients deletion during uninstall. Props [@felipeelia](https://github.com/felipeelia) via [#3548](https://github.com/10up/ElasticPress/pull/3548).
 * Bump Elasticsearch version to 7.10.2 for E2E tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#3556](https://github.com/10up/ElasticPress/pull/3556) and [#3561](https://github.com/10up/ElasticPress/pull/3561).
@@ -62,6 +66,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ### Security
 * Bumped `word-wrap` from 1.2.3 to 1.2.4. Props [@dependabot](https://github.com/dependabot) via [#3543](https://github.com/10up/ElasticPress/pull/3543).
+* Bumped `tough-cookie` from 4.1.2 to 4.1.3 and `@cypress/request` from 2.88.10 to 2.88.12. Props [@dependabot](https://github.com/dependabot) via [#3583](https://github.com/10up/ElasticPress/pull/3583).
 
 ## [4.6.1] - 2023-07-05
 
