@@ -59,6 +59,8 @@ export default (state, action) => {
 				suggest,
 			} = action.response;
 
+			newState.isFirstSearch = false;
+
 			/**
 			 * Total number of items.
 			 */

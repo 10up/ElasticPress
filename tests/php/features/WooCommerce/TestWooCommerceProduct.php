@@ -1076,4 +1076,42 @@ class TestWooCommerceProduct extends TestWooCommerce {
 
 		$this->assertSame( $this->products->get_orderby_meta_mapping( 'custom_parameter' ), 'meta.custom_parameter.long' );
 	}
+
+	/**
+	 * Test add_taxonomy_attributes.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function test_add_taxonomy_attributes() {
+		$attributes = wc_get_attribute_taxonomies();
+
+		$slugs = wp_list_pluck( $attributes, 'attribute_name' );
+
+		if ( ! in_array( 'my_color', $slugs, true ) ) {
+
+			$args = array(
+				'slug'         => 'my_color',
+				'name'         => 'My color',
+				'type'         => 'select',
+				'orderby'      => 'menu_order',
+				'has_archives' => false,
+			);
+
+			wc_create_attribute( $args );
+		}
+
+		$facet_feature = ElasticPress\Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		parse_str( 'ep_filter_taxonomy=dolor,amet&ep_filter_my_color=red', $_GET );
+
+		$query_filters = $facet_type->add_query_filters( [] );
+
+		$sample_test[0]['term']['terms.taxonomy.slug']    = 'dolor';
+		$sample_test[1]['term']['terms.taxonomy.slug']    = 'amet';
+		$sample_test[2]['term']['terms.pa_my_color.slug'] = 'red';
+
+		$this->assertEquals( $sample_test, $query_filters );
+	}
 }

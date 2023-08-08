@@ -120,13 +120,9 @@ class ElasticPressIo extends Report {
 		$fields = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$field  = $this->get_instant_results_field();
@@ -165,13 +161,9 @@ class ElasticPressIo extends Report {
 		$fields = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$field  = $this->get_orders_search_field();

@@ -105,9 +105,10 @@ export const ApiSearchProvider = ({
 		isOn: defaultIsOn,
 		isPoppingState: false,
 		searchResults: [],
-		searchedTerm: '',
 		totalResults: 0,
 		suggestedTerms: [],
+		isFirstSearch: true,
+		searchTerm: '',
 	});
 
 	/**
@@ -335,6 +336,7 @@ export const ApiSearchProvider = ({
 		searchTerm,
 		totalResults,
 		suggestedTerms,
+		isFirstSearch,
 	} = stateRef.current;
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
@@ -357,6 +359,7 @@ export const ApiSearchProvider = ({
 		totalResults,
 		turnOff,
 		suggestedTerms,
+		isFirstSearch,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;

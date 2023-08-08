@@ -89,4 +89,33 @@ abstract class FacetType {
 
 		return $query_params;
 	}
+
+	/**
+	 * Get all facet fields selected across all blocks of the current facet type.
+	 *
+	 * Given a block name, e.g., `elasticpress/facet-meta` this method returns all meta fields
+	 * selected in all blocks.
+	 *
+	 * @param string $block_name The block name
+	 * @return array
+	 */
+	protected function block_template_meta_fields( string $block_name ) : array {
+		$block_template_utils = \ElasticPress\get_container()->get( '\ElasticPress\BlockTemplateUtils' );
+		$ep_blocks            = $block_template_utils->get_specific_block_in_all_templates( $block_name );
+
+		return array_filter(
+			array_reduce(
+				$ep_blocks,
+				function( $acc, $block ) use ( $block_name ) {
+					if ( 0 !== strpos( $block['blockName'], $block_name ) ) {
+						return $acc;
+					}
+
+					$acc[] = $block['attrs']['facet'];
+					return $acc;
+				},
+				[]
+			)
+		);
+	}
 }

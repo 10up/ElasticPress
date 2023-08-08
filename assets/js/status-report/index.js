@@ -4,7 +4,7 @@
  * WordPress dependencies.
  */
 import domReady from '@wordpress/dom-ready';
-import { render } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -18,7 +18,6 @@ import Reports from './components/reports';
  * @returns {void}
  */
 const init = () => {
-	const report = document.getElementById('ep-status-reports');
 	const clipboard = new ClipboardJS('#ep-copy-report');
 
 	/**
@@ -45,7 +44,14 @@ const init = () => {
 	/**
 	 * Render reports.
 	 */
-	render(<Reports reports={reports} />, report);
+	const report = document.getElementById('ep-status-reports');
+
+	if (typeof createRoot === 'function') {
+		const root = createRoot(report);
+		root.render(<Reports reports={reports} />);
+	} else {
+		render(<Reports reports={reports} />, report);
+	}
 };
 
 domReady(init);

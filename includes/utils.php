@@ -177,17 +177,15 @@ function is_epio() {
  * @return boolean
  */
 function is_site_indexable( $blog_id = null ) {
-	if ( is_multisite() ) {
-		$site = get_site( $blog_id );
-
-		$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
-
-		if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
-			return false;
-		}
+	if ( ! is_multisite() ) {
+		return true;
 	}
 
-	return true;
+	$site = get_site( $blog_id );
+
+	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
+
+	return 'no' !== $is_indexable && ! $site['deleted'] && ! $site['archived'] && ! $site['spam'];
 }
 
 /**
@@ -298,14 +296,42 @@ function get_site( $site_id ) {
 /**
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
- * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
- * @since  3.0
+ * @param int  $limit          The maximum amount of sites retrieved, Use 0 to return all sites.
+ * @param bool $only_indexable Whether should be returned only indexable sites or not.
+ * @since 3.0, 4.7.0 added `$only_indexable`
  * @return array
  */
-function get_sites( $limit = 0 ) {
-
+function get_sites( $limit = 0, $only_indexable = false ) {
 	if ( ! is_multisite() ) {
 		return [];
+	}
+
+	$args = [
+		'limit'  => $limit,
+		'number' => $limit,
+	];
+
+	if ( $only_indexable ) {
+		$args = array_merge(
+			$args,
+			[
+				'spam'       => 0,
+				'deleted'    => 0,
+				'archived'   => 0,
+				'meta_query' => [
+					'relation' => 'OR',
+					[
+						'key'     => 'ep_indexable',
+						'value'   => 'no',
+						'compare' => '!=',
+					],
+					[
+						'key'     => 'ep_indexable',
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -316,13 +342,7 @@ function get_sites( $limit = 0 ) {
 	 * @param  {array} $args Array of args to query sites with. See WP_Site_Query
 	 * @return {array} New arguments
 	 */
-	$args = apply_filters(
-		'ep_indexable_sites_args',
-		array(
-			'limit'  => $limit,
-			'number' => $limit,
-		)
-	);
+	$args = apply_filters( 'ep_indexable_sites_args', $args );
 
 	$site_objects = \get_sites( $args );
 	$sites        = [];

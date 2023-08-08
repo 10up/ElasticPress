@@ -51,6 +51,41 @@ class TestUninstall extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `clean_site_meta` method on a single site
+	 *
+	 * @group uninstall
+	 * @group skip-on-multi-site
+	 */
+	public function test_clean_site_meta_on_single_site() {
+		$method = $this->get_protected_method( 'clean_site_meta' );
+		$method->invoke( $this->uninstaller );
+		$this->expectNotToPerformAssertions();
+	}
+
+	/**
+	 * Test the `clean_site_meta` method on a multisite
+	 *
+	 * @group uninstall
+	 * @group skip-on-single-site
+	 */
+	public function test_clean_site_meta_on_multi_site() {
+		$blog_not_indexable = $this->factory->blog->create();
+		update_site_meta( $blog_not_indexable, 'ep_indexable', 'no' );
+
+		$blog_indexable = $this->factory->blog->create();
+		update_site_meta( $blog_indexable, 'ep_indexable', 'yes' );
+
+		$blog_indexable_2 = $this->factory->blog->create();
+
+		$method = $this->get_protected_method( 'clean_site_meta' );
+		$method->invoke( $this->uninstaller );
+
+		$this->assertSame( '', get_site_meta( $blog_not_indexable, 'ep_indexable', true ) );
+		$this->assertSame( '', get_site_meta( $blog_indexable, 'ep_indexable', true ) );
+		$this->assertSame( '', get_site_meta( $blog_indexable_2, 'ep_indexable', true ) );
+	}
+
+	/**
 	 * Return a protected method made public.
 	 *
 	 * This should NOT be copied to any other class.
