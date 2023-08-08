@@ -486,13 +486,27 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function output_feature_box_long() {
+		if ( current_theme_supports( 'widgets' ) ) {
+			$message = sprintf(
+				/* translators: Widgets Edit Screen URL */
+				__( "Adds <a href='%s'>filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ),
+				esc_url( admin_url( 'widgets.php' ) )
+			);
+		}
+
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			$message = sprintf(
+				/* translators: Site Editor URL */
+				__( "Adds <a href='%s'>filter blocks</a> that administrators can add to the website's templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ),
+				esc_url( admin_url( 'site-editor.php' ) )
+			);
+		}
+
+		if ( ! isset( $message ) ) {
+			return;
+		}
 		?>
-		<p>
-			<?php
-			// translators: URL
-			echo wp_kses_post( sprintf( __( "Adds <a href='%s'>Filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
-			?>
-		</p>
+		<p><?php echo wp_kses_post( $message ); ?></p>
 		<?php
 	}
 
