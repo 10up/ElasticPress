@@ -1,33 +1,63 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"title": "Facet by Taxonomy (ElasticPress)",
-	"textdomain": "elasticpress",
 	"name": "elasticpress/facet",
-	"icon": "feedback",
-	"category": "widgets",
+	"title": "Filter by Taxonomy",
+	"category": "elasticpress",
+	"description": "Let visitors filter your content by taxonomy terms, such as categories or tags.",
+	"keywords": ["attributes", "facets"],
+	"textdomain": "elasticpress",
 	"attributes": {
+		"displayCount": {
+			"type": "boolean",
+			"default": false
+		},
 		"facet": {
 			"type": "string",
 			"default": ""
 		},
-		"displayCount": {
+		"isPreview": {
 			"type": "boolean",
 			"default": false
+		},
+		"order":  {
+			"type":  "string",
+			"default": "desc",
+			"enum":  [ "desc", "asc" ]
 		},
 		"orderby": {
 			"type"   : "string",
 			"default": "count",
 			"enum"   : [ "count", "name" ]
 		},
-		"order":  {
-			"type":  "string",
-			"default": "desc",
-			"enum":  [ "desc", "asc" ]
+		"type": {
+			"type": "string",
+			"default": "taxonomy"
 		}
 	},
 	"supports": {
-		"html": false
+		"color": {
+			"background": true,
+			"link": true,
+			"text": false
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"example": {
+		"attributes": {
+			"facet": "category"
+		}
 	},
 	"editorScript": "ep-facets-block-script",
 	"style": "elasticpress-facets"

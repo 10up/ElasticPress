@@ -24,17 +24,31 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
 	/**
 	 * Register the block.
 	 */
 	public function register_block() {
-		/**
-		 * Registering it here so translation works
-		 *
-		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
-		 */
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/facets/meta-range',
+			[
+				'render_callback' => [ $this, 'render_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Enqueue block editor assets.
+	 *
+	 * The block script is registered here to work around an issue with translations.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+	 * @return void
+	 */
+	public function enqueue_editor_assets() {
 		wp_register_script(
 			'ep-facets-meta-range-block-script',
 			EP_URL . 'dist/js/facets-meta-range-block-script.js',
@@ -44,16 +58,14 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		);
 
 		wp_set_script_translations( 'ep-facets-meta-range-block-script', 'elasticpress' );
+	}
 
-		register_block_type_from_metadata(
-			EP_PATH . 'assets/js/blocks/facets/meta-range',
-			[
-				'render_callback' => [ $this, 'render_block' ],
-			]
-		);
-
-		wp_localize_script( 'ep-facets-meta-range-block-script', 'facetMetaBlock', [ 'syncUrl' => Utils\get_sync_url() ] );
-
+	/**
+	 * Enqueue block assets.
+	 *
+	 * @return void
+	 */
+	public function enqueue_assets() {
 		wp_register_script(
 			'ep-facets-meta-range-block-view-script',
 			EP_URL . 'dist/js/facets-meta-range-block-view-script.js',
@@ -63,9 +75,10 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		);
 	}
 
-
 	/**
 	 * Setup REST endpoints for the feature.
+	 *
+	 * @return void
 	 */
 	public function setup_endpoints() {
 		register_rest_route(
@@ -77,6 +90,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 				'callback'            => [ $this, 'get_rest_registered_metakeys' ],
 			]
 		);
+
 		register_rest_route(
 			'elasticpress/v1',
 			'facets/meta-range/block-preview',
@@ -113,15 +127,15 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	 * @return string
 	 */
 	public function render_block( $attributes ) {
-		$attributes = $this->parse_attributes( $attributes );
-
 		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta-range', 'block', $attributes );
 		$renderer       = new $renderer_class();
 
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
 		?>
-		<div class="wp-block-elasticpress-facet">
+		<div <?php echo wp_kses_data( $wrapper_attributes ); ?>>
 			<?php $renderer->render( [], $attributes ); ?>
 		</div>
 		<?php
@@ -202,19 +216,12 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	 * @return array
 	 */
 	protected function parse_attributes( $attributes ) {
-		$attributes = wp_parse_args(
-			$attributes,
-			[
-				'facet'      => '',
-				'is_preview' => false,
-			]
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
+			'4.7.0'
 		);
-		if ( empty( $attributes['facet'] ) ) {
-			$registered_metakeys = $this->get_rest_registered_metakeys();
-			if ( ! empty( $registered_metakeys ) ) {
-				$attributes['facet'] = reset( $registered_metakeys );
-			}
-		}
+
 		return $attributes;
 	}
 }
