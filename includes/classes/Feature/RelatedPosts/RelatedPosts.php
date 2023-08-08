@@ -292,13 +292,11 @@ class RelatedPosts extends Feature {
 			$class .= ' align' . $attributes['align'];
 		}
 
-		if ( ! empty( $attributes['className'] ) ) {
-			$class .= ' ' . $attributes['className'];
-		}
-
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => $class ] );
 		?>
-		<section class="<?php echo esc_attr( $class ); ?>">
+		<section <?php echo wp_kses_data( $wrapper_attributes ); ?>">
 			<ul>
 				<?php foreach ( $posts as $related_post ) : ?>
 					<li>

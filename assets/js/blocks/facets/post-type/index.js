@@ -2,14 +2,16 @@
  * WordPress dependencies.
  */
 import { registerBlockType } from '@wordpress/blocks';
+import icon from '../common/icon';
 
 /**
  * Internal dependencies.
  */
 import edit from './edit';
-import block from './block.json';
+import { name } from './block.json';
 
-registerBlockType(block, {
+registerBlockType(name, {
 	edit,
 	save: () => {},
+	icon,
 });

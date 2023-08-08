@@ -107,7 +107,6 @@ class Facets extends Feature {
 
 		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'front_scripts' ] );
 		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
@@ -195,15 +194,10 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function admin_scripts( $hook ) {
-		if ( 'widgets.php' !== $hook ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			'elasticpress-facets-admin',
-			EP_URL . 'dist/css/facets-admin-styles.css',
-			Utils\get_asset_info( 'facets-admin-styles', 'dependencies' ),
-			Utils\get_asset_info( 'facets-admin-styles', 'version' )
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Facets no longer require admin styles.', 'elasticpress' ),
+			'4.7.0'
 		);
 	}
 
