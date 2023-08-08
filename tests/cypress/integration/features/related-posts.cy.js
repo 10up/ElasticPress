@@ -93,8 +93,11 @@ describe('Related Posts Feature', () => {
 
 		/**
 		 * Clicking a related post link in the editor shouldn't change the URL.
+		 *
+		 * By default, Cypress does not allow a click on an element with `pointer-events: none`,
+		 * hence why `{ force: true }`
 		 */
-		cy.get('@block').find('a').first().click();
+		cy.get('@block').find('a').first().click({ force: true });
 		cy.url().should('include', 'wp-admin/post.php');
 
 		/**
