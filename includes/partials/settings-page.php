@@ -6,8 +6,9 @@
  * @package elasticpress
  */
 
-use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Dashboard;
+use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -165,21 +166,17 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 						<?php
 						$ep_language = Utils\get_language();
 
-						$dropdown = wp_dropdown_languages(
+						wp_dropdown_languages(
 							[
-								'id'       => 'ep_language',
-								'name'     => 'ep_language',
-								'selected' => $ep_language,
-								'echo'     => false,
+								'id'                       => 'ep_language',
+								'name'                     => 'ep_language',
+								'selected'                 => $ep_language,
+								'languages'                => Dashboard\get_available_languages( 'locales' ),
+								'show_option_site_default' => true,
+								'explicit_option_en_us'    => true,
+								'show_available_translations' => false,
 							]
 						);
-
-						$default_site_option = sprintf(
-							"<option value='ep_site_default'>%s</option>",
-							__( 'Default to Site Language', 'elasticpress' )
-						);
-
-						echo preg_replace( '/<select(.*?)>/', "<select$1>{$default_site_option}", $dropdown ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						?>
 						<p class="description"><?php esc_html_e( 'Default language for your Elasticsearch mapping.', 'elasticpress' ); ?></p>
 					</td>
