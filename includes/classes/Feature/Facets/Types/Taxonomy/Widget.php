@@ -30,11 +30,11 @@ class Widget extends WP_Widget {
 	 */
 	public function __construct() {
 		$options = array(
-			'description'           => esc_html__( 'Add a facet to an archive or search results page.', 'elasticpress' ),
+			'description'           => esc_html__( 'Add a filter to an archive or search results page.', 'elasticpress' ),
 			'show_instance_in_rest' => true,
 		);
 
-		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
+		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Filter', 'elasticpress' ), $options );
 	}
 
 	/**
@@ -172,8 +172,27 @@ class Widget extends WP_Widget {
 				</select>
 			</p>
 
-			<?php // translators: "all" or "any", depending on configuration values, 3: URL ?>
-			<p><?php echo wp_kses_post( sprintf( __( 'Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href="%3$s">ElasticPress settings</a>.', 'elasticpress' ), $set, $not_set, esc_url( $dashboard_url ) ) ); ?></p>
+			<p>
+				<?php
+				if ( 'any' === $settings['match_type'] ) {
+					echo wp_kses_post(
+						sprintf(
+							/* translators: Dashboard URL */
+							__( 'This widget includes all content that is tagged to any selected terms; change this to show <strong>any</strong> content tagged to <strong>all</strong> selected term in <a href="%s">ElasticPress settings</a>.', 'elasticpress' ),
+							esc_url( $dashboard_url )
+						)
+					);
+				} else {
+					echo wp_kses_post(
+						sprintf(
+							/* translators: Dashboard URL */
+							__( 'This widget filters out any content that is not tagged to all selected terms; change this to show <strong>all</strong> content tagged to <strong>any</strong> selected term in <a href="%s">ElasticPress settings</a>.', 'elasticpress' ),
+							esc_url( $dashboard_url )
+						)
+					);
+				}
+				?>
+			</p>
 		</div>
 
 		<?php
