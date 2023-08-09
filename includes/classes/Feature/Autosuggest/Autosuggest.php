@@ -152,7 +152,7 @@ class Autosuggest extends Feature {
 		$mapping = $post_indexable->add_term_suggest_field( $mapping );
 
 		// Note the assignment by reference below.
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
 			$mapping_properties = &$mapping['mappings']['properties'];

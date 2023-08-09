@@ -47,7 +47,7 @@ class RelatedPosts extends Feature {
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args['more_like'] ) ) {
 			// lets compare ES version to see if new MLT structure applies
-			$new_mlt = version_compare( Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
+			$new_mlt = version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
 
 			if ( $new_mlt && is_array( $args['more_like'] ) ) {
 				foreach ( $args['more_like'] as $id ) {
