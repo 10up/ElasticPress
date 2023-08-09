@@ -17,7 +17,7 @@ __Search__: Instantly find the content you’re looking for. The first time.
 
 __Instant Results__: A built for WordPress search experience that bypasses WordPress for optimal performance. Instant Results routes search queries through a dedicated API, separate from WordPress, returning results up to 10x faster than previous versions of ElasticPress.
 
-__WooCommerce__: “I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Filtered product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.
+__WooCommerce__: With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they're looking for, even if you have a large or complex product catalog.
 
 __Related Posts__: ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.
 

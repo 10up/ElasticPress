@@ -56,7 +56,7 @@ class WooCommerce extends Feature {
 
 		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
 
-		$this->summary = __( '“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Filtered product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.', 'elasticpress' );
+		$this->summary = __( "With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they're looking for, even if you have a large or complex product catalog.", 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#woocommerce', 'elasticpress' );
 
