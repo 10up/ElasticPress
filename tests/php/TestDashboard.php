@@ -105,7 +105,7 @@ class TestDashboard extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `use_language_in_setting` function when on multisite using `ep_site_default`
+	 * Test the `use_language_in_setting` function when on multisite using `site-default`
 	 *
 	 * @group skip-on-single-site
 	 * @group dashboard
@@ -138,5 +138,37 @@ class TestDashboard extends BaseTestCase {
 		 */
 		switch_to_blog( $site_he_il );
 		$this->assertSame( 'english', Dashboard\use_language_in_setting() );
+	}
+
+	/**
+	 * Test the `get_available_languages` function
+	 *
+	 * @group dashboard
+	 */
+	public function test_get_available_languages() {
+		$languages = Dashboard\get_available_languages();
+		$this->assertSame( [ 'ar', 'ary' ], $languages['arabic'] );
+		$this->assertSame( [ 'th' ], $languages['thai'] );
+
+		$languages = Dashboard\get_available_languages( 'locales' );
+		$this->assertContains( 'ar', $languages );
+		$this->assertContains( 'ary', $languages );
+		$this->assertContains( 'th', $languages );
+	}
+
+	/**
+	 * Test the `ep_available_languages` filter
+	 *
+	 * @group dashboard
+	 */
+	public function test_get_available_languages_ep_available_languages_filter() {
+		$add_language = function ( $languages ) {
+			$languages['custom'] = [ 'cu_ST', 'om' ];
+			return $languages;
+		};
+		add_filter( 'ep_available_languages', $add_language );
+
+		$languages = Dashboard\get_available_languages();
+		$this->assertSame( [ 'cu_ST', 'om' ], $languages['custom'] );
 	}
 }

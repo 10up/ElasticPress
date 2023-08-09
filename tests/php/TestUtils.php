@@ -445,7 +445,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function test_get_language() {
-		$this->assertSame( 'ep_site_default', Utils\get_language() );
+		$this->assertSame( 'site-default', Utils\get_language() );
 
 		$set_lang_via_option = function() {
 			return 'custom_via_option';

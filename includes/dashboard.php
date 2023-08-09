@@ -721,6 +721,90 @@ function action_admin_menu() {
 }
 
 /**
+ * Languages supported in Elasticsearch mappings.
+ *
+ * If $format is 'elasticsearch', the array format is `Elasticsearch analyzer name => [ WordPress language package names ]`.
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
+ * @since 4.7.0
+ * @param string $format Format of the return ('locales' or 'elasticsearch' )
+ * @return array
+ */
+function get_available_languages( string $format = 'elasticsearch' ) : array {
+	/**
+	 * Filter available languages in Elasticsearch.
+	 *
+	 * The returned array should follow the format `Elasticsearch analyzer name => [ WordPress language package names ]`.
+	 *
+	 * @since 4.7.0
+	 * @hook ep_available_languages
+	 * @param  {bool} $available_languages List of available languages
+	 * @return {bool} New list
+	 */
+	$es_languages = apply_filters(
+		'ep_available_languages',
+		[
+			'arabic'     => [ 'ar', 'ary' ],
+			'armenian'   => [ 'hy' ],
+			'basque'     => [ 'eu' ],
+			'bengali'    => [ 'bn', 'bn_BD' ],
+			'brazilian'  => [ 'pt_BR' ],
+			'bulgarian'  => [ 'bg', 'bg_BG' ],
+			'catalan'    => [ 'ca' ],
+			'cjk'        => [], // CJK characters (not a language)
+			'czech'      => [ 'cs', 'cs_CZ' ],
+			'danish'     => [ 'da', 'da_DK' ],
+			'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
+			'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_US', 'en_ZA' ],
+			'estonian'   => [ 'et' ],
+			'finnish'    => [ 'fi' ],
+			'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
+			'galician'   => [ 'gl_ES' ],
+			'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
+			'greek'      => [ 'el' ],
+			'hindi'      => [ 'hi_IN' ],
+			'hungarian'  => [ 'hu_HU' ],
+			'indonesian' => [ 'id_ID' ],
+			'irish'      => [], // WordPress doesn't support Irish as an active locale currently
+			'italian'    => [ 'it_IT' ],
+			'latvian'    => [ 'lv' ],
+			'lithuanian' => [ 'lt_LT' ],
+			'norwegian'  => [ 'nb_NO' ],
+			'persian'    => [ 'fa_IR' ],
+			'portuguese' => [ 'pt', 'pt_AO', 'pt_PT', 'pt_PT_ao90' ],
+			'romanian'   => [ 'ro_RO' ],
+			'russian'    => [ 'ru_RU' ],
+			'sorani'     => [ 'ckb' ],
+			'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
+			'swedish'    => [ 'sv_SE' ],
+			'turkish'    => [ 'tr_TR' ],
+			'thai'       => [ 'th' ],
+		]
+	);
+
+	if ( 'locales' === $format ) {
+		$arr = array_reduce(
+			$es_languages,
+			function ( $acc, $lang ) {
+				$lang = array_filter(
+					$lang,
+					function ( $locale ) {
+						// English is always added. This removes the duplicates
+						return ! in_array( $locale, [ 'en', 'en_US' ], true );
+					}
+				);
+				$acc  = array_merge( $acc, $lang );
+				return $acc;
+			},
+			[]
+		);
+		return $arr;
+	}
+
+	return $es_languages;
+}
+
+/**
  * Uses the language from EP settings in mapping.
  *
  * @param string $language The current language.
@@ -743,7 +827,7 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 	 *
 	 * @see https://core.trac.wordpress.org/ticket/49263
 	 */
-	if ( 'ep_site_default' === $ep_language ) {
+	if ( 'site-default' === $ep_language ) {
 		$locale           = null;
 		$wp_local_package = null;
 		$ep_language      = get_locale();
@@ -759,49 +843,7 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		$wp_language = 'en_US';
 	}
 
-	/**
-	 * Languages supported in Elasticsearch mappings.
-	 * Array format: Elasticsearch analyzer name => WordPress language package name
-	 *
-	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
-	 */
-	$es_languages = [
-		'arabic'     => [ 'ar', 'ary' ],
-		'armenian'   => [ 'hy' ],
-		'basque'     => [ 'eu' ],
-		'bengali'    => [ 'bn', 'bn_BD' ],
-		'brazilian'  => [ 'pt_BR' ],
-		'bulgarian'  => [ 'bg' ],
-		'catalan'    => [ 'ca' ],
-		'cjk'        => [], // CJK characters (not a language)
-		'czech'      => [ 'cs' ],
-		'danish'     => [ 'da' ],
-		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
-		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_US', 'en_ZA' ],
-		'estonian'   => [ 'et' ],
-		'finnish'    => [ 'fi' ],
-		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
-		'galician'   => [ 'gl_ES' ],
-		'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
-		'greek'      => [ 'el' ],
-		'hindi'      => [ 'hi_IN' ],
-		'hungarian'  => [ 'hu_HU' ],
-		'indonesian' => [ 'id_ID' ],
-		'irish'      => [], // WordPress doesn't support Irish as an active locale currently
-		'italian'    => [ 'it_IT' ],
-		'latvian'    => [ 'lv' ],
-		'lithuanian' => [ 'lt_LT' ],
-		'norwegian'  => [ 'nb_NO' ],
-		'persian'    => [ 'fa_IR' ],
-		'portuguese' => [ 'pt', 'pt_AO', 'pt_PT', 'pt_PT_ao90' ],
-		'romanian'   => [ 'ro_RO' ],
-		'russian'    => [ 'ru_RU' ],
-		'sorani'     => [ 'ckb' ],
-		'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
-		'swedish'    => [ 'sv_SE' ],
-		'turkish'    => [ 'tr_TR' ],
-		'thai'       => [ 'th' ],
-	];
+	$es_languages = get_available_languages();
 
 	/**
 	 * Languages supported in Elasticsearch snowball token filters.
