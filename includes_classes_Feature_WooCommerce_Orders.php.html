@@ -33,614 +33,463 @@
         <article>
             <pre class="prettyprint source linenums"><code>&lt;?php
 /**
- * WooCommerce Orders Feature
+ * WooCommerce Orders
  *
- * @since 4.5.0
+ * @since 4.7.0
  * @package elasticpress
  */
 
 namespace ElasticPress\Feature\WooCommerce;
 
-use ElasticPress\Elasticsearch;
 use ElasticPress\Indexables;
-use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 /**
- * WooCommerce Orders Feature
+ * WooCommerce Orders
  */
 class Orders {
 	/**
-	 * The name of the index;
+	 * WooCommerce feature object instance
 	 *
-	 * @var string
+	 * @var WooCommerce
 	 */
-	protected $index;
+	protected $woocommerce;
 
 	/**
-	 * Initialize feature.
+	 * Class constructor
 	 *
-	 * @return void
+	 * @param WooCommerce $woocommerce WooCommerce feature object instance
 	 */
-	public function __construct() {
-		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
+	public function __construct( WooCommerce $woocommerce ) {
+		$this->woocommerce = $woocommerce;
 	}
 
 	/**
-	 * Setup feature functionality.
-	 *
-	 * @return void
+	 * Setup order related hooks
 	 */
 	public function setup() {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
-		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
-		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
-		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
-		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
-		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
-		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
-		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
-		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
+		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
+		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
+		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 	}
 
 	/**
-	 * Get the endpoint for WooCommerce Orders search.
+	 * Allow order creations on the front end to get synced
 	 *
-	 * @return string WooCommerce orders search endpoint.
+	 * @param  bool $override Original order perms check value
+	 * @param  int  $post_id Post ID
+	 * @return bool
 	 */
-	public function get_search_endpoint() {
-		/**
-		 * Filters the WooCommerce Orders search endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @param {string} $index Elasticsearch index.
-		 */
-		return apply_filters( 'ep_woocommerce_order_search_endpoint', "api/v1/search/orders/{$this->index}", $this->index );
-	}
+	public function bypass_order_permissions_check( $override, $post_id ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
-	/**
-	 * Get the endpoint for the WooCommerce Orders search template.
-	 *
-	 * @return string WooCommerce Orders search template endpoint.
-	 */
-	public function get_template_endpoint() {
-		/**
-		 * Filters the WooCommerce Orders search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @param {string} $index Elasticsearch index.
-		 * @returns {string} Search template API endpoint.
-		 */
-		return apply_filters( 'ep_woocommerce_order_search_template_endpoint', "api/v1/search/orders/{$this->index}/template", $this->index );
-	}
-
-	/**
-	 * Get the endpoint for temporary tokens.
-	 *
-	 * @return string Temporary token endpoint.
-	 */
-	public function get_token_endpoint() {
-		/**
-		 * Filters the temporary token API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_token_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @returns {string} Token API endpoint.
-		 */
-		return apply_filters( 'ep_token_endpoint', 'api/v1/token' );
-	}
-
-	/**
-	 * Registers the API endpoint to get a token.
-	 *
-	 * @return void
-	 */
-	public function rest_api_init() {
-		register_rest_route(
-			'elasticpress/v1',
-			'token',
-			[
-				[
-					'callback'            => [ $this, 'get_token' ],
-					'permission_callback' => [ $this, 'check_token_permission' ],
-					'methods'             => 'GET',
-				],
-				[
-					'callback'            => [ $this, 'refresh_token' ],
-					'permission_callback' => [ $this, 'check_token_permission' ],
-					'methods'             => 'POST',
-				],
-			]
-		);
-	}
-
-	/**
-	 * Enqueue admin assets.
-	 *
-	 * @param string $hook_suffix The current admin page.
-	 */
-	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( 'edit.php' !== $hook_suffix ) {
-			return;
+		if ( in_array( get_post_type( $post_id ), $searchable_post_types, true ) ) {
+			return true;
 		}
 
-		if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
-		}
-
-		wp_enqueue_style(
-			'elasticpress-woocommerce-order-search',
-			EP_URL . 'dist/css/woocommerce-order-search-styles.css',
-			Utils\get_asset_info( 'woocommerce-order-search-styles', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-order-search-styles', 'version' )
-		);
-
-		wp_enqueue_script(
-			'elasticpress-woocommerce-order-search',
-			EP_URL . 'dist/js/woocommerce-order-search-script.js',
-			Utils\get_asset_info( 'woocommerce-order-search-script', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-order-search-script', 'version' ),
-			true
-		);
-
-		wp_set_script_translations( 'elasticpress-woocommerce-order-search', 'elasticpress' );
-
-		$api_endpoint = $this->get_search_endpoint();
-		$api_host     = Utils\get_host();
-
-		wp_localize_script(
-			'elasticpress-woocommerce-order-search',
-			'epWooCommerceOrderSearch',
-			array(
-				'adminUrl'          => admin_url( 'post.php' ),
-				'apiEndpoint'       => $api_endpoint,
-				'apiHost'           => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? trailingslashit( esc_url_raw( $api_host ) ) : '',
-				'argsSchema'        => $this->get_args_schema(),
-				'credentialsApiUrl' => rest_url( 'elasticpress/v1/token' ),
-				'credentialsNonce'  => wp_create_nonce( 'wp_rest' ),
-				'dateFormat'        => wc_date_format(),
-				'statusLabels'      => wc_get_order_statuses(),
-				'timeFormat'        => wc_time_format(),
-				'requestIdBase'     => Utils\get_request_id_base(),
-			)
-		);
+		return $override;
 	}
 
 	/**
-	 * Save or delete the search template on ElasticPress.io based on whether
-	 * the WooCommerce feature is being activated or deactivated.
+	 * Returns the WooCommerce-oriented post types in admin that EP will search
 	 *
-	 * @param string $feature  Feature slug
-	 * @param array  $settings Feature settings
-	 * @param array  $data     Feature activation data
-	 *
-	 * @return void
-	 */
-	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $feature ) {
-			return;
-		}
-
-		if ( true === $data['active'] ) {
-			$this->epio_save_search_template();
-		} else {
-			$this->epio_delete_search_template();
-		}
-	}
-
-	/**
-	 * Save the search template to ElasticPress.io.
-	 *
-	 * @return void
-	 */
-	public function epio_save_search_template() {
-		$endpoint = $this->get_template_endpoint();
-		$template = $this->get_search_template();
-
-		Elasticsearch::factory()->remote_request(
-			$endpoint,
-			[
-				'blocking' => false,
-				'body'     => $template,
-				'method'   => 'PUT',
-			]
-		);
-
-		/**
-		 * Fires after the request is sent the search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_saved
-		 * @param {string} $template The search template (JSON).
-		 * @param {string} $index Index name.
-		 */
-		do_action( 'ep_woocommerce_order_search_template_saved', $template, $this->index );
-	}
-
-	/**
-	 * Delete the search template from ElasticPress.io.
-	 *
-	 * @return void
-	 */
-	public function epio_delete_search_template() {
-		$endpoint = $this->get_template_endpoint();
-
-		Elasticsearch::factory()->remote_request(
-			$endpoint,
-			[
-				'blocking' => false,
-				'method'   => 'DELETE',
-			]
-		);
-
-		/**
-		 * Fires after the request is sent the search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_deleted
-		 * @param {string} $index Index name.
-		 */
-		do_action( 'ep_woocommerce_order_search_template_deleted', $this->index );
-	}
-
-	/**
-	 * Get the saved search template from ElasticPress.io.
-	 *
-	 * @return string|WP_Error Search template if found, WP_Error on error.
-	 */
-	public function epio_get_search_template() {
-		$endpoint = $this->get_template_endpoint();
-		$request  = Elasticsearch::factory()->remote_request( $endpoint );
-
-		if ( is_wp_error( $request ) ) {
-			return $request;
-		}
-
-		$response = wp_remote_retrieve_body( $request );
-
-		return $response;
-	}
-
-	/**
-	 * Generate a search template.
-	 *
-	 * A search template is the JSON for an Elasticsearch query with a
-	 * placeholder search term. The template is sent to ElasticPress.io where
-	 * it's used to make Elasticsearch queries using search terms sent from
-	 * the front end.
-	 *
-	 * @return string The search template as JSON.
-	 */
-	public function get_search_template() {
-		$order_statuses = wc_get_order_statuses();
-
-		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		add_filter( 'ep_intercept_remote_request', '__return_true' );
-		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
-		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
-
-		$query = new \WP_Query(
-			array(
-				'ep_integrate'             => true,
-				'ep_order_search_template' => true,
-				'post_status'              => array_keys( $order_statuses ),
-				'post_type'                => 'shop_order',
-				's'                        => '{{ep_placeholder}}',
-			)
-		);
-
-		remove_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		remove_filter( 'ep_intercept_remote_request', '__return_true' );
-		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
-		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
-
-		return $this->search_template;
-	}
-
-	/**
-	 * Return true if a given feature is supported by WooCommerce Orders.
-	 *
-	 * Applied as a filter on Utils\is_integrated_request() so that features
-	 * are enabled for the query that is used to generate the search template,
-	 * regardless of the request type. This avoids the need to send a request
-	 * to the front end.
-	 *
-	 * @param bool   $is_integrated Whether queries for the request will be
-	 *                              integrated.
-	 * @param string $context       Context for the original check. Usually the
-	 *                              slug of the feature doing the check.
-	 * @return bool True if the check is for a feature supported by WooCommerce
-	 *              Order search.
-	 */
-	public function is_integrated_request( $is_integrated, $context ) {
-		$supported_contexts = [
-			'search',
-			'woocommerce',
-		];
-
-		return in_array( $context, $supported_contexts, true );
-	}
-
-	/**
-	 * Store intercepted request body and return request result.
-	 *
-	 * @param object $response Response
-	 * @param array  $query Query
-	 * @param array  $args WP_Query argument array
-	 * @param int    $failures Count of failures in request loop
-	 * @return object $response Response
-	 */
-	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
-		$this->search_template = $query['args']['body'];
-
-		return wp_remote_request( $query['url'], $args );
-	}
-
-	/**
-	 * Get schema for search args.
-	 *
-	 * @return array Search args schema.
-	 */
-	public function get_args_schema() {
-		$args = array(
-			'customer' => array(
-				'type' => 'number',
-			),
-			'm'        => array(
-				'type' => 'string',
-			),
-			'offset'   => array(
-				'type'    => 'number',
-				'default' => 0,
-			),
-			'per_page' => array(
-				'type'    => 'number',
-				'default' => 6,
-			),
-			'search'   => array(
-				'type'    => 'string',
-				'default' => '',
-			),
-		);
-
-		return $args;
-	}
-
-	/**
-	 * Get a temporary token.
-	 *
-	 * @return string|false Authorization header, or false on failure.
-	 */
-	public function get_token() {
-		$user_id = get_current_user_id();
-
-		$credentials = get_user_meta( $user_id, 'ep_token', true );
-
-		if ( $credentials ) {
-			return $credentials;
-		}
-
-		return $this->refresh_token();
-	}
-
-	/**
-	 * Refresh the temporary token.
-	 *
-	 * @return string|false Authorization header, or false on failure.
-	 */
-	public function refresh_token() {
-		$user_id = get_current_user_id();
-
-		$endpoint = $this->get_token_endpoint();
-		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return false;
-		}
-
-		$response = wp_remote_retrieve_body( $response );
-		$response = json_decode( $response );
-
-		$credentials = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-
-		update_user_meta( $user_id, 'ep_token', $credentials );
-
-		return $credentials;
-	}
-
-	/**
-	 * Checks if the token API can be used.
-	 *
-	 * @return boolean Whether the token API can be used.
-	 */
-	public function check_token_permission() {
-		/**
-		 * Filters the capability required to use the token API.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_token_capability
-		 * @param {string} $capability Required capability.
-		 */
-		$capability = apply_filters( 'ep_token_capability', 'edit_others_shop_orders' );
-
-		return current_user_can( $capability );
-	}
-
-	/**
-	 * Index shop orders.
-	 *
-	 * @param array $post_types Indexable post types.
-	 * @return array Indexable post types.
-	 */
-	public function post_types( $post_types ) {
-		$post_types['shop_order'] = 'shop_order';
-
-		return $post_types;
-	}
-
-	/**
-	 * Index order statuses.
-	 *
-	 * @param array $post_statuses Indexable post statuses.
-	 * @return array Indexable post statuses.
-	 */
-	public function post_statuses( $post_statuses ) {
-		$order_statuses = wc_get_order_statuses();
-
-		return array_unique( array_merge( $post_statuses, array_keys( $order_statuses ) ) );
-	}
-
-	/**
-	 * Add term suggestions to be indexed
-	 *
-	 * @param array $post_args Array of ES args.
 	 * @return array
 	 */
-	public function filter_term_suggest( $post_args ) {
-		if ( empty( $post_args['post_type'] ) || 'shop_order' !== $post_args['post_type'] ) {
-			return $post_args;
-		}
-
-		if ( empty( $post_args['meta'] ) ) {
-			return $post_args;
-		}
+	public function get_admin_searchable_post_types() {
+		$searchable_post_types = array( 'shop_order' );
 
 		/**
-		 * Add the order number as a meta (text) field, so we can freely search on it.
+		 * Filter admin searchable WooCommerce post types
+		 *
+		 * @hook ep_woocommerce_admin_searchable_post_types
+		 * @since 4.4.0
+		 * @param {array} $post_types Post types
+		 * @return {array} New post types
 		 */
-		$order_id = $post_args['ID'];
-		if ( function_exists( 'wc_get_order' ) ) {
-			$order = wc_get_order( $post_args['ID'] );
-			if ( $order &amp;&amp; is_a( $order, 'WC_Order' ) &amp;&amp; method_exists( $order, 'get_order_number' ) ) {
-				$order_id = $order->get_order_number();
+		return apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+	}
+
+	/**
+	 * Index WooCommerce orders meta fields
+	 *
+	 * @param  array $meta Existing post meta
+	 * @return array
+	 */
+	public function allow_meta_keys( $meta ) {
+		return array_unique(
+			array_merge(
+				$meta,
+				array(
+					'_customer_user',
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+					'_variations_skus',
+				)
+			)
+		);
+	}
+
+	/**
+	 * Add order items as a searchable string.
+	 *
+	 * This mimics how WooCommerce currently does in the order_itemmeta
+	 * table. They combine the titles of the products and put them in a
+	 * meta field called "Items".
+	 *
+	 * @param array      $post_args Post arguments
+	 * @param string|int $post_id Post id
+	 *
+	 * @return array
+	 */
+	public function add_order_items_search( $post_args, $post_id ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		// Make sure it is only WooCommerce orders we touch.
+		if ( ! in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
+			return $post_args;
+		}
+
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		// Get order items.
+		$order     = wc_get_order( $post_id );
+		$item_meta = [];
+		foreach ( $order->get_items() as $delta => $product_item ) {
+			// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
+			if ( is_object( $product_item ) &amp;&amp; method_exists( $product_item, 'get_name' ) ) {
+				$item_meta['_items'][] = $product_item->get_name( 'edit' );
+			} elseif ( is_array( $product_item ) &amp;&amp; isset( $product_item['name'] ) ) {
+				$item_meta['_items'][] = $product_item['name'];
 			}
 		}
 
-		$post_args['meta']['order_number'] = [
-			[
-				'raw'   => $order_id,
-				'value' => $order_id,
-			],
-		];
-
-		$suggest = [];
-
-		$fields_to_ngram = [
-			'_billing_email',
-			'_billing_last_name',
-			'_billing_first_name',
-		];
-
-		foreach ( $fields_to_ngram as $field_to_ngram ) {
-			if ( ! empty( $post_args['meta'][ $field_to_ngram ] )
-				&amp;&amp; ! empty( $post_args['meta'][ $field_to_ngram ][0] )
-				&amp;&amp; ! empty( $post_args['meta'][ $field_to_ngram ][0]['value'] ) ) {
-				$suggest[] = $post_args['meta'][ $field_to_ngram ][0]['value'];
-			}
-		}
-
-		if ( ! empty( $suggest ) ) {
-			$post_args['term_suggest'] = $suggest;
-		}
+		// Prepare order items.
+		$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
+		$post_args['meta']   = array_merge( $post_args['meta'], $post_indexable->prepare_meta_types( $item_meta ) );
 
 		return $post_args;
 	}
 
 	/**
-	 * Add mapping for suggest fields
+	 * Prevent order fields from being removed.
 	 *
-	 * @param  array $mapping ES mapping.
-	 * @return array
-	 */
-	public function mapping( $mapping ) {
-		$post_indexable = Indexables::factory()->get( 'post' );
-
-		$mapping = $post_indexable->add_ngram_analyzer( $mapping );
-		$mapping = $post_indexable->add_term_suggest_field( $mapping );
-
-		return $mapping;
-	}
-
-	/**
-	 * Set the search_fields parameter in the search template.
+	 * When Protected Content is enabled, all posts with password have their content removed.
+	 * This can't happen for orders, as the order key is added in that field.
 	 *
-	 * @param array     $search_fields Current search fields
-	 * @param \WP_Query $query         Query being executed
-	 * @return array New search fields
+	 * @see https://github.com/10up/ElasticPress/issues/2726
+	 *
+	 * @param bool  $skip      Whether the password protected content should have their content, and meta removed
+	 * @param array $post_args Post arguments
+	 * @return bool
 	 */
-	public function set_search_fields( array $search_fields, \WP_Query $query ) : array {
-		$is_orders_search_template = (bool) $query->get( 'ep_order_search_template' );
+	public function keep_order_fields( $skip, $post_args ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
-		if ( $is_orders_search_template ) {
-			$search_fields = [
-				'meta.order_number.value',
-				'term_suggest',
-				'meta' => [
-					'_billing_email',
-					'_billing_last_name',
-					'_billing_first_name',
-				],
-			];
+		if ( in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
+			return true;
 		}
 
-		return $search_fields;
+		return $skip;
 	}
 
 	/**
-	 * Allow password protected to be indexed.
+	 * Sets woocommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
 	 *
-	 * If Protected Content is enabled, do nothing. Otherwise, allow pw protected posts to be indexed.
-	 * The feature restricts it back in maybe_set_posts_where()
+	 * Woocommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
+	 * is integrated with ElasticSearch.
+	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
+	 * without the Protected Content Module
 	 *
-	 * @see maybe_set_posts_where()
-	 * @param array $args WP_Query args
-	 * @return array
+	 * @param \WP_Query $query Current query
 	 */
-	public function maybe_query_password_protected_posts( $args ) {
-		// Password protected posts are already being indexed, no need to do anything.
-		if ( isset( $args['has_password'] ) &amp;&amp; is_null( $args['has_password'] ) ) {
-			return $args;
+	public function maybe_hook_woocommerce_search_fields( $query ) {
+		global $pagenow, $wp, $wc_list_table;
+
+		if ( ! $this->woocommerce->should_integrate_with_query( $query ) ) {
+			return;
 		}
 
 		/**
-		 * Set a flag in the query but allow it to index all password protected posts for now,
-		 * so WP does not inject its own where clause.
+		 * Determines actions to be applied, or removed, if doing a WooCommerce serarch
+		 *
+		 * @hook ep_woocommerce_hook_search_fields
+		 * @since  4.4.0
 		 */
-		$args['ep_orders_has_password'] = true;
-		$args['has_password']           = null;
+		do_action( 'ep_woocommerce_hook_search_fields' );
 
-		return $args;
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['s'] ) || 'shop_order' !== $wp->query_vars['post_type'] || ! isset( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+
+		remove_action( 'parse_query', [ $wc_list_table, 'search_custom_fields' ] );
 	}
 
 	/**
-	 * Restrict password protected posts back but allow orders.
+	 * Enhance WooCommerce search order by order id, email, phone number, name, etc..
+	 * What this function does:
+	 * 1. Reverse the woocommerce shop_order_search_custom_fields query
+	 * 2. If the search key is integer and it is an Order Id, just query with post__in
+	 * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
 	 *
-	 * @see maybe_query_password_protected_posts
-	 * @param string   $where Current where clause
-	 * @param WP_Query $query WP_Query
-	 * @return string
+	 * @param WP_Query $wp WP Query
 	 */
-	public function maybe_set_posts_where( $where, $query ) {
-		global $wpdb;
+	public function search_order( $wp ) {
+		global $pagenow;
 
-		if ( ! $query->get( 'ep_orders_has_password' ) ) {
-			return $where;
+		if ( ! $this->woocommerce->should_integrate_with_query( $wp ) ) {
+			return;
 		}
 
-		$where .= " AND ( {$wpdb->posts}.post_password = '' OR {$wpdb->posts}.post_type = 'shop_order' )";
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
-		return $where;
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || ! in_array( $wp->query_vars['post_type'], $searchable_post_types, true ) ||
+			( empty( $wp->query_vars['s'] ) &amp;&amp; empty( $wp->query_vars['shop_order_search'] ) ) ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+		if ( isset( $_GET['s'] ) ) {
+			$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+			unset( $wp->query_vars['post__in'] );
+			$wp->query_vars['s'] = $search_key_safe;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+	}
+
+	/**
+	 * Determines whether or not ES should be integrating with the provided query
+	 *
+	 * @param \WP_Query $query Query we might integrate with
+	 * @return bool
+	 */
+	public function should_integrate_with_query( \WP_Query $query ) : bool {
+		/**
+		 * Check the post type
+		 */
+		$supported_post_types = $this->get_supported_post_types( $query );
+		$post_type            = $query->get( 'post_type', false );
+		if ( ! empty( $post_type ) &amp;&amp;
+			( in_array( $post_type, $supported_post_types, true ) ||
+			( is_array( $post_type ) &amp;&amp; ! array_diff( $post_type, $supported_post_types ) ) )
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the supported post types for Order related queries
+	 *
+	 * @return array
+	 */
+	public function get_supported_post_types() : array {
+		$post_types = [ 'shop_order', 'shop_order_refund' ];
+
+		/**
+		 * DEPRECATED. Expands or contracts the post_types eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_default_supported_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		$supported_post_types = apply_filters_deprecated(
+			'ep_woocommerce_default_supported_post_types',
+			[ $post_types ],
+			'4.7.0',
+			'ep_woocommerce_orders_supported_post_types'
+		);
+
+		/**
+		 * Expands or contracts the post_types related to orders eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_orders_supported_post_types
+		 * @since 4.7.0
+		 * @param {array} $post_types Post types
+		 * @return {array} New post types
+		 */
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
+
+		$supported_post_types = array_intersect(
+			$supported_post_types,
+			Indexables::factory()->get( 'post' )->get_indexable_post_types()
+		);
+
+		return $supported_post_types;
+	}
+
+	/**
+	 * If the query has a search term, add the order fields that need to be searched.
+	 *
+	 * @param \WP_Query $query The WP_Query
+	 * @return \WP_Query
+	 */
+	protected function maybe_set_search_fields( \WP_Query $query ) {
+		$search_term = $this->woocommerce->get_search_term( $query );
+		if ( empty( $search_term ) ) {
+			return $query;
+		}
+
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		$post_type = $query->get( 'post_type', false );
+		if ( ! in_array( $post_type, $searchable_post_types, true ) ) {
+			return $query;
+		}
+
+		$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
+		if ( ctype_digit( $search_term ) ) {
+			$default_search_fields[] = 'ID';
+		}
+		$search_fields = $query->get( 'search_fields', $default_search_fields );
+
+		$search_fields['meta'] = array_map(
+			'wc_clean',
+			/**
+			 * Filter shop order meta fields to search for WooCommerce
+			 *
+			 * @hook shop_order_search_fields
+			 * @param  {array} $fields Shop order fields
+			 * @return  {array} New fields
+			 */
+			apply_filters(
+				'shop_order_search_fields',
+				array(
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+					'_items',
+				)
+			)
+		);
+
+		$query->set(
+			'search_fields',
+			/**
+			 * Filter all the shop order fields to search for WooCommerce
+			 *
+			 * @hook ep_woocommerce_shop_order_search_fields
+			 * @since 4.0.0
+			 * @param {array}    $fields Shop order fields
+			 * @param {WP_Query} $query  WP Query
+			 * @return {array} New fields
+			 */
+			apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
+		);
+	}
+
+	/**
+	 * Translate args to ElasticPress compat format. This is the meat of what the feature does
+	 *
+	 * @param  \WP_Query $query WP Query
+	 */
+	public function translate_args( $query ) {
+		if ( ! $this->woocommerce->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		$query->set( 'ep_integrate', true );
+
+		/**
+		 * Make sure filters are suppressed
+		 */
+		$query->query['suppress_filters'] = false;
+		$query->set( 'suppress_filters', false );
+
+		$this->maybe_set_search_fields( $query );
+	}
+
+	/**
+	 * Handle calls to OrdersAutosuggest methods
+	 *
+	 * @param string $method_name The method name
+	 * @param array  $arguments   Array of arguments
+	 */
+	public function __call( $method_name, $arguments ) {
+		$orders_autosuggest_methods = [
+			'after_update_feature',
+			'check_token_permission',
+			'enqueue_admin_assets',
+			'epio_delete_search_template',
+			'epio_get_search_template',
+			'epio_save_search_template',
+			'filter_term_suggest',
+			'get_args_schema',
+			'get_search_endpoint',
+			'get_search_template',
+			'get_template_endpoint',
+			'get_token',
+			'get_token_endpoint',
+			'intercept_search_request',
+			'is_integrated_request',
+			'post_statuses',
+			'post_types',
+			'mapping',
+			'maybe_query_password_protected_posts',
+			'maybe_set_posts_where',
+			'refresh_token',
+			'rest_api_init',
+			'set_search_fields',
+		];
+
+		if ( in_array( $method_name, $orders_autosuggest_methods, true ) ) {
+			_deprecated_function(
+				"\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method_name}", // phpcs:ignore
+				'4.7.0',
+				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
+			);
+
+			if ( $this->woocommerce->is_orders_autosuggest_enabled() &amp;&amp; method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
+				call_user_func_array( [ $this->woocommerce->orders_autosuggest, $method_name ], $arguments );
+			}
+		}
 	}
 }
 </code></pre>
@@ -660,7 +509,7 @@ class Orders {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_error.html">ep_after_sync_error</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_args_schema.html">ep_instant_results_args_schema</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_per_page.html">ep_instant_results_per_page</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_deleted.html">ep_instant_results_template_deleted</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_query_logger_cleared_logs.html">ep_query_logger_cleared_logs</a></li><li><a href="ep_query_logger_logged_query.html">ep_query_logger_logged_query</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_stop_the_insanity.html">ep_stop_the_insanity</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_token_capability.html">ep_token_capability</a></li><li><a href="ep_update_index_settings.html">ep_update_index_settings</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weight_settings_after_search.html">ep_weight_settings_after_search</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_woocommerce_hook_search_fields.html">ep_woocommerce_hook_search_fields</a></li><li><a href="ep_woocommerce_order_search_endpoint.html">ep_woocommerce_order_search_endpoint</a></li><li><a href="ep_woocommerce_order_search_template_deleted.html">ep_woocommerce_order_search_template_deleted</a></li><li><a href="ep_woocommerce_order_search_template_saved.html">ep_woocommerce_order_search_template_saved</a></li><li><a href="ep_woocommerce_orders_autosuggest_available.html">ep_woocommerce_orders_autosuggest_available</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_args.html">ep_autosuggest_query_args</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_bypass_exclusion_from_search.html">ep_bypass_exclusion_from_search</a></li><li><a href="ep_capability.html">ep_capability</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_comment_total_field_limit.html">ep_comment_total_field_limit</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_current_sync_number_of_errors_stored.html">ep_current_sync_number_of_errors_stored</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_char_filters.html">ep_default_analyzer_char_filters</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_do_weighting.html">ep_enable_do_weighting</a></li><li><a href="ep_enable_query_integration_during_indexing.html">ep_enable_query_integration_during_indexing</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_agg_filters.html">ep_facet_agg_filters</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_default_sanitize_callback.html">ep_facet_default_sanitize_callback</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_filter_type.html">ep_facet_filter_type</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_match_type.html">ep_facet_match_type</a></li><li><a href="ep_facet_meta_custom_meta_values.html">ep_facet_meta_custom_meta_values</a></li><li><a href="ep_facet_meta_fields.html">ep_facet_meta_fields</a></li><li><a href="ep_facet_meta_filter_name.html">ep_facet_meta_filter_name</a></li><li><a href="ep_facet_meta_range_fields.html">ep_facet_meta_range_fields</a></li><li><a href="ep_facet_meta_range_filter_name.html">ep_facet_meta_range_filter_name</a></li><li><a href="ep_facet_meta_range_filter_type.html">ep_facet_meta_range_filter_type</a></li><li><a href="ep_facet_meta_range_use_field.html">ep_facet_meta_range_use_field</a></li><li><a href="ep_facet_meta_sanitize_callback.html">ep_facet_meta_sanitize_callback</a></li><li><a href="ep_facet_meta_size.html">ep_facet_meta_size</a></li><li><a href="ep_facet_meta_use_field.html">ep_facet_meta_use_field</a></li><li><a href="ep_facet_meta_value_accessible_label.html">ep_facet_meta_value_accessible_label</a></li><li><a href="ep_facet_meta_value_html.html">ep_facet_meta_value_html</a></li><li><a href="ep_facet_meta_value_label.html">ep_facet_meta_value_label</a></li><li><a href="ep_facet_meta_value_max_strlen.html">ep_facet_meta_value_max_strlen</a></li><li><a href="ep_facet_meta_values_with_count.html">ep_facet_meta_values_with_count</a></li><li><a href="ep_facet_post_type_filter_name.html">ep_facet_post_type_filter_name</a></li><li><a href="ep_facet_post_type_filter_type.html">ep_facet_post_type_filter_type</a></li><li><a href="ep_facet_post_type_size.html">ep_facet_post_type_size</a></li><li><a href="ep_facet_post_type_value_accessible_label.html">ep_facet_post_type_value_accessible_label</a></li><li><a href="ep_facet_post_type_value_html.html">ep_facet_post_type_value_html</a></li><li><a href="ep_facet_post_type_value_label.html">ep_facet_post_type_value_label</a></li><li><a href="ep_facet_query_filters.html">ep_facet_query_filters</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_renderer_class.html">ep_facet_renderer_class</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_should_check_if_allowed.html">ep_facet_should_check_if_allowed</a></li><li><a href="ep_facet_taxonomy_terms.html">ep_facet_taxonomy_terms</a></li><li><a href="ep_facet_types.html">ep_facet_types</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_facet_wp_query_aggs_facet.html">ep_facet_wp_query_aggs_facet</a></li><li><a href="ep_facetable_post_types.html">ep_facetable_post_types</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_feature_is_available.html">ep_feature_is_available</a></li><li><a href="ep_feature_is_visible.html">ep_feature_is_visible</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_integrate_search_queries.html">ep_integrate_search_queries</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_decaying_enabled.html">ep_is_decaying_enabled</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_max_year_limit.html">ep_max_year_limit</a></li><li><a href="ep_network_capability.html">ep_network_capability</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_filters.html">ep_post_filters</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_meta_by_type_ids_per_page.html">ep_post_meta_by_type_ids_per_page</a></li><li><a href="ep_post_meta_by_type_number_of_pages.html">ep_post_meta_by_type_number_of_pages</a></li><li><a href="ep_post_meta_keys_db.html">ep_post_meta_keys_db</a></li><li><a href="ep_post_meta_keys_db_per_post_type.html">ep_post_meta_keys_db_per_post_type</a></li><li><a href="ep_post_meta_keys_db_per_post_type_allowed_screen.html">ep_post_meta_keys_db_per_post_type_allowed_screen</a></li><li><a href="ep_post_pre_meta_keys_db.html">ep_post_pre_meta_keys_db</a></li><li><a href="ep_post_pre_meta_keys_db_per_post_type.html">ep_post_pre_meta_keys_db_per_post_type</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_kill_sync_for_password_protected.html">ep_pre_kill_sync_for_password_protected</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_logger.html">ep_query_logger</a></li><li><a href="ep_query_logger_allowed_log_types.html">ep_query_logger_allowed_log_types</a></li><li><a href="ep_query_logger_formatted_query.html">ep_query_logger_formatted_query</a></li><li><a href="ep_query_logger_logs.html">ep_query_logger_logs</a></li><li><a href="ep_query_logger_max_cache_size.html">ep_query_logger_max_cache_size</a></li><li><a href="ep_query_logger_queries_to_keep.html">ep_query_logger_queries_to_keep</a></li><li><a href="ep_query_logger_should_log_query.html">ep_query_logger_should_log_query</a></li><li><a href="ep_query_logger_time_to_keep.html">ep_query_logger_time_to_keep</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_request_id.html">ep_request_id</a></li><li><a href="ep_request_id_base.html">ep_request_id_base</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_suggestion_analyzer.html">ep_search_suggestion_analyzer</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_server_type.html">ep_server_type</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_autosave_sync.html">ep_skip_autosave_sync</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_status_report_reports.html">ep_status_report_reports</a></li><li><a href="ep_suggestion_html.html">ep_suggestion_html</a></li><li><a href="ep_suggestion_original_search_term_html.html">ep_suggestion_original_search_term_html</a></li><li><a href="ep_sync_args.html">ep_sync_args</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_number_of_errors_stored.html">ep_sync_number_of_errors_stored</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_token_endpoint.html">ep_token_endpoint</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_register_feature.html">ep_user_register_feature</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_user_total_field_limit.html">ep_user_total_field_limit</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_admin_products_list_search_fields.html">ep_woocommerce_admin_products_list_search_fields</a></li><li><a href="ep_woocommerce_admin_searchable_post_types.html">ep_woocommerce_admin_searchable_post_types</a></li><li><a href="ep_woocommerce_default_supported_post_types.html">ep_woocommerce_default_supported_post_types</a></li><li><a href="ep_woocommerce_integrate_admin_products_list.html">ep_woocommerce_integrate_admin_products_list</a></li><li><a href="ep_woocommerce_order_search_template_endpoint.html">ep_woocommerce_order_search_template_endpoint</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%257B$indexable_slug%257D_all_distinct_values.html">ep_{$indexable_slug}_all_distinct_values</a></li><li><a href="ep_%257B$indexable_slug%257D_formatted_args_query.html">ep_{$indexable_slug}_formatted_args_query</a></li><li><a href="ep_%257B$indexable_slug%257D_fuzziness_arg.html">ep_{$indexable_slug}_fuzziness_arg</a></li><li><a href="ep_%257B$indexable_slug%257D_match_boost.html">ep_{$indexable_slug}_match_boost</a></li><li><a href="ep_%25257B$indexable_slug%25257D_match_cross_fields_boost.html">ep_{$indexable_slug}_match_cross_fields_boost</a></li><li><a href="ep_%257B$indexable_slug%257D_match_fuzziness.html">ep_{$indexable_slug}_match_fuzziness</a></li><li><a href="ep_%257B$indexable_slug%257D_match_phrase_boost.html">ep_{$indexable_slug}_match_phrase_boost</a></li><li><a href="ep_%25257B$indexable_slug%25257D_search_algorithm.html">ep_{$indexable_slug}_search_algorithm</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_field.html">epwr_decay_field</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-compatibility.html">Compatibility</a></li><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Actions</h3><ul><li><a href="elasticpress_loaded.html">elasticpress_loaded</a></li><li><a href="ep_add_query_log.html">ep_add_query_log</a></li><li><a href="ep_after_add_to_queue.html">ep_after_add_to_queue</a></li><li><a href="ep_after_bulk_index.html">ep_after_bulk_index</a></li><li><a href="ep_after_bulk_index_dynamically.html">ep_after_bulk_index_dynamically</a></li><li><a href="ep_after_index_%257Bindexable_slug%257D.html">ep_after_index_{indexable_slug}</a></li><li><a href="ep_after_put_mapping.html">ep_after_put_mapping</a></li><li><a href="ep_after_remove_from_queue.html">ep_after_remove_from_queue</a></li><li><a href="ep_after_send_dynamic_bulk_request.html">ep_after_send_dynamic_bulk_request</a></li><li><a href="ep_after_send_dynamic_bulk_requests.html">ep_after_send_dynamic_bulk_requests</a></li><li><a href="ep_after_sync_error.html">ep_after_sync_error</a></li><li><a href="ep_after_sync_index.html">ep_after_sync_index</a></li><li><a href="ep_after_update_feature.html">ep_after_update_feature</a></li><li><a href="ep_after_%257B$index_method%257D_index.html">ep_after_{$index_method}_index</a></li><li><a href="ep_before_send_dynamic_bulk_requests.html">ep_before_send_dynamic_bulk_requests</a></li><li><a href="ep_cli_after_clear_index.html">ep_cli_after_clear_index</a></li><li><a href="ep_cli_after_set_search_algorithm_version.html">ep_cli_after_set_search_algorithm_version</a></li><li><a href="ep_cli_before_clear_index.html">ep_cli_before_clear_index</a></li><li><a href="ep_cli_before_set_search_algorithm_version.html">ep_cli_before_set_search_algorithm_version</a></li><li><a href="ep_cli_put_mapping.html">ep_cli_put_mapping</a></li><li><a href="ep_cli_%257Bindexable_slug%257D_bulk_index.html">ep_cli_{indexable_slug}_bulk_index</a></li><li><a href="ep_comment_after_search_widget.html">ep_comment_after_search_widget</a></li><li><a href="ep_comment_pre_search_widget.html">ep_comment_pre_search_widget</a></li><li><a href="ep_dashboard_put_mapping.html">ep_dashboard_put_mapping</a></li><li><a href="ep_delete_%257Bindexable_slug%257D.html">ep_delete_{indexable_slug}</a></li><li><a href="ep_dynamic_bulk_post_too_big.html">ep_dynamic_bulk_post_too_big</a></li><li><a href="ep_epio_autosuggest_es_query.html">ep_epio_autosuggest_es_query</a></li><li><a href="ep_epio_pre_send_autosuggest_allowed.html">ep_epio_pre_send_autosuggest_allowed</a></li><li><a href="ep_epio_sent_autosuggest_allowed.html">ep_epio_sent_autosuggest_allowed</a></li><li><a href="ep_feature_box_long.html">ep_feature_box_long</a></li><li><a href="ep_feature_box_summary.html">ep_feature_box_summary</a></li><li><a href="ep_feature_create.html">ep_feature_create</a></li><li><a href="ep_feature_post_activation.html">ep_feature_post_activation</a></li><li><a href="ep_highlighting_pre_add_highlight.html">ep_highlighting_pre_add_highlight</a></li><li><a href="ep_index_batch_new_attempt.html">ep_index_batch_new_attempt</a></li><li><a href="ep_index_index.html">ep_index_index</a></li><li><a href="ep_index_index_post.html">ep_index_index_post</a></li><li><a href="ep_index_post_retrieve_raw_response.html">ep_index_post_retrieve_raw_response</a></li><li><a href="ep_index_retrieve_raw_response.html">ep_index_retrieve_raw_response</a></li><li><a href="ep_instant_results_args_schema.html">ep_instant_results_args_schema</a></li><li><a href="ep_instant_results_available.html">ep_instant_results_available</a></li><li><a href="ep_instant_results_per_page.html">ep_instant_results_per_page</a></li><li><a href="ep_instant_results_search_endpoint.html">ep_instant_results_search_endpoint</a></li><li><a href="ep_instant_results_template_deleted.html">ep_instant_results_template_deleted</a></li><li><a href="ep_instant_results_template_saved.html">ep_instant_results_template_saved</a></li><li><a href="ep_invalid_response.html">ep_invalid_response</a></li><li><a href="ep_pre_index_batch.html">ep_pre_index_batch</a></li><li><a href="ep_pre_sync_index.html">ep_pre_sync_index</a></li><li><a href="ep_pre_%257B$index_method%257D_index.html">ep_pre_{$index_method}_index</a></li><li><a href="ep_query_logger_cleared_logs.html">ep_query_logger_cleared_logs</a></li><li><a href="ep_query_logger_logged_query.html">ep_query_logger_logged_query</a></li><li><a href="ep_remote_request.html">ep_remote_request</a></li><li><a href="ep_retrieve_aggregations.html">ep_retrieve_aggregations</a></li><li><a href="ep_retrieve_raw_response.html">ep_retrieve_raw_response</a></li><li><a href="ep_saved_weighting_configuration.html">ep_saved_weighting_configuration</a></li><li><a href="ep_settings_custom.html">ep_settings_custom</a></li><li><a href="ep_setup_features.html">ep_setup_features</a></li><li><a href="ep_stop_the_insanity.html">ep_stop_the_insanity</a></li><li><a href="ep_sync_comment_on_transition.html">ep_sync_comment_on_transition</a></li><li><a href="ep_sync_indexable_kill.html">ep_sync_indexable_kill</a></li><li><a href="ep_sync_object_index.html">ep_sync_object_index</a></li><li><a href="ep_sync_on_deleted_term_relationships.html">ep_sync_on_deleted_term_relationships</a></li><li><a href="ep_sync_on_edited_term.html">ep_sync_on_edited_term</a></li><li><a href="ep_sync_on_meta_update_queue.html">ep_sync_on_meta_update_queue</a></li><li><a href="ep_sync_on_set_object_terms.html">ep_sync_on_set_object_terms</a></li><li><a href="ep_sync_on_transition.html">ep_sync_on_transition</a></li><li><a href="ep_sync_put_mapping.html">ep_sync_put_mapping</a></li><li><a href="ep_sync_start_index.html">ep_sync_start_index</a></li><li><a href="ep_sync_user_on_transition.html">ep_sync_user_on_transition</a></li><li><a href="ep_token_capability.html">ep_token_capability</a></li><li><a href="ep_update_index_settings.html">ep_update_index_settings</a></li><li><a href="ep_valid_response.html">ep_valid_response</a></li><li><a href="ep_weight_settings_after_search.html">ep_weight_settings_after_search</a></li><li><a href="ep_weighting_added.html">ep_weighting_added</a></li><li><a href="ep_woocommerce_hook_search_fields.html">ep_woocommerce_hook_search_fields</a></li><li><a href="ep_woocommerce_order_search_endpoint.html">ep_woocommerce_order_search_endpoint</a></li><li><a href="ep_woocommerce_order_search_template_deleted.html">ep_woocommerce_order_search_template_deleted</a></li><li><a href="ep_woocommerce_order_search_template_saved.html">ep_woocommerce_order_search_template_saved</a></li><li><a href="ep_woocommerce_orders_autosuggest_available.html">ep_woocommerce_orders_autosuggest_available</a></li><li><a href="ep_wp_cli_after_index.html">ep_wp_cli_after_index</a></li><li><a href="ep_wp_cli_pre_index.html">ep_wp_cli_pre_index</a></li><li><a href="ep_wp_query.html">ep_wp_query</a></li><li><a href="ep_wp_query_non_cached_search.html">ep_wp_query_non_cached_search</a></li><li><a href="ep_wp_query_search.html">ep_wp_query_search</a></li><li><a href="ep_%257B$index_method%257D_object_index.html">ep_{$index_method}_object_index</a></li><li><a href="ep_%257B$index_method%257D_start_index.html">ep_{$index_method}_start_index</a></li><li><a href="pre_ep_index_sync_queue.html">pre_ep_index_sync_queue</a></li></ul><h3>Filters</h3><ul><li><a href="ep_admin_notices.html">ep_admin_notices</a></li><li><a href="ep_admin_show_credentials.html">ep_admin_show_credentials</a></li><li><a href="ep_admin_show_host.html">ep_admin_show_host</a></li><li><a href="ep_admin_supported_post_types.html">ep_admin_supported_post_types</a></li><li><a href="ep_admin_wp_query_integration.html">ep_admin_wp_query_integration</a></li><li><a href="ep_ajax_wp_query_integration.html">ep_ajax_wp_query_integration</a></li><li><a href="ep_allow_post_content_filtered_index.html">ep_allow_post_content_filtered_index</a></li><li><a href="ep_allowed_documents_ingest_mime_types.html">ep_allowed_documents_ingest_mime_types</a></li><li><a href="ep_analyzer_language.html">ep_analyzer_language</a></li><li><a href="ep_autosuggest_default_selectors.html">ep_autosuggest_default_selectors</a></li><li><a href="ep_autosuggest_http_headers.html">ep_autosuggest_http_headers</a></li><li><a href="ep_autosuggest_ngram_fields.html">ep_autosuggest_ngram_fields</a></li><li><a href="ep_autosuggest_options.html">ep_autosuggest_options</a></li><li><a href="ep_autosuggest_query_args.html">ep_autosuggest_query_args</a></li><li><a href="ep_autosuggest_query_placeholder.html">ep_autosuggest_query_placeholder</a></li><li><a href="ep_available_languages.html">ep_available_languages</a></li><li><a href="ep_blocks_pre_all_blocks.html">ep_blocks_pre_all_blocks</a></li><li><a href="ep_bulk_index_action_args.html">ep_bulk_index_action_args</a></li><li><a href="ep_bulk_index_request_path.html">ep_bulk_index_request_path</a></li><li><a href="ep_bulk_items_per_page.html">ep_bulk_items_per_page</a></li><li><a href="ep_bypass_exclusion_from_search.html">ep_bypass_exclusion_from_search</a></li><li><a href="ep_capability.html">ep_capability</a></li><li><a href="ep_comment_all_query_db_args.html">ep_comment_all_query_db_args</a></li><li><a href="ep_comment_formatted_args.html">ep_comment_formatted_args</a></li><li><a href="ep_comment_mapping.html">ep_comment_mapping</a></li><li><a href="ep_comment_mapping_file.html">ep_comment_mapping_file</a></li><li><a href="ep_comment_query_db_args.html">ep_comment_query_db_args</a></li><li><a href="ep_comment_search_fields.html">ep_comment_search_fields</a></li><li><a href="ep_comment_search_widget_args.html">ep_comment_search_widget_args</a></li><li><a href="ep_comment_search_widget_l10n_data_script.html">ep_comment_search_widget_l10n_data_script</a></li><li><a href="ep_comment_search_widget_response.html">ep_comment_search_widget_response</a></li><li><a href="ep_comment_sync_args.html">ep_comment_sync_args</a></li><li><a href="ep_comment_sync_kill.html">ep_comment_sync_kill</a></li><li><a href="ep_comment_total_field_limit.html">ep_comment_total_field_limit</a></li><li><a href="ep_config_mapping.html">ep_config_mapping</a></li><li><a href="ep_config_mapping_request.html">ep_config_mapping_request</a></li><li><a href="ep_container_set.html">ep_container_set</a></li><li><a href="ep_create_pipeline_args.html">ep_create_pipeline_args</a></li><li><a href="ep_current_sync_number_of_errors_stored.html">ep_current_sync_number_of_errors_stored</a></li><li><a href="ep_dashboard_indexable_labels.html">ep_dashboard_indexable_labels</a></li><li><a href="ep_default_analyzer_char_filters.html">ep_default_analyzer_char_filters</a></li><li><a href="ep_default_analyzer_filters.html">ep_default_analyzer_filters</a></li><li><a href="ep_default_index_number_of_replicas.html">ep_default_index_number_of_replicas</a></li><li><a href="ep_default_index_number_of_shards.html">ep_default_index_number_of_shards</a></li><li><a href="ep_default_language.html">ep_default_language</a></li><li><a href="ep_disable_search_weighting.html">ep_disable_search_weighting</a></li><li><a href="ep_do_intercept_request.html">ep_do_intercept_request</a></li><li><a href="ep_documents_pipeline_id.html">ep_documents_pipeline_id</a></li><li><a href="ep_dynamic_bulk_incremental_step.html">ep_dynamic_bulk_incremental_step</a></li><li><a href="ep_dynamic_bulk_max_buffer_size.html">ep_dynamic_bulk_max_buffer_size</a></li><li><a href="ep_dynamic_bulk_min_buffer_size.html">ep_dynamic_bulk_min_buffer_size</a></li><li><a href="ep_elasticpress_enabled.html">ep_elasticpress_enabled</a></li><li><a href="ep_elasticsearch_plugins.html">ep_elasticsearch_plugins</a></li><li><a href="ep_elasticsearch_version.html">ep_elasticsearch_version</a></li><li><a href="ep_enable_do_weighting.html">ep_enable_do_weighting</a></li><li><a href="ep_enable_query_integration_during_indexing.html">ep_enable_query_integration_during_indexing</a></li><li><a href="ep_enable_sticky_posts.html">ep_enable_sticky_posts</a></li><li><a href="ep_es_info_cache_expiration.html">ep_es_info_cache_expiration</a></li><li><a href="ep_es_query_results.html">ep_es_query_results</a></li><li><a href="ep_exclude_password_protected_from_search.html">ep_exclude_password_protected_from_search</a></li><li><a href="ep_facet_agg_filters.html">ep_facet_agg_filters</a></li><li><a href="ep_facet_allowed_query_args.html">ep_facet_allowed_query_args</a></li><li><a href="ep_facet_default_sanitize_callback.html">ep_facet_default_sanitize_callback</a></li><li><a href="ep_facet_filter_name.html">ep_facet_filter_name</a></li><li><a href="ep_facet_filter_type.html">ep_facet_filter_type</a></li><li><a href="ep_facet_include_taxonomies.html">ep_facet_include_taxonomies</a></li><li><a href="ep_facet_match_type.html">ep_facet_match_type</a></li><li><a href="ep_facet_meta_custom_meta_values.html">ep_facet_meta_custom_meta_values</a></li><li><a href="ep_facet_meta_fields.html">ep_facet_meta_fields</a></li><li><a href="ep_facet_meta_filter_name.html">ep_facet_meta_filter_name</a></li><li><a href="ep_facet_meta_range_fields.html">ep_facet_meta_range_fields</a></li><li><a href="ep_facet_meta_range_filter_name.html">ep_facet_meta_range_filter_name</a></li><li><a href="ep_facet_meta_range_filter_type.html">ep_facet_meta_range_filter_type</a></li><li><a href="ep_facet_meta_range_use_field.html">ep_facet_meta_range_use_field</a></li><li><a href="ep_facet_meta_sanitize_callback.html">ep_facet_meta_sanitize_callback</a></li><li><a href="ep_facet_meta_size.html">ep_facet_meta_size</a></li><li><a href="ep_facet_meta_use_field.html">ep_facet_meta_use_field</a></li><li><a href="ep_facet_meta_value_accessible_label.html">ep_facet_meta_value_accessible_label</a></li><li><a href="ep_facet_meta_value_html.html">ep_facet_meta_value_html</a></li><li><a href="ep_facet_meta_value_label.html">ep_facet_meta_value_label</a></li><li><a href="ep_facet_meta_value_max_strlen.html">ep_facet_meta_value_max_strlen</a></li><li><a href="ep_facet_meta_values_with_count.html">ep_facet_meta_values_with_count</a></li><li><a href="ep_facet_post_type_filter_name.html">ep_facet_post_type_filter_name</a></li><li><a href="ep_facet_post_type_filter_type.html">ep_facet_post_type_filter_type</a></li><li><a href="ep_facet_post_type_size.html">ep_facet_post_type_size</a></li><li><a href="ep_facet_post_type_value_accessible_label.html">ep_facet_post_type_value_accessible_label</a></li><li><a href="ep_facet_post_type_value_html.html">ep_facet_post_type_value_html</a></li><li><a href="ep_facet_post_type_value_label.html">ep_facet_post_type_value_label</a></li><li><a href="ep_facet_query_filters.html">ep_facet_query_filters</a></li><li><a href="ep_facet_query_string.html">ep_facet_query_string</a></li><li><a href="ep_facet_renderer_class.html">ep_facet_renderer_class</a></li><li><a href="ep_facet_search_get_terms_args.html">ep_facet_search_get_terms_args</a></li><li><a href="ep_facet_search_threshold.html">ep_facet_search_threshold</a></li><li><a href="ep_facet_search_widget.html">ep_facet_search_widget</a></li><li><a href="ep_facet_should_check_if_allowed.html">ep_facet_should_check_if_allowed</a></li><li><a href="ep_facet_tax_special_slug_taxonomies.html">ep_facet_tax_special_slug_taxonomies</a></li><li><a href="ep_facet_taxonomy_terms.html">ep_facet_taxonomy_terms</a></li><li><a href="ep_facet_taxonomy_value_html.html">ep_facet_taxonomy_value_html</a></li><li><a href="ep_facet_types.html">ep_facet_types</a></li><li><a href="ep_facet_use_field.html">ep_facet_use_field</a></li><li><a href="ep_facet_widget_term_accessible_label.html">ep_facet_widget_term_accessible_label</a></li><li><a href="ep_facet_widget_term_html.html">ep_facet_widget_term_html</a></li><li><a href="ep_facet_widget_term_label.html">ep_facet_widget_term_label</a></li><li><a href="ep_facet_wp_query_aggs_facet.html">ep_facet_wp_query_aggs_facet</a></li><li><a href="ep_facetable_post_types.html">ep_facetable_post_types</a></li><li><a href="ep_fallback_elasticsearch_version.html">ep_fallback_elasticsearch_version</a></li><li><a href="ep_feature_active.html">ep_feature_active</a></li><li><a href="ep_feature_is_available.html">ep_feature_is_available</a></li><li><a href="ep_feature_is_visible.html">ep_feature_is_visible</a></li><li><a href="ep_filesystem_args.html">ep_filesystem_args</a></li><li><a href="ep_find_related_args.html">ep_find_related_args</a></li><li><a href="ep_format_request_headers.html">ep_format_request_headers</a></li><li><a href="ep_formatted_args.html">ep_formatted_args</a></li><li><a href="ep_formatted_args_query.html">ep_formatted_args_query</a></li><li><a href="ep_fuzziness_arg.html">ep_fuzziness_arg</a></li><li><a href="ep_get_documents.html">ep_get_documents</a></li><li><a href="ep_get_hits_from_query.html">ep_get_hits_from_query</a></li><li><a href="ep_get_pipeline_args.html">ep_get_pipeline_args</a></li><li><a href="ep_global_alias.html">ep_global_alias</a></li><li><a href="ep_highlight_should_add_clause.html">ep_highlight_should_add_clause</a></li><li><a href="ep_highlighting_class.html">ep_highlighting_class</a></li><li><a href="ep_highlighting_fields.html">ep_highlighting_fields</a></li><li><a href="ep_highlighting_tag.html">ep_highlighting_tag</a></li><li><a href="ep_host.html">ep_host</a></li><li><a href="ep_ignore_invalid_dates.html">ep_ignore_invalid_dates</a></li><li><a href="ep_ignore_malformed.html">ep_ignore_malformed</a></li><li><a href="ep_index_batch_attempts_number.html">ep_index_batch_attempts_number</a></li><li><a href="ep_index_default_per_page.html">ep_index_default_per_page</a></li><li><a href="ep_index_health_stats_indices.html">ep_index_health_stats_indices</a></li><li><a href="ep_index_meta.html">ep_index_meta</a></li><li><a href="ep_index_name.html">ep_index_name</a></li><li><a href="ep_index_prefix.html">ep_index_prefix</a></li><li><a href="ep_index_%257Bdocument_type%257D_request_path.html">ep_index_{document_type}_request_path</a></li><li><a href="ep_indexable_comment_status.html">ep_indexable_comment_status</a></li><li><a href="ep_indexable_comment_types.html">ep_indexable_comment_types</a></li><li><a href="ep_indexable_post_status.html">ep_indexable_post_status</a></li><li><a href="ep_indexable_post_types.html">ep_indexable_post_types</a></li><li><a href="ep_indexable_sites.html">ep_indexable_sites</a></li><li><a href="ep_indexable_sites_args.html">ep_indexable_sites_args</a></li><li><a href="ep_indexable_taxonomies.html">ep_indexable_taxonomies</a></li><li><a href="ep_install_status.html">ep_install_status</a></li><li><a href="ep_instant_results_template_endpoint.html">ep_instant_results_template_endpoint</a></li><li><a href="ep_integrate_search_queries.html">ep_integrate_search_queries</a></li><li><a href="ep_intercept_remote_request.html">ep_intercept_remote_request</a></li><li><a href="ep_is_decaying_enabled.html">ep_is_decaying_enabled</a></li><li><a href="ep_is_facetable.html">ep_is_facetable</a></li><li><a href="ep_is_full_reindexing_%257B$indexable_slug%257D.html">ep_is_full_reindexing_{$indexable_slug}</a></li><li><a href="ep_is_indexing.html">ep_is_indexing</a></li><li><a href="ep_is_indexing_wpcli.html">ep_is_indexing_wpcli</a></li><li><a href="ep_is_integrated_request.html">ep_is_integrated_request</a></li><li><a href="ep_item_sync_kill.html">ep_item_sync_kill</a></li><li><a href="ep_keep_index.html">ep_keep_index</a></li><li><a href="ep_match_boost.html">ep_match_boost</a></li><li><a href="ep_match_fuzziness.html">ep_match_fuzziness</a></li><li><a href="ep_match_phrase_boost.html">ep_match_phrase_boost</a></li><li><a href="ep_max_remote_request_tries.html">ep_max_remote_request_tries</a></li><li><a href="ep_max_result_window.html">ep_max_result_window</a></li><li><a href="ep_max_results_window.html">ep_max_results_window</a></li><li><a href="ep_max_shingle_diff.html">ep_max_shingle_diff</a></li><li><a href="ep_max_year_limit.html">ep_max_year_limit</a></li><li><a href="ep_network_capability.html">ep_network_capability</a></li><li><a href="ep_pc_skip_post_content_cleanup.html">ep_pc_skip_post_content_cleanup</a></li><li><a href="ep_pc_supported_comment_types.html">ep_pc_supported_comment_types</a></li><li><a href="ep_pc_supported_post_types.html">ep_pc_supported_post_types</a></li><li><a href="ep_post_filters.html">ep_post_filters</a></li><li><a href="ep_post_formatted_args.html">ep_post_formatted_args</a></li><li><a href="ep_post_mapping.html">ep_post_mapping</a></li><li><a href="ep_post_mapping_file.html">ep_post_mapping_file</a></li><li><a href="ep_post_mapping_version_cache_expiration.html">ep_post_mapping_version_cache_expiration</a></li><li><a href="ep_post_mapping_version_determined.html">ep_post_mapping_version_determined</a></li><li><a href="ep_post_meta_by_type_ids_per_page.html">ep_post_meta_by_type_ids_per_page</a></li><li><a href="ep_post_meta_by_type_number_of_pages.html">ep_post_meta_by_type_number_of_pages</a></li><li><a href="ep_post_meta_keys_db.html">ep_post_meta_keys_db</a></li><li><a href="ep_post_meta_keys_db_per_post_type.html">ep_post_meta_keys_db_per_post_type</a></li><li><a href="ep_post_meta_keys_db_per_post_type_allowed_screen.html">ep_post_meta_keys_db_per_post_type_allowed_screen</a></li><li><a href="ep_post_pre_meta_keys_db.html">ep_post_pre_meta_keys_db</a></li><li><a href="ep_post_pre_meta_keys_db_per_post_type.html">ep_post_pre_meta_keys_db_per_post_type</a></li><li><a href="ep_post_query_db_args.html">ep_post_query_db_args</a></li><li><a href="ep_post_sync_args.html">ep_post_sync_args</a></li><li><a href="ep_post_sync_args_post_prepare_meta.html">ep_post_sync_args_post_prepare_meta</a></li><li><a href="ep_post_sync_kill.html">ep_post_sync_kill</a></li><li><a href="ep_pre_index_%257Bindexable_slug%257D.html">ep_pre_index_{indexable_slug}</a></li><li><a href="ep_pre_kill_sync_for_password_protected.html">ep_pre_kill_sync_for_password_protected</a></li><li><a href="ep_pre_request_args.html">ep_pre_request_args</a></li><li><a href="ep_pre_request_host.html">ep_pre_request_host</a></li><li><a href="ep_pre_request_url.html">ep_pre_request_url</a></li><li><a href="ep_prepare_comment_meta_allowed_key.html">ep_prepare_comment_meta_allowed_key</a></li><li><a href="ep_prepare_meta_allowed_protected_keys.html">ep_prepare_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_meta_data.html">ep_prepare_meta_data</a></li><li><a href="ep_prepare_meta_excluded_public_keys.html">ep_prepare_meta_excluded_public_keys</a></li><li><a href="ep_prepare_meta_whitelist_key.html">ep_prepare_meta_whitelist_key</a></li><li><a href="ep_prepare_term_meta_allowed_protected_keys.html">ep_prepare_term_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_term_meta_excluded_public_keys.html">ep_prepare_term_meta_excluded_public_keys</a></li><li><a href="ep_prepare_term_meta_whitelist_key.html">ep_prepare_term_meta_whitelist_key</a></li><li><a href="ep_prepare_user_meta_allowed_protected_keys.html">ep_prepare_user_meta_allowed_protected_keys</a></li><li><a href="ep_prepare_user_meta_data.html">ep_prepare_user_meta_data</a></li><li><a href="ep_prepare_user_meta_excluded_public_keys.html">ep_prepare_user_meta_excluded_public_keys</a></li><li><a href="ep_prepared_post_meta.html">ep_prepared_post_meta</a></li><li><a href="ep_prepared_user_meta.html">ep_prepared_user_meta</a></li><li><a href="ep_query_logger.html">ep_query_logger</a></li><li><a href="ep_query_logger_allowed_log_types.html">ep_query_logger_allowed_log_types</a></li><li><a href="ep_query_logger_formatted_query.html">ep_query_logger_formatted_query</a></li><li><a href="ep_query_logger_logs.html">ep_query_logger_logs</a></li><li><a href="ep_query_logger_max_cache_size.html">ep_query_logger_max_cache_size</a></li><li><a href="ep_query_logger_queries_to_keep.html">ep_query_logger_queries_to_keep</a></li><li><a href="ep_query_logger_should_log_query.html">ep_query_logger_should_log_query</a></li><li><a href="ep_query_logger_time_to_keep.html">ep_query_logger_time_to_keep</a></li><li><a href="ep_query_post_type.html">ep_query_post_type</a></li><li><a href="ep_query_request_args.html">ep_query_request_args</a></li><li><a href="ep_query_request_path.html">ep_query_request_path</a></li><li><a href="ep_query_send_ep_search_term_header.html">ep_query_send_ep_search_term_header</a></li><li><a href="ep_query_weighting_fields.html">ep_query_weighting_fields</a></li><li><a href="ep_related_posts_fields.html">ep_related_posts_fields</a></li><li><a href="ep_related_posts_max_query_terms.html">ep_related_posts_max_query_terms</a></li><li><a href="ep_related_posts_min_doc_freq.html">ep_related_posts_min_doc_freq</a></li><li><a href="ep_related_posts_min_term_freq.html">ep_related_posts_min_term_freq</a></li><li><a href="ep_remote_request_add_ep_user_agent.html">ep_remote_request_add_ep_user_agent</a></li><li><a href="ep_remote_request_is_valid_res.html">ep_remote_request_is_valid_res</a></li><li><a href="ep_request_id.html">ep_request_id</a></li><li><a href="ep_request_id_base.html">ep_request_id_base</a></li><li><a href="ep_retrieve_the_%257Bindex_type%257D.html">ep_retrieve_the_{index_type}</a></li><li><a href="ep_search_algorithm_version.html">ep_search_algorithm_version</a></li><li><a href="ep_search_fields.html">ep_search_fields</a></li><li><a href="ep_search_post_return_args.html">ep_search_post_return_args</a></li><li><a href="ep_search_request_path.html">ep_search_request_path</a></li><li><a href="ep_search_scope.html">ep_search_scope</a></li><li><a href="ep_search_suggestion_analyzer.html">ep_search_suggestion_analyzer</a></li><li><a href="ep_search_template_user_id.html">ep_search_template_user_id</a></li><li><a href="ep_search_user_return_args.html">ep_search_user_return_args</a></li><li><a href="ep_searchable_post_types.html">ep_searchable_post_types</a></li><li><a href="ep_server_type.html">ep_server_type</a></li><li><a href="ep_set_default_sort.html">ep_set_default_sort</a></li><li><a href="ep_set_sort.html">ep_set_sort</a></li><li><a href="ep_show_indexing_option_on_multisite.html">ep_show_indexing_option_on_multisite</a></li><li><a href="ep_skip_action_deleted_term_relationships.html">ep_skip_action_deleted_term_relationships</a></li><li><a href="ep_skip_action_edited_term.html">ep_skip_action_edited_term</a></li><li><a href="ep_skip_action_set_object_terms.html">ep_skip_action_set_object_terms</a></li><li><a href="ep_skip_autosave_sync.html">ep_skip_autosave_sync</a></li><li><a href="ep_skip_comment_query_integration.html">ep_skip_comment_query_integration</a></li><li><a href="ep_skip_index_reset.html">ep_skip_index_reset</a></li><li><a href="ep_skip_post_meta_sync.html">ep_skip_post_meta_sync</a></li><li><a href="ep_skip_query_integration.html">ep_skip_query_integration</a></li><li><a href="ep_skip_user_query_integration.html">ep_skip_user_query_integration</a></li><li><a href="ep_status_report_reports.html">ep_status_report_reports</a></li><li><a href="ep_suggestion_html.html">ep_suggestion_html</a></li><li><a href="ep_suggestion_original_search_term_html.html">ep_suggestion_original_search_term_html</a></li><li><a href="ep_sync_args.html">ep_sync_args</a></li><li><a href="ep_sync_delete_permissions_bypass.html">ep_sync_delete_permissions_bypass</a></li><li><a href="ep_sync_index_args.html">ep_sync_index_args</a></li><li><a href="ep_sync_insert_permissions_bypass.html">ep_sync_insert_permissions_bypass</a></li><li><a href="ep_sync_number_of_errors_stored.html">ep_sync_number_of_errors_stored</a></li><li><a href="ep_sync_taxonomies.html">ep_sync_taxonomies</a></li><li><a href="ep_sync_terms_allow_hierarchy.html">ep_sync_terms_allow_hierarchy</a></li><li><a href="ep_synonyms.html">ep_synonyms</a></li><li><a href="ep_synonyms_editor_mode.html">ep_synonyms_editor_mode</a></li><li><a href="ep_synonyms_filter.html">ep_synonyms_filter</a></li><li><a href="ep_synonyms_filter_name.html">ep_synonyms_filter_name</a></li><li><a href="ep_term_all_query_db_args.html">ep_term_all_query_db_args</a></li><li><a href="ep_term_formatted_args.html">ep_term_formatted_args</a></li><li><a href="ep_term_mapping.html">ep_term_mapping</a></li><li><a href="ep_term_mapping_file.html">ep_term_mapping_file</a></li><li><a href="ep_term_query_db_args.html">ep_term_query_db_args</a></li><li><a href="ep_term_search_fields.html">ep_term_search_fields</a></li><li><a href="ep_term_suggest_post_status.html">ep_term_suggest_post_status</a></li><li><a href="ep_term_suggest_post_type.html">ep_term_suggest_post_type</a></li><li><a href="ep_term_sync_args.html">ep_term_sync_args</a></li><li><a href="ep_thumbnail_image_size.html">ep_thumbnail_image_size</a></li><li><a href="ep_token_endpoint.html">ep_token_endpoint</a></li><li><a href="ep_total_field_limit.html">ep_total_field_limit</a></li><li><a href="ep_user_formatted_args_query.html">ep_user_formatted_args_query</a></li><li><a href="ep_user_mapping.html">ep_user_mapping</a></li><li><a href="ep_user_mapping_file.html">ep_user_mapping_file</a></li><li><a href="ep_user_max_result_window.html">ep_user_max_result_window</a></li><li><a href="ep_user_query_db_args.html">ep_user_query_db_args</a></li><li><a href="ep_user_register_feature.html">ep_user_register_feature</a></li><li><a href="ep_user_search_fields.html">ep_user_search_fields</a></li><li><a href="ep_user_search_remove_wildcards.html">ep_user_search_remove_wildcards</a></li><li><a href="ep_user_sync_args.html">ep_user_sync_args</a></li><li><a href="ep_user_sync_kill.html">ep_user_sync_kill</a></li><li><a href="ep_user_total_field_limit.html">ep_user_total_field_limit</a></li><li><a href="ep_weighted_query_for_post_type.html">ep_weighted_query_for_post_type</a></li><li><a href="ep_weighting_configuration.html">ep_weighting_configuration</a></li><li><a href="ep_weighting_configuration_for_autosuggest.html">ep_weighting_configuration_for_autosuggest</a></li><li><a href="ep_weighting_configuration_for_search.html">ep_weighting_configuration_for_search</a></li><li><a href="ep_weighting_default_enabled_taxonomies.html">ep_weighting_default_enabled_taxonomies</a></li><li><a href="ep_weighting_default_post_type_weights.html">ep_weighting_default_post_type_weights</a></li><li><a href="ep_weighting_fields_for_post_type.html">ep_weighting_fields_for_post_type</a></li><li><a href="ep_weighting_ignore_fields_in_consideration.html">ep_weighting_ignore_fields_in_consideration</a></li><li><a href="ep_widget_search_comments.html">ep_widget_search_comments</a></li><li><a href="ep_woocommerce_admin_products_list_search_fields.html">ep_woocommerce_admin_products_list_search_fields</a></li><li><a href="ep_woocommerce_admin_searchable_post_types.html">ep_woocommerce_admin_searchable_post_types</a></li><li><a href="ep_woocommerce_default_supported_post_types.html">ep_woocommerce_default_supported_post_types</a></li><li><a href="ep_woocommerce_integrate_admin_products_list.html">ep_woocommerce_integrate_admin_products_list</a></li><li><a href="ep_woocommerce_order_search_template_endpoint.html">ep_woocommerce_order_search_template_endpoint</a></li><li><a href="ep_woocommerce_orders_supported_post_types.html">ep_woocommerce_orders_supported_post_types</a></li><li><a href="ep_woocommerce_products_supported_post_types.html">ep_woocommerce_products_supported_post_types</a></li><li><a href="ep_woocommerce_products_supported_taxonomies.html">ep_woocommerce_products_supported_taxonomies</a></li><li><a href="ep_woocommerce_shop_order_search_fields.html">ep_woocommerce_shop_order_search_fields</a></li><li><a href="ep_woocommerce_supported_taxonomies.html">ep_woocommerce_supported_taxonomies</a></li><li><a href="ep_wp_query_cached_comments.html">ep_wp_query_cached_comments</a></li><li><a href="ep_wp_query_cached_posts.html">ep_wp_query_cached_posts</a></li><li><a href="ep_wp_query_search_cached_users.html">ep_wp_query_search_cached_users</a></li><li><a href="ep_%257B$index_method%257D_index_args.html">ep_{$index_method}_index_args</a></li><li><a href="ep_%257B$indexable_slug%257D_all_distinct_values.html">ep_{$indexable_slug}_all_distinct_values</a></li><li><a href="ep_%257B$indexable_slug%257D_formatted_args_query.html">ep_{$indexable_slug}_formatted_args_query</a></li><li><a href="ep_%257B$indexable_slug%257D_fuzziness_arg.html">ep_{$indexable_slug}_fuzziness_arg</a></li><li><a href="ep_%257B$indexable_slug%257D_match_boost.html">ep_{$indexable_slug}_match_boost</a></li><li><a href="ep_%25257B$indexable_slug%25257D_match_cross_fields_boost.html">ep_{$indexable_slug}_match_cross_fields_boost</a></li><li><a href="ep_%257B$indexable_slug%257D_match_fuzziness.html">ep_{$indexable_slug}_match_fuzziness</a></li><li><a href="ep_%257B$indexable_slug%257D_match_phrase_boost.html">ep_{$indexable_slug}_match_phrase_boost</a></li><li><a href="ep_%25257B$indexable_slug%25257D_search_algorithm.html">ep_{$indexable_slug}_search_algorithm</a></li><li><a href="ep_%2525257Bindexable_slug%2525257D_index_kill.html">ep_{indexable_slug}_index_kill</a></li><li><a href="epwr_boost_mode.html">epwr_boost_mode</a></li><li><a href="epwr_decay.html">epwr_decay</a></li><li><a href="epwr_decay_field.html">epwr_decay_field</a></li><li><a href="epwr_decay_function.html">epwr_decay_function</a></li><li><a href="epwr_offset.html">epwr_offset</a></li><li><a href="epwr_scale.html">epwr_scale</a></li><li><a href="epwr_score_mode.html">epwr_score_mode</a></li><li><a href="epwr_weight.html">epwr_weight</a></li><li><a href="orderby_meta_mapping.html">orderby_meta_mapping</a></li><li><a href="shop_order_search_fields.html">shop_order_search_fields</a></li></ul><h3>Tutorials</h3><ul><li><a href="tutorial-compatibility.html">Compatibility</a></li><li><a href="tutorial-debugging.html">Debugging</a></li><li><a href="tutorial-development.html">Development</a></li><li><a href="tutorial-feature-api.html">Feature API</a></li><li><a href="tutorial-features.html">Features</a></li><li><a href="tutorial-indexables.html">Indexables</a></li><li><a href="tutorial-indexing-process.html">Indexing Process</a></li><li><a href="tutorial-install.html">Install</a></li><li><a href="tutorial-react.html">React Components</a></li><li><a href="tutorial-theme-integration.html">Theme Integration</a></li><li><a href="tutorial-wp-cli.html">WP-CLI Commands</a></li></ul>
 </nav>
 
 <br class="clear">
