@@ -29,6 +29,7 @@ export default (props) => {
 					<p>
 						{createInterpolateElement(
 							sprintf(
+								/* translators: Search term */
 								__('Did you mean: <a>%s</a>', 'elasticpress'),
 								suggestedTerms?.[0]?.text,
 							),
