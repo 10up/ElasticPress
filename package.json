@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "4.6.1",
+  "version": "4.7.0",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
@@ -53,6 +53,7 @@
   "10up-toolkit": {
     "entry": {
       "autosuggest-script": "./assets/js/autosuggest/index.js",
+      "blocks-script": "./assets/js/blocks/index.js",
       "comments-script": "./assets/js/comments.js",
       "comments-block-script": "./assets/js/blocks/comments/index.js",
       "dashboard-script": "./assets/js/dashboard.js",
@@ -80,7 +81,6 @@
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",
-      "facets-admin-styles": "./assets/css/facets-admin.css",
       "facets-styles": "./assets/css/facets.css",
       "highlighting-styles": "./assets/css/highlighting.css",
       "instant-results-styles": "./assets/css/instant-results.css",

@@ -315,6 +315,7 @@ class Post extends Indexable {
 			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+		$es_version = (string) $es_version;
 
 		$mapping_file = '5-2.php';
 
@@ -2871,7 +2872,7 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function add_term_suggest_field( array $mapping ) : array {
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
 			$mapping_properties = &$mapping['mappings']['properties'];

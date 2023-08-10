@@ -6,11 +6,16 @@ import { registerBlockType } from '@wordpress/blocks';
 /**
  * Internal dependencies.
  */
-import edit from './edit';
+import icon from '../common/icon';
+import edit from '../common/edit';
+import { name } from './block.json';
 import transforms from './transforms';
-import block from './block.json';
 
-registerBlockType(block, {
+/**
+ * Register block.
+ */
+registerBlockType(name, {
+	icon,
 	edit,
 	save: () => {},
 	transforms,

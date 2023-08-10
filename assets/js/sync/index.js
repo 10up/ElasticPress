@@ -6,7 +6,15 @@ import { v4 as uuid } from 'uuid';
 /**
  * WordPress dependencies.
  */
-import { render, useCallback, useEffect, useRef, useState, WPElement } from '@wordpress/element';
+import {
+	createRoot,
+	render,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	WPElement,
+} from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -526,4 +534,10 @@ const App = () => {
 	);
 };
 
-render(<App />, document.getElementById('ep-sync'));
+if (typeof createRoot === 'function') {
+	const root = createRoot(document.getElementById('ep-sync'));
+
+	root.render(<App />);
+} else {
+	render(<App />, document.getElementById('ep-sync'));
+}
