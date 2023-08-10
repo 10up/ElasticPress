@@ -34,7 +34,7 @@ class Widget extends WP_Widget {
 			'show_instance_in_rest' => true,
 		);
 
-		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Facet', 'elasticpress' ), $options );
+		parent::__construct( 'ep-facet', esc_html__( 'ElasticPress - Filter by Taxonomy', 'elasticpress' ), $options );
 	}
 
 	/**
