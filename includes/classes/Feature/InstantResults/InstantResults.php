@@ -706,7 +706,7 @@ class InstantResults extends Feature {
 			'price_html'         => array( 'type' => 'text' ),
 		);
 
-		if ( version_compare( $elasticsearch_version, '7.0', '<' ) ) {
+		if ( version_compare( (string) $elasticsearch_version, '7.0', '<' ) ) {
 			$mapping['mappings']['post']['properties'] = array_merge(
 				$mapping['mappings']['post']['properties'],
 				$properties

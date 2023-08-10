@@ -92,7 +92,7 @@ class Elasticsearch {
 		 * @return  {string} New path
 		 * @since  3.0
 		 */
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 		} else {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
@@ -284,7 +284,7 @@ class Elasticsearch {
 	 * @return bool|array
 	 */
 	public function query( $index, $type, $query, $query_args, $query_object = null ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/_search';
 		} else {
 			$path = $index . '/_search';
@@ -572,7 +572,7 @@ class Elasticsearch {
 	 * @return boolean
 	 */
 	public function delete_document( $index, $type, $document_id, $blocking = true ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
 			$path = $index . '/_doc/' . $document_id;
@@ -655,7 +655,7 @@ class Elasticsearch {
 	 * @return boolean|array
 	 */
 	public function get_document( $index, $type, $document_id ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
 			$path = $index . '/_doc/' . $document_id;
@@ -713,7 +713,7 @@ class Elasticsearch {
 	 * @return boolean|array
 	 */
 	public function get_documents( $index, $type, $document_ids ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
 		} else {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_mget', $document_ids, $type );
@@ -1159,7 +1159,7 @@ class Elasticsearch {
 		 * @param  {string} $type Index type
 		 * @return  {string} New path
 		 */
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/' . $type . '/_bulk', $body, $type );
 		} else {
 			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/_bulk', $body, $type );

@@ -96,7 +96,7 @@ class Documents extends Feature {
 	 * @return array
 	 */
 	public function attachments_mapping( $mapping ) {
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping['mappings']['post']['properties']['attachments'] = array(
 				'type' => 'object',
 			);
@@ -203,7 +203,7 @@ class Documents extends Feature {
 				 */
 				$pipeline_id = apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
 
-				if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+				if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 					$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . $pipeline_id;
 				} else {
 					$path = trailingslashit( $index ) . '_doc/' . $post['ID'] . '?pipeline=' . $pipeline_id;
