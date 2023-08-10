@@ -1315,7 +1315,7 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$es_version = \ElasticPress\Elasticsearch::factory()->get_elasticsearch_version();
-		$field_name = ( version_compare( $es_version, '7.0', '>=' ) ) ? 'name.sortable' : 'name.raw';
+		$field_name = ( version_compare( (string) $es_version, '7.0', '>=' ) ) ? 'name.sortable' : 'name.raw';
 
 		$this->assertSame( 'desc', $args['sort'][0][ $field_name ]['order'] );
 

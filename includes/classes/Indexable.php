@@ -1203,7 +1203,7 @@ abstract class Indexable {
 		$mapping = $this->get_mapping();
 
 		try {
-			if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];

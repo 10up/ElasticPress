@@ -510,13 +510,13 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 }
 
 /**
- * Returns the defaiult language for ES mapping.
+ * Returns the default language for ES mapping.
  *
  * @return string Default EP language.
  */
 function get_language() {
 	$ep_language = get_option( 'ep_language' );
-	$ep_language = ! empty( $ep_language ) ? $ep_language : 'ep_site_default';
+	$ep_language = ! empty( $ep_language ) ? $ep_language : 'site-default';
 
 	/**
 	 * Filter the default language to use at index time
