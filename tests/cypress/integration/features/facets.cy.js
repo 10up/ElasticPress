@@ -246,7 +246,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 * Widget block.
 		 */
 		cy.get('.wp-block-legacy-widget')
-			.should('contain.text', 'ElasticPress - Facet')
+			.should('contain.text', 'ElasticPress - Filter by Taxonomy')
 			.first()
 			.click();
 
