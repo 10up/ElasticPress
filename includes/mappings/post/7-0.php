@@ -92,6 +92,29 @@ return array(
 					 */
 					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
+				'default_search'   => array(
+					'tokenizer'   => 'standard',
+					/**
+					 * Filter Elasticsearch default analyzer's filters
+					 *
+					 * @since 5.0.0
+					 * @hook ep_default_search_analyzer_filters
+					 * @param  {array<string>} $filters Default filters
+					 * @return {array<string>} New filters
+					 */
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					/**
+					 * Filter Elasticsearch default analyzer's char_filter
+					 *
+					 * @since 5.0.0
+					 * @hook ep_default_search_analyzer_char_filters
+					 * @param  {array<string>} $char_filters Default filter
+					 * @return {array<string>} New filters
+					 */
+					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', array( 'html_strip' ) ),
+					/* This filter is documented above */
+					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+				),
 				'shingle_analyzer' => array(
 					'type'      => 'custom',
 					'tokenizer' => 'standard',
