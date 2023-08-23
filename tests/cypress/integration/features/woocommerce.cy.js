@@ -78,7 +78,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.updateWeighting({
 			product: {
 				'meta._variations_skus.value': {
-					weight: 1,
+					weight: 10,
 					enabled: true,
 				},
 			},
@@ -90,7 +90,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 				 */
 				// eslint-disable-next-line cypress/no-unnecessary-waiting
 				cy.wait(2000);
-				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+				cy.visit('/?s=awesome-aluminum-shoes-variation-sku&explain');
 				cy.contains(
 					'.site-content article:nth-of-type(1) h2',
 					'Awesome Aluminum Shoes',
