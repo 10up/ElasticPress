@@ -102,7 +102,7 @@ return array(
 					 * @param  {array<string>} $filters Default filters
 					 * @return {array<string>} New filters
 					 */
-					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
 					/**
 					 * Filter Elasticsearch default analyzer's char_filter
 					 *
