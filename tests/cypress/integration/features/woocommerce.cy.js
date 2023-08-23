@@ -84,27 +84,28 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 				highlight_color: '#157d84',
 				decaying_enabled: 'disabled_includes_products',
 			},
-		});
-		cy.updateWeighting({
-			product: {
-				'meta._variations_skus.value': {
-					weight: 1,
-					enabled: true,
-				},
-			},
 		}).then(() => {
-			cy.wpCli('elasticpress sync --setup --yes').then(() => {
-				/**
-				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
-				 *
-				 */
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(2000);
-				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-				cy.contains(
-					'.site-content article:nth-of-type(1) h2',
-					'Awesome Aluminum Shoes',
-				).should('exist');
+			cy.updateWeighting({
+				product: {
+					'meta._variations_skus.value': {
+						weight: 1,
+						enabled: true,
+					},
+				},
+			}).then(() => {
+				cy.wpCli('elasticpress sync --setup --yes').then(() => {
+					/**
+					 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+					 *
+					 */
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(2000);
+					cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+					cy.contains(
+						'.site-content article:nth-of-type(1) h2',
+						'Awesome Aluminum Shoes',
+					).should('exist');
+				});
 			});
 		});
 	});
