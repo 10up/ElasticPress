@@ -72,7 +72,7 @@ return array(
 					 * @param  {array<string>} $filters Default filters
 					 * @return {array<string>} New filters
 					 */
-					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
 					/**
 					 * Filter Elasticsearch default analyzer's char_filter
 					 *
@@ -131,10 +131,6 @@ return array(
 					'type'             => 'shingle',
 					'min_shingle_size' => 2,
 					'max_shingle_size' => 5,
-				),
-				'ewp_word_delimiter' => array(
-					'type'              => 'word_delimiter_graph',
-					'preserve_original' => true,
 				),
 				'ewp_snowball'       => array(
 					'type'     => 'snowball',
