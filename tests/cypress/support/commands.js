@@ -170,7 +170,7 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 });
 
 Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
-	const features = Object.assign({}, cy.elasticPress.defaultFeatures, ...newFeaturesValues);
+	const features = { ...cy.elasticPress.defaultFeatures, ...newFeaturesValues };
 
 	const escapedFeatures = JSON.stringify(features);
 
