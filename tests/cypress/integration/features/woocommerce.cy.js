@@ -75,15 +75,13 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce', 'wpCli');
 		cy.maybeEnableFeature('woocommerce');
 
-		cy.updateFeatures({
-			search: {
-				active: 1,
-				highlight_enabled: true,
-				highlight_excerpt: true,
-				highlight_tag: 'mark',
-				highlight_color: '#157d84',
-				decaying_enabled: 'disabled_includes_products',
-			},
+		cy.updateFeatures('search', {
+			active: 1,
+			highlight_enabled: true,
+			highlight_excerpt: true,
+			highlight_tag: 'mark',
+			highlight_color: '#157d84',
+			decaying_enabled: 'disabled_includes_products',
 		}).then(() => {
 			cy.updateWeighting({
 				product: {
