@@ -893,7 +893,7 @@ class Products {
 		if ( empty( $search_term ) ) {
 			/**
 			 * For default sorting by popularity (total_sales) and rating
-			 * Woocommerce doesn't set the orderby correctly.
+			 * WooCommerce doesn't set the orderby correctly.
 			 * These lines will check the meta_key and correct the orderby based on that.
 			 * And this won't run in search result and only run in main query
 			 */
