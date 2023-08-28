@@ -917,11 +917,16 @@ class Products {
 		 */
 		$orderby = $query->get( 'orderby', null );
 		if ( $orderby && in_array( $orderby, [ 'price', 'popularity' ], true ) ) {
-			$order = $query->get( 'order', 'DESC' );
-			$query->set( 'order', $order );
-
-			$orderby_field = 'price' === $orderby ? '_price' : 'total_sales';
-			$query->set( 'orderby', $this->get_orderby_meta_mapping( $orderby_field ) );
+			switch ( $orderby ) {
+				case 'price':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+					$query->set( 'order', $query->get( 'order' ) );
+					break;
+				case 'popularity':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+			}
 		}
 
 		/**
