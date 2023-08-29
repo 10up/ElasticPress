@@ -2,6 +2,8 @@
 <ruleset name="10up PHPCS">
   <description>10up PHPCS extended.</description>
 
+  <exclude-pattern>*/vendor-prefixed/*</exclude-pattern>
+
   <rule ref="10up-Default">
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
     <exclude name="WordPress.DB.SlowDBQuery" />
