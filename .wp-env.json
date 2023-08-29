@@ -1,4 +1,5 @@
 {
+  "phpVersion": "7.0",
   "config": {
     "WP_DEBUG": true,
     "WP_DEBUG_DISPLAY": true,
