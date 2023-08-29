@@ -42,7 +42,7 @@ jobs:
     - name: Make artifacts available
       uses: actions/upload-artifact@v3
       with:
-        name: cypress-artifact
+        name: Plugin Zip
         retention-days: 2
         path: |
           ${{ github.workspace }}/elasticpress.zip
