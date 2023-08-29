@@ -6,7 +6,6 @@
   },
   "env": {
     "tests": {
-      "phpVersion": "7.2",
       "themes": [
         "https://downloads.wordpress.org/theme/twentytwentyone.zip"
       ],
