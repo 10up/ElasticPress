@@ -27,7 +27,7 @@ class TestContainer extends BaseTestCase {
 
 		$this->assertSame( $new_object, $container->get( 'present' ) );
 
-		$this->expectException( '\Psr\Container\NotFoundExceptionInterface' );
+		$this->expectException( '\ElasticPress\Vendor_Prefixed\Psr\Container\NotFoundExceptionInterface' );
 		$container->get( 'absent' );
 	}
 
