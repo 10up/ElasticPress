@@ -1,4 +1,4 @@
-name: Build with vendor (test)
+name: Build with vendor-prefixed
 
 on:
   pull_request:

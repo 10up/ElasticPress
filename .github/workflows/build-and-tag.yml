@@ -40,7 +40,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git checkout -b "release-$VERSION"
-        git add -f dist/* vendor/*
+        git add -f dist/* vendor-prefixed/*
         git commit --no-verify -m "Release $VERSION"
         git tag "$VERSION"
         git push --tags
