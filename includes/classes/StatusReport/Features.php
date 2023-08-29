@@ -74,7 +74,7 @@ class Features extends Report {
 	/**
 	 * Extra fields for the Search feature
 	 *
-	 * @since 5.0.0
+	 * @since 4.7.1
 	 * @param array  $fields  Current fields
 	 * @param Search $feature Feature object
 	 * @return array New fields
