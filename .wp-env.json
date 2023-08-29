@@ -1,5 +1,4 @@
 {
-  "phpVersion": "7.0",
   "config": {
     "WP_DEBUG": true,
     "WP_DEBUG_DISPLAY": true,
@@ -7,6 +6,7 @@
   },
   "env": {
     "tests": {
+      "phpVersion": "7.0",
       "themes": [
         "https://downloads.wordpress.org/theme/twentytwentyone.zip"
       ],
