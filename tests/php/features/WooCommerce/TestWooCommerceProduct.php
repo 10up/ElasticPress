@@ -205,6 +205,19 @@ class TestWooCommerceProduct extends TestWooCommerce {
 		return [
 			[
 				'total_sales',
+				[
+					'orderby' => 'popularity',
+				],
+				false,
+				[
+					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
+					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
+				],
+				'',
+				true,
+			],
+			[
+				'total_sales',
 				[ 'meta_key' => 'total_sales' ],
 				false,
 				[
@@ -230,18 +243,6 @@ class TestWooCommerceProduct extends TestWooCommerce {
 				false,
 				[
 					0 => [ 'meta._price.double' => [ 'order' => 'desc' ] ],
-					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
-				],
-			],
-			[
-				'total_sales',
-				[
-					'orderby' => 'popularity',
-					'order'   => 'DESC',
-				],
-				false,
-				[
-					0 => [ 'meta.total_sales.double' => [ 'order' => 'desc' ] ],
 					1 => [ 'post_date' => [ 'order' => 'desc' ] ],
 				],
 			],
@@ -319,16 +320,17 @@ class TestWooCommerceProduct extends TestWooCommerce {
 	/**
 	 * Test the product query order.
 	 *
-	 * @param string $product_arg_key Field slug
-	 * @param array  $query_args      Query array
-	 * @param bool   $query_string    Query string
-	 * @param array  $expected        Value expected
-	 * @param string $order           Order
+	 * @param string $product_arg_key    Field slug
+	 * @param array  $query_args         Query array
+	 * @param bool   $query_string       Query string
+	 * @param array  $expected           Value expected
+	 * @param string $order              Order
+	 * @param bool   $force_type_archive Whether this should or should not be considered an archive
 	 * @dataProvider productQueryOrderDataProvider
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */
-	public function testProductQueryOrder( $product_arg_key, $query_args, $query_string, $expected, $order = '' ) {
+	public function testProductQueryOrder( $product_arg_key, $query_args, $query_string, $expected, $order = '', $force_type_archive = false ) {
 		global $wp_the_query;
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -350,7 +352,9 @@ class TestWooCommerceProduct extends TestWooCommerce {
 
 		if ( $query_string ) {
 			parse_str( 'orderby=' . $query_string, $_GET );
+		}
 
+		if ( $query_string || $force_type_archive ) {
 			// mock the query as post type archive
 			add_action(
 				'parse_query',
@@ -360,14 +364,7 @@ class TestWooCommerceProduct extends TestWooCommerce {
 			);
 		}
 
-		$args  = array(
-			'post_type' => 'product',
-		);
-		$args  = array_merge( $args, $query_args );
-		$query = new \WP_Query( $args );
-
-		// mock the query as main query
-		$wp_the_query = $query;
+		$args = array_merge( [ 'post_type' => 'product' ], $query_args );
 
 		add_filter(
 			'ep_post_formatted_args',
@@ -377,17 +374,17 @@ class TestWooCommerceProduct extends TestWooCommerce {
 			}
 		);
 
-		$query = $query->query( $args );
+		$wp_the_query->query( $args );
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
-		$this->assertEquals( 2, count( $query ) );
+		$this->assertEquals( 2, count( $wp_the_query->posts ) );
 
 		if ( 'asc' === $order ) {
-			$this->assertEquals( $product_2, $query[0]->ID );
-			$this->assertEquals( $product_1, $query[1]->ID );
+			$this->assertEquals( $product_2, $wp_the_query->posts[0]->ID );
+			$this->assertEquals( $product_1, $wp_the_query->posts[1]->ID );
 		} elseif ( 'desc' === $order ) {
-			$this->assertEquals( $product_1, $query[0]->ID );
-			$this->assertEquals( $product_2, $query[1]->ID );
+			$this->assertEquals( $product_1, $wp_the_query->posts[0]->ID );
+			$this->assertEquals( $product_2, $wp_the_query->posts[1]->ID );
 		}
 
 		\WC_Query::reset_chosen_attributes();
