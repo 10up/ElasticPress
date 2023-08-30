@@ -1,4 +1,4 @@
-name: Build with vendor (test)
+name: Build with vendor-prefixed
 
 on:
   pull_request:
@@ -17,11 +17,11 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.0' # Minimum required version
+        php-version: '8.2'
         coverage: none
 
     - name: composer install
-      run: composer install --no-dev -o
+      run: composer install
 
     - name: install node v18
       uses: actions/setup-node@v3
@@ -42,7 +42,7 @@ jobs:
     - name: Make artifacts available
       uses: actions/upload-artifact@v3
       with:
-        name: cypress-artifact
+        name: Plugin Zip
         retention-days: 2
         path: |
           ${{ github.workspace }}/elasticpress.zip

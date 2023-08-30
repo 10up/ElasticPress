@@ -50,12 +50,12 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.0'
+        php-version: '8.2'
         tools: cs2pr
         coverage: none
 
     - name: composer install
-      run: composer install --no-dev -o
+      run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3
@@ -132,12 +132,12 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.0'
+        php-version: '8.2'
         tools: cs2pr
         coverage: none
 
     - name: composer install
-      run: composer install --no-dev -o
+      run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3

@@ -30,8 +30,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Require Composer autoloader if it exists.
-if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor/autoload.php';
+if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor-prefixed/autoload.php';
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
