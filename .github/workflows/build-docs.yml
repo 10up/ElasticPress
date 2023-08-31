@@ -25,7 +25,9 @@ jobs:
         ini-values: memory_limit=3G
 
     - name: composer install
-      run: composer install
+      run: |
+        cd wp-content/plugins/elasticpress
+        composer install
 
     - name: Start MySQL
       run: |
