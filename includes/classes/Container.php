@@ -9,7 +9,7 @@
 
 namespace ElasticPress;
 
-use \Psr\Container\ContainerInterface;
+use \ElasticPress\Vendor_Prefixed\Psr\Container\ContainerInterface;
 
 use \ElasticPress\Exception\NotFoundException;
 

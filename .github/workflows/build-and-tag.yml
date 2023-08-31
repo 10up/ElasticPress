@@ -15,11 +15,11 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.0' # Minimum required version
+        php-version: '8.2'
         coverage: none
 
     - name: composer install
-      run: composer install --no-dev -o
+      run: composer install
 
     - name: install node v18
       uses: actions/setup-node@v3
@@ -40,7 +40,7 @@ jobs:
         git config user.name github-actions
         git config user.email github-actions@github.com
         git checkout -b "release-$VERSION"
-        git add -f dist/* vendor/*
+        git add -f dist/* vendor-prefixed/*
         git commit --no-verify -m "Release $VERSION"
         git tag "$VERSION"
         git push --tags

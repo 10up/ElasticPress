@@ -2,6 +2,8 @@
 <ruleset name="10up PHPCS">
   <description>10up PHPCS extended.</description>
 
+  <exclude-pattern>*/vendor-prefixed/*</exclude-pattern>
+
   <rule ref="10up-Default">
     <exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited" />
     <exclude name="WordPress.DB.SlowDBQuery" />
@@ -23,4 +25,10 @@
   <rule ref="WordPress.DB.DirectDatabaseQuery">
       <exclude-pattern>/tests/*.php</exclude-pattern>
   </rule>
+
+    <!--
+    Prevent errors caused by WordPress Coding Standards not supporting PHP 8.0+.
+    See https://github.com/WordPress/WordPress-Coding-Standards/issues/2035
+    -->
+  <ini name="error_reporting" value="E_ALL &#38; ~E_DEPRECATED" />
 </ruleset>

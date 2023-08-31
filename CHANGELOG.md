@@ -13,6 +13,21 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [4.7.1] - 2023-08-31
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Added
+* Synonyms and weighting settings added to the status report. Props [@felipeelia](https://github.com/felipeelia) via [#3609](https://github.com/10up/ElasticPress/pull/3609).
+
+### Changed
+* Composer packages are namespaced by Strauss. Props [@felipeelia](https://github.com/felipeelia) and [@junaidbhura](https://github.com/junaidbhura) via [#3621](https://github.com/10up/ElasticPress/pull/3621).
+* E2e tests now log the formatted query info from Debug Bar ElasticPress. Props [@felipeelia](https://github.com/felipeelia) via [#3613](https://github.com/10up/ElasticPress/pull/3613).
+
+### Fixed
+* WooCommerce products sorted by popularity are now always sorted in a descending order. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#3619](https://github.com/10up/ElasticPress/pull/3619).
+* E2e tests with WordPress 6.3. Props [@felipeelia](https://github.com/felipeelia) via [#3599](https://github.com/10up/ElasticPress/pull/3599).
+
 ## [4.7.0] - 2023-08-10
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**

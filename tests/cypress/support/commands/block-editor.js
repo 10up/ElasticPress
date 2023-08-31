@@ -53,8 +53,8 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 		cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
 
-		cy.get('.popover-slot button[aria-label="Show Font size').click();
-		cy.get('.popover-slot button[aria-label="Show Line height').click().type('{esc}');
+		cy.get('.popover-slot button').contains('Font size').click();
+		cy.get('.popover-slot button').contains('Font size').click().type('{esc}');
 
 		cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
 		cy.get('.block-editor-block-inspector li[role="option"]').contains('Extra small').click();
@@ -73,13 +73,34 @@ Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject,
 		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 		cy.get('.block-editor-block-inspector button[aria-label="Dimensions options"]').click();
 
-		cy.get('.popover-slot button[aria-label="Show Padding').click().type('{esc}');
+		cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
 
-		cy.get('.component-spacing-sizes-control button[aria-label="Set custom size"]').click();
-		cy.get('.component-spacing-sizes-control input[type="number"]').clearThenType('10');
+		cy.get('.popover-slot button').contains('Padding').click().type('{esc}');
+
+		cy.get('@dimensionsPanel')
+			.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+			.first()
+			.as('verticalInputsWrapper');
+
+		cy.get('@verticalInputsWrapper')
+			.find('button[aria-label="Set custom size"]')
+			.first()
+			.click();
+		cy.get('@verticalInputsWrapper').find('input[type="number"]').clearThenType('10');
+
+		cy.get('@dimensionsPanel')
+			.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+			.eq(1)
+			.as('horizontalInputsWrapper');
+
+		cy.get('@horizontalInputsWrapper')
+			.find('button[aria-label="Set custom size"]')
+			.first()
+			.click();
+		cy.get('@horizontalInputsWrapper').find('input[type="number"]').clearThenType('15');
 
 		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
 
-	cy.wrap(subject).should('have.css', 'padding', '10px');
+	cy.wrap(subject).should('have.css', 'padding', '10px 15px');
 });
