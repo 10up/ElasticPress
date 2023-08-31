@@ -364,7 +364,7 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Index Woocommerce meta
+	 * DEPRECATED. Index WooCommerce meta
 	 *
 	 * @param   array $meta Existing post meta.
 	 * @param   array $post Post arguments array.
@@ -395,7 +395,7 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Index Woocommerce taxonomies
+	 * DEPRECATED. Index WooCommerce taxonomies
 	 *
 	 * @param   array $taxonomies Index taxonomies array.
 	 * @param   array $post Post properties array.
@@ -461,9 +461,9 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Sets woocommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
+	 * DEPRECATED. Sets WooCommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
 	 *
-	 * Woocommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
+	 * WooCommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
 	 * is integrated with ElasticSearch.
 	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
 	 * without the Protected Content Module
