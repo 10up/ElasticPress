@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 4.7.0\n"
+"Project-Id-Version: ElasticPress 4.7.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-08-10T16:37:15+00:00\n"
+"POT-Creation-Date: 2023-08-31T16:55:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -132,8 +132,7 @@ msgstr ""
 #: includes/classes/StatusReport/ElasticPressIo.php:30
 #: includes/classes/StatusReport/FailedQueries.php:213
 #: assets/js/sync/index.js:195
-#: dist/js/sync-script.js:3039
-#: dist/js/sync-script.js:2385
+#: dist/js/sync-script.js:1
 msgid "ElasticPress.io"
 msgstr ""
 
@@ -141,8 +140,7 @@ msgstr ""
 #: includes/classes/AdminNotices.php:813
 #: includes/classes/StatusReport/FailedQueries.php:213
 #: assets/js/sync/index.js:196
-#: dist/js/sync-script.js:3039
-#: dist/js/sync-script.js:2386
+#: dist/js/sync-script.js:1
 msgid "Elasticsearch"
 msgstr ""
 
@@ -426,8 +424,7 @@ msgstr ""
 
 #: includes/classes/Feature.php:291
 #: assets/js/sync/components/sync/controls.js:96
-#: dist/js/sync-script.js:1661
-#: dist/js/sync-script.js:1372
+#: dist/js/sync-script.js:1
 msgid "Learn more"
 msgstr ""
 
@@ -455,14 +452,11 @@ msgstr ""
 #: assets/js/blocks/facets/meta-range/edit.js:89
 #: assets/js/blocks/facets/post-type/edit.js:59
 #: assets/js/blocks/related-posts/Edit.js:76
-#: dist/js/facets-block-script.js:1444
-#: dist/js/facets-meta-block-script.js:1444
-#: dist/js/facets-meta-range-block-script.js:3627
-#: dist/js/related-posts-block-script.js:1024
-#: dist/js/facets-block-script.js:1248
-#: dist/js/facets-meta-block-script.js:1248
-#: dist/js/facets-meta-range-block-script.js:3396
-#: dist/js/related-posts-block-script.js:974
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
+#: dist/js/related-posts-block-script.js:1
 msgid "Settings"
 msgstr ""
 
@@ -768,8 +762,7 @@ msgstr ""
 #: includes/classes/Feature/Facets/Types/PostType/Renderer.php:184
 #: includes/classes/Feature/Facets/Types/Taxonomy/Renderer.php:434
 #: assets/js/instant-results/components/tools/active-constraints.js:35
-#: dist/js/instant-results-script.js:8098
-#: dist/js/instant-results-script.js:7102
+#: dist/js/instant-results-script.js:1
 msgid "Remove filter: %s"
 msgstr ""
 
@@ -948,8 +941,7 @@ msgstr ""
 
 #: includes/classes/Feature/RelatedPosts/RelatedPosts.php:29
 #: assets/js/blocks/related-posts/Edit.js:86
-#: dist/js/related-posts-block-script.js:1048
-#: dist/js/related-posts-block-script.js:984
+#: dist/js/related-posts-block-script.js:1
 msgid "Related Posts"
 msgstr ""
 
@@ -1019,8 +1011,7 @@ msgstr ""
 
 #: includes/classes/Feature/Search/Search.php:751
 #: assets/js/search/editor/plugins/exclude-from-search.js:23
-#: dist/js/search-editor-script.js:962
-#: dist/js/search-editor-script.js:921
+#: dist/js/search-editor-script.js:1
 msgid "Exclude from search results"
 msgstr ""
 
@@ -1030,8 +1021,7 @@ msgstr ""
 
 #: includes/classes/Feature/Search/Search.php:756
 #: assets/js/search/editor/plugins/exclude-from-search.js:24
-#: dist/js/search-editor-script.js:963
-#: dist/js/search-editor-script.js:922
+#: dist/js/search-editor-script.js:1
 msgid "Excludes this post from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
@@ -1040,6 +1030,7 @@ msgid "ElasticPress Synonyms"
 msgstr ""
 
 #: includes/classes/Feature/Search/Synonyms.php:174
+#: includes/classes/StatusReport/Features.php:91
 msgid "Synonyms"
 msgstr ""
 
@@ -1172,6 +1163,7 @@ msgid "ElasticPress Search Fields & Weighting"
 msgstr ""
 
 #: includes/classes/Feature/Search/Weighting.php:202
+#: includes/classes/StatusReport/Features.php:95
 msgid "Search Fields & Weighting"
 msgstr ""
 
@@ -1324,8 +1316,7 @@ msgstr ""
 
 #: includes/classes/Feature/SearchOrdering/SearchOrdering.php:291
 #: assets/js/ordering/pointers.js:265
-#: dist/js/ordering-script.js:14893
-#: dist/js/ordering-script.js:13610
+#: dist/js/ordering-script.js:1
 msgid "No results found."
 msgstr ""
 
@@ -1635,8 +1626,7 @@ msgstr ""
 #: includes/classes/IndexHelper.php:918
 #: includes/classes/Screen/Sync.php:220
 #: assets/js/sync/components/sync/progress.js:58
-#: dist/js/sync-script.js:2107
-#: dist/js/sync-script.js:1671
+#: dist/js/sync-script.js:1
 msgid "Sync complete"
 msgstr ""
 
@@ -1732,12 +1722,7 @@ msgstr ""
 #: assets/js/sync/components/sync/progress.js:62
 #: assets/js/sync/index.js:296
 #: assets/js/sync/index.js:500
-#: dist/js/sync-script.js:2110
-#: dist/js/sync-script.js:3138
-#: dist/js/sync-script.js:3332
-#: dist/js/sync-script.js:1675
-#: dist/js/sync-script.js:2486
-#: dist/js/sync-script.js:2690
+#: dist/js/sync-script.js:1
 msgid "Sync paused"
 msgstr ""
 
@@ -1788,16 +1773,14 @@ msgstr ""
 #: includes/classes/StatusReport/ElasticPress.php:54
 #: includes/partials/settings-page.php:70
 #: assets/js/settings.js:74
-#: dist/js/settings-script.js:174
-#: dist/js/settings-script.js:125
+#: dist/js/settings-script.js:1
 msgid "ElasticPress.io Host URL"
 msgstr ""
 
 #: includes/classes/StatusReport/ElasticPress.php:54
 #: includes/partials/settings-page.php:72
 #: assets/js/settings.js:75
-#: dist/js/settings-script.js:174
-#: dist/js/settings-script.js:126
+#: dist/js/settings-script.js:1
 msgid "Elasticsearch Host URL"
 msgstr ""
 
@@ -1938,7 +1921,7 @@ msgstr ""
 msgid "We did not recognize this error. Please consider opening a <a href=\"%s\">GitHub Issue</a> so we can add it to our list of supported errors. "
 msgstr ""
 
-#: includes/classes/StatusReport/Features.php:28
+#: includes/classes/StatusReport/Features.php:29
 msgid "Feature Settings"
 msgstr ""
 
@@ -1967,8 +1950,7 @@ msgstr ""
 
 #: includes/classes/StatusReport/LastSync.php:26
 #: assets/js/sync/components/sync/panel.js:87
-#: dist/js/sync-script.js:1903
-#: dist/js/sync-script.js:1545
+#: dist/js/sync-script.js:1
 msgid "Last Sync"
 msgstr ""
 
@@ -2344,288 +2326,224 @@ msgid "We could not find any data for your Elasticsearch indices. Maybe you need
 msgstr ""
 
 #: assets/js/blocks/comments/Edit.js:80
-#: dist/js/comments-block-script.js:1038
-#: dist/js/comments-block-script.js:978
+#: dist/js/comments-block-script.js:1
 msgid "Search settings"
 msgstr ""
 
 #: assets/js/blocks/comments/Edit.js:83
-#: dist/js/comments-block-script.js:1041
-#: dist/js/comments-block-script.js:981
+#: dist/js/comments-block-script.js:1
 msgid "Search all comments"
 msgstr ""
 
 #. translators: %s: Post type label, plural.
 #: assets/js/blocks/comments/Edit.js:89
-#: dist/js/comments-block-script.js:1049
-#: dist/js/comments-block-script.js:987
+#: dist/js/comments-block-script.js:1
 msgid "Search comments on %s"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/empty-response-placeholder.js:21
-#: dist/js/facets-block-script.js:953
-#: dist/js/facets-meta-block-script.js:953
-#: dist/js/facets-post-type-block-script.js:953
-#: dist/js/facets-block-script.js:919
-#: dist/js/facets-meta-block-script.js:919
-#: dist/js/facets-post-type-block-script.js:919
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgid "Preview unavailable. The selected taxonomy has no terms assigned to searchable content."
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/empty-response-placeholder.js:25
-#: dist/js/facets-block-script.js:953
-#: dist/js/facets-meta-block-script.js:953
-#: dist/js/facets-post-type-block-script.js:953
-#: dist/js/facets-block-script.js:923
-#: dist/js/facets-meta-block-script.js:923
-#: dist/js/facets-post-type-block-script.js:923
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgid "Preview unavailable. There is no searchable content available with the selected metadata."
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-display-count-control.js:20
-#: dist/js/facets-block-script.js:997
-#: dist/js/facets-meta-block-script.js:997
-#: dist/js/facets-post-type-block-script.js:997
-#: dist/js/facets-block-script.js:950
-#: dist/js/facets-meta-block-script.js:950
-#: dist/js/facets-post-type-block-script.js:950
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgid "Display count"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-meta-control.js:29
-#: dist/js/facets-block-script.js:1056
-#: dist/js/facets-meta-block-script.js:1056
-#: dist/js/facets-meta-range-block-script.js:3334
-#: dist/js/facets-block-script.js:984
-#: dist/js/facets-meta-block-script.js:984
-#: dist/js/facets-meta-range-block-script.js:3205
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:1
 msgid "Select key"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-meta-control.js:43
-#: dist/js/facets-block-script.js:1065
-#: dist/js/facets-meta-block-script.js:1065
-#: dist/js/facets-meta-range-block-script.js:3343
-#: dist/js/facets-block-script.js:998
-#: dist/js/facets-meta-block-script.js:998
-#: dist/js/facets-meta-range-block-script.js:3219
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:1
 msgid "This is the list of metadata fields indexed in Elasticsearch. If your desired field does not appear in this list please try to <a>sync your content</a>"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-meta-control.js:49
 #: assets/js/blocks/facets/common/components/facet-taxonomy-control.js:43
-#: dist/js/facets-block-script.js:1076
-#: dist/js/facets-block-script.js:1259
-#: dist/js/facets-meta-block-script.js:1076
-#: dist/js/facets-meta-block-script.js:1259
-#: dist/js/facets-meta-range-block-script.js:3354
-#: dist/js/facets-block-script.js:1004
-#: dist/js/facets-block-script.js:1137
-#: dist/js/facets-meta-block-script.js:1004
-#: dist/js/facets-meta-block-script.js:1137
-#: dist/js/facets-meta-range-block-script.js:3225
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-meta-range-block-script.js:1
 msgid "Filter by"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-order-control.js:28
-#: dist/js/facets-block-script.js:1130
-#: dist/js/facets-meta-block-script.js:1130
-#: dist/js/facets-post-type-block-script.js:1049
-#: dist/js/facets-block-script.js:1039
-#: dist/js/facets-meta-block-script.js:1039
-#: dist/js/facets-post-type-block-script.js:983
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgctxt "label for ordering posts by title in ascending order"
 msgid "A → Z"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-order-control.js:36
-#: dist/js/facets-block-script.js:1133
-#: dist/js/facets-meta-block-script.js:1133
-#: dist/js/facets-post-type-block-script.js:1052
-#: dist/js/facets-block-script.js:1047
-#: dist/js/facets-meta-block-script.js:1047
-#: dist/js/facets-post-type-block-script.js:991
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgctxt "label for ordering posts by title in descending order"
 msgid "Z → A"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-order-control.js:47
-#: dist/js/facets-block-script.js:1137
-#: dist/js/facets-meta-block-script.js:1137
-#: dist/js/facets-post-type-block-script.js:1056
-#: dist/js/facets-block-script.js:1058
-#: dist/js/facets-meta-block-script.js:1058
-#: dist/js/facets-post-type-block-script.js:1002
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgid "Order by"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-search-placeholder-control.js:19
-#: dist/js/facets-block-script.js:1189
-#: dist/js/facets-meta-block-script.js:1189
-#: dist/js/facets-post-type-block-script.js:1108
-#: dist/js/facets-block-script.js:1088
-#: dist/js/facets-meta-block-script.js:1088
-#: dist/js/facets-post-type-block-script.js:1032
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
+#: dist/js/facets-post-type-block-script.js:1
 msgid "Search field placeholder"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/facet-taxonomy-control.js:29
-#: dist/js/facets-block-script.js:1249
-#: dist/js/facets-meta-block-script.js:1249
-#: dist/js/facets-block-script.js:1123
-#: dist/js/facets-meta-block-script.js:1123
+#: dist/js/facets-block-script.js:1
+#: dist/js/facets-meta-block-script.js:1
 msgid "Select taxonomy"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/range-filter.js:50
-#: dist/js/facets-meta-range-block-script.js:3483
-#: dist/js/facets-meta-range-block-view-script.js:3365
-#: dist/js/facets-meta-range-block-script.js:3299
-#: dist/js/facets-meta-range-block-view-script.js:3226
+#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-meta-range-block-view-script.js:1
 msgid "Clear"
 msgstr ""
 
 #: assets/js/blocks/facets/common/components/range-filter.js:52
-#: dist/js/facets-meta-range-block-script.js:3491
-#: dist/js/facets-meta-range-block-view-script.js:3373
-#: dist/js/facets-meta-range-block-script.js:3301
-#: dist/js/facets-meta-range-block-view-script.js:3228
+#: dist/js/facets-meta-range-block-script.js:1
+#: dist/js/facets-meta-range-block-view-script.js:1
 msgid "Filter"
 msgstr ""
 
 #: assets/js/blocks/facets/meta-range/edit.js:94
-#: dist/js/facets-meta-range-block-script.js:3638
-#: dist/js/facets-meta-range-block-script.js:3401
+#: dist/js/facets-meta-range-block-script.js:1
 msgid "Value prefix"
 msgstr ""
 
 #: assets/js/blocks/facets/meta-range/edit.js:101
-#: dist/js/facets-meta-range-block-script.js:3652
-#: dist/js/facets-meta-range-block-script.js:3408
+#: dist/js/facets-meta-range-block-script.js:1
 msgid "Value suffix"
 msgstr ""
 
 #. translators: %s: Field name.
 #: assets/js/blocks/facets/meta-range/edit.js:127
-#: dist/js/facets-meta-range-block-script.js:3703
-#: dist/js/facets-meta-range-block-script.js:3434
+#: dist/js/facets-meta-range-block-script.js:1
 msgid "Preview unavailable. The \"%s\" field does not appear to contain numeric values. Select a new meta field key or populate the field with numeric values to enable filtering by range."
 msgstr ""
 
 #: assets/js/blocks/related-posts/Edit.js:90
-#: dist/js/related-posts-block-script.js:1053
-#: dist/js/related-posts-block-script.js:988
+#: dist/js/related-posts-block-script.js:1
 msgid "No related posts yet."
 msgstr ""
 
 #: assets/js/blocks/related-posts/Edit.js:104
-#: dist/js/related-posts-block-script.js:1075
-#: dist/js/related-posts-block-script.js:1002
+#: dist/js/related-posts-block-script.js:1
 msgid "(Untitled)"
 msgstr ""
 
 #: assets/js/dashboard.js:60
-#: dist/js/dashboard-script.js:2935
-#: dist/js/dashboard-script.js:1971
+#: dist/js/dashboard-script.js:1
 msgid "Enabling this feature will begin re-syncing your content. Do you wish to proceed?"
 msgstr ""
 
 #: assets/js/dashboard.js:180
-#: dist/js/dashboard-script.js:3047
-#: dist/js/dashboard-script.js:2091
+#: dist/js/dashboard-script.js:1
 msgid "It looks like you’re trying to use ElasticPress’s advanced features only. If you’d like to activate basic search, please select Cancel and activate the Post Search Feature. Otherwise, please click Ok to configure advanced features."
 msgstr ""
 
 #: assets/js/instant-results/admin/components/facet-selector.js:73
-#: dist/js/instant-results-admin-script.js:1007
-#: dist/js/instant-results-admin-script.js:971
+#: dist/js/instant-results-admin-script.js:1
 msgid "Select filters"
 msgstr ""
 
 #: assets/js/instant-results/apps/modal.js:89
-#: dist/js/instant-results-script.js:5711
-#: dist/js/instant-results-script.js:5450
+#: dist/js/instant-results-script.js:1
 msgid "Search results"
 msgstr ""
 
 #: assets/js/instant-results/components/common/checkbox-list.js:231
-#: dist/js/instant-results-script.js:5990
-#: dist/js/instant-results-script.js:5686
+#: dist/js/instant-results-script.js:1
 msgid "Show fewer options"
 msgstr ""
 
 #. translators: %d: Number of additional options available.
 #: assets/js/instant-results/components/common/checkbox-list.js:234
-#: dist/js/instant-results-script.js:5991
-#: dist/js/instant-results-script.js:5689
+#: dist/js/instant-results-script.js:1
 msgid "Show %d more option"
 msgid_plural "Show %d more options"
 msgstr[0] ""
 msgstr[1] ""
 
 #: assets/js/instant-results/components/common/modal.js:90
-#: dist/js/instant-results-script.js:6233
-#: dist/js/instant-results-script.js:5853
+#: dist/js/instant-results-script.js:1
 msgid "Close"
 msgstr ""
 
 #. translators: %1$f Rating. %2$d Max rating.
 #: assets/js/instant-results/components/common/star-rating.js:17
-#: dist/js/instant-results-script.js:6610
-#: dist/js/instant-results-script.js:6058
+#: dist/js/instant-results-script.js:1
 msgid "Rated %1$f out of %2$d"
 msgstr ""
 
 #: assets/js/instant-results/components/facets/post-type-facet.js:96
-#: dist/js/instant-results-script.js:6843
-#: dist/js/instant-results-script.js:6212
+#: dist/js/instant-results-script.js:1
 msgid "Select content type"
 msgstr ""
 
 #. translators: %1$s: Minimum price. %2$s: Maximum price.
 #: assets/js/instant-results/components/facets/price-range-facet.js:143
-#: dist/js/instant-results-script.js:7060
-#: dist/js/instant-results-script.js:6374
+#: dist/js/instant-results-script.js:1
 msgid "%1$s — %2$s"
 msgstr ""
 
 #: assets/js/instant-results/components/facets/search-term-facet.js:65
-#: dist/js/instant-results-script.js:7161
-#: dist/js/instant-results-script.js:6452
+#: dist/js/instant-results-script.js:1
 msgid "Search…"
 msgstr ""
 
 #. translators: %s: Search term.
 #: assets/js/instant-results/components/facets/search-term-facet.js:74
-#: dist/js/instant-results-script.js:7171
-#: dist/js/instant-results-script.js:6461
+#: dist/js/instant-results-script.js:1
 msgid "“%s”"
 msgstr ""
 
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:42
-#: dist/js/instant-results-script.js:7260
-#: dist/js/instant-results-script.js:6512
+#: dist/js/instant-results-script.js:1
 msgid ", "
 msgstr ""
 
 #. translators: %1$s: Facet label. $2$s: Facet post types.
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:47
-#: dist/js/instant-results-script.js:7262
-#: dist/js/instant-results-script.js:6517
+#: dist/js/instant-results-script.js:1
 msgid "%1$s (%2$s)"
 msgstr ""
 
 #. translators: %s: Taxonomy name.
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:137
-#: dist/js/instant-results-script.js:7351
-#: dist/js/instant-results-script.js:6607
+#: dist/js/instant-results-script.js:1
 msgid "Select %s"
 msgstr ""
 
 #. translators: %1$d: results count. %2$s: Search term.
 #: assets/js/instant-results/components/layout/results.js:66
-#: dist/js/instant-results-script.js:7610
-#: dist/js/instant-results-script.js:6770
+#: dist/js/instant-results-script.js:1
 msgid "%1$d result for “%2$s“"
 msgid_plural "%1$d results for “%2$s“"
 msgstr[0] ""
@@ -2633,403 +2551,333 @@ msgstr[1] ""
 
 #. translators: %d: results count.
 #: assets/js/instant-results/components/layout/results.js:78
-#: dist/js/instant-results-script.js:7613
-#: dist/js/instant-results-script.js:6782
+#: dist/js/instant-results-script.js:1
 msgid "%d result"
 msgid_plural "%d results"
 msgstr[0] ""
 msgstr[1] ""
 
 #: assets/js/instant-results/components/layout/results.js:89
-#: dist/js/instant-results-script.js:7623
-#: dist/js/instant-results-script.js:6793
+#: dist/js/instant-results-script.js:1
 msgid "Loading results"
 msgstr ""
 
 #. translators: Search term
 #: assets/js/instant-results/components/results/did-you-mean.js:33
-#: dist/js/instant-results-script.js:7787
-#: dist/js/instant-results-script.js:6882
+#: dist/js/instant-results-script.js:1
 msgid "Did you mean: <a>%s</a>"
 msgstr ""
 
 #: assets/js/instant-results/components/results/did-you-mean.js:55
-#: dist/js/instant-results-script.js:7811
-#: dist/js/instant-results-script.js:6904
+#: dist/js/instant-results-script.js:1
 msgid "Other suggestions"
 msgstr ""
 
 #: assets/js/instant-results/components/results/pagination.js:48
-#: dist/js/instant-results-script.js:7910
-#: dist/js/instant-results-script.js:6968
+#: dist/js/instant-results-script.js:1
 msgid "Previous"
 msgstr ""
 
 #. translators: %1$d: current page. %2$d: total pages.
 #: assets/js/instant-results/components/results/pagination.js:56
-#: dist/js/instant-results-script.js:7924
-#: dist/js/instant-results-script.js:6976
+#: dist/js/instant-results-script.js:1
 msgid "Page %1$d of %2$d"
 msgstr ""
 
 #: assets/js/instant-results/components/results/pagination.js:69
-#: dist/js/instant-results-script.js:7936
-#: dist/js/instant-results-script.js:6989
+#: dist/js/instant-results-script.js:1
 msgid "Next"
 msgstr ""
 
 #: assets/js/instant-results/components/tools/clear-constraints.js:56
-#: dist/js/instant-results-script.js:8211
-#: dist/js/instant-results-script.js:7179
+#: dist/js/instant-results-script.js:1
 msgid "Clear filters"
 msgstr ""
 
 #: assets/js/instant-results/components/tools/sidebar-toggle.js:24
-#: dist/js/instant-results-script.js:8257
-#: dist/js/instant-results-script.js:7207
+#: dist/js/instant-results-script.js:1
 msgid "Close filters"
 msgstr ""
 
 #: assets/js/instant-results/components/tools/sort.js:46
-#: dist/js/instant-results-script.js:8345
-#: dist/js/instant-results-script.js:7258
+#: dist/js/instant-results-script.js:1
 msgid "Sort by"
 msgstr ""
 
 #: assets/js/instant-results/config.js:32
-#: dist/js/instant-results-script.js:8438
-#: dist/js/instant-results-script.js:7306
+#: dist/js/instant-results-script.js:1
 msgid "Most relevant"
 msgstr ""
 
 #: assets/js/instant-results/config.js:38
-#: dist/js/instant-results-script.js:8444
-#: dist/js/instant-results-script.js:7312
+#: dist/js/instant-results-script.js:1
 msgid "Date, newest to oldest"
 msgstr ""
 
 #: assets/js/instant-results/config.js:43
-#: dist/js/instant-results-script.js:8449
-#: dist/js/instant-results-script.js:7317
+#: dist/js/instant-results-script.js:1
 msgid "Date, oldest to newest"
 msgstr ""
 
 #: assets/js/instant-results/config.js:54
-#: dist/js/instant-results-script.js:8460
-#: dist/js/instant-results-script.js:7328
+#: dist/js/instant-results-script.js:1
 msgid "Price, highest to lowest"
 msgstr ""
 
 #: assets/js/instant-results/config.js:60
-#: dist/js/instant-results-script.js:8465
-#: dist/js/instant-results-script.js:7334
+#: dist/js/instant-results-script.js:1
 msgid "Price, lowest to highest"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:184
-#: dist/js/ordering-script.js:14811
-#: dist/js/ordering-script.js:13529
+#: dist/js/ordering-script.js:1
 msgid "You have added the maximum number of custom results."
 msgstr ""
 
 #: assets/js/ordering/pointers.js:285
-#: dist/js/ordering-script.js:14924
-#: dist/js/ordering-script.js:13630
+#: dist/js/ordering-script.js:1
 msgid "Add Post"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:311
-#: dist/js/ordering-script.js:14961
-#: dist/js/ordering-script.js:13656
+#: dist/js/ordering-script.js:1
 msgid "Enter your search query above to preview the results."
 msgstr ""
 
 #: assets/js/ordering/pointers.js:324
-#: dist/js/ordering-script.js:14983
-#: dist/js/ordering-script.js:13669
+#: dist/js/ordering-script.js:1
 msgid "Loading Result Preview…"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:375
-#: dist/js/ordering-script.js:15040
-#: dist/js/ordering-script.js:13720
+#: dist/js/ordering-script.js:1
 msgid "Return to original position"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:376
-#: dist/js/ordering-script.js:15040
-#: dist/js/ordering-script.js:13721
+#: dist/js/ordering-script.js:1
 msgid "Remove custom result from results list"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:399
-#: dist/js/ordering-script.js:15052
-#: dist/js/ordering-script.js:13744
+#: dist/js/ordering-script.js:1
 msgid "The following posts have been displaced to the next page of search results."
 msgstr ""
 
 #: assets/js/ordering/pointers.js:434
-#: dist/js/ordering-script.js:15100
-#: dist/js/ordering-script.js:13779
+#: dist/js/ordering-script.js:1
 msgid "Drag post up or down to reposition"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:476
-#: dist/js/ordering-script.js:15179
-#: dist/js/ordering-script.js:13821
+#: dist/js/ordering-script.js:1
 msgid "Custom Result (manually added to list)"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:482
-#: dist/js/ordering-script.js:15200
-#: dist/js/ordering-script.js:13827
+#: dist/js/ordering-script.js:1
 msgid "Reordered Default (originally in results, but repositioned)"
 msgstr ""
 
 #: assets/js/ordering/pointers.js:491
-#: dist/js/ordering-script.js:15219
-#: dist/js/ordering-script.js:13836
+#: dist/js/ordering-script.js:1
 msgid "Add to results"
 msgstr ""
 
 #: assets/js/settings.js:93
-#: dist/js/settings-script.js:191
-#: dist/js/settings-script.js:144
+#: dist/js/settings-script.js:1
 msgid "Plug in your ElasticPress.io server here!"
 msgstr ""
 
 #: assets/js/settings.js:94
-#: dist/js/settings-script.js:191
-#: dist/js/settings-script.js:145
+#: dist/js/settings-script.js:1
 msgid "Plug in your Elasticsearch server here!"
 msgstr ""
 
 #: assets/js/sites-admin.js:58
-#: dist/js/sites-admin-script.js:1124
-#: dist/js/sites-admin-script.js:1011
+#: dist/js/sites-admin-script.js:1
 msgid "On"
 msgstr ""
 
 #: assets/js/sites-admin.js:58
-#: dist/js/sites-admin-script.js:1124
-#: dist/js/sites-admin-script.js:1011
+#: dist/js/sites-admin-script.js:1
 msgid "Off"
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:41
-#: dist/js/sync-script.js:1483
-#: dist/js/sync-script.js:1221
+#: dist/js/sync-script.js:1
 msgid "Sync Settings"
 msgstr ""
 
 #. translators: %s: Index type. ElasticPress.io or Elasticsearch.
 #: assets/js/sync/components/sync-page.js:48
-#: dist/js/sync-script.js:1490
-#: dist/js/sync-script.js:1228
+#: dist/js/sync-script.js:1
 msgid "Run a sync to index your existing content %s. Once syncing finishes, your site is officially supercharged."
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:53
-#: dist/js/sync-script.js:1490
-#: dist/js/sync-script.js:1233
+#: dist/js/sync-script.js:1
 msgid "on ElasticPress.io"
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:54
-#: dist/js/sync-script.js:1490
-#: dist/js/sync-script.js:1234
+#: dist/js/sync-script.js:1
 msgid "in Elasticsearch"
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:56
-#: dist/js/sync-script.js:1490
-#: dist/js/sync-script.js:1236
+#: dist/js/sync-script.js:1
 msgid "If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes."
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:74
-#: dist/js/sync-script.js:1505
-#: dist/js/sync-script.js:1254
+#: dist/js/sync-script.js:1
 msgid "Delete All Data and Sync"
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:75
-#: dist/js/sync-script.js:1506
-#: dist/js/sync-script.js:1255
+#: dist/js/sync-script.js:1
 msgid "If you are still having issues with your search results, you may need to do a completely fresh sync."
 msgstr ""
 
 #: assets/js/sync/components/sync-page.js:86
-#: dist/js/sync-script.js:1514
-#: dist/js/sync-script.js:1266
+#: dist/js/sync-script.js:1
 msgid "All indexed data on ElasticPress will be deleted without affecting anything on your WordPress website. This may take a few hours depending on the amount of content that needs to be synced and indexed. While this is happening, searches will use the default WordPress results"
 msgstr ""
 
 #: assets/js/sync/components/sync/controls.js:45
-#: dist/js/sync-script.js:1597
-#: dist/js/sync-script.js:1321
+#: dist/js/sync-script.js:1
 msgid "Sync Now"
 msgstr ""
 
 #: assets/js/sync/components/sync/controls.js:61
-#: dist/js/sync-script.js:1616
-#: dist/js/sync-script.js:1337
+#: dist/js/sync-script.js:1
 msgid "Resume"
 msgstr ""
 
 #: assets/js/sync/components/sync/controls.js:71
-#: dist/js/sync-script.js:1627
-#: dist/js/sync-script.js:1347
+#: dist/js/sync-script.js:1
 msgid "Pause"
 msgstr ""
 
 #: assets/js/sync/components/sync/controls.js:83
-#: dist/js/sync-script.js:1644
-#: dist/js/sync-script.js:1359
+#: dist/js/sync-script.js:1
 msgid "Stop"
 msgstr ""
 
 #: assets/js/sync/components/sync/log.js:41
-#: dist/js/sync-script.js:1740
-#: dist/js/sync-script.js:1420
+#: dist/js/sync-script.js:1
 msgid "Full Log"
 msgstr ""
 
 #. translators: %d: Error message count.
 #: assets/js/sync/components/sync/log.js:48
-#: dist/js/sync-script.js:1745
-#: dist/js/sync-script.js:1427
+#: dist/js/sync-script.js:1
 msgid "Errors (%d)"
 msgstr ""
 
 #: assets/js/sync/components/sync/log.js:69
-#: dist/js/sync-script.js:1761
-#: dist/js/sync-script.js:1448
+#: dist/js/sync-script.js:1
 msgid "Show log"
 msgstr ""
 
 #: assets/js/sync/components/sync/panel.js:105
-#: dist/js/sync-script.js:1923
-#: dist/js/sync-script.js:1563
+#: dist/js/sync-script.js:1
 msgid "Delete all Data and Start a Fresh Sync"
 msgstr ""
 
 #: assets/js/sync/components/sync/progress.js:54
 #: assets/js/sync/index.js:163
-#: dist/js/sync-script.js:2104
-#: dist/js/sync-script.js:3017
-#: dist/js/sync-script.js:1667
-#: dist/js/sync-script.js:2353
+#: dist/js/sync-script.js:1
 msgid "Sync failed"
 msgstr ""
 
 #: assets/js/sync/components/sync/progress.js:66
 #: assets/js/sync/index.js:497
-#: dist/js/sync-script.js:2113
-#: dist/js/sync-script.js:3329
-#: dist/js/sync-script.js:1679
-#: dist/js/sync-script.js:2687
+#: dist/js/sync-script.js:1
 msgid "WP CLI sync in progress"
 msgstr ""
 
 #: assets/js/sync/components/sync/progress.js:69
-#: dist/js/sync-script.js:2115
-#: dist/js/sync-script.js:1682
+#: dist/js/sync-script.js:1
 msgid "Sync in progress"
 msgstr ""
 
 #: assets/js/sync/components/sync/progress.js:86
-#: dist/js/sync-script.js:2136
-#: dist/js/sync-script.js:1699
+#: dist/js/sync-script.js:1
 msgid "Started on"
 msgstr ""
 
 #: assets/js/sync/components/sync/status.js:34
-#: dist/js/sync-script.js:2230
-#: dist/js/sync-script.js:1750
+#: dist/js/sync-script.js:1
 msgid "Sync success on"
 msgstr ""
 
 #: assets/js/sync/components/sync/status.js:35
-#: dist/js/sync-script.js:2230
-#: dist/js/sync-script.js:1751
+#: dist/js/sync-script.js:1
 msgid "Sync unsuccessful on"
 msgstr ""
 
 #: assets/js/sync/hooks.js:37
-#: dist/js/sync-script.js:2335
-#: dist/js/sync-script.js:1809
+#: dist/js/sync-script.js:1
 msgid "ElasticPress: Unexpected response."
 msgstr ""
 
 #: assets/js/sync/hooks.js:53
-#: dist/js/sync-script.js:2347
-#: dist/js/sync-script.js:1825
+#: dist/js/sync-script.js:1
 msgid "Permission denied. Reload the sync page and try again."
 msgstr ""
 
 #: assets/js/sync/hooks.js:70
-#: dist/js/sync-script.js:2359
-#: dist/js/sync-script.js:1842
+#: dist/js/sync-script.js:1
 msgid "Something went wrong. Find troubleshooting steps at https://elasticpress.zendesk.com/hc/en-us/sections/360010868652-Troubleshooting."
 msgstr ""
 
 #: assets/js/sync/hooks.js:96
-#: dist/js/sync-script.js:2380
-#: dist/js/sync-script.js:1868
+#: dist/js/sync-script.js:1
 msgid "Unable to parse response. Find troubleshooting steps at https://elasticpress.zendesk.com/hc/en-us/sections/360010868652-Troubleshooting."
 msgstr ""
 
 #. translators: %s: Index type. ElasticPress.io or Elasticsearch.
 #: assets/js/sync/index.js:190
-#: dist/js/sync-script.js:3039
-#: dist/js/sync-script.js:2380
+#: dist/js/sync-script.js:1
 msgid "Your indexing process has been stopped by WP-CLI and your %s index could be missing content. To restart indexing, please click the Start button or use WP-CLI commands to perform the reindex. Please note that search results could be incorrect or incomplete until the reindex finishes."
 msgstr ""
 
 #: assets/js/sync/index.js:198
-#: dist/js/sync-script.js:3039
-#: dist/js/sync-script.js:2388
+#: dist/js/sync-script.js:1
 msgid "Sync interrupted by WP-CLI command."
 msgstr ""
 
 #: assets/js/sync/index.js:431
 #: assets/js/sync/index.js:511
-#: dist/js/sync-script.js:3263
-#: dist/js/sync-script.js:3342
-#: dist/js/sync-script.js:2621
-#: dist/js/sync-script.js:2701
+#: dist/js/sync-script.js:1
 msgid "Starting delete and sync…"
 msgstr ""
 
 #: assets/js/sync/index.js:441
-#: dist/js/sync-script.js:3273
-#: dist/js/sync-script.js:2631
+#: dist/js/sync-script.js:1
 msgid "Pausing sync…"
 msgstr ""
 
 #: assets/js/sync/index.js:451
-#: dist/js/sync-script.js:3283
-#: dist/js/sync-script.js:2641
+#: dist/js/sync-script.js:1
 msgid "Resuming sync…"
 msgstr ""
 
 #: assets/js/sync/index.js:461
-#: dist/js/sync-script.js:3293
-#: dist/js/sync-script.js:2651
+#: dist/js/sync-script.js:1
 msgid "Sync stopped"
 msgstr ""
 
 #: assets/js/sync/index.js:471
-#: dist/js/sync-script.js:3303
-#: dist/js/sync-script.js:2661
+#: dist/js/sync-script.js:1
 msgid "Starting sync…"
 msgstr ""
 
 #. translators: %d: Number of options in the list.
 #: assets/js/woocommerce/admin/orders/app/components/combobox.js:42
-#: dist/js/woocommerce-order-search-script.js:1999
-#: dist/js/woocommerce-order-search-script.js:1908
+#: dist/js/woocommerce-order-search-script.js:1
 msgid "%d suggestion available, use the up and down keys to browse and the enter key to open"
 msgid_plural "%d suggestions available, use the up and down keys to browse and the enter key to open"
 msgstr[0] ""
@@ -3037,17 +2885,11 @@ msgstr[1] ""
 
 #. translators: %1$d: Order item count. %2$s: Order time.
 #: assets/js/woocommerce/admin/orders/app/components/suggestion.js:59
-#: dist/js/woocommerce-order-search-script.js:2313
-#: dist/js/woocommerce-order-search-script.js:2179
+#: dist/js/woocommerce-order-search-script.js:1
 msgid "%1$d item @ %2$s"
 msgid_plural "%1$d items @ %2$s"
 msgstr[0] ""
 msgstr[1] ""
-
-#: dist/js/facets-post-type-block-script.js:1289
-#: dist/js/facets-post-type-block-script.js:1130
-msgid "Facet Settings"
-msgstr ""
 
 #: assets/js/blocks/comments/block.json
 msgctxt "block title"
