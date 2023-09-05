@@ -107,14 +107,14 @@ class Weighting {
 		];
 
 		$empty_post = new \WP_Post( new \stdClass() );
+
 		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
 		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $empty_post );
+
 		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
 		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $empty_post );
 
-		$meta_keys = Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys_db();
-
-		foreach ( $meta_keys as $meta_key ) {
+		foreach ( $allowed_protected_keys as $meta_key ) {
 			$key = "meta.$meta_key.value";
 
 			if ( in_array( $key, $excluded_public_keys, true ) ) {
@@ -126,7 +126,7 @@ class Weighting {
 			$fields['ep_metadata']['children'][ $key ] = [
 				'key'             => $key,
 				'label'           => $meta_key,
-				'used_by_feature' => $used_by_feature,
+				'used_by_feature' => true,
 			];
 		}
 
