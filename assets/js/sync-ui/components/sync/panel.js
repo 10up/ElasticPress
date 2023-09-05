@@ -13,6 +13,7 @@ import SyncControls from './controls';
 import SyncLog from './log';
 import SyncProgress from './progress';
 import SyncStatus from './status';
+import { useSync } from '../../../sync';
 
 /**
  * Sync page component.
@@ -20,23 +21,14 @@ import SyncStatus from './status';
  * @param {object} props Component props.
  * @param {string} props.heading Panel heading.
  * @param {string} props.introduction Panel introduction.
- * @param {boolean} props.isCli If sync is a CLI sync.
- * @param {boolean} props.isComplete If sync is complete.
  * @param {boolean} props.isDisabled If controls are disabled.
- * @param {boolean} props.isFailed If sync has failed.
- * @param {boolean} props.isPaused If sync is paused.
- * @param {boolean} props.isSyncing If sync is running.
- * @param {number} props.itemsProcessed Number of items processed.
- * @param {number} props.itemsTotal Number of items to process.
- * @param {string} props.lastSyncDateTime Date and time of last sync in ISO-8601.
- * @param {boolean} props.lastSyncFailed If the last sync had failures.
+ * @param {boolean} props.isLoading If sync is running.
  * @param {object[]} props.logMessages Log messages.
  * @param {Function} props.onDelete Callback for clicking delete and sync.
  * @param {Function} props.onPause Callback for clicking pause.
  * @param {Function} props.onResume Callback for clicking resume.
  * @param {Function} props.onStop Callback for clicking stop.
  * @param {Function} props.onSync Callback for clicking sync.
- * @param {string} props.syncStartDateTime Date and time of current sync in ISO 8601.
  * @param {boolean} props.showLastSync Whether to show the last sync details.
  * @param {boolean} props.showDelete Whether to show the delete button.
  * @param {boolean} props.showProgress Whether to show the progress bar.
@@ -47,16 +39,8 @@ import SyncStatus from './status';
 export default ({
 	heading,
 	introduction,
-	isCli,
-	isComplete,
 	isDisabled,
-	isFailed,
-	isPaused,
-	isSyncing,
-	itemsProcessed,
-	itemsTotal,
-	lastSyncDateTime,
-	lastSyncFailed,
+	isLoading,
 	logMessages,
 	onDelete,
 	onPause,
@@ -67,9 +51,20 @@ export default ({
 	showLastSync,
 	showProgress,
 	showSync,
-	syncStartDateTime,
 	warningMessage,
 }) => {
+	const {
+		isCli,
+		isComplete,
+		isFailed,
+		isPaused,
+		itemsProcessed,
+		itemsTotal,
+		lastSyncDateTime,
+		lastSyncFailed,
+		syncStartDateTime,
+	} = useSync();
+
 	return (
 		<>
 			{heading ? <h2 className="ep-sync-heading">{heading}</h2> : null}
@@ -97,7 +92,7 @@ export default ({
 							<p>
 								<Button
 									className="ep-sync-button ep-sync-button--delete"
-									disabled={isDisabled || isSyncing}
+									disabled={isDisabled || isLoading}
 									isSecondary
 									isDestructive
 									onClick={onDelete}
@@ -112,7 +107,7 @@ export default ({
 						<SyncControls
 							disabled={isDisabled}
 							isPaused={isPaused}
-							isSyncing={isSyncing}
+							isLoading={isLoading}
 							onPause={onPause}
 							onResume={onResume}
 							onStop={onStop}
