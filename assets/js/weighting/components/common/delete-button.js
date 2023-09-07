@@ -3,7 +3,7 @@
  */
 import { Button } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
-import { close } from '@wordpress/icons';
+import { trash } from '@wordpress/icons';
 
 /**
  * Undo button component.
@@ -18,7 +18,7 @@ export default (props) => {
 	return (
 		<Button
 			className="ep-weighting-action ep-weighting-action--delete"
-			icon={close}
+			icon={trash}
 			{...props}
 		/>
 	);

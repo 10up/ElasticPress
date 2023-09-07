@@ -122,12 +122,12 @@ class Weighting {
 				continue;
 			}
 
-			$used_by_feature = in_array( $meta_key, $allowed_protected_keys, true );
+			$required = in_array( $meta_key, $allowed_protected_keys, true );
 
 			$fields['ep_metadata']['children'][ $key ] = [
-				'key'             => $key,
-				'label'           => $meta_key,
-				'used_by_feature' => true,
+				'key'      => $key,
+				'label'    => $meta_key,
+				'required' => $required,
 			];
 		}
 
@@ -145,7 +145,7 @@ class Weighting {
 	/**
 	 * Get weightable fields for all searchable post types.
 	 *
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 * @return array
 	 */
 	public function get_weightable_fields() {
@@ -156,9 +156,32 @@ class Weighting {
 			$post_type_object = get_post_type_object( $post_type );
 			$post_type_labels = get_post_type_labels( $post_type_object );
 
-			$weightable[ $post_type ] = [
+			$weightable_fields = $this->get_weightable_fields_for_post_type( $post_type );
+
+			$groups = [];
+			$fields = [];
+
+			foreach ( $weightable_fields as $group => $weightable_field ) {
+				$groups[] = [
+					'key'   => $group,
+					'label' => $weightable_field['label'],
+				];
+
+				foreach ( $weightable_field['children'] as $field ) {
+					$fields[] = [
+						'group'    => $group,
+						'key'      => $field['key'],
+						'label'    => $field['label'],
+						'required' => isset( $field['required'] ) ? $field['required'] : false,
+					];
+				}
+			}
+
+			$weightable[] = [
+				'key'    => $post_type,
 				'label'  => $post_type_labels->menu_name,
-				'groups' => $this->get_weightable_fields_for_post_type( $post_type ),
+				'groups' => $groups,
+				'fields' => $fields,
 			];
 		}
 

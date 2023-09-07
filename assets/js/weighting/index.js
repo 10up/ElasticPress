@@ -1,32 +1,36 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createRoot, render, WPElement } from '@wordpress/element';
 
 /**
  * Internal Dependencies.
  */
-import Weighting from './components/weighting';
+import { apiUrl, metaMode, syncUrl, weightableFields, weightingConfiguration } from './config';
+import WeightingProvider from './provider';
+import SettingsPage from './apps/settings-page';
 
 /**
- * Initialize.
+ * App component.
  *
- * @returns {void}
+ * @returns {WPElement} App component.
  */
-const init = () => {
-	const { apiUrl, metaMode, syncUrl, weightableFields, weightingConfiguration } =
-		window.epWeighting;
+const App = () => (
+	<WeightingProvider
+		apiUrl={apiUrl}
+		metaMode={metaMode}
+		syncUrl={syncUrl}
+		weightingConfiguration={weightingConfiguration}
+		weightableFields={weightableFields}
+	>
+		<SettingsPage />
+	</WeightingProvider>
+);
 
-	render(
-		<Weighting
-			apiUrl={apiUrl}
-			metaMode={metaMode}
-			syncUrl={syncUrl}
-			weightingConfiguration={weightingConfiguration}
-			weightableFields={weightableFields}
-		/>,
-		document.getElementById('ep-weighting-screen'),
-	);
-};
+if (typeof createRoot === 'function') {
+	const root = createRoot(document.getElementById('ep-weighting-screen'));
 
-init();
+	root.render(<App />);
+} else {
+	render(<App />, document.getElementById('ep-weighting-screen'));
+}

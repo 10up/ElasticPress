@@ -285,12 +285,16 @@ class Products {
 
 		$sku_key = 'meta._sku.value';
 
+		unset( $fields['ep_metadata']['children'][ $sku_key ] );
+
 		$fields['attributes']['children'][ $sku_key ] = array(
 			'key'   => $sku_key,
 			'label' => __( 'SKU', 'elasticpress' ),
 		);
 
 		$variations_skus_key = 'meta._variations_skus.value';
+
+		unset( $fields['ep_metadata']['children'][ $variations_skus_key ] );
 
 		$fields['attributes']['children'][ $variations_skus_key ] = array(
 			'key'   => $variations_skus_key,
