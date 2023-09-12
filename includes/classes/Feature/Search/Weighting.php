@@ -108,8 +108,12 @@ class Weighting {
 
 		$empty_post = new \WP_Post( new \stdClass() );
 
+		$empty_post->post_type = $post_type;
+
 		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
 		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $empty_post );
+
+		sort( $allowed_protected_keys, SORT_STRING );
 
 		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
 		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $empty_post );
