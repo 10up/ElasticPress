@@ -5,11 +5,6 @@ import { useCallback, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
- * Internal dependencies.
- */
-import { ajaxUrl, nonce } from './config';
-
-/**
  * Indexing hook.
  *
  * Provides methods for indexing, getting indexing status, and cancelling
@@ -17,9 +12,11 @@ import { ajaxUrl, nonce } from './config';
  * interrupt eachother to avoid multiple sync requests causing race conditions
  * or duplicate output, such as by rapidly pausing and unpausing indexing.
  *
+ * @param {string} ajaxUrl AJAX endpoint URL.
+ * @param {string} nonce WordPress nonce.
  * @returns {object} Sync, sync status, and cancel functions.
  */
-export const useIndex = () => {
+export const useIndex = (ajaxUrl, nonce) => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
 
@@ -131,7 +128,7 @@ export const useIndex = () => {
 
 			return request.current;
 		},
-		[onComplete, onResponse],
+		[ajaxUrl, onComplete, onResponse],
 	);
 
 	const cancelIndex = useCallback(
@@ -157,7 +154,7 @@ export const useIndex = () => {
 
 			return sendRequest(options);
 		},
-		[sendRequest],
+		[nonce, sendRequest],
 	);
 
 	const index = useCallback(
@@ -185,7 +182,7 @@ export const useIndex = () => {
 
 			return sendRequest(options);
 		},
-		[sendRequest],
+		[nonce, sendRequest],
 	);
 
 	const indexStatus = useCallback(
@@ -211,7 +208,7 @@ export const useIndex = () => {
 
 			return sendRequest(options);
 		},
-		[sendRequest],
+		[nonce, sendRequest],
 	);
 
 	return { cancelIndex, index, indexStatus };

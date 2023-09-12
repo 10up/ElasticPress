@@ -18,8 +18,8 @@ import stop from '../icons/stop';
  *
  * @param {object} props Component props.
  * @param {boolean} props.disabled If controls are disabled.
+ * @param {boolean} props.isLoading If syncing is in progress.
  * @param {boolean} props.isPaused If syncing is paused.
- * @param {boolean} props.isSyncing If syncing is in progress.
  * @param {Function} props.onPause Pause button click callback.
  * @param {Function} props.onResume Play button click callback.
  * @param {Function} props.onStop Stop button click callback.
@@ -27,13 +27,13 @@ import stop from '../icons/stop';
  * @param {boolean} props.showSync If sync button is shown.
  * @returns {WPElement} Component.
  */
-export default ({ disabled, isPaused, isSyncing, onPause, onResume, onStop, onSync, showSync }) => {
+export default ({ disabled, isLoading, isPaused, onPause, onResume, onStop, onSync, showSync }) => {
 	/**
 	 * Render.
 	 */
 	return (
 		<div className="ep-sync-controls">
-			{showSync && !isSyncing ? (
+			{showSync && !isLoading ? (
 				<div className="ep-sync-controls__sync">
 					<Button
 						className="ep-sync-button ep-sync-button--sync"
@@ -47,7 +47,7 @@ export default ({ disabled, isPaused, isSyncing, onPause, onResume, onStop, onSy
 				</div>
 			) : null}
 
-			{isSyncing ? (
+			{isLoading ? (
 				<>
 					<div className="ep-sync-controls__pause-resume">
 						{isPaused ? (

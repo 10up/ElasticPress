@@ -7,9 +7,9 @@ import { v4 as uuid } from 'uuid';
  * WordPress dependencies.
  */
 import {
-	createRoot,
-	render,
+	createContext,
 	useCallback,
+	useContext,
 	useEffect,
 	useRef,
 	useState,
@@ -20,25 +20,46 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import { autoIndex, lastSyncDateTime, lastSyncFailed, isEpio, indexMeta } from './config';
-import { useIndex } from './hooks';
+import { useIndex } from './src/hooks';
 import {
 	clearSyncParam,
 	getItemsProcessedFromIndexMeta,
 	getItemsTotalFromIndexMeta,
-} from './utilities';
-import SyncPage from './components/sync-page';
+} from './src/utilities';
+
+/**
+ * Sync context.
+ */
+const Context = createContext();
 
 /**
  * App component.
  *
+ * @param {object} props Component props.
+ * @param {string} props.ajaxUrl AJAX URL endpoint.
+ * @param {boolean} props.autoIndex Whether to start an index automatically.
+ * @param {Function} props.children Component children
+ * @param {string} props.defaultLastSyncDateTime Last sync date and time.
+ * @param {boolean} props.defaultLastSyncFailed Whether the last sync failed.
+ * @param {object|null} props.indexMeta Details of a sync in progress.
+ * @param {boolean} props.isEpio Whether ElasticPress.io is in use.
+ * @param {string} props.nonce WordPress nonce.
  * @returns {WPElement} App component.
  */
-const App = () => {
+export const SyncProvider = ({
+	ajaxUrl,
+	autoIndex,
+	children,
+	defaultLastSyncDateTime,
+	defaultLastSyncFailed,
+	indexMeta,
+	isEpio,
+	nonce,
+}) => {
 	/**
 	 * Indexing methods.
 	 */
-	const { cancelIndex, index, indexStatus } = useIndex();
+	const { cancelIndex, index, indexStatus } = useIndex(ajaxUrl, nonce);
 
 	/**
 	 * Message log state.
@@ -49,14 +70,16 @@ const App = () => {
 	 * Sync state.
 	 */
 	const [state, setState] = useState({
+		isCli: false,
 		isComplete: false,
 		isDeleting: false,
 		isFailed: false,
+		isPaused: false,
 		isSyncing: false,
 		itemsProcessed: 0,
 		itemsTotal: 100,
-		lastSyncDateTime,
-		lastSyncFailed,
+		lastSyncDateTime: defaultLastSyncDateTime,
+		lastSyncFailed: defaultLastSyncFailed,
 		syncStartDateTime: null,
 	});
 
@@ -200,7 +223,7 @@ const App = () => {
 			logMessage(message, 'info');
 			updateState({ isSyncing: false });
 		},
-		[logMessage],
+		[isEpio, logMessage],
 	);
 
 	const syncInProgress = useCallback(
@@ -422,56 +445,6 @@ const App = () => {
 	);
 
 	/**
-	 * Handle clicking delete and sync button.
-	 *
-	 * @returns {void}
-	 */
-	const onDelete = async () => {
-		startSync(true);
-		logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking pause button.
-	 *
-	 * @returns {void}
-	 */
-	const onPause = () => {
-		pauseSync();
-		logMessage(__('Pausing sync…', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking play button.
-	 *
-	 * @returns {void}
-	 */
-	const onResume = () => {
-		resumeSync();
-		logMessage(__('Resuming sync…', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking stop button.
-	 *
-	 * @returns {void}
-	 */
-	const onStop = () => {
-		stopSync();
-		logMessage(__('Sync stopped', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking sync button.
-	 *
-	 * @returns {void}
-	 */
-	const onSync = async () => {
-		startSync(false);
-		logMessage(__('Starting sync…', 'elasticpress'), 'info');
-	};
-
-	/**
 	 * Initialize.
 	 *
 	 * @returns {void}
@@ -515,29 +488,62 @@ const App = () => {
 	/**
 	 * Effects.
 	 */
-	useEffect(init, [doIndexStatus, syncInProgress, logMessage, pauseSync, startSync]);
+	useEffect(init, [
+		autoIndex,
+		doIndexStatus,
+		syncInProgress,
+		indexMeta,
+		logMessage,
+		pauseSync,
+		startSync,
+	]);
 
 	/**
-	 * Render.
+	 * Provide state to context.
 	 */
-	return (
-		<SyncPage
-			isEpio={isEpio}
-			log={log}
-			onDelete={onDelete}
-			onPause={onPause}
-			onResume={onResume}
-			onStop={onStop}
-			onSync={onSync}
-			{...state}
-		/>
-	);
+	const {
+		isCli,
+		isComplete,
+		isDeleting,
+		isFailed,
+		isPaused,
+		isSyncing,
+		itemsProcessed,
+		itemsTotal,
+		lastSyncDateTime,
+		lastSyncFailed,
+		syncStartDateTime,
+	} = stateRef.current;
+
+	// eslint-disable-next-line react/jsx-no-constructed-context-values
+	const contextValue = {
+		isCli,
+		isComplete,
+		isDeleting,
+		isFailed,
+		isPaused,
+		isSyncing,
+		itemsProcessed,
+		itemsTotal,
+		lastSyncDateTime,
+		lastSyncFailed,
+		log,
+		logMessage,
+		pauseSync,
+		resumeSync,
+		startSync,
+		stopSync,
+		syncStartDateTime,
+	};
+
+	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 };
 
-if (typeof createRoot === 'function') {
-	const root = createRoot(document.getElementById('ep-sync'));
-
-	root.render(<App />);
-} else {
-	render(<App />, document.getElementById('ep-sync'));
-}
+/**
+ * Use the API Search context.
+ *
+ * @returns {object} API Search Context.
+ */
+export const useSync = () => {
+	return useContext(Context);
+};
