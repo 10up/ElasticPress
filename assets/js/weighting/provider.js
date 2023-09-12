@@ -5,7 +5,6 @@ import apiFetch from '@wordpress/api-fetch';
 import { withNotices } from '@wordpress/components';
 import { createContext, WPElement, useContext, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { isEqual } from 'lodash';
 
 /**
  * Instant Results context.
@@ -38,19 +37,7 @@ const WeightingProvider = ({
 		...weightingConfiguration,
 	});
 
-	const [savedWeightingConfiguration, setSavedWeightingConfiguration] = useState({
-		...weightingConfiguration,
-	});
-
 	const [isBusy, setIsBusy] = useState(false);
-
-	/**
-	 * Is the current data different to the saved data.
-	 */
-	const isChanged = useMemo(
-		() => !isEqual(currentWeightingConfiguration, savedWeightingConfiguration),
-		[currentWeightingConfiguration, savedWeightingConfiguration],
-	);
 
 	/**
 	 * Whether to show weighting for metadata.
@@ -72,15 +59,6 @@ const WeightingProvider = ({
 	};
 
 	/**
-	 * Handle resetting all settings.
-	 *
-	 * @returns {void}
-	 */
-	const reset = () => {
-		setCurrentWeightingConfiguration({ ...savedWeightingConfiguration });
-	};
-
-	/**
 	 * Save settings.
 	 *
 	 * @returns {void}
@@ -89,7 +67,7 @@ const WeightingProvider = ({
 		try {
 			setIsBusy(true);
 
-			const response = await apiFetch({
+			await apiFetch({
 				body: JSON.stringify(currentWeightingConfiguration),
 				headers: {
 					'Content-Type': 'application/json',
@@ -97,8 +75,6 @@ const WeightingProvider = ({
 				method: 'POST',
 				url: apiUrl,
 			});
-
-			setSavedWeightingConfiguration(response.data);
 
 			noticeOperations.createNotice({
 				content: __('Search fields & weighting saved.', 'elasticpress'),
@@ -120,13 +96,10 @@ const WeightingProvider = ({
 	const contextValue = {
 		currentWeightingConfiguration,
 		isBusy,
-		isChanged,
 		isManual,
 		noticeOperations,
 		noticeUI,
-		reset,
 		save,
-		savedWeightingConfiguration,
 		setWeightingForPostType,
 		weightableFields,
 	};

@@ -15,7 +15,6 @@
     "husky": "^8.0.3",
     "jsdoc": "^3.6.10",
     "lint-staged": "^13.2.0",
-    "lodash": "^4.17.21",
     "postcss-preset-env": "^7.0.1",
     "terser-webpack-plugin": "^5.3.0",
     "wp-hookdoc": "^0.2.0"

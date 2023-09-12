@@ -1,16 +1,10 @@
 /**
  * WordPress Dependencies.
  */
-import { CheckboxControl, RangeControl } from '@wordpress/components';
-import { useMemo, useState, WPElement } from '@wordpress/element';
+import { Button, CheckboxControl, RangeControl } from '@wordpress/components';
+import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { isEqual } from 'lodash';
-
-/**
- * Internal dependencies.
- */
-import DeleteButton from './common/delete-button';
-import UndoButton from './common/undo-button';
+import { trash } from '@wordpress/icons';
 
 /**
  * Field settings component.
@@ -24,19 +18,6 @@ import UndoButton from './common/undo-button';
  */
 export default ({ label, onChange, onDelete, value }) => {
 	const { enabled = false, weight = 0 } = value;
-
-	/**
-	 * State.
-	 */
-	const [originalValue] = useState(value);
-
-	/**
-	 * Is the current value different to the original.
-	 */
-	const isChanged = useMemo(
-		() => !originalValue || !isEqual(originalValue, value),
-		[originalValue, value],
-	);
 
 	/**
 	 * Handle change of searchable.
@@ -56,19 +37,6 @@ export default ({ label, onChange, onDelete, value }) => {
 	 */
 	const onChangeWeight = (weight) => {
 		onChange({ enabled: true, weight });
-	};
-
-	/**
-	 * Handle clicking undo.
-	 *
-	 * @returns {void}
-	 */
-	const onReset = () => {
-		if (originalValue) {
-			onChange(originalValue);
-		} else if (onDelete) {
-			onDelete();
-		}
 	};
 
 	/**
@@ -95,14 +63,11 @@ export default ({ label, onChange, onDelete, value }) => {
 						value={weight}
 					/>
 				</div>
-				<div className="ep-weighting-field__undo">
-					<UndoButton
-						disabled={!isChanged}
-						label={__('Undo changes', 'elasticpress')}
-						onClick={onReset}
-					/>
-					<DeleteButton
+				<div className="ep-weighting-field__actions">
+					<Button
+						className="ep-weighting-action ep-weighting-action--delete"
 						disabled={!onDelete}
+						icon={trash}
 						label={__('Remove', 'elasticpress')}
 						onClick={onDelete}
 					/>
