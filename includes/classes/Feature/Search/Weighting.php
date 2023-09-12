@@ -370,21 +370,6 @@ class Weighting {
 			esc_html( 'Weighting settings are now updated using the REST API.' ),
 			'ElasticPress 5.0.0'
 		);
-
-		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ep-weighting-nonce'] ), 'save-weighting' ) ) {
-			return;
-		}
-
-		if ( ! current_user_can( Utils\get_capability() ) ) {
-			return;
-		}
-
-		$this->save_weighting_configuration( $_POST );
-
-		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
-		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
-
-		$this->redirect( $redirect_url );
 	}
 
 	/**
@@ -398,19 +383,14 @@ class Weighting {
 			esc_html( 'Weighting settings are now updated using the REST API, and do not redirect server-side.' ),
 			'ElasticPress 5.0.0'
 		);
-
-		// @codeCoverageIgnoreStart
-		wp_safe_redirect( $redirect_url );
-		exit();
-		// @codeCoverageIgnoreEnd
 	}
 
 	/**
-	 * DEPRECATED. Save weighting configuration for each searchable post_type
+	 * DEPRECATED. Save weighting configuration for each searchable post_type.
 	 *
 	 * @param array $settings weighting settings
 	 *
-	 * @return array final settings
+	 * @return void
 	 * @since 3.4.1
 	 */
 	public function save_weighting_configuration( $settings ) {
@@ -419,61 +399,6 @@ class Weighting {
 			esc_html( 'Weighting sections display are now handled via React components.' ),
 			'ElasticPress 5.0.0'
 		);
-
-		$new_config                = array();
-		$previous_config_formatted = array();
-		$current_config            = $this->get_weighting_configuration();
-
-		foreach ( $current_config as $post_type => $post_type_weighting ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
-			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $settings['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
-					'enabled' => isset( $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $settings['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
-				];
-			}
-		}
-
-		$search     = Features::factory()->get_registered_feature( 'search' );
-		$post_types = $search->get_searchable_post_types();
-
-		foreach ( $post_types as $post_type ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			/** override default post_type settings while saving */
-			$new_config[ $post_type ] = array();
-
-			if ( isset( $settings['weighting'][ $post_type ] ) ) {
-				foreach ( $settings['weighting'][ $post_type ] as $weighting_field => $weighting_values ) {
-					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
-						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
-					];
-				}
-			}
-		}
-
-		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
-
-		update_option( 'elasticpress_weighting', $final_config );
-
-		/**
-		 * Fires right after the weighting configuration is saved.
-		 *
-		 * @since  3.5.x
-		 * @hook ep_saved_weighting_configuration
-		 */
-		do_action( 'ep_saved_weighting_configuration' );
-
-		return $final_config;
 	}
 
 	/**
@@ -508,16 +433,24 @@ class Weighting {
 		$weighting = $request->get_json_params();
 
 		/**
-		 * If metadata is not being managed manually, remove any metadata
-		 * fields that do not belong to the metadata group from the weighting
-		 * configuration.
+		 * If metadata is not being managed manually, remove any custom
+		 * fields that have not been registered as weightable fields.
 		 */
 		if ( 'manual' !== $meta_mode ) {
 			foreach ( $weighting as $post_type => $fields ) {
 				$weightable_fields = $this->get_weightable_fields_for_post_type( $post_type );
 
 				foreach ( $fields as $key => $value ) {
-					if ( isset( $weightable_fields['ep_metadata']['children'][ $key ] ) ) {
+					$is_weightable = false;
+
+					foreach ( $weightable_fields as $group ) {
+						if ( isset( $group['children'][ $key ] ) ) {
+							$is_weightable = true;
+							continue;
+						}
+					}
+
+					if ( ! $is_weightable ) {
 						unset( $weighting[ $post_type ][ $key ] );
 					}
 				}
