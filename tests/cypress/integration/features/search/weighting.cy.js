@@ -225,11 +225,9 @@ describe('Post Search Feature - Weighting Functionality', () => {
 			.closest('fieldset')
 			.find('input[type="number"]')
 			.clearThenType(100);
-		cy.get('@panel')
-			.find('select')
-			.should('contain', '_my_custom_field')
-			.select('_my_custom_field');
-		cy.get('@panel').find('button').contains('Add field').click();
+		cy.get('@panel').find('button').contains('Metadata').click();
+		cy.get('@panel').find('input[type="text"]').clearThenType('_my_custom_field');
+		cy.get('@panel').find('button').contains('Add').click();
 		cy.get('@panel')
 			.find('fieldset')
 			.contains('_my_custom_field')
