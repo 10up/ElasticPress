@@ -356,8 +356,35 @@ class Weighting {
 		_doing_it_wrong(
 			__METHOD__,
 			esc_html( 'Weighting sections display are now handled via React components.' ),
-			'ElasticPress 4.4.0'
+			'ElasticPress 5.0.0'
 		);
+	}
+
+	/**
+	 * DEPRECATED. Handles processing the new weighting values and saving them
+	 * to the elasticpress.io service.
+	 */
+	public function handle_save() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting settings are now updated using the REST API.' ),
+			'ElasticPress 5.0.0'
+		);
+
+		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ep-weighting-nonce'] ), 'save-weighting' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( Utils\get_capability() ) ) {
+			return;
+		}
+
+		$this->save_weighting_configuration( $_POST );
+
+		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
+		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
+
+		$this->redirect( $redirect_url );
 	}
 
 	/**
@@ -368,9 +395,14 @@ class Weighting {
 	protected function redirect( $redirect_url ) {
 		_doing_it_wrong(
 			__METHOD__,
-			esc_html( 'Weighting sections display are now handled via React components.' ),
-			'ElasticPress 4.4.0'
+			esc_html( 'Weighting settings are now updated using the REST API, and do not redirect server-side.' ),
+			'ElasticPress 5.0.0'
 		);
+
+		// @codeCoverageIgnoreStart
+		wp_safe_redirect( $redirect_url );
+		exit();
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -385,7 +417,7 @@ class Weighting {
 		_doing_it_wrong(
 			__METHOD__,
 			esc_html( 'Weighting sections display are now handled via React components.' ),
-			'ElasticPress 4.4.0'
+			'ElasticPress 5.0.0'
 		);
 
 		$new_config                = array();
@@ -455,7 +487,7 @@ class Weighting {
 			'elasticpress/v1',
 			'weighting',
 			[
-				'callback'            => [ $this, 'handle_save' ],
+				'callback'            => [ $this, 'update_weighting' ],
 				'methods'             => 'POST',
 				'permission_callback' => function() {
 					return current_user_can( Utils\get_capability() );
@@ -471,12 +503,7 @@ class Weighting {
 	 * @param \WP_Rest_Request $request REST API request.
 	 * @return void
 	 */
-	public function handle_save( $request = null ) {
-		if ( ! $request ) {
-			$this->deprecated_handle_save();
-			return;
-		}
-
+	public function update_weighting( $request = null ) {
 		$meta_mode = $this->get_meta_mode();
 		$weighting = $request->get_json_params();
 
@@ -809,26 +836,5 @@ class Weighting {
 			$weighted_field = "{$field}^1";
 		}
 		return $weighted_field;
-	}
-
-	/**
-	 * Old function that handled processing weighting values and saving them to the elasticpress.io service.
-	 */
-	final protected function deprecated_handle_save() {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html( 'Weighting sections display are now handled via React components.' ),
-			'ElasticPress 4.4.0'
-		);
-
-		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-weighting-nonce'], 'save-weighting' ) ) {
-			return;
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		$this->save_weighting_configuration( $_POST );
 	}
 }
