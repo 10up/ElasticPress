@@ -37,10 +37,9 @@ class Weighting {
 		}
 
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
-		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
-		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
 		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
+		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 	}
 
 	/**
@@ -274,7 +273,7 @@ class Weighting {
 	 * missing fields.
 	 *
 	 * @return array Current weighting configuration with defaults.
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 */
 	public function get_weighting_configuration_with_defaults() {
 		$search = Features::factory()->get_registered_feature( 'search' );
@@ -346,11 +345,12 @@ class Weighting {
 	}
 
 	/**
-	 * DEPRECATED. Recursively renders each settings section and its children.
+	 * Recursively renders each settings section and its children.
 	 *
 	 * @param string $post_type      Current post type we're rendering
 	 * @param array  $field          Current field to render
 	 * @param array  $current_values Current stored weighting values
+	 * @deprecated
 	 */
 	public function render_settings_section( $post_type, $field, $current_values ) {
 		_doing_it_wrong(
@@ -361,8 +361,10 @@ class Weighting {
 	}
 
 	/**
-	 * DEPRECATED. Handles processing the new weighting values and saving them
+	 * Handles processing the new weighting values and saving them
 	 * to the elasticpress.io service.
+	 *
+	 * @deprecated
 	 */
 	public function handle_save() {
 		_doing_it_wrong(
@@ -373,9 +375,10 @@ class Weighting {
 	}
 
 	/**
-	 * DEPRECATED. We need this method to test handle_save properly.
+	 * We need this method to test handle_save properly.
 	 *
 	 * @param string $redirect_url Redirect URL.
+	 * @deprecated
 	 */
 	protected function redirect( $redirect_url ) {
 		_doing_it_wrong(
@@ -386,12 +389,12 @@ class Weighting {
 	}
 
 	/**
-	 * DEPRECATED. Save weighting configuration for each searchable post_type.
+	 * Save weighting configuration for each searchable post_type.
 	 *
 	 * @param array $settings weighting settings
-	 *
 	 * @return void
 	 * @since 3.4.1
+	 * @deprecated
 	 */
 	public function save_weighting_configuration( $settings ) {
 		_doing_it_wrong(
@@ -405,7 +408,7 @@ class Weighting {
 	 * Register REST routes.
 	 *
 	 * @return void
-	 * @since 4.4.0
+	 * @since 5.0.0
 	 */
 	public function register_rest_routes() {
 		register_rest_route(
@@ -427,6 +430,7 @@ class Weighting {
 	 *
 	 * @param \WP_Rest_Request $request REST API request.
 	 * @return void
+	 * @since 5.0.0
 	 */
 	public function update_weighting( $request = null ) {
 		$meta_mode = $this->get_meta_mode();
