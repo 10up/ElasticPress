@@ -245,7 +245,7 @@ class Post extends Indexable {
 		 * The if below will pass if `has_password` is false but not null.
 		 */
 		if ( isset( $query_args['has_password'] ) && ! $query_args['has_password'] ) {
-			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" );
+			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 			$post_count -= $posts_with_password;
 		}
@@ -315,6 +315,7 @@ class Post extends Indexable {
 			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+		$es_version = (string) $es_version;
 
 		$mapping_file = '5-2.php';
 
@@ -453,7 +454,7 @@ class Post extends Indexable {
 		$comment_count     = absint( $post->comment_count );
 		$comment_status    = $post->comment_status;
 		$ping_status       = $post->ping_status;
-		$menu_order        = absint( $post->menu_order );
+		$menu_order        = (int) $post->menu_order;
 
 		/**
 		 * Filter to ignore invalid dates
@@ -797,7 +798,7 @@ class Post extends Indexable {
 		$term_orders = wp_cache_get( $cache_key );
 
 		if ( false === $term_orders ) {
-			$results = $wpdb->get_results(
+			$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prepare(
 					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
 					$object_id
@@ -892,7 +893,9 @@ class Post extends Indexable {
 		$prepared_meta  = [];
 
 		foreach ( $filtered_metas as $key => $value ) {
-			$prepared_meta[ $key ] = maybe_unserialize( $value );
+			if ( ! empty( $key ) ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
+			}
 		}
 
 		/**
@@ -1206,16 +1209,11 @@ class Post extends Indexable {
 				$order          = 'asc';
 			}
 
-			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
-				if ( empty( $args['meta_key'] ) ) {
-					continue;
-				} else {
-					$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
-					$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
-				}
+			if ( ! empty( $from_to[ $orderby_clause ] ) ) {
+				$orderby_clause = $from_to[ $orderby_clause ];
+			} else {
+				$orderby_clause = $this->parse_orderby_meta_fields( $orderby_clause, $args );
 			}
-
-			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
 
 			$sort[] = array(
 				$orderby_clause => array(
@@ -1225,6 +1223,95 @@ class Post extends Indexable {
 		}
 
 		return $sort;
+	}
+
+	/**
+	 * Try to parse orderby meta fields
+	 *
+	 * @since 4.6.0
+	 * @param string $orderby_clause Current orderby value
+	 * @param array  $args           Query args
+	 * @return string New orderby value
+	 */
+	protected function parse_orderby_meta_fields( $orderby_clause, $args ) {
+		global $wpdb;
+
+		$from_to_metatypes = [
+			'num'      => 'long',
+			'numeric'  => 'long',
+			'binary'   => 'value.sortable',
+			'char'     => 'value.sortable',
+			'date'     => 'date',
+			'datetime' => 'datetime',
+			'decimal'  => 'double',
+			'signed'   => 'long',
+			'time'     => 'time',
+			'unsigned' => 'long',
+		];
+
+		// Code is targeting Elasticsearch directly
+		if ( preg_match( '/^meta\.(.*?)\.(.*)/', $orderby_clause, $match_meta ) ) {
+			return $orderby_clause;
+		}
+
+		// WordPress meta_value_* compatibility
+		if ( preg_match( '/^meta_value_?(.*)/', $orderby_clause, $match_type ) ) {
+			$meta_type = $from_to_metatypes[ strtolower( $match_type[1] ) ] ?? 'value.sortable';
+		}
+
+		if ( ! empty( $args['meta_key'] ) ) {
+			$meta_field = $args['meta_key'];
+		}
+
+		// Already have everything needed
+		if ( isset( $meta_type ) && isset( $meta_field ) ) {
+			return "meta.{$meta_field}.{$meta_type}";
+		}
+
+		// Don't have any other ways to guess
+		if ( empty( $args['meta_query'] ) ) {
+			return $orderby_clause;
+		}
+
+		$meta_query = new \WP_Meta_Query( $args['meta_query'] );
+		// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
+		$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		$clauses = $meta_query->get_clauses();
+
+		// If it refers to a named meta_query clause
+		if ( ! empty( $clauses[ $orderby_clause ] ) ) {
+			$meta_field       = $clauses[ $orderby_clause ]['key'];
+			$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] ?? $clauses[ $orderby_clause ]['cast'] );
+		} else {
+			/**
+			 * At this point we:
+			 * 1. Try to find the meta key in any meta_query clause and use the type WP found
+			 * 2. If ordering by `meta_value*`, use the first meta_query clause
+			 * 3. Give up and use the orderby clause as is (code could be capturing it later on)
+			 */
+			$meta_keys_and_types = wp_list_pluck( $clauses, 'cast', 'key' );
+			if ( isset( $meta_keys_and_types[ $orderby_clause ] ) ) {
+				$meta_field       = $orderby_clause;
+				$clause_meta_type = strtolower( $meta_keys_and_types[ $orderby_clause ] ?? $meta_keys_and_types[ $orderby_clause ] );
+			} elseif ( isset( $meta_type ) ) {
+				$primary_clause = reset( $clauses );
+				$meta_field     = $primary_clause['key'];
+			} else {
+				unset( $meta_type );
+				unset( $meta_field );
+			}
+		}
+
+		if ( ! isset( $meta_type ) && isset( $clause_meta_type ) ) {
+			$meta_type = $from_to_metatypes[ $clause_meta_type ] ?? 'value.sortable';
+		}
+
+		if ( isset( $meta_type ) && isset( $meta_field ) ) {
+			$orderby_clause = "meta.{$meta_field}.{$meta_type}";
+		}
+
+		return $orderby_clause;
 	}
 
 	/**
@@ -2591,8 +2678,8 @@ class Post extends Indexable {
 			$allowed_protected_keys_sql = " OR meta_key IN ( {$placeholders} ) ";
 		}
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$meta_keys = $wpdb->get_col(
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 			$wpdb->prepare(
 				"SELECT DISTINCT meta_key
 					FROM {$wpdb->postmeta}
@@ -2601,8 +2688,9 @@ class Post extends Indexable {
 				'\_%',
 				...$allowed_protected_keys
 			)
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
 		sort( $meta_keys );
 
 		// Make sure the size of the transient will not be bigger than 1MB
@@ -2782,7 +2870,12 @@ class Post extends Indexable {
 	protected function get_lazy_post_type_ids( string $post_type ) {
 		global $wpdb;
 
-		$total = $wpdb->get_var( $wpdb->prepare( "SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s", $post_type ) );
+		$total = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s",
+				$post_type
+			)
+		);
 
 		if ( ! $total ) {
 			return [];
@@ -2815,7 +2908,7 @@ class Post extends Indexable {
 
 		for ( $page = 0; $page < $pages; $page++ ) {
 			$start = $per_page * $page;
-			$ids   = $wpdb->get_col(
+			$ids   = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 				$wpdb->prepare(
 					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s LIMIT %d, %d",
 					$post_type,
@@ -2842,7 +2935,7 @@ class Post extends Indexable {
 		}
 
 		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
-		$meta_keys    = $wpdb->get_col(
+		$meta_keys    = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ( {$placeholders} )",
@@ -2863,7 +2956,7 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	public function add_term_suggest_field( array $mapping ) : array {
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
 			$mapping_properties = &$mapping['mappings']['properties'];

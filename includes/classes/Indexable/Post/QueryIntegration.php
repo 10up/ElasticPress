@@ -39,9 +39,21 @@ class QueryIntegration {
 	 * @since 3.6.0 Added $indexable_slug
 	 */
 	public function __construct( $indexable_slug = 'post' ) {
+		/**
+		 * Filter whether to enable query integration during indexing
+		 *
+		 * @since 4.5.2
+		 * @hook ep_enable_query_integration_during_indexing
+		 *
+		 * @param {bool} $enable To allow query integration during indexing
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, $indexable_slug );
+
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
 		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
-		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) && ! $allow_query_integration_during_indexing ) {
 			return;
 		}
 
@@ -329,7 +341,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			} elseif ( ! empty( $site__not_in ) ) {
 
-				$sites = get_sites(
+				$sites = \get_sites(
 					array(
 						'fields'       => 'ids',
 						'site__not_in' => $site__not_in,
@@ -359,6 +371,7 @@ class QueryIntegration {
 			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
 			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
+			$query->suggested_terms       = $this->maybe_sanitize_suggestion( $ep_query );
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
@@ -548,5 +561,38 @@ class QueryIntegration {
 			$new_posts[]         = $post;
 		}
 		return $new_posts;
+	}
+
+	/**
+	 * Remove any suggestion that has a score lower than the minimum score.
+	 *
+	 * @since 4.6.0
+	 * @param array $ep_query The query array.
+	 * @return array
+	 */
+	protected function maybe_sanitize_suggestion( $ep_query ) {
+		if ( ! isset( $ep_query['suggest']['ep_suggestion'], $ep_query['suggest']['ep_suggestion'][0] ) ) {
+			return [];
+		}
+
+		$suggestion = $ep_query['suggest']['ep_suggestion'][0];
+
+		/**
+		 * Filter the score for a suggestion. If the score is lower than this, it will be removed.
+		 *
+		 * @since 4.6.0
+		 * @param float $min_score The minimum score allowed.
+		 * @return float
+		 */
+		$min_score = (float) apply_filters( 'ep_suggestion_minimum_score', 0.0001 );
+
+		$suggestion['options'] = array_filter(
+			$suggestion['options'],
+			function( $option ) use ( $min_score ) {
+				return number_format( $option['score'], 10 ) > $min_score;
+			}
+		);
+
+		return $suggestion;
 	}
 }

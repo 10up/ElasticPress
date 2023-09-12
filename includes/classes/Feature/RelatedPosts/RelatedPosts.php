@@ -47,7 +47,7 @@ class RelatedPosts extends Feature {
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args['more_like'] ) ) {
 			// lets compare ES version to see if new MLT structure applies
-			$new_mlt = version_compare( Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
+			$new_mlt = version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
 
 			if ( $new_mlt && is_array( $args['more_like'] ) ) {
 				foreach ( $args['more_like'] as $id ) {
@@ -292,13 +292,11 @@ class RelatedPosts extends Feature {
 			$class .= ' align' . $attributes['align'];
 		}
 
-		if ( ! empty( $attributes['className'] ) ) {
-			$class .= ' ' . $attributes['className'];
-		}
-
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => $class ] );
 		?>
-		<section class="<?php echo esc_attr( $class ); ?>">
+		<section <?php echo wp_kses_data( $wrapper_attributes ); ?>">
 			<ul>
 				<?php foreach ( $posts as $related_post ) : ?>
 					<li>
@@ -348,7 +346,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://10up.github.io/ElasticPress/tutorial-features.html#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 }

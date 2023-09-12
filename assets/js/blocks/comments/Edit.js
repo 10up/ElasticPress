@@ -96,6 +96,7 @@ export default ({ attributes, setAttributes }) => {
 								indeterminate={allSelected}
 								label={label}
 								onChange={(checked) => onChange(postType, checked)}
+								key={postType}
 							/>
 						);
 					})}

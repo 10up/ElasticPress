@@ -57,6 +57,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 2 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -75,10 +76,10 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
 		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 
-		// Clear field limit cache
-		add_action( 'ep_update_index_settings', [ $this, 'clear_total_fields_limit_cache' ] );
-		add_action( 'ep_sync_put_mapping', [ $this, 'clear_total_fields_limit_cache' ] );
-		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_total_fields_limit_cache' ] );
+		// Clear index settings cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 
 		// Clear distinct meta field per post type cache
 		add_action( 'wp_insert_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
@@ -87,6 +88,9 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
 		add_action( 'deleted_post_meta', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
 		add_action( 'delete_post_metadata', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_meta' ], 10, 2 );
+
+		// Prevents password protected posts from being indexed
+		add_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ], 10, 2 );
 	}
 
 	/**
@@ -98,6 +102,7 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ) );
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ) );
@@ -106,6 +111,12 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'wp_initialize_site', array( $this, 'action_create_blog_index' ) );
 		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
+		remove_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ] );
+
+		// Clear index settings cache
+		remove_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**
@@ -556,6 +567,10 @@ class SyncManager extends SyncManagerAbstract {
 	public function action_edited_term( $term_id, $tt_id, $taxonomy ) {
 		global $wpdb;
 
+		if ( $this->kill_sync() ) {
+			return;
+		}
+
 		/**
 		 * Filter to whether skip a sync during autosave, defaults to true
 		 *
@@ -575,14 +590,21 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		// Find ID of all attached posts (query lifted from wp_delete_term())
-		$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id ) );
+		$object_ids = (array) $wpdb->get_col( // phpcs:disable WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id = %d", $tt_id )
+		);
 
 		// If the current term is not attached, check if the child terms are attached to the post
 		if ( empty( $object_ids ) ) {
 			$child_terms = get_term_children( $term_id, $taxonomy );
 			if ( ! empty( $child_terms ) ) {
 				$in_id      = join( ',', array_fill( 0, count( $child_terms ), '%d' ) );
-				$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", $child_terms ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				$object_ids = (array) $wpdb->get_col( // phpcs:disable WordPress.DB.DirectDatabaseQuery
+					$wpdb->prepare(
+						"SELECT object_id FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ( {$in_id} )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+						$child_terms
+					)
+				);
 			}
 		}
 		if ( ! count( $object_ids ) ) {
@@ -723,19 +745,12 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
-	 * Clear the cache of the total fields limit
+	 * DEPRECATED. Clear the cache of the total fields limit
 	 *
 	 * @since 4.4.0
 	 */
 	public function clear_total_fields_limit_cache() {
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-		$cache_key = 'ep_total_fields_limit_' . $indexable->get_index_name();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_transient( $cache_key );
-		} else {
-			delete_transient( $cache_key );
-		}
+		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Indexable\Post\SyncManager::clear_index_settings_cache()' );
 	}
 
 	/**
@@ -872,5 +887,57 @@ class SyncManager extends SyncManagerAbstract {
 		);
 
 		return $is_max_count_bigger;
+	}
+
+	/**
+	 * Prevent a password protected post from being indexed.
+	 *
+	 * @since 4.6.0
+	 * @param bool $skip      Whether should skip or not before checking for a password
+	 * @param int  $object_id The Post ID
+	 * @return bool New value of $skip
+	 */
+	public function kill_sync_for_password_protected( $skip, $object_id ) {
+		/**
+		 * Short-circuits the process of checking if a post should be indexed or not depending on its password.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.6.0
+		 * @hook ep_pre_kill_sync_for_password_protected
+		 * @param {null} $new_skip     Whether should skip or not before checking for a password
+		 * @param {bool} $current_skip Current value
+		 * @param {int}  $object_id    The Post ID
+		 * @return {null|bool} New value of $skip or `null` to keep default behavior.
+		 */
+		$skip_filter = apply_filters( 'ep_pre_kill_sync_for_password_protected', null, $skip, $object_id );
+		if ( ! is_null( $skip_filter ) ) {
+			return $skip_filter;
+		}
+
+		if ( $skip ) {
+			return $skip;
+		}
+
+		$post = get_post( $object_id );
+
+		return ! empty( $post->post_password );
+	}
+
+	/**
+	 * Sync ES index when attached or detached action is called.
+	 *
+	 * @since 4.7.0
+	 * @param string $action        Attach/detach action
+	 * @param int    $attachment_id The attachment ID
+	 */
+	public function action_sync_on_media_attach( $action, $attachment_id ) {
+		$indexable            = Indexables::factory()->get( $this->indexable_slug );
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( ! in_array( 'attachment', $indexable_post_types, true ) ) {
+			return;
+		}
+		$this->action_sync_on_update( $attachment_id );
 	}
 }

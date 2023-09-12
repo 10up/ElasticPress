@@ -1,0 +1,56 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"title": "Filter by Post Type",
+	"description": "Let visitors filter your content by post type.",
+	"textdomain": "elasticpress",
+	"keywords": ["post type", "facets"],
+	"name": "elasticpress/facet-post-type",
+	"icon": "feedback",
+	"category": "elasticpress",
+	"attributes": {
+		"displayCount": {
+			"type": "boolean",
+			"default": false
+		},
+		"isPreview": {
+			"type": "boolean",
+			"default": false
+		},
+		"orderby": {
+			"type"   : "string",
+			"default": "count",
+			"enum"   : [ "count", "name" ]
+		},
+		"order":  {
+			"type":  "string",
+			"default": "desc",
+			"enum":  [ "desc", "asc" ]
+		},
+		"searchPlaceholder": {
+			"type": "string",
+			"default": "Search"
+		}
+	},
+	"supports": {
+		"color": {
+			"background": true,
+			"link": true,
+			"text": false
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"editorScript": "ep-facets-post-type-block-script",
+	"style": "elasticpress-facets"
+}

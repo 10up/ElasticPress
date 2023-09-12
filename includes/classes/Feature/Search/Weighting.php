@@ -9,8 +9,9 @@ namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
 use ElasticPress\Indexables;
+use ElasticPress\Feature;
 use ElasticPress\Indexable\Post\Post;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Controls search weighting and search fields dashboard

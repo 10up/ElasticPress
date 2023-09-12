@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -18,9 +18,18 @@ const SELECTOR = '#synonym-root';
  */
 const getRoot = () => document.querySelector(SELECTOR) || false;
 
-render(
-	<AppContext>
-		<SynonymsEditor />
-	</AppContext>,
-	getRoot(),
-);
+if (typeof createRoot === 'function') {
+	const root = createRoot(getRoot());
+	root.render(
+		<AppContext>
+			<SynonymsEditor />
+		</AppContext>,
+	);
+} else {
+	render(
+		<AppContext>
+			<SynonymsEditor />
+		</AppContext>,
+		getRoot(),
+	);
+}

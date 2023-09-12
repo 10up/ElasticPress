@@ -1,605 +1,461 @@
 <?php
 /**
- * WooCommerce Orders Feature
+ * WooCommerce Orders
  *
- * @since 4.5.0
+ * @since 4.7.0
  * @package elasticpress
  */
 
 namespace ElasticPress\Feature\WooCommerce;
 
-use ElasticPress\Elasticsearch;
 use ElasticPress\Indexables;
-use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 /**
- * WooCommerce Orders Feature
+ * WooCommerce Orders
  */
 class Orders {
 	/**
-	 * Initialize feature.
+	 * WooCommerce feature object instance
 	 *
-	 * @return void
+	 * @var WooCommerce
 	 */
-	public function __construct() {
-		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
+	protected $woocommerce;
+
+	/**
+	 * Class constructor
+	 *
+	 * @param WooCommerce $woocommerce WooCommerce feature object instance
+	 */
+	public function __construct( WooCommerce $woocommerce ) {
+		$this->woocommerce = $woocommerce;
 	}
 
 	/**
-	 * Setup feature functionality.
-	 *
-	 * @return void
+	 * Setup order related hooks
 	 */
 	public function setup() {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
-		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
-		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
-		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
-		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
-		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
-		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
-		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
-		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
-		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
+		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
+		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
+		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 	}
 
 	/**
-	 * Get the endpoint for WooCommerce Orders search.
+	 * Allow order creations on the front end to get synced
 	 *
-	 * @return string WooCommerce orders search endpoint.
+	 * @param  bool $override Original order perms check value
+	 * @param  int  $post_id Post ID
+	 * @return bool
 	 */
-	public function get_search_endpoint() {
-		/**
-		 * Filters the WooCommerce Orders search endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @param {string} $index Elasticsearch index.
-		 */
-		return apply_filters( 'ep_woocommerce_order_search_endpoint', "api/v1/search/orders/{$this->index}", $this->index );
-	}
+	public function bypass_order_permissions_check( $override, $post_id ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
-	/**
-	 * Get the endpoint for the WooCommerce Orders search template.
-	 *
-	 * @return string WooCommerce Orders search template endpoint.
-	 */
-	public function get_template_endpoint() {
-		/**
-		 * Filters the WooCommerce Orders search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @param {string} $index Elasticsearch index.
-		 * @returns {string} Search template API endpoint.
-		 */
-		return apply_filters( 'ep_woocommerce_order_search_template_endpoint', "api/v1/search/orders/{$this->index}/template", $this->index );
-	}
-
-	/**
-	 * Get the endpoint for temporary tokens.
-	 *
-	 * @return string Temporary token endpoint.
-	 */
-	public function get_token_endpoint() {
-		/**
-		 * Filters the temporary token API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_token_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @returns {string} Token API endpoint.
-		 */
-		return apply_filters( 'ep_token_endpoint', 'api/v1/token' );
-	}
-
-	/**
-	 * Registers the API endpoint to get a token.
-	 *
-	 * @return void
-	 */
-	public function rest_api_init() {
-		register_rest_route(
-			'elasticpress/v1',
-			'token',
-			[
-				[
-					'callback'            => [ $this, 'get_token' ],
-					'permission_callback' => [ $this, 'check_token_permission' ],
-					'methods'             => 'GET',
-				],
-				[
-					'callback'            => [ $this, 'refresh_token' ],
-					'permission_callback' => [ $this, 'check_token_permission' ],
-					'methods'             => 'POST',
-				],
-			]
-		);
-	}
-
-	/**
-	 * Enqueue admin assets.
-	 *
-	 * @param string $hook_suffix The current admin page.
-	 */
-	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( 'edit.php' !== $hook_suffix ) {
-			return;
+		if ( in_array( get_post_type( $post_id ), $searchable_post_types, true ) ) {
+			return true;
 		}
 
-		if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
-		}
-
-		wp_enqueue_style(
-			'elasticpress-woocommerce-order-search',
-			EP_URL . 'dist/css/woocommerce-order-search-styles.css',
-			Utils\get_asset_info( 'woocommerce-order-search-styles', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-order-search-styles', 'version' )
-		);
-
-		wp_enqueue_script(
-			'elasticpress-woocommerce-order-search',
-			EP_URL . 'dist/js/woocommerce-order-search-script.js',
-			Utils\get_asset_info( 'woocommerce-order-search-script', 'dependencies' ),
-			Utils\get_asset_info( 'woocommerce-order-search-script', 'version' ),
-			true
-		);
-
-		wp_set_script_translations( 'elasticpress-woocommerce-order-search', 'elasticpress' );
-
-		$api_endpoint = $this->get_search_endpoint();
-		$api_host     = Utils\get_host();
-
-		wp_localize_script(
-			'elasticpress-woocommerce-order-search',
-			'epWooCommerceOrderSearch',
-			array(
-				'adminUrl'          => admin_url( 'post.php' ),
-				'apiEndpoint'       => $api_endpoint,
-				'apiHost'           => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? trailingslashit( esc_url_raw( $api_host ) ) : '',
-				'argsSchema'        => $this->get_args_schema(),
-				'credentialsApiUrl' => rest_url( 'elasticpress/v1/token' ),
-				'credentialsNonce'  => wp_create_nonce( 'wp_rest' ),
-				'dateFormat'        => wc_date_format(),
-				'statusLabels'      => wc_get_order_statuses(),
-				'timeFormat'        => wc_time_format(),
-				'requestIdBase'     => Utils\get_request_id_base(),
-			)
-		);
+		return $override;
 	}
 
 	/**
-	 * Save or delete the search template on ElasticPress.io based on whether
-	 * the WooCommerce feature is being activated or deactivated.
+	 * Returns the WooCommerce-oriented post types in admin that EP will search
 	 *
-	 * @param string $feature  Feature slug
-	 * @param array  $settings Feature settings
-	 * @param array  $data     Feature activation data
-	 *
-	 * @return void
-	 */
-	public function after_update_feature( $feature, $settings, $data ) {
-		if ( 'woocommerce' !== $feature ) {
-			return;
-		}
-
-		if ( true === $data['active'] ) {
-			$this->epio_save_search_template();
-		} else {
-			$this->epio_delete_search_template();
-		}
-	}
-
-	/**
-	 * Save the search template to ElasticPress.io.
-	 *
-	 * @return void
-	 */
-	public function epio_save_search_template() {
-		$endpoint = $this->get_template_endpoint();
-		$template = $this->get_search_template();
-
-		Elasticsearch::factory()->remote_request(
-			$endpoint,
-			[
-				'blocking' => false,
-				'body'     => $template,
-				'method'   => 'PUT',
-			]
-		);
-
-		/**
-		 * Fires after the request is sent the search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_saved
-		 * @param {string} $template The search template (JSON).
-		 * @param {string} $index Index name.
-		 */
-		do_action( 'ep_woocommerce_order_search_template_saved', $template, $this->index );
-	}
-
-	/**
-	 * Delete the search template from ElasticPress.io.
-	 *
-	 * @return void
-	 */
-	public function epio_delete_search_template() {
-		$endpoint = $this->get_template_endpoint();
-
-		Elasticsearch::factory()->remote_request(
-			$endpoint,
-			[
-				'blocking' => false,
-				'method'   => 'DELETE',
-			]
-		);
-
-		/**
-		 * Fires after the request is sent the search template API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_order_search_template_deleted
-		 * @param {string} $index Index name.
-		 */
-		do_action( 'ep_woocommerce_order_search_template_deleted', $this->index );
-	}
-
-	/**
-	 * Get the saved search template from ElasticPress.io.
-	 *
-	 * @return string|WP_Error Search template if found, WP_Error on error.
-	 */
-	public function epio_get_search_template() {
-		$endpoint = $this->get_template_endpoint();
-		$request  = Elasticsearch::factory()->remote_request( $endpoint );
-
-		if ( is_wp_error( $request ) ) {
-			return $request;
-		}
-
-		$response = wp_remote_retrieve_body( $request );
-
-		return $response;
-	}
-
-	/**
-	 * Generate a search template.
-	 *
-	 * A search template is the JSON for an Elasticsearch query with a
-	 * placeholder search term. The template is sent to ElasticPress.io where
-	 * it's used to make Elasticsearch queries using search terms sent from
-	 * the front end.
-	 *
-	 * @return string The search template as JSON.
-	 */
-	public function get_search_template() {
-		$order_statuses = wc_get_order_statuses();
-
-		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		add_filter( 'ep_intercept_remote_request', '__return_true' );
-		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
-		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
-
-		$query = new \WP_Query(
-			array(
-				'ep_integrate'             => true,
-				'ep_order_search_template' => true,
-				'post_status'              => array_keys( $order_statuses ),
-				'post_type'                => 'shop_order',
-				's'                        => '{{ep_placeholder}}',
-			)
-		);
-
-		remove_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		remove_filter( 'ep_intercept_remote_request', '__return_true' );
-		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
-		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
-
-		return $this->search_template;
-	}
-
-	/**
-	 * Return true if a given feature is supported by WooCommerce Orders.
-	 *
-	 * Applied as a filter on Utils\is_integrated_request() so that features
-	 * are enabled for the query that is used to generate the search template,
-	 * regardless of the request type. This avoids the need to send a request
-	 * to the front end.
-	 *
-	 * @param bool   $is_integrated Whether queries for the request will be
-	 *                              integrated.
-	 * @param string $context       Context for the original check. Usually the
-	 *                              slug of the feature doing the check.
-	 * @return bool True if the check is for a feature supported by WooCommerce
-	 *              Order search.
-	 */
-	public function is_integrated_request( $is_integrated, $context ) {
-		$supported_contexts = [
-			'search',
-			'woocommerce',
-		];
-
-		return in_array( $context, $supported_contexts, true );
-	}
-
-	/**
-	 * Store intercepted request body and return request result.
-	 *
-	 * @param object $response Response
-	 * @param array  $query Query
-	 * @param array  $args WP_Query argument array
-	 * @param int    $failures Count of failures in request loop
-	 * @return object $response Response
-	 */
-	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
-		$this->search_template = $query['args']['body'];
-
-		return wp_remote_request( $query['url'], $args );
-	}
-
-	/**
-	 * Get schema for search args.
-	 *
-	 * @return array Search args schema.
-	 */
-	public function get_args_schema() {
-		$args = array(
-			'customer' => array(
-				'type' => 'number',
-			),
-			'm'        => array(
-				'type' => 'string',
-			),
-			'offset'   => array(
-				'type'    => 'number',
-				'default' => 0,
-			),
-			'per_page' => array(
-				'type'    => 'number',
-				'default' => 6,
-			),
-			'search'   => array(
-				'type'    => 'string',
-				'default' => '',
-			),
-		);
-
-		return $args;
-	}
-
-	/**
-	 * Get a temporary token.
-	 *
-	 * @return string|false Authorization header, or false on failure.
-	 */
-	public function get_token() {
-		$user_id = get_current_user_id();
-
-		$credentials = get_user_meta( $user_id, 'ep_token', true );
-
-		if ( $credentials ) {
-			return $credentials;
-		}
-
-		return $this->refresh_token();
-	}
-
-	/**
-	 * Refresh the temporary token.
-	 *
-	 * @return string|false Authorization header, or false on failure.
-	 */
-	public function refresh_token() {
-		$user_id = get_current_user_id();
-
-		$endpoint = $this->get_token_endpoint();
-		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return false;
-		}
-
-		$response = wp_remote_retrieve_body( $response );
-		$response = json_decode( $response );
-
-		$credentials = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-
-		update_user_meta( $user_id, 'ep_token', $credentials );
-
-		return $credentials;
-	}
-
-	/**
-	 * Checks if the token API can be used.
-	 *
-	 * @return boolean Whether the token API can be used.
-	 */
-	public function check_token_permission() {
-		/**
-		 * Filters the capability required to use the token API.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_token_capability
-		 * @param {string} $capability Required capability.
-		 */
-		$capability = apply_filters( 'ep_token_capability', 'edit_others_shop_orders' );
-
-		return current_user_can( $capability );
-	}
-
-	/**
-	 * Index shop orders.
-	 *
-	 * @param array $post_types Indexable post types.
-	 * @return array Indexable post types.
-	 */
-	public function post_types( $post_types ) {
-		$post_types['shop_order'] = 'shop_order';
-
-		return $post_types;
-	}
-
-	/**
-	 * Index order statuses.
-	 *
-	 * @param array $post_statuses Indexable post statuses.
-	 * @return array Indexable post statuses.
-	 */
-	public function post_statuses( $post_statuses ) {
-		$order_statuses = wc_get_order_statuses();
-
-		return array_unique( array_merge( $post_statuses, array_keys( $order_statuses ) ) );
-	}
-
-	/**
-	 * Add term suggestions to be indexed
-	 *
-	 * @param array $post_args Array of ES args.
 	 * @return array
 	 */
-	public function filter_term_suggest( $post_args ) {
-		if ( empty( $post_args['post_type'] ) || 'shop_order' !== $post_args['post_type'] ) {
-			return $post_args;
-		}
-
-		if ( empty( $post_args['meta'] ) ) {
-			return $post_args;
-		}
+	public function get_admin_searchable_post_types() {
+		$searchable_post_types = array( 'shop_order' );
 
 		/**
-		 * Add the order number as a meta (text) field, so we can freely search on it.
+		 * Filter admin searchable WooCommerce post types
+		 *
+		 * @hook ep_woocommerce_admin_searchable_post_types
+		 * @since 4.4.0
+		 * @param {array} $post_types Post types
+		 * @return {array} New post types
 		 */
-		$order_id = $post_args['ID'];
-		if ( function_exists( 'wc_get_order' ) ) {
-			$order = wc_get_order( $post_args['ID'] );
-			if ( $order && is_a( $order, 'WC_Order' ) && method_exists( $order, 'get_order_number' ) ) {
-				$order_id = $order->get_order_number();
+		return apply_filters( 'ep_woocommerce_admin_searchable_post_types', $searchable_post_types );
+	}
+
+	/**
+	 * Index WooCommerce orders meta fields
+	 *
+	 * @param  array $meta Existing post meta
+	 * @return array
+	 */
+	public function allow_meta_keys( $meta ) {
+		return array_unique(
+			array_merge(
+				$meta,
+				array(
+					'_customer_user',
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+					'_variations_skus',
+				)
+			)
+		);
+	}
+
+	/**
+	 * Add order items as a searchable string.
+	 *
+	 * This mimics how WooCommerce currently does in the order_itemmeta
+	 * table. They combine the titles of the products and put them in a
+	 * meta field called "Items".
+	 *
+	 * @param array      $post_args Post arguments
+	 * @param string|int $post_id Post id
+	 *
+	 * @return array
+	 */
+	public function add_order_items_search( $post_args, $post_id ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		// Make sure it is only WooCommerce orders we touch.
+		if ( ! in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
+			return $post_args;
+		}
+
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		// Get order items.
+		$order     = wc_get_order( $post_id );
+		$item_meta = [];
+		foreach ( $order->get_items() as $delta => $product_item ) {
+			// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
+			if ( is_object( $product_item ) && method_exists( $product_item, 'get_name' ) ) {
+				$item_meta['_items'][] = $product_item->get_name( 'edit' );
+			} elseif ( is_array( $product_item ) && isset( $product_item['name'] ) ) {
+				$item_meta['_items'][] = $product_item['name'];
 			}
 		}
 
-		$post_args['meta']['order_number'] = [
-			[
-				'raw'   => $order_id,
-				'value' => $order_id,
-			],
-		];
-
-		$suggest = [];
-
-		$fields_to_ngram = [
-			'_billing_email',
-			'_billing_last_name',
-			'_billing_first_name',
-		];
-
-		foreach ( $fields_to_ngram as $field_to_ngram ) {
-			if ( ! empty( $post_args['meta'][ $field_to_ngram ] )
-				&& ! empty( $post_args['meta'][ $field_to_ngram ][0] )
-				&& ! empty( $post_args['meta'][ $field_to_ngram ][0]['value'] ) ) {
-				$suggest[] = $post_args['meta'][ $field_to_ngram ][0]['value'];
-			}
-		}
-
-		if ( ! empty( $suggest ) ) {
-			$post_args['term_suggest'] = $suggest;
-		}
+		// Prepare order items.
+		$item_meta['_items'] = empty( $item_meta['_items'] ) ? '' : implode( '|', $item_meta['_items'] );
+		$post_args['meta']   = array_merge( $post_args['meta'], $post_indexable->prepare_meta_types( $item_meta ) );
 
 		return $post_args;
 	}
 
 	/**
-	 * Add mapping for suggest fields
+	 * Prevent order fields from being removed.
 	 *
-	 * @param  array $mapping ES mapping.
-	 * @return array
-	 */
-	public function mapping( $mapping ) {
-		$post_indexable = Indexables::factory()->get( 'post' );
-
-		$mapping = $post_indexable->add_ngram_analyzer( $mapping );
-		$mapping = $post_indexable->add_term_suggest_field( $mapping );
-
-		return $mapping;
-	}
-
-	/**
-	 * Set the search_fields parameter in the search template.
+	 * When Protected Content is enabled, all posts with password have their content removed.
+	 * This can't happen for orders, as the order key is added in that field.
 	 *
-	 * @param array     $search_fields Current search fields
-	 * @param \WP_Query $query         Query being executed
-	 * @return array New search fields
+	 * @see https://github.com/10up/ElasticPress/issues/2726
+	 *
+	 * @param bool  $skip      Whether the password protected content should have their content, and meta removed
+	 * @param array $post_args Post arguments
+	 * @return bool
 	 */
-	public function set_search_fields( array $search_fields, \WP_Query $query ) : array {
-		$is_orders_search_template = (bool) $query->get( 'ep_order_search_template' );
+	public function keep_order_fields( $skip, $post_args ) {
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
-		if ( $is_orders_search_template ) {
-			$search_fields = [
-				'meta.order_number.value',
-				'term_suggest',
-				'meta' => [
-					'_billing_email',
-					'_billing_last_name',
-					'_billing_first_name',
-				],
-			];
+		if ( in_array( $post_args['post_type'], $searchable_post_types, true ) ) {
+			return true;
 		}
 
-		return $search_fields;
+		return $skip;
 	}
 
 	/**
-	 * Allow password protected to be indexed.
+	 * Sets WooCommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
 	 *
-	 * If Protected Content is enabled, do nothing. Otherwise, allow pw protected posts to be indexed.
-	 * The feature restricts it back in maybe_set_posts_where()
+	 * WooCommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
+	 * is integrated with ElasticSearch.
+	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
+	 * without the Protected Content Module
 	 *
-	 * @see maybe_set_posts_where()
-	 * @param array $args WP_Query args
-	 * @return array
+	 * @param \WP_Query $query Current query
 	 */
-	public function maybe_query_password_protected_posts( $args ) {
-		// Password protected posts are already being indexed, no need to do anything.
-		if ( isset( $args['has_password'] ) && is_null( $args['has_password'] ) ) {
-			return $args;
+	public function maybe_hook_woocommerce_search_fields( $query ) {
+		global $pagenow, $wp, $wc_list_table;
+
+		if ( ! $this->woocommerce->should_integrate_with_query( $query ) ) {
+			return;
 		}
 
 		/**
-		 * Set a flag in the query but allow it to index all password protected posts for now,
-		 * so WP does not inject its own where clause.
+		 * Determines actions to be applied, or removed, if doing a WooCommerce serarch
+		 *
+		 * @hook ep_woocommerce_hook_search_fields
+		 * @since  4.4.0
 		 */
-		$args['ep_orders_has_password'] = true;
-		$args['has_password']           = null;
+		do_action( 'ep_woocommerce_hook_search_fields' );
 
-		return $args;
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['s'] ) || 'shop_order' !== $wp->query_vars['post_type'] || ! isset( $_GET['s'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+
+		remove_action( 'parse_query', [ $wc_list_table, 'search_custom_fields' ] );
 	}
 
 	/**
-	 * Restrict password protected posts back but allow orders.
+	 * Enhance WooCommerce search order by order id, email, phone number, name, etc..
+	 * What this function does:
+	 * 1. Reverse the woocommerce shop_order_search_custom_fields query
+	 * 2. If the search key is integer and it is an Order Id, just query with post__in
+	 * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
 	 *
-	 * @see maybe_query_password_protected_posts
-	 * @param string   $where Current where clause
-	 * @param WP_Query $query WP_Query
-	 * @return string
+	 * @param WP_Query $wp WP Query
 	 */
-	public function maybe_set_posts_where( $where, $query ) {
-		global $wpdb;
+	public function search_order( $wp ) {
+		global $pagenow;
 
-		if ( ! $query->get( 'ep_orders_has_password' ) ) {
-			return $where;
+		if ( ! $this->woocommerce->should_integrate_with_query( $wp ) ) {
+			return;
 		}
 
-		$where .= " AND ( {$wpdb->posts}.post_password = '' OR {$wpdb->posts}.post_type = 'shop_order' )";
+		$searchable_post_types = $this->get_admin_searchable_post_types();
 
-		return $where;
+		if ( 'edit.php' !== $pagenow || empty( $wp->query_vars['post_type'] ) || ! in_array( $wp->query_vars['post_type'], $searchable_post_types, true ) ||
+			( empty( $wp->query_vars['s'] ) && empty( $wp->query_vars['shop_order_search'] ) ) ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+		if ( isset( $_GET['s'] ) ) {
+			$search_key_safe = str_replace( array( 'Order #', '#' ), '', wc_clean( $_GET['s'] ) );
+			unset( $wp->query_vars['post__in'] );
+			$wp->query_vars['s'] = $search_key_safe;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification, WordPress.Security.ValidatedSanitizedInput
+	}
+
+	/**
+	 * Determines whether or not ES should be integrating with the provided query
+	 *
+	 * @param \WP_Query $query Query we might integrate with
+	 * @return bool
+	 */
+	public function should_integrate_with_query( \WP_Query $query ) : bool {
+		/**
+		 * Check the post type
+		 */
+		$supported_post_types = $this->get_supported_post_types( $query );
+		$post_type            = $query->get( 'post_type', false );
+		if ( ! empty( $post_type ) &&
+			( in_array( $post_type, $supported_post_types, true ) ||
+			( is_array( $post_type ) && ! array_diff( $post_type, $supported_post_types ) ) )
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the supported post types for Order related queries
+	 *
+	 * @return array
+	 */
+	public function get_supported_post_types() : array {
+		$post_types = [ 'shop_order', 'shop_order_refund' ];
+
+		/**
+		 * DEPRECATED. Expands or contracts the post_types eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_default_supported_post_types
+		 * @since 4.4.0
+		 * @param  {array} $post_types Post types
+		 * @return  {array} New post types
+		 */
+		$supported_post_types = apply_filters_deprecated(
+			'ep_woocommerce_default_supported_post_types',
+			[ $post_types ],
+			'4.7.0',
+			'ep_woocommerce_orders_supported_post_types'
+		);
+
+		/**
+		 * Expands or contracts the post_types related to orders eligible for indexing.
+		 *
+		 * @hook ep_woocommerce_orders_supported_post_types
+		 * @since 4.7.0
+		 * @param {array} $post_types Post types
+		 * @return {array} New post types
+		 */
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
+
+		$supported_post_types = array_intersect(
+			$supported_post_types,
+			Indexables::factory()->get( 'post' )->get_indexable_post_types()
+		);
+
+		return $supported_post_types;
+	}
+
+	/**
+	 * If the query has a search term, add the order fields that need to be searched.
+	 *
+	 * @param \WP_Query $query The WP_Query
+	 * @return \WP_Query
+	 */
+	protected function maybe_set_search_fields( \WP_Query $query ) {
+		$search_term = $this->woocommerce->get_search_term( $query );
+		if ( empty( $search_term ) ) {
+			return $query;
+		}
+
+		$searchable_post_types = $this->get_admin_searchable_post_types();
+
+		$post_type = $query->get( 'post_type', false );
+		if ( ! in_array( $post_type, $searchable_post_types, true ) ) {
+			return $query;
+		}
+
+		$default_search_fields = array( 'post_title', 'post_content', 'post_excerpt' );
+		if ( ctype_digit( $search_term ) ) {
+			$default_search_fields[] = 'ID';
+		}
+		$search_fields = $query->get( 'search_fields', $default_search_fields );
+
+		$search_fields['meta'] = array_map(
+			'wc_clean',
+			/**
+			 * Filter shop order meta fields to search for WooCommerce
+			 *
+			 * @hook shop_order_search_fields
+			 * @param  {array} $fields Shop order fields
+			 * @return  {array} New fields
+			 */
+			apply_filters(
+				'shop_order_search_fields',
+				array(
+					'_order_key',
+					'_billing_company',
+					'_billing_address_1',
+					'_billing_address_2',
+					'_billing_city',
+					'_billing_postcode',
+					'_billing_country',
+					'_billing_state',
+					'_billing_email',
+					'_billing_phone',
+					'_shipping_address_1',
+					'_shipping_address_2',
+					'_shipping_city',
+					'_shipping_postcode',
+					'_shipping_country',
+					'_shipping_state',
+					'_billing_last_name',
+					'_billing_first_name',
+					'_shipping_first_name',
+					'_shipping_last_name',
+					'_items',
+				)
+			)
+		);
+
+		$query->set(
+			'search_fields',
+			/**
+			 * Filter all the shop order fields to search for WooCommerce
+			 *
+			 * @hook ep_woocommerce_shop_order_search_fields
+			 * @since 4.0.0
+			 * @param {array}    $fields Shop order fields
+			 * @param {WP_Query} $query  WP Query
+			 * @return {array} New fields
+			 */
+			apply_filters( 'ep_woocommerce_shop_order_search_fields', $search_fields, $query )
+		);
+	}
+
+	/**
+	 * Translate args to ElasticPress compat format. This is the meat of what the feature does
+	 *
+	 * @param  \WP_Query $query WP Query
+	 */
+	public function translate_args( $query ) {
+		if ( ! $this->woocommerce->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		if ( ! $this->should_integrate_with_query( $query ) ) {
+			return;
+		}
+
+		$query->set( 'ep_integrate', true );
+
+		/**
+		 * Make sure filters are suppressed
+		 */
+		$query->query['suppress_filters'] = false;
+		$query->set( 'suppress_filters', false );
+
+		$this->maybe_set_search_fields( $query );
+	}
+
+	/**
+	 * Handle calls to OrdersAutosuggest methods
+	 *
+	 * @param string $method_name The method name
+	 * @param array  $arguments   Array of arguments
+	 */
+	public function __call( $method_name, $arguments ) {
+		$orders_autosuggest_methods = [
+			'after_update_feature',
+			'check_token_permission',
+			'enqueue_admin_assets',
+			'epio_delete_search_template',
+			'epio_get_search_template',
+			'epio_save_search_template',
+			'filter_term_suggest',
+			'get_args_schema',
+			'get_search_endpoint',
+			'get_search_template',
+			'get_template_endpoint',
+			'get_token',
+			'get_token_endpoint',
+			'intercept_search_request',
+			'is_integrated_request',
+			'post_statuses',
+			'post_types',
+			'mapping',
+			'maybe_query_password_protected_posts',
+			'maybe_set_posts_where',
+			'refresh_token',
+			'rest_api_init',
+			'set_search_fields',
+		];
+
+		if ( in_array( $method_name, $orders_autosuggest_methods, true ) ) {
+			_deprecated_function(
+				"\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method_name}", // phpcs:ignore
+				'4.7.0',
+				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
+			);
+
+			if ( $this->woocommerce->is_orders_autosuggest_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
+				call_user_func_array( [ $this->woocommerce->orders_autosuggest, $method_name ], $arguments );
+			}
+		}
 	}
 }

@@ -4,7 +4,7 @@
 
 [![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Tests Status](https://github.com/10up/ElasticPress/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/wordpress/plugin/tested/elasticpress?label=WordPress) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
 
-* Check out the [ElasticPress Docs](https://10up.github.io/ElasticPress/)
+* Check out the [ElasticPress Docs](https://elasticpress.zendesk.com/hc/en-us/sections/16550523637901-Developer-Documentation)
 
 **Please note:** as of ElasticPress 4.0.0 `trunk` is the stable branch, built assets were removed from the `develop` branch, a ZIP with the plugin and its built assets are available on the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and will include a build script should you want to build assets from a branch.  As such, please ensure you have updated any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
 
@@ -14,9 +14,9 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ## Documentation
 
-ElasticPress has an in depth documentation site. [Visit the docs ☞](https://10up.github.io/ElasticPress/)
-
-ElasticPress FAQs and tutorials can be found on our support site. [Visit the support site ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Docs website ☞](https://elasticpress.zendesk.com/hc/en-us/sections/16550523637901-Developer-Documentation)
+* [Support site with FAQs and tutorials ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Security Policy ☞](https://github.com/10up/ElasticPress/blob/develop/SECURITY.md)
 
 ## Requirements and Compatibility
 

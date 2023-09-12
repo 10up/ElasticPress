@@ -268,6 +268,18 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @since 4.7.0
+	 */
+	public function clear_index_settings_cache() {
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$cache_key = 'ep_index_settings_' . $indexable->get_index_name();
+
+		Utils\delete_transient( $cache_key );
+	}
+
+	/**
 	 * Implementation should setup hooks/filters
 	 *
 	 * @since 3.0

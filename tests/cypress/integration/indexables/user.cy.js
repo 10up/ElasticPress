@@ -127,7 +127,7 @@ describe('User Indexable', () => {
 		cy.get('#username').clearThenType(newUserData.userLogin);
 		cy.get('#email').clearThenType(newUserData.userEmail);
 		cy.get('#add-user').click();
-		cy.get('#message.updated').should('be.visible');
+		cy.get('#message.notice-success').should('be.visible');
 
 		// Searching for it should not return anything.
 		searchUser('nobloguser');

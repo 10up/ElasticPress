@@ -209,6 +209,14 @@ Thank you to all the people who have already contributed to this repository via 
 [Paolo Burzacca (@paoloburzacca)](https://github.com/paoloburzacca),
 [Anjula Hettige (@anjulahettige)](https://github.com/anjulahettige),
 [Mayank Chugh (@iamchughmayank)](https://github.com/iamchughmayank),
+[Boyan Bratvanov (@bratvanov)](https://github.com/bratvanov),
+[Alexander Z (@TorlockC)](https://github.com/TorlockC),
+[Nabi (@navidabdi)](https://github.com/navidabdi)
+[Dmitry Seleznyov (@selim13)](https://github.com/selim13)
+[Martin Widmann (@mwidmann)](https://github.com/mwidmann)
+[xxx (@wildberrylillet)](https://github.com/wildberrylillet)
+[@tomi10up](https://github.com/tomi10up)
+[Junaid Bhura (@junaidbhura)](https://github.com/junaidbhura)
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

@@ -198,7 +198,7 @@ class TestCommands extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$blog_id = $this->factory->blog->create();
-		update_blog_option( $blog_id, 'ep_indexable', 'no' );
+		update_site_meta( $blog_id, 'ep_indexable', 'no' );
 
 		$this->factory->blog->create();
 
@@ -609,8 +609,7 @@ class TestCommands extends BaseTestCase {
 	 * Test sync command can ask for confirmation when setup flag is set
 	 */
 	public function testSyncAskForConfirmationWhenSetupIsPassed() {
-
-		$this->expectExceptionMessage( 'Indexing with setup option needs to delete Elasticsearch index first, are you sure you want to delete your Elasticsearch index?' );
+		$this->expectExceptionMessage( 'Syncing with the --setup option will delete your existing index in Elasticsearch. Are you sure you want to delete your Elasticsearch index' );
 
 		$this->command->sync( [], [ 'setup' => true ] );
 	}
@@ -637,6 +636,38 @@ class TestCommands extends BaseTestCase {
 				'yes'   => true,
 			]
 		);
+	}
+
+	/**
+	 * Test sync command with the force flag.
+	 *
+	 * @since 4.6.0
+	 */
+	public function testSyncWithForceFlag() {
+		// mock indexing
+		add_filter( 'ep_is_indexing', '__return_true' );
+
+		$this->command->sync(
+			[],
+			[
+				'force' => true,
+				'yes'   => true,
+			]
+		);
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Sync cleared.', $output );
+	}
+
+	/**
+	 * Test sync command can ask for confirmation when force flag is set
+	 *
+	 * @since 4.6.0
+	 */
+	public function testSyncAskForConfirmationWhenForceIsPassed() {
+		$this->expectExceptionMessage( 'Are you sure you want to stop any other ongoing sync?' );
+
+		$this->command->sync( [], [ 'force' => true ] );
 	}
 
 	/**
@@ -733,7 +764,7 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
-	 * Test delete-index command can delete all the indexes if network-wide flag is set.
+	 * Test the clear-sync command
 	 *
 	 * @group skip-on-single-site
 	 */
@@ -742,7 +773,7 @@ class TestCommands extends BaseTestCase {
 		$this->command->clear_sync( [], [] );
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertStringContainsString( 'Index cleared.', $output );
+		$this->assertStringContainsString( 'Sync cleared.', $output );
 	}
 
 	/**
@@ -899,6 +930,55 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test sync command with stop-on-error flag.
+	 * Expect an error message that stops the sync instead of a warning.
+	 *
+	 * @since 4.7.0
+	 */
+	public function test_sync_stop_on_error() {
+		add_filter(
+			'http_response',
+			function( $request ) {
+				$fake_request = json_decode( wp_remote_retrieve_body( $request ) );
+
+				if ( ! empty( $fake_request->items ) ) {
+					$fake_request->errors = true;
+
+					$fake_item                       = new \stdClass();
+					$fake_item->index                = new \stdClass();
+					$fake_item->index->error         = new \stdClass();
+					$fake_item->index->status        = 400;
+					$fake_item->index->_id           = 10;
+					$fake_item->index->type          = '_doc';
+					$fake_item->index->_index        = 'dummy-index';
+					$fake_item->index->error->reason = 'my dummy error reason';
+					$fake_item->index->error->type   = 'my dummy error type';
+
+					$fake_request->items[0] = $fake_item;
+
+					$request['body'] = wp_json_encode( $fake_request );
+
+					return $request;
+				}
+
+				return $request;
+			}
+		);
+		Indexables::factory()->get( 'post' )->delete_index();
+
+		$this->ep_factory->post->create();
+
+		$this->expectExceptionMessage( '10 (Post): [my dummy error type] my dummy error reason' );
+
+		$this->command->sync(
+			[],
+			[
+				'stop-on-error' => true,
+			]
+		);
+	}
+
+	/**
 	 * Test request command throws an error if request fails.
 	 */
 	public function testRequestThrowsError() {
@@ -999,6 +1079,96 @@ class TestCommands extends BaseTestCase {
 		add_filter( 'ep_host', '__return_empty_string' );
 
 		$this->command->sync( [], [] );
+	}
+
+	/**
+	 * Test get-index-settings command returns an index settings.
+	 *
+	 * @since 4.7.0
+	 */
+	public function testGetIndexSettings() {
+		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( '{', $output );
+		$this->assertStringContainsString( 'index.mapping.total_fields.limit', $output );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with --pretty flag
+		$this->command->get_index_settings( [ 'exampleorg-post-1' ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( "{\n", $output );
+	}
+
+	/**
+	 * Test the `get` command
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get() {
+		$post_id = $this->ep_factory->post->create();
+
+		$this->command->get( [ 'post', $post_id ], [] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( '{', $output );
+		$this->assertStringContainsString( '"post_id":' . $post_id, $output );
+
+		// clean output buffer
+		ob_clean();
+
+		// test with --pretty flag
+		$this->command->get( [ 'post', $post_id ], [ 'pretty' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringStartsWith( "{\n", $output );
+		$this->assertStringContainsString( '"post_id": ' . $post_id, $output );
+	}
+
+	/**
+	 * Test the `get` command when an indexable does not exist
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_wrong_indexable() {
+		$this->expectException( '\Exception' );
+		$this->command->get( [ 'absent', '1' ], [] );
+	}
+
+	/**
+	 * Test the `get` command when a post is not found
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_not_found() {
+		$this->expectExceptionMessage( 'Not found' );
+		$this->command->get( [ 'post', '99999' ], [] );
+	}
+
+	/**
+	 * Test the `get` command when `--debug-http-request` is passed
+	 *
+	 * @since 4.7.0
+	 * @group commands
+	 */
+	public function test_get_debug_http_request() {
+		$this->expectExceptionMessage( 'Not found' );
+
+		// test with --debug-http-request flag
+		$this->command->get( [ 'post', '99999' ], [ 'debug-http-request' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'URL:', $output );
+		$this->assertStringContainsString( 'Request Args:', $output );
+		$this->assertStringContainsString( 'Transport:', $output );
+		$this->assertStringContainsString( 'Context:', $output );
+		$this->assertStringContainsString( 'Response:', $output );
 	}
 
 	/**

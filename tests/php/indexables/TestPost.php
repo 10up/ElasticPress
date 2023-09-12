@@ -2682,6 +2682,41 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test ordering by named meta_query clauses
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 */
+	public function testNamedMetaQueryOrderbyQuery() {
+		$post_b = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'b' ] ] );
+		$post_a = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'a' ] ] );
+		$post_c = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => 'c' ] ] );
+		$this->ep_factory->post->create( [ 'post_title' => 'No meta_input' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'meta_query'   => [
+				'named_clause' => [
+					'key'     => 'test_key',
+					'compare' => 'EXISTS',
+				],
+			],
+			'orderby'      => 'named_clause',
+			'order'        => 'ASC',
+		);
+
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+		$this->assertEquals( $post_a, $query->posts[0] );
+		$this->assertEquals( $post_b, $query->posts[1] );
+		$this->assertEquals( $post_c, $query->posts[2] );
+	}
+
+	/**
 	 * Test that a post being directly deleted gets correctly removed from the Elasticsearch index
 	 *
 	 * @since 1.2
@@ -3939,6 +3974,45 @@ class TestPost extends BaseTestCase {
 
 		return $meta_keys;
 
+	}
+
+	/**
+	 * Test to verify that empty meta key should be excluded before sync.
+	 *
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testEmptyMetaKey() {
+		global $wpdb;
+		$post_id      = $this->ep_factory->post->create();
+		$post         = get_post( $post_id );
+		$meta_key     = '';
+		$meta_value_1 = 'Meta value for empty key';
+		$meta_values  = array(
+			'value 1',
+			'value 2',
+		);
+		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => $meta_key,
+				'meta_value' => $meta_value_1,
+			),
+			array( '%d', '%s', '%s' )
+		);
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE meta_key=%s AND post_id = %d", $meta_key, $post_id ) );
+
+		$this->assertSame( $meta_key, $row->meta_key );
+		$this->assertSame( $meta_value_1, $row->meta_value );
+
+		$meta_data = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+
+		$this->assertIsArray( $meta_data );
+		$this->assertCount( 1, $meta_data );
+		$this->assertArrayHasKey( 'test_meta_1', $meta_data );
 	}
 
 	/**
@@ -6696,41 +6770,44 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests additional order by parameters in parse_orderby().
+	 * Data provider for the testParseOrderby method.
 	 *
-	 * @return void
+	 * @since 4.6.0
+	 * @return array
+	 */
+	public function parseOrderbyDataProvider() {
+		return [
+			[ 'type', 'post_type.raw' ],
+			[ 'modified', 'post_modified' ],
+			[ 'relevance', '_score' ],
+			[ 'date', 'post_date' ],
+			[ 'name', 'post_name.raw' ],
+			[ 'title', 'post_title.sortable' ],
+		];
+	}
+
+	/**
+	 * Test the parse_orderby() method (without meta values)
+	 *
+	 * @param string $orderby Orderby value
+	 * @param string $es_key  The related ES field
+	 * @dataProvider parseOrderbyDataProvider
 	 * @group post
 	 */
-	public function testParseOrderBy() {
+	public function testParseOrderby( $orderby, $es_key ) {
+		$method_executed = false;
 
-		// Post type.
 		$query_args = [
 			'ep_integrate' => true,
-			'orderby'      => 'type',
+			'orderby'      => $orderby,
 			'order'        => 'asc',
 		];
 
-		$assert_callback = function( $args ) {
+		$assert_callback = function( $args ) use ( &$method_executed, $es_key ) {
+			$method_executed = true;
 
-			$this->assertArrayHasKey( 'post_type.raw', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['post_type.raw']['order'] );
-
-			return $args;
-		};
-
-		// We need to run tests inside a callback because parse_orderby()
-		// is a protected function.
-		add_filter( 'ep_formatted_args', $assert_callback );
-		$query = new \WP_Query( $query_args );
-		remove_filter( 'ep_formatted_args', $assert_callback );
-
-		// Post modified.
-		$query_args['orderby'] = 'modified';
-
-		$assert_callback = function( $args ) {
-
-			$this->assertArrayHasKey( 'post_modified', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['post_modified']['order'] );
+			$this->assertArrayHasKey( $es_key, $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ $es_key ]['order'] );
 
 			return $args;
 		};
@@ -6740,14 +6817,81 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
 
-		// Meta value.
-		$query_args['orderby']  = 'meta_value';
-		$query_args['meta_key'] = 'custom_meta_key';
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
 
-		$assert_callback = function( $args ) {
+	/**
+	 * Data provider for following methods:
+	 *
+	 * - testParseOrderbyMetaValueParams
+	 * - testParseOrderbyMetaValueWithoutMetaKeyParams
+	 * - testParseOrderbyMetaQueryTypes
+	 *
+	 * @since 4.6.0
+	 * @return array
+	 */
+	public function parseOrderbyMetaDataProvider() {
+		$numeric = [ 2, 1, 3 ];
+		$char    = [ 'b', 'a', 'c' ];
 
-			$this->assertArrayHasKey( 'meta.custom_meta_key.raw', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['meta.custom_meta_key.raw']['order'] );
+		$timestamps = [
+			strtotime( '2 days ago' ),
+			strtotime( '5 days ago' ),
+			strtotime( '1 days ago' ),
+		];
+
+		$date     = [ gmdate( 'Y-m-d', $timestamps[0] ), gmdate( 'Y-m-d', $timestamps[1] ), gmdate( 'Y-m-d', $timestamps[2] ) ];
+		$datetime = [ gmdate( 'Y-m-d 14:00:00', $timestamps[0] ), gmdate( 'Y-m-d 10:00:00', $timestamps[0] ), gmdate( 'Y-m-d 23:30:00', $timestamps[0] ) ];
+		$time     = [ '14:00', '10:00', '23:30' ];
+
+		return [
+			[ '', 'value.sortable', $char ],
+			[ 'NUM', 'long', $numeric ],
+			[ 'NUMERIC', 'long', $numeric ],
+			[ 'BINARY', 'value.sortable', $char ],
+			[ 'CHAR', 'value.sortable', $char ],
+			[ 'DATE', 'date', $date ],
+			[ 'DATETIME', 'datetime', $datetime ],
+			[ 'DECIMAL', 'double', [ 0.2, 0.1, 0.3 ] ],
+			[ 'SIGNED', 'long', $numeric ],
+			[ 'TIME', 'time', $time ],
+			[ 'UNSIGNED', 'long', $numeric ],
+		];
+	}
+
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with `'meta_value*'` and `'meta_key'` parameters
+	 *
+	 * @param string $meta_value_type Meta value type (as in WP)
+	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @param array  $meta_values     Meta values for post creation
+	 * @since 4.6.0
+	 * @dataProvider parseOrderbyMetaDataProvider
+	 * @group post
+	 */
+	public function testParseOrderbyMetaValueParams( $meta_value_type, $es_type, $meta_values ) {
+		$method_executed = false;
+
+		$posts = [];
+		foreach ( $meta_values as $value ) {
+			$posts[] = $this->ep_factory->post->create( [ 'meta_input' => [ 'custom_meta_key' => $value ] ] );
+		}
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query_args = [
+			'ep_integrate' => true,
+			'fields'       => 'ids',
+			'orderby'      => 'meta_value' . ( $meta_value_type ? "_{$meta_value_type}" : '' ),
+			'order'        => 'asc',
+			'meta_key'     => 'custom_meta_key',
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
+			$method_executed = true;
+
+			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -6757,14 +6901,42 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
 
-		// Meta value number.
-		$query_args['orderby']  = 'meta_value_num';
-		$query_args['meta_key'] = 'custom_price';
+		$this->assertTrue( $method_executed );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $posts[1], $query->posts[0] );
+		$this->assertSame( $posts[0], $query->posts[1] );
+		$this->assertSame( $posts[2], $query->posts[2] );
+	}
 
-		$assert_callback = function( $args ) {
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with `'meta_value*'` parameters
+	 *
+	 * @param string $meta_value_type Meta value type (as in WP)
+	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @since 4.6.0
+	 * @dataProvider parseOrderbyMetaDataProvider
+	 * @group post
+	 */
+	public function testParseOrderbyMetaValueWithoutMetaKeyParams( $meta_value_type, $es_type ) {
+		$method_executed = false;
 
-			$this->assertArrayHasKey( 'meta.custom_price.long', $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0]['meta.custom_price.long']['order'] );
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => 'meta_value' . ( $meta_value_type ? "_{$meta_value_type}" : '' ),
+			'order'        => 'asc',
+			'meta_query'   => [
+				[
+					'key'     => 'custom_meta_key',
+					'compare' => 'EXISTS',
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
+			$method_executed = true;
+
+			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -6773,6 +6945,104 @@ class TestPost extends BaseTestCase {
 		add_filter( 'ep_formatted_args', $assert_callback );
 		$query = new \WP_Query( $query_args );
 		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
+
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with named meta queries
+	 *
+	 * @param string $meta_value_type Meta value type (as in WP)
+	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @since 4.6.0
+	 * @dataProvider parseOrderbyMetaDataProvider
+	 * @group post
+	 */
+	public function testParseOrderbyMetaQueryTypes( $meta_value_type, $es_type ) {
+		$method_executed = false;
+
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => 'named_clause',
+			'order'        => 'asc',
+			'meta_query'   => [
+				[
+					'key'  => 'unused_key',
+					'type' => 'NUMERIC',
+				],
+				'named_clause' => [
+					'key'  => 'custom_meta_key',
+					'type' => $meta_value_type,
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
+			$method_executed = true;
+
+			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
+
+	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with multiple meta fields
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/3509
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testParseOrderbyMetaMultiple() {
+		$method_executed = false;
+
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => [
+				'meta_field1'             => 'desc',
+				'meta.meta_field3.double' => 'asc',
+				'meta.meta_field2.double' => 'asc',
+			],
+			'meta_query'   => [
+				'date_clause' => [
+					'key'     => 'meta_field2',
+					'value'   => '20230622',
+					'compare' => '>=',
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed ) {
+			$method_executed = true;
+
+			$expected_sort = [
+				[ 'meta_field1' => [ 'order' => 'desc' ] ],
+				[ 'meta.meta_field3.double' => [ 'order' => 'asc' ] ],
+				[ 'meta.meta_field2.double' => [ 'order' => 'asc' ] ],
+			];
+
+			$this->assertSame( $expected_sort, $args['sort'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
 	}
 
 	/**
@@ -7973,6 +8243,30 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that post meta value should be empty when it is not set.
+	 *
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testMetaValueNotSet() {
+		$post_ids    = array();
+		$post_ids[0] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'find me in search',
+			)
+		);
+		$post_ids[1] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
+		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
+	}
+
+	/**
 	 * Tests search term is wrapped in html tag with custom class
 	 */
 	public function testHighlightTagsWithCustomClass() {
@@ -8767,5 +9061,92 @@ class TestPost extends BaseTestCase {
 		];
 
 		$this->assertSame( $expected_mapping, $changed_mapping );
+	}
+
+	/**
+	 * Test negative `menu_order` values.
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 * @see https://github.com/10up/ElasticPress/issues/3440#issuecomment-1545446291
+	 */
+	public function testNegativeMenuOrder() {
+		$post_negative = $this->ep_factory->post->create( array( 'menu_order' => -2 ) );
+		$post_positive = $this->ep_factory->post->create( array( 'menu_order' => 1 ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			array(
+				'ep_integrate' => true,
+				'fields'       => 'ids',
+				'post_type'    => 'post',
+				'order'        => 'ASC',
+				'orderby'      => 'menu_order',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, count( $query->posts ) );
+		$this->assertEquals( $post_negative, $query->posts[0] );
+		$this->assertEquals( $post_positive, $query->posts[1] );
+	}
+
+	/**
+	 * Test the `kill_sync_for_password_protected` method
+	 *
+	 * @since 4.6.0
+	 * @group post
+	 */
+	public function testKillSyncForPasswordProtected() {
+		$pw_post    = $this->ep_factory->post->create( [ 'post_password' => 'password' ] );
+		$no_pw_post = $this->ep_factory->post->create( [] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$sync_manager = ElasticPress\Indexables::factory()->get( 'post' )->sync_manager;
+
+		$this->assertTrue( $sync_manager->kill_sync_for_password_protected( false, $pw_post ) );
+		$this->assertFalse( $sync_manager->kill_sync_for_password_protected( false, $no_pw_post ) );
+
+		/**
+		 * Test the `ep_pre_kill_sync_for_password_protected` filter
+		 */
+		$dont_kill_pw_post = function ( $short_circuit, $skip, $object_id ) use ( $pw_post ) {
+			$this->assertNull( $short_circuit );
+			$this->assertFalse( $skip );
+			$this->assertSame( $pw_post, $object_id );
+			return false;
+		};
+		add_filter( 'ep_pre_kill_sync_for_password_protected', $dont_kill_pw_post, 10, 3 );
+		$this->assertFalse( $sync_manager->kill_sync_for_password_protected( false, $pw_post ) );
+	}
+
+	/**
+	 * Test if the mapping applies the ep_stop filter correctly
+	 *
+	 * @since 4.7.0
+	 * @group post
+	 */
+	public function test_mapping_ep_stop_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'post' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+
+		$change_lang = function( $lang, $context ) {
+			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
+		};
+		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$indexable->put_mapping();
+
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
 }
