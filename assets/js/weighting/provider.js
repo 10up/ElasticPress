@@ -2,9 +2,10 @@
  * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
-import { withNotices } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
 import { createContext, WPElement, useContext, useMemo, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { store as noticeStore } from '@wordpress/notices';
 
 /**
  * Instant Results context.
@@ -18,21 +19,13 @@ const Context = createContext();
  * @param {string} props.apiUrl API URL.
  * @param {Function} props.children Component children.
  * @param {'auto'|'manual'} props.metaMode Metadata management mode.
- * @param {object} props.noticeOperations Notice operations from withNotices.
- * @param {WPElement} props.noticeUI Notice UI from withNotices.
  * @param {object} props.weightableFields Weightable fields, indexed by post type.
  * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
  */
-const WeightingProvider = ({
-	apiUrl,
-	children,
-	metaMode,
-	noticeOperations,
-	noticeUI,
-	weightableFields,
-	weightingConfiguration,
-}) => {
+export default ({ apiUrl, children, metaMode, weightableFields, weightingConfiguration }) => {
+	const { createNotice } = useDispatch(noticeStore);
+
 	const [currentWeightingConfiguration, setCurrentWeightingConfiguration] = useState({
 		...weightingConfiguration,
 	});
@@ -76,18 +69,16 @@ const WeightingProvider = ({
 				url: apiUrl,
 			});
 
-			noticeOperations.createNotice({
-				content: __('Search fields & weighting saved.', 'elasticpress'),
-				status: 'success',
+			createNotice('success', __('Settings saved.', 'elasticpress'), {
+				isDismissible: true,
 			});
-		} catch {
-			noticeOperations.createNotice({
-				content: __('Whoops! Something went wrong. Please try again.', 'elasticpress'),
-				status: 'error',
+		} catch (e) {
+			console.error(e); // eslint-disable-line no-console
+
+			createNotice('error', __('Something went wrong. Please try again.', 'elasticpress'), {
+				isDismissible: true,
 			});
 		} finally {
-			document.body.scrollIntoView({ behavior: 'smooth' });
-
 			setIsBusy(false);
 		}
 	};
@@ -97,8 +88,6 @@ const WeightingProvider = ({
 		currentWeightingConfiguration,
 		isBusy,
 		isManual,
-		noticeOperations,
-		noticeUI,
 		save,
 		setWeightingForPostType,
 		weightableFields,
@@ -109,8 +98,6 @@ const WeightingProvider = ({
 	 */
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 };
-
-export default withNotices(WeightingProvider);
 
 /**
  * Use the API Search context.

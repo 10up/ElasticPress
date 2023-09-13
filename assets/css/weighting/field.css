@@ -33,9 +33,15 @@
 	}
 
 	@media ( max-width: 600px ) {
+		grid-template-columns: 1fr 1fr 1fr max-content;
 
-		& .components-range-control__wrapper {
-			display: none;
+		& .ep-weighting-field__weighting {
+			display: flex;
+			justify-content: end;
+
+			& .components-range-control__wrapper {
+				display: none;
+			}
 		}
 	}
 }

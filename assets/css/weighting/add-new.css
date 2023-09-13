@@ -1,7 +1,10 @@
 .ep-weighting-add-new {
+	align-items: flex-end;
+	gap: 4px;
 	justify-content: start;
+	margin-top: 16px;
 
-	& .components-base-control .components-select-control .components-select-control__input {
+	& .components-base-control .components-text-control__input {
 		min-height: 36px;
 	}
 }

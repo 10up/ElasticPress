@@ -1,8 +1,11 @@
 /**
  * WordPress dependencies.
  */
+import { SnackbarList } from '@wordpress/components';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { store as noticeStore } from '@wordpress/notices';
 
 /**
  * Internal Dependencies.
@@ -17,7 +20,15 @@ import { useWeighting } from '../provider';
  * @returns {WPElement} Element.
  */
 export default () => {
-	const { noticeUI, save, weightableFields } = useWeighting();
+	const { removeNotice } = useDispatch(noticeStore);
+
+	const { notices } = useSelect((select) => {
+		return {
+			notices: select(noticeStore).getNotices(),
+		};
+	}, []);
+
+	const { save, weightableFields } = useWeighting();
 
 	/**
 	 * Submit event.
@@ -30,31 +41,32 @@ export default () => {
 		save();
 	};
 
-	/**
-	 * Render.
-	 */
 	return (
-		<form className="ep-weighting-screen" onSubmit={onSubmit}>
-			<h1 className="page-title">{__('Manage Search Fields & Weighting', 'elasticpress')}</h1>
-			{noticeUI}
-			<div className="page-description">
-				<p>
-					{__(
-						'This dashboard enables you to select which fields ElasticPress should sync, whether to use those fields in searches, and how heavily to weight fields in the search algorithm. In general, increasing the Weight of a field will increase the relevancy score of a post that has matching text in that field.',
-						'elasticpress',
-					)}
-				</p>
-				<p>
-					{__(
-						'For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently.',
-						'elasticpress',
-					)}
-				</p>
-			</div>
-			{weightableFields.map(({ key }) => {
-				return <PostType key={key} postType={key} />;
-			})}
-			<Actions />
-		</form>
+		<>
+			<form className="ep-weighting-screen" onSubmit={onSubmit}>
+				<h1 className="page-title">
+					{__('Manage Search Fields & Weighting', 'elasticpress')}
+				</h1>
+				<div className="page-description">
+					<p>
+						{__(
+							'This dashboard enables you to select which fields ElasticPress should sync, whether to use those fields in searches, and how heavily to weight fields in the search algorithm. In general, increasing the Weight of a field will increase the relevancy score of a post that has matching text in that field.',
+							'elasticpress',
+						)}
+					</p>
+					<p>
+						{__(
+							'For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently.',
+							'elasticpress',
+						)}
+					</p>
+				</div>
+				{weightableFields.map(({ key }) => {
+					return <PostType key={key} postType={key} />;
+				})}
+				<Actions />
+			</form>
+			<SnackbarList notices={notices} onRemove={(notice) => removeNotice(notice)} />
+		</>
 	);
 };

@@ -2,8 +2,10 @@
  * WordPress dependencies.
  */
 import { Button, PanelRow, TextControl } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
 import { useMemo, useState, WPElement } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
+import { store as noticeStore } from '@wordpress/notices';
 
 /**
  * Internal dependencies.
@@ -20,6 +22,8 @@ import { useWeighting } from '../provider';
  * @returns {WPElement} Component element.
  */
 export default ({ group, postType }) => {
+	const { createNotice } = useDispatch(noticeStore);
+
 	const { currentWeightingConfiguration, setWeightingForPostType, weightableFields } =
 		useWeighting();
 
@@ -100,6 +104,15 @@ export default ({ group, postType }) => {
 	 */
 	const onClick = () => {
 		const key = `meta.${toAdd}.value`;
+
+		const isDefaultField = defaultFields.some((f) => f.key === key);
+		const isCustomField = customFields.some((f) => f.key === key);
+
+		if (isDefaultField || isCustomField) {
+			createNotice('info', sprintf(__('%s is already being synced.', 'elasticpress'), toAdd));
+			return;
+		}
+
 		const newValues = { ...values, [key]: { enabled: false, weight: 0 } };
 
 		setWeightingForPostType(postType, newValues);
@@ -118,6 +131,18 @@ export default ({ group, postType }) => {
 		delete newValues[key];
 
 		setWeightingForPostType(postType, newValues);
+	};
+
+	/**
+	 * Handle pressing Enter key when adding a field.
+	 *
+	 * @param {Event} event Keydown event.
+	 */
+	const onKeyDown = (event) => {
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			onClick();
+		}
 	};
 
 	return (
@@ -150,8 +175,9 @@ export default ({ group, postType }) => {
 			{isMetadata ? (
 				<PanelRow className="ep-weighting-add-new">
 					<TextControl
-						label={__('Metadata key', 'elasticpress')}
+						label={__('Add field', 'elasticpress')}
 						onChange={(toAdd) => setToAdd(toAdd)}
+						onKeyDown={onKeyDown}
 						placeholder={__('Metadata key', 'elasticpress')}
 						value={toAdd}
 					/>
