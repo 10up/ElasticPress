@@ -40,6 +40,48 @@ define( 'EP_FILE', plugin_basename( __FILE__ ) );
 define( 'EP_VERSION', '4.7.1' );
 
 /**
+ * Get the minimum version of PHP required by this plugin.
+ *
+ * @return string Minimum version required.
+ */
+function minimum_php_requirement() {
+	return '7.0';
+}
+
+/**
+ * Whether PHP installation meets the minimum requirements
+ *
+ * @return bool True if meets minimum requirements, false otherwise.
+ */
+function site_meets_php_requirements() {
+	return version_compare( phpversion(), minimum_php_requirement(), '>=' );
+}
+
+if ( ! site_meets_php_requirements() ) {
+	add_action(
+		'admin_notices',
+		function() {
+			?>
+			<div class="notice notice-error">
+				<p>
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: %s: Minimum required PHP version */
+							__( 'ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin.', 'elasticpress' ),
+							esc_html( minimum_php_requirement() )
+						)
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		}
+	);
+	return;
+}
+
+/**
  * PSR-4-ish autoloading
  *
  * @since 2.6
