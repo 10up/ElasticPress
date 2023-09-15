@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { SnackbarList } from '@wordpress/components';
+import { Button, SnackbarList } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -10,7 +10,6 @@ import { store as noticeStore } from '@wordpress/notices';
 /**
  * Internal Dependencies.
  */
-import Actions from '../components/actions';
 import PostType from '../components/post-type';
 import { useWeighting } from '../provider';
 
@@ -28,7 +27,7 @@ export default () => {
 		};
 	}, []);
 
-	const { save, weightableFields } = useWeighting();
+	const { isBusy, save, weightableFields } = useWeighting();
 
 	/**
 	 * Submit event.
@@ -44,10 +43,8 @@ export default () => {
 	return (
 		<>
 			<form className="ep-weighting-screen" onSubmit={onSubmit}>
-				<h1 className="page-title">
-					{__('Manage Search Fields & Weighting', 'elasticpress')}
-				</h1>
-				<div className="page-description">
+				<h1>{__('Manage Search Fields & Weighting', 'elasticpress')}</h1>
+				<div>
 					<p>
 						{__(
 							'This dashboard enables you to select which fields ElasticPress should sync, whether to use those fields in searches, and how heavily to weight fields in the search algorithm. In general, increasing the Weight of a field will increase the relevancy score of a post that has matching text in that field.',
@@ -64,7 +61,9 @@ export default () => {
 				{weightableFields.map(({ key }) => {
 					return <PostType key={key} postType={key} />;
 				})}
-				<Actions />
+				<Button disabled={isBusy} isBusy={isBusy} isPrimary type="submit" variant="primary">
+					{__('Save Changes', 'elasticpress')}
+				</Button>
 			</form>
 			<SnackbarList notices={notices} onRemove={(notice) => removeNotice(notice)} />
 		</>

@@ -1,6 +1,7 @@
 @import "weighting/action.css";
 @import "weighting/add-new.css";
 @import "weighting/field.css";
+@import "weighting/post-type.css";
 @import "weighting/screen.css";
 
 html.wp-toolbar {

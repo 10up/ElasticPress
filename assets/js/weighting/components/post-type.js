@@ -28,12 +28,7 @@ export default ({ postType }) => {
 	return (
 		<Panel className="ep-weighting-post-type">
 			<PanelHeader>
-				<div className="ep-weighting-field ep-weighting-field--header">
-					<div className="ep-weighting-field__name">
-						<h2>{label}</h2>
-					</div>
-					<div className="ep-weighting-field__undo" />
-				</div>
+				<h2>{label}</h2>
 			</PanelHeader>
 			{groups.map(({ key, label }) => {
 				const isMetadata = key === 'ep_metadata';
