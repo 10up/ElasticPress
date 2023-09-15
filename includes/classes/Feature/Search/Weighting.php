@@ -84,7 +84,7 @@ class Weighting {
 
 		$taxonomies = array_intersect( $public_taxonomies, $post_type_taxonomies );
 
-		if ( $taxonomies ) {
+		if ( ! empty( $taxonomies ) ) {
 			$fields['taxonomies'] = [
 				'label'    => __( 'Taxonomies', 'elasticpress' ),
 				'children' => [],

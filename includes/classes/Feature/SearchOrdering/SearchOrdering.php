@@ -334,6 +334,7 @@ class SearchOrdering extends Feature {
 			'show_admin_column' => false,
 			'query_var'         => false,
 			'rewrite'           => false,
+			'public'            => false,
 		);
 
 		/** Features Class @var Features $features */
