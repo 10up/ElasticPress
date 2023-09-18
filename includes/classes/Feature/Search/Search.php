@@ -242,8 +242,9 @@ class Search extends Feature {
 				 *
 				 * @since 5.0.0
 				 * @hook ep_highlight_number_of_fragments
-				 * @param  {string} $field Search field being setup.
-				 * @return  {int} New maximum number of fragments to highlight for the searched field.
+                 * @param  {int}    $max_fragments Maximum number of fragments for field.
+                 * @param  {string} $field Search field being setup.
+				 * @return {int}    New maximum number of fragments to highlight for the searched field.
 				 */
 				'number_of_fragments' => apply_filters( 'ep_highlight_number_of_fragments', 0, $field ),
 			];
