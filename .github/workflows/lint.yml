@@ -78,7 +78,7 @@ jobs:
         coverage: none
 
     - name: composer install
-      run: composer install --ignore-platform-reqs
+      run: composer install
 
     - name: PHPCS check
       run: './vendor/bin/phpcs . -q --report=checkstyle --runtime-set testVersion 7.0- | cs2pr'

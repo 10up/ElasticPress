@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Exception;
 
-use \Psr\Container\NotFoundExceptionInterface;
+use \ElasticPress\Vendor_Prefixed\Psr\Container\NotFoundExceptionInterface;
 
 /**
  * NotFoundException class

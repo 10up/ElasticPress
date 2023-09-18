@@ -216,6 +216,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Martin Widmann (@mwidmann)](https://github.com/mwidmann)
 [xxx (@wildberrylillet)](https://github.com/wildberrylillet)
 [@tomi10up](https://github.com/tomi10up)
+[Junaid Bhura (@junaidbhura)](https://github.com/junaidbhura)
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
