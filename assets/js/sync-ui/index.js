@@ -8,7 +8,7 @@ import { SyncProvider } from '../sync';
  * Internal dependencies.
  */
 import {
-	ajaxUrl,
+	apiUrl,
 	autoIndex,
 	lastSyncDateTime,
 	lastSyncFailed,
@@ -25,7 +25,7 @@ import SettingsPage from './apps/settings-page';
  */
 const App = () => (
 	<SyncProvider
-		ajaxUrl={ajaxUrl}
+		apiUrl={apiUrl}
 		autoIndex={autoIndex}
 		defaultLastSyncDateTime={lastSyncDateTime}
 		defaultLastSyncFailed={lastSyncFailed}

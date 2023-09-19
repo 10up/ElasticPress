@@ -3,7 +3,7 @@
  */
 const {
 	auto_start_index: autoIndex,
-	ajax_url: ajaxUrl,
+	api_url: apiUrl,
 	index_meta: indexMeta = null,
 	is_epio: isEpio,
 	ep_last_sync_date: lastSyncDateTime = null,
@@ -11,4 +11,4 @@ const {
 	nonce,
 } = window.epDash;
 
-export { autoIndex, ajaxUrl, indexMeta, isEpio, lastSyncDateTime, lastSyncFailed, nonce };
+export { autoIndex, apiUrl, indexMeta, isEpio, lastSyncDateTime, lastSyncFailed, nonce };
