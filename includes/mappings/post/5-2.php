@@ -48,24 +48,19 @@ return array(
 			'analyzer'   => array(
 				'default'          => array(
 					'tokenizer'   => 'standard',
-					/**
-					 * Filter Elasticsearch default analyzer's filters
-					 *
-					 * @since 3.6.2
-					 * @hook ep_default_analyzer_filters
-					 * @param  {array<string>} $filters Default filters
-					 * @return {array<string>} New filters
-					 */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
-					/**
-					 * Filter Elasticsearch default analyzer's char_filter
-					 *
-					 * @since 4.2.2
-					 * @hook ep_default_analyzer_char_filters
-					 * @param  {array<string>} $char_filters Default filter
-					 * @return {array<string>} New filters
-					 */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'char_filter' => apply_filters( 'ep_default_analyzer_char_filters', array( 'html_strip' ) ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+				),
+				'default_search'   => array(
+					'tokenizer'   => 'standard',
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'standard', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', array( 'html_strip' ) ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
