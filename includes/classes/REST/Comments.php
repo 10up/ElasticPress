@@ -46,13 +46,7 @@ class Comments {
 	 */
 	protected function get_searchable_post_types() {
 		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
-
-		$post_types = array_filter(
-			$post_types,
-			function( $post_type ) {
-				return post_type_supports( $post_type, 'comments' );
-			}
-		);
+		$post_types = array_filter( $post_types, fn( $post_type ) => post_type_supports( $post_type, 'comments' ) );
 
 		return $post_types;
 	}
