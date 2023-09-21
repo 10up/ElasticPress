@@ -145,9 +145,9 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
 		// Start sync via dashboard and pause it
-		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.intercept('POST', '/wp-json/elasticpress/v1/sync*').as('apiRequest');
 		cy.get('.ep-sync-button--sync').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+		cy.wait('@apiRequest').its('response.statusCode').should('eq', 200);
 		cy.get('.ep-sync-button--pause').should('be.visible');
 
 		// Can not activate a feature.
