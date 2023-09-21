@@ -36,7 +36,7 @@ const Context = createContext();
  * App component.
  *
  * @param {object} props Component props.
- * @param {string} props.ajaxUrl AJAX URL endpoint.
+ * @param {string} props.apiUrl API endpoint URL.
  * @param {boolean} props.autoIndex Whether to start an index automatically.
  * @param {Function} props.children Component children
  * @param {string} props.defaultLastSyncDateTime Last sync date and time.
@@ -47,7 +47,7 @@ const Context = createContext();
  * @returns {WPElement} App component.
  */
 export const SyncProvider = ({
-	ajaxUrl,
+	apiUrl,
 	autoIndex,
 	children,
 	defaultLastSyncDateTime,
@@ -59,7 +59,7 @@ export const SyncProvider = ({
 	/**
 	 * Indexing methods.
 	 */
-	const { cancelIndex, index, indexStatus } = useIndex(ajaxUrl, nonce);
+	const { cancelIndex, index, indexStatus } = useIndex(apiUrl, nonce);
 
 	/**
 	 * Message log state.
@@ -261,7 +261,7 @@ export const SyncProvider = ({
 		 * messages. Returns a Promise that resolves if syncing should
 		 * continue.
 		 *
-		 * @param {object} response AJAX response.
+		 * @param {object} response API response.
 		 * @returns {Promise} Promise that resolves if sync is to continue.
 		 */
 		(response) => {

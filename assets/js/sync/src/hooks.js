@@ -12,11 +12,11 @@ import { __ } from '@wordpress/i18n';
  * interrupt eachother to avoid multiple sync requests causing race conditions
  * or duplicate output, such as by rapidly pausing and unpausing indexing.
  *
- * @param {string} ajaxUrl AJAX endpoint URL.
+ * @param {string} apiUrl AJAX endpoint URL.
  * @param {string} nonce WordPress nonce.
  * @returns {object} Sync, sync status, and cancel functions.
  */
-export const useIndex = (ajaxUrl, nonce) => {
+export const useIndex = (apiUrl, nonce) => {
 	const abort = useRef(new AbortController());
 	const request = useRef(null);
 
@@ -119,16 +119,17 @@ export const useIndex = (ajaxUrl, nonce) => {
 		 * Silently catches abort errors and clears the current request on
 		 * completion.
 		 *
+		 * @param {URL} url API URL.
 		 * @param {object} options Request options.
 		 * @throws {Error} Any non-abort errors.
 		 * @returns {Promise} Current request promise.
 		 */
-		(options) => {
-			request.current = fetch(ajaxUrl, options).then(onResponse).finally(onComplete);
+		(url, options) => {
+			request.current = fetch(url, options).then(onResponse).finally(onComplete);
 
 			return request.current;
 		},
-		[ajaxUrl, onComplete, onResponse],
+		[onComplete, onResponse],
 	);
 
 	const cancelIndex = useCallback(
@@ -141,20 +142,19 @@ export const useIndex = (ajaxUrl, nonce) => {
 			abort.current.abort();
 			abort.current = new AbortController();
 
-			const body = new FormData();
-
-			body.append('action', 'ep_cancel_index');
-			body.append('nonce', nonce);
+			const url = new URL(apiUrl);
 
 			const options = {
-				method: 'POST',
-				body,
+				headers: {
+					'X-WP-Nonce': nonce,
+				},
+				method: 'DELETE',
 				signal: abort.current.signal,
 			};
 
-			return sendRequest(options);
+			return sendRequest(url, options);
 		},
-		[nonce, sendRequest],
+		[apiUrl, nonce, sendRequest],
 	);
 
 	const index = useCallback(
@@ -168,21 +168,21 @@ export const useIndex = (ajaxUrl, nonce) => {
 			abort.current.abort();
 			abort.current = new AbortController();
 
-			const body = new FormData();
+			const url = new URL(apiUrl);
 
-			body.append('action', 'ep_index');
-			body.append('put_mapping', putMapping ? 1 : 0);
-			body.append('nonce', nonce);
+			url.searchParams.append('put_mapping', putMapping);
 
 			const options = {
+				headers: {
+					'X-WP-Nonce': nonce,
+				},
 				method: 'POST',
-				body,
 				signal: abort.current.signal,
 			};
 
-			return sendRequest(options);
+			return sendRequest(url, options);
 		},
-		[nonce, sendRequest],
+		[apiUrl, nonce, sendRequest],
 	);
 
 	const indexStatus = useCallback(
@@ -195,20 +195,19 @@ export const useIndex = (ajaxUrl, nonce) => {
 			abort.current.abort();
 			abort.current = new AbortController();
 
-			const body = new FormData();
-
-			body.append('action', 'ep_index_status');
-			body.append('nonce', nonce);
+			const url = new URL(apiUrl);
 
 			const options = {
-				method: 'POST',
-				body,
+				headers: {
+					'X-WP-Nonce': nonce,
+				},
+				method: 'GET',
 				signal: abort.current.signal,
 			};
 
-			return sendRequest(options);
+			return sendRequest(url, options);
 		},
-		[nonce, sendRequest],
+		[apiUrl, nonce, sendRequest],
 	);
 
 	return { cancelIndex, index, indexStatus };
