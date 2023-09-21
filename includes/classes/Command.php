@@ -1068,7 +1068,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function get_last_sync( $args, $assoc_args ) {
 		$pretty    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
-		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_sync();
 
 		$this->pretty_json_encode( $last_sync, $pretty );
 	}

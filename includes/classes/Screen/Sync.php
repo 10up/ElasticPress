@@ -83,14 +83,14 @@ class Sync {
 			$data['index_meta'] = $index_meta;
 		}
 
-		$ep_last_index = IndexHelper::factory()->get_last_index();
+		$ep_last_sync = IndexHelper::factory()->get_last_sync();
 
 		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
 		$sync_required      = count( $indices_comparison['missing_indices'] ) > 0;
 
-		if ( ! empty( $ep_last_index ) && ! $sync_required ) {
-			$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
-			$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) || ! empty( $ep_last_index['errors'] ) ? true : false;
+		if ( ! empty( $ep_last_sync ) && ! $sync_required ) {
+			$data['ep_last_sync_date']   = ! empty( $ep_last_sync['end_date_time'] ) ? $ep_last_sync['end_date_time'] : false;
+			$data['ep_last_sync_failed'] = ! empty( $ep_last_sync['failed'] ) || ! empty( $ep_last_sync['errors'] ) ? true : false;
 		}
 
 		/**
