@@ -10,8 +10,9 @@ namespace ElasticPress\Feature\Facets;
 
 use ElasticPress\Feature as Feature;
 use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
 use ElasticPress\Indexables as Indexables;
+use ElasticPress\REST;
+use ElasticPress\Utils as Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -113,6 +114,7 @@ class Facets extends Feature {
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 	}
 
 	/**
@@ -653,5 +655,15 @@ class Facets extends Feature {
 	 */
 	protected function is_facetable_page( $query ) {
 		return $query->is_home() || $query->is_search() || $query->is_tax() || $query->is_tag() || $query->is_category() || $query->is_post_type_archive();
+	}
+
+	/**
+	 * Setup REST endpoints
+	 *
+	 * @since 5.0.0
+	 */
+	public function setup_endpoints() {
+		$controller = new REST\Facets();
+		$controller->register_routes();
 	}
 }

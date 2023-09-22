@@ -27,30 +27,6 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	}
 
 	/**
-	 * Setup REST endpoints for the feature.
-	 */
-	public function setup_endpoints() {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'Block preview is now handled with ServerSideRender.', 'elasticpress' ),
-			'4.7.0'
-		);
-	}
-
-	/**
-	 * Check permissions of the /facets/post-type/* REST endpoints.
-	 *
-	 * @return void
-	 */
-	public function check_facets_rest_permission() {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'Block preview is now handled with ServerSideRender.', 'elasticpress' ),
-			'4.7.0'
-		);
-	}
-
-	/**
 	 * Register the block.
 	 */
 	public function register_block() {
@@ -120,35 +96,5 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			wp_kses_data( $wrapper_attributes ),
 			$block_content
 		);
-	}
-
-	/**
-	 * Outputs the block preview
-	 *
-	 * @param \WP_REST_Request $request REST request
-	 * @return string
-	 */
-	public function render_block_preview( $request ) {
-		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Taxonomy\render_block()' );
-
-		$attributes = $request->get_params();
-
-		return $this->render_block( $attributes );
-	}
-
-	/**
-	 * Utilitary method to set default attributes.
-	 *
-	 * @param array $attributes Attributes passed
-	 * @return array
-	 */
-	protected function parse_attributes( $attributes ) {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
-			'4.7.0'
-		);
-
-		return $attributes;
 	}
 }
