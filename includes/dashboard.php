@@ -138,7 +138,7 @@ function filter_allowed_html( $allowedtags, $context ) {
  */
 function log_version_query_error( $query ) {
 	// Ignore fake requests like the autosuggest template generation
-	if ( ! empty( $query['request'] ) && ! empty( $query['request']['is_ep_fake_request'] ) ) {
+	if ( ! empty( $query['request'] ) && is_array( $query['request'] ) && ! empty( $query['request']['is_ep_fake_request'] ) ) {
 		return;
 	}
 
