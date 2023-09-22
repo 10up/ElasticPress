@@ -10,8 +10,6 @@ namespace ElasticPress\REST;
 
 use ElasticPress\Features;
 use ElasticPress\Indexables;
-use ElasticPress\IndexHelper;
-use ElasticPress\Utils;
 
 /**
  * Facets API controller class.
@@ -33,7 +31,7 @@ class Facets {
 			[
 				'callback'            => [ $this, 'get_meta_keys' ],
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 
@@ -41,10 +39,10 @@ class Facets {
 			'elasticpress/v1',
 			'facets/meta-range/block-preview',
 			[
-				'args'                => $this->get_args_schema(),
+				'args'                => $this->get_meta_range_args(),
 				'callback'            => [ $this, 'get_meta_range' ],
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 
 			]
 		);
@@ -55,17 +53,17 @@ class Facets {
 			[
 				'callback'            => [ $this, 'get_taxonomies' ],
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 	}
 
 	/**
-	 * Check that the request has permission to sync.
+	 * Check that the request has permission.
 	 *
 	 * @return boolean
 	 */
-	public function permissions_check() {
+	public function check_permission() {
 		return current_user_can( 'edit_theme_options' );
 	}
 
@@ -74,36 +72,32 @@ class Facets {
 	 *
 	 * @return array
 	 */
-	public function get_args_schema() {
-		$meta_keys = $this->get_meta_keys();
+	public function get_meta_range_args() {
+		$meta_keys = $this->get_facetable_meta_keys();
 
 		return [
 			'facet' => [
-				'enum'     => $meta_keys,
-				'required' => true,
+				'description' => __( 'Facet to get a value range for.', 'elasticpress' ),
+				'enum'        => $meta_keys,
+				'required'    => true,
 			],
 		];
 	}
 
 	/**
-	 * Get meta keys,
+	 * Get meta keys.
 	 *
-	 * @return array Meta keys.
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return array
 	 */
-	public function get_meta_keys() {
-		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
-
-		try {
-			$meta_keys = $post_indexable->get_distinct_meta_field_keys();
-		} catch ( \Throwable $th ) {
-			$meta_keys = [];
-		}
+	public function get_meta_keys( \WP_REST_Request $request ) {
+		$meta_keys = $this->get_facetable_meta_keys();
 
 		return $meta_keys;
 	}
 
 	/**
-	 * Get meta keys,
+	 * Get the range of values for a given facet.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return void
@@ -113,8 +107,8 @@ class Facets {
 
 		add_filter( 'ep_is_facetable', '__return_true' );
 
-		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
-		$facets = \ElasticPress\Features::factory()->get_registered_feature( 'facets' );
+		$search = Features::factory()->get_registered_feature( 'search' );
+		$facets = Features::factory()->get_registered_feature( 'facets' );
 
 		$facet = $request->get_param( 'facet' );
 
@@ -155,10 +149,11 @@ class Facets {
 	/**
 	 * Get taxonomies.
 	 *
-	 * @return array Taxonomies.
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return array
 	 */
-	public function get_taxonomies() {
-		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
+	public function get_taxonomies( \WP_REST_Request $request ) {
+		$taxonomies_raw = $this->get_facetable_taxonomies();
 
 		$taxonomies = [];
 
@@ -184,5 +179,31 @@ class Facets {
 		}
 
 		return $taxonomies;
+	}
+
+	/**
+	 * Get facetable meta keys.
+	 *
+	 * @return array
+	 */
+	protected function get_facetable_meta_keys() {
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		try {
+			$meta_keys = $post_indexable->get_distinct_meta_field_keys();
+		} catch ( \Throwable $th ) {
+			$meta_keys = [];
+		}
+
+		return $meta_keys;
+	}
+
+	/**
+	 * Get facetable tasxonomies.
+	 *
+	 * @return array Taxonomies.
+	 */
+	protected function get_facetable_taxonomies() {
+		return Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
 	}
 }

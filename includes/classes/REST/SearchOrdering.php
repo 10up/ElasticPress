@@ -9,8 +9,6 @@
 namespace ElasticPress\REST;
 
 use ElasticPress\Features;
-use ElasticPress\Indexables;
-use ElasticPress\IndexHelper;
 use ElasticPress\Utils;
 
 /**
@@ -31,10 +29,10 @@ class SearchOrdering {
 			'elasticpress/v1',
 			'pointer_search',
 			[
-				'args'                => $this->get_args_schema(),
+				'args'                => $this->get_args(),
 				'callback'            => [ $this, 'get_posts' ],
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 
@@ -42,10 +40,10 @@ class SearchOrdering {
 			'elasticpress/v1',
 			'pointer_preview',
 			[
-				'args'                => $this->get_args_schema(),
+				'args'                => $this->get_args(),
 				'callback'            => [ $this, 'get_preview' ],
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 	}
@@ -56,12 +54,13 @@ class SearchOrdering {
 	 *
 	 * @return array
 	 */
-	public function get_args_schema() {
+	public function get_args() {
 		return [
 			's' => [
-				'validate_callback' => fn( $param ) => ! empty( $param ),
+				'description'       => __( 'Search query.', 'elasticpress' ),
 				'required'          => true,
 				'type'              => 'string',
+				'validate_callback' => fn( $param ) => ! empty( $param ),
 			],
 		];
 	}
@@ -71,7 +70,7 @@ class SearchOrdering {
 	 *
 	 * @return boolean
 	 */
-	public function permissions_check() {
+	public function check_permission() {
 		$capability = Utils\get_capability();
 
 		return current_user_can( $capability );

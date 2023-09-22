@@ -29,10 +29,10 @@ class Sync {
 			'elasticpress/v1',
 			'sync',
 			[
-				'args'                => $this->get_args_schema(),
+				'args'                => $this->get_args(),
 				'callback'            => [ $this, 'sync' ],
 				'methods'             => 'POST',
-				'permission_callback' => [ $this, 'sync_permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 
@@ -42,7 +42,7 @@ class Sync {
 			[
 				'callback'            => [ $this, 'get_sync_status' ],
 				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'sync_permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 
@@ -52,7 +52,7 @@ class Sync {
 			[
 				'callback'            => [ $this, 'cancel_sync' ],
 				'methods'             => 'DELETE',
-				'permission_callback' => [ $this, 'sync_permissions_check' ],
+				'permission_callback' => [ $this, 'check_permission' ],
 			]
 		);
 	}
@@ -62,43 +62,50 @@ class Sync {
 	 *
 	 * @return array
 	 */
-	public function get_args_schema() {
+	public function get_args() {
 		return [
 			'include'               => [
-				'items' => [
+				'description' => __( 'IDs of objects to sync.', 'elasticpress' ),
+				'items'       => [
 					'type' => 'integer',
 				],
-				'type'  => 'array',
+				'type'        => 'array',
 			],
 			'indexables'            => [
-				'items'    => [
+				'description' => __( 'Indexables to sync', 'elasticpress' ),
+				'items'       => [
 					'type' => 'string',
 				],
-				'required' => false,
-				'type'     => 'array',
+				'required'    => false,
+				'type'        => 'array',
 			],
 			'lower_limit_object_id' => [
-				'type'     => 'integer',
-				'required' => false,
+				'description' => __( 'Start of object ID range to sync,', 'elasticpress' ),
+				'type'        => 'integer',
+				'required'    => false,
 			],
 			'offset'                => [
-				'required' => false,
-				'type'     => 'integer',
+				'description' => __( 'Number of objects to skip.', 'elasticpress' ),
+				'required'    => false,
+				'type'        => 'integer',
 			],
 			'post_type'             => [
-				'items' => [
+				'description' => __( 'Post type to sync.', 'elasticpress' ),
+				'items'       => [
 					'type' => 'string',
 				],
-				'type'  => 'array',
+				'type'        => 'array',
 			],
 			'put_mapping'           => [
-				'default'  => false,
-				'type'     => 'boolean',
-				'required' => false,
+				'default'     => false,
+				'description' => __( 'Whether to clear the index and send mapping before syncing.', 'elasticpress' ),
+				'type'        => 'boolean',
+				'required'    => false,
 			],
 			'upper_limit_object_id' => [
-				'type'     => 'integer',
-				'required' => false,
+				'description' => __( 'End of object ID range to sync.', 'elasticpress' ),
+				'type'        => 'integer',
+				'required'    => false,
 			],
 		];
 	}
@@ -108,7 +115,7 @@ class Sync {
 	 *
 	 * @return boolean
 	 */
-	public function sync_permissions_check() {
+	public function check_permission() {
 		$capability = Utils\get_capability();
 
 		return current_user_can( $capability );

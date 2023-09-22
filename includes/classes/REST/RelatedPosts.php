@@ -28,10 +28,9 @@ class RelatedPosts {
 			'wp/v2',
 			'/posts/(?P<id>[0-9]+)/related',
 			[
-				'args'                => $this->get_args_schema(),
-				'callback'            => [ $this, 'get_items' ],
-				'methods'             => 'GET',
-				'permission_callback' => '__return_true',
+				'args'     => $this->get_args(),
+				'callback' => [ $this, 'get_posts' ],
+				'methods'  => 'GET',
 			]
 		);
 	}
@@ -42,16 +41,16 @@ class RelatedPosts {
 	 *
 	 * @return array
 	 */
-	public function get_args_schema() {
+	public function get_args() {
 		return [
 			'id'     => [
-				'description' => __( 'Post ID.', 'elasticpress' ),
+				'description' => __( 'ID of the post to get related posts for.', 'elasticpress' ),
 				'required'    => true,
 				'type'        => 'integer',
 			],
 			'number' => [
 				'default'     => 5,
-				'description' => __( 'Number of posts', 'elasticpress' ),
+				'description' => __( 'Number of related posts to return.', 'elasticpress' ),
 				'required'    => false,
 				'type'        => 'integer',
 			],
@@ -59,12 +58,12 @@ class RelatedPosts {
 	}
 
 	/**
-	 * Get comments,
+	 * Get posts.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
-	 * @return array Comments.
+	 * @return \WP_REST_Response
 	 */
-	public function get_items( \WP_REST_Request $request ) {
+	public function get_posts( \WP_REST_Request $request ) {
 		$id     = $request->get_param( 'id' );
 		$number = $request->get_param( 'number' );
 		$posts  = Features::factory()->get_registered_feature( 'related_posts' )->find_related( $id, $number );

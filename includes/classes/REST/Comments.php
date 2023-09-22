@@ -10,8 +10,6 @@ namespace ElasticPress\REST;
 
 use ElasticPress\Features;
 use ElasticPress\Indexables;
-use ElasticPress\IndexHelper;
-use ElasticPress\Utils;
 
 /**
  * Comments API controller class.
@@ -31,24 +29,11 @@ class Comments {
 			'elasticpress/v1',
 			'comments',
 			[
-				'args'                => $this->get_args_schema(),
-				'callback'            => [ $this, 'get_items' ],
-				'methods'             => 'GET',
-				'permission_callback' => '__return_true',
+				'args'     => $this->get_args(),
+				'callback' => [ $this, 'get_comments' ],
+				'methods'  => 'GET',
 			]
 		);
-	}
-
-	/**
-	 * Get searchable post types.
-	 *
-	 * @return array Searchable post types.
-	 */
-	protected function get_searchable_post_types() {
-		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
-		$post_types = array_filter( $post_types, fn( $post_type ) => post_type_supports( $post_type, 'comments' ) );
-
-		return $post_types;
 	}
 
 	/**
@@ -56,15 +41,17 @@ class Comments {
 	 *
 	 * @return array
 	 */
-	public function get_args_schema() {
+	public function get_args() {
 		$post_types = $this->get_searchable_post_types();
 
 		return [
 			'post_type' => [
-				'enum'     => $post_types,
-				'required' => true,
+				'description' => __( 'Post type of the posts whose comments to search.', 'elasticpress' ),
+				'enum'        => $post_types,
+				'required'    => true,
 			],
 			's'         => [
+				'description'       => __( 'Search query.', 'elasticpress' ),
 				'required'          => true,
 				'type'              => 'string',
 				'validate_callback' => fn( $param ) => ! empty( $param ),
@@ -73,12 +60,12 @@ class Comments {
 	}
 
 	/**
-	 * Get comments,
+	 * Get comments.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
-	 * @return array Comments.
+	 * @return array
 	 */
-	public function get_items( \WP_REST_Request $request ) {
+	public function get_comments( \WP_REST_Request $request ) {
 		$search = $request->get_param( 's' );
 
 		if ( empty( $search ) ) {
@@ -151,5 +138,17 @@ class Comments {
 		 * @return {array} New value
 		 */
 		return apply_filters( 'ep_comment_search_widget_response', $return );
+	}
+
+	/**
+	 * Get searchable post types.
+	 *
+	 * @return array
+	 */
+	protected function get_searchable_post_types() {
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+		$post_types = array_filter( $post_types, fn( $post_type ) => post_type_supports( $post_type, 'comments' ) );
+
+		return $post_types;
 	}
 }

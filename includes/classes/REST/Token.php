@@ -30,12 +30,12 @@ class Token {
 			[
 				[
 					'callback'            => [ $this, 'get_token' ],
-					'permission_callback' => [ $this, 'permission_check' ],
+					'permission_callback' => [ $this, 'check_permission' ],
 					'methods'             => 'GET',
 				],
 				[
 					'callback'            => [ $this, 'refresh_token' ],
-					'permission_callback' => [ $this, 'permission_check' ],
+					'permission_callback' => [ $this, 'check_permission' ],
 					'methods'             => 'POST',
 				],
 			]
@@ -45,9 +45,9 @@ class Token {
 	/**
 	 * Checks if the token API can be used.
 	 *
-	 * @return boolean Whether the token API can be used.
+	 * @return boolean
 	 */
-	public function permission_check() {
+	public function check_permission() {
 		/**
 		 * Filters the capability required to use the token API.
 		 *
@@ -63,9 +63,10 @@ class Token {
 	/**
 	 * Get a temporary token.
 	 *
-	 * @return string|false Authorization header, or false on failure.
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return string|false
 	 */
-	public function get_token() {
+	public function get_token( \WP_REST_Request $request ) {
 		$user_id = get_current_user_id();
 
 		$credentials = get_user_meta( $user_id, 'ep_token', true );
@@ -74,15 +75,16 @@ class Token {
 			return $credentials;
 		}
 
-		return $this->refresh_token();
+		return $this->refresh_token( $request );
 	}
 
 	/**
 	 * Refresh the temporary token.
 	 *
-	 * @return string|false Authorization header, or false on failure.
+	 * @param \WP_REST_Request $request Full details about the request.
+	 * @return string|false
 	 */
-	public function refresh_token() {
+	public function refresh_token( \WP_REST_Request $request ) {
 		$user_id = get_current_user_id();
 
 		$endpoint = $this->get_token_endpoint();
@@ -105,7 +107,7 @@ class Token {
 	/**
 	 * Get the endpoint for temporary tokens.
 	 *
-	 * @return string Temporary token endpoint.
+	 * @return string
 	 */
 	protected function get_token_endpoint() {
 		/**
