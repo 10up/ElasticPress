@@ -29,35 +29,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-// Require Composer autoloader if it exists.
-if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor-prefixed/autoload.php';
-}
-
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
 define( 'EP_VERSION', '4.7.1' );
 
-/**
- * Get the minimum version of PHP required by this plugin.
- *
- * @return string Minimum version required.
- */
-function minimum_php_requirement() {
-	return '7.0';
-}
+define( 'EP_PHP_VERSION_MIN', '7.0' );
 
-/**
- * Whether PHP installation meets the minimum requirements
- *
- * @return bool True if meets minimum requirements, false otherwise.
- */
-function site_meets_php_requirements() {
-	return version_compare( phpversion(), minimum_php_requirement(), '>=' );
-}
-
-if ( ! site_meets_php_requirements() ) {
+if ( ! version_compare( phpversion(), EP_PHP_VERSION_MIN, '>=' ) ) {
 	add_action(
 		'admin_notices',
 		function() {
@@ -69,7 +48,7 @@ if ( ! site_meets_php_requirements() ) {
 						sprintf(
 							/* translators: %s: Minimum required PHP version */
 							__( 'ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin.', 'elasticpress' ),
-							esc_html( minimum_php_requirement() )
+							EP_PHP_VERSION_MIN
 						)
 					);
 					?>
@@ -79,6 +58,11 @@ if ( ! site_meets_php_requirements() ) {
 		}
 	);
 	return;
+}
+
+// Require Composer autoloader if it exists.
+if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor-prefixed/autoload.php';
 }
 
 /**
