@@ -53,8 +53,8 @@ class Upgrades {
 			 * Adding this without changing the number will make it run on every load.
 			 *
 			 * @todo Uncomment this before the reelase
+			 * '5.0.0' => [ 'upgrade_5_0_0', 'init' ],
 			 */
-			// '5.0.0' => [ 'upgrade_5_0_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
