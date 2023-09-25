@@ -256,11 +256,11 @@ class Upgrades {
 	 */
 	public function upgrade_5_0_0() {
 		/**
-		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_last_syncs'
+		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_sync_history'
 		 */
 		$last_sync = Utils\get_option( 'ep_last_index', [] );
 		Utils\delete_option( 'ep_last_index' );
-		Utils\update_option( 'ep_last_syncs', [ $last_sync ] );
+		Utils\update_option( 'ep_sync_history', [ $last_sync ] );
 	}
 
 	/**

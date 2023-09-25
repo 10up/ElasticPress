@@ -912,7 +912,7 @@ class IndexHelper {
 				unset( $sync['errors'] );
 				return $sync;
 			},
-			$this->get_last_syncs()
+			$this->get_sync_history()
 		);
 
 		/**
@@ -928,7 +928,7 @@ class IndexHelper {
 		$last_syncs = array_slice( $last_syncs, 0, $syncs_to_keep );
 		array_unshift( $last_syncs, $last_sync_info );
 
-		Utils\update_option( 'ep_last_syncs', $last_syncs, false );
+		Utils\update_option( 'ep_sync_history', $last_syncs, false );
 	}
 
 	/**
@@ -1125,13 +1125,13 @@ class IndexHelper {
 	}
 
 	/**
-	 * Get the last syncs meta information.
+	 * Get the previous syncs meta information.
 	 *
 	 * @since 5.0.0
 	 * @return array
 	 */
-	public function get_last_syncs() : array {
-		return Utils\get_option( 'ep_last_syncs', [] );
+	public function get_sync_history() : array {
+		return Utils\get_option( 'ep_sync_history', [] );
 	}
 
 	/**
@@ -1141,7 +1141,7 @@ class IndexHelper {
 	 * @return array
 	 */
 	public function get_last_sync() : array {
-		$syncs = $this->get_last_syncs();
+		$syncs = $this->get_sync_history();
 		if ( empty( $syncs ) ) {
 			return [];
 		}
