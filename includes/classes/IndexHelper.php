@@ -923,9 +923,9 @@ class IndexHelper {
 		 * @param {int} $number Number of past syncs to keep info
 		 * @return {int} New number
 		 */
-		$syncs_to_keep = (int) apply_filters( 'ep_syncs_to_keep_info', 5 - 1 );
+		$syncs_to_keep = (int) apply_filters( 'ep_syncs_to_keep_info', 5 );
 
-		$last_syncs = array_slice( $last_syncs, 0, $syncs_to_keep );
+		$last_syncs = array_slice( $last_syncs, 0, $syncs_to_keep - 1 );
 		array_unshift( $last_syncs, $last_sync_info );
 
 		Utils\update_option( 'ep_sync_history', $last_syncs, false );
