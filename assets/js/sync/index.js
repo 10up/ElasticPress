@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 /**
  * WordPress dependencies.
  */
+import { dateI18n } from '@wordpress/date';
 import {
 	createContext,
 	useCallback,
@@ -111,7 +112,16 @@ export const SyncProvider = ({
 			const messages = Array.isArray(message) ? message : [message];
 
 			for (const message of messages) {
-				setLog((log) => [...log, { message, status, isDeleting, id: uuid() }]);
+				setLog((log) => [
+					...log,
+					{
+						message,
+						status,
+						dateTime: dateI18n('Y-m-d H:i:s', new Date()),
+						isDeleting,
+						id: uuid(),
+					},
+				]);
 			}
 		},
 		[],
