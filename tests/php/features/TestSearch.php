@@ -335,4 +335,21 @@ class TestSearch extends BaseTestCase {
 
 		$this->assertTrue( $settings['highlight_excerpt'] );
 	}
+
+	/**
+	 * Test Search settings schema
+	 *
+	 * @since 5.0.0
+	 * @group search
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_tag', 'highlight_excerpt', 'autosuggest_selector', 'trigger_ga_event', 'synonyms_editor_mode', 'additional_links' ],
+			$settings_keys
+		);
+	}
 }
