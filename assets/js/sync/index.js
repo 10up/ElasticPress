@@ -127,6 +127,18 @@ export const SyncProvider = ({
 		[],
 	);
 
+	const clearLog = useCallback(
+		/**
+		 * Clear the log.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			setLog([]);
+		},
+		[setLog],
+	);
+
 	const stopSync = useCallback(
 		/**
 		 * Stop syncing.
@@ -493,6 +505,7 @@ export const SyncProvider = ({
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
+		clearLog,
 		isCli,
 		isComplete,
 		isDeleting,
