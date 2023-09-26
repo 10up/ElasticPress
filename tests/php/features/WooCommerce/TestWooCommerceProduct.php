@@ -10,10 +10,12 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 
+require_once __DIR__ . '/WooCommerceBaseTestCase.php';
+
 /**
  * WC products test class
  */
-class TestWooCommerceProduct extends TestWooCommerce {
+class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	/**
 	 * Products instance
 	 *
