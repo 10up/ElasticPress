@@ -65,15 +65,15 @@ class Sync {
 
 		$data = [];
 
-		$ep_last_index = IndexHelper::factory()->get_last_index();
-		$indexables    = Indexables::factory()->get_all();
-		$post_types    = Indexables::factory()->get( 'post' )->get_indexable_post_types();
-		$post_types    = array_values( $post_types );
+		$ep_last_sync = IndexHelper::factory()->get_last_sync();
+		$indexables   = Indexables::factory()->get_all();
+		$post_types   = Indexables::factory()->get( 'post' )->get_indexable_post_types();
+		$post_types   = array_values( $post_types );
 
 		$data['api_url']             = rest_url( 'elasticpress/v1/sync' );
 		$data['auto_start_index']    = isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$data['ep_last_sync_date']   = ! empty( $ep_last_index['end_date_time'] ) ? $ep_last_index['end_date_time'] : false;
-		$data['ep_last_sync_failed'] = ! empty( $ep_last_index['failed'] ) || ! empty( $ep_last_index['errors'] ) ? true : false;
+		$data['ep_last_sync_date']   = ! empty( $ep_last_sync['end_date_time'] ) ? $ep_last_sync['end_date_time'] : false;
+		$data['ep_last_sync_failed'] = ! empty( $ep_last_sync['failed'] ) || ! empty( $ep_last_sync['errors'] ) ? true : false;
 		$data['index_meta']          = Utils\get_indexing_status();
 		$data['indexables']          = array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables );
 		$data['is_epio']             = Utils\is_epio();

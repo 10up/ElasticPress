@@ -152,7 +152,7 @@ class Indexables {
 	/**
 	 * Return singleton instance of class
 	 *
-	 * @return object
+	 * @return self
 	 */
 	public static function factory() {
 		static $instance = false;

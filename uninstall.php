@@ -41,7 +41,7 @@ class EP_Uninstaller {
 		'ep_prefix',
 		'ep_language',
 		'ep_bulk_setting',
-		'ep_last_index',
+		'ep_sync_history',
 
 		// Admin notices options
 		'ep_hide_host_error_notice',

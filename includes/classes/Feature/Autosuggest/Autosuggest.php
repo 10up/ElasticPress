@@ -593,13 +593,19 @@ class Autosuggest extends Feature {
 	public function intercept_search_request( $response, $query = [] ) {
 		$this->autosuggest_query = $query['args']['body'];
 
+		$message = wp_json_encode(
+			[
+				esc_html__( 'This is a fake request to build the ElasticPress Autosuggest query. It is not really sent.', 'elasticpress' ),
+			]
+		);
+
 		return [
-			'response' => [ 'code' => 200 ],
-			'body'     => wp_json_encode(
-				[
-					esc_html__( 'This is a fake request to build the ElasticPress Autosuggest query. It is not really sent.', 'elasticpress' ),
-				]
-			),
+			'is_ep_fake_request' => true,
+			'body'               => $message,
+			'response'           => [
+				'code'    => 200,
+				'message' => $message,
+			],
 		];
 	}
 
