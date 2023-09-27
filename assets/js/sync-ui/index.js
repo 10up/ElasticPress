@@ -34,20 +34,24 @@ import './style.css';
  * @returns {WPElement} App component.
  */
 const App = () => (
-	<SyncProvider
-		apiUrl={apiUrl}
-		defaultLastSyncDateTime={lastSyncDateTime}
-		defaultLastSyncFailed={lastSyncFailed}
-		indexMeta={indexMeta}
-		isEpio={isEpio}
-		nonce={nonce}
-	>
-		<SyncSettingsProvider autoIndex={autoIndex} indexables={indexables} postTypes={postTypes}>
-			<SettingsScreenProvider title={__('Sync Settings', 'elasticpress')}>
+	<SettingsScreenProvider title={__('Sync Settings', 'elasticpress')}>
+		<SyncProvider
+			apiUrl={apiUrl}
+			defaultLastSyncDateTime={lastSyncDateTime}
+			defaultLastSyncFailed={lastSyncFailed}
+			indexMeta={indexMeta}
+			isEpio={isEpio}
+			nonce={nonce}
+		>
+			<SyncSettingsProvider
+				autoIndex={autoIndex}
+				indexables={indexables}
+				postTypes={postTypes}
+			>
 				<Sync />
-			</SettingsScreenProvider>
-		</SyncSettingsProvider>
-	</SyncProvider>
+			</SyncSettingsProvider>
+		</SyncProvider>
+	</SettingsScreenProvider>
 );
 
 if (typeof createRoot === 'function') {

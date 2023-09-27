@@ -89,7 +89,6 @@
       "related-posts-block-styles": "./assets/css/related-posts-block.css",
       "status-report-styles": "./assets/css/status-report.css",
       "synonyms-styles": "./assets/css/synonyms.css",
-      "weighting-styles": "./assets/css/weighting.css",
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },
     "wpDependencyExternals": true

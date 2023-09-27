@@ -2,16 +2,15 @@
  * WordPress dependencies.
  */
 import { Button, PanelRow, TextControl } from '@wordpress/components';
-import { useDispatch } from '@wordpress/data';
 import { useMemo, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { store as noticeStore } from '@wordpress/notices';
 
 /**
  * Internal dependencies.
  */
+import { useSettingsScreen } from '../../settings-screen';
+import { useWeightingSettings } from '../provider';
 import Field from './field';
-import { useWeighting } from '../provider';
 
 /**
  * Post type propertes component.
@@ -22,10 +21,9 @@ import { useWeighting } from '../provider';
  * @returns {WPElement} Component element.
  */
 export default ({ group, postType }) => {
-	const { createNotice } = useDispatch(noticeStore);
-
+	const { createNotice } = useSettingsScreen();
 	const { currentWeightingConfiguration, setWeightingForPostType, weightableFields } =
-		useWeighting();
+		useWeightingSettings();
 
 	/**
 	 * State.

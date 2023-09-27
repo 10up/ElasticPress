@@ -2,13 +2,20 @@
  * WordPress dependencies.
  */
 import { createRoot, render, WPElement } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal Dependencies.
  */
+import { SettingsScreenProvider } from '../settings-screen';
 import { apiUrl, metaMode, syncUrl, weightableFields, weightingConfiguration } from './config';
-import WeightingProvider from './provider';
-import SettingsPage from './apps/settings-page';
+import { WeightingSettingsProvider } from './provider';
+import Weighting from './apps/weighting';
+
+/**
+ * Styles.
+ */
+import './style.css';
 
 /**
  * App component.
@@ -16,15 +23,17 @@ import SettingsPage from './apps/settings-page';
  * @returns {WPElement} App component.
  */
 const App = () => (
-	<WeightingProvider
-		apiUrl={apiUrl}
-		metaMode={metaMode}
-		syncUrl={syncUrl}
-		weightingConfiguration={weightingConfiguration}
-		weightableFields={weightableFields}
-	>
-		<SettingsPage />
-	</WeightingProvider>
+	<SettingsScreenProvider title={__('Manage Search Fields & Weighting', 'elasticpress')}>
+		<WeightingSettingsProvider
+			apiUrl={apiUrl}
+			metaMode={metaMode}
+			syncUrl={syncUrl}
+			weightingConfiguration={weightingConfiguration}
+			weightableFields={weightableFields}
+		>
+			<Weighting />
+		</WeightingSettingsProvider>
+	</SettingsScreenProvider>
 );
 
 if (typeof createRoot === 'function') {

@@ -472,13 +472,12 @@ function action_admin_enqueue_dashboard_scripts() {
 	}
 
 	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
-		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
 			'ep_weighting_styles',
-			EP_URL . 'dist/css/weighting-styles.css',
-			Utils\get_asset_info( 'weighting-styles', 'dependencies' ),
-			Utils\get_asset_info( 'weighting-styles', 'version' )
+			EP_URL . 'dist/css/weighting-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'weighting-script', 'version' )
 		);
 
 		wp_enqueue_script(

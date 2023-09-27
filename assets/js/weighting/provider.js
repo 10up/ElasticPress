@@ -2,10 +2,7 @@
  * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
-import { useDispatch } from '@wordpress/data';
 import { createContext, WPElement, useContext, useMemo, useState } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
-import { store as noticeStore } from '@wordpress/notices';
 
 /**
  * Instant Results context.
@@ -23,9 +20,13 @@ const Context = createContext();
  * @param {object} props.weightingConfiguration Weighting configuration, indexed by post type.
  * @returns {WPElement} Element.
  */
-export default ({ apiUrl, children, metaMode, weightableFields, weightingConfiguration }) => {
-	const { createNotice } = useDispatch(noticeStore);
-
+export const WeightingSettingsProvider = ({
+	apiUrl,
+	children,
+	metaMode,
+	weightableFields,
+	weightingConfiguration,
+}) => {
 	const [currentWeightingConfiguration, setCurrentWeightingConfiguration] = useState({
 		...weightingConfiguration,
 	});
@@ -57,9 +58,9 @@ export default ({ apiUrl, children, metaMode, weightableFields, weightingConfigu
 	 * @returns {void}
 	 */
 	const save = async () => {
-		try {
-			setIsBusy(true);
+		setIsBusy(true);
 
+		try {
 			await apiFetch({
 				body: JSON.stringify(currentWeightingConfiguration),
 				headers: {
@@ -68,16 +69,9 @@ export default ({ apiUrl, children, metaMode, weightableFields, weightingConfigu
 				method: 'POST',
 				url: apiUrl,
 			});
-
-			createNotice('success', __('Settings saved.', 'elasticpress'), {
-				isDismissible: true,
-			});
 		} catch (e) {
 			console.error(e); // eslint-disable-line no-console
-
-			createNotice('error', __('Something went wrong. Please try again.', 'elasticpress'), {
-				isDismissible: true,
-			});
+			throw e;
 		} finally {
 			setIsBusy(false);
 		}
@@ -104,6 +98,6 @@ export default ({ apiUrl, children, metaMode, weightableFields, weightingConfigu
  *
  * @returns {object} API Search Context.
  */
-export const useWeighting = () => {
+export const useWeightingSettings = () => {
 	return useContext(Context);
 };

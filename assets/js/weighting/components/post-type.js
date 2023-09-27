@@ -7,7 +7,7 @@ import { WPElement } from '@wordpress/element';
 /**
  * Internal dependencies.
  */
-import { useWeighting } from '../provider';
+import { useWeightingSettings } from '../provider';
 import Group from './group';
 
 /**
@@ -18,7 +18,7 @@ import Group from './group';
  * @returns {WPElement} Component element.
  */
 export default ({ postType }) => {
-	const { isManual, weightableFields } = useWeighting();
+	const { isManual, weightableFields } = useWeightingSettings();
 
 	const { label, groups } = weightableFields.find((f) => f.key === postType);
 
