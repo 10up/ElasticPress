@@ -13,6 +13,23 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+
+## [4.7.2] - 2023-10-XX
+
+**Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
+
+### Added
+* >=PHP 7.0 version check. Props [@bmarshall511](https://github.com/bmarshall511) and [@felipeelia](https://github.com/felipeelia) via [#3641](https://github.com/10up/ElasticPress/pull/3641).
+
+### Fixed
+* Updated phpDoc entries. Props [@renatonascalves](https://github.com/renatonascalves) via [#3635](https://github.com/10up/ElasticPress/pull/3635).
+* Call composer while building docs. Props [@felipeelia](https://github.com/felipeelia) via [#3625](https://github.com/10up/ElasticPress/pull/3625).
+* Make sure `post__not_in` is translated into an array, not an object. Props [@felipeelia](https://github.com/felipeelia) via [#3652](https://github.com/10up/ElasticPress/pull/3652).
+* Docblock for `Utils\get_option` return type. Props [@felipeelia](https://github.com/felipeelia) via [#3653](https://github.com/10up/ElasticPress/pull/3653).
+* PHP warning related to the Autosuggest template generation. Props [@felipeelia](https://github.com/felipeelia) via [#3651](https://github.com/10up/ElasticPress/pull/3651).
+* WooCommerce unit tests running multiple times. Props [@felipeelia](https://github.com/felipeelia) via [#3656](https://github.com/10up/ElasticPress/pull/3656).
+* Display the meta range facet block in versions prior to WP 6.1. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#3658](https://github.com/10up/ElasticPress/pull/3658).
+
 ## [4.7.1] - 2023-08-31
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
@@ -1926,6 +1943,8 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[4.7.2]: https://github.com/10up/ElasticPress/compare/4.7.1...4.7.2
+[4.7.1]: https://github.com/10up/ElasticPress/compare/4.7.0...4.7.1
 [4.7.0]: https://github.com/10up/ElasticPress/compare/4.6.1...4.7.0
 [4.6.1]: https://github.com/10up/ElasticPress/compare/4.6.0...4.6.1
 [4.6.0]: https://github.com/10up/ElasticPress/compare/4.5.2...4.6.0
