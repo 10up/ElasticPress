@@ -323,7 +323,7 @@ class WooCommerce extends Feature {
 		$this->settings_schema = [
 			[
 				'default'  => '0',
-				'editable' => ! $available,
+				'readonly' => ! $available,
 				'help'     => $message,
 				'key'      => 'orders',
 				'label'    => __( 'Orders Autosuggest', 'elasticpress' ),
