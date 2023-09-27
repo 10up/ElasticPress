@@ -19,6 +19,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Block {
 	/**
+	 * The renderer instance.
+	 *
+	 * @var Renderer
+	 */
+	public $renderer;
+
+	/**
 	 * Hook block funcionality.
 	 */
 	public function setup() {
