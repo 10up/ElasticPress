@@ -195,7 +195,7 @@ class Sync {
 		wp_send_json_success(
 			[
 				'is_finished' => true,
-				'totals'      => Utils\get_option( 'ep_last_index' ),
+				'totals'      => IndexHelper::factory()->get_last_sync(),
 			]
 		);
 	}
