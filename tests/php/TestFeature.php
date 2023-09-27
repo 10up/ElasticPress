@@ -26,21 +26,29 @@ class TestFeature extends BaseTestCase {
 		$stub->docs_url         = 'https://elasticpress.io/';
 		$stub->default_settings = [];
 		$stub->order            = 1;
-		$stub->is_available     = true;
+
+		add_filter(
+			'ep_feature_requirements_status',
+			function() {
+				return new \ElasticPress\FeatureRequirementsStatus( 2, 'Testing' );
+			}
+		);
 
 		$expected = [
-			'slug'            => 'slug',
-			'title'           => 'title',
-			'shortTitle'      => 'short_title',
-			'summary'         => 'summary',
-			'docsUrl'         => 'https://elasticpress.io/',
-			'defaultSettings' => [],
-			'order'           => 1,
-			'isAvailable'     => true,
-			'settingsSchema'  => [
+			'slug'              => 'slug',
+			'title'             => 'title',
+			'shortTitle'        => 'short_title',
+			'summary'           => 'summary',
+			'docsUrl'           => 'https://elasticpress.io/',
+			'defaultSettings'   => [],
+			'order'             => 1,
+			'isAvailable'       => false, // Set by status code 2
+			'reqStatusCode'     => 2,
+			'reqStatusMessages' => 'Testing',
+			'settingsSchema'    => [
 				[
+					'default'       => false,
 					'key'           => 'active',
-					'default'       => true,
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
 					'type'          => 'checkbox',
@@ -71,8 +79,8 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'key'           => 'active',
 					'default'       => true,
+					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
 					'type'          => 'checkbox',
@@ -105,8 +113,8 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'key'           => 'active',
 					'default'       => true,
+					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
 					'type'          => 'checkbox',
