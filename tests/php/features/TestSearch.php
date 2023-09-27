@@ -347,9 +347,11 @@ class TestSearch extends BaseTestCase {
 
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
-		$this->assertSame(
-			[ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_tag', 'highlight_excerpt', 'autosuggest_selector', 'trigger_ga_event', 'synonyms_editor_mode', 'additional_links' ],
-			$settings_keys
-		);
+		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_tag', 'highlight_excerpt', 'autosuggest_selector', 'trigger_ga_event', 'synonyms_editor_mode' ];
+		if ( is_multisite() ) {
+			$expected[] = 'additional_links';
+		}
+
+		$this->assertSame( $expected, $settings_keys );
 	}
 }
