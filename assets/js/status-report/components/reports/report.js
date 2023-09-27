@@ -28,7 +28,7 @@ export default ({ actions, groups, id, messages, title }) => {
 	}
 
 	return (
-		<Panel id={title}>
+		<Panel id={title} className="ep-status-report">
 			<PanelHeader>
 				<h2 id={id}>{title}</h2>
 				{actions.map(({ href, label }) => (
