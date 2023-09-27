@@ -58,6 +58,8 @@ class Autosuggest extends Feature {
 
 		$this->available_during_installation = true;
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -853,6 +855,76 @@ class Autosuggest extends Feature {
 	 */
 	public function intercept_remote_request() {
 		return true;
+	}
+
+	/**
+	 * Conditionally add EP.io information to the settings schema
+	 *
+	 * @since 5.0.0
+	 */
+	protected function maybe_add_epio_settings_schema() {
+		$allowed_params = $this->epio_autosuggest_set_and_get();
+		if ( empty( $allowed_params ) ) {
+			return;
+		}
+
+		$epio_link                = 'https://elasticpress.io';
+		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
+
+		$this->settings_schema[] = [
+			'default' => sprintf(
+				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
+				__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
+				'<a href="' . esc_url( $epio_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $status_report_link ) . '">',
+				'</a>'
+			),
+			'key'     => 'epio',
+			'label'   => __( 'Connection', 'elasticpress' ),
+			'type'    => 'markup',
+		];
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '.ep-autosuggest',
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
+				'key'     => 'autosuggest_selector',
+				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
+				'type'    => 'text',
+			],
+			[
+				'key'   => 'trigger_ga_event',
+				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
+				'label' => __( 'Google Analytics Events', 'elasticpress' ),
+				'type'  => 'checkbox',
+			],
+		];
+
+		if ( Utils\is_epio() ) {
+			$this->maybe_add_epio_settings_schema();
+			return;
+		}
+
+		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
+
+		$this->settings_schema[] = [
+			'readonly' => $set_in_wp_config,
+			'help'     => $set_in_wp_config ? __( 'This address will be exposed to the public.', 'elasticpress' ) : '',
+			'key'      => 'endpoint_url',
+			'label'    => __( 'Endpoint URL', 'elasticpress' ),
+			'type'     => 'url',
+		];
 	}
 
 	/**

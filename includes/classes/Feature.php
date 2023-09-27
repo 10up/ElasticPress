@@ -119,6 +119,14 @@ abstract class Feature {
 	protected $is_visible = true;
 
 	/**
+	 * Settings description
+	 *
+	 * @since 5.0.0
+	 * @var array
+	 */
+	protected $settings_schema = [];
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -502,5 +510,65 @@ abstract class Feature {
 		 * @return {bool} New $is_available value
 		 */
 		return apply_filters( 'ep_feature_is_available', $this->is_visible && 2 !== $requirements_status->code, $this->slug, $this );
+	}
+
+	/**
+	 * Get a JSON representation of the feature
+	 *
+	 * @since 5.0.0
+	 * @return string
+	 */
+	public function get_json() {
+		$requirements_status = $this->requirements_status();
+
+		$feature_desc = [
+			'slug'              => $this->slug,
+			'title'             => $this->get_title(),
+			'shortTitle'        => $this->get_short_title(),
+			'summary'           => $this->summary,
+			'docsUrl'           => $this->docs_url,
+			'defaultSettings'   => $this->default_settings,
+			'order'             => $this->order,
+			'isAvailable'       => $this->is_available(),
+			'reqStatusCode'     => $requirements_status->code,
+			'reqStatusMessages' => $requirements_status->message,
+			'settingsSchema'    => $this->get_settings_schema(),
+		];
+		return wp_json_encode( $feature_desc );
+	}
+
+	/**
+	 * Return the feature settings schema
+	 *
+	 * @since 5.0.0
+	 * @return array
+	 */
+	public function get_settings_schema() {
+		$req_status = $this->requirements_status();
+
+		$active = [
+			'default'       => 0 === $req_status->code,
+			'key'           => 'active',
+			'label'         => __( 'Enabled', 'elasticpress' ),
+			'requires_sync' => $this->requires_install_reindex,
+			'type'          => 'checkbox',
+		];
+
+		$settings_schema = [
+			$active,
+			...$this->settings_schema,
+		];
+
+		/**
+		 * Filter the settings schema of a feature
+		 *
+		 * @hook ep_feature_is_available
+		 * @since 5.0.0
+		 * @param {array}   $settings_schema True if the feature is available
+		 * @param {string}  $feature_slug    Feature slug
+		 * @param {Feature} $feature         Feature object
+		 * @return {array} New $settings_schema value
+		 */
+		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
 	}
 }
