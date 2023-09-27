@@ -132,8 +132,8 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		$renderer       = new $renderer_class();
 
 		/**
-		 * Before WP 6.1, setting `viewScript` while having a `render_callback` function
-		 * did not enqueue the script.
+		 * Prior to WP 6.1, if you set `viewScript` while using a `render_callback` function,
+		 * the script was not enqueued.
 		 *
 		 * @see https://core.trac.wordpress.org/changeset/54367
 		 */
