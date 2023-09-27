@@ -519,16 +519,20 @@ abstract class Feature {
 	 * @return string
 	 */
 	public function get_json() {
+		$requirements_status = $this->requirements_status();
+
 		$feature_desc = [
-			'slug'            => $this->slug,
-			'title'           => $this->get_title(),
-			'shortTitle'      => $this->get_short_title(),
-			'summary'         => $this->summary,
-			'docsUrl'         => $this->docs_url,
-			'defaultSettings' => $this->default_settings,
-			'order'           => $this->order,
-			'isAvailable'     => $this->is_available(),
-			'settingsSchema'  => $this->get_settings_schema(),
+			'slug'              => $this->slug,
+			'title'             => $this->get_title(),
+			'shortTitle'        => $this->get_short_title(),
+			'summary'           => $this->summary,
+			'docsUrl'           => $this->docs_url,
+			'defaultSettings'   => $this->default_settings,
+			'order'             => $this->order,
+			'isAvailable'       => $this->is_available(),
+			'reqStatusCode'     => $requirements_status->code,
+			'reqStatusMessages' => $requirements_status->message,
+			'settingsSchema'    => $this->get_settings_schema(),
 		];
 		return wp_json_encode( $feature_desc );
 	}

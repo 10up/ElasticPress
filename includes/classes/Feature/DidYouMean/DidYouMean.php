@@ -433,15 +433,15 @@ class DidYouMean extends Feature {
 					[
 						[
 							'label' => __( 'Display the top suggestion', 'elasticpress' ),
-							'key'   => 0,
+							'value' => 0,
 						],
 						[
 							'label' => __( 'Display all the suggestions', 'elasticpress' ),
-							'key'   => 'list',
+							'value' => 'list',
 						],
 						[
 							'label' => __( 'Automatically redirect the user to the top suggestion', 'elasticpress' ),
-							'key'   => 'redirect',
+							'value' => 'redirect',
 						],
 					],
 				],
