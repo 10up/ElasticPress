@@ -49,7 +49,6 @@ export default () => {
 		<div className="ep-sync-advanced-control">
 			<FormTokenField
 				disabled={isSyncing}
-				help={__('Help!', 'elasticpress')}
 				label={__('Object IDs', 'elasticpress')}
 				onChange={onChange}
 				saveTransform={saveTransform}
