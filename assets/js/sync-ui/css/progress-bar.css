@@ -7,13 +7,14 @@
 
 .ep-sync-progress-bar,
 .ep-sync-progress-bar__progress {
-	border-radius: 0.875em;
+	border-radius: 4px;
 }
 
 .ep-sync-progress-bar__progress {
 	background: var(--wp-admin-theme-color);
 	color: var(--ep-sync-color-white);
-	padding: 0 0.875em;
+	height: 8px;
+	padding: 0 8px;
 	transition: all 500ms ease-in-out;
 	white-space: nowrap;
 

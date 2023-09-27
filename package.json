@@ -88,7 +88,6 @@
       "facets-block-styles": "./assets/css/facets-block.css",
       "related-posts-block-styles": "./assets/css/related-posts-block.css",
       "status-report-styles": "./assets/css/status-report.css",
-      "sync-styles": "./assets/css/sync.css",
       "synonyms-styles": "./assets/css/synonyms.css",
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },

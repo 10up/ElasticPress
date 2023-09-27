@@ -10,22 +10,18 @@
 }
 
 .ep-sync-progress {
-	align-items: center;
+	align-items: start;
 	display: grid;
-	grid-row-gap: 1rem;
-	grid-template-columns: min-content minmax(max-content, 1fr) 3fr;
-	margin-bottom: 1rem;
-
-	@media (max-width: 960px) {
-		grid-template-columns: min-content auto;
-	}
+	grid-column-gap: 4px;
+	grid-row-gap: 16px;
+	grid-template-columns: min-content auto;
+	margin-bottom: 16px;
 
 	& svg {
 		animation: epSyncRotation 1500ms infinite linear;
 		animation-play-state: paused;
-		height: 36px;
-		margin-right: 12px;
-		width: 36px;
+		height: 24px;
+		width: 24px;
 	}
 }
 
@@ -40,13 +36,10 @@
 
 	& strong {
 		display: block;
-		font-size: 14px;
+		line-height: 24px;
 	}
 }
 
 .ep-sync-progress__progress-bar {
-
-	@media (max-width: 960px) {
-		grid-column: 1 / -1;
-	}
+	grid-column: 1 / -1;
 }
