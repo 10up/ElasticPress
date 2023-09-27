@@ -1912,7 +1912,7 @@ class Post extends Indexable {
 			'bool' => [
 				'must_not' => [
 					'terms' => [
-						'post_id' => (array) $args['post__not_in'],
+						'post_id' => array_values( (array) $args['post__not_in'] ),
 					],
 				],
 			],

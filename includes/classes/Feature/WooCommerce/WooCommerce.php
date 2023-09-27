@@ -74,6 +74,8 @@ class WooCommerce extends Feature {
 		$this->products           = new Products( $this );
 		$this->orders_autosuggest = new OrdersAutosuggest();
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -292,6 +294,52 @@ class WooCommerce extends Feature {
 	 */
 	public function is_orders_autosuggest_enabled() : bool {
 		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$available = $this->is_orders_autosuggest_available();
+
+		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest';
+
+		$message = ( $available ) ?
+			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+			__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable Orders Autosuggest to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
+			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+			__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
+
+		$message = sprintf(
+			wp_kses( $message, 'ep-html' ),
+			'<a href="https://elasticpress.io/" target="_blank">',
+			'</a>',
+			'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
+			'</a>'
+		);
+
+		$this->settings_schema = [
+			[
+				'default'  => '0',
+				'readonly' => ! $available,
+				'help'     => $message,
+				'key'      => 'orders',
+				'label'    => __( 'Orders Autosuggest', 'elasticpress' ),
+				'options'  => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'     => 'radio',
+			],
+		];
 	}
 
 	/**

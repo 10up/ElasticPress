@@ -1,0 +1,21 @@
+.ep-sync-messages {
+	align-content: start;
+	background: var(--ep-sync-color-black);
+	color: var(--ep-sync-color-white);
+	display: grid;
+	font-family: monospace;
+	gap: 0 8px;
+	grid-template-columns: max-content auto;
+	height: 21em;
+	line-height: 2;
+	overflow-y: auto;
+	padding: 8px 16px;
+	white-space: pre-wrap;
+}
+
+.ep-sync-messages__line-number {
+	box-sizing: content-box;
+	min-width: 3ch;
+	opacity: 0.5;
+	text-align: right;
+}

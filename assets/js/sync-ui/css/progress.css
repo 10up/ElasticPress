@@ -1,0 +1,45 @@
+@keyframes epSyncRotation {
+
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(359deg);
+	}
+}
+
+.ep-sync-progress {
+	align-items: start;
+	display: grid;
+	grid-column-gap: 4px;
+	grid-row-gap: 16px;
+	grid-template-columns: min-content auto;
+	margin-bottom: 16px;
+
+	& svg {
+		animation: epSyncRotation 1500ms infinite linear;
+		animation-play-state: paused;
+		height: 24px;
+		width: 24px;
+	}
+}
+
+.ep-sync-progress--syncing {
+
+	& svg {
+		animation-play-state: running;
+	}
+}
+
+.ep-sync-progress__details {
+
+	& strong {
+		display: block;
+		line-height: 24px;
+	}
+}
+
+.ep-sync-progress__progress-bar {
+	grid-column: 1 / -1;
+}

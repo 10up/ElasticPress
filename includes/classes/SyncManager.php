@@ -69,8 +69,9 @@ abstract class SyncManager {
 	/**
 	 * Add an object to the sync queue.
 	 *
-	 * @param  id $object_id object ID to sync
-	 * @since  3.1.2
+	 * @since 3.1.2
+	 *
+	 * @param int $object_id Object ID to sync.
 	 * @return boolean
 	 */
 	public function add_to_queue( $object_id ) {
@@ -95,8 +96,9 @@ abstract class SyncManager {
 	/**
 	 * Remove an object from the sync queue.
 	 *
-	 * @param  id $object_id object ID to remove from the queue
-	 * @since  3.5
+	 * @since 3.5
+	 *
+	 * @param int $object_id Object ID to remove from the queue.
 	 * @return boolean
 	 */
 	public function remove_from_queue( $object_id ) {
@@ -146,7 +148,6 @@ abstract class SyncManager {
 
 		return $location;
 	}
-
 
 	/**
 	 * Sync objects in queue.

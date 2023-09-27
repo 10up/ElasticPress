@@ -305,4 +305,20 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertEquals( 2, count( $status->message ) );
 	}
 
+	/**
+	 * Test Autosuggest settings schema
+	 *
+	 * @since 5.0.0
+	 * @group autosuggest
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = $this->get_feature()->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'autosuggest_selector', 'trigger_ga_event', 'endpoint_url' ],
+			$settings_keys
+		);
+	}
 }

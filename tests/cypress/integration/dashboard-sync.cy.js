@@ -13,7 +13,7 @@ describe('Dashboard Sync', () => {
 	}
 
 	function resumeAndWait() {
-		cy.get('.ep-sync-button--resume').click();
+		cy.get('.components-button').contains('Resume sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -40,38 +40,31 @@ describe('Dashboard Sync', () => {
 		cy.get('.setup-message a').contains('Skip Install').click();
 
 		/**
-		 * If a sync has not been performed the sync page should only show a
-		 * single sync panel.
+		 * If a sync has not been performed the "Delete all data and start
+		 * fresh sync" checkbox should not appear.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-panel')
-			.should('have.length', 1)
-			.as('syncPanel')
-			.should('contain.text', 'Run a sync to index your existing content');
+		cy.contains('.components-checkbox-control', 'Delete all data').should('not.exist');
 
 		/**
 		 * Perform an initial sync.
 		 */
-		cy.get('@syncPanel').find('.ep-sync-button').click();
+		cy.contains('.components-button', 'Start sync').click();
 
 		/**
 		 * The sync log should indicate that the sync completed and that
 		 * mapping was sent.
 		 */
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
 		/**
-		 * After the initial sync is complete there should be 2 sync panels
-		 * and the second should contain the delete & sync option.
+		 * After the initial sync is complete the "Delete all data and start
+		 * fresh sync" checkbox should appear.
 		 */
-		cy.get('.ep-sync-panel')
-			.should('have.length', 2)
-			.last()
-			.should('contain.text', 'If you are still having issues with your search results');
+		cy.contains('.components-checkbox-control', 'Delete all data').should('exist');
 	});
 
 	it('Can sync via Dashboard when activated in single site', () => {
@@ -84,7 +77,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--sync').click();
+		cy.contains('.components-button', 'Start sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -112,7 +105,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--sync').click();
+		cy.contains('.components-button', 'Start sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -145,10 +138,10 @@ describe('Dashboard Sync', () => {
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
 
 		// Start sync via dashboard and pause it
-		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.ep-sync-button--sync').click();
-		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-		cy.get('.ep-sync-button--pause').should('be.visible');
+		cy.intercept('POST', '/wp-json/elasticpress/v1/sync*').as('apiRequest');
+		cy.contains('.components-button', 'Start sync').click();
+		cy.wait('@apiRequest').its('response.statusCode').should('eq', 200);
+		cy.contains('.components-button', 'Pause sync').click();
 
 		// Can not activate a feature.
 		cy.visitAdminPage('admin.php?page=elasticpress');
@@ -161,7 +154,7 @@ describe('Dashboard Sync', () => {
 
 		// Check if it is paused
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-button--resume').should('be.visible');
+		cy.contains('.components-button', 'Resume sync').should('be.visible');
 		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync paused');
 
 		resumeAndWait();
@@ -175,30 +168,23 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Should only display a single sync option if index is deleted', () => {
-		// Enable Terms
-		cy.wpCli('wp elasticpress activate-feature terms', true);
+		cy.wpCli('wp elasticpress delete-index --yes', true);
 
 		/**
-		 * The sync page should only show a
-		 * single sync panel.
+		 * If an index is missing the "Delete all data and start fresh sync"
+		 * checkbox should not appear.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-panel')
-			.should('have.length', 1)
-			.as('syncPanel')
-			.should('contain.text', 'Run a sync to index your existing content');
+		cy.contains('.components-checkbox-control', 'Delete all data').should('not.exist');
 
-		// Send mapping of the deleted index
-		cy.wpCli('wp elasticpress put-mapping --indexables=term');
+		// Send mapping
+		cy.wpCli('wp elasticpress put-mapping');
 
 		/**
-		 * After the mapping is sent there should be 2 sync panels
-		 * and the second should contain the delete & sync option.
+		 * After the mapping is sent the "Delete all data and start fresh
+		 * sync" checkbox should appear.
 		 */
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.ep-sync-panel')
-			.should('have.length', 2)
-			.last()
-			.should('contain.text', 'If you are still having issues with your search results');
+		cy.reload();
+		cy.contains('.components-checkbox-control', 'Delete all data').should('exist');
 	});
 });

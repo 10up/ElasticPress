@@ -1,0 +1,11 @@
+.ep-sync-controls {
+	display: grid;
+	grid-gap: 8px;
+	grid-template-columns: max-content max-content auto;
+	margin-bottom: 16px;
+
+	& .is-link {
+		grid-column: -1;
+		justify-self: end;
+	}
+}

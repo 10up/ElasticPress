@@ -159,7 +159,7 @@ class TestStatusReport extends BaseTestCase {
 		$last_index['total_time']      = microtime( true ) - $start_time;
 		$last_index['method']          = 'cli';
 		$last_index['is_full_sync']    = 'Yes';
-		Utils\update_option( 'ep_last_index', $last_index );
+		Utils\update_option( 'ep_sync_history', [ $last_index ] );
 
 		$expected_result = array(
 			array(
