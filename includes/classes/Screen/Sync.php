@@ -63,22 +63,27 @@ class Sync {
 			Utils\get_asset_info( 'sync-script', 'version' )
 		);
 
-		$data = [];
+		$indexables = Indexables::factory()->get_all();
 
-		$ep_last_sync = IndexHelper::factory()->get_last_sync();
-		$indexables   = Indexables::factory()->get_all();
-		$post_types   = Indexables::factory()->get( 'post' )->get_indexable_post_types();
-		$post_types   = array_values( $post_types );
+		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
+		$indices_missing    = count( $indices_comparison['missing_indices'] ) > 0;
 
-		$data['api_url']             = rest_url( 'elasticpress/v1/sync' );
-		$data['auto_start_index']    = isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$data['ep_last_sync_date']   = ! empty( $ep_last_sync['end_date_time'] ) ? $ep_last_sync['end_date_time'] : false;
-		$data['ep_last_sync_failed'] = ! empty( $ep_last_sync['failed'] ) || ! empty( $ep_last_sync['errors'] ) ? true : false;
-		$data['index_meta']          = Utils\get_indexing_status();
-		$data['indexables']          = array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables );
-		$data['is_epio']             = Utils\is_epio();
-		$data['nonce']               = wp_create_nonce( 'wp_rest' );
-		$data['post_types']          = array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types );
+		$last_sync = ! $indices_missing ? IndexHelper::factory()->get_last_sync() : [];
+
+		$post_types = Indexables::factory()->get( 'post' )->get_indexable_post_types();
+		$post_types = array_values( $post_types );
+
+		$data = [
+			'apiUrl'           => rest_url( 'elasticpress/v1/sync' ),
+			'autoIndex'        => isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'indexMeta'        => Utils\get_indexing_status(),
+			'lastSyncDateTime' => ! empty( $last_sync['end_date_time'] ) ? $last_sync['end_date_time'] : null,
+			'lastSyncFailed'   => ! empty( $last_sync['failed'] ) || ! empty( $last_sync['errors'] ) ? true : false,
+			'indexables'       => array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
+			'isEpio'           => Utils\is_epio(),
+			'nonce'            => wp_create_nonce( 'wp_rest' ),
+			'postTypes'        => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),
+		];
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
 	}

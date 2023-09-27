@@ -2,15 +2,15 @@
  * Window dependencies.
  */
 const {
-	auto_start_index: autoIndex,
-	api_url: apiUrl,
-	index_meta: indexMeta = null,
+	autoIndex,
+	apiUrl,
+	indexMeta,
 	indexables,
-	is_epio: isEpio,
-	ep_last_sync_date: lastSyncDateTime = null,
-	ep_last_sync_failed: lastSyncFailed = false,
+	isEpio,
+	lastSyncDateTime,
+	lastSyncFailed,
 	nonce,
-	post_types: postTypes,
+	postTypes,
 } = window.epDash;
 
 export {

@@ -44,20 +44,19 @@ describe('Dashboard Sync', () => {
 		 * fresh sync" checkbox should not appear.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.components-checkbox-control').contains('Delete all data').should('not.exist');
+		cy.contains('.components-checkbox-control', 'Delete all data').should('not.exist');
 
 		/**
 		 * Perform an initial sync.
 		 */
-		cy.get('@syncPanel').find('.ep-sync-button').click();
+		cy.contains('.components-button', 'Start sync').click();
 
 		/**
 		 * The sync log should indicate that the sync completed and that
 		 * mapping was sent.
 		 */
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
@@ -65,7 +64,7 @@ describe('Dashboard Sync', () => {
 		 * After the initial sync is complete the "Delete all data and start
 		 * fresh sync" checkbox should appear.
 		 */
-		cy.get('.components-checkbox-control').contains('Delete all data').should('exist');
+		cy.contains('.components-checkbox-control', 'Delete all data').should('exist');
 	});
 
 	it('Can sync via Dashboard when activated in single site', () => {
@@ -78,7 +77,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.components-button').contains('Start sync').click();
+		cy.contains('.components-button', 'Start sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -106,7 +105,7 @@ describe('Dashboard Sync', () => {
 		);
 
 		cy.visitAdminPage('network/admin.php?page=elasticpress-sync');
-		cy.get('.components-button').contains('Start sync').click();
+		cy.contains('.components-button', 'Start sync').click();
 		cy.get('.ep-sync-progress strong', {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
@@ -140,9 +139,9 @@ describe('Dashboard Sync', () => {
 
 		// Start sync via dashboard and pause it
 		cy.intercept('POST', '/wp-json/elasticpress/v1/sync*').as('apiRequest');
-		cy.get('.components-button').contains('Resume sync').click();
+		cy.contains('.components-button', 'Start sync').click();
 		cy.wait('@apiRequest').its('response.statusCode').should('eq', 200);
-		cy.get('.components-button').contains('Pause sync').click();
+		cy.contains('.components-button', 'Pause sync').click();
 
 		// Can not activate a feature.
 		cy.visitAdminPage('admin.php?page=elasticpress');
@@ -155,7 +154,7 @@ describe('Dashboard Sync', () => {
 
 		// Check if it is paused
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.components-button').contains('Resume sync').should('be.visible');
+		cy.contains('.components-button', 'Resume sync').should('be.visible');
 		cy.get('.ep-sync-progress strong').should('contain.text', 'Sync paused');
 
 		resumeAndWait();
@@ -169,23 +168,23 @@ describe('Dashboard Sync', () => {
 	});
 
 	it('Should only display a single sync option if index is deleted', () => {
-		// Enable Terms
-		cy.wpCli('wp elasticpress activate-feature terms', true);
+		cy.wpCli('wp elasticpress delete-index --yes', true);
 
 		/**
 		 * If an index is missing the "Delete all data and start fresh sync"
 		 * checkbox should not appear.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.get('.components-checkbox-control').contains('Delete all data').should('not.exist');
+		cy.contains('.components-checkbox-control', 'Delete all data').should('not.exist');
 
-		// Send mapping of the deleted index
-		cy.wpCli('wp elasticpress put-mapping --indexables=term');
+		// Send mapping
+		cy.wpCli('wp elasticpress put-mapping');
 
 		/**
 		 * After the mapping is sent the "Delete all data and start fresh
 		 * sync" checkbox should appear.
 		 */
-		cy.get('.components-checkbox-control').contains('Delete all data').should('exist');
+		cy.reload();
+		cy.contains('.components-checkbox-control', 'Delete all data').should('exist');
 	});
 });

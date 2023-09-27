@@ -254,16 +254,8 @@ export const SyncProvider = ({
 		 * @returns {void}
 		 */
 		(indexMeta) => {
-			const isInitialSync = stateRef.current.lastSyncDateTime === null;
-
-			/**
-			 * We should not appear to be deleting if this is the first sync.
-			 */
-			const isDeleting = isInitialSync ? false : indexMeta.put_mapping;
-
 			updateState({
 				isCli: indexMeta.method === 'cli',
-				isDeleting,
 				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
