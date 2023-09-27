@@ -663,7 +663,13 @@ class Facets extends Feature {
 	 * @since 5.0.0
 	 */
 	public function setup_endpoints() {
-		$controller = new REST\Facets();
-		$controller->register_routes();
+		$meta_keys = new REST\MetaKeys();
+		$meta_keys->register_routes();
+
+		$meta_range = new REST\MetaRange();
+		$meta_range->register_routes();
+
+		$taxonomies = new REST\Taxonomies();
+		$taxonomies->register_routes();
 	}
 }

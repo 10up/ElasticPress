@@ -112,8 +112,6 @@ class SearchOrdering {
 	 * @return array
 	 */
 	public function get_preview( $request ) {
-		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
-
 		$search = $request->get_param( 's' );
 
 		$query = new \WP_Query(
@@ -122,8 +120,6 @@ class SearchOrdering {
 				'exclude_pointers' => true,
 			]
 		);
-
-		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
 
 		return $query->posts;
 	}

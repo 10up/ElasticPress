@@ -21,18 +21,20 @@ class RelatedPosts {
 	/**
 	 * Register routes.
 	 *
+	 * Registers the route using its own endpoint and the previous core
+	 * endpoint, for backwards compatibility.
+	 *
 	 * @return void
 	 */
 	public function register_routes() {
-		register_rest_route(
-			'wp/v2',
-			'/posts/(?P<id>[0-9]+)/related',
-			[
-				'args'     => $this->get_args(),
-				'callback' => [ $this, 'get_posts' ],
-				'methods'  => 'GET',
-			]
-		);
+		$args = [
+			'args'     => $this->get_args(),
+			'callback' => [ $this, 'get_posts' ],
+			'methods'  => 'GET',
+		];
+
+		register_rest_route( 'elasticpress/v1', 'related-posts/(?P<id>[0-9]+)', $args );
+		register_rest_route( 'wp/v2', 'posts/(?P<id>[0-9]+)/related', $args );
 	}
 
 
