@@ -13,7 +13,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.
@@ -1031,6 +1031,10 @@ class IndexHelper {
 			'status'     => $type,
 		];
 
+		if ( in_array( $type, [ 'warning', 'error' ], true ) ) {
+			$message['errors'] = $this->build_message_errors_data( $message_text );
+		}
+
 		if ( is_callable( $this->args['output_method'] ) ) {
 			call_user_func( $this->args['output_method'], $message, $this->args, $this->index_meta, $context );
 		}
@@ -1464,6 +1468,24 @@ class IndexHelper {
 			$next_message = array_shift( $this->index_meta['messages_queue'] );
 			$this->output( $next_message['text'], $next_message['type'], $next_message['context'] );
 		}
+	}
+
+	/**
+	 * Get data for a given error message(s)
+	 *
+	 * @since 5.0.0
+	 * @param string|array $messages Messages
+	 * @return array
+	 */
+	protected function build_message_errors_data( $messages ) : array {
+		$messages          = (array) $messages;
+		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
+
+		$errors_data = [];
+		foreach ( $messages as $message ) {
+			$errors_data[] = $error_interpreter->maybe_suggest_solution_for_es( $message );
+		}
+		return $errors_data;
 	}
 
 	/**
