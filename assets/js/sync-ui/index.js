@@ -13,12 +13,11 @@ import {
 	apiUrl,
 	autoIndex,
 	indexables,
-	lastSyncDateTime,
-	lastSyncFailed,
 	indexMeta,
 	isEpio,
-	postTypes,
 	nonce,
+	postTypes,
+	syncHistory,
 } from './config';
 import { SyncSettingsProvider } from './provider';
 import Sync from './apps/sync';
@@ -36,8 +35,7 @@ import './style.css';
 const App = () => (
 	<SyncProvider
 		apiUrl={apiUrl}
-		defaultLastSyncDateTime={lastSyncDateTime}
-		defaultLastSyncFailed={lastSyncFailed}
+		defaultSyncHistory={syncHistory}
 		indexMeta={indexMeta}
 		isEpio={isEpio}
 		nonce={nonce}
