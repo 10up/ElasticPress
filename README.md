@@ -26,7 +26,7 @@ ElasticPress requires these software with the following versions:
 
 * [Elasticsearch](https://www.elastic.co) 5.2+ **ElasticSearch max version supported: 7.10**
 * [WordPress](https://wordpress.org) 5.6+
-* [PHP](https://php.net/) 7.0+
+* [PHP](https://php.net/) 7.4+
 
 ### Compatibility
 

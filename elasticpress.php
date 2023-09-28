@@ -5,7 +5,7 @@
  * Description:       A fast and flexible search and query engine for WordPress.
  * Version:           4.7.1
  * Requires at least: 5.6
- * Requires PHP:      7.0
+ * Requires PHP:      7.4
  * Author:            10up
  * Author URI:        https://10up.com
  * License:           GPL v2 or later
@@ -34,7 +34,7 @@ define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
 define( 'EP_VERSION', '4.7.1' );
 
-define( 'EP_PHP_VERSION_MIN', '7.0' );
+define( 'EP_PHP_VERSION_MIN', '7.4' );
 
 if ( ! version_compare( phpversion(), EP_PHP_VERSION_MIN, '>=' ) ) {
 	add_action(
