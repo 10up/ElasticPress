@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
  * Version:           4.7.1
- * Requires at least: 5.6
+ * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            10up
  * Author URI:        https://10up.com

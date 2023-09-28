@@ -2,10 +2,15 @@
 
 ElasticPress, a fast and flexible search and query engine for WordPress, enables WordPress to find or “query” relevant content extremely fast through a variety of highly customizable features. WordPress out-of-the-box struggles to analyze content relevancy and can be very slow. ElasticPress supercharges your WordPress website making for happier users and administrators. The plugin even contains features for popular plugins.
 
+**ElasticPress 5.0:** Minimum versions required for ElasticPress 5.0 are:
+* [Elasticsearch](https://www.elastic.co) 5.2+
+* [WordPress](https://wordpress.org) 6.0+
+* [PHP](https://php.net/) 7.4+
+
 **ElasticPress 4.0:** Minimum versions required for ElasticPress 4.0 are:
 * [Elasticsearch](https://www.elastic.co) 5.2+ **ElasticSearch max version supported: 7.10**
 * [WordPress](https://wordpress.org) 5.6+
-* [PHP](https://php.net/) 7.4+
+* [PHP](https://php.net/) 7.0+
 
 **ElasticPress 3.0:** ElasticPress 3.0 contains major changes from 2.x including a rewrite of the feature registration API and PHP 5.4+ features. If you have problems upgrading, please create an issue. The minimum PHP version for ElasticPress 3.6.2 is 5.6.
 
