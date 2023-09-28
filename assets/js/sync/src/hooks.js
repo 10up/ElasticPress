@@ -161,16 +161,20 @@ export const useIndex = (apiUrl, nonce) => {
 		/**
 		 * Send a request to sync.
 		 *
-		 * @param {boolean} putMapping Whether to put mapping.
+		 * @param {object} args Sync args.
 		 * @returns {Promise} Fetch request promise.
 		 */
-		async (putMapping) => {
+		async (args) => {
 			abort.current.abort();
 			abort.current = new AbortController();
 
 			const url = new URL(apiUrl);
 
-			url.searchParams.append('put_mapping', putMapping);
+			Object.keys(args).forEach((arg) => {
+				if (args[arg]) {
+					url.searchParams.append(arg, args[arg]);
+				}
+			});
 
 			const options = {
 				headers: {

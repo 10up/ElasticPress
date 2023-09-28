@@ -2,21 +2,31 @@
  * WordPress dependencies.
  */
 import { createRoot, render, WPElement } from '@wordpress/element';
-import { SyncProvider } from '../sync';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { SettingsScreenProvider } from '../settings-screen';
+import { SyncProvider } from '../sync';
 import {
 	apiUrl,
 	autoIndex,
+	indexables,
 	lastSyncDateTime,
 	lastSyncFailed,
 	indexMeta,
 	isEpio,
+	postTypes,
 	nonce,
 } from './config';
-import SettingsPage from './apps/settings-page';
+import { SyncSettingsProvider } from './provider';
+import Sync from './apps/sync';
+
+/**
+ * Styles.
+ */
+import './style.css';
 
 /**
  * App component.
@@ -26,14 +36,17 @@ import SettingsPage from './apps/settings-page';
 const App = () => (
 	<SyncProvider
 		apiUrl={apiUrl}
-		autoIndex={autoIndex}
 		defaultLastSyncDateTime={lastSyncDateTime}
 		defaultLastSyncFailed={lastSyncFailed}
 		indexMeta={indexMeta}
 		isEpio={isEpio}
 		nonce={nonce}
 	>
-		<SettingsPage />
+		<SyncSettingsProvider autoIndex={autoIndex} indexables={indexables} postTypes={postTypes}>
+			<SettingsScreenProvider title={__('Sync Settings', 'elasticpress')}>
+				<Sync />
+			</SettingsScreenProvider>
+		</SyncSettingsProvider>
 	</SyncProvider>
 );
 

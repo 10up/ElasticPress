@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 /**
  * WordPress dependencies.
  */
+import { dateI18n } from '@wordpress/date';
 import {
 	createContext,
 	useCallback,
@@ -37,7 +38,6 @@ const Context = createContext();
  *
  * @param {object} props Component props.
  * @param {string} props.apiUrl API endpoint URL.
- * @param {boolean} props.autoIndex Whether to start an index automatically.
  * @param {Function} props.children Component children
  * @param {string} props.defaultLastSyncDateTime Last sync date and time.
  * @param {boolean} props.defaultLastSyncFailed Whether the last sync failed.
@@ -48,7 +48,6 @@ const Context = createContext();
  */
 export const SyncProvider = ({
 	apiUrl,
-	autoIndex,
 	children,
 	defaultLastSyncDateTime,
 	defaultLastSyncFailed,
@@ -113,10 +112,31 @@ export const SyncProvider = ({
 			const messages = Array.isArray(message) ? message : [message];
 
 			for (const message of messages) {
-				setLog((log) => [...log, { message, status, isDeleting, id: uuid() }]);
+				setLog((log) => [
+					...log,
+					{
+						message,
+						status,
+						dateTime: dateI18n('Y-m-d H:i:s', new Date()),
+						isDeleting,
+						id: uuid(),
+					},
+				]);
 			}
 		},
 		[],
+	);
+
+	const clearLog = useCallback(
+		/**
+		 * Clear the log.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			setLog([]);
+		},
+		[setLog],
 	);
 
 	const stopSync = useCallback(
@@ -234,16 +254,8 @@ export const SyncProvider = ({
 		 * @returns {void}
 		 */
 		(indexMeta) => {
-			const isInitialSync = stateRef.current.lastSyncDateTime === null;
-
-			/**
-			 * We should not appear to be deleting if this is the first sync.
-			 */
-			const isDeleting = isInitialSync ? false : indexMeta.put_mapping;
-
 			updateState({
 				isCli: indexMeta.method === 'cli',
-				isDeleting,
 				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
@@ -348,11 +360,11 @@ export const SyncProvider = ({
 		/**
 		 * Start or continue a sync.
 		 *
-		 * @param {boolean} putMapping Whether to send mapping.
+		 * @param {object} args Sync args.
 		 * @returns {void}
 		 */
-		(putMapping) => {
-			index(putMapping)
+		(args) => {
+			index(args)
 				.then(updateSyncState)
 				.then(
 					/**
@@ -365,7 +377,7 @@ export const SyncProvider = ({
 						if (method === 'cli') {
 							doIndexStatus();
 						} else {
-							doIndex(putMapping);
+							doIndex(args);
 						}
 					},
 				)
@@ -390,20 +402,12 @@ export const SyncProvider = ({
 		/**
 		 * Resume syncing.
 		 *
+		 * @param {object} args Sync args.
 		 * @returns {void}
 		 */
-		() => {
-			const { isDeleting, lastSyncDateTime } = stateRef.current;
-			const isInitialSync = lastSyncDateTime === null;
-
-			/**
-			 * Send mapping if we are deleting and syncing or if this is the
-			 * first sync.
-			 */
-			const putMapping = isInitialSync || isDeleting;
-
+		(args) => {
 			updateState({ isPaused: false, isSyncing: true });
-			doIndex(putMapping);
+			doIndex(args);
 		},
 		[doIndex],
 	);
@@ -412,23 +416,17 @@ export const SyncProvider = ({
 		/**
 		 * Start syncing.
 		 *
-		 * @param {boolean} deleteAndSync Whether to delete and sync.
+		 * @param {object} args Sync args.
 		 * @returns {void}
 		 */
-		(deleteAndSync) => {
+		(args) => {
 			const { lastSyncDateTime } = stateRef.current;
 			const isInitialSync = lastSyncDateTime === null;
 
 			/**
 			 * We should not appear to be deleting if this is the first sync.
 			 */
-			const isDeleting = isInitialSync ? false : deleteAndSync;
-
-			/**
-			 * Send mapping if we are deleting and syncing or if this is the
-			 * first sync.
-			 */
-			const putMapping = isInitialSync || deleteAndSync;
+			const isDeleting = !!(isInitialSync || args.put_mapping);
 
 			updateState({
 				isComplete: false,
@@ -439,7 +437,7 @@ export const SyncProvider = ({
 			});
 
 			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
-			doIndex(putMapping);
+			doIndex(args);
 		},
 		[doIndex],
 	);
@@ -472,31 +470,13 @@ export const SyncProvider = ({
 				pauseSync();
 				logMessage(__('Sync paused', 'elasticpress'), 'info');
 			}
-
-			return;
-		}
-
-		/**
-		 * Start an initial index.
-		 */
-		if (autoIndex) {
-			startSync(true);
-			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 		}
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(init, [
-		autoIndex,
-		doIndexStatus,
-		syncInProgress,
-		indexMeta,
-		logMessage,
-		pauseSync,
-		startSync,
-	]);
+	useEffect(init, [doIndexStatus, syncInProgress, indexMeta, logMessage, pauseSync, startSync]);
 
 	/**
 	 * Provide state to context.
@@ -517,6 +497,7 @@ export const SyncProvider = ({
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
+		clearLog,
 		isCli,
 		isComplete,
 		isDeleting,

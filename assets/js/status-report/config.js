@@ -1,6 +1,6 @@
 /**
  * Window dependencies.
  */
-const reports = window.epStatusReport;
+const { plainTextReport, reports } = window.epStatusReport;
 
-export { reports };
+export { plainTextReport, reports };

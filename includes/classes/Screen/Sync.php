@@ -9,6 +9,7 @@
 namespace ElasticPress\Screen;
 
 use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
 use ElasticPress\REST;
 use ElasticPress\Screen;
@@ -55,85 +56,34 @@ class Sync {
 
 		wp_set_script_translations( 'ep_sync_scripts', 'elasticpress' );
 
-		wp_enqueue_style( 'wp-components' );
-		wp_enqueue_style( 'wp-edit-post' );
-
 		wp_enqueue_style(
 			'ep_sync_style',
-			EP_URL . 'dist/css/sync-styles.css',
-			Utils\get_asset_info( 'sync-styles', 'dependencies' ),
-			Utils\get_asset_info( 'sync-styles', 'version' )
+			EP_URL . 'dist/css/sync-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'sync-script', 'version' )
 		);
 
-		$data       = array( 'nonce' => wp_create_nonce( 'wp_rest' ) );
-		$index_meta = Utils\get_indexing_status();
-		$last_sync  = Utils\get_option( 'ep_last_sync', false );
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$install_complete_url = admin_url( 'network/admin.php?page=elasticpress&install_complete' );
-		} else {
-			$install_complete_url = admin_url( 'admin.php?page=elasticpress&install_complete' );
-		}
-
-		if ( isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			$data['auto_start_index'] = true;
-		}
-
-		if ( ! empty( $index_meta ) ) {
-			$data['index_meta'] = $index_meta;
-		}
-
-		$ep_last_sync = IndexHelper::factory()->get_last_sync();
+		$indexables = Indexables::factory()->get_all();
 
 		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
-		$sync_required      = count( $indices_comparison['missing_indices'] ) > 0;
+		$indices_missing    = count( $indices_comparison['missing_indices'] ) > 0;
 
-		if ( ! empty( $ep_last_sync ) && ! $sync_required ) {
-			$data['ep_last_sync_date']   = ! empty( $ep_last_sync['end_date_time'] ) ? $ep_last_sync['end_date_time'] : false;
-			$data['ep_last_sync_failed'] = ! empty( $ep_last_sync['failed'] ) || ! empty( $ep_last_sync['errors'] ) ? true : false;
-		}
+		$last_sync = ! $indices_missing ? IndexHelper::factory()->get_last_sync() : [];
 
-		/**
-		 * Filter indexable labels used in dashboard sync UI
-		 *
-		 * @since  3.0
-		 * @hook ep_dashboard_indexable_labels
-		 * @param  {array} $labels Current indexable lables
-		 * @return {array} New labels
-		 */
-		$data['sync_indexable_labels'] = apply_filters(
-			'ep_dashboard_indexable_labels',
-			[
-				'post'    => [
-					'singular' => esc_html__( 'Post', 'elasticpress' ),
-					'plural'   => esc_html__( 'Posts', 'elasticpress' ),
-				],
-				'term'    => [
-					'singular' => esc_html__( 'Term', 'elasticpress' ),
-					'plural'   => esc_html__( 'Terms', 'elasticpress' ),
-				],
-				'user'    => [
-					'singular' => esc_html__( 'User', 'elasticpress' ),
-					'plural'   => esc_html__( 'Users', 'elasticpress' ),
-				],
-				'comment' => [
-					'singular' => esc_html__( 'Comment', 'elasticpress' ),
-					'plural'   => esc_html__( 'Comments', 'elasticpress' ),
-				],
-			]
-		);
+		$post_types = Indexables::factory()->get( 'post' )->get_indexable_post_types();
+		$post_types = array_values( $post_types );
 
-		$data['api_url']              = rest_url( 'elasticpress/v1/sync' );
-		$data['install_sync']         = empty( $last_sync );
-		$data['install_complete_url'] = esc_url( $install_complete_url );
-		$data['sync_complete']        = esc_html__( 'Sync complete', 'elasticpress' );
-		$data['sync_paused']          = esc_html__( 'Sync paused', 'elasticpress' );
-		$data['sync_syncing']         = esc_html__( 'Syncing', 'elasticpress' );
-		$data['sync_initial']         = esc_html__( 'Starting sync', 'elasticpress' );
-		$data['sync_wpcli']           = esc_html__( 'WP CLI sync is occurring.', 'elasticpress' );
-		$data['sync_error']           = esc_html__( 'An error occurred while syncing', 'elasticpress' );
-		$data['sync_interrupted']     = esc_html__( 'Sync interrupted.', 'elasticpress' );
-		$data['is_epio']              = Utils\is_epio();
+		$data = [
+			'apiUrl'           => rest_url( 'elasticpress/v1/sync' ),
+			'autoIndex'        => isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'indexMeta'        => Utils\get_indexing_status(),
+			'lastSyncDateTime' => ! empty( $last_sync['end_date_time'] ) ? $last_sync['end_date_time'] : null,
+			'lastSyncFailed'   => ! empty( $last_sync['failed'] ) || ! empty( $last_sync['errors'] ) ? true : false,
+			'indexables'       => array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
+			'isEpio'           => Utils\is_epio(),
+			'nonce'            => wp_create_nonce( 'wp_rest' ),
+			'postTypes'        => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),
+		];
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
 	}

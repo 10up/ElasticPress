@@ -8,13 +8,13 @@
 
 namespace ElasticPress\Feature\Comments;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Features as Features;
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\REST;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Indexable;
+use ElasticPress\Indexables;
 use ElasticPress\Utils;
+use ElasticPress\REST;
 
 /**
  * Comments feature class

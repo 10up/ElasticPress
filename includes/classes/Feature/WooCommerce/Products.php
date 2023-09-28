@@ -58,6 +58,7 @@ class Products {
 
 		// Settings for Weight results by date
 		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
+		add_filter( 'ep_feature_settings_schema', [ $this, 'add_weight_settings_search_schema' ], 10, 2 );
 		add_filter( 'ep_is_decaying_enabled', [ $this, 'maybe_disable_decaying' ], 10, 3 );
 	}
 
@@ -1014,5 +1015,41 @@ class Products {
 			$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
 		}
 		return $attribute_taxonomies;
+	}
+
+	/**
+	 * Add weight by date settings related to WooCommerce
+	 *
+	 * @since 5.0.0
+	 * @param array  $settings_schema Settings schema
+	 * @param string $feature_slug    Feature slug
+	 * @return array New settings schema
+	 */
+	public function add_weight_settings_search_schema( $settings_schema, $feature_slug ) {
+		if ( 'search' !== $feature_slug ) {
+			return $settings_schema;
+		}
+
+		foreach ( $settings_schema as &$setting_schema ) {
+			if ( 'decaying_enabled' !== $setting_schema['key'] ) {
+				continue;
+			}
+
+			$setting_schema['options'] = array_merge(
+				$setting_schema['options'],
+				[
+					[
+						'label' => __( 'Disabled for product only queries', 'elasticpress' ),
+						'value' => 'disabled_only_products',
+					],
+					[
+						'label' => __( 'Disabled for any query that includes products', 'elasticpress' ),
+						'value' => 'disabled_includes_products',
+					],
+				]
+			);
+		}
+
+		return $settings_schema;
 	}
 }
