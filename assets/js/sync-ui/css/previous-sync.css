@@ -14,7 +14,7 @@
 	}
 
 	&.is-error svg {
-		fill: var(--ep-sync-color-success);
+		fill: var(--ep-sync-color-error);
 	}
 
 	&.is-success svg {

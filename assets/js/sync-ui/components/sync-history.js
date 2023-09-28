@@ -23,7 +23,7 @@ export default () => {
 				return (
 					<li>
 						<PreviousSync
-							failed={s.failed}
+							failures={s.failed}
 							method={s.method}
 							stateDatetime={s.start_date_time}
 							trigger={s.trigger}
