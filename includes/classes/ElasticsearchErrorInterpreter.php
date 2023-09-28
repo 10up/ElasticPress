@@ -101,7 +101,7 @@ class ElasticsearchErrorInterpreter {
 			'error'    => $error,
 			'solution' => sprintf(
 				/* translators: New GitHub issue URL */
-				__( 'We did not recognize this error. Please consider opening a <a href="%s">GitHub Issue</a> so we can add it to our list of supported errors. ', 'elasticpress' ),
+				__( 'We did not recognize this error. Please consider opening a <a href="%s">GitHub Issue</a> so we can add it to our list of supported errors.', 'elasticpress' ),
 				'https://github.com/10up/ElasticPress/issues/new/choose'
 			),
 		];
