@@ -1,8 +1,8 @@
 .ep-status-report {
-	max-width: 800px;
+	margin-bottom: 16px;
 
-	& .components-panel {
-		margin-bottom: 1rem;
+	& .components-panel__header h2 {
+		font-size: 14px;
 	}
 
 	& .components-notice {
@@ -30,14 +30,4 @@
 			overflow-x: scroll;
 		}
 	}
-}
-
-.ep-copy-button-wrapper {
-	margin: 0.5rem 0 1rem;
-}
-
-.ep-copy-button-wrapper__success {
-	color: #008a20;
-	display: none;
-	margin-left: 0.5rem;
 }
