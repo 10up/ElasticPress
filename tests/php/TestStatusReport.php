@@ -357,7 +357,7 @@ class TestStatusReport extends BaseTestCase {
 			),
 			'recommended_solution' => array(
 				'label' => 'Recommended Solution',
-				'value' => 'We did not recognize this error. Please consider opening a <a href="https://github.com/10up/ElasticPress/issues/new/choose">GitHub Issue</a> so we can add it to our list of supported errors. ',
+				'value' => 'We did not recognize this error. Please consider opening a <a href="https://github.com/10up/ElasticPress/issues/new/choose">GitHub Issue</a> so we can add it to our list of supported errors.',
 			),
 			'es_req'               => array(
 				'label' => 'Elasticsearch Request',
