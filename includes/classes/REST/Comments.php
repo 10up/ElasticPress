@@ -29,9 +29,10 @@ class Comments {
 			'elasticpress/v1',
 			'comments',
 			[
-				'args'     => $this->get_args(),
-				'callback' => [ $this, 'get_comments' ],
-				'methods'  => 'GET',
+				'args'                => $this->get_args(),
+				'callback'            => [ $this, 'get_comments' ],
+				'methods'             => 'GET',
+				'permission_callback' => '__return_true',
 			]
 		);
 	}

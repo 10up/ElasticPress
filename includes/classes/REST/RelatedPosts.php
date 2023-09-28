@@ -28,9 +28,10 @@ class RelatedPosts {
 	 */
 	public function register_routes() {
 		$args = [
-			'args'     => $this->get_args(),
-			'callback' => [ $this, 'get_posts' ],
-			'methods'  => 'GET',
+			'args'                => $this->get_args(),
+			'callback'            => [ $this, 'get_posts' ],
+			'methods'             => 'GET',
+			'permission_callback' => '__return_true',
 		];
 
 		register_rest_route( 'elasticpress/v1', 'related-posts/(?P<id>[0-9]+)', $args );
