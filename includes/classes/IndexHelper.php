@@ -1481,11 +1481,20 @@ class IndexHelper {
 		$messages          = (array) $messages;
 		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
 
-		$errors_data = [];
+		$errors_list = [];
 		foreach ( $messages as $message ) {
-			$errors_data[] = $error_interpreter->maybe_suggest_solution_for_es( $message );
+			$error = $error_interpreter->maybe_suggest_solution_for_es( $message );
+
+			if ( ! isset( $errors_list[ $error['error'] ] ) ) {
+				$errors_list[ $error['error'] ] = [
+					'solution' => $error['solution'],
+					'count'    => 1,
+				];
+			} else {
+				$errors_list[ $error['error'] ]['count']++;
+			}
 		}
-		return $errors_data;
+		return $errors_list;
 	}
 
 	/**
