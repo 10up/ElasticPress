@@ -17,6 +17,7 @@ import Log from '../components/log';
 import Objects from '../components/objects';
 import Progress from '../components/progress';
 import PutMapping from '../components/put-mapping';
+import SyncHistory from '../components/sync-history';
 import { useSyncSettings } from '../provider';
 
 /**
@@ -82,14 +83,19 @@ export default () => {
 					<Log />
 				</PanelBody>
 				{syncHistory.length ? (
-					<PanelBody
-						className="ep-sync-panel__advanced"
-						initialOpen={false}
-						title={__('Advanced options', 'elasticpress')}
-					>
-						<Indexables />
-						<Objects />
-					</PanelBody>
+					<>
+						<PanelBody
+							className="ep-sync-panel__advanced"
+							initialOpen={false}
+							title={__('Advanced options', 'elasticpress')}
+						>
+							<Indexables />
+							<Objects />
+						</PanelBody>
+						<PanelBody title={__('Sync history', 'elasticpress')}>
+							<SyncHistory />
+						</PanelBody>
+					</>
 				) : null}
 			</Panel>
 		</>
