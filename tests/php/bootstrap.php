@@ -127,6 +127,7 @@ require_once __DIR__ . '/includes/classes/factory/CommentFactory.php';
 require_once __DIR__ . '/includes/classes/factory/ProductFactory.php';
 require_once __DIR__ . '/includes/classes/BaseTestCase.php';
 require_once __DIR__ . '/includes/classes/FeatureTest.php';
+require_once __DIR__ . '/includes/classes/mock/Global/Feature.php';
 require_once __DIR__ . '/includes/classes/mock/class-wp-cli-command.php';
 require_once __DIR__ . '/includes/classes/mock/class-wp-cli.php';
 require_once __DIR__ . '/includes/wp-cli-utils.php';

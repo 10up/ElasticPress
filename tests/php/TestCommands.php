@@ -256,15 +256,14 @@ class TestCommands extends BaseTestCase {
 	 * Test put-mapping command can put mapping for global indexables.
 	 */
 	public function testPutMappingForGlobalIndexables() {
-
-		ElasticPress\Features::factory()->activate_feature( 'users' );
+		ElasticPress\Features::factory()->activate_feature( 'global' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$this->command->put_mapping( [], [ 'indexables' => 'user,post' ] );
+		$this->command->put_mapping( [], [ 'indexables' => 'global,post' ] );
 
 		$output = $this->getActualOutputForAssertion();
 
-		$this->assertStringContainsString( 'Adding user mapping', $output );
+		$this->assertStringContainsString( 'Adding global mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
 	}
 
@@ -351,7 +350,7 @@ class TestCommands extends BaseTestCase {
 		$this->command->get_indices( [], [ 'status' => 'all' ] );
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertEquals( "[\"exampleorg-post-1\",\"exampleorg-comment-1\",\"exampleorg-term-1\",\"exampleorg-user\"]\n", $output );
+		$this->assertEquals( "[\"exampleorg-post-1\",\"exampleorg-comment-1\",\"exampleorg-term-1\",\"exampleorg-global\"]\n", $output );
 	}
 
 
@@ -482,7 +481,7 @@ class TestCommands extends BaseTestCase {
 	public function testSyncWithSetupFlagDeleteUnusedIndices() {
 		// activate comments and users features
 		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
-		ElasticPress\Indexables::factory()->get( 'user' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'term' )->put_mapping();
 
 		$this->command->sync(
 			[],
@@ -494,7 +493,7 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Index exampleorg-comment-1 deleted', $output );
-		$this->assertStringContainsString( 'Index exampleorg-user deleted', $output );
+		$this->assertStringContainsString( 'Index exampleorg-term-1 deleted', $output );
 	}
 
 	/**
@@ -729,13 +728,13 @@ class TestCommands extends BaseTestCase {
 	 */
 	public function testDeleteIndexGlobal() {
 
-		ElasticPress\Features::factory()->activate_feature( 'users' );
+		ElasticPress\Features::factory()->activate_feature( 'global' );
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->command->delete_index( [], [ 'yes' => true ] );
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertStringContainsString( "Deleting index for users…\nIndex deleted", $output );
+		$this->assertStringContainsString( "Deleting index for global…\nIndex deleted", $output );
 	}
 
 	/**
