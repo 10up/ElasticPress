@@ -1328,7 +1328,9 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
-		$this->update_last_index( 'aborted' );
+		if ( ! empty( $this->index_meta ) ) {
+			$this->update_last_index( 'aborted' );
+		}
 		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
