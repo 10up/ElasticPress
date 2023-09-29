@@ -20,8 +20,8 @@ class GlobalFeature extends \ElasticPress\Feature {
 	 * Initialize feature setting it's config
 	 */
 	public function __construct() {
-		$this->slug = 'global';
-		$this->title = 'Global';
+		$this->slug                     = 'global';
+		$this->title                    = 'Global';
 		$this->requires_install_reindex = true;
 
 		Indexables::factory()->register( new Indexable(), false );
