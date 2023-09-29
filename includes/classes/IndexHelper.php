@@ -897,7 +897,7 @@ class IndexHelper {
 		// Final status
 		if ( '' !== $final_status ) {
 			$totals['final_status'] = $final_status;
-		} elseif ( ! empty( $totals['errors'] ) ) {
+		} elseif ( ! empty( $totals['failed'] ) ) {
 			$totals['final_status'] = 'with_errors';
 		} else {
 			$totals['final_status'] = 'success';
