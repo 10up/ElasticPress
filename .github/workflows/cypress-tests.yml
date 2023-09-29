@@ -28,7 +28,7 @@ jobs:
         testGroup: ['@slow', '-@slow']
         core:
           - {name: 'WP latest', version: 'latest'}
-          - {name: 'WP minimum', version: 'WordPress/WordPress#5.6'}
+          - {name: 'WP minimum', version: 'WordPress/WordPress#6.0'}
 
     steps:
     - name: Checkout
@@ -116,7 +116,7 @@ jobs:
         testGroup: ['@slow', '-@slow']
         core:
           - {name: 'WP latest', version: 'latest'}
-          - {name: 'WP minimum', version: 'WordPress/WordPress#5.6'}
+          - {name: 'WP minimum', version: 'WordPress/WordPress#6.0'}
 
     steps:
     - name: Checkout
