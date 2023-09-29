@@ -89,9 +89,6 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['protected_content']->is_active() );
 		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['protected_content']->requirements_status()->code );
 
-		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['users']->is_active() );
-		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['users']->requirements_status()->code );
-
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['woocommerce']->is_active() );
 		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['woocommerce']->requirements_status()->code );
 
