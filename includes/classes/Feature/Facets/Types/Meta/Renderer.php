@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\Facets\Types\Meta;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

@@ -8,10 +8,6 @@
 
 namespace ElasticPress\Feature\Comments;
 
-use \WP_Widget as WP_Widget;
-use ElasticPress\Features as Features;
-use ElasticPress\Utils;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -19,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Search comment widget class
  */
-class Widget extends WP_Widget {
+class Widget extends \WP_Widget {
 
 	/**
 	 * Initialize the widget

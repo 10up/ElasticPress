@@ -23,7 +23,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI as WP_CLI;
+use \WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

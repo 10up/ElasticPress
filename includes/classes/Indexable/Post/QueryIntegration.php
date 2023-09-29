@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Query as WP_Query;
-use ElasticPress\Utils as Utils;
+use \WP_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
