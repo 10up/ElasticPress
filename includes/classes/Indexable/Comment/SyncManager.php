@@ -10,7 +10,6 @@ namespace ElasticPress\Indexable\Comment;
 
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexables;
-use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -19,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 	/**
 	 * Indexable slug
 	 *

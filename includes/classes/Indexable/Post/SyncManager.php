@@ -11,7 +11,6 @@ namespace ElasticPress\Indexable\Post;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
-use ElasticPress\SyncManager as SyncManagerAbstract;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 
 	/**
 	 * Indexable slug
