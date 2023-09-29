@@ -8,11 +8,11 @@
 
 namespace ElasticPress\Feature\Users;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Indexable;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 /**
  * Users feature class

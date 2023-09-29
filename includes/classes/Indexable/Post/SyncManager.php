@@ -8,11 +8,11 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
+use ElasticPress\IndexHelper;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 use ElasticPress\Utils;
-use ElasticPress\IndexHelper;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart

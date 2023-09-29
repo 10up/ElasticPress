@@ -10,8 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Utils as Utils;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

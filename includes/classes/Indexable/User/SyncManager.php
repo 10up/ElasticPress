@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Indexable\User;
 
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 use ElasticPress\SyncManager as SyncManagerAbstract;
 
 if ( ! defined( 'ABSPATH' ) ) {

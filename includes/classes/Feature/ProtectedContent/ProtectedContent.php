@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Feature\ProtectedContent;
 
-use ElasticPress\Utils as Utils;
-use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
