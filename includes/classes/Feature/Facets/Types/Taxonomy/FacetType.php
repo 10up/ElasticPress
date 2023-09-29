@@ -172,19 +172,12 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$tax_query = $query->get( 'tax_query', [] );
 
-		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
-		$attribute_taxonomies = [];
-		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
-			$all_attr_taxonomies = wc_get_attribute_taxonomies();
-
-			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
-				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
-			}
-		}
+		/** This filter is documented below */
+		$special_taxonomies = apply_filters( 'ep_facet_tax_special_slug_taxonomies', [], $selected_filters );
 
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
 			$tax_query[] = [
-				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
+				'taxonomy' => $special_taxonomies[ $taxonomy ] ?? $taxonomy,
 				'field'    => 'slug',
 				'terms'    => array_keys( $filter['terms'] ),
 				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
@@ -214,24 +207,27 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		}
 
 		$selected_filters = $feature->get_selected();
+
 		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
 			return;
 		}
 
-		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
-		$attribute_taxonomies = [];
-		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
-			$all_attr_taxonomies = wc_get_attribute_taxonomies();
-
-			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
-				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
-			}
-		}
+		/**
+		 * Filter for treatment special slugs in taxonomies. This is used in case you need to change the default taxonomy slug.
+		 *
+		 * @since 4.7.0
+		 * @hook ep_facet_tax_special_slug_taxonomies
+		 * @param  {array} $special_taxonomies Taxonomies with special slugs.
+		 * @param  {array} $selected_filters Selected filters.
+		 * @return {array} New taxonomies with special slugs.
+		 */
+		$special_taxonomies = apply_filters( 'ep_facet_tax_special_slug_taxonomies', [], $selected_filters );
 
 		$match_type = $feature->get_match_type();
 
 		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
-			$taxonomy_slug = $attribute_taxonomies[ $taxonomy ] ?? $taxonomy;
+
+			$taxonomy_slug = $special_taxonomies[ $taxonomy ] ?? $taxonomy;
 
 			if ( 'any' === $match_type ) {
 				$filters[] = [

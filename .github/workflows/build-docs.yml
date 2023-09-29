@@ -17,9 +17,14 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.0'
+        php-version: '8.2'
         coverage: none
         ini-values: memory_limit=3G
+
+    - name: composer install
+      run: |
+        cd wp-content/plugins/elasticpress
+        composer install
 
     - name: Start MySQL
       run: |

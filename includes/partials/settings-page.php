@@ -6,8 +6,9 @@
  * @package elasticpress
  */
 
-use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Dashboard;
+use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -167,9 +168,13 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 
 						wp_dropdown_languages(
 							[
-								'id'       => 'ep_language',
-								'name'     => 'ep_language',
-								'selected' => $ep_language,
+								'id'                       => 'ep_language',
+								'name'                     => 'ep_language',
+								'selected'                 => $ep_language,
+								'languages'                => Dashboard\get_available_languages( 'locales' ),
+								'show_option_site_default' => true,
+								'explicit_option_en_us'    => true,
+								'show_available_translations' => false,
 							]
 						);
 						?>

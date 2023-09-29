@@ -326,7 +326,8 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 						cy.get('@control').check(setting.value);
 						break;
 					default:
-						cy.get('@control').clearThenType(setting.value);
+						cy.get('@control').clear();
+						cy.get('@control').type(setting.value);
 						break;
 				}
 			}

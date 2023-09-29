@@ -341,7 +341,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			} elseif ( ! empty( $site__not_in ) ) {
 
-				$sites = get_sites(
+				$sites = \get_sites(
 					array(
 						'fields'       => 'ids',
 						'site__not_in' => $site__not_in,

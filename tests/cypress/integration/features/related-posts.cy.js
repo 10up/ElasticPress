@@ -55,14 +55,14 @@ describe('Related Posts Feature', () => {
 		 * On the last post insert a Related Posts block.
 		 */
 		cy.openBlockInserter();
-		cy.getBlocksList().should('contain.text', 'Related Posts (ElasticPress)');
-		cy.insertBlock('Related Posts (ElasticPress)');
+		cy.getBlocksList().should('contain.text', 'Related Posts');
+		cy.insertBlock('Related Posts');
 
 		/**
 		 * Verify that the block is inserted into the editor, and contains the
 		 * expected content.
 		 */
-		cy.get('.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('.wp-block.wp-block-elasticpress-related-posts').first().as('block');
 		cy.get('@block')
 			.find('li')
 			.should('contain', 'Test related posts block #')
@@ -85,9 +85,19 @@ describe('Related Posts Feature', () => {
 			.should('have.length', 2);
 
 		/**
-		 * Clicking a related post link in the editor shouldn't change the URL.
+		 * Test that the block supports changing styles.
 		 */
-		cy.get('@block').find('a').first().click();
+		cy.get('@block').supportsBlockColors(true);
+		cy.get('@block').supportsBlockTypography(true);
+		cy.get('@block').supportsBlockDimensions(true);
+
+		/**
+		 * Clicking a related post link in the editor shouldn't change the URL.
+		 *
+		 * By default, Cypress does not allow a click on an element with `pointer-events: none`,
+		 * hence why `{ force: true }`
+		 */
+		cy.get('@block').find('a').first().click({ force: true });
 		cy.url().should('include', 'wp-admin/post.php');
 
 		/**
@@ -105,6 +115,13 @@ describe('Related Posts Feature', () => {
 			.find('li')
 			.should('contain', 'Test related posts block #')
 			.should('have.length', 2);
+
+		/**
+		 * Verify that the block supports changing styles.
+		 */
+		cy.get('@block').supportsBlockColors();
+		cy.get('@block').supportsBlockTypography();
+		cy.get('@block').supportsBlockDimensions();
 	});
 
 	/**

@@ -17,13 +17,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets render class
  */
-class Renderer {
+class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	/**
 	 * Holds the meta field selected.
 	 *
 	 * @var string
 	 */
 	protected $meta_field = '';
+
+	/**
+	 * Property required by the abstract class. Yet to be implemented.
+	 *
+	 * @var bool
+	 */
+	protected $display_count = false;
 
 	/**
 	 * Output the widget or block HTML.
@@ -53,7 +60,7 @@ class Renderer {
 		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] )
 			|| empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] )
 		) {
-			if ( $instance['is_preview'] ) {
+			if ( ! empty( $instance['is_preview'] ) ) {
 				esc_html_e( 'Could not get min and max values. Is this a numeric field?', 'elasticpress' );
 			}
 			return false;

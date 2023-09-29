@@ -537,6 +537,7 @@ class Term extends Indexable {
 		if ( empty( $es_version ) ) {
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+		$es_version = (string) $es_version;
 
 		$mapping_file = 'initial.php';
 
@@ -936,7 +937,7 @@ class Term extends Indexable {
 
 		if ( 'name' === $orderby ) {
 			$es_version      = Elasticsearch::factory()->get_elasticsearch_version();
-			$from_to['name'] = version_compare( $es_version, '7.0', '<' ) ? 'name.raw' : 'name.sortable';
+			$from_to['name'] = version_compare( (string) $es_version, '7.0', '<' ) ? 'name.raw' : 'name.sortable';
 		}
 
 		$orderby = $from_to[ $orderby ] ?? $orderby;

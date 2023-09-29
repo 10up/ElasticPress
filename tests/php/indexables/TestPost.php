@@ -1093,23 +1093,27 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a post__not_in query
+	 * Test a post__not_in query with non-sequential array indices
 	 *
-	 * @since 1.5
+	 * @since 4.7.2
 	 * @group post
 	 */
-	public function testPostNotInQuery() {
+	public function testPostNotInQueryWithNonSequentialIndices() {
 		$post_ids = array();
 
 		$post_ids[0] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
 		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
+		$post_ids[3] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 4' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
 			's'            => 'findme',
-			'post__not_in' => array( $post_ids[0] ),
+			'post__not_in' => array(
+				0 => $post_ids[0],
+				2 => $post_ids[3],
+			),
 		);
 
 		$query = new \WP_Query( $args );
@@ -8989,5 +8993,33 @@ class TestPost extends BaseTestCase {
 		};
 		add_filter( 'ep_pre_kill_sync_for_password_protected', $dont_kill_pw_post, 10, 3 );
 		$this->assertFalse( $sync_manager->kill_sync_for_password_protected( false, $pw_post ) );
+	}
+
+	/**
+	 * Test if the mapping applies the ep_stop filter correctly
+	 *
+	 * @since 4.7.0
+	 * @group post
+	 */
+	public function test_mapping_ep_stop_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'post' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+
+		$change_lang = function( $lang, $context ) {
+			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
+		};
+		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$indexable->put_mapping();
+
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
 }

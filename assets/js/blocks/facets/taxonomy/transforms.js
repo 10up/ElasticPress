@@ -4,7 +4,7 @@
 import { createBlock } from '@wordpress/blocks';
 
 /**
- * Facet widget block transforms.
+ * Filter by Taxonomy block transforms.
  */
 export default {
 	from: [

@@ -698,6 +698,7 @@ class User extends Indexable {
 			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+		$es_version = (string) $es_version;
 
 		$mapping_file = 'initial.php';
 
