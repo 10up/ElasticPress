@@ -7,8 +7,9 @@
  */
 
 use ElasticPress\Dashboard;
-use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
+use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -16,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $action = 'options.php';
 
-$index_meta = Utils\get_option( 'ep_index_meta', [] );
+$index_meta = IndexHelper::factory()->get_index_meta();
 
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$action = '';
