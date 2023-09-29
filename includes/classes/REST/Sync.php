@@ -208,7 +208,7 @@ class Sync {
 			exit;
 		}
 
-		Utils\delete_option( 'ep_index_meta' );
+		IndexHelper::factory()->clear_index_meta();
 
 		wp_send_json_success();
 	}
