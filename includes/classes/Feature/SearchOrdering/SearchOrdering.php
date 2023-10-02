@@ -8,9 +8,8 @@
 namespace ElasticPress\Feature\SearchOrdering;
 
 use ElasticPress\Feature;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\FeatureRequirementsStatus;
 use ElasticPress\Features;
-use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 

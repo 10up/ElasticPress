@@ -7,7 +7,7 @@
 
 namespace ElasticPressTest;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 /**
  * Facet test class
