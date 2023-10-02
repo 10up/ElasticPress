@@ -13,12 +13,12 @@
 		grid-area: icon;
 	}
 
-	&.is-error svg {
-		fill: var(--ep-sync-color-error);
-	}
-
 	&.is-success svg {
 		fill: var(--ep-sync-color-success);
+	}
+
+	&.is-error svg {
+		fill: var(--ep-sync-color-error);
 	}
 }
 

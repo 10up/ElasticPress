@@ -26,6 +26,7 @@ export default () => {
 							failures={s.failed}
 							method={s.method}
 							stateDatetime={s.start_date_time}
+							status={s.final_status}
 							trigger={s.trigger}
 						/>
 					</li>
