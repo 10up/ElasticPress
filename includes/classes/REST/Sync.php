@@ -208,7 +208,17 @@ class Sync {
 			exit;
 		}
 
-		IndexHelper::factory()->clear_index_meta();
+		$index_meta = IndexHelper::factory()->get_index_meta();
+
+		if ( $index_meta ) {
+			IndexHelper::factory()->clear_index_meta();
+
+			wp_send_json_success(
+				IndexHelper::factory()->get_last_sync()
+			);
+
+			return;
+		}
 
 		wp_send_json_success();
 	}

@@ -136,19 +136,6 @@ export const SyncProvider = ({
 		[setLog],
 	);
 
-	const stopSync = useCallback(
-		/**
-		 * Stop syncing.
-		 *
-		 * @returns {void}
-		 */
-		() => {
-			updateState({ isPaused: false, isSyncing: false });
-			cancelIndex();
-		},
-		[cancelIndex],
-	);
-
 	const syncCompleted = useCallback(
 		/**
 		 * Set sync state to completed, with success based on the number of
@@ -197,6 +184,13 @@ export const SyncProvider = ({
 			}
 
 			/**
+			 * If the error has totals, add to the sync history.
+			 */
+			const syncHistory = response.totals
+				? [response.totals, ...stateRef.current.syncHistory]
+				: stateRef.current.syncHistory;
+
+			/**
 			 * Log a final message and update the sync state.
 			 */
 			logMessage(__('Sync failed', 'elasticpress'), 'error');
@@ -204,6 +198,7 @@ export const SyncProvider = ({
 			updateState({
 				isFailed: true,
 				isSyncing: false,
+				syncHistory,
 			});
 		},
 		[logMessage],
@@ -255,6 +250,23 @@ export const SyncProvider = ({
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
 				syncStartDateTime: indexMeta.start_date_time,
 			});
+		},
+		[],
+	);
+
+	const syncStopped = useCallback(
+		/**
+		 * Set state for a stopped sync.
+		 *
+		 * @param {object} response Cancel request response.
+		 * @returns {void}
+		 */
+		(response) => {
+			const syncHistory = response.data
+				? [response.data, ...stateRef.current.syncHistory]
+				: stateRef.current.syncHistory;
+
+			updateState({ syncHistory });
 		},
 		[],
 	);
@@ -333,6 +345,18 @@ export const SyncProvider = ({
 			});
 		},
 		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, logMessage],
+	);
+
+	const doCancelIndex = useCallback(
+		/**
+		 * Cancel a sync.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			cancelIndex().then(syncStopped);
+		},
+		[cancelIndex, syncStopped],
 	);
 
 	const doIndexStatus = useCallback(
@@ -434,6 +458,19 @@ export const SyncProvider = ({
 			doIndex(args);
 		},
 		[doIndex],
+	);
+
+	const stopSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isPaused: false, isSyncing: false });
+			doCancelIndex();
+		},
+		[doCancelIndex],
 	);
 
 	/**
