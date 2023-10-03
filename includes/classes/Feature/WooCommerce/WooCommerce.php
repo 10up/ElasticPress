@@ -56,7 +56,7 @@ class WooCommerce extends Feature {
 
 		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
 
-		$this->summary = __( '“I want a cotton, woman’s t-shirt, for under $15 that’s in stock.” Faceted product browsing strains servers and increases load times. Your buyers can find the perfect product quickly, and buy it quickly.', 'elasticpress' );
+		$this->summary = __( "With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they're looking for, even if you have a large or complex product catalog.", 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#woocommerce', 'elasticpress' );
 
@@ -331,7 +331,7 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Index Woocommerce meta
+	 * DEPRECATED. Index WooCommerce meta
 	 *
 	 * @param   array $meta Existing post meta.
 	 * @param   array $post Post arguments array.
@@ -362,7 +362,7 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Index Woocommerce taxonomies
+	 * DEPRECATED. Index WooCommerce taxonomies
 	 *
 	 * @param   array $taxonomies Index taxonomies array.
 	 * @param   array $post Post properties array.
@@ -428,9 +428,9 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Sets woocommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
+	 * DEPRECATED. Sets WooCommerce meta search fields to an empty array if we are integrating the main query with ElasticSearch
 	 *
-	 * Woocommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
+	 * WooCommerce calls this action as part of its own callback on parse_query. We add this filter only if the query
 	 * is integrated with ElasticSearch.
 	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
 	 * without the Protected Content Module

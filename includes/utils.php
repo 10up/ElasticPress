@@ -296,14 +296,42 @@ function get_site( $site_id ) {
 /**
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
- * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
- * @since  3.0
+ * @param int  $limit          The maximum amount of sites retrieved, Use 0 to return all sites.
+ * @param bool $only_indexable Whether should be returned only indexable sites or not.
+ * @since 3.0, 4.7.0 added `$only_indexable`
  * @return array
  */
-function get_sites( $limit = 0 ) {
-
+function get_sites( $limit = 0, $only_indexable = false ) {
 	if ( ! is_multisite() ) {
 		return [];
+	}
+
+	$args = [
+		'limit'  => $limit,
+		'number' => $limit,
+	];
+
+	if ( $only_indexable ) {
+		$args = array_merge(
+			$args,
+			[
+				'spam'       => 0,
+				'deleted'    => 0,
+				'archived'   => 0,
+				'meta_query' => [
+					'relation' => 'OR',
+					[
+						'key'     => 'ep_indexable',
+						'value'   => 'no',
+						'compare' => '!=',
+					],
+					[
+						'key'     => 'ep_indexable',
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -314,13 +342,7 @@ function get_sites( $limit = 0 ) {
 	 * @param  {array} $args Array of args to query sites with. See WP_Site_Query
 	 * @return {array} New arguments
 	 */
-	$args = apply_filters(
-		'ep_indexable_sites_args',
-		array(
-			'limit'  => $limit,
-			'number' => $limit,
-		)
-	);
+	$args = apply_filters( 'ep_indexable_sites_args', $args );
 
 	$site_objects = \get_sites( $args );
 	$sites        = [];
@@ -488,13 +510,13 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 }
 
 /**
- * Returns the defaiult language for ES mapping.
+ * Returns the default language for ES mapping.
  *
  * @return string Default EP language.
  */
 function get_language() {
 	$ep_language = get_option( 'ep_language' );
-	$ep_language = ! empty( $ep_language ) ? $ep_language : 'ep_site_default';
+	$ep_language = ! empty( $ep_language ) ? $ep_language : 'site-default';
 
 	/**
 	 * Filter the default language to use at index time
@@ -580,7 +602,7 @@ function update_option( $option, $value, $autoload = null ) {
  * @since 3.6.0
  * @param string $option        Name of the option to get.
  * @param mixed  $default_value Default value.
- * @return bool
+ * @return mixed
  */
 function get_option( $option, $default_value = false ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {

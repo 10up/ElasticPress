@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Indexable\User;
 
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use \WP_User_Query as WP_User_Query;
-use ElasticPress\Utils as Utils;
+use \WP_User_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexable;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -698,6 +698,7 @@ class User extends Indexable {
 			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+		$es_version = (string) $es_version;
 
 		$mapping_file = 'initial.php';
 

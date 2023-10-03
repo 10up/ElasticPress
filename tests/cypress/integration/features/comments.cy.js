@@ -32,7 +32,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 */
 		cy.openWidgetsPage();
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
@@ -42,7 +42,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 * Add a Block for searching Post comments.
 		 */
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
@@ -54,7 +54,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 * Add a Block for searching Page comments.
 		 */
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
+		cy.insertBlock('Search Comments');
 		cy.get('.wp-block-elasticpress-comments')
 			.last()
 			.find('.rich-text')
@@ -66,14 +66,21 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		 * Add a Block for searching Page and Post comments.
 		 */
 		cy.openBlockInserter();
-		cy.insertBlock('Search Comments (ElasticPress)');
-		cy.get('.wp-block-elasticpress-comments')
-			.last()
+		cy.insertBlock('Search Comments');
+		cy.get('.wp-block-elasticpress-comments').last().as('pagePostBlock');
+		cy.get('@pagePostBlock')
 			.find('.rich-text')
 			.clearThenType('Search comments on pages and posts');
 		cy.openBlockSettingsSidebar();
 		cy.get('.components-checkbox-control__input').eq(1).click();
 		cy.get('.components-checkbox-control__input').eq(2).click();
+
+		/**
+		 * Test that the block supports changing styles.
+		 */
+		cy.get('@pagePostBlock').supportsBlockColors(true);
+		cy.get('@pagePostBlock').supportsBlockTypography(true);
+		cy.get('@pagePostBlock').supportsBlockDimensions(true);
 
 		/**
 		 * Save widgets and visit the front page.
@@ -103,6 +110,14 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('@allInput').clearThenType('Contributor');
 		cy.wait('@commentsRest');
 		cy.get('@allBlock').find('li').should('contain', 'Contributor comment.');
+
+		/**
+		 * Verify that the block supports changing styles.
+		 */
+		cy.get('.wp-block-elasticpress-comments').last().as('pagePostBlock');
+		cy.get('@pagePostBlock').supportsBlockColors();
+		cy.get('@pagePostBlock').supportsBlockTypography();
+		cy.get('@pagePostBlock').supportsBlockDimensions();
 
 		/**
 		 * Verify the post comments block has the expected markup and returns

@@ -95,7 +95,7 @@ class DidYouMean extends Feature {
 			],
 		];
 
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping['mappings']['post']['properties']['post_content']['fields'] = [
 				'shingle' => [
 					'type'     => 'text',

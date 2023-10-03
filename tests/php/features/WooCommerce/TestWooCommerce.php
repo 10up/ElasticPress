@@ -9,46 +9,12 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 
+require_once __DIR__ . '/WooCommerceBaseTestCase.php';
+
 /**
  * WC test class
  */
-class TestWooCommerce extends BaseTestCase {
-
-	/**
-	 * Setup each test.
-	 *
-	 * @since 2.1
-	 * @group woocommerce
-	 */
-	public function set_up() {
-		global $wpdb;
-		parent::set_up();
-		$wpdb->suppress_errors();
-
-		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
-
-		wp_set_current_user( $admin_id );
-
-		ElasticPress\Elasticsearch::factory()->delete_all_indices();
-		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
-
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
-
-		$this->setup_test_post_type();
-	}
-
-	/**
-	 * Clean up after each test. Reset our mocks
-	 *
-	 * @since 2.1
-	 * @group woocommerce
-	 */
-	public function tear_down() {
-		parent::tear_down();
-
-		$this->fired_actions = array();
-	}
-
+class TestWooCommerce extends WooCommerceBaseTestCase {
 	/**
 	 * Test search integration is on in general for product searches
 	 *

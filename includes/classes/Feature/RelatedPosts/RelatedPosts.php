@@ -8,11 +8,10 @@
 
 namespace ElasticPress\Feature\RelatedPosts;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Elasticsearch as Elasticsearch;
+use \WP_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
 use ElasticPress\Utils;
-use ElasticPress\Post\Post as Post;
-use \WP_Query as WP_Query;
 
 /**
  * Related posts feature class
@@ -47,7 +46,7 @@ class RelatedPosts extends Feature {
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args['more_like'] ) ) {
 			// lets compare ES version to see if new MLT structure applies
-			$new_mlt = version_compare( Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
+			$new_mlt = version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
 
 			if ( $new_mlt && is_array( $args['more_like'] ) ) {
 				foreach ( $args['more_like'] as $id ) {
@@ -292,13 +291,11 @@ class RelatedPosts extends Feature {
 			$class .= ' align' . $attributes['align'];
 		}
 
-		if ( ! empty( $attributes['className'] ) ) {
-			$class .= ' ' . $attributes['className'];
-		}
-
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => $class ] );
 		?>
-		<section class="<?php echo esc_attr( $class ); ?>">
+		<section <?php echo wp_kses_data( $wrapper_attributes ); ?>">
 			<ul>
 				<?php foreach ( $posts as $related_post ) : ?>
 					<li>

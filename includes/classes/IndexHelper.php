@@ -13,7 +13,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.
@@ -164,13 +164,9 @@ class IndexHelper {
 				$this->args['network_wide'] = 0;
 			}
 
-			$sites = Utils\get_sites( $this->args['network_wide'] );
+			$sites = Utils\get_sites( $this->args['network_wide'], true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexables as $indexable ) {
@@ -716,8 +712,9 @@ class IndexHelper {
 				);
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
+				$error_type                                       = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
-				$this->queue_message( $errors_output, 'warning' );
+				$this->queue_message( $errors_output, $error_type );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
@@ -940,14 +937,9 @@ class IndexHelper {
 		$indexes   = [];
 		$indexable = Indexables::factory()->get( array_shift( $this->index_meta['network_alias'] ) );
 
-		$sites = Utils\get_sites();
+		$sites = Utils\get_sites( 0, true );
 
 		foreach ( $sites as $site ) {
-
-			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-				continue;
-			}
-
 			switch_to_blog( $site['blog_id'] );
 			$indexes[] = $indexable->get_index_name();
 			restore_current_blog();

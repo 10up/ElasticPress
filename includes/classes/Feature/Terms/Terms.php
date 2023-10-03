@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Feature\Terms;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Indexable;
+use ElasticPress\Indexables;
 
 /**
  * Terms feature class

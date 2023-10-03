@@ -740,11 +740,11 @@ class Products {
 		 *
 		 * @hook ep_woocommerce_products_supported_post_types
 		 * @since 4.7.0
-		 * @param {array}    $post_types Post types
-		 * @param {WP_Query} $query      The WP_Query object
+		 * @param {array}    $supported_post_types Post types
+		 * @param {WP_Query} $query                The WP_Query object
 		 * @return {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_products_supported_post_types', $post_types, $query );
+		$supported_post_types = apply_filters( 'ep_woocommerce_products_supported_post_types', $supported_post_types, $query );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
@@ -893,7 +893,7 @@ class Products {
 		if ( empty( $search_term ) ) {
 			/**
 			 * For default sorting by popularity (total_sales) and rating
-			 * Woocommerce doesn't set the orderby correctly.
+			 * WooCommerce doesn't set the orderby correctly.
 			 * These lines will check the meta_key and correct the orderby based on that.
 			 * And this won't run in search result and only run in main query
 			 */
@@ -917,11 +917,16 @@ class Products {
 		 */
 		$orderby = $query->get( 'orderby', null );
 		if ( $orderby && in_array( $orderby, [ 'price', 'popularity' ], true ) ) {
-			$order = $query->get( 'order', 'DESC' );
-			$query->set( 'order', $order );
-
-			$orderby_field = 'price' === $orderby ? '_price' : 'total_sales';
-			$query->set( 'orderby', $this->get_orderby_meta_mapping( $orderby_field ) );
+			switch ( $orderby ) {
+				case 'price':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_price' ) );
+					$query->set( 'order', $query->get( 'order' ) );
+					break;
+				case 'popularity':
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
+					$query->set( 'order', 'DESC' );
+					break;
+			}
 		}
 
 		/**

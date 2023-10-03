@@ -28,6 +28,13 @@ class OrdersAutosuggest {
 	protected $index;
 
 	/**
+	 * The search template.
+	 *
+	 * @var string
+	 */
+	protected $search_template;
+
+	/**
 	 * Initialize feature.
 	 *
 	 * @return void

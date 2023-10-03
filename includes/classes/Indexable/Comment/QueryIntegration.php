@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Comment_Query as WP_Comment_Query;
-use ElasticPress\Utils as Utils;
+use \WP_Comment_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -182,7 +182,7 @@ class QueryIntegration {
 			$this->index = implode( ',', $this->index );
 		} elseif ( ! empty( $site__not_in ) ) {
 
-			$sites = get_sites(
+			$sites = \get_sites(
 				array(
 					'fields'       => 'ids',
 					'site__not_in' => $site__not_in,

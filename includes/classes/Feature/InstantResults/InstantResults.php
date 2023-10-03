@@ -7,12 +7,12 @@
 
 namespace ElasticPress\Feature\InstantResults;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Feature as Feature;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
 use ElasticPress\FeatureRequirementsStatus;
-use ElasticPress\Features as Features;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -82,11 +82,12 @@ class InstantResults extends Feature {
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'highlight_tag' => 'mark',
-			'facets'        => 'post_type,category,post_tag',
-			'match_type'    => 'all',
-			'term_count'    => '1',
-			'per_page'      => get_option( 'posts_per_page', 6 ),
+			'highlight_tag'   => 'mark',
+			'facets'          => 'post_type,category,post_tag',
+			'match_type'      => 'all',
+			'term_count'      => '1',
+			'per_page'        => get_option( 'posts_per_page', 6 ),
+			'search_behavior' => '0',
 		];
 
 		$this->settings = $this->get_settings();
@@ -131,7 +132,7 @@ class InstantResults extends Feature {
 			return;
 		}
 
-		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
+		$highlight_tags = [ 'mark', 'span', 'strong', 'em', 'i' ];
 		?>
 
 		<div class="field">
@@ -154,7 +155,7 @@ class InstantResults extends Feature {
 			</div>
 		</div>
 		<div class="field">
-			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></label>
+			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Filters', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
 				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" name="settings[facets]" id="feature_instant_results_facets">
 			</div>
@@ -170,7 +171,7 @@ class InstantResults extends Feature {
 					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
 					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
 				</label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<div class="field">
@@ -185,8 +186,20 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-
 		<?php
+		$show_suggestions = \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active();
+
+		if ( $show_suggestions ) :
+			?>
+			<div class="field">
+				<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
+				<div class="input-wrap">
+					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], '0' ); ?> <?php disabled( $show_suggestions, false ); ?> value="0"><?php esc_html_e( 'Display the top suggestion', 'elasticpress' ); ?></label><br>
+					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], 'list' ); ?> <?php disabled( $show_suggestions, false ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
+				</div>
+			</div>
+			<?php
+		endif;
 	}
 
 	/**
@@ -303,19 +316,21 @@ class InstantResults extends Feature {
 			'elasticpress-instant-results',
 			'epInstantResults',
 			array(
-				'apiEndpoint'    => $api_endpoint,
-				'apiHost'        => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
-				'argsSchema'     => $this->get_args_schema(),
-				'currencyCode'   => $this->is_woocommerce ? get_woocommerce_currency() : false,
-				'facets'         => $this->get_facets_for_frontend(),
-				'highlightTag'   => $this->settings['highlight_tag'],
-				'isWooCommerce'  => $this->is_woocommerce,
-				'locale'         => str_replace( '_', '-', get_locale() ),
-				'matchType'      => $this->settings['match_type'],
-				'paramPrefix'    => 'ep-',
-				'postTypeLabels' => $this->get_post_type_labels(),
-				'termCount'      => $this->settings['term_count'],
-				'requestIdBase'  => Utils\get_request_id_base(),
+				'apiEndpoint'         => $api_endpoint,
+				'apiHost'             => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
+				'argsSchema'          => $this->get_args_schema(),
+				'currencyCode'        => $this->is_woocommerce ? get_woocommerce_currency() : false,
+				'facets'              => $this->get_facets_for_frontend(),
+				'highlightTag'        => $this->settings['highlight_tag'],
+				'isWooCommerce'       => $this->is_woocommerce,
+				'locale'              => str_replace( '_', '-', get_locale() ),
+				'matchType'           => $this->settings['match_type'],
+				'paramPrefix'         => 'ep-',
+				'postTypeLabels'      => $this->get_post_type_labels(),
+				'termCount'           => $this->settings['term_count'],
+				'requestIdBase'       => Utils\get_request_id_base(),
+				'showSuggestions'     => \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active(),
+				'suggestionsBehavior' => $this->settings['search_behavior'],
 			)
 		);
 	}
@@ -691,7 +706,7 @@ class InstantResults extends Feature {
 			'price_html'         => array( 'type' => 'text' ),
 		);
 
-		if ( version_compare( $elasticsearch_version, '7.0', '<' ) ) {
+		if ( version_compare( (string) $elasticsearch_version, '7.0', '<' ) ) {
 			$mapping['mappings']['post']['properties'] = array_merge(
 				$mapping['mappings']['post']['properties'],
 				$properties
@@ -950,7 +965,7 @@ class InstantResults extends Feature {
 	 */
 	public function get_args_schema() {
 		/**
-		 * The number of resutls per page for Instant Results.
+		 * The number of results per page for Instant Results.
 		 *
 		 * @since 4.5.0
 		 * @hook ep_instant_results_per_page

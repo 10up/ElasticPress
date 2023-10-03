@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Term_Query as WP_Term_Query;
-use ElasticPress\Utils as Utils;
+use \WP_Term_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -151,7 +151,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			} elseif ( ! empty( $site__not_in ) ) {
 
-				$sites = get_sites(
+				$sites = \get_sites(
 					array(
 						'fields'       => 'ids',
 						'site__not_in' => $site__not_in,

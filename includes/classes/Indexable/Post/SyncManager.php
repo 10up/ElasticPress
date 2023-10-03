@@ -8,11 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\SyncManager as SyncManagerAbstract;
-use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 
 	/**
 	 * Indexable slug
@@ -57,6 +56,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 2 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -101,6 +101,7 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ) );
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ) );
@@ -920,5 +921,22 @@ class SyncManager extends SyncManagerAbstract {
 		$post = get_post( $object_id );
 
 		return ! empty( $post->post_password );
+	}
+
+	/**
+	 * Sync ES index when attached or detached action is called.
+	 *
+	 * @since 4.7.0
+	 * @param string $action        Attach/detach action
+	 * @param int    $attachment_id The attachment ID
+	 */
+	public function action_sync_on_media_attach( $action, $attachment_id ) {
+		$indexable            = Indexables::factory()->get( $this->indexable_slug );
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( ! in_array( 'attachment', $indexable_post_types, true ) ) {
+			return;
+		}
+		$this->action_sync_on_update( $attachment_id );
 	}
 }

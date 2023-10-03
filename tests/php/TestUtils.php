@@ -445,7 +445,7 @@ class TestUtils extends BaseTestCase {
 	 * @group utils
 	 */
 	public function test_get_language() {
-		$this->assertSame( 'ep_site_default', Utils\get_language() );
+		$this->assertSame( 'site-default', Utils\get_language() );
 
 		$set_lang_via_option = function() {
 			return 'custom_via_option';
@@ -468,5 +468,113 @@ class TestUtils extends BaseTestCase {
 		add_filter( 'ep_default_language', $set_lang_via_filter );
 
 		$this->assertSame( 'custom_via_filter', Utils\get_language() );
+	}
+
+	/**
+	 * Test the `get_sites()` method on a single site
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 * @group skip-on-multi-site
+	 */
+	public function test_get_sites_on_single_site() {
+		$this->assertSame( [], Utils\get_sites() );
+	}
+
+	/**
+	 * Test the `get_sites()` method on a multisite
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function test_get_sites_on_multi_site() {
+		$this->factory->blog->create_object(
+			[
+				'domain' => 'example2.org',
+				'title'  => 'Example Site 2',
+			]
+		);
+		$this->assertCount( 2, Utils\get_sites() );
+
+		$this->factory->blog->create_object(
+			[
+				'domain' => 'example3.org',
+				'title'  => 'Example Site 3',
+				'spam'   => 1,
+			]
+		);
+		$this->assertCount( 3, Utils\get_sites() );
+
+		$this->factory->blog->create_object(
+			[
+				'domain'  => 'example4.org',
+				'title'   => 'Example Site 4',
+				'deleted' => 1,
+			]
+		);
+		$this->assertCount( 4, Utils\get_sites() );
+
+		$this->factory->blog->create_object(
+			[
+				'domain'   => 'example5.org',
+				'title'    => 'Example Site 5',
+				'archived' => 1,
+			]
+		);
+		$this->assertCount( 5, Utils\get_sites() );
+
+		$blog_6 = $this->factory->blog->create_object(
+			[
+				'domain' => 'example6.org',
+				'title'  => 'Example Site 6',
+			]
+		);
+		update_site_meta( $blog_6, 'ep_indexable', 'no' );
+		$this->assertCount( 6, Utils\get_sites() );
+
+		// Test the `$only_indexable` parameter
+		$this->assertCount( 2, Utils\get_sites( 0, true ) );
+
+		// Test the `$limit` parameter
+		$this->assertCount( 1, Utils\get_sites( 1, true ) );
+	}
+
+	/**
+	 * Test the `ep_indexable_sites_args` filter in the `get_sites()` method
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function test_get_sites_ep_indexable_sites_args_filter() {
+		$add_args = function ( $args ) {
+			$this->assertSame( 3, $args['number'] );
+			return $args;
+		};
+		add_filter( 'ep_indexable_sites_args', $add_args );
+
+		Utils\get_sites( 3 );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_indexable_sites_args' ) );
+	}
+
+	/**
+	 * Test the `ep_indexable_sites` filter in the `get_sites()` method
+	 *
+	 * @since 4.7.0
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function test_get_sites_ep_indexable_sites_filter() {
+		$add_site = function ( $sites ) {
+			$this->assertIsArray( $sites );
+			$sites['test'] = true;
+			return $sites;
+		};
+		add_filter( 'ep_indexable_sites', $add_site );
+
+		$sites = Utils\get_sites();
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_indexable_sites' ) );
+		$this->assertTrue( $sites['test'] );
 	}
 }

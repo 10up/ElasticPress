@@ -112,7 +112,7 @@ jobs:
         coverage: none
 
     - name: Install dependencies
-      run: composer install --ignore-platform-reqs
+      run: composer install
 
     - name: Setup WP Tests
       run: |

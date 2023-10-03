@@ -18,56 +18,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets block class
  */
-class Block {
+class Block extends \ElasticPress\Feature\Facets\Block {
 	/**
 	 * Hook block functionality.
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
-		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 	}
 
 	/**
 	 * Setup REST endpoints for the feature.
 	 */
 	public function setup_endpoints() {
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/post-type/block-preview',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
-				'callback'            => [ $this, 'render_block_preview' ],
-				'args'                => [
-					'searchPlaceholder' => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'displayCount'      => [
-						'sanitize_callback' => 'rest_sanitize_boolean',
-					],
-					'orderby'           => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'order'             => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
-
-			]
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Block preview is now handled with ServerSideRender.', 'elasticpress' ),
+			'4.7.0'
 		);
 	}
 
 	/**
 	 * Check permissions of the /facets/post-type/* REST endpoints.
 	 *
-	 * @return WP_Error|true
+	 * @return void
 	 */
 	public function check_facets_rest_permission() {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
-		}
-
-		return true;
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Block preview is now handled with ServerSideRender.', 'elasticpress' ),
+			'4.7.0'
+		);
 	}
 
 	/**
@@ -104,19 +84,42 @@ class Block {
 	 * @return string
 	 */
 	public function render_block( $attributes ) {
-		$attributes = $this->parse_attributes( $attributes );
+		global $wp_query;
+
+		if ( $attributes['isPreview'] ) {
+			add_filter( 'ep_is_facetable', '__return_true' );
+
+			$search = Features::factory()->get_registered_feature( 'search' );
+
+			$wp_query->query(
+				[
+					'posts_per_page' => 1,
+					'post_type'      => $search->get_searchable_post_types(),
+				]
+			);
+		}
 
 		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'post-type', 'block', $attributes );
 		$renderer       = new $renderer_class();
 
 		ob_start();
-		?>
-		<div class="wp-block-elasticpress-facet">
-			<?php $renderer->render( [], $attributes ); ?>
-		</div>
-		<?php
-		return ob_get_clean();
+
+		$renderer->render( [], $attributes );
+
+		$block_content = ob_get_clean();
+
+		if ( empty( $block_content ) ) {
+			return;
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
+
+		return sprintf(
+			'<div %1$s>%2$s</div>',
+			wp_kses_data( $wrapper_attributes ),
+			$block_content
+		);
 	}
 
 	/**
@@ -126,42 +129,11 @@ class Block {
 	 * @return string
 	 */
 	public function render_block_preview( $request ) {
-		global $wp_query;
+		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Taxonomy\render_block()' );
 
-		add_filter( 'ep_is_facetable', '__return_true' );
+		$attributes = $request->get_params();
 
-		$search = Features::factory()->get_registered_feature( 'search' );
-
-		$attributes = $this->parse_attributes(
-			[
-				'searchPlaceholder' => $request->get_param( 'searchPlaceholder' ),
-				'displayCount'      => $request->get_param( 'displayCount' ),
-				'orderby'           => $request->get_param( 'orderby' ),
-				'order'             => $request->get_param( 'order' ),
-			]
-		);
-
-		$args = [
-			'post_type'      => $search->get_searchable_post_types(),
-			'posts_per_page' => 1,
-		];
-
-		$wp_query->query( $args );
-
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'post-type', 'block', $attributes );
-		$renderer       = new $renderer_class();
-
-		ob_start();
-		$renderer->render( [], $attributes );
-		$block_content = ob_get_clean();
-
-		if ( empty( $block_content ) ) {
-			return esc_html__( 'Preview for post types not available', 'elasticpress' );
-		}
-
-		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
-		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
+		return $this->render_block( $attributes );
 	}
 
 	/**
@@ -171,14 +143,10 @@ class Block {
 	 * @return array
 	 */
 	protected function parse_attributes( $attributes ) {
-		$attributes = wp_parse_args(
-			$attributes,
-			[
-				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by post type search placeholder', 'elasticpress' ),
-				'displayCount'      => false,
-				'orderby'           => 'count',
-				'order'             => 'desc',
-			]
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
+			'4.7.0'
 		);
 
 		return $attributes;
