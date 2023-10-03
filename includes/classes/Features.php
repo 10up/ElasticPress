@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

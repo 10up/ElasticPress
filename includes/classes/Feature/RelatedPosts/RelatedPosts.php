@@ -8,12 +8,11 @@
 
 namespace ElasticPress\Feature\RelatedPosts;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Feature as Feature;
-use ElasticPress\Post\Post as Post;
+use \WP_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
 use ElasticPress\REST;
 use ElasticPress\Utils;
-use \WP_Query as WP_Query;
 
 /**
  * Related posts feature class
