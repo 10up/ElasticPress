@@ -298,10 +298,10 @@ class Orders {
 		 *
 		 * @hook ep_woocommerce_orders_supported_post_types
 		 * @since 4.7.0
-		 * @param {array} $post_types Post types
+		 * @param {array} $supported_post_types Post types
 		 * @return {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $supported_post_types );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
