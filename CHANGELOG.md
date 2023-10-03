@@ -13,13 +13,16 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
-
 ## [4.7.2] - 2023-10-XX
 
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
 
 ### Added
 * >=PHP 7.0 version check. Props [@bmarshall511](https://github.com/bmarshall511) and [@felipeelia](https://github.com/felipeelia) via [#3641](https://github.com/10up/ElasticPress/pull/3641).
+* GitHub action to automatically open a new issue when a new version of WordPress is released. Props [@felipeelia](https://github.com/felipeelia) via [#3666](https://github.com/10up/ElasticPress/pull/3666).
+
+### Removed
+* Unnecessary aliases in use statements. Props [@felipeelia](https://github.com/felipeelia) via [#3671](https://github.com/10up/ElasticPress/pull/3671).
 
 ### Fixed
 * Updated phpDoc entries. Props [@renatonascalves](https://github.com/renatonascalves) via [#3635](https://github.com/10up/ElasticPress/pull/3635).
