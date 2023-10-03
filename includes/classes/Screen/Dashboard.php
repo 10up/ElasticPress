@@ -2,7 +2,7 @@
 /**
  * Dashboard screen class.
  *
- * @since  3.6.0
+ * @since 5.0.0
  * @package elasticpress
  */
 
@@ -31,7 +31,6 @@ class Dashboard {
 	/**
 	 * Register REST API routes.
 	 *
-	 * @since 5.0.0
 	 * @return void
 	 */
 	public function register_rest_routes() {
