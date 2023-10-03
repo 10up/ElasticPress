@@ -666,6 +666,7 @@ class Facets extends Feature {
 					'value' => 'any',
 				],
 			],
+			'type'    => 'radio',
 		];
 	}
 
