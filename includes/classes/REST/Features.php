@@ -53,6 +53,10 @@ class Features {
 			$schema = $feature->get_settings_schema();
 
 			foreach ( $schema as $schema ) {
+				if ( ! isset( $schema['label'] ) ) {
+					continue;
+				}
+
 				$property = [ 'description' => $schema['label'] ];
 
 				switch ( $schema['type'] ) {
