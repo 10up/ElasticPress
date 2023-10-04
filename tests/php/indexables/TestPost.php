@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexables;
 
 /**
  * Test post indexable class

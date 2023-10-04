@@ -431,20 +431,19 @@ class DidYouMean extends Feature {
 				'label'   => __( 'Search behavior when no result is found', 'elasticpress' ),
 				'options' => [
 					[
-						[
-							'label' => __( 'Display the top suggestion', 'elasticpress' ),
-							'value' => 0,
-						],
-						[
-							'label' => __( 'Display all the suggestions', 'elasticpress' ),
-							'value' => 'list',
-						],
-						[
-							'label' => __( 'Automatically redirect the user to the top suggestion', 'elasticpress' ),
-							'value' => 'redirect',
-						],
+						'label' => __( 'Display the top suggestion', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Display all the suggestions', 'elasticpress' ),
+						'value' => 'list',
+					],
+					[
+						'label' => __( 'Automatically redirect the user to the top suggestion', 'elasticpress' ),
+						'value' => 'redirect',
 					],
 				],
+				'type'    => 'radio',
 			],
 		];
 	}

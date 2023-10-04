@@ -8,9 +8,8 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManagerAbstract;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -19,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 	/**
 	 * Indexable slug
 	 *

@@ -68,21 +68,20 @@ class Sync {
 		$indices_comparison = Elasticsearch::factory()->get_indices_comparison();
 		$indices_missing    = count( $indices_comparison['missing_indices'] ) > 0;
 
-		$last_sync = ! $indices_missing ? IndexHelper::factory()->get_last_sync() : [];
-
 		$post_types = Indexables::factory()->get( 'post' )->get_indexable_post_types();
 		$post_types = array_values( $post_types );
 
+		$sync_history = ! $indices_missing ? IndexHelper::factory()->get_sync_history() : [];
+
 		$data = [
-			'apiUrl'           => rest_url( 'elasticpress/v1/sync' ),
-			'autoIndex'        => isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			'indexMeta'        => Utils\get_indexing_status(),
-			'lastSyncDateTime' => ! empty( $last_sync['end_date_time'] ) ? $last_sync['end_date_time'] : null,
-			'lastSyncFailed'   => ! empty( $last_sync['failed'] ) || ! empty( $last_sync['errors'] ) ? true : false,
-			'indexables'       => array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
-			'isEpio'           => Utils\is_epio(),
-			'nonce'            => wp_create_nonce( 'wp_rest' ),
-			'postTypes'        => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),
+			'apiUrl'      => rest_url( 'elasticpress/v1/sync' ),
+			'autoIndex'   => isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'indexMeta'   => Utils\get_indexing_status(),
+			'indexables'  => array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
+			'isEpio'      => Utils\is_epio(),
+			'nonce'       => wp_create_nonce( 'wp_rest' ),
+			'postTypes'   => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),
+			'syncHistory' => $sync_history,
 		];
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );

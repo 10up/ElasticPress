@@ -8,11 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\SyncManager as SyncManagerAbstract;
-use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 
 	/**
 	 * Indexable slug

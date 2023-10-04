@@ -131,6 +131,16 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta-range', 'block', $attributes );
 		$renderer       = new $renderer_class();
 
+		/**
+		 * Prior to WP 6.1, if you set `viewScript` while using a `render_callback` function,
+		 * the script was not enqueued.
+		 *
+		 * @see https://core.trac.wordpress.org/changeset/54367
+		 */
+		if ( version_compare( get_bloginfo( 'version' ), '6.1', '<' ) ) {
+			wp_enqueue_script( 'ep-facets-meta-range-block-view-script' );
+		}
+
 		ob_start();
 
 		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );

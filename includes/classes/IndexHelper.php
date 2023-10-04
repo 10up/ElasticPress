@@ -13,7 +13,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.
@@ -869,8 +869,9 @@ class IndexHelper {
 	 * Update last sync info.
 	 *
 	 * @since 4.2.0
+	 * @param string $final_status Optional final status
 	 */
-	protected function update_last_index() {
+	protected function update_last_index( string $final_status = '' ) {
 		$is_full_sync = $this->index_meta['put_mapping'];
 		$method       = $this->index_meta['method'];
 		$start_time   = $this->index_meta['start_time'];
@@ -892,6 +893,15 @@ class IndexHelper {
 		$totals['is_full_sync'] = $is_full_sync;
 		$totals['method']       = $method;
 		$totals['trigger']      = $trigger;
+
+		// Final status
+		if ( '' !== $final_status ) {
+			$totals['final_status'] = $final_status;
+		} elseif ( ! empty( $totals['failed'] ) ) {
+			$totals['final_status'] = 'with_errors';
+		} else {
+			$totals['final_status'] = 'success';
+		}
 
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 
@@ -1318,6 +1328,9 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		if ( ! empty( $this->index_meta ) ) {
+			$this->update_last_index( 'aborted' );
+		}
 		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
@@ -1377,7 +1390,7 @@ class IndexHelper {
 
 		$this->index_meta['totals']['errors'][] = $error['message'];
 		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
-		$this->update_last_index();
+		$this->update_last_index( 'failed' );
 
 		/**
 		 * Fires after a sync failed due to a PHP fatal error.

@@ -1,6 +1,6 @@
 <?php
 /**
- * User indexable
+ * Post indexable
  *
  * @since  3.0
  * @package  elasticpress
@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use \WP_Query as WP_Query;
-use \WP_User as WP_User;
+use \WP_Query;
+use \WP_User;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexable;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart

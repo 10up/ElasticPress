@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Feature\Facets;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Feature;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -666,6 +666,7 @@ class Facets extends Feature {
 					'value' => 'any',
 				],
 			],
+			'type'    => 'radio',
 		];
 	}
 
