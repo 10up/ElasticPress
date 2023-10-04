@@ -3,14 +3,16 @@
 @import "./css/log.css";
 @import "./css/messages.css";
 @import "./css/panel.css";
+@import "./css/previous-sync.css";
 @import "./css/progress-bar.css";
 @import "./css/progress.css";
+@import "./css/sync-history.css";
 
 :root {
 	--ep-sync-color-black: #1a1e24;
-	--ep-sync-color-error: #b52727;
+	--ep-sync-color-error: #cc1818;
 	--ep-sync-color-light-grey: #f0f0f0;
-	--ep-sync-color-success: #46b450;
+	--ep-sync-color-success: #4ab866;
 	--ep-sync-color-warning: #ffb359;
 	--ep-sync-color-white: #fff;
 }

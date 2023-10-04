@@ -39,8 +39,7 @@ const Context = createContext();
  * @param {object} props Component props.
  * @param {string} props.apiUrl API endpoint URL.
  * @param {Function} props.children Component children
- * @param {string} props.defaultLastSyncDateTime Last sync date and time.
- * @param {boolean} props.defaultLastSyncFailed Whether the last sync failed.
+ * @param {Array} props.defaultSyncHistory Sync history.
  * @param {object|null} props.indexMeta Details of a sync in progress.
  * @param {boolean} props.isEpio Whether ElasticPress.io is in use.
  * @param {string} props.nonce WordPress nonce.
@@ -49,8 +48,7 @@ const Context = createContext();
 export const SyncProvider = ({
 	apiUrl,
 	children,
-	defaultLastSyncDateTime,
-	defaultLastSyncFailed,
+	defaultSyncHistory,
 	indexMeta,
 	isEpio,
 	nonce,
@@ -77,9 +75,8 @@ export const SyncProvider = ({
 		isSyncing: false,
 		itemsProcessed: 0,
 		itemsTotal: 100,
-		lastSyncDateTime: defaultLastSyncDateTime,
-		lastSyncFailed: defaultLastSyncFailed,
 		syncStartDateTime: null,
+		syncHistory: defaultSyncHistory,
 	});
 
 	/**
@@ -139,19 +136,6 @@ export const SyncProvider = ({
 		[setLog],
 	);
 
-	const stopSync = useCallback(
-		/**
-		 * Stop syncing.
-		 *
-		 * @returns {void}
-		 */
-		() => {
-			updateState({ isPaused: false, isSyncing: false });
-			cancelIndex();
-		},
-		[cancelIndex],
-	);
-
 	const syncCompleted = useCallback(
 		/**
 		 * Set sync state to completed, with success based on the number of
@@ -165,8 +149,7 @@ export const SyncProvider = ({
 				isComplete: true,
 				isPaused: false,
 				isSyncing: false,
-				lastSyncDateTime: indexTotals.end_date_time,
-				lastSyncFailed: indexTotals.failed > 0,
+				syncHistory: [indexTotals, ...stateRef.current.syncHistory],
 			});
 
 			/**
@@ -201,6 +184,13 @@ export const SyncProvider = ({
 			}
 
 			/**
+			 * If the error has totals, add to the sync history.
+			 */
+			const syncHistory = response.totals
+				? [response.totals, ...stateRef.current.syncHistory]
+				: stateRef.current.syncHistory;
+
+			/**
 			 * Log a final message and update the sync state.
 			 */
 			logMessage(__('Sync failed', 'elasticpress'), 'error');
@@ -208,8 +198,7 @@ export const SyncProvider = ({
 			updateState({
 				isFailed: true,
 				isSyncing: false,
-				lastSyncDateTime: stateRef.current.syncStartDateTime,
-				lastSyncFailed: true,
+				syncHistory,
 			});
 		},
 		[logMessage],
@@ -261,6 +250,23 @@ export const SyncProvider = ({
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
 				syncStartDateTime: indexMeta.start_date_time,
 			});
+		},
+		[],
+	);
+
+	const syncStopped = useCallback(
+		/**
+		 * Set state for a stopped sync.
+		 *
+		 * @param {object} response Cancel request response.
+		 * @returns {void}
+		 */
+		(response) => {
+			const syncHistory = response.data
+				? [response.data, ...stateRef.current.syncHistory]
+				: stateRef.current.syncHistory;
+
+			updateState({ syncHistory });
 		},
 		[],
 	);
@@ -339,6 +345,18 @@ export const SyncProvider = ({
 			});
 		},
 		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, logMessage],
+	);
+
+	const doCancelIndex = useCallback(
+		/**
+		 * Cancel a sync.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			cancelIndex().then(syncStopped);
+		},
+		[cancelIndex, syncStopped],
 	);
 
 	const doIndexStatus = useCallback(
@@ -420,8 +438,8 @@ export const SyncProvider = ({
 		 * @returns {void}
 		 */
 		(args) => {
-			const { lastSyncDateTime } = stateRef.current;
-			const isInitialSync = lastSyncDateTime === null;
+			const { syncHistory } = stateRef.current;
+			const isInitialSync = !syncHistory.length;
 
 			/**
 			 * We should not appear to be deleting if this is the first sync.
@@ -440,6 +458,19 @@ export const SyncProvider = ({
 			doIndex(args);
 		},
 		[doIndex],
+	);
+
+	const stopSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isPaused: false, isSyncing: false });
+			doCancelIndex();
+		},
+		[doCancelIndex],
 	);
 
 	/**
@@ -490,8 +521,7 @@ export const SyncProvider = ({
 		isSyncing,
 		itemsProcessed,
 		itemsTotal,
-		lastSyncDateTime,
-		lastSyncFailed,
+		syncHistory,
 		syncStartDateTime,
 	} = stateRef.current;
 
@@ -506,8 +536,7 @@ export const SyncProvider = ({
 		isSyncing,
 		itemsProcessed,
 		itemsTotal,
-		lastSyncDateTime,
-		lastSyncFailed,
+		syncHistory,
 		log,
 		logMessage,
 		pauseSync,
