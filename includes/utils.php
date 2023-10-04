@@ -602,7 +602,7 @@ function update_option( $option, $value, $autoload = null ) {
  * @since 3.6.0
  * @param string $option        Name of the option to get.
  * @param mixed  $default_value Default value.
- * @return bool
+ * @return mixed
  */
 function get_option( $option, $default_value = false ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {

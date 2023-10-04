@@ -6,9 +6,8 @@
  * @package elasticpress
  */
 
-use ElasticPress\Stats as Stats;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Stats;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

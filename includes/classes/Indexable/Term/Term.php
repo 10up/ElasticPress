@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use \WP_Term_Query as WP_Term_Query;
+use \WP_Term_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexable;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart

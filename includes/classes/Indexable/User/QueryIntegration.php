@@ -8,9 +8,8 @@
 
 namespace ElasticPress\Indexable\User;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_User_Query as WP_User_Query;
-use ElasticPress\Utils as Utils;
+use \WP_User_Query;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

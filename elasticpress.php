@@ -23,21 +23,47 @@
 
 namespace ElasticPress;
 
-use \WP_CLI as WP_CLI;
+use \WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
-}
-
-// Require Composer autoloader if it exists.
-if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor-prefixed/autoload.php';
 }
 
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
 define( 'EP_VERSION', '4.7.1' );
+
+define( 'EP_PHP_VERSION_MIN', '7.0' );
+
+if ( ! version_compare( phpversion(), EP_PHP_VERSION_MIN, '>=' ) ) {
+	add_action(
+		'admin_notices',
+		function() {
+			?>
+			<div class="notice notice-error">
+				<p>
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: %s: Minimum required PHP version */
+							__( 'ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin.', 'elasticpress' ),
+							EP_PHP_VERSION_MIN
+						)
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		}
+	);
+	return;
+}
+
+// Require Composer autoloader if it exists.
+if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor-prefixed/autoload.php';
+}
 
 /**
  * PSR-4-ish autoloading

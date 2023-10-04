@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexables;
 
 /**
  * Test post indexable class
@@ -1093,23 +1093,27 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a post__not_in query
+	 * Test a post__not_in query with non-sequential array indices
 	 *
-	 * @since 1.5
+	 * @since 4.7.2
 	 * @group post
 	 */
-	public function testPostNotInQuery() {
+	public function testPostNotInQueryWithNonSequentialIndices() {
 		$post_ids = array();
 
 		$post_ids[0] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
 		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
+		$post_ids[3] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 4' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
 			's'            => 'findme',
-			'post__not_in' => array( $post_ids[0] ),
+			'post__not_in' => array(
+				0 => $post_ids[0],
+				2 => $post_ids[3],
+			),
 		);
 
 		$query = new \WP_Query( $args );
