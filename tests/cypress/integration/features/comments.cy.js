@@ -325,7 +325,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 				 *
 				 */
 				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(2000);
+				cy.wait(3000);
 
 				cy.wpCli('wp elasticpress stats')
 					.its('stdout')
