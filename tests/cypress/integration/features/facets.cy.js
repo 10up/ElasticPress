@@ -64,12 +64,12 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@secondBlock').click();
 		cy.get('.block-editor-block-inspector select').first().select('post_tag');
+		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
 		cy.get('.block-editor-block-inspector select').last().select('name/asc');
 
 		/**
 		 * Make sure it waits for the correct request.
 		 */
-		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
 		cy.wait('@blockPreview');
 
 		/**
