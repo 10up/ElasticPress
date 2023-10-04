@@ -599,10 +599,6 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 * Test that the Filter by Metadata Range block is functional.
 		 */
 		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
-			cy.intercept('**/meta/keys*').as('keysApiRequest');
-			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
-			cy.intercept('**/sidebars/*').as('sidebarsRest');
-
 			/**
 			 * Insert a Filter by Metadata Range block.
 			 */
@@ -621,6 +617,8 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * After selecting a field a preview should display.
 			 */
+			cy.intercept('**/meta/keys*').as('keysApiRequest');
+			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
 			cy.wait('@keysApiRequest');
 			cy.get('@block').get('select').select('numeric_meta_field');
 			cy.wait('@previewApiRequest');
@@ -674,6 +672,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * Save widgets and visit the front page.
 			 */
+			cy.intercept('**/sidebars/*').as('sidebarsRest');
 			cy.get('.edit-widgets-header__actions button').contains('Update').click();
 			cy.wait('@sidebarsRest');
 			cy.visit('/');
