@@ -9,7 +9,6 @@
 namespace ElasticPress\REST;
 
 use ElasticPress\Features;
-use ElasticPress\Indexables;
 
 /**
  * Taxonomies API controller class.

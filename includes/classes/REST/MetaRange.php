@@ -9,7 +9,6 @@
 namespace ElasticPress\REST;
 
 use ElasticPress\Features;
-use ElasticPress\Indexables;
 
 /**
  * Meta Range API controller class.
@@ -54,19 +53,11 @@ class MetaRange {
 	 * @return array
 	 */
 	public function get_args() {
-		$post_indexable = Indexables::factory()->get( 'post' );
-
-		try {
-			$meta_keys = $post_indexable->get_distinct_meta_field_keys();
-		} catch ( \Throwable $th ) {
-			$meta_keys = [];
-		}
-
 		return [
 			'facet' => [
 				'description' => __( 'Filter to get a value range for.', 'elasticpress' ),
-				'enum'        => $meta_keys,
 				'required'    => true,
+				'type'        => 'string',
 			],
 		];
 	}
