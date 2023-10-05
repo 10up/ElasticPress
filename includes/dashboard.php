@@ -34,7 +34,7 @@ function setup() {
 
 	add_action( 'wp_ajax_ep_save_feature', __NAMESPACE__ . '\action_wp_ajax_ep_save_feature' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
-	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
+	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init', 8 );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
@@ -576,41 +576,54 @@ function action_admin_enqueue_dashboard_scripts() {
 function action_admin_init() {
 	$post = wp_unslash( $_POST );
 
-	// Save options for multisite.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $post['ep_language'] ) ) {
-		check_admin_referer( 'elasticpress-options' );
+	if ( empty( $post['ep_settings_nonce'] ) || ! wp_verify_nonce( $post['ep_settings_nonce'], 'elasticpress_settings' ) ) {
+		return;
+	}
 
-		$language = sanitize_text_field( $post['ep_language'] );
-		Utils\update_option( 'ep_language', $language );
+	$old_ep_language     = Utils\get_language();
+	$old_ep_host         = Utils\get_host();
+	$old_ep_credentials  = Utils\get_epio_credentials();
+	$old_ep_bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 
-		if ( isset( $post['ep_host'] ) ) {
-			$host = esc_url_raw( trim( $post['ep_host'] ) );
-			Utils\update_option( 'ep_host', $host );
+	$language = sanitize_text_field( $post['ep_language'] );
+	Utils\update_option( 'ep_language', $language );
+
+	if ( isset( $post['ep_host'] ) ) {
+		$host = esc_url_raw( trim( $post['ep_host'] ) );
+		Utils\update_option( 'ep_host', $host );
+	}
+
+	if ( isset( $post['ep_credentials'] ) ) {
+		$credentials = ( isset( $post['ep_credentials'] ) ) ? Utils\sanitize_credentials( $post['ep_credentials'] ) : [
+			'username' => '',
+			'token'    => '',
+		];
+
+		Utils\update_option( 'ep_credentials', $credentials );
+	}
+
+	if ( isset( $post['ep_bulk_setting'] ) ) {
+		Utils\update_option( 'ep_bulk_setting', sanitize_bulk_settings( $post['ep_bulk_setting'] ) );
+	}
+
+	$es_info = \ElasticPress\Elasticsearch::factory()->get_elasticsearch_info( true );
+	if ( empty( $es_info['version'] ) ) {
+		if ( empty( $old_ep_host ) ) {
+			unset( $_POST['ep_host'] );
+			add_action( 'admin_notices', __NAMESPACE__ . '\add_settings_form_not_set_notice' );
+		} else {
+			add_action( 'admin_notices', __NAMESPACE__ . '\add_settings_form_revert_notice' );
 		}
 
-		if ( isset( $post['ep_credentials'] ) ) {
-			$credentials = ( isset( $post['ep_credentials'] ) ) ? Utils\sanitize_credentials( $post['ep_credentials'] ) : [
-				'username' => '',
-				'token'    => '',
-			];
-
-			Utils\update_option( 'ep_credentials', $credentials );
-		}
-
-		if ( isset( $post['ep_bulk_setting'] ) ) {
-			Utils\update_option( 'ep_bulk_setting', intval( $post['ep_bulk_setting'] ) );
-		}
-	} else {
-		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
-		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
-		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
-		register_setting(
-			'elasticpress',
-			'ep_bulk_setting',
-			[
-				'type'              => 'integer',
-				'sanitize_callback' => __NAMESPACE__ . '\sanitize_bulk_settings',
-			]
+		add_action(
+			'admin_notices',
+			function() use ( $old_ep_language, $old_ep_host, $old_ep_credentials, $old_ep_bulk_setting ) {
+				Utils\update_option( 'ep_language', $old_ep_language );
+				Utils\update_option( 'ep_host', $old_ep_host );
+				Utils\update_option( 'ep_credentials', $old_ep_credentials );
+				Utils\update_option( 'ep_bulk_setting', $old_ep_bulk_setting );
+			},
+			99
 		);
 	}
 }
@@ -1017,4 +1030,46 @@ function block_assets() {
 			'syncUrl' => Utils\get_sync_url(),
 		]
 	);
+}
+
+/**
+ * Add a notice to the Settings form when the host was not set yet
+ *
+ * @since 5.0.0
+ */
+function add_settings_form_not_set_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			if ( Utils\is_epio() ) {
+				esc_html_e( 'It was not possible to connect to your ElasticPress.io account. Please check your settings and try again.', 'elasticpress' );
+			} else {
+				esc_html_e( 'It was not possible to connect to your Elasticsearch server. Please check your settings and try again.', 'elasticpress' );
+			}
+			?>
+		</p>
+	</div>
+	<?php
+}
+
+/**
+ * Add a notice to the Settings form when there was a previous value set
+ *
+ * @since 5.0.0
+ */
+function add_settings_form_revert_notice() {
+	?>
+	<div class="notice notice-error">
+		<p>
+			<?php
+			if ( Utils\is_epio() ) {
+				esc_html_e( 'It was not possible to connect to your ElasticPress.io account. Your settings were reverted.', 'elasticpress' );
+			} else {
+				esc_html_e( 'It was not possible to connect to your Elasticsearch server. Your settings were reverted.', 'elasticpress' );
+			}
+			?>
+		</p>
+	</div>
+	<?php
 }
