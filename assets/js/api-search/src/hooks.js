@@ -2,6 +2,7 @@
  * WordPress dependencies.
  */
 import { useCallback, useRef } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -47,6 +48,7 @@ export const useFetchResults = (
 		};
 
 		const requestId = generateRequestId(requestIdBase);
+
 		if (requestId) {
 			headers['X-ElasticPress-Request-ID'] = requestId;
 		}
@@ -56,14 +58,19 @@ export const useFetchResults = (
 			headers,
 		})
 			.then((response) => {
-				if (onAuthErrorRef.current && !response.ok) {
-					onAuthErrorRef.current();
+				if (!response.ok) {
+					if (response.status === 401 && onAuthErrorRef.current) {
+						onAuthErrorRef.current();
+						return '';
+					}
+
+					throw new Error(sprintf(__('HTTP %d.', 'elasticpress'), response.status));
 				}
 
 				return response.json();
 			})
 			.catch((error) => {
-				if (error?.name !== 'AbortError' && !request.current) {
+				if (error?.name !== 'AbortError') {
 					throw error;
 				}
 			})

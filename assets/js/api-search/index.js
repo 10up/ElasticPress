@@ -11,6 +11,7 @@ import {
 	useRef,
 	WPElement,
 } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -298,13 +299,23 @@ export const ApiSearchProvider = ({
 
 			setIsLoading(true);
 
-			const response = await fetchResults(urlParams);
+			try {
+				const response = await fetchResults(urlParams);
 
-			if (!response) {
-				return;
+				if (!response) {
+					return;
+				}
+
+				setResults(response);
+			} catch (e) {
+				const errorMessage = sprintf(
+					__('ElasticPress: Unable to fetch results. %s', 'elasticpress'),
+					e.message,
+				);
+
+				console.error(errorMessage); // eslint-disable-line no-console
 			}
 
-			setResults(response);
 			setIsLoading(false);
 		};
 
