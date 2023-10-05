@@ -601,7 +601,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
 			cy.intercept('/wp-json/elasticpress/v1/meta-keys*').as('keysApiRequest');
 			cy.intercept('/wp-json/elasticpress/v1/meta-range*').as('previewApiRequest');
-			cy.intercept('/wp-json/wp/v2/sidebars/sidebars/*').as('sidebarsRest');
+			cy.intercept('/wp-json/wp/v2/sidebars*').as('sidebarsRest');
 
 			/**
 			 * Insert a Filter by Metadata Range block.
