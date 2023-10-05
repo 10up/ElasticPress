@@ -47,9 +47,10 @@ class Comments {
 
 		return [
 			'post_type' => [
+				'default'     => '',
 				'description' => __( 'Post type of the posts whose comments to search.', 'elasticpress' ),
 				'enum'        => $post_types,
-				'required'    => true,
+				'required'    => false,
 			],
 			's'         => [
 				'description'       => __( 'Search query.', 'elasticpress' ),
@@ -68,10 +69,6 @@ class Comments {
 	 */
 	public function get_comments( \WP_REST_Request $request ) {
 		$search = $request->get_param( 's' );
-
-		if ( empty( $search ) ) {
-			return new \WP_Error( 400 );
-		}
 
 		$post_type_filter      = explode( ',', $request->get_param( 'post_type' ) );
 		$searchable_post_types = $this->get_searchable_post_types();
