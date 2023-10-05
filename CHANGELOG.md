@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 **Note that starting from the ElasticPress 5.0.0 release the `Users` feature will be moved to the [ElasticPress Labs](https://github.com/10up/ElasticPressLabs) plugin. The `Terms` and `Comments` features will remain in ElasticPress but will be available only if enabled via code. Check [our blog post](https://www.elasticpress.io/blog/2023/03/enabling-comments-and-terms-in-elasticpress-5-0) for more info.**
 
 ### Added
+* New `ep_highlight_number_of_fragments` filter. Props [@dgnorrod](https://github.com/dgnorrod) and [@felipeelia](https://github.com/felipeelia) via [#3681](https://github.com/10up/ElasticPress/pull/3681).
 * >=PHP 7.0 version check. Props [@bmarshall511](https://github.com/bmarshall511) and [@felipeelia](https://github.com/felipeelia) via [#3641](https://github.com/10up/ElasticPress/pull/3641).
 * GitHub action to automatically open a new issue when a new version of WordPress is released. Props [@felipeelia](https://github.com/felipeelia) via [#3666](https://github.com/10up/ElasticPress/pull/3666).
 
@@ -25,13 +26,18 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Unnecessary aliases in use statements. Props [@felipeelia](https://github.com/felipeelia) via [#3671](https://github.com/10up/ElasticPress/pull/3671).
 
 ### Fixed
-* Updated phpDoc entries. Props [@renatonascalves](https://github.com/renatonascalves) via [#3635](https://github.com/10up/ElasticPress/pull/3635).
+* Calls to `ep_woocommerce_default_supported_post_types` were ignored. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#3679](https://github.com/10up/ElasticPress/pull/3679).
+* WooCommerce Orders search field disappearing when Orders Autosuggest receives an unexpected response from ElasticPress.io. Props [@JakePT](https://github.com/JakePT) and [@anjulahettige](https://github.com/anjulahettige) via [#3682](https://github.com/10up/ElasticPress/pull/3682).
 * Call composer while building docs. Props [@felipeelia](https://github.com/felipeelia) via [#3625](https://github.com/10up/ElasticPress/pull/3625).
-* Make sure `post__not_in` is translated into an array, not an object. Props [@felipeelia](https://github.com/felipeelia) via [#3652](https://github.com/10up/ElasticPress/pull/3652).
+* Make sure `post__not_in` and `post_status` are translated into arrays, not objects. Props [@felipeelia](https://github.com/felipeelia) via [#3652](https://github.com/10up/ElasticPress/pull/3652) and [#3680](https://github.com/10up/ElasticPress/pull/3680).
+* Updated phpDoc entries. Props [@renatonascalves](https://github.com/renatonascalves) via [#3635](https://github.com/10up/ElasticPress/pull/3635).
 * Docblock for `Utils\get_option` return type. Props [@felipeelia](https://github.com/felipeelia) via [#3653](https://github.com/10up/ElasticPress/pull/3653).
 * PHP warning related to the Autosuggest template generation. Props [@felipeelia](https://github.com/felipeelia) via [#3651](https://github.com/10up/ElasticPress/pull/3651).
 * WooCommerce unit tests running multiple times. Props [@felipeelia](https://github.com/felipeelia) via [#3656](https://github.com/10up/ElasticPress/pull/3656).
 * Display the meta range facet block in versions prior to WP 6.1. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#3658](https://github.com/10up/ElasticPress/pull/3658).
+
+### Security
+* Bumped `composer/composer` from 2.5.8 to 2.6.4. Props [@dependabot](https://github.com/dependabot) via [#3672](https://github.com/10up/ElasticPress/pull/3672).
 
 ## [4.7.1] - 2023-08-31
 
