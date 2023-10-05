@@ -678,30 +678,6 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `handle_pointer_search` method
-	 */
-	public function testHandlePointerSearch() {
-		ElasticPress\Features::factory()->activate_feature( 'search' );
-		ElasticPress\Features::factory()->setup_features();
-		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-
-		$post_id_1 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
-		$post_id_2 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		$request = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_search' );
-		$request->set_param( 's', 'findme' );
-
-		$response = $this->get_feature()->handle_pointer_search( $request );
-
-		$post_ids = wp_list_pluck( $response, 'ID' );
-
-		$this->assertContains( $post_id_1, $post_ids );
-		$this->assertContains( $post_id_2, $post_ids );
-	}
-
-	/**
 	 * Test the `handle_post_trash` method
 	 */
 	public function testHandlePostTrash() {

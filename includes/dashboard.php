@@ -45,7 +45,6 @@ function setup() {
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
-	add_action( 'rest_api_init', __NAMESPACE__ . '\setup_endpoint' );
 	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\block_assets' );
 
 	if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
@@ -950,21 +949,6 @@ function action_wp_ajax_ep_site_admin() {
 	];
 
 	return wp_send_json_success( $data );
-}
-
-/**
- * Registers the API endpoint
- */
-function setup_endpoint() {
-	register_rest_route(
-		'elasticpress/v1',
-		'indexing_status',
-		[
-			'methods'             => 'GET',
-			'callback'            => __NAMESPACE__ . '\handle_indexing_status',
-			'permission_callback' => '__return_true',
-		]
-	);
 }
 
 /**
