@@ -4,6 +4,7 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 
 	before(() => {
 		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
+		cy.activatePlugin('show-comments-and-terms', 'wpCli');
 
 		/**
 		 * Delete all tags.
