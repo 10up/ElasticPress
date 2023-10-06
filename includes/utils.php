@@ -63,8 +63,8 @@ function get_capability() : string {
 	 *
 	 * @since 4.5.0
 	 * @hook ep_capability
-	 * @param  {bool} $capability Capability name. Defaults to `'elasticpress_manage'`
-	 * @return {bool} New capability value
+	 * @param  {string} $capability Capability name. Defaults to `'manage_elasticpress'`
+	 * @return {string} New capability value
 	 */
 	return apply_filters( 'ep_capability', 'manage_elasticpress' );
 }
@@ -81,8 +81,8 @@ function get_network_capability() : string {
 	 *
 	 * @since 4.5.0
 	 * @hook ep_network_capability
-	 * @param  {bool} $capability Capability name. Defaults to `'manage_network_elasticpress'`
-	 * @return {bool} New capability value
+	 * @param  {string} $capability Capability name. Defaults to `'manage_network_elasticpress'`
+	 * @return {string} New capability value
 	 */
 	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress' );
 }
