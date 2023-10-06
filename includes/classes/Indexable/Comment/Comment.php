@@ -8,12 +8,12 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexable\Post\DateQuery as DateQuery;
-use \WP_Comment_Query as WP_Comment_Query;
-use ElasticPress\Features as Features;
+use \WP_Comment_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Features;
+use ElasticPress\Indexable;
+use ElasticPress\Indexable\Post\DateQuery;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -700,6 +700,8 @@ class Comment extends Indexable {
 			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+
+		$es_version = (string) $es_version;
 
 		$mapping_file = 'initial.php';
 

@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexables;
 
 /**
  * Test post indexable class
@@ -1093,23 +1093,27 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test a post__not_in query
+	 * Test a post__not_in query with non-sequential array indices
 	 *
-	 * @since 1.5
+	 * @since 4.7.2
 	 * @group post
 	 */
-	public function testPostNotInQuery() {
+	public function testPostNotInQueryWithNonSequentialIndices() {
 		$post_ids = array();
 
 		$post_ids[0] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
 		$post_ids[1] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
 		$post_ids[2] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 3' ) );
+		$post_ids[3] = $this->ep_factory->post->create( array( 'post_content' => 'findme test 4' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$args = array(
 			's'            => 'findme',
-			'post__not_in' => array( $post_ids[0] ),
+			'post__not_in' => array(
+				0 => $post_ids[0],
+				2 => $post_ids[3],
+			),
 		);
 
 		$query = new \WP_Query( $args );
@@ -3884,6 +3888,45 @@ class TestPost extends BaseTestCase {
 
 		return $meta_keys;
 
+	}
+
+	/**
+	 * Test to verify that empty meta key should be excluded before sync.
+	 *
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testEmptyMetaKey() {
+		global $wpdb;
+		$post_id      = $this->ep_factory->post->create();
+		$post         = get_post( $post_id );
+		$meta_key     = '';
+		$meta_value_1 = 'Meta value for empty key';
+		$meta_values  = array(
+			'value 1',
+			'value 2',
+		);
+		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+
+		$wpdb->insert(
+			$wpdb->postmeta,
+			array(
+				'post_id'    => $post_id,
+				'meta_key'   => $meta_key,
+				'meta_value' => $meta_value_1,
+			),
+			array( '%d', '%s', '%s' )
+		);
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE meta_key=%s AND post_id = %d", $meta_key, $post_id ) );
+
+		$this->assertSame( $meta_key, $row->meta_key );
+		$this->assertSame( $meta_value_1, $row->meta_value );
+
+		$meta_data = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+
+		$this->assertIsArray( $meta_data );
+		$this->assertCount( 1, $meta_data );
+		$this->assertArrayHasKey( 'test_meta_1', $meta_data );
 	}
 
 	/**
@@ -6868,6 +6911,55 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the parse_orderby_meta_fields() method when dealing with multiple meta fields
+	 *
+	 * @see https://github.com/10up/ElasticPress/issues/3509
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testParseOrderbyMetaMultiple() {
+		$method_executed = false;
+
+		$query_args = [
+			'ep_integrate' => true,
+			'orderby'      => [
+				'meta_field1'             => 'desc',
+				'meta.meta_field3.double' => 'asc',
+				'meta.meta_field2.double' => 'asc',
+			],
+			'meta_query'   => [
+				'date_clause' => [
+					'key'     => 'meta_field2',
+					'value'   => '20230622',
+					'compare' => '>=',
+				],
+			],
+		];
+
+		$assert_callback = function( $args ) use ( &$method_executed ) {
+			$method_executed = true;
+
+			$expected_sort = [
+				[ 'meta_field1' => [ 'order' => 'desc' ] ],
+				[ 'meta.meta_field3.double' => [ 'order' => 'asc' ] ],
+				[ 'meta.meta_field2.double' => [ 'order' => 'asc' ] ],
+			];
+
+			$this->assertSame( $expected_sort, $args['sort'] );
+
+			return $args;
+		};
+
+		// Run the tests.
+		add_filter( 'ep_formatted_args', $assert_callback );
+		$query = new \WP_Query( $query_args );
+		remove_filter( 'ep_formatted_args', $assert_callback );
+
+		$this->assertTrue( $method_executed );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_formatted_args' ) );
+	}
+
+	/**
 	 * Tests additional nested tax queries in parse_tax_query().
 	 *
 	 * @return void
@@ -8024,6 +8116,30 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that post meta value should be empty when it is not set.
+	 *
+	 * @since 4.6.1
+	 * @group post
+	 */
+	public function testMetaValueNotSet() {
+		$post_ids    = array();
+		$post_ids[0] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'find me in search',
+			)
+		);
+		$post_ids[1] = $this->ep_factory->post->create(
+			array(
+				'post_content' => 'exlcude from search',
+				'meta_input'   => array( 'ep_exclude_from_search' => true ),
+			)
+		);
+
+		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
+		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
+	}
+
+	/**
 	 * Tests search term is wrapped in html tag with custom class
 	 */
 	public function testHighlightTagsWithCustomClass() {
@@ -8877,5 +8993,33 @@ class TestPost extends BaseTestCase {
 		};
 		add_filter( 'ep_pre_kill_sync_for_password_protected', $dont_kill_pw_post, 10, 3 );
 		$this->assertFalse( $sync_manager->kill_sync_for_password_protected( false, $pw_post ) );
+	}
+
+	/**
+	 * Test if the mapping applies the ep_stop filter correctly
+	 *
+	 * @since 4.7.0
+	 * @group post
+	 */
+	public function test_mapping_ep_stop_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'post' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+
+		$change_lang = function( $lang, $context ) {
+			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
+		};
+		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$indexable->put_mapping();
+
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
 }

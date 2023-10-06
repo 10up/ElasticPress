@@ -48,6 +48,13 @@ class Upgrades {
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
 			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
+			'4.7.0' => [ 'upgrade_4_7_0', 'init' ],
+			/**
+			 * Adding this without changing the number will make it run on every load.
+			 *
+			 * @todo Uncomment this before the reelase
+			 * '5.0.0' => [ 'upgrade_5_0_0', 'init' ],
+			 */
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -203,6 +210,57 @@ class Upgrades {
 	 */
 	public function upgrade_4_5_0() {
 		setup_roles();
+	}
+
+	/**
+	 * Upgrade routine of v4.7.0.
+	 *
+	 * Remove old total_fields_limit transients
+	 * Remove cached autosuggest requests
+	 *
+	 * @see https://github.com/10up/ElasticPress/pull/3552
+	 */
+	public function upgrade_4_7_0() {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			$sites = \get_sites( [ 'number' => 0 ] );
+			foreach ( $sites as $site ) {
+				$blog_option = get_blog_option( $site->blog_id, 'ep_indexable' );
+				if ( $blog_option ) {
+					update_site_meta( $site->blog_id, 'ep_indexable', $blog_option );
+				}
+			}
+		}
+
+		$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name
+			FROM {$wpdb->prefix}options
+			WHERE option_name LIKE '_transient_ep_total_fields_limit_%'"
+		);
+
+		foreach ( $transients as $transient ) {
+			$transient_name = str_replace( '_transient_', '', $transient );
+			delete_site_transient( $transient_name );
+			delete_transient( $transient_name );
+		}
+
+		if ( function_exists( 'wp_cache_supports' ) && wp_cache_supports( 'flush_group' ) ) {
+			wp_cache_flush_group( 'ep_autosuggest' );
+		}
+		delete_transient( 'ep_autosuggest_query_request_cache' );
+	}
+
+	/**
+	 * Upgrade routine of v5.0.0.
+	 */
+	public function upgrade_5_0_0() {
+		/**
+		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_sync_history'
+		 */
+		$last_sync = Utils\get_option( 'ep_last_index', [] );
+		Utils\delete_option( 'ep_last_index' );
+		Utils\update_option( 'ep_sync_history', [ $last_sync ] );
 	}
 
 	/**

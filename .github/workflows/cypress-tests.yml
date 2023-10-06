@@ -1,6 +1,8 @@
 name: E2E Test
 
 env:
+  COMPOSER_VERSION: "2"
+  COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
   NODE_VERSION: "18"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
@@ -36,6 +38,24 @@ jobs:
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
+
+    - name: Prepare composer cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: cs2pr
+        coverage: none
+
+    - name: composer install
+      run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3
@@ -100,6 +120,24 @@ jobs:
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
+
+    - name: Prepare composer cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: cs2pr
+        coverage: none
+
+    - name: composer install
+      run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3

@@ -25,7 +25,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 	}
 
 	/**
-	 * Test get_meta_value_html
+	 * Test get_facet_item_value_html
 	 *
 	 * @since 4.3.0
 	 * @group facets
@@ -50,20 +50,20 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		$link             = '<a aria-label="' . $accessible_label . '" ' . $href . ' rel="nofollow"><div class="ep-checkbox checked" role="presentation"></div>' . $value['name'] . '</a>';
 		$html             = '<div class="term level-0 selected " data-term-name="' . $value['value'] . '" data-term-slug="' . $value['value'] . '">' . $link . '</div>';
 
-		$this->assertEquals( $html, $renderer->get_meta_value_html( $value, $url ) );
+		$this->assertEquals( $html, $renderer->get_facet_item_value_html( $value, $url, $value['is_selected'] ) );
 
 		$value['is_selected'] = false;
 		$accessible_label     = 'Apply filter: ' . $value['name'];
 		$link                 = '<a aria-label="' . $accessible_label . '" ' . $href . ' rel="nofollow"><div class="ep-checkbox " role="presentation"></div>' . $value['name'] . '</a>';
 		$html                 = '<div class="term level-0  " data-term-name="' . $value['value'] . '" data-term-slug="' . $value['value'] . '">' . $link . '</div>';
 
-		$this->assertEquals( $html, $renderer->get_meta_value_html( $value, $url ) );
+		$this->assertEquals( $html, $renderer->get_facet_item_value_html( $value, $url, $value['is_selected'] ) );
 
 		$value['count'] = 0;
 		$link           = '<a aria-label="' . $accessible_label . '" aria-role="link" aria-disabled="true" rel="nofollow"><div class="ep-checkbox " role="presentation"></div>' . $value['name'] . '</a>';
 		$html           = '<div class="term level-0  empty-term" data-term-name="' . $value['value'] . '" data-term-slug="' . $value['value'] . '">' . $link . '</div>';
 
-		$this->assertEquals( $html, $renderer->get_meta_value_html( $value, $url ) );
+		$this->assertEquals( $html, $renderer->get_facet_item_value_html( $value, $url, $value['is_selected'] ) );
 
 		/**
 		 * Test the `ep_facet_meta_value_label` filter
@@ -77,7 +77,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		$link             = '<a aria-label="' . $accessible_label . '" aria-role="link" aria-disabled="true" rel="nofollow"><div class="ep-checkbox " role="presentation"></div>Different Label</a>';
 		$html             = '<div class="term level-0  empty-term" data-term-name="' . $value['value'] . '" data-term-slug="' . $value['value'] . '">' . $link . '</div>';
 
-		$this->assertEquals( $html, $renderer->get_meta_value_html( $value, $url ) );
+		$this->assertEquals( $html, $renderer->get_facet_item_value_html( $value, $url, $value['is_selected'] ) );
 
 		remove_filter( 'ep_facet_meta_value_label', $change_label );
 
@@ -93,7 +93,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		$link             = '<a aria-label="' . $accessible_label . '" aria-role="link" aria-disabled="true" rel="nofollow"><div class="ep-checkbox " role="presentation"></div>' . $value['name'] . '</a>';
 		$html             = '<div class="term level-0  empty-term" data-term-name="' . $value['value'] . '" data-term-slug="' . $value['value'] . '">' . $link . '</div>';
 
-		$this->assertEquals( $html, $renderer->get_meta_value_html( $value, $url ) );
+		$this->assertEquals( $html, $renderer->get_facet_item_value_html( $value, $url, $value['is_selected'] ) );
 
 		remove_filter( 'ep_facet_meta_value_accessible_label', $change_label );
 
@@ -105,6 +105,6 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		};
 		add_filter( 'ep_facet_meta_value_html', $change_html, 10, 3 );
 
-		$this->assertEquals( '<p>Completely custom made element</p>', $renderer->get_meta_value_html( $value, $url ) );
+		$this->assertEquals( '<p>Completely custom made element</p>', $renderer->get_facet_item_value_html( $value, $url, $value['is_selected'] ) );
 	}
 }

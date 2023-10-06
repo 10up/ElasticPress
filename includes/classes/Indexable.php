@@ -10,9 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManager;
-use ElasticPress\QueryIntegration as QueryIntegration;
+use ElasticPress\Elasticsearch;
+use ElasticPress\SyncManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -49,7 +48,7 @@ abstract class Indexable {
 	 * Instance of QueryIntegration. This should handle integrating with a default
 	 * WP query.
 	 *
-	 * @var QueryIntegration
+	 * @var object
 	 * @since  3.0
 	 */
 	public $query_integration;
@@ -1149,7 +1148,7 @@ abstract class Indexable {
 	 * process across indexables.
 	 *
 	 * @param  array $args Array to query DB against.
-	 * @return boolean
+	 * @return array
 	 */
 	abstract public function query_db( $args );
 
@@ -1197,12 +1196,13 @@ abstract class Indexable {
 	 * @since 4.3.0
 	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
 	 * @return array
+	 * @throws \Exception An exception if meta fields are not available.
 	 */
 	public function get_distinct_meta_field_keys( $blog_id = null ) {
 		$mapping = $this->get_mapping();
 
 		try {
-			if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
@@ -1210,7 +1210,7 @@ abstract class Indexable {
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );
 		} catch ( \Throwable $th ) {
-			return new \Exception( 'Meta fields not available.', 0 );
+			throw new \Exception( 'Meta fields not available.', 0 );
 		}
 
 		return $meta_keys;

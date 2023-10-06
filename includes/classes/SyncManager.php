@@ -68,9 +68,9 @@ abstract class SyncManager {
 
 	/**
 	 * Get sync queue.
-	 * 
+	 *
+	 * @since 5.0.0
 	 * @param int $blog_id Blog ID to retrieve queue.
-	 * 
 	 * @return array
 	 */
 	public function get_sync_queue( $blog_id = false ) {
@@ -84,8 +84,9 @@ abstract class SyncManager {
 	/**
 	 * Add an object to the sync queue.
 	 *
-	 * @param  id $object_id object ID to sync
-	 * @since  3.1.2
+	 * @since 3.1.2
+	 *
+	 * @param int $object_id Object ID to sync.
 	 * @return boolean
 	 */
 	public function add_to_queue( $object_id ) {
@@ -116,8 +117,9 @@ abstract class SyncManager {
 	/**
 	 * Remove an object from the sync queue.
 	 *
-	 * @param  id $object_id object ID to remove from the queue
-	 * @since  3.5
+	 * @since 3.5
+	 *
+	 * @param int $object_id Object ID to remove from the queue.
 	 * @return boolean
 	 */
 	public function remove_from_queue( $object_id ) {
@@ -147,10 +149,9 @@ abstract class SyncManager {
 
 	/**
 	 * Reset the sync queue.
-	 * 
-	 * @param int $blog_id Blog ID to reset queue.
-	 * 
-	 * @return array
+	 *
+	 * @since 5.0.0
+	 * @param int $blog_id Blog ID to reset queue
 	 */
 	public function reset_sync_queue( $blog_id = false ) {
 		if ( ! $blog_id ) {
@@ -188,7 +189,6 @@ abstract class SyncManager {
 		return $location;
 	}
 
-
 	/**
 	 * Sync objects in queue.
 	 *
@@ -200,7 +200,7 @@ abstract class SyncManager {
 		}
 
 		$current_blog_id = get_current_blog_id();
-		foreach( $this->sync_queue as $blog_id => $sync_queue ) {
+		foreach ( $this->sync_queue as $blog_id => $sync_queue ) {
 			if ( $current_blog_id !== $blog_id ) {
 				switch_to_blog( $blog_id );
 			}
@@ -317,6 +317,18 @@ abstract class SyncManager {
 		if ( $indexable->index_exists( $blog_id ) && ! apply_filters( 'ep_keep_index', false, $blog_id, $this->indexable_slug ) ) {
 			$indexable->delete_index( $blog_id );
 		}
+	}
+
+	/**
+	 * Clear the cache of the total fields limit
+	 *
+	 * @since 4.7.0
+	 */
+	public function clear_index_settings_cache() {
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$cache_key = 'ep_index_settings_' . $indexable->get_index_name();
+
+		Utils\delete_transient( $cache_key );
 	}
 
 	/**

@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
-use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets render class
  */
-class Renderer {
+class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	/**
 	 * Whether the term count should be displayed or not.
 	 *
@@ -95,10 +95,10 @@ class Renderer {
 			 *
 			 * @since  3.5.0
 			 * @hook ep_facet_search_get_terms_args
-			 * @param  {array} $query Weighting query
-			 * @param  {string} $post_type Post type
-			 * @param  {array} $args WP Query arguments
-			 * @return  {array} New query
+			 * @param  {array} $terms_args Array of arguments passed to get_terms()
+			 * @param  {array} $args Widget args
+			 * @param  {array} $instance Instance settings
+			 * @return  {array} New terms args
 			 */
 			apply_filters(
 				'ep_facet_search_get_terms_args',
@@ -162,6 +162,10 @@ class Renderer {
 		 * @return {array} New terms
 		 */
 		$terms_by_slug = apply_filters( 'ep_facet_taxonomy_terms', $terms_by_slug, $taxonomy );
+
+		if ( empty( $terms_by_slug ) ) {
+			return;
+		}
 
 		/**
 		 * Check to make sure all terms exist before proceeding
@@ -231,11 +235,11 @@ class Renderer {
 								unset( $new_filters['taxonomies'][ $taxonomy ]['terms'][ $term_slug ] );
 							}
 
+							$term->is_selected = true;
 							// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-							echo $this->get_facet_term_html(
+							echo $this->get_facet_item_value_html(
 								$term,
-								$feature->build_query_url( $new_filters ),
-								true
+								$feature->build_query_url( $new_filters )
 							);
 							// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 						} else {
@@ -294,11 +298,11 @@ class Renderer {
 									$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 								}
 
+								$term->is_selected = $selected;
 								// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-								echo $this->get_facet_term_html(
+								echo $this->get_facet_item_value_html(
 									$term,
-									$feature->build_query_url( $new_filters ),
-									$selected
+									$feature->build_query_url( $new_filters )
 								);
 								// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 							}
@@ -323,8 +327,10 @@ class Renderer {
 
 					$new_filters['taxonomies'][ $taxonomy ]['terms'][ $term->slug ] = true;
 
+					$term->is_selected = false;
+
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo $this->get_facet_term_html(
+					echo $this->get_facet_item_value_html(
 						$term,
 						$feature->build_query_url( $new_filters )
 					);
@@ -366,17 +372,32 @@ class Renderer {
 	 * @param WP_Term $term     Term object.
 	 * @param string  $url      Filter URL.
 	 * @param boolean $selected Whether the term is currently selected.
+	 * @since 4.2.0, 4.7.0 deprecated in favor of a method in the abstract renderer class.
 	 * @return string HTML for an individual facet term.
 	 */
 	public function get_facet_term_html( $term, $url, $selected = false ) {
+		$term->is_selected = $selected;
+		_deprecated_function( __FUNCTION__, '4.7.0', '$this->renderer->get_facet_item_value_html()' );
+
+		return $this->get_facet_item_value_html( $term, $url );
+	}
+
+	/**
+	 * Get the markup for an individual facet item.
+	 *
+	 * @param WP_Term $item     Facet item Term object.
+	 * @param string  $url      Filter URL.
+	 * @return string HTML for an individual facet term.
+	 */
+	public function get_facet_item_value_html( $item, $url ) {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
 		);
 
-		$label = $term->name;
+		$label = $item->name;
 		if ( $this->display_count ) {
-			$label .= ' <span>(' . $term->count . ')</span>';
+			$label .= ' <span>(' . $item->count . ')</span>';
 		}
 
 		/**
@@ -385,11 +406,11 @@ class Renderer {
 		 * @since 3.6.3
 		 * @hook ep_facet_widget_term_label
 		 * @param {string} $label Facet term label.
-		 * @param {WP_Term} $term Term object.
+		 * @param {WP_Term} $item Term object.
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term label.
 		 */
-		$label = apply_filters( 'ep_facet_widget_term_label', $label, $term, $selected );
+		$label = apply_filters( 'ep_facet_widget_term_label', $label, $item, $item->is_selected );
 
 		/**
 		 * Filter the accessible label for an individual facet term link.
@@ -402,36 +423,36 @@ class Renderer {
 		 * @since 4.0.0
 		 * @hook ep_facet_widget_term_accessible_label
 		 * @param {string} $label Facet term accessible label.
-		 * @param {WP_Term} $term Term object.
+		 * @param {WP_Term} $item Term object.
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term accessible label.
 		 */
 		$accessible_label = apply_filters(
 			'ep_facet_widget_term_accessible_label',
-			$selected
+			$item->is_selected
 				/* translators: %s: Filter term name. */
-				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $term->name )
+				? sprintf( __( 'Remove filter: %s', 'elasticpress' ), $item->name )
 				/* translators: %s: Filter term name. */
-				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), $term->name ),
-			$term,
-			$selected
+				: sprintf( __( 'Apply filter: %s', 'elasticpress' ), $item->name ),
+			$item,
+			$item->is_selected
 		);
 
 		$link = sprintf(
 			'<a aria-label="%1$s" %2$s rel="nofollow"><div class="ep-checkbox %3$s" role="presentation"></div>%4$s</a>',
 			esc_attr( $accessible_label ),
-			$term->count ? $href : 'aria-role="link" aria-disabled="true"',
-			$selected ? 'checked' : '',
+			$item->count ? $href : 'aria-role="link" aria-disabled="true"',
+			$item->is_selected ? 'checked' : '',
 			wp_kses_post( $label )
 		);
 
 		$html = sprintf(
 			'<div class="term level-%1$d %2$s %3$s" data-term-name="%4$s" data-term-slug="%5$s">%6$s</div>',
-			absint( $term->level ),
-			$selected ? 'selected' : '',
-			! $term->count ? 'empty-term' : '',
-			esc_attr( strtolower( $term->name ) ),
-			esc_attr( strtolower( $term->slug ) ),
+			absint( $item->level ),
+			$item->is_selected ? 'selected' : '',
+			! $item->count ? 'empty-term' : '',
+			esc_attr( strtolower( $item->name ) ),
+			esc_attr( strtolower( $item->slug ) ),
 			$link
 		);
 
@@ -442,7 +463,10 @@ class Renderer {
 		 * HTML must have data-term-name and data-term-slug attributes set to
 		 * lowercase versions of the term name and slug respectively.
 		 *
+		 * Kept for retro compatibility.
+		 *
 		 * @since 3.6.3
+		 * @deprecated 4.7.0
 		 * @hook ep_facet_widget_term_html
 		 * @param {string} $html Facet term HTML.
 		 * @param {WP_Term} $term Term object.
@@ -450,7 +474,23 @@ class Renderer {
 		 * @param {boolean} $selected Whether the term is selected.
 		 * @return {string} Individual facet term HTML.
 		 */
-		return apply_filters( 'ep_facet_widget_term_html', $html, $term, $url, $selected );
+		$html = apply_filters_deprecated( 'ep_facet_widget_term_html', array( $html, $item, $url, $item->is_selected ), '4.7.0', 'ep_facet_taxonomy_value_html' );
+
+		/**
+		 * Filter the HTML for an individual facet post-type value.
+		 *
+		 * For term search to work correctly the outermost wrapper of the term
+		 * HTML must have data-term-name and data-term-slug attributes set to
+		 * lowercase versions of the term name and slug respectively.
+		 *
+		 * @since 4.7.0
+		 * @hook ep_facet_taxonomy_value_html
+		 * @param {string} $html  Facet post-type value HTML.
+		 * @param {array}  $item Value array. It contains `value`, `name`, `count`, and `is_selected`.
+		 * @param {string} $url   Filter URL.
+		 * @return {string} Individual facet taxonomy value HTML.
+		 */
+		return apply_filters( 'ep_facet_taxonomy_value_html', $html, $item, $url );
 	}
 
 	/**

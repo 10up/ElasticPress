@@ -36,8 +36,8 @@ before(() => {
 
 afterEach(() => {
 	if (cy.state('test').state === 'failed') {
-		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress')
-			.invoke('text')
+		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-copy-button')
+			.invoke('attr', 'data-clipboard-text')
 			.then((text) => {
 				if (!text) {
 					return;

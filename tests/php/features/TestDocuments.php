@@ -187,4 +187,43 @@ class TestDocuments extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, count( $query->posts ) );
 	}
+
+	/**
+	 * Tests query doesn't return the post if `ep_exclude_from_search` meta is set.
+	 *
+	 * @since 4.7.0
+	 */
+	public function testExcludeFromSearchQuery() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->activate_feature( 'documents' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create_many(
+			2,
+			array(
+				'post_content'   => 'find me in search',
+				'meta_input'     => array( 'ep_exclude_from_search' => false ),
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'application/msword',
+			)
+		);
+		$this->ep_factory->post->create(
+			array(
+				'post_content'   => 'exclude from search',
+				'meta_input'     => array( 'ep_exclude_from_search' => true ),
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'application/msword',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = array(
+			's' => 'search',
+		);
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+	}
 }

@@ -1,0 +1,33 @@
+.ep-status-report {
+	margin-bottom: 16px;
+
+	& .components-panel__header h2 {
+		font-size: 14px;
+	}
+
+	& .components-notice {
+		margin: 0;
+	}
+
+	& table {
+		table-layout: fixed;
+
+		& col:first-of-type {
+			width: 40%;
+		}
+
+		& td,
+		& th {
+			line-height: 1.5;
+		}
+
+		& small {
+			display: block;
+		}
+
+		& pre {
+			margin: 0;
+			overflow-x: scroll;
+		}
+	}
+}

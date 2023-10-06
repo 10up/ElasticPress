@@ -1,4 +1,5 @@
 /vendor/
+/vendor-prefixed/
 node_modules
 /dist
 .idea

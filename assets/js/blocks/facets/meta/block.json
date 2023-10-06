@@ -1,37 +1,62 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"title": "Facet by Meta (ElasticPress)",
-	"textdomain": "elasticpress",
 	"name": "elasticpress/facet-meta",
-	"icon": "feedback",
-	"category": "widgets",
+	"title": "Filter by Metadata",
+	"category": "elasticpress",
+	"description": "Let visitors filter your content by metadata values.",
+	"keywords": ["custom fields", "facets"],
+	"textdomain": "elasticpress",
 	"attributes": {
-		"searchPlaceholder": {
-			"type": "string",
-			"default": "Search"
+		"displayCount": {
+			"type": "boolean",
+			"default": false
 		},
 		"facet": {
 			"type": "string",
 			"default": ""
 		},
-		"displayCount": {
+		"isPreview": {
 			"type": "boolean",
 			"default": false
-		},
-		"orderby": {
-			"type"   : "string",
-			"default": "count",
-			"enum"   : [ "count", "name" ]
 		},
 		"order":  {
 			"type":  "string",
 			"default": "desc",
 			"enum":  [ "desc", "asc" ]
+		},
+		"orderby": {
+			"type": "string",
+			"default": "count",
+			"enum": [ "count", "name" ]
+		},
+		"searchPlaceholder": {
+			"type": "string",
+			"default": "Search"
+		},
+		"type": {
+			"type": "string",
+			"default": "meta"
 		}
 	},
 	"supports": {
-		"html": false
+		"color": {
+			"background": true,
+			"link": true,
+			"text": false
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
 	},
 	"editorScript": "ep-facets-meta-block-script",
 	"style": "elasticpress-facets"

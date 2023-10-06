@@ -8,9 +8,8 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManagerAbstract;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -19,7 +18,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
+	/**
+	 * Indexable slug
+	 *
+	 * @since 4.7.0
+	 * @var   string
+	 */
+	public $indexable_slug = 'term';
 
 	/**
 	 * Setup actions and filters
@@ -43,6 +49,11 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'pre_delete_term', [ $this, 'action_queue_children_sync' ] );
 		add_action( 'pre_delete_term', [ $this, 'action_sync_on_delete' ] );
 		add_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ], 10, 2 );
+
+		// Clear index settings cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**
@@ -59,6 +70,11 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'pre_delete_term', [ $this, 'action_queue_children_sync' ] );
 		remove_action( 'pre_delete_term', [ $this, 'action_sync_on_delete' ] );
 		remove_action( 'set_object_terms', [ $this, 'action_sync_on_object_update' ] );
+
+		// Clear index settings cache
+		remove_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**

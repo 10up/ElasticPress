@@ -8,11 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\SyncManager as SyncManagerAbstract;
-use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 
 	/**
 	 * Indexable slug
@@ -57,6 +56,7 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
 		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 2 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
 		add_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -75,10 +75,10 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'edited_term', array( $this, 'action_edited_term' ), 10, 3 );
 		add_action( 'deleted_term_relationships', array( $this, 'action_deleted_term_relationships' ), 10, 3 );
 
-		// Clear field limit cache
-		add_action( 'ep_update_index_settings', [ $this, 'clear_total_fields_limit_cache' ] );
-		add_action( 'ep_sync_put_mapping', [ $this, 'clear_total_fields_limit_cache' ] );
-		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_total_fields_limit_cache' ] );
+		// Clear index settings cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 
 		// Clear distinct meta field per post type cache
 		add_action( 'wp_insert_post', [ $this, 'clear_meta_keys_db_per_post_type_cache_by_post_id' ] );
@@ -101,6 +101,7 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
 		remove_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		remove_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999 );
 		remove_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		remove_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ) );
 		remove_action( 'added_post_meta', array( $this, 'action_queue_meta_sync' ) );
@@ -110,6 +111,11 @@ class SyncManager extends SyncManagerAbstract {
 		remove_filter( 'ep_sync_insert_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_sync_delete_permissions_bypass', array( $this, 'filter_bypass_permission_checks_for_machines' ) );
 		remove_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ] );
+
+		// Clear index settings cache
+		remove_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**
@@ -736,19 +742,12 @@ class SyncManager extends SyncManagerAbstract {
 	}
 
 	/**
-	 * Clear the cache of the total fields limit
+	 * DEPRECATED. Clear the cache of the total fields limit
 	 *
 	 * @since 4.4.0
 	 */
 	public function clear_total_fields_limit_cache() {
-		$indexable = Indexables::factory()->get( $this->indexable_slug );
-		$cache_key = 'ep_total_fields_limit_' . $indexable->get_index_name();
-
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			delete_site_transient( $cache_key );
-		} else {
-			delete_transient( $cache_key );
-		}
+		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Indexable\Post\SyncManager::clear_index_settings_cache()' );
 	}
 
 	/**
@@ -920,5 +919,22 @@ class SyncManager extends SyncManagerAbstract {
 		$post = get_post( $object_id );
 
 		return ! empty( $post->post_password );
+	}
+
+	/**
+	 * Sync ES index when attached or detached action is called.
+	 *
+	 * @since 4.7.0
+	 * @param string $action        Attach/detach action
+	 * @param int    $attachment_id The attachment ID
+	 */
+	public function action_sync_on_media_attach( $action, $attachment_id ) {
+		$indexable            = Indexables::factory()->get( $this->indexable_slug );
+		$indexable_post_types = $indexable->get_indexable_post_types();
+
+		if ( ! in_array( 'attachment', $indexable_post_types, true ) ) {
+			return;
+		}
+		$this->action_sync_on_update( $attachment_id );
 	}
 }

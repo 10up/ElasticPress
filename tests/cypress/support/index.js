@@ -53,9 +53,6 @@ cy.elasticPress = {
 		protected_content: {
 			active: 0,
 		},
-		users: {
-			active: 0,
-		},
 	},
 };
 

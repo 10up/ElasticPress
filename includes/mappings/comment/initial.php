@@ -48,15 +48,8 @@ return [
 			'analyzer'   => [
 				'default'          => [
 					'tokenizer' => 'standard',
-					'filter'    => [ 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ],
-					/**
-					 * Filter Elasticsearch default language in mapping
-					 *
-					 * @hook ep_analyzer_language
-					 * @param  {string} $lang Default language
-					 * @param {string} $lang_context Language context
-					 * @return {string} New language
-					 */
+					'filter'    => [ 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ],
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'shingle_analyzer' => [
@@ -82,14 +75,7 @@ return [
 				],
 				'ewp_snowball'       => [
 					'type'     => 'snowball',
-					/**
-					 * Filter Elasticsearch default language in mapping
-					 *
-					 * @hook ep_analyzer_language
-					 * @param  {string} $lang Default language
-					 * @param {string} $lang_context Language context
-					 * @return {string} New language
-					 */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				],
 				'edge_ngram'         => [
@@ -97,6 +83,12 @@ return [
 					'max_gram' => 10,
 					'min_gram' => 3,
 					'type'     => 'edgeNGram',
+				],
+				'ep_stop'            => [
+					'type'        => 'stop',
+					'ignore_case' => true,
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
 				],
 			],
 			'normalizer' => [

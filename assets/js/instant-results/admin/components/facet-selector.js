@@ -70,7 +70,7 @@ export default ({ defaultValue, ...props }) => {
 			<FormTokenField
 				__experimentalExpandOnFocus
 				__experimentalShowHowTo={false}
-				label={__('Select facets', 'elasticpress')}
+				label={__('Select filters', 'elasticpress')}
 				onChange={onChange}
 				suggestions={suggestions}
 				value={value}

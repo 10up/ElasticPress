@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       context: .
       args:
-        ES_VERSION: ${ES_VERSION-7.5.2}
+        ES_VERSION: ${ES_VERSION-7.10.2}
     ports:
       - 8890:9200
     mem_limit: 1024M

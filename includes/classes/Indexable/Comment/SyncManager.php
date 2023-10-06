@@ -8,9 +8,8 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManagerAbstract;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -19,7 +18,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
+	/**
+	 * Indexable slug
+	 *
+	 * @since 4.7.0
+	 * @var   string
+	 */
+	public $indexable_slug = 'comment';
 
 	/**
 	 * Setup actions and filters
@@ -45,6 +51,11 @@ class SyncManager extends SyncManagerAbstract {
 		add_action( 'added_comment_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'deleted_comment_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
 		add_action( 'updated_comment_meta', [ $this, 'action_queue_meta_sync' ], 10, 2 );
+
+		// Clear index settings cache
+		add_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		add_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**
@@ -61,6 +72,11 @@ class SyncManager extends SyncManagerAbstract {
 		remove_action( 'added_comment_meta', [ $this, 'action_queue_meta_sync' ] );
 		remove_action( 'deleted_comment_meta', [ $this, 'action_queue_meta_sync' ] );
 		remove_action( 'updated_comment_meta', [ $this, 'action_queue_meta_sync' ] );
+
+		// Clear index settings cache
+		remove_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
+		remove_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
 	}
 
 	/**

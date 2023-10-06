@@ -1,0 +1,32 @@
+.ep-sync-progress-bar {
+	background: var(--ep-sync-color-light-grey);
+	display: flex;
+	overflow: hidden;
+	text-align: center;
+}
+
+.ep-sync-progress-bar,
+.ep-sync-progress-bar__progress {
+	border-radius: 4px;
+}
+
+.ep-sync-progress-bar__progress {
+	background: var(--wp-admin-theme-color);
+	color: var(--ep-sync-color-white);
+	height: 8px;
+	padding: 0 8px;
+	transition: all 500ms ease-in-out;
+	white-space: nowrap;
+
+	@nest .ep-sync-progress-bar--complete & {
+		background: var(--ep-sync-color-success);
+	}
+
+	@nest .ep-sync-progress-bar--paused & {
+		opacity: 0.5;
+	}
+
+	@nest .ep-sync-progress-bar--failed & {
+		background: var(--ep-sync-color-error);
+	}
+}

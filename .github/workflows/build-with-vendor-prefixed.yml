@@ -1,0 +1,49 @@
+name: Build with vendor-prefixed
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+
+jobs:
+  wordpress:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        coverage: none
+
+    - name: composer install
+      run: composer install
+
+    - name: install node v18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+
+    - name: Build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Setup
+      run: 'echo "VERSION=$(grep -Po ''\"version\": \"[0-9\\.]+\"'' package.json | grep -Po ''[0-9\\.]+'')" >> $GITHUB_ENV'
+
+    - name: Zip
+      run: npm run build:zip
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v3
+      with:
+        name: Plugin Zip
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}/elasticpress.zip
+

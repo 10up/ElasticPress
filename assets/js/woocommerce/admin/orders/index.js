@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { render, useEffect, useRef, useState, WPElement } from '@wordpress/element';
+import { createRoot, render, useEffect, useRef, useState, WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -129,18 +129,34 @@ const init = async () => {
 
 	input.replaceWith(el);
 
-	render(
-		<AuthenticatedApiSearchProvider>
-			<App
-				adminUrl={adminUrl}
-				dateFormat={dateFormat}
-				statusLabels={statusLabels}
-				timeFormat={timeFormat}
-				{...props}
-			/>
-		</AuthenticatedApiSearchProvider>,
-		el,
-	);
+	if (typeof createRoot === 'function') {
+		const root = createRoot(el);
+
+		root.render(
+			<AuthenticatedApiSearchProvider>
+				<App
+					adminUrl={adminUrl}
+					dateFormat={dateFormat}
+					statusLabels={statusLabels}
+					timeFormat={timeFormat}
+					{...props}
+				/>
+			</AuthenticatedApiSearchProvider>,
+		);
+	} else {
+		render(
+			<AuthenticatedApiSearchProvider>
+				<App
+					adminUrl={adminUrl}
+					dateFormat={dateFormat}
+					statusLabels={statusLabels}
+					timeFormat={timeFormat}
+					{...props}
+				/>
+			</AuthenticatedApiSearchProvider>,
+			el,
+		);
+	}
 };
 
 init();

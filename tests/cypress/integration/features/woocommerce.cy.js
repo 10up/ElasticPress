@@ -42,10 +42,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			return true;
 		});
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
@@ -75,26 +73,35 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce', 'wpCli');
 		cy.maybeEnableFeature('woocommerce');
 
-		cy.updateWeighting({
-			product: {
-				'meta._variations_skus.value': {
-					weight: 1,
-					enabled: true,
-				},
-			},
+		cy.updateFeatures('search', {
+			active: 1,
+			highlight_enabled: true,
+			highlight_excerpt: true,
+			highlight_tag: 'mark',
+			highlight_color: '#157d84',
+			decaying_enabled: 'disabled_includes_products',
 		}).then(() => {
-			cy.wpCli('elasticpress sync --setup --yes').then(() => {
-				/**
-				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
-				 *
-				 */
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(2000);
-				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-				cy.contains(
-					'.site-content article:nth-of-type(1) h2',
-					'Awesome Aluminum Shoes',
-				).should('exist');
+			cy.updateWeighting({
+				product: {
+					'meta._variations_skus.value': {
+						weight: 1,
+						enabled: true,
+					},
+				},
+			}).then(() => {
+				cy.wpCli('elasticpress sync --setup --yes').then(() => {
+					/**
+					 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+					 *
+					 */
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(2000);
+					cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+					cy.contains(
+						'.site-content article:nth-of-type(1) h2',
+						'Awesome Aluminum Shoes',
+					).should('exist');
+				});
 			});
 		});
 	});
@@ -339,10 +346,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			/**
 			 * Syncing should complete.
 			 */
-			cy.get('.ep-sync-panel').last().as('syncPanel');
-			cy.get('@syncPanel').find('.components-form-toggle').click();
-			cy.get('@syncPanel')
-				.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			cy.contains('.components-button', 'Log').click();
+			cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 				.should('contain.text', 'Mapping sent')
 				.should('contain.text', 'Sync complete');
 		});

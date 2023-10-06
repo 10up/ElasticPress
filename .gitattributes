@@ -7,7 +7,6 @@
 /gulp-tasks export-ignore
 /lang export-ignore
 /tests export-ignore
-/vendor/ export-ignore
 /node_modules export-ignore
 
 /.babelrc export-ignore

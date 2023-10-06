@@ -120,13 +120,9 @@ class ElasticPressIo extends Report {
 		$fields = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$field  = $this->get_instant_results_field();
@@ -165,13 +161,9 @@ class ElasticPressIo extends Report {
 		$fields = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$field  = $this->get_orders_search_field();
@@ -248,7 +240,7 @@ class ElasticPressIo extends Report {
 		}
 
 		$woocommerce_feature = \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
-		$template            = $woocommerce_feature->orders->get_search_template();
+		$template            = $woocommerce_feature->orders_autosuggest->get_search_template();
 
 		if ( is_wp_error( $template ) ) {
 			return [

@@ -18,56 +18,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets block class
  */
-class Block {
+class Block extends \ElasticPress\Feature\Facets\Block {
 	/**
 	 * Hook block functionality.
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
-		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
-	}
-
-	/**
-	 * Setup REST endpoints for the feature.
-	 */
-	public function setup_endpoints() {
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/post-type/block-preview',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
-				'callback'            => [ $this, 'render_block_preview' ],
-				'args'                => [
-					'searchPlaceholder' => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'displayCount'      => [
-						'sanitize_callback' => 'rest_sanitize_boolean',
-					],
-					'orderby'           => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-					'order'             => [
-						'sanitize_callback' => 'sanitize_text_field',
-					],
-				],
-
-			]
-		);
-	}
-
-	/**
-	 * Check permissions of the /facets/post-type/* REST endpoints.
-	 *
-	 * @return WP_Error|true
-	 */
-	public function check_facets_rest_permission() {
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
-			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
-		}
-
-		return true;
 	}
 
 	/**
@@ -104,83 +60,41 @@ class Block {
 	 * @return string
 	 */
 	public function render_block( $attributes ) {
-		$attributes = $this->parse_attributes( $attributes );
-
-		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
-		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'post-type', 'block', $attributes );
-		$renderer       = new $renderer_class();
-
-		ob_start();
-		?>
-		<div class="wp-block-elasticpress-facet">
-			<?php $renderer->render( [], $attributes ); ?>
-		</div>
-		<?php
-		return ob_get_clean();
-	}
-
-	/**
-	 * Outputs the block preview
-	 *
-	 * @param \WP_REST_Request $request REST request
-	 * @return string
-	 */
-	public function render_block_preview( $request ) {
 		global $wp_query;
 
-		add_filter( 'ep_is_facetable', '__return_true' );
+		if ( $attributes['isPreview'] ) {
+			add_filter( 'ep_is_facetable', '__return_true' );
 
-		$search = Features::factory()->get_registered_feature( 'search' );
+			$search = Features::factory()->get_registered_feature( 'search' );
 
-		$attributes = $this->parse_attributes(
-			[
-				'searchPlaceholder' => $request->get_param( 'searchPlaceholder' ),
-				'displayCount'      => $request->get_param( 'displayCount' ),
-				'orderby'           => $request->get_param( 'orderby' ),
-				'order'             => $request->get_param( 'order' ),
-			]
-		);
-
-		$args = [
-			'post_type'      => $search->get_searchable_post_types(),
-			'posts_per_page' => 1,
-		];
-
-		$wp_query->query( $args );
+			$wp_query->query(
+				[
+					'posts_per_page' => 1,
+					'post_type'      => $search->get_searchable_post_types(),
+				]
+			);
+		}
 
 		/** This filter is documented in includes/classes/Feature/Facets/Types/Taxonomy/Block.php */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'post-type', 'block', $attributes );
 		$renderer       = new $renderer_class();
 
 		ob_start();
+
 		$renderer->render( [], $attributes );
+
 		$block_content = ob_get_clean();
 
 		if ( empty( $block_content ) ) {
-			return esc_html__( 'Preview for post types not available', 'elasticpress' );
+			return;
 		}
 
-		$block_content = preg_replace( '/href="(.*?)"/', 'href="#"', $block_content );
-		return '<div class="wp-block-elasticpress-facet">' . $block_content . '</div>';
-	}
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => 'wp-block-elasticpress-facet' ] );
 
-	/**
-	 * Utilitary method to set default attributes.
-	 *
-	 * @param array $attributes Attributes passed
-	 * @return array
-	 */
-	protected function parse_attributes( $attributes ) {
-		$attributes = wp_parse_args(
-			$attributes,
-			[
-				'searchPlaceholder' => esc_html_x( 'Search', 'Facet by post type search placeholder', 'elasticpress' ),
-				'displayCount'      => false,
-				'orderby'           => 'count',
-				'order'             => 'desc',
-			]
+		return sprintf(
+			'<div %1$s>%2$s</div>',
+			wp_kses_data( $wrapper_attributes ),
+			$block_content
 		);
-
-		return $attributes;
 	}
 }

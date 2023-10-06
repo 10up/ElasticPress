@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "4.6.0",
+  "version": "4.7.1",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
@@ -53,6 +53,7 @@
   "10up-toolkit": {
     "entry": {
       "autosuggest-script": "./assets/js/autosuggest/index.js",
+      "blocks-script": "./assets/js/blocks/index.js",
       "comments-script": "./assets/js/comments.js",
       "comments-block-script": "./assets/js/blocks/comments/index.js",
       "dashboard-script": "./assets/js/dashboard.js",
@@ -68,7 +69,7 @@
       "facets-meta-range-block-view-script": "./assets/js/blocks/facets/meta-range/view.js",
       "related-posts-block-script": "./assets/js/blocks/related-posts/index.js",
       "settings-script": "./assets/js/settings.js",
-      "sync-script": "./assets/js/sync/index.js",
+      "sync-script": "./assets/js/sync-ui/index.js",
       "sites-admin-script": "./assets/js/sites-admin.js",
       "stats-script": "./assets/js/stats.js",
       "status-report-script": "./assets/js/status-report/index.js",
@@ -80,15 +81,12 @@
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",
-      "facets-admin-styles": "./assets/css/facets-admin.css",
       "facets-styles": "./assets/css/facets.css",
       "highlighting-styles": "./assets/css/highlighting.css",
       "instant-results-styles": "./assets/css/instant-results.css",
       "ordering-styles": "./assets/css/ordering.css",
       "facets-block-styles": "./assets/css/facets-block.css",
       "related-posts-block-styles": "./assets/css/related-posts-block.css",
-      "status-report-styles": "./assets/css/status-report.css",
-      "sync-styles": "./assets/css/sync.css",
       "synonyms-styles": "./assets/css/synonyms.css",
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },

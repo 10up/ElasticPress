@@ -7,7 +7,7 @@ import domReady from '@wordpress/dom-ready';
 /**
  * Internal dependencies.
  */
-import RangeFacet from './components/range-facet';
+import RangeFilter from '../common/components/range-filter';
 
 /**
  * App component.
@@ -76,7 +76,7 @@ const App = ({ max, min }) => {
 	 * Render.
 	 */
 	return (
-		<RangeFacet
+		<RangeFilter
 			clearUrl={clearUrl}
 			max={maxAgg}
 			min={minAgg}

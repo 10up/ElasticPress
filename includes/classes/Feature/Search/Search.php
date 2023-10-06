@@ -70,6 +70,8 @@ class Search extends Feature {
 
 		$this->available_during_installation = true;
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -110,8 +112,11 @@ class Search extends Feature {
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
 		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
-		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ], 10, 2 );
+		add_action( 'edit_post', [ $this, 'save_exclude_from_search_meta' ] );
 		add_filter( 'ep_skip_query_integration', [ $this, 'skip_query_integration' ], 10, 2 );
+
+		add_action( 'attachment_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ], 15 );
+		add_action( 'edit_attachment', [ $this, 'save_exclude_from_search_meta' ] );
 	}
 
 
@@ -120,12 +125,6 @@ class Search extends Feature {
 	 */
 	public function enqueue_scripts() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		if ( true !== $settings['highlight_enabled'] ) {
 			return;
@@ -161,12 +160,6 @@ class Search extends Feature {
 
 		// get current config
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		if ( true !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
@@ -266,12 +259,6 @@ class Search extends Feature {
 
 		$settings = $this->get_settings();
 
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
@@ -291,12 +278,6 @@ class Search extends Feature {
 	public function ep_highlight_excerpt( $text, $post ) {
 
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 
 		// reproduces wp_trim_excerpt filter, preserving the excerpt_more and excerpt_length filters
 		if ( '' === $text ) {
@@ -435,12 +416,6 @@ class Search extends Feature {
 	 */
 	public function is_decaying_enabled( $args = [] ) {
 		$settings = $this->get_settings();
-		$settings = wp_parse_args(
-			$settings,
-			[
-				'decaying_enabled' => true,
-			]
-		);
 
 		$is_decaying_enabled = (bool) $settings['decaying_enabled'];
 
@@ -634,13 +609,6 @@ class Search extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		?>
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Weight results by date', 'elasticpress' ); ?></div>
@@ -775,7 +743,6 @@ class Search extends Feature {
 	 * @param WP_POST $post Post object.
 	 */
 	public function output_exclude_from_search_setting( $post ) {
-
 		$searchable_post_types = $this->get_searchable_post_types();
 		if ( ! in_array( $post->post_type, $searchable_post_types, true ) ) {
 			return;
@@ -784,7 +751,13 @@ class Search extends Feature {
 		<div class="misc-pub-section">
 			<input id="ep_exclude_from_search" name="ep_exclude_from_search" type="checkbox" value="1" <?php checked( get_post_meta( get_the_ID(), 'ep_exclude_from_search', true ) ); ?>>
 			<label for="ep_exclude_from_search"><?php esc_html_e( 'Exclude from search results', 'elasticpress' ); ?></label>
-			<p class="howto"><?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?></p>
+			<p class="howto">
+				<?php if ( 'attachment' === $post->post_type ) : ?>
+					<?php esc_html_e( 'Excludes this media from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?>
+				<?php else : ?>
+					<?php esc_html_e( 'Excludes this post from the results of your site\'s search form while ElasticPress is active.', 'elasticpress' ); ?>
+				<?php endif; ?>
+			</p>
 			<?php wp_nonce_field( 'save-exclude-from-search', 'ep-exclude-from-search-nonce' ); ?>
 		</div>
 		<?php
@@ -793,11 +766,9 @@ class Search extends Feature {
 	/**
 	 * Saves exclude from search meta.
 	 *
-	 * @param int     $post_id The post ID.
-	 * @param WP_Post $post Post object.
+	 * @param int $post_id The post ID.
 	 */
-	public function save_exclude_from_search_meta( $post_id, $post ) {
-
+	public function save_exclude_from_search_meta( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return;
 		}
@@ -810,9 +781,12 @@ class Search extends Feature {
 			return;
 		}
 
-		$exclude_from_search = isset( $_POST['ep_exclude_from_search'] ) ? true : false;
+		if ( isset( $_POST['ep_exclude_from_search'] ) ) {
+			update_post_meta( $post_id, 'ep_exclude_from_search', true );
+		} else {
+			delete_post_meta( $post_id, 'ep_exclude_from_search' );
+		}
 
-		update_post_meta( $post_id, 'ep_exclude_from_search', $exclude_from_search );
 	}
 
 	/**
@@ -848,5 +822,135 @@ class Search extends Feature {
 		}
 
 		return $skip;
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '1',
+				'key'     => 'decaying_enabled',
+				'label'   => __( 'Weight results by date', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ),
+				'key'     => 'highlight_enabled',
+				'label'   => __( 'Highlighting status', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => 'mark',
+				'key'     => 'highlight_tag',
+				'label'   => __( 'Highlight tag', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'None', 'elasticpress' ),
+						'value' => '',
+					],
+					[
+						'label' => 'mark',
+						'value' => 'mark',
+					],
+					[
+						'label' => 'span',
+						'value' => 'span',
+					],
+					[
+						'label' => 'strong',
+						'value' => 'strong',
+					],
+					[
+						'label' => 'em',
+						'value' => 'em',
+					],
+					[
+						'label' => 'i',
+						'value' => 'i',
+					],
+				],
+				'type'    => 'select',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results.', 'elasticpress' ),
+				'key'     => 'highlight_excerpt',
+				'label'   => __( 'Excerpt highlighting', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '.ep-autosuggest',
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
+				'key'     => 'autosuggest_selector',
+				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
+				'type'    => 'text',
+			],
+			[
+				'key'   => 'trigger_ga_event',
+				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
+				'label' => __( 'Google Analytics Events', 'elasticpress' ),
+				'type'  => 'checkbox',
+			],
+			[
+				'default' => 'simple',
+				'key'     => 'synonyms_editor_mode',
+				'type'    => 'hidden',
+			],
+		];
+
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			$weighting_url = esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) );
+			$synonyms_url  = esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) );
+
+			$text = sprintf(
+				'<p><a href="%1$s">%2$s</a></p><p><a href="%3$s">%4$s</a></p>',
+				$weighting_url,
+				__( 'Advanced fields and weighting settings', 'elasticpress' ),
+				$synonyms_url,
+				__( 'Add synonyms to your post searches', 'elasticpress' ),
+			);
+
+			$this->settings_schema[] = [
+				'default' => $text,
+				'key'     => 'additional_links',
+				'label'   => '',
+				'type'    => 'markup',
+			];
+		}
 	}
 }

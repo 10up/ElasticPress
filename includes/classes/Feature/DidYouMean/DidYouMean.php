@@ -25,6 +25,8 @@ class DidYouMean extends Feature {
 
 		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results.', 'elasticpress' );
 
+		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean', 'elasticpress' );
+
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
@@ -32,6 +34,8 @@ class DidYouMean extends Feature {
 		$this->default_settings = [
 			'search_behavior' => false,
 		];
+
+		$this->set_settings_schema();
 
 		parent::__construct();
 	}
@@ -93,7 +97,7 @@ class DidYouMean extends Feature {
 			],
 		];
 
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping['mappings']['post']['properties']['post_content']['fields'] = [
 				'shingle' => [
 					'type'     => 'text',
@@ -412,5 +416,35 @@ class DidYouMean extends Feature {
 		$html .= $this->get_suggestion( $query );
 
 		echo wp_kses_post( $html );
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => false,
+				'key'     => 'search_behavior',
+				'label'   => __( 'Search behavior when no result is found', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Display the top suggestion', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Display all the suggestions', 'elasticpress' ),
+						'value' => 'list',
+					],
+					[
+						'label' => __( 'Automatically redirect the user to the top suggestion', 'elasticpress' ),
+						'value' => 'redirect',
+					],
+				],
+				'type'    => 'radio',
+			],
+		];
 	}
 }

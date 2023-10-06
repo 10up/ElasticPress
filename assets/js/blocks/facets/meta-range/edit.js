@@ -1,259 +1,141 @@
 /* eslint-disable no-nested-ternary */
-/* global facetMetaBlock */
-
 /**
  * WordPress dependencies.
  */
-import apiFetch from '@wordpress/api-fetch';
+import { getBlockType } from '@wordpress/blocks';
 import { InspectorControls, useBlockProps, Warning } from '@wordpress/block-editor';
 import {
 	Disabled,
 	PanelBody,
+	Flex,
+	FlexItem,
 	Placeholder,
-	Spinner,
-	SelectControl,
 	TextControl,
 } from '@wordpress/components';
-import {
-	createInterpolateElement,
-	useEffect,
-	useMemo,
-	useState,
-	WPElement,
-} from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
+import { WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import RangeFacet from './components/range-facet';
-
-/**
- * Preview loading component.
- *
- * @returns {WPElement} Component element.
- */
-const PreviewLoading = () => {
-	return (
-		<Placeholder>
-			<Spinner />
-		</Placeholder>
-	);
-};
-
-/**
- * Preview component.
- *
- * @param {object} props Component props.
- * @param {number} props.min Minumum value.
- * @param {number} props.max Maximum value.
- * @param {string} props.prefix Value prefix.
- * @param {string} props.suffix Value suffix.
- * @returns {WPElement} Component element.
- */
-const Preview = ({ min, max, prefix, suffix }) => {
-	return (
-		<Disabled>
-			<RangeFacet min={min} max={max} prefix={prefix} suffix={suffix} value={[min, max]} />
-		</Disabled>
-	);
-};
-
-/**
- * Preview unavailable component.
- *
- * @param {object} props Component props.
- * @param {string} props.value Selected value.
- * @returns {WPElement} Component element.
- */
-const PreviewUnavailable = ({ value }) => {
-	return (
-		<Warning>
-			{sprintf(
-				/* translators: %s: Field name. */
-				__(
-					'Preview unavailable. The "%s" field does not appear to contain numeric values. Select a new meta field key or populate the field with numeric values to enable filtering by range.',
-					'elasticpress',
-				),
-				value,
-			)}
-		</Warning>
-	);
-};
-
-/**
- * Key selection component.
- *
- * @param {object} props Component props.
- * @param {Function} props.onChange Change handler.
- * @param {object[]} props.options Select options.
- * @param {string} props.value Selected facet.
- * @returns {WPElement} Component element.
- */
-const FacetControl = ({ onChange, options, value }) => {
-	return (
-		<SelectControl
-			disabled={options.length <= 1}
-			help={createInterpolateElement(
-				__(
-					'This is the list of meta fields indexed in Elasticsearch. If your desired field does not appear in this list please try to <a>sync your content</a>',
-					'elasticpress',
-				),
-				// eslint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label
-				{ a: <a href={facetMetaBlock.syncUrl} /> },
-			)}
-			label={__('Meta Field Key', 'elasticpress')}
-			onChange={onChange}
-			options={options}
-			value={value}
-		/>
-	);
-};
-
-/**
- * Block wizard component.
- *
- * @param {object} props Component props.
- * @returns {WPElement} Component element.
- */
-const Wizard = (props) => {
-	return (
-		<Placeholder label={__('Facet by Meta Range', 'elasticpress')}>
-			<FacetControl {...props} />
-		</Placeholder>
-	);
-};
+import icon from './icon';
+import LoadingResponsePlaceholder from '../common/components/loading-response-placeholder';
+import FacetMetaControl from '../common/components/facet-meta-control';
+import RangeFilter from '../common/components/range-filter';
 
 /**
  * Facet by Meta Range block edit component.
  *
  * @param {object} props Components props.
  * @param {object} props.attributes Block attributes.
+ * @param {string} props.name Block name.
  * @param {Function} props.setAttributes Block attribute setter.
  * @returns {WPElement} Component element.
  */
-export default (props) => {
-	const { attributes, setAttributes } = props;
+export default ({ attributes, name, setAttributes }) => {
 	const { facet, prefix, suffix } = attributes;
 
+	const { title } = getBlockType(name);
+
 	const blockProps = useBlockProps();
-	const [isLoading, setIsLoading] = useState(false);
-	const [min, setMin] = useState(false);
-	const [max, setMax] = useState(false);
-	const [metaKeys, setMetaKeys] = useState([]);
+
+	const {
+		min = false,
+		max = false,
+		isLoading = false,
+	} = useSelect(
+		(select) => {
+			const range = select('elasticpress').getMetaRange(facet) || { isLoading: true };
+
+			return range;
+		},
+		[facet],
+	);
 
 	/**
-	 * Key options.
-	 */
-	const options = useMemo(() => {
-		return [
-			{
-				label: __('Select key', 'elasticpress'),
-				value: '',
-			},
-			...metaKeys.map((metaKey) => ({
-				label: metaKey,
-				value: metaKey,
-			})),
-		];
-	}, [metaKeys]);
-
-	/**
-	 * Change handler.
+	 * Facet change handler.
 	 *
-	 * @param {string} value Selected value.
+	 * @param {string} facet Selected facet.
 	 * @returns {void}
 	 */
-	const onChange = (value) => {
-		setAttributes({ facet: value });
+	const onChangeFacet = (facet) => {
+		setAttributes({ facet });
 	};
 
 	/**
-	 * Change handler.
+	 * Prefix change handler.
 	 *
-	 * @param {string} value Selected value.
+	 * @param {string} prefix Prefix value.
 	 * @returns {void}
 	 */
-	const onChangePrefix = (value) => {
-		setAttributes({ prefix: value });
+	const onChangePrefix = (prefix) => {
+		setAttributes({ prefix });
 	};
 
 	/**
-	 * Change handler.
+	 * Suffix change handler.
 	 *
-	 * @param {string} value Selected value.
+	 * @param {string} suffix Suffix value.
 	 * @returns {void}
 	 */
-	const onChangeSuffix = (value) => {
-		setAttributes({ suffix: value });
+	const onChangeSuffix = (suffix) => {
+		setAttributes({ suffix });
 	};
-
-	/**
-	 * Handle changes to the selected facet.
-	 */
-	const handleFacet = () => {
-		setIsLoading(true);
-
-		const params = new URLSearchParams({ facet });
-
-		apiFetch({
-			path: `/elasticpress/v1/facets/meta-range/block-preview?${params}`,
-		})
-			.then((response) => {
-				if (response.success) {
-					setMin(response.data.min);
-					setMax(response.data.max);
-				} else {
-					setMin(false);
-					setMax(false);
-				}
-			})
-			.finally(() => setIsLoading(false));
-	};
-
-	/**
-	 * Handle initialization.
-	 */
-	const handleInit = () => {
-		apiFetch({
-			path: '/elasticpress/v1/facets/meta-range/keys',
-		}).then(setMetaKeys);
-	};
-
-	/**
-	 * Effects.
-	 */
-	useEffect(handleFacet, [facet]);
-	useEffect(handleInit, []);
 
 	return (
 		<>
 			<InspectorControls>
-				<PanelBody title={__('Facet Settings', 'elasticpress')}>
-					<FacetControl onChange={onChange} options={options} value={facet} />
-					<TextControl
-						label={__('Value prefix', 'elasticpress')}
-						onChange={onChangePrefix}
-						value={prefix}
-					/>
-					<TextControl
-						label={__('Value suffix', 'elasticpress')}
-						onChange={onChangeSuffix}
-						value={suffix}
-					/>
+				<PanelBody title={__('Settings', 'elasticpress')}>
+					<FacetMetaControl onChange={onChangeFacet} value={facet} />
+					<Flex>
+						<FlexItem>
+							<TextControl
+								label={__('Value prefix', 'elasticpress')}
+								onChange={onChangePrefix}
+								value={prefix}
+							/>
+						</FlexItem>
+						<FlexItem>
+							<TextControl
+								label={__('Value suffix', 'elasticpress')}
+								onChange={onChangeSuffix}
+								value={suffix}
+							/>
+						</FlexItem>
+					</Flex>
 				</PanelBody>
 			</InspectorControls>
 			<div {...blockProps}>
 				{facet ? (
 					isLoading ? (
-						<PreviewLoading />
+						<LoadingResponsePlaceholder />
 					) : min !== false && max !== false ? (
-						<Preview min={min} max={max} prefix={prefix} suffix={suffix} />
+						<Disabled>
+							<RangeFilter
+								min={min}
+								max={max}
+								prefix={prefix}
+								suffix={suffix}
+								value={[min, max]}
+							/>
+						</Disabled>
 					) : (
-						<PreviewUnavailable value={facet} />
+						<Warning>
+							{sprintf(
+								/* translators: %s: Field name. */
+								__(
+									'Preview unavailable. The "%s" field does not appear to contain numeric values. Select a new meta field key or populate the field with numeric values to enable filtering by range.',
+									'elasticpress',
+								),
+								facet,
+							)}
+						</Warning>
 					)
 				) : (
-					<Wizard onChange={onChange} options={options} value={facet} />
+					<Placeholder icon={icon} label={title}>
+						<FacetMetaControl onChange={onChangeFacet} value={facet} />
+					</Placeholder>
 				)}
 			</div>
 		</>

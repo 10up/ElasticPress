@@ -44,29 +44,41 @@ class StatusReport {
 			return;
 		}
 
-		$script_deps = Utils\get_asset_info( 'status-report-script', 'dependencies' );
-
 		wp_enqueue_script(
 			'ep_admin_status_report_scripts',
 			EP_URL . 'dist/js/status-report-script.js',
-			array_merge( $script_deps, [ 'clipboard' ] ),
+			Utils\get_asset_info( 'status-report-script', 'dependencies' ),
 			Utils\get_asset_info( 'status-report-script', 'version' ),
 			true
 		);
 
+		$reports = $this->get_formatted_reports();
+
+		$plain_text_reports = [];
+
+		foreach ( $reports as $report ) {
+			$title  = $report['title'];
+			$groups = $report['groups'];
+
+			$plain_text_reports[] = $this->render_copy_paste_report( $title, $groups );
+		}
+
+		$plain_text_report = implode( "\n\n", $plain_text_reports );
+
 		wp_localize_script(
 			'ep_admin_status_report_scripts',
 			'epStatusReport',
-			$this->get_formatted_reports()
+			[
+				'plainTextReport' => $plain_text_report,
+				'reports'         => $reports,
+			]
 		);
-
-		$style_deps = Utils\get_asset_info( 'status-report-styles', 'dependencies' );
 
 		wp_enqueue_style(
 			'ep_status_report_styles',
-			EP_URL . 'dist/css/status-report-styles.css',
-			array_merge( $style_deps, [ 'wp-edit-post' ] ),
-			Utils\get_asset_info( 'status-report-styles', 'version' )
+			EP_URL . 'dist/css/status-report-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'status-report-script', 'version' )
 		);
 	}
 
@@ -78,8 +90,7 @@ class StatusReport {
 	public function get_reports() : array {
 		$reports = [];
 
-		/* this filter is documented in elasticpress.php */
-		$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+		$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
 
 		if ( $query_logger ) {
 			$reports['failed-queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
@@ -121,37 +132,6 @@ class StatusReport {
 		);
 
 		return $filtered_reports;
-	}
-
-	/**
-	 * Render all reports (HTML and Copy & Paste button)
-	 */
-	public function render_reports() {
-		$reports = $this->get_formatted_reports();
-
-		$copy_paste_output = [];
-
-		foreach ( $reports as $report ) {
-			$title  = $report['title'];
-			$groups = $report['groups'];
-
-			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
-		}
-
-		?>
-		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
-		<p class="ep-copy-button-wrapper">
-			<a download="elasticpress-report.txt" href="data:text/plain;charset=utf-8,<?php echo rawurlencode( implode( "\n\n", $copy_paste_output ) ); ?>" class="button button-primary" id="ep-download-report">
-				<?php esc_html_e( 'Download report', 'elasticpress' ); ?>
-			</a>
-			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button">
-				<?php esc_html_e( 'Copy status report to clipboard', 'elasticpress' ); ?>
-			</button>
-			<span class="ep-copy-button-wrapper__success">
-				<?php esc_html_e( 'Copied!', 'elasticpress' ); ?>
-			</span>
-		</p>
-		<?php
 	}
 
 	/**
