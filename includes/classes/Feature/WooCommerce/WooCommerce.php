@@ -89,19 +89,46 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		$this->products->setup();
-		$this->orders->setup();
+		add_action( 'switch_blog', [ $this, 'setup_or_tear_down' ] );
 
 		add_filter( 'ep_integrate_search_queries', [ $this, 'disallow_coupons' ], 10, 2 );
 
-		// These hooks are deprecated and will be removed in an upcoming major version of ElasticPress
-		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
+		$this->products->setup();
+		$this->orders->setup();
 
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders_autosuggest->setup();
+		}
+	}
+
+	/**
+	 * Setup or tear down the functionality depending on the plugin being active for the current site.
+	 *
+	 * @since 5.0.0
+	 */
+	public function setup_or_tear_down() {
+		if ( \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+			$this->setup();
+		} else {
+			$this->tear_down();
+		}
+	}
+
+	/**
+	 * Un-setup all feature filters
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_filter( 'ep_integrate_search_queries', [ $this, 'disallow_coupons' ] );
+
+		$this->products->tear_down();
+		$this->orders->tear_down();
+
+		// Orders Autosuggest feature.
+		if ( $this->is_orders_autosuggest_enabled() ) {
+			$this->orders_autosuggest->tear_down();
 		}
 	}
 
@@ -397,19 +424,6 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Make sure all loop shop post ins are IDS. We have to pass post objects here since we override
-	 * the fields=>id query for the layered filter nav query
-	 *
-	 * @param   array $posts Post object array.
-	 * @since   2.1
-	 * @return  array
-	 */
-	public function convert_post_object_to_id( $posts ) {
-		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
-		return $posts;
-	}
-
-	/**
 	 * DEPRECATED. Index WooCommerce taxonomies
 	 *
 	 * @param   array $taxonomies Index taxonomies array.
@@ -420,22 +434,6 @@ class WooCommerce extends Feature {
 	public function whitelist_taxonomies( $taxonomies, $post ) {
 		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->sync_taxonomies()" );
 		return $this->products->sync_taxonomies( $taxonomies );
-	}
-
-	/**
-	 * DEPRECATED. Disallow duplicated ES queries on Orders page.
-	 *
-	 * @since 2.4
-	 *
-	 * @param array    $value Original filter values.
-	 * @param WP_Query $query WP_Query
-	 *
-	 * @return array
-	 */
-	public function disallow_duplicated_query( $value, $query ) {
-		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
-
-		return $value;
 	}
 
 	/**
