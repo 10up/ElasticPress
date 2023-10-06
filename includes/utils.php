@@ -63,7 +63,7 @@ function get_capability() : string {
 	 *
 	 * @since 4.5.0
 	 * @hook ep_capability
-	 * @param  {string} $capability Capability name. Defaults to `'elasticpress_manage'`
+	 * @param  {string} $capability Capability name. Defaults to `'manage_elasticpress'`
 	 * @return {string} New capability value
 	 */
 	return apply_filters( 'ep_capability', 'manage_elasticpress' );
