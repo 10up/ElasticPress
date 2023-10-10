@@ -584,19 +584,29 @@ class Post extends Indexable {
 			$post
 		);
 
-		$image_src = wp_get_attachment_image_src( $attachment_id, $image_size );
+		$image     = wp_get_attachment_image_src( $attachment_id, $image_size );
 		$image_alt = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
 
-		if ( ! $image_src ) {
+		if ( ! $image ) {
 			return null;
 		}
 
+		list( $src, $width, $height ) = $image;
+
+		$image_meta = wp_get_attachment_metadata( $attachment_id );
+
+		$size_array = array( absint( $width ), absint( $height ) );
+		$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $attachment_id );
+		$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $attachment_id );
+
 		return [
 			'ID'     => $attachment_id,
-			'src'    => $image_src[0],
-			'width'  => $image_src[1],
-			'height' => $image_src[2],
+			'src'    => $src,
+			'width'  => $width,
+			'height' => $height,
 			'alt'    => $image_alt,
+			'srcset' => $srcset,
+			'sizes'  => $sizes,
 		];
 	}
 
