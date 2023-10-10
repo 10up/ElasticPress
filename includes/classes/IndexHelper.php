@@ -13,7 +13,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.

@@ -6,9 +6,9 @@
  * @package elasticpress
  */
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

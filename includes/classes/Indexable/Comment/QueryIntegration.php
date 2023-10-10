@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Comment_Query as WP_Comment_Query;
-use ElasticPress\Utils as Utils;
+use \WP_Comment_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

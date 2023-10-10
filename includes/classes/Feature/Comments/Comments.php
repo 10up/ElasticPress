@@ -8,11 +8,11 @@
 
 namespace ElasticPress\Feature\Comments;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Features as Features;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Indexable;
+use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
 /**

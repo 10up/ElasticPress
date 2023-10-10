@@ -63,8 +63,8 @@ function get_capability() : string {
 	 *
 	 * @since 4.5.0
 	 * @hook ep_capability
-	 * @param  {bool} $capability Capability name. Defaults to `'elasticpress_manage'`
-	 * @return {bool} New capability value
+	 * @param  {string} $capability Capability name. Defaults to `'manage_elasticpress'`
+	 * @return {string} New capability value
 	 */
 	return apply_filters( 'ep_capability', 'manage_elasticpress' );
 }
@@ -81,8 +81,8 @@ function get_network_capability() : string {
 	 *
 	 * @since 4.5.0
 	 * @hook ep_network_capability
-	 * @param  {bool} $capability Capability name. Defaults to `'manage_network_elasticpress'`
-	 * @return {bool} New capability value
+	 * @param  {string} $capability Capability name. Defaults to `'manage_network_elasticpress'`
+	 * @return {string} New capability value
 	 */
 	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress' );
 }
@@ -602,7 +602,7 @@ function update_option( $option, $value, $autoload = null ) {
  * @since 3.6.0
  * @param string $option        Name of the option to get.
  * @param mixed  $default_value Default value.
- * @return bool
+ * @return mixed
  */
 function get_option( $option, $default_value = false ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {

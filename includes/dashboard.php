@@ -8,11 +8,9 @@
 
 namespace ElasticPress\Dashboard;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Features;
-use ElasticPress\Indexables;
-use ElasticPress\Installer;
 use ElasticPress\AdminNotices;
 use ElasticPress\Screen;
 use ElasticPress\Stats;
@@ -139,15 +137,14 @@ function filter_allowed_html( $allowedtags, $context ) {
  * @since  3.0
  */
 function log_version_query_error( $query ) {
-	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+	// Ignore fake requests like the autosuggest template generation
+	if ( ! empty( $query['request'] ) && is_array( $query['request'] ) && ! empty( $query['request']['is_ep_fake_request'] ) ) {
+		return;
+	}
 
 	$logging_key = 'logging_ep_es_info';
 
-	if ( $is_network ) {
-		$logging = get_site_transient( $logging_key );
-	} else {
-		$logging = get_transient( $logging_key );
-	}
+	$logging = Utils\get_transient( $logging_key );
 
 	// Are we logging the version query results?
 	if ( '1' === $logging ) {
@@ -176,15 +173,9 @@ function log_version_query_error( $query ) {
 		// Store the response code, and remove the flag that says
 		// we're logging the response code so we don't log additional
 		// queries.
-		if ( $is_network ) {
-			set_site_transient( $response_code_key, $response_code, $cache_time );
-			set_site_transient( $response_error_key, $response_error, $cache_time );
-			delete_site_transient( $logging_key );
-		} else {
-			set_transient( $response_code_key, $response_code, $cache_time );
-			set_transient( $response_error_key, $response_error, $cache_time );
-			delete_transient( $logging_key );
-		}
+		Utils\set_transient( $response_code_key, $response_code, $cache_time );
+		Utils\set_transient( $response_error_key, $response_error, $cache_time );
+		Utils\delete_transient( $logging_key );
 	}
 }
 
@@ -326,19 +317,11 @@ function maybe_notice( $force = false ) {
 	 */
 	$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		set_site_transient(
-			'logging_ep_es_info',
-			'1',
-			$cache_time
-		);
-	} else {
-		$a = set_transient(
-			'logging_ep_es_info',
-			'1',
-			$cache_time
-		);
-	}
+	Utils\set_transient(
+		'logging_ep_es_info',
+		'1',
+		$cache_time
+	);
 
 	// Fetch ES version
 	Elasticsearch::factory()->get_elasticsearch_version( $force );

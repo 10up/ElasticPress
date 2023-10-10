@@ -10,9 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManager;
-use ElasticPress\QueryIntegration as QueryIntegration;
+use ElasticPress\Elasticsearch;
+use ElasticPress\SyncManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -49,7 +48,7 @@ abstract class Indexable {
 	 * Instance of QueryIntegration. This should handle integrating with a default
 	 * WP query.
 	 *
-	 * @var QueryIntegration
+	 * @var object
 	 * @since  3.0
 	 */
 	public $query_integration;
@@ -1149,7 +1148,7 @@ abstract class Indexable {
 	 * process across indexables.
 	 *
 	 * @param  array $args Array to query DB against.
-	 * @return boolean
+	 * @return array
 	 */
 	abstract public function query_db( $args );
 

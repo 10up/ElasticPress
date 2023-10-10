@@ -7,12 +7,12 @@
 
 namespace ElasticPress\Feature\InstantResults;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Feature as Feature;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
 use ElasticPress\FeatureRequirementsStatus;
-use ElasticPress\Features as Features;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

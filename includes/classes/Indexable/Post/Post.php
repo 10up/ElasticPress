@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use \WP_Query as WP_Query;
-use \WP_User as WP_User;
+use \WP_Query;
+use \WP_User;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexable;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -1956,7 +1956,7 @@ class Post extends Indexable {
 			'bool' => [
 				'must_not' => [
 					'terms' => [
-						'post_id' => (array) $args['post__not_in'],
+						'post_id' => array_values( (array) $args['post__not_in'] ),
 					],
 				],
 			],
@@ -2268,7 +2268,7 @@ class Post extends Indexable {
 
 				return [
 					$terms_map_name => [
-						'post_status' => $post_status,
+						'post_status' => is_array( $post_status ) ? array_values( $post_status ) : $post_status,
 					],
 				];
 			}

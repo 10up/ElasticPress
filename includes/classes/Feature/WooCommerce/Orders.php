@@ -134,6 +134,11 @@ class Orders {
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
+		$order = wc_get_order( $post_id );
+		if ( ! $order ) {
+			return $post_args;
+		}
+
 		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		// Make sure it is only WooCommerce orders we touch.
@@ -144,7 +149,6 @@ class Orders {
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		// Get order items.
-		$order     = wc_get_order( $post_id );
 		$item_meta = [];
 		foreach ( $order->get_items() as $delta => $product_item ) {
 			// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
@@ -298,10 +302,10 @@ class Orders {
 		 *
 		 * @hook ep_woocommerce_orders_supported_post_types
 		 * @since 4.7.0
-		 * @param {array} $post_types Post types
+		 * @param {array} $supported_post_types Post types
 		 * @return {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $supported_post_types );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,

@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
-use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
