@@ -81,7 +81,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 4.7.2 - 2023-10-XX =
+= 4.7.2 - 2023-10-10 =
 
 __Added:__
 
