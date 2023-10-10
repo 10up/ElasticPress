@@ -105,10 +105,14 @@ class WooCommerce extends Feature {
 	/**
 	 * Setup or tear down the functionality depending on the plugin being active for the current site.
 	 *
+	 * If the site wasn't initialized yet (it does not have its database tables created) we skip it.
+	 *
 	 * @since 5.0.0
+	 * @param int $blog_id Blog ID
+	 * @return void
 	 */
-	public function setup_or_tear_down() {
-		if ( \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+	public function setup_or_tear_down( $blog_id ) {
+		if ( wp_is_site_initialized( $blog_id ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 			$this->setup();
 		} else {
 			$this->tear_down();
