@@ -32,9 +32,12 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Make sure `post__not_in` and `post_status` are translated into arrays, not objects. Props [@felipeelia](https://github.com/felipeelia) via [#3652](https://github.com/10up/ElasticPress/pull/3652) and [#3680](https://github.com/10up/ElasticPress/pull/3680).
 * Updated phpDoc entries. Props [@renatonascalves](https://github.com/renatonascalves) via [#3635](https://github.com/10up/ElasticPress/pull/3635).
 * Docblock for `Utils\get_option` return type. Props [@felipeelia](https://github.com/felipeelia) via [#3653](https://github.com/10up/ElasticPress/pull/3653).
+* Docblock for `ep_capability` and `ep_network_capability` filters. Props [@burhandodhy](https://github.com/burhandodhy) via [#3685](https://github.com/10up/ElasticPress/pull/3685).
 * PHP warning related to the Autosuggest template generation. Props [@felipeelia](https://github.com/felipeelia) via [#3651](https://github.com/10up/ElasticPress/pull/3651).
 * WooCommerce unit tests running multiple times. Props [@felipeelia](https://github.com/felipeelia) via [#3656](https://github.com/10up/ElasticPress/pull/3656).
 * Display the meta range facet block in versions prior to WP 6.1. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#3658](https://github.com/10up/ElasticPress/pull/3658).
+* Number of expected arguments for `add_attachment` and `edit_attachment`. Props [@burhandodhy](https://github.com/burhandodhy) via [#3690](https://github.com/10up/ElasticPress/pull/3690).
+* Error while running `composer install` on PHP 8. Props [@burhandodhy](https://github.com/burhandodhy) via [#3683](https://github.com/10up/ElasticPress/pull/3683).
 
 ### Security
 * Bumped `composer/composer` from 2.5.8 to 2.6.4. Props [@dependabot](https://github.com/dependabot) via [#3672](https://github.com/10up/ElasticPress/pull/3672).

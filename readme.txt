@@ -101,9 +101,12 @@ __Fixed:__
 * Make sure `post__not_in` and `post_status` are translated into arrays, not objects. Props [@felipeelia](https://github.com/felipeelia).
 * Updated phpDoc entries. Props [@renatonascalves](https://github.com/renatonascalves).
 * Docblock for `Utils\get_option` return type. Props [@felipeelia](https://github.com/felipeelia).
+* Docblock for `ep_capability` and `ep_network_capability` filters. Props [@burhandodhy](https://github.com/burhandodhy).
 * PHP warning related to the Autosuggest template generation. Props [@felipeelia](https://github.com/felipeelia).
 * WooCommerce unit tests running multiple times. Props [@felipeelia](https://github.com/felipeelia).
 * Display the meta range facet block in versions prior to WP 6.1. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS).
+* Number of expected arguments for `add_attachment` and `edit_attachment`. Props [@burhandodhy](https://github.com/burhandodhy).
+* Error while running `composer install` on PHP 8. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Security:__
 
