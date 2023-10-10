@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_weighting_ignore_fields_in_consideration - 10up ElasticPress Hook Docs</title>
+    <title>Filter: ep_highlight_number_of_fragments - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_weighting_ignore_fields_in_consideration</h1>
+    <h1 class="page-title">Filter: ep_highlight_number_of_fragments</h1>
 	
 
     
@@ -43,15 +43,14 @@
 
     
 
-    <h4 class="name" id="ep_weighting_ignore_fields_in_consideration">apply_filters( 'ep_weighting_ignore_fields_in_consideration', <span class="signature">$fields )</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="ep_highlight_number_of_fragments">apply_filters( 'ep_highlight_number_of_fragments', <span class="signature">$max_fragments, $field )</span><span class="type-signature"> &rarr; {int}</span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter fields considered in weighting</p>
-<p>Define keys which are irrelevant for this consideration, like <code>terms.ep_custom_result.name</code>.</p>
+    <p>Filter the maximum number of fragments highlighted for a searched field.</p>
 </div>
 
 
@@ -85,13 +84,13 @@
 
         <tr>
             
-                <td class="name"><code>$fields</code></td>
+                <td class="name"><code>$max_fragments</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">array</span>
+<span class="param-type">int</span>
 
 
             
@@ -101,7 +100,30 @@
 
             
 
-            <td class="description last"><p>Current fields</p></td>
+            <td class="description last"><p>Maximum number of fragments for field.</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>$field</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Search field being setup.</p></td>
         </tr>
 
     
@@ -117,6 +139,9 @@
 
     
 
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>4.7.2</li></ul></dd>
     
 
     
@@ -142,7 +167,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Feature_Search_Weighting.php.html">includes/classes/Feature/Search/Weighting.php</a>, <a href="includes_classes_Feature_Search_Weighting.php.html#line540">line 540</a>
+        <a href="includes_classes_Feature_Search_Search.php.html">includes/classes/Feature/Search/Search.php</a>, <a href="includes_classes_Feature_Search_Search.php.html#line240">line 240</a>
     </li></ul></dd>
     
 
@@ -169,7 +194,7 @@
 
         
 <div class="param-desc">
-    <p>New fields</p>
+    <p>New maximum number of fragments to highlight for the searched field.</p>
 </div>
 
 
@@ -180,7 +205,7 @@
     </dt>
     <dd>
         
-<span class="param-type">array</span>
+<span class="param-type">int</span>
 
 
     </dd>
