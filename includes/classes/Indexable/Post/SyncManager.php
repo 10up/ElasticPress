@@ -53,9 +53,9 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return;
 		}
 
-		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
+		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
 		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 2 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
