@@ -10,8 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManager;
+use ElasticPress\Elasticsearch;
+use ElasticPress\SyncManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

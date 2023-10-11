@@ -31,7 +31,7 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 	}
@@ -334,5 +334,24 @@ class TestSearch extends BaseTestCase {
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
 		$this->assertTrue( $settings['highlight_excerpt'] );
+	}
+
+	/**
+	 * Test Search settings schema
+	 *
+	 * @since 5.0.0
+	 * @group search
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_tag', 'highlight_excerpt', 'autosuggest_selector', 'trigger_ga_event', 'synonyms_editor_mode' ];
+		if ( ! is_multisite() ) {
+			$expected[] = 'additional_links';
+		}
+
+		$this->assertSame( $expected, $settings_keys );
 	}
 }

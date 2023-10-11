@@ -13,7 +13,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.
@@ -144,6 +144,7 @@ class IndexHelper {
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
 			'starting_indices'  => $starting_indices,
 			'messages_queue'    => [],
+			'trigger'           => 'manual',
 			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
@@ -868,26 +869,76 @@ class IndexHelper {
 	 * Update last sync info.
 	 *
 	 * @since 4.2.0
+	 * @param string $final_status Optional final status
 	 */
-	protected function update_last_index() {
+	protected function update_last_index( string $final_status = '' ) {
+		$is_full_sync = $this->index_meta['put_mapping'];
+		$method       = $this->index_meta['method'];
 		$start_time   = $this->index_meta['start_time'];
 		$totals       = $this->index_meta['totals'];
-		$method       = $this->index_meta['method'];
-		$is_full_sync = $this->index_meta['put_mapping'];
+		$trigger      = $this->index_meta['trigger'];
 
 		$this->index_meta = null;
 
 		$end_date_time  = date_create( 'now', wp_timezone() );
 		$start_time_sec = (int) $start_time;
 
+		// Time related info
 		$totals['end_date_time']   = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
 		$totals['start_date_time'] = $start_time ? wp_date( DATE_ATOM, $start_time_sec ) : false;
 		$totals['end_time_gmt']    = time();
 		$totals['total_time']      = microtime( true ) - $start_time;
-		$totals['method']          = $method;
-		$totals['is_full_sync']    = $is_full_sync;
+
+		// Additional info
+		$totals['is_full_sync'] = $is_full_sync;
+		$totals['method']       = $method;
+		$totals['trigger']      = $trigger;
+
+		// Final status
+		if ( '' !== $final_status ) {
+			$totals['final_status'] = $final_status;
+		} elseif ( ! empty( $totals['failed'] ) ) {
+			$totals['final_status'] = 'with_errors';
+		} else {
+			$totals['final_status'] = 'success';
+		}
+
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
-		Utils\update_option( 'ep_last_index', $totals, false );
+
+		$this->add_last_sync( $totals );
+	}
+
+	/**
+	 * Add a sync to the list of all past syncs
+	 *
+	 * @since 5.0.0
+	 * @param array $last_sync_info The latest sync info to be added to the log
+	 * @return void
+	 */
+	protected function add_last_sync( array $last_sync_info ) {
+		// Remove error messages from previous syncs - we only store msgs for the newest one.
+		$last_syncs = array_map(
+			function( $sync ) {
+				unset( $sync['errors'] );
+				return $sync;
+			},
+			$this->get_sync_history()
+		);
+
+		/**
+		 * Filter the number of past syncs to keep info
+		 *
+		 * @since  5.0.0
+		 * @hook ep_syncs_to_keep_info
+		 * @param {int} $number Number of past syncs to keep info
+		 * @return {int} New number
+		 */
+		$syncs_to_keep = (int) apply_filters( 'ep_syncs_to_keep_info', 5 );
+
+		$last_syncs = array_slice( $last_syncs, 0, $syncs_to_keep - 1 );
+		array_unshift( $last_syncs, $last_sync_info );
+
+		Utils\update_option( 'ep_sync_history', $last_syncs, false );
 	}
 
 	/**
@@ -980,7 +1031,7 @@ class IndexHelper {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
-			$totals = $this->get_last_index();
+			$totals = $this->get_last_sync();
 		}
 
 		$message = [
@@ -989,6 +1040,10 @@ class IndexHelper {
 			'totals'     => $totals ?? [],
 			'status'     => $type,
 		];
+
+		if ( in_array( $type, [ 'warning', 'error' ], true ) ) {
+			$message['errors'] = $this->build_message_errors_data( $message_text );
+		}
 
 		if ( is_callable( $this->args['output_method'] ) ) {
 			call_user_func( $this->args['output_method'], $message, $this->args, $this->index_meta, $context );
@@ -1084,13 +1139,27 @@ class IndexHelper {
 	}
 
 	/**
-	 * Get the last index/sync meta information.
+	 * Get the previous syncs meta information.
 	 *
-	 * @since 4.2.0
+	 * @since 5.0.0
 	 * @return array
 	 */
-	public function get_last_index() {
-		return Utils\get_option( 'ep_last_index', [] );
+	public function get_sync_history() : array {
+		return Utils\get_option( 'ep_sync_history', [] );
+	}
+
+	/**
+	 * Get the last sync meta information.
+	 *
+	 * @since 5.0.0
+	 * @return array
+	 */
+	public function get_last_sync() : array {
+		$syncs = $this->get_sync_history();
+		if ( empty( $syncs ) ) {
+			return [];
+		}
+		return array_shift( $syncs );
 	}
 
 	/**
@@ -1263,6 +1332,9 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		if ( ! empty( $this->index_meta ) ) {
+			$this->update_last_index( 'aborted' );
+		}
 		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
@@ -1322,7 +1394,7 @@ class IndexHelper {
 
 		$this->index_meta['totals']['errors'][] = $error['message'];
 		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
-		$this->update_last_index();
+		$this->update_last_index( 'failed' );
 
 		/**
 		 * Fires after a sync failed due to a PHP fatal error.
@@ -1412,6 +1484,33 @@ class IndexHelper {
 	}
 
 	/**
+	 * Get data for a given error message(s)
+	 *
+	 * @since 5.0.0
+	 * @param string|array $messages Messages
+	 * @return array
+	 */
+	protected function build_message_errors_data( $messages ) : array {
+		$messages          = (array) $messages;
+		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
+
+		$errors_list = [];
+		foreach ( $messages as $message ) {
+			$error = $error_interpreter->maybe_suggest_solution_for_es( $message );
+
+			if ( ! isset( $errors_list[ $error['error'] ] ) ) {
+				$errors_list[ $error['error'] ] = [
+					'solution' => $error['solution'],
+					'count'    => 1,
+				];
+			} else {
+				$errors_list[ $error['error'] ]['count']++;
+			}
+		}
+		return $errors_list;
+	}
+
+	/**
 	 * Return singleton instance of class.
 	 *
 	 * @return self
@@ -1426,5 +1525,17 @@ class IndexHelper {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * DEPRECATED. Get the last index/sync meta information.
+	 *
+	 * @since 4.2.0
+	 * @deprecated 5.0.0
+	 * @return array
+	 */
+	public function get_last_index() {
+		_deprecated_function( __METHOD__, '5.0.0', '\ElasticPress\IndexHelper::get_last_sync' );
+		return $this->get_last_sync();
 	}
 }

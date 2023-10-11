@@ -35,6 +35,8 @@ class DidYouMean extends Feature {
 			'search_behavior' => false,
 		];
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -414,5 +416,35 @@ class DidYouMean extends Feature {
 		$html .= $this->get_suggestion( $query );
 
 		echo wp_kses_post( $html );
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => false,
+				'key'     => 'search_behavior',
+				'label'   => __( 'Search behavior when no result is found', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Display the top suggestion', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Display all the suggestions', 'elasticpress' ),
+						'value' => 'list',
+					],
+					[
+						'label' => __( 'Automatically redirect the user to the top suggestion', 'elasticpress' ),
+						'value' => 'redirect',
+					],
+				],
+				'type'    => 'radio',
+			],
+		];
 	}
 }

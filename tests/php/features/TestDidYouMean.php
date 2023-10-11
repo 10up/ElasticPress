@@ -451,4 +451,22 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEmpty( $query->suggested_terms['options'] );
 	}
+
+	/**
+	 * Test Did You Mean settings schema
+	 *
+	 * @since 5.0.0
+	 * @group did-you-mean
+	 */
+	public function test_get_settings_schema() {
+		$instance        = new \ElasticPress\Feature\DidYouMean\DidYouMean();
+		$settings_schema = $instance->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'search_behavior' ],
+			$settings_keys
+		);
+	}
 }

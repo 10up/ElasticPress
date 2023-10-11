@@ -354,10 +354,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				/**
 				 * Perform a search.
 				 */
-				cy.intercept('*search=wordpre*').as('apiRequest');
+				cy.intercept('*search=wordpless*').as('apiRequest');
 				cy.visit('/');
 				cy.get('.wp-block-search').last().as('searchBlock');
-				cy.get('@searchBlock').find('input[type="search"]').type('wordpre');
+				cy.get('@searchBlock').find('input[type="search"]').type('wordpless');
 				cy.get('@searchBlock').find('button').click();
 				cy.get('.ep-search-modal').should('be.visible');
 				cy.wait('@apiRequest');

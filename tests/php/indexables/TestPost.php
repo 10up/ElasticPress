@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Indexables;
 
 /**
  * Test post indexable class
@@ -38,7 +38,7 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -7327,13 +7327,13 @@ class TestPost extends BaseTestCase {
 		// Create a post sync it.
 		$post_id = $this->ep_factory->post->create();
 
-		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Make sure we're starting with an empty queue.
-		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
 		// Turn on the filter to kill syncing.
 		add_filter( 'ep_post_sync_kill', '__return_true' );
@@ -7342,7 +7342,7 @@ class TestPost extends BaseTestCase {
 
 		// Make sure sync queue is still empty when meta is updated for
 		// an existing post.
-		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
 		wp_insert_post(
 			[
@@ -7352,14 +7352,14 @@ class TestPost extends BaseTestCase {
 		);
 
 		// Make sure sync queue is still empty when a new post is added.
-		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
 		remove_filter( 'ep_post_sync_kill', '__return_true' );
 
 		// Now verify the queue when this filter is not enabled.
 		update_post_meta( $post_id, 'custom_key', 456 );
 
-		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
 		// Flush the queues.
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
@@ -7381,7 +7381,7 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		// Make sure we're starting with an empty queue.
-		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue );
+		$this->assertEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
 		// Test user permissions. We'll tell WP the user is not allowed
 		// to edit the post we created at the top of this function.
@@ -7705,7 +7705,7 @@ class TestPost extends BaseTestCase {
 		$this->assertNotEmpty( $document['terms']['category'] );
 		$this->assertNotEmpty( $document['terms']['post_tag'] );
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		wp_delete_term( $tag, 'post_tag' );
 		wp_delete_term( $cat, 'category' );

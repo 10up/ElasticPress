@@ -13,6 +13,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment_previously_approved').check();
 		cy.get('#submit').click();
 		cy.maybeEnableFeature('comments');
+		cy.activatePlugin('show-comments-and-terms', 'wpCli');
 	});
 
 	/**
@@ -257,12 +258,10 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 			return true;
 		});
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Sync complete')
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete')
 			// check that the number of approved comments is the same as the default.
 			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
 

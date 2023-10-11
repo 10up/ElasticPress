@@ -24,40 +24,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
-		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
-	}
-
-	/**
-	 * Setup REST endpoints for the feature.
-	 */
-	public function setup_endpoints() {
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/meta/keys',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
-				'callback'            => [ $this, 'get_rest_registered_metakeys' ],
-			]
-		);
-	}
-
-	/**
-	 * Return an array of registered meta keys.
-	 *
-	 * @return array
-	 */
-	public function get_rest_registered_metakeys() {
-		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
-
-		try {
-			$meta_keys = $post_indexable->get_distinct_meta_field_keys();
-		} catch ( \Throwable $th ) {
-			$meta_keys = [];
-		}
-
-		return $meta_keys;
 	}
 
 	/**
@@ -143,46 +110,5 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			wp_kses_data( $wrapper_attributes ),
 			$block_content
 		);
-	}
-
-	/**
-	 * Outputs the block preview
-	 *
-	 * @param \WP_REST_Request $request REST request
-	 * @return string
-	 */
-	public function render_block_preview( $request ) {
-		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Meta\render_block()' );
-
-		$attributes = $request->get_params();
-
-		return $this->render_block( $attributes );
-	}
-
-	/**
-	 * Utilitary method to set default attributes.
-	 *
-	 * @param array $attributes Attributes passed
-	 * @return array
-	 */
-	protected function parse_attributes( $attributes ) {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
-			'4.7.0'
-		);
-
-		return $attributes;
-	}
-
-	/**
-	 * DEPRECATED. Check permissions of the /facets/meta/* REST endpoints.
-	 *
-	 * @return WP_Error|true
-	 */
-	public function check_facets_meta_rest_permission() {
-		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Meta\Block::check_facets_rest_permission()' );
-
-		return $this->check_facets_rest_permission();
 	}
 }

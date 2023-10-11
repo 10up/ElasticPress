@@ -34,7 +34,7 @@ class LastSync extends Report {
 	public function get_groups() : array {
 		$fields = [];
 
-		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_sync();
 
 		if ( empty( $sync_info ) ) {
 			return [];

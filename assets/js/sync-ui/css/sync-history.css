@@ -1,0 +1,11 @@
+.ep-sync-history {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	list-style: none;
+	margin-left: 0;
+
+	& li {
+		margin: 0;
+	}
+}

@@ -8,9 +8,9 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use \WP_Error;
 use ElasticPress\Indexables;
-use \WP_Error as WP_Error;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

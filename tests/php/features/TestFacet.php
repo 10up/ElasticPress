@@ -7,7 +7,7 @@
 
 namespace ElasticPressTest;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 /**
  * Facet test class
@@ -361,6 +361,23 @@ class TestFacet extends BaseTestCase {
 		add_filter( 'ep_facet_allowed_query_args', $add_allowed_query_arg );
 
 		$this->assertEqualsCanonicalizing( array_merge( $default_allowed_args, [ 'test' ] ), $facet_feature->get_allowed_query_args() );
+	}
+
+	/**
+	 * Test Facets settings schema
+	 *
+	 * @since 5.0.0
+	 * @group facets
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = Features::factory()->get_registered_feature( 'facets' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'match_type' ],
+			$settings_keys
+		);
 	}
 
 	/**
