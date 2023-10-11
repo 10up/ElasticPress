@@ -165,7 +165,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		 * @param {string} $classname  The name of the class to be instantiated and used as a renderer.
 		 * @param {string} $facet_type The type of the facet.
 		 * @param {string} $context    Context where the renderer will be used: `block` or `widget`, for example.
-		 * @param {string} $attributes Element attributes.
+		 * @param {array} $attributes Element attributes.
 		 * @return {string} The name of the class
 		 */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $attributes );
