@@ -170,5 +170,7 @@ class Settings {
 		Utils\update_option( 'ep_host', $this->prev_ep_host );
 		Utils\update_option( 'ep_credentials', $this->prev_ep_credentials );
 		Utils\update_option( 'ep_bulk_setting', $this->prev_ep_bulk_setting );
+
+		\ElasticPress\Elasticsearch::factory()->get_elasticsearch_info( true );
 	}
 }
