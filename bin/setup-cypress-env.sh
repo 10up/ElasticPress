@@ -5,6 +5,8 @@
 EP_HOST=""
 ES_SHIELD=""
 EP_INDEX_PREFIX=""
+WP_VERSION=""
+WC_VERSION=""
 DISPLAY_HELP=0
 
 for opt in "$@"; do
@@ -17,6 +19,12 @@ for opt in "$@"; do
       ;;
     -u=*|--ep-index-prefix=*)
       EP_INDEX_PREFIX="${opt#*=}"
+      ;;
+    -wp=*|--wp-version=*)
+      WP_VERSION="${opt#*=}"
+      ;;
+    -wc=*|--wc-version=*)
+      WC_VERSION="${opt#*=}"
       ;;
     -h|--help|*)
       DISPLAY_HELP=1
@@ -34,8 +42,18 @@ if [ $DISPLAY_HELP -eq 1 ]; then
 	echo "-h=*, --ep-host=*             The remote Elasticsearch Host URL."
 	echo "-s=*, --es-shield=*           The Elasticsearch credentials, used in the ES_SHIELD constant."
 	echo "-u=*, --ep-index-prefix=*     The Elasticsearch credentials, used in the EP_INDEX_PREFIX constant."
+	echo "-W=*, --wp-version=*          WordPress Core version."
+	echo "-w=*, --wc-version=*          WooCommerce version."
 	echo "-h|--help                     Display this help screen"
 	exit
+fi
+
+if [ ! -z $WC_VERSION ]; then
+	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin update woocommerce --version=${WC_VERSION}"
+fi
+
+if [ ! -z $WP_VERSION ]; then
+	./bin/wp-env-cli tests-wordpress "wp --allow-root core update --version=${WP_VERSION} --force"
 fi
 
 if [ -z $EP_HOST ]; then

@@ -27,8 +27,8 @@ jobs:
       matrix:
         testGroup: ['@slow', '-@slow']
         core:
-          - {name: 'WP latest', version: 'latest'}
-          - {name: 'WP minimum', version: 'WordPress/WordPress#6.0'}
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: 'WordPress/WordPress#6.0', wcVersion: '8.0.3'}
 
     steps:
     - name: Checkout
@@ -68,9 +68,6 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
-    - name: Set the core version
-      run: ./bin/set-core-version.js ${{ matrix.core.version }}
-
     - name: Set up WP environment with Elasticsearch
       run: npm run env:start
 
@@ -78,7 +75,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup
+      run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
 
     - name: Test
       run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
