@@ -54,10 +54,7 @@ class Settings {
 	}
 
 	/**
-	 * Enqueue script.
-	 *
-	 * @since 3.6.0
-	 * @return void
+	 * Enqueue script
 	 */
 	public function admin_enqueue_scripts() {
 		if ( 'settings' !== Screen::factory()->get_current_screen() ) {
