@@ -58,6 +58,8 @@ class Facets extends Feature {
 			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
 			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
 			$types['post-type']  = __NAMESPACE__ . '\Types\PostType\FacetType';
+			$types['date']       = __NAMESPACE__ . '\Types\Date\FacetType';
+
 		}
 
 		/**
