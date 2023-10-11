@@ -10,6 +10,6 @@ import { WPElement } from '@wordpress/element';
  *
  * @returns {WPElement} Component element.
  */
-export default ({ alt, height, ID, src, width, ...props }) => {
-	return <img alt={alt} src={src} width={width} height={height} {...props} />;
+export default ({ alt, height, ID, src, width, srcset, ...props }) => {
+	return <img alt={alt} src={src} width={width} height={height} srcSet={srcset} {...props} />;
 };

@@ -8783,9 +8783,9 @@ class TestPost extends BaseTestCase {
 		$ep_post   = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 		$thumbnail = $ep_post['thumbnail'];
 
-		$this->assertEquals( 7, count( $thumbnail ) );
+		$this->assertEquals( 6, count( $thumbnail ) );
 
-		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset', 'sizes' ];
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
 		foreach ( $keys as $key ) {
 			$this->assertArrayHasKey( $key, $thumbnail );
 		}

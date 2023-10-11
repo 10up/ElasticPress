@@ -566,9 +566,6 @@ class Post extends Indexable {
 		/**
 		 * Filters the image size to use when indexing the post thumbnail.
 		 *
-		 * Defaults to the `woocommerce_thumbnail` size if WooCommerce is in
-		 * use. Otherwise the `thumbnail` size is used.
-		 *
 		 * @hook ep_thumbnail_image_size
 		 * @since 4.0.0
 		 * @param {string|int[]} $image_size Image size. Can be any registered
@@ -580,7 +577,7 @@ class Post extends Indexable {
 		 */
 		$image_size = apply_filters(
 			'ep_post_thumbnail_image_size',
-			function_exists( 'WC' ) ? 'woocommerce_thumbnail' : 'thumbnail',
+			'medium',
 			$post
 		);
 
@@ -606,7 +603,6 @@ class Post extends Indexable {
 			'height' => $height,
 			'alt'    => $image_alt,
 			'srcset' => $srcset,
-			'sizes'  => $sizes,
 		];
 	}
 
