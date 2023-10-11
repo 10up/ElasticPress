@@ -65,6 +65,26 @@ class OrdersAutosuggest {
 	}
 
 	/**
+	 * Un-setup feature functionality.
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		remove_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ] );
+		remove_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
+		remove_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		remove_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
+		remove_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
+		remove_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		remove_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ] );
+		remove_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
+		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
+		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
+		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
+	}
+
+	/**
 	 * Get the endpoint for WooCommerce Orders search.
 	 *
 	 * @return string WooCommerce orders search endpoint.
