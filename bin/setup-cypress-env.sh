@@ -49,9 +49,9 @@ if [ $DISPLAY_HELP -eq 1 ]; then
 fi
 
 if [ -z $WC_VERSION ]; then
-	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce"
+	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --activate"
 else
-	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --version=${WC_VERSION}"
+	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --activate --version=${WC_VERSION}"
 fi
 
 if [ ! -z $WP_VERSION ]; then
