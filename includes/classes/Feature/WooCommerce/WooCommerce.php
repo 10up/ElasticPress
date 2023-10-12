@@ -112,6 +112,7 @@ class WooCommerce extends Feature {
 	 * @return void
 	 */
 	public function setup_or_tear_down( $blog_id ) {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		if ( wp_is_site_initialized( $blog_id ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 			$this->setup();
 		} else {
