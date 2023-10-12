@@ -309,6 +309,7 @@ export const ApiSearchProvider = ({
 				setResults(response);
 			} catch (e) {
 				const errorMessage = sprintf(
+					/* translators: Error message */
 					__('ElasticPress: Unable to fetch results. %s', 'elasticpress'),
 					e.message,
 				);

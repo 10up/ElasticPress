@@ -64,6 +64,7 @@ export const useFetchResults = (
 						return '';
 					}
 
+					/* translators: Response status code */
 					throw new Error(sprintf(__('HTTP %d.', 'elasticpress'), response.status));
 				}
 
