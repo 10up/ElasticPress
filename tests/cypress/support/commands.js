@@ -140,8 +140,12 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 			}
 		});
 		cy.get('.edit-post-post-visibility__toggle').click();
-		cy.get('.editor-post-visibility__radio').check('password');
-		cy.get('.editor-post-visibility__password-input').type(newPostData.password);
+		cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
+			'password',
+		);
+		cy.get(
+			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+		).type(newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
