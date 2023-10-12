@@ -165,7 +165,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }}
+      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
 
     - name: Test
       run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
