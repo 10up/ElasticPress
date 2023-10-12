@@ -21,13 +21,13 @@ describe('Post Indexable', () => {
 		cy.get('div[data-ep-notice="too_many_posts_on_term"]').should('exist');
 
 		// Change the `Classic` term, should not index
-		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=15');
+		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=29');
 		cy.get('div[data-ep-notice="edited_single_term"]').should('exist');
 		cy.get('#name').clearThenType('totallydifferenttermname');
 		cy.get('input.button-primary').click();
 
 		// Change the `Block` term, should index
-		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=6');
+		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=20');
 		cy.get('div[data-ep-notice="edited_single_term"]').should('not.exist');
 		cy.get('#name').clearThenType('b10ck');
 		cy.get('input.button-primary').click();
@@ -46,11 +46,11 @@ describe('Post Indexable', () => {
 		);
 
 		// Restore
-		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=15');
+		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=29');
 		cy.get('#name').clearThenType('Classic');
 		cy.get('input.button-primary').click();
 
-		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=6');
+		cy.visitAdminPage('term.php?taxonomy=category&tag_ID=20');
 		cy.get('#name').clearThenType('Block');
 		cy.get('input.button-primary').click();
 
