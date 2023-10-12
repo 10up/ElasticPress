@@ -153,9 +153,6 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
-    - name: Set the core version
-      run: ./bin/set-core-version.js ${{ matrix.core.version }}
-
     - name: Set up WP environment
       run: |
         npm run env start
