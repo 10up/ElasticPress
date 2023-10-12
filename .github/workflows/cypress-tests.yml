@@ -112,8 +112,8 @@ jobs:
       matrix:
         testGroup: ['@slow', '-@slow']
         core:
-          - {name: 'WP latest', version: 'latest'}
-          - {name: 'WP minimum', version: 'WordPress/WordPress#6.0'}
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: '6.0', wcVersion: '6.0.0'}
 
     steps:
     - name: Checkout
