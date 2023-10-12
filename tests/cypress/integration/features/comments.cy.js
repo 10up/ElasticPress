@@ -340,9 +340,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		});
 
 		// trash the review
-		cy.visitAdminPage(
-			'edit.php?post_type=product&page=product-reviews&comment_status=approved',
-		);
+		cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
 		cy.get('.column-comment .trash a').first().click({ force: true });
 
 		cy.deactivatePlugin('woocommerce', 'wpCli');
