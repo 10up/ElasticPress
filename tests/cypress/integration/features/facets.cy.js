@@ -413,6 +413,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				true,
 			);
 			cy.get('.block-editor-block-inspector select').first().select('meta_field_2');
+			cy.wait('@blockPreview');
 			cy.get('.block-editor-block-inspector select').last().select('name/asc');
 			cy.wait('@blockPreview');
 
@@ -599,7 +600,6 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
 			cy.intercept('/wp-json/elasticpress/v1/meta-keys*').as('keysApiRequest');
 			cy.intercept('/wp-json/elasticpress/v1/meta-range*').as('previewApiRequest');
-			cy.intercept('/wp-json/wp/v2/sidebars*').as('sidebarsRest');
 
 			/**
 			 * Insert a Filter by Metadata Range block.
@@ -672,6 +672,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * Save widgets and visit the front page.
 			 */
+			cy.intercept('/wp-json/wp/v2/sidebars*').as('sidebarsRest');
 			cy.get('.edit-widgets-header__actions button').contains('Update').click();
 			cy.wait('@sidebarsRest');
 			cy.visit('/');
