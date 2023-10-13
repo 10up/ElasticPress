@@ -31,7 +31,6 @@ before(() => {
 				'indexNames' => json_decode( $index_names ),
 				'isEpIo'     => $is_epio,
 				'wpVersion'  => get_bloginfo( 'version' ),
-				'wcVersion'  => defined( 'WC_VERSION' ) ? WC_VERSION : '',
 			]
 		);
 		`,
@@ -40,7 +39,6 @@ before(() => {
 		window.indexNames = wpCliRespObj.indexNames;
 		window.isEpIo = wpCliRespObj.isEpIo === 1;
 		window.wpVersion = wpCliRespObj.wpVersion;
-		window.wcVersion = wpCliRespObj.wcVersion;
 	});
 });
 

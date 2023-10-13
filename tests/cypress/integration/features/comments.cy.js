@@ -1,5 +1,3 @@
-/* global wcVersion */
-
 // eslint-disable-next-line jest/valid-describe-callback
 describe('Comments Feature', { tags: '@slow' }, () => {
 	const defaultApprovedComments = 26;
@@ -347,14 +345,17 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		});
 
 		// trash the review
-		if (wcVersion === '6.0.0') {
-			cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
-		} else {
-			cy.visitAdminPage(
-				'edit.php?post_type=product&page=product-reviews&comment_status=approved',
-			);
-		}
-		cy.get('.column-comment .trash a').first().click({ force: true });
+		cy.wpCli('plugin get woocommerce --field=version').then((wpCliResponse) => {
+			const wcVersion = wpCliResponse.stdout;
+			if (wcVersion === '6.0.0') {
+				cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
+			} else {
+				cy.visitAdminPage(
+					'edit.php?post_type=product&page=product-reviews&comment_status=approved',
+				);
+			}
+			cy.get('.column-comment .trash a').first().click({ force: true });
+		});
 
 		cy.deactivatePlugin('woocommerce', 'wpCli');
 	});
