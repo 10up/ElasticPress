@@ -84,7 +84,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: cypress-artifact
+        name: cypress-artifact-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
@@ -171,7 +171,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: cypress-artifact-epio
+        name: cypress-artifact-epio-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
