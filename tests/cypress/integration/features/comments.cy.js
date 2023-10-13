@@ -1,3 +1,5 @@
+/* global wcVersion */
+
 // eslint-disable-next-line jest/valid-describe-callback
 describe('Comments Feature', { tags: '@slow' }, () => {
 	const defaultApprovedComments = 26;
@@ -259,11 +261,16 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		});
 
 		cy.contains('.components-button', 'Log').click();
-		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Mapping sent')
-			.should('contain.text', 'Sync complete')
-			// check that the number of approved comments is the same as the default.
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') }).as(
+			'syncMessages',
+		);
+		cy.get('@syncMessages').should('contain.text', 'Mapping sent');
+		cy.get('@syncMessages').should('contain.text', 'Sync complete');
+		// check that the number of approved comments is the same as the default.
+		cy.get('@syncMessages').should(
+			'contain.text',
+			`Number of comments indexed: ${defaultApprovedComments}`,
+		);
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'comments');
 	});
@@ -340,7 +347,13 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		});
 
 		// trash the review
-		cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
+		if (wcVersion === '6.0.0') {
+			cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
+		} else {
+			cy.visitAdminPage(
+				'edit.php?post_type=product&page=product-reviews&comment_status=approved',
+			);
+		}
 		cy.get('.column-comment .trash a').first().click({ force: true });
 
 		cy.deactivatePlugin('woocommerce', 'wpCli');
