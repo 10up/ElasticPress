@@ -347,7 +347,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		// trash the review
 		cy.wpCli('plugin get woocommerce --field=version').then((wpCliResponse) => {
 			const wcVersion = wpCliResponse.stdout;
-			if (wcVersion === '6.0.0') {
+			if (wcVersion === '6.4.0') {
 				cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
 			} else {
 				cy.visitAdminPage(
