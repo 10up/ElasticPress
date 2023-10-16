@@ -1,5 +1,6 @@
 window.indexNames = null;
 window.isEpIo = false;
+window.wpVersion = '';
 
 before(() => {
 	cy.wpCliEval(
@@ -25,12 +26,19 @@ before(() => {
 
 		$index_names = WP_CLI::runcommand('elasticpress get-indices', [ 'return' => true ] );
 
-		echo wp_json_encode( [ 'indexNames' => json_decode( $index_names ), 'isEpIo' => $is_epio ] );
+		echo wp_json_encode(
+			[
+				'indexNames' => json_decode( $index_names ),
+				'isEpIo'     => $is_epio,
+				'wpVersion'  => get_bloginfo( 'version' ),
+			]
+		);
 		`,
 	).then((wpCliResponse) => {
 		const wpCliRespObj = JSON.parse(wpCliResponse.stdout);
 		window.indexNames = wpCliRespObj.indexNames;
 		window.isEpIo = wpCliRespObj.isEpIo === 1;
+		window.wpVersion = wpCliRespObj.wpVersion;
 	});
 });
 
