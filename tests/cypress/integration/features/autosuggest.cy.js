@@ -59,11 +59,12 @@ describe('Autosuggest Feature', () => {
 		cy.visit('/');
 
 		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.ep-autosuggest li a')
-			.first()
-			.click()
+		cy.get('.ep-autosuggest li a').first().as('firstLink');
+		cy.get('@firstLink').click();
+		cy.get('@firstLink')
+			.invoke('attr', 'href')
 			.then(($link) => {
-				cy.url().should('eq', $link.prop('href'));
+				cy.url().should('eq', $link);
 			});
 	});
 
@@ -95,11 +96,7 @@ describe('Autosuggest Feature', () => {
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('blog');
 
-		cy.get('.ep-autosuggest li a')
-			.first()
-			.click()
-			.then(() => {
-				cy.url().should('include', 'cypress=foobar');
-			});
+		cy.get('.ep-autosuggest li a').first().click();
+		cy.url().should('include', 'cypress=foobar');
 	});
 });

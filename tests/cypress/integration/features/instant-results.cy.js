@@ -168,11 +168,8 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@categoryFacet').should('contain', 'Movies');
 				cy.get('@categoryFacet').should('not.contain', 'Albums');
 
-				cy.get('.ep-search-sidebar #ep-search-post-type-post')
-					.click()
-					.then(() => {
-						cy.url().should('include', 'ep-post_type=post');
-					});
+				cy.get('.ep-search-sidebar #ep-search-post-type-post').click();
+				cy.url().should('include', 'ep-post_type=post');
 
 				// Show the modal in the same state after a reload
 				cy.reload();
@@ -184,14 +181,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@searchModal').should('be.visible').should('contain.text', 'blog');
 
 				// Update the results when search term is changed
-				cy.get('@searchModal')
-					.find('.ep-search-input')
-					.clearThenType('test')
-					.then(() => {
-						cy.wait('@apiRequest');
-						cy.get('@searchModal').should('be.visible').should('contain.text', 'test');
-						cy.url().should('include', 'search=test');
-					});
+				cy.get('@searchModal').find('.ep-search-input').clearThenType('test');
+				cy.wait('@apiRequest');
+				cy.get('@searchModal').should('be.visible').should('contain.text', 'test');
+				cy.url().should('include', 'search=test');
 
 				cy.get('#wpadminbar li#wp-admin-bar-debug-bar').click();
 				cy.get('#querylist').should('be.visible');

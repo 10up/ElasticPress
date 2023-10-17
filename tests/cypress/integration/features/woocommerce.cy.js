@@ -208,9 +208,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.visitAdminPage('edit.php?post_type=shop_order');
 
 			// search order by user's name.
-			cy.get('#post-search-input')
-				.clear()
-				.type(`${userData.firstName} ${userData.lastName}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.firstName} ${userData.lastName}{enter}`);
 
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
@@ -223,7 +222,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			);
 
 			// search order by user's address.
-			cy.get('#post-search-input').clear().type(`${userData.address}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.address}{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -235,7 +235,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			);
 
 			// search order by product.
-			cy.get('#post-search-input').clear().type(`fantastic-silk-knife{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`fantastic-silk-knife{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
