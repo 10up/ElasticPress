@@ -364,6 +364,23 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
+	 * Test Facets settings schema
+	 *
+	 * @since 5.0.0
+	 * @group facets
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = Features::factory()->get_registered_feature( 'facets' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'match_type' ],
+			$settings_keys
+		);
+	}
+
+	/**
 	 * Utilitary function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.

@@ -15,7 +15,6 @@
         "https://downloads.wordpress.org/plugin/debug-bar.zip",
         "https://downloads.wordpress.org/plugin/debug-bar-elasticpress.zip",
         "https://downloads.wordpress.org/plugin/wordpress-importer.zip",
-        "https://downloads.wordpress.org/plugin/woocommerce.zip",
         "10up/elasticpress-proxy#develop"
       ],
       "mappings": {
@@ -34,6 +33,7 @@
         "wp-content/plugins/filter-instant-results-per-page.php": "./tests/cypress/wordpress-files/test-plugins/filter-instant-results-per-page.php",
         "wp-content/plugins/filter-instant-results-args-schema.php": "./tests/cypress/wordpress-files/test-plugins/filter-instant-results-args-schema.php",
         "wp-content/plugins/filter-autosuggest-navigate-callback.php": "./tests/cypress/wordpress-files/test-plugins/filter-autosuggest-navigate-callback.php",
+        "wp-content/plugins/show-comments-and-terms.php": "./tests/cypress/wordpress-files/test-plugins/show-comments-and-terms.php",
         "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml"
       }
     }

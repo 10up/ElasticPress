@@ -1,0 +1,22 @@
+.ep-sync-panel {
+
+	& .components-notice {
+		margin-bottom: 12px;
+		margin-left: 0;
+		margin-right: 0;
+	}
+}
+
+.ep-sync-panel__controls {
+
+	&.is-opened {
+		padding-bottom: 4px;
+	}
+}
+
+.ep-sync-panel__advanced {
+
+	&.is-opened {
+		padding-bottom: 0;
+	}
+}

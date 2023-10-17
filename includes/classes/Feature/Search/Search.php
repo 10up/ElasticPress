@@ -70,6 +70,8 @@ class Search extends Feature {
 
 		$this->available_during_installation = true;
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -829,5 +831,135 @@ class Search extends Feature {
 		}
 
 		return $skip;
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '1',
+				'key'     => 'decaying_enabled',
+				'label'   => __( 'Weight results by date', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ),
+				'key'     => 'highlight_enabled',
+				'label'   => __( 'Highlighting status', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => 'mark',
+				'key'     => 'highlight_tag',
+				'label'   => __( 'Highlight tag', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'None', 'elasticpress' ),
+						'value' => '',
+					],
+					[
+						'label' => 'mark',
+						'value' => 'mark',
+					],
+					[
+						'label' => 'span',
+						'value' => 'span',
+					],
+					[
+						'label' => 'strong',
+						'value' => 'strong',
+					],
+					[
+						'label' => 'em',
+						'value' => 'em',
+					],
+					[
+						'label' => 'i',
+						'value' => 'i',
+					],
+				],
+				'type'    => 'select',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results.', 'elasticpress' ),
+				'key'     => 'highlight_excerpt',
+				'label'   => __( 'Excerpt highlighting', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '.ep-autosuggest',
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
+				'key'     => 'autosuggest_selector',
+				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
+				'type'    => 'text',
+			],
+			[
+				'key'   => 'trigger_ga_event',
+				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
+				'label' => __( 'Google Analytics Events', 'elasticpress' ),
+				'type'  => 'checkbox',
+			],
+			[
+				'default' => 'simple',
+				'key'     => 'synonyms_editor_mode',
+				'type'    => 'hidden',
+			],
+		];
+
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			$weighting_url = esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) );
+			$synonyms_url  = esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) );
+
+			$text = sprintf(
+				'<p><a href="%1$s">%2$s</a></p><p><a href="%3$s">%4$s</a></p>',
+				$weighting_url,
+				__( 'Advanced fields and weighting settings', 'elasticpress' ),
+				$synonyms_url,
+				__( 'Add synonyms to your post searches', 'elasticpress' ),
+			);
+
+			$this->settings_schema[] = [
+				'default' => $text,
+				'key'     => 'additional_links',
+				'label'   => '',
+				'type'    => 'markup',
+			];
+		}
 	}
 }

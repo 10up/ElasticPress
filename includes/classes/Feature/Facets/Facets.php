@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\Facets;
 use ElasticPress\Feature;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
+use ElasticPress\REST;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -85,6 +86,8 @@ class Facets extends Feature {
 			}
 		}
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -113,6 +116,7 @@ class Facets extends Feature {
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 	}
 
 	/**
@@ -645,6 +649,30 @@ class Facets extends Feature {
 	}
 
 	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema[] = [
+			'key'     => 'match_type',
+			'label'   => __( 'Match Type', 'elasticpress' ),
+			'help'    => __( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ),
+			'options' => [
+				[
+					'label' => __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ),
+					'value' => 'all',
+				],
+				[
+					'label' => __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ),
+					'value' => 'any',
+				],
+			],
+			'type'    => 'radio',
+		];
+	}
+
+	/**
 	 * Figure out if Facet widget can display on page.
 	 *
 	 * @param  WP_Query $query WP Query
@@ -653,5 +681,21 @@ class Facets extends Feature {
 	 */
 	protected function is_facetable_page( $query ) {
 		return $query->is_home() || $query->is_search() || $query->is_tax() || $query->is_tag() || $query->is_category() || $query->is_post_type_archive();
+	}
+
+	/**
+	 * Setup REST endpoints
+	 *
+	 * @since 5.0.0
+	 */
+	public function setup_endpoints() {
+		$meta_keys = new REST\MetaKeys();
+		$meta_keys->register_routes();
+
+		$meta_range = new REST\MetaRange();
+		$meta_range->register_routes();
+
+		$taxonomies = new REST\Taxonomies();
+		$taxonomies->register_routes();
 	}
 }

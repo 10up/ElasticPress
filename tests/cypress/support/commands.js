@@ -140,8 +140,12 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 			}
 		});
 		cy.get('.edit-post-post-visibility__toggle').click();
-		cy.get('.editor-post-visibility__radio').check('password');
-		cy.get('.editor-post-visibility__password-input').type(newPostData.password);
+		cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
+			'password',
+		);
+		cy.get(
+			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+		).type(newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
@@ -169,13 +173,16 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	cy.wait(2000);
 });
 
-Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
-	const features = Object.assign({}, cy.elasticPress.defaultFeatures, ...newFeaturesValues);
-
-	const escapedFeatures = JSON.stringify(features);
+Cypress.Commands.add('updateFeatures', (featureName, newValues) => {
+	const escapedNewValues = JSON.stringify(newValues);
 
 	cy.wpCliEval(
-		`$features = json_decode( '${escapedFeatures}', true ); update_option( 'ep_feature_settings', $features );`,
+		`
+		$feature_settings = get_option( 'ep_feature_settings', [] );
+
+		$feature_settings['${featureName}'] = json_decode( '${escapedNewValues}', true );
+		update_option( 'ep_feature_settings', $feature_settings );
+		`,
 	);
 });
 

@@ -208,6 +208,24 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test WooCommerce settings schema
+	 *
+	 * @since 5.0.0
+	 * @group woocommerce
+	 */
+	public function test_get_settings_schema() {
+		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+		$settings_schema     = $woocommerce_feature->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'orders' ],
+			$settings_keys
+		);
+	}
+
+	/**
 	 * Test the addition of variations skus to product meta
 	 *
 	 * @since 4.2.0

@@ -58,7 +58,36 @@ class Products {
 
 		// Settings for Weight results by date
 		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
+		add_filter( 'ep_feature_settings_schema', [ $this, 'add_weight_settings_search_schema' ], 10, 2 );
 		add_filter( 'ep_is_decaying_enabled', [ $this, 'maybe_disable_decaying' ], 10, 3 );
+	}
+
+	/**
+	 * Un-setup product related hooks
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_action( 'ep_formatted_args', [ $this, 'price_filter' ] );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		remove_filter( 'ep_sync_taxonomies', [ $this, 'sync_taxonomies' ] );
+		remove_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
+		remove_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+		remove_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ] );
+		remove_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ] );
+		remove_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ] );
+		remove_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
+		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
+		remove_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
+
+		// Custom product ordering
+		remove_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
+		remove_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ] );
+
+		// Settings for Weight results by date
+		remove_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
+		remove_filter( 'ep_feature_settings_schema', [ $this, 'add_weight_settings_search_schema' ] );
+		remove_filter( 'ep_is_decaying_enabled', [ $this, 'maybe_disable_decaying' ] );
 	}
 
 	/**
@@ -1014,5 +1043,41 @@ class Products {
 			$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
 		}
 		return $attribute_taxonomies;
+	}
+
+	/**
+	 * Add weight by date settings related to WooCommerce
+	 *
+	 * @since 5.0.0
+	 * @param array  $settings_schema Settings schema
+	 * @param string $feature_slug    Feature slug
+	 * @return array New settings schema
+	 */
+	public function add_weight_settings_search_schema( $settings_schema, $feature_slug ) {
+		if ( 'search' !== $feature_slug ) {
+			return $settings_schema;
+		}
+
+		foreach ( $settings_schema as &$setting_schema ) {
+			if ( 'decaying_enabled' !== $setting_schema['key'] ) {
+				continue;
+			}
+
+			$setting_schema['options'] = array_merge(
+				$setting_schema['options'],
+				[
+					[
+						'label' => __( 'Disabled for product only queries', 'elasticpress' ),
+						'value' => 'disabled_only_products',
+					],
+					[
+						'label' => __( 'Disabled for any query that includes products', 'elasticpress' ),
+						'value' => 'disabled_includes_products',
+					],
+				]
+			);
+		}
+
+		return $settings_schema;
 	}
 }

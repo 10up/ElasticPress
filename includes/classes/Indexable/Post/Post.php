@@ -1,6 +1,6 @@
 <?php
 /**
- * User indexable
+ * Post indexable
  *
  * @since  3.0
  * @package  elasticpress

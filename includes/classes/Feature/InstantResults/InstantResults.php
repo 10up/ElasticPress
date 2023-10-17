@@ -96,6 +96,8 @@ class InstantResults extends Feature {
 
 		$this->available_during_installation = true;
 
+		$this->set_settings_schema();
+
 		parent::__construct();
 	}
 
@@ -1049,5 +1051,124 @@ class InstantResults extends Feature {
 
 		/* translators: 1. elasticpress.io logo;  */
 		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => 'mark',
+				'help'    => __( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ),
+				'key'     => 'highlight_tag',
+				'label'   => __( 'Highlight tag', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'None', 'elasticpress' ),
+						'value' => '',
+					],
+					[
+						'label' => 'mark',
+						'value' => 'mark',
+					],
+					[
+						'label' => 'span',
+						'value' => 'span',
+					],
+					[
+						'label' => 'strong',
+						'value' => 'strong',
+					],
+					[
+						'label' => 'em',
+						'value' => 'em',
+					],
+					[
+						'label' => 'i',
+						'value' => 'i',
+					],
+				],
+				'type'    => 'select',
+			],
+			[
+				'default' => 'post_type,category,post_tag',
+				'key'     => 'facets',
+				'label'   => __( 'Filters', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => 'post_type',
+						'value' => 'post_type',
+					],
+					[
+						'label' => 'category',
+						'value' => 'category',
+					],
+					[
+						'label' => 'post_tag',
+						'value' => 'post_tag',
+					],
+				],
+				'type'    => 'multiple',
+			],
+			[
+				'default' => 'all',
+				'help'    => __( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ),
+				'key'     => 'match_type',
+				'label'   => __( 'Match Type', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ),
+						'value' => 'all',
+					],
+					[
+						'label' => __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ),
+						'value' => 'any',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '1',
+				'help'    => __( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ),
+				'key'     => 'term_count',
+				'label'   => __( 'Term Count', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Enabled', 'elasticpress' ),
+						'value' => '1',
+					],
+					[
+						'label' => __( 'Disabled', 'elasticpress' ),
+						'value' => '0',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => get_option( 'posts_per_page', 6 ),
+				'key'     => 'per_page',
+				'type'    => 'hidden',
+			],
+			[
+				'default'          => '',
+				'key'              => 'search_behavior',
+				'label'            => __( 'Search behavior when no result is found', 'elasticpress' ),
+				'options'          => [
+					[
+						'label' => __( 'Display the top suggestion', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Display all the suggestions', 'elasticpress' ),
+						'value' => 'list',
+					],
+				],
+				'requires_feature' => 'did-you-mean',
+				'type'             => 'radio',
+			],
+		];
 	}
 }
