@@ -60,12 +60,15 @@ describe('Autosuggest Feature', () => {
 
 		cy.get('.wp-block-search__input').type('blog');
 		cy.get('.ep-autosuggest li a').first().as('firstLink');
-		cy.get('@firstLink').click();
 		cy.get('@firstLink')
 			.invoke('attr', 'href')
-			.then(($link) => {
-				cy.url().should('eq', $link);
+			.then((href) => {
+				cy.wrap(href).as('linkHref');
 			});
+		cy.get('@firstLink').click();
+		cy.get('@linkHref').then((linkHref) => {
+			cy.url().should('eq', linkHref);
+		});
 	});
 
 	it('Can see post in autosuggest list when headers are modified', () => {
