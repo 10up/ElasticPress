@@ -317,14 +317,10 @@ class Post extends Indexable {
 		}
 		$es_version = (string) $es_version;
 
-		$mapping_file = '5-2.php';
+		$mapping_file = '7-0.php';
 
-		if ( version_compare( $es_version, '5.0', '>=' ) && version_compare( $es_version, '5.2', '<' ) ) {
-			$mapping_file = '5-0.php';
-		} elseif ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
+		if ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
 			$mapping_file = '5-2.php';
-		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
-			$mapping_file = '7-0.php';
 		}
 
 		return apply_filters( 'ep_post_mapping_version', $mapping_file );
@@ -1421,16 +1417,6 @@ class Post extends Indexable {
 		 */
 		if ( isset( $post_title_sortable['normalizer'] ) ) {
 			return '5-2.php';
-		}
-
-		/**
-		 * Check for 5-0 mapping.
-		 * `keyword` fields were only made available in ES 5.0
-		 *
-		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/5.0/release-notes-5.0.0.html
-		 */
-		if ( 'keyword' === $post_title_sortable['type'] ) {
-			return '5-0.php';
 		}
 
 		return 'unknown';

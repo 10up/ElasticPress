@@ -1519,7 +1519,7 @@ class TestTerm extends BaseTestCase {
 
 		// Test the mapping files for different ES versions.
 		$version_and_file = [
-			'5.1' => 'initial.php',
+			'5.3' => 'initial.php',
 			'7.0' => '7-0.php',
 		];
 
