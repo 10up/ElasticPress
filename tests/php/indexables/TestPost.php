@@ -7023,7 +7023,6 @@ class TestPost extends BaseTestCase {
 
 		// Test the mapping files for different ES versions.
 		$version_and_file = [
-			'4.0' => 'pre-5-0.php',
 			'5.1' => '5-0.php',
 			'5.3' => '5-2.php',
 		];
