@@ -2,20 +2,30 @@ describe('Custom Results', () => {
 	const testPost = 'test-post';
 
 	before(() => {
-		cy.wpCli("wp post list --post_type='ep-pointer' --format=ids", true).then(
-			(wpCliResponse) => {
-				if (wpCliResponse.code === 0) {
-					cy.wpCli(`wp post delete ${wpCliResponse.stdout} --force`, true);
-				}
-			},
-		);
+		cy.wpCliEval(
+			`
+			$ep_pointers = get_posts(
+				[
+					'post_type' => 'ep-pointer',
+					'per_page'  => 999,
+				]
+			);
+			foreach( $ep_pointers as $pointer ) {
+				wp_delete_post( $pointer->ID, true );
+			}
 
-		cy.wpCli(`wp post list --s='${testPost}' --ep_integrate='false' --format=ids`, true).then(
-			(wpCliResponse) => {
-				if (wpCliResponse.code === 0) {
-					cy.wpCli(`wp post delete ${wpCliResponse.stdout} --force`, true);
-				}
-			},
+			$posts = new \\WP_Query(
+				[
+					's'            => '${testPost}',
+					'ep_integrate' => false,
+					'fields'       => 'ids',
+					'per_page'     => 999,
+				]
+			);
+			foreach( $posts->posts as $post ) {
+				wp_delete_post( $post->ID, true );
+			}
+			`,
 		);
 	});
 
