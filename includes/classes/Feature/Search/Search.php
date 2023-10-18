@@ -54,7 +54,7 @@ class Search extends Feature {
 
 		$this->title = esc_html__( 'Post Search', 'elasticpress' );
 
-		$this->summary = __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' );
+		$this->summary = __( '<p>Instantly find the content you’re looking for. The first time.</p><p>Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#post-search', 'elasticpress' );
 

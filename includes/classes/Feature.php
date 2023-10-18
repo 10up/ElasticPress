@@ -148,7 +148,7 @@ abstract class Feature {
 	 */
 	public function output_feature_box_summary() {
 		if ( $this->summary ) {
-			echo '<p>' . esc_html( $this->summary ) . '</p>';
+			echo wp_kses_post( $this->summary );
 		}
 	}
 

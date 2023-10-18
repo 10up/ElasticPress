@@ -38,7 +38,7 @@ class Comments extends Feature {
 
 		$this->title = esc_html__( 'Comments', 'elasticpress' );
 
-		$this->summary = __( 'Improve comment search relevancy and query performance.', 'elasticpress' );
+		$this->summary = __( '<p>Improve comment search relevancy and query performance.</p><p>This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#comments', 'elasticpress' );
 

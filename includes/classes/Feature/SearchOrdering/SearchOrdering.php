@@ -54,7 +54,7 @@ class SearchOrdering extends Feature {
 
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
-		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
+		$this->summary = __( '<p>Insert specific posts into search results for specific search queries.</p><p>Selected posts will be inserted into search results in the specified position.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
 

@@ -71,7 +71,7 @@ class InstantResults extends Feature {
 
 		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
 
-		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
+		$this->summary = __( '<p>Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.</p><p>WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.</p><p>Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#instant-results', 'elasticpress' );
 
