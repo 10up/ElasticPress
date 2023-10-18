@@ -130,9 +130,6 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.get('.ep-feature-instant-results .settings-button').click();
 				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
-					'cat{downArrow}{enter}',
-				);
-				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
 					'prod{downArrow}{enter}{esc}',
 				);
 				cy.get('.ep-feature-instant-results .button-primary').click();
@@ -239,7 +236,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.intercept('/wp-admin/admin-ajax.php*').as('ajaxRequest');
 				cy.get('.ep-feature-instant-results .settings-button').click();
 				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
-					'{backspace}{backspace}price{downArrow}{enter}{esc}',
+					'{backspace}{backspace}{backspace}price{downArrow}{enter}{esc}',
 				);
 				cy.get('.ep-feature-instant-results .button-primary').click();
 				cy.wait('@ajaxRequest');
