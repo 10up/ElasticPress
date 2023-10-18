@@ -49,7 +49,7 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertTrue( $instance->requires_install_reindex );
 		$this->assertTrue( $instance->available_during_installation );
 		$this->assertTrue( $instance->is_visible() );
-		$this->assertSame( [ 'search_behavior' => false ], $instance->default_settings );
+		$this->assertSame( [ 'search_behavior' => '0' ], $instance->default_settings );
 	}
 
 	/**

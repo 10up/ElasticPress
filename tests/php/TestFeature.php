@@ -79,7 +79,7 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => true,
+					'default'       => false,
 					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
@@ -113,7 +113,7 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => true,
+					'default'       => false,
 					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
