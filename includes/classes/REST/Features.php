@@ -64,12 +64,11 @@ class Features {
 					case 'radio':
 						$property['enum'] = array_map( fn( $o ) => $o['value'], $schema['options'] );
 						break;
-					case 'multiple':
-						$property['type'] = 'string';
-						break;
-					case 'checkbox':
+					case 'toggle':
 						$property['type'] = 'boolean';
 						break;
+					case 'checkbox':
+					case 'multiple':
 					default:
 						$property['type'] = 'string';
 						break;
