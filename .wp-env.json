@@ -18,6 +18,7 @@
         "10up/elasticpress-proxy#develop"
       ],
       "mappings": {
+        "wp-content/mu-plugins/skip-wp-lookup.php": "./tests/cypress/wordpress-files/test-mu-plugins/skip-wp-lookup.php",
         "wp-content/mu-plugins/unique-index-name.php": "./tests/cypress/wordpress-files/test-mu-plugins/unique-index-name.php",
         "wp-content/mu-plugins/disable-welcome-guide.php": "./tests/cypress/wordpress-files/test-mu-plugins/disable-welcome-guide.php",
         "wp-content/plugins/cpt-and-custom-tax.php": "./tests/cypress/wordpress-files/test-plugins/cpt-and-custom-tax.php",

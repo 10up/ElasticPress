@@ -12,8 +12,8 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment_moderation').check();
 		cy.get('#comment_previously_approved').check();
 		cy.get('#submit').click();
-		cy.maybeEnableFeature('comments');
 		cy.activatePlugin('show-comments-and-terms', 'wpCli');
+		cy.maybeEnableFeature('comments');
 	});
 
 	/**
