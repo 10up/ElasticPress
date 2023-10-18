@@ -306,13 +306,6 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 			.first()
 			.click({ force: true })
 			.then(() => {
-				/**
-				 * Give Elasticsearch some time to process the post.
-				 *
-				 */
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(2000);
-
 				cy.wpCli('wp elasticpress stats')
 					.its('stdout')
 					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
@@ -324,13 +317,6 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 			.first()
 			.click({ force: true })
 			.then(() => {
-				/**
-				 * Give Elasticsearch some time to process the post.
-				 *
-				 */
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(3000);
-
 				cy.wpCli('wp elasticpress stats')
 					.its('stdout')
 					.should('contain', `Documents:  ${defaultApprovedComments}`);
@@ -400,15 +386,9 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment').type('This is a anonymous comment');
 		cy.get('#submit').click();
 
-		cy.wpCliEval(
-			`
-			$comments_index = \\ElasticPress\\Indexables::factory()->get( "comment" )->get_index_name();
-			WP_CLI::runcommand("elasticpress request {$comments_index}/_refresh --method=POST");`,
-		).then(() => {
-			cy.wpCli('wp elasticpress stats')
-				.its('stdout')
-				.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
-		});
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
