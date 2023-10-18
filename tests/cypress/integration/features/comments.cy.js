@@ -302,10 +302,12 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('.approve a')
 			.first()
 			.click({ force: true })
 			.then(() => {
+				cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 				cy.wpCli('wp elasticpress stats')
 					.its('stdout')
 					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
@@ -313,10 +315,12 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('.column-comment .trash a')
 			.first()
 			.click({ force: true })
 			.then(() => {
+				cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 				cy.wpCli('wp elasticpress stats')
 					.its('stdout')
 					.should('contain', `Documents:  ${defaultApprovedComments}`);
