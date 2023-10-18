@@ -262,10 +262,16 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') }).as(
 			'syncMessages',
 		);
-		cy.get('@syncMessages').should('contain.text', 'Mapping sent');
-		cy.get('@syncMessages').should('contain.text', 'Sync complete');
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Mapping sent',
+		);
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 		// check that the number of approved comments is the same as the default.
-		cy.get('@syncMessages').should(
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
 			'contain.text',
 			`Number of comments indexed: ${defaultApprovedComments}`,
 		);
