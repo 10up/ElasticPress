@@ -105,7 +105,29 @@ class Features {
 	 * @return void
 	 */
 	public function update_settings( \WP_REST_Request $request ) {
-		$settings = $request->get_params();
+		$settings = [];
+
+		$features = \ElasticPress\Features::factory()->registered_features;
+
+		foreach ( $features as $slug => $feature ) {
+			$param = $request->get_param( $slug );
+
+			if ( ! $param ) {
+				continue;
+			}
+
+			$settings[ $slug ] = [];
+
+			$schema = $feature->get_settings_schema();
+
+			foreach ( $schema as $schema ) {
+				$key = $schema['key'];
+
+				if ( isset( $param[ $key ] ) ) {
+					$settings[ $slug ][ $key ] = $param[ $key ];
+				}
+			}
+		}
 
 		Utils\update_option( 'ep_feature_settings', $settings );
 
