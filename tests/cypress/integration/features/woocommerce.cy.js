@@ -291,7 +291,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 				});
 
 			cy.get('@thirdProduct')
-				.drag('#the-list tr:eq(0)', { force: true })
+				.drag('#the-list tr:eq(0)', { target: { position: 'top' }, force: true })
 				.then(() => {
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
