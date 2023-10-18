@@ -547,6 +547,7 @@ abstract class Feature {
 			'order'             => $this->order,
 			'isAvailable'       => $this->is_available(),
 			'isEpio'            => $this->is_epio(),
+			'isVisible'         => $this->is_visible(),
 			'reqStatusCode'     => $requirements_status->code,
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
