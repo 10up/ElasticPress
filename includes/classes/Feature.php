@@ -127,6 +127,14 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
+	 * The slug of a feature that is required to be active.
+	 *
+	 * @since 5.0.0
+	 * @var false|string
+	 */
+	protected $requires_feature = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -531,10 +539,11 @@ abstract class Feature {
 			'order'             => $this->order,
 			'isAvailable'       => $this->is_available(),
 			'reqStatusCode'     => $requirements_status->code,
-			'reqStatusMessages' => $requirements_status->message,
+			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 		];
-		return wp_json_encode( $feature_desc );
+
+		return $feature_desc;
 	}
 
 	/**
@@ -547,11 +556,12 @@ abstract class Feature {
 		$req_status = $this->requirements_status();
 
 		$active = [
-			'default'       => false,
-			'key'           => 'active',
-			'label'         => __( 'Enabled', 'elasticpress' ),
-			'requires_sync' => $this->requires_install_reindex,
-			'type'          => 'toggle',
+			'default'          => false,
+			'key'              => 'active',
+			'label'            => __( 'Enable', 'elasticpress' ),
+			'requires_feature' => $this->requires_feature,
+			'requires_sync'    => $this->requires_install_reindex,
+			'type'             => 'toggle',
 		];
 
 		$settings_schema = [

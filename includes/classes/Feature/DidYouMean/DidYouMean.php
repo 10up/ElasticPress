@@ -35,6 +35,8 @@ class DidYouMean extends Feature {
 			'search_behavior' => '0',
 		];
 
+		$this->requires_feature = 'search';
+
 		$this->set_settings_schema();
 
 		parent::__construct();
@@ -224,13 +226,6 @@ class DidYouMean extends Feature {
 	 * Requires the search feature to be activated
 	 */
 	public function requirements_status() : FeatureRequirementsStatus {
-		$features = Features::factory();
-		$search   = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
 		return new FeatureRequirementsStatus( 1 );
 	}
 

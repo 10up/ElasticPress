@@ -60,6 +60,8 @@ class SearchOrdering extends Feature {
 
 		$this->requires_install_reindex = false;
 
+		$this->requires_feature = 'search';
+
 		parent::__construct();
 	}
 
@@ -175,18 +177,8 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return FeatureRequirementsStatus
 	 */
-	public function requirements_status() {
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
-		return parent::requirements_status();
+	public function requirements_status() : FeatureRequirementsStatus {
+		return new FeatureRequirementsStatus( 0 );
 	}
 
 	/**
