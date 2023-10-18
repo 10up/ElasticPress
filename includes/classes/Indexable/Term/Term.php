@@ -541,7 +541,7 @@ class Term extends Indexable {
 
 		$mapping_file = '7-0.php';
 
-		if ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
 			$mapping_file = 'initial.php';
 		}
 
