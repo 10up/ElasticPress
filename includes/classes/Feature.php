@@ -140,7 +140,7 @@ abstract class Feature {
 	 * @since 5.0.0
 	 * @var boolean
 	 */
-	protected $is_epio = false;
+	protected $is_powered_by_epio = false;
 
 	/**
 	 * Run on every page load for feature to set itself up
@@ -546,7 +546,7 @@ abstract class Feature {
 			'defaultSettings'   => $this->default_settings,
 			'order'             => $this->order,
 			'isAvailable'       => $this->is_available(),
-			'isEpio'            => $this->is_epio(),
+			'isPoweredByEpio'   => $this->is_powered_by_epio,
 			'isVisible'         => $this->is_visible(),
 			'reqStatusCode'     => $requirements_status->code,
 			'reqStatusMessages' => (array) $requirements_status->message,

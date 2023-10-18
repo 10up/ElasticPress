@@ -96,7 +96,7 @@ class InstantResults extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->is_epio = Utils\is_epio();
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		$this->set_settings_schema();
 
