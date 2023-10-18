@@ -923,19 +923,6 @@ class Search extends Feature {
 				'type'    => 'radio',
 			],
 			[
-				'default' => '.ep-autosuggest',
-				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
-				'key'     => 'autosuggest_selector',
-				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
-				'type'    => 'text',
-			],
-			[
-				'key'   => 'trigger_ga_event',
-				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
-				'label' => __( 'Google Analytics Events', 'elasticpress' ),
-				'type'  => 'checkbox',
-			],
-			[
 				'default' => 'simple',
 				'key'     => 'synonyms_editor_mode',
 				'type'    => 'hidden',
