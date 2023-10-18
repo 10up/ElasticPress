@@ -135,6 +135,14 @@ abstract class Feature {
 	protected $requires_feature = false;
 
 	/**
+	 * Whether the feature is using ElasticPress.io.
+	 *
+	 * @since 5.0.0
+	 * @var boolean
+	 */
+	protected $is_epio = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -538,6 +546,7 @@ abstract class Feature {
 			'defaultSettings'   => $this->default_settings,
 			'order'             => $this->order,
 			'isAvailable'       => $this->is_available(),
+			'isEpio'            => $this->is_epio(),
 			'reqStatusCode'     => $requirements_status->code,
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),

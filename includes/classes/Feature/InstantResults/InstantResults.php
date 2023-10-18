@@ -67,7 +67,7 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
 
@@ -95,6 +95,8 @@ class InstantResults extends Feature {
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
+
+		$this->is_epio = Utils\is_epio();
 
 		$this->set_settings_schema();
 
@@ -1037,21 +1039,6 @@ class InstantResults extends Feature {
 		 * @param {array} $args_schema Results per page.
 		 */
 		return apply_filters( 'ep_instant_results_args_schema', $args_schema );
-	}
-
-	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Instant Results', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
 	}
 
 	/**

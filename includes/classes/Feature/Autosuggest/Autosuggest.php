@@ -40,7 +40,7 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
 
@@ -57,6 +57,8 @@ class Autosuggest extends Feature {
 		];
 
 		$this->available_during_installation = true;
+
+		$this->is_epio = Utils\is_epio();
 
 		$this->set_settings_schema();
 
@@ -826,21 +828,6 @@ class Autosuggest extends Feature {
 		}
 
 		return $allowed_params;
-	}
-
-	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Autosuggest', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Autosuggest By %s', 'elasticpress' ), $this->get_epio_logo() );
 	}
 
 	/**
