@@ -166,6 +166,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.get('#billing_city').type(userData.city);
 			cy.get('#billing_postcode').type(userData.postCode);
 			cy.get('#billing_phone').type(userData.phoneNumber);
+			cy.get('#billing_email').clearThenType(userData.email);
 			cy.get('#place_order').click();
 
 			// ensure order is placed.
