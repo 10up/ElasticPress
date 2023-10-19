@@ -333,7 +333,7 @@ class TestSearch extends BaseTestCase {
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( $settings['highlight_excerpt'] );
+		$this->assertSame( $settings['highlight_excerpt'], '1' );
 	}
 
 	/**
