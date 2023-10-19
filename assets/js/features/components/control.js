@@ -125,7 +125,10 @@ export default ({
 	 * @param {string[]} values Selected values.
 	 */
 	const onChangeFormTokenField = (values) => {
-		const value = values.map((v) => options.find((o) => o.label === v).value).join(',');
+		const value = values
+			.map((v) => options.find((o) => o.label === v)?.value)
+			.filter(Boolean)
+			.join(',');
 
 		onChange(value);
 	};
