@@ -166,6 +166,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.get('#billing_city').type(userData.city);
 			cy.get('#billing_postcode').type(userData.postCode);
 			cy.get('#billing_phone').type(userData.phoneNumber);
+			cy.get('#billing_email').clearThenType(userData.email);
 			cy.get('#place_order').click();
 
 			// ensure order is placed.
@@ -290,9 +291,11 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 					thirdProductId = id;
 				});
 
+			cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 			cy.get('@thirdProduct')
-				.drag('#the-list tr:eq(0)', { force: true })
+				.drag('#the-list tr:eq(0)', { target: { position: 'top' }, force: true })
 				.then(() => {
+					cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {

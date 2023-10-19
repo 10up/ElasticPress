@@ -15,13 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$action = 'options.php';
-
 $index_meta = IndexHelper::factory()->get_index_meta();
-
-if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$action = '';
-}
 
 $version = Elasticsearch::factory()->get_elasticsearch_version();
 
@@ -39,9 +33,8 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 <div class="wrap">
 	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
 
-	<form action="<?php echo esc_url( $action ); ?>" method="post" class="ep-settings">
-		<?php settings_fields( 'elasticpress' ); ?>
-		<?php settings_errors(); ?>
+	<form action="" method="post" class="ep-settings">
+		<?php wp_nonce_field( 'elasticpress_settings', 'ep_settings_nonce' ); ?>
 
 		<div class="ep-credentials">
 			<?php if ( ! $wpconfig ) : ?>
