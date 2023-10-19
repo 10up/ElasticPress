@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { Button, Flex, FlexItem, Notice, Panel, PanelBody, TabPanel } from '@wordpress/components';
-import { useState, WPElement } from '@wordpress/element';
+import { useMemo, useState, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -38,6 +38,17 @@ export default () => {
 	} = useFeatureSettings();
 
 	/**
+	 * URL to start a sync.
+	 */
+	const syncNowUrl = useMemo(() => {
+		const url = new URL(syncUrl);
+
+		url.searchParams.append('do_sync', 'features');
+
+		return url.toString();
+	}, []);
+
+	/**
 	 * Generic error notice.
 	 */
 	const errorNotice = __('Could not save feature settings. Please try again.', 'elasticpress');
@@ -67,7 +78,7 @@ export default () => {
 	 */
 	const syncLaterActions = [
 		{
-			url: syncUrl,
+			url: syncNowUrl,
 			label: __('Sync', 'elasticpress'),
 		},
 	];
@@ -162,7 +173,7 @@ export default () => {
 			if (isSyncRequired) {
 				createNotice('success', syncNowNotice);
 
-				window.location = syncUrl;
+				window.location = syncNowUrl;
 			} else {
 				createNotice('success', successNotice);
 			}

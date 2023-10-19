@@ -330,7 +330,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			/**
 			 * Enable the feature.
 			 */
-			cy.get('.ep-feature-woocommerce .settings-button').click();
+			cy.contains('button', 'WooCommerce').click();
 
 			if (!isEpIo) {
 				cy.get('.components-radio-control__input').first().should('be.disabled');
