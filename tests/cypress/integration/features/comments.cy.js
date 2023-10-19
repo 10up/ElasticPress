@@ -298,39 +298,28 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.visit('/');
 		cy.contains('#main .entry-title a', 'Test Comment').first().click();
 		cy.get('#comment').type('This is a anonymous comment');
-		cy.get('#submit')
-			.click()
-			.then(() => {
-				cy.wpCli('wp elasticpress sync')
-					.its('stdout')
-					.should('contain', `Number of comments indexed: ${defaultApprovedComments}`);
-			});
+		cy.get('#submit').click();
+		cy.wpCli('wp elasticpress sync')
+			.its('stdout')
+			.should('contain', `Number of comments indexed: ${defaultApprovedComments}`);
 
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.approve a')
-			.first()
-			.click({ force: true })
-			.then(() => {
-				cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-				cy.wpCli('wp elasticpress stats')
-					.its('stdout')
-					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
-			});
+		cy.get('.approve a').first().click({ force: true });
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
 		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
-		cy.get('.column-comment .trash a')
-			.first()
-			.click({ force: true })
-			.then(() => {
-				cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
-				cy.wpCli('wp elasticpress stats')
-					.its('stdout')
-					.should('contain', `Documents:  ${defaultApprovedComments}`);
-			});
+		cy.get('.column-comment .trash a').first().click({ force: true });
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments}`);
 	});
 
 	it('Can sync woocommerce reviews', () => {

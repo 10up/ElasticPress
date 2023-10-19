@@ -1,9 +1,9 @@
 @import "@10up/component-tooltip";
 
 :root {
-	--statusOk: #6aa000;
-	--statusWarning: #e3e600;
-	--statusError: #f00;
+	--ep-dashboard-status-ok: #6aa000;
+	--ep-dashboard-status-warning: #e3e600;
+	--ep-dashboard-status-error: #f00;
 }
 
 html.wp-toolbar {
@@ -206,11 +206,11 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--statusError);
+		border: 1px solid var(--ep-dashboard-status-error);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--statusError);
+		border-color: var(--ep-dashboard-status-error);
 	}
 }
 
@@ -218,15 +218,15 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--statusWarning);
+		border: 1px solid var(--ep-dashboard-status-warning);
 	}
 
 	&.feature-active .postbox .hndle .settings-button::after {
-		background-color: var(--statusWarning);
+		background-color: var(--ep-dashboard-status-warning);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--statusWarning);
+		border-color: var(--ep-dashboard-status-warning);
 	}
 }
 
@@ -234,15 +234,15 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--statusOk);
+		border: 1px solid var(--ep-dashboard-status-ok);
 	}
 
 	&.feature-active .postbox .hndle .settings-button::after {
-		background-color: var(--statusOk);
+		background-color: var(--ep-dashboard-status-ok);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--statusOk);
+		border-color: var(--ep-dashboard-status-ok);
 	}
 }
 
@@ -306,17 +306,17 @@ h2.ep-list-features {
 
 .ep-feature .settings .requirements-status-notice {
 	background-color: #efefef;
-	border-left: 4px solid var(--statusOk);
+	border-left: 4px solid var(--ep-dashboard-status-ok);
 	margin-bottom: 10px;
 	padding: 8px 12px;
 
 	&.requirements-status-notice--reindex {
-		border-color: var(--statusWarning);
+		border-color: var(--ep-dashboard-status-warning);
 		display: none; /* Controlled by JavaScript. */
 	}
 
 	&.requirements-status-notice--syncing {
-		border-color: var(--statusError);
+		border-color: var(--ep-dashboard-status-error);
 		display: none; /* Controlled by JavaScript. */
 	}
 }
@@ -1082,27 +1082,27 @@ h2 .nav-tab.ep-credentials-tab {
 }
 
 .green-status {
-	color: var(--statusOk);
+	color: var(--ep-dashboard-status-ok);
 }
 
 .yellow-status {
-	color: var(--statusWarning);
+	color: var(--ep-dashboard-status-warning);
 }
 
 .red-status {
-	color: var(--statusError);
+	color: var(--ep-dashboard-status-error);
 }
 
 .green-status::after {
-	background-color: var(--statusOk);
+	background-color: var(--ep-dashboard-status-ok);
 }
 
 .yellow-status::after {
-	background-color: var(--statusWarning);
+	background-color: var(--ep-dashboard-status-warning);
 }
 
 .red-status::after {
-	background-color: var(--statusError);
+	background-color: var(--ep-dashboard-status-error);
 }
 
 .doc-chart {

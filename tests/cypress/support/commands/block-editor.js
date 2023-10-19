@@ -83,8 +83,10 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 			cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
 
-			cy.get('.popover-slot button').contains('Font size').click();
-			cy.get('.popover-slot button').contains('Font size').click().type('{esc}');
+			cy.get('.popover-slot button').contains('Font size').as('fontSizeButton');
+			cy.get('@fontSizeButton').click();
+			cy.get('@fontSizeButton').click();
+			cy.get('@fontSizeButton').type('{esc}');
 
 			cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
 			cy.get('.block-editor-block-inspector li[role="option"]')
@@ -122,7 +124,9 @@ Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject,
 
 			cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
 
-			cy.get('.popover-slot button').contains('Padding').click().type('{esc}');
+			cy.get('.popover-slot button').contains('Padding').as('paddingButton');
+			cy.get('@paddingButton').click();
+			cy.get('@paddingButton').type('{esc}');
 
 			cy.get('@dimensionsPanel')
 				.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
