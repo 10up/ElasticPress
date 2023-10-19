@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { Button, Flex, FlexItem, Panel, PanelBody, TabPanel } from '@wordpress/components';
+import { Button, Flex, FlexItem, Notice, Panel, PanelBody, TabPanel } from '@wordpress/components';
 import { useState, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -26,8 +26,77 @@ import '../style.css';
  */
 export default () => {
 	const { createNotice } = useSettingsScreen();
-	const { features, isBusy, isModified, isSyncing, isSyncRequired, resetSettings, saveSettings } =
-		useFeatureSettings();
+	const {
+		features,
+		isBusy,
+		isModified,
+		isSyncing,
+		isSyncRequired,
+		resetSettings,
+		saveSettings,
+		setIsSyncing,
+	} = useFeatureSettings();
+
+	/**
+	 * Generic error notice.
+	 */
+	const errorNotice = __('Could not save feature settings. Please try again.', 'elasticpress');
+
+	/**
+	 * Action when a sync is in progress
+	 */
+	const isSyncingActions = [
+		{
+			url: syncUrl,
+			label: __('View sync status', 'elasticpress'),
+		},
+	];
+
+	/**
+	 * Notice when a sync is in progress.
+	 */
+	const isSyncingNotice = __('Cannot save settings while a sync is in progress.', 'elasticpress');
+
+	/**
+	 * Reset notice.
+	 */
+	const resetNotice = __('Changes to feature settings discarded.', 'elasticpress');
+
+	/**
+	 * Action when syncing later.
+	 */
+	const syncLaterActions = [
+		{
+			url: syncUrl,
+			label: __('Sync', 'elasticpress'),
+		},
+	];
+
+	/**
+	 * Prompt when syncing later.
+	 */
+	const syncLaterConfirm = __(
+		'If you choose to sync later some settings changes may not take effect until the sync is performed. Save and sync later?',
+		'elasticpress',
+	);
+
+	/**
+	 * Prompt when syncing now.
+	 */
+	const syncNowConfirm = __(
+		'Saving these settings will begin re-syncing your content. Save and sync now?',
+		'elasticpress',
+	);
+
+	/**
+	 * Notice when syncing now.
+	 */
+	const syncNowNotice = __('Feature settings saved. Starting sync…', 'elasticpress');
+
+	/**
+	 * Success notice.
+	 */
+	const successNotice = __('Feature settings saved.');
 
 	/**
 	 * Whether the user has chosen to sync later when saving. Used to show the
@@ -53,6 +122,12 @@ export default () => {
 	 * @param {Error} e Error object.
 	 */
 	const onError = (e) => {
+		if (e.data === 'is_syncing') {
+			createNotice('error', isSyncingNotice, { actions: isSyncingActions });
+			setIsSyncing(true);
+			return;
+		}
+
 		const errorMessage = `${__(
 			'ElasticPress: Could not save feature settings.',
 			'elasticpress',
@@ -60,10 +135,7 @@ export default () => {
 
 		console.error(errorMessage); // eslint-disable-line no-console
 
-		createNotice(
-			'error',
-			__('Could not save feature settings. Please try again.', 'elasticpress'),
-		);
+		createNotice('error', errorNotice);
 	};
 
 	/**
@@ -76,14 +148,8 @@ export default () => {
 		event.preventDefault();
 
 		if (isSyncRequired) {
-			if (
-				// eslint-disable-next-line no-alert
-				!window.confirm(
-					__(
-						'Saving these settings will begin re-syncing your content. Save and sync now?',
-					),
-				)
-			) {
+			// eslint-disable-next-line no-alert
+			if (!window.confirm(syncNowConfirm)) {
 				return;
 			}
 		}
@@ -94,10 +160,11 @@ export default () => {
 			await saveSettings();
 
 			if (isSyncRequired) {
-				createNotice('success', __('Feature settings saved. Starting sync…'));
+				createNotice('success', syncNowNotice);
+
 				window.location = syncUrl;
 			} else {
-				createNotice('success', __('Feature settings saved.'));
+				createNotice('success', successNotice);
 			}
 		} catch (e) {
 			onError(e);
@@ -110,14 +177,8 @@ export default () => {
 	 * @returns {void}
 	 */
 	const onClickSyncLater = async () => {
-		if (
-			// eslint-disable-next-line no-alert
-			!window.confirm(
-				__(
-					'If you choose to sync later some settings changes may not take effect until the sync is performed. Save and sync later?',
-				),
-			)
-		) {
+		// eslint-disable-next-line no-alert
+		if (!window.confirm(syncLaterConfirm)) {
 			return;
 		}
 
@@ -126,14 +187,7 @@ export default () => {
 		try {
 			await saveSettings(false);
 
-			createNotice('success', __('Feature settings saved.', 'elasticpress'), {
-				actions: [
-					{
-						url: syncUrl,
-						label: __('Sync', 'elasticpress'),
-					},
-				],
-			});
+			createNotice('success', successNotice, { actions: syncLaterActions });
 		} catch (e) {
 			onError(e);
 		}
@@ -150,13 +204,18 @@ export default () => {
 
 		resetSettings();
 
-		createNotice('success', __('Changes to feature settings discarded.', 'elasticpress'));
+		createNotice('success', resetNotice);
 	};
 
 	return (
 		<form onReset={onReset} onSubmit={onSubmit}>
 			<Panel className="ep-dashboard-panel">
 				<PanelBody>
+					{isSyncing ? (
+						<Notice actions={isSyncingActions} isDismissible={false} status="warning">
+							{isSyncingNotice}
+						</Notice>
+					) : null}
 					<TabPanel className="ep-dashboard-tabs" orientation="vertical" tabs={tabs}>
 						{({ name }) => <Feature feature={name} key={name} />}
 					</TabPanel>

@@ -105,6 +105,11 @@ class Features {
 	 * @return void
 	 */
 	public function update_settings( \WP_REST_Request $request ) {
+		if ( Utils\is_indexing() ) {
+			wp_send_json_error( 'is_syncing', 400 );
+			exit;
+		}
+
 		$settings = [];
 
 		$features = \ElasticPress\Features::factory()->registered_features;

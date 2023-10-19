@@ -2,7 +2,11 @@
 	margin-bottom: 16px;
 
 	& .components-notice {
-		margin: 16px 0;
+		margin: 0 0 16px 0;
+	}
+
+	& .components-notice__actions {
+		display: inline-flex;
 	}
 }
 
@@ -13,6 +17,10 @@
 
 	& .components-tab-panel__tab-content {
 		padding-top: 14px;
+
+		& .components-notice {
+			margin: 16px 0;
+		}
 	}
 
 	& .components-tab-panel__tabs-item {

@@ -43,7 +43,7 @@ export const FeatureSettingsProvider = ({
 	syncedSettings,
 }) => {
 	const [isBusy, setIsBusy] = useState(false);
-	const [isSyncing] = useState(!!indexMeta);
+	const [isSyncing, setIsSyncing] = useState(!!indexMeta);
 	const [settings, setSettings] = useState({ ...defaultSettings });
 	const [savedSettings, setSavedSettings] = useState({ ...defaultSettings });
 
@@ -171,6 +171,7 @@ export const FeatureSettingsProvider = ({
 		isBusy,
 		isModified,
 		isSyncing,
+		setIsSyncing,
 		isSyncRequired,
 		resetSettings,
 		saveSettings,
