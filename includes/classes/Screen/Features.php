@@ -8,7 +8,6 @@
 
 namespace ElasticPress\Screen;
 
-use ElasticPress\Features;
 use ElasticPress\REST;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @since 5.0.0
  * @package ElasticPress
  */
-class Dashboard {
+class Features {
 	/**
 	 * Initialize class
 	 */
@@ -60,13 +59,13 @@ class Dashboard {
 			Utils\get_asset_info( 'features-script', 'version' )
 		);
 
-		$features = Features::factory()->registered_features;
+		$features = \ElasticPress\Features::factory()->registered_features;
 		$features = array_map( fn( $f ) => $f->get_json(), $features );
 		$features = array_values( $features );
 
 		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync=features' ) :
-				admin_url( 'admin.php?page=elasticpress-sync&do_sync=features' );
+				network_admin_url( 'admin.php?page=elasticpress-sync' ) :
+				admin_url( 'admin.php?page=elasticpress-sync' );
 
 		$data = [
 			'apiUrl'      => rest_url( 'elasticpress/v1/features' ),
