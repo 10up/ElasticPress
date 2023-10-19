@@ -37,6 +37,7 @@
     "env:install-tests-cli": "./bin/install-wp-cli.sh tests-wordpress",
     "env:start": "wp-env start && npm run env:install-tests-cli && cd bin/es-docker/ && docker-compose up -d",
     "env:stop": "wp-env stop && cd bin/es-docker/ && docker-compose down",
+    "env:reset": "wp-env clean all && npm run env:start && npm run cypress:setup",
     "cypress:setup": "./bin/setup-cypress-env.sh",
     "cypress:open": "cypress open --config-file tests/cypress/config.js",
     "cypress:run": "cypress run --config-file tests/cypress/config.js"
