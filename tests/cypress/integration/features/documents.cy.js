@@ -41,6 +41,10 @@ describe('Documents Feature', () => {
 		);
 	});
 
+	beforeEach(() => {
+		cy.maybeDisableFeature('documents');
+	});
+
 	it('Can search .pdf', () => {
 		cy.login();
 		enableDocumentsFeature();
@@ -58,7 +62,7 @@ describe('Documents Feature', () => {
 			 * @todo instead of waiting for an arbitrary time, we should ensure the file is processed.
 			 */
 			// eslint-disable-next-line cypress/no-unnecessary-waiting
-			cy.wait(500);
+			cy.wait(1000);
 
 			cy.visit('/?s=dummy+pdf');
 			cy.get('.hentry').should('contain.text', 'pdf-file');
