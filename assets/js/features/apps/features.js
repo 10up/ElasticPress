@@ -107,7 +107,7 @@ export default () => {
 	/**
 	 * Success notice.
 	 */
-	const successNotice = __('Feature settings saved.');
+	const successNotice = __('Feature settings saved.', 'elasticpress');
 
 	/**
 	 * Whether the user has chosen to sync later when saving. Used to show the
