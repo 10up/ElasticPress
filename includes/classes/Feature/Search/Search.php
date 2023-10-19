@@ -126,7 +126,7 @@ class Search extends Feature {
 	public function enqueue_scripts() {
 		$settings = $this->get_settings();
 
-		if ( true !== $settings['highlight_enabled'] ) {
+		if ( '1' !== $settings['highlight_enabled'] ) {
 			return;
 		}
 
@@ -161,7 +161,7 @@ class Search extends Feature {
 		// get current config
 		$settings = $this->get_settings();
 
-		if ( true !== $settings['highlight_enabled'] ) {
+		if ( '1' !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
 		}
 
@@ -268,7 +268,7 @@ class Search extends Feature {
 
 		$settings = $this->get_settings();
 
-		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
+		if ( ! empty( $settings['highlight_excerpt'] ) && '1' === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
 			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
@@ -348,11 +348,11 @@ class Search extends Feature {
 	 */
 	public function sanitize_highlighting_settings( $settings ) {
 		if ( ! empty( $settings['search']['highlight_excerpt'] ) ) {
-			$settings['search']['highlight_excerpt'] = (bool) $settings['search']['highlight_excerpt'];
+			$settings['search']['highlight_excerpt'] = $settings['search']['highlight_excerpt'];
 		}
 
 		if ( ! empty( $settings['search']['highlight_enabled'] ) ) {
-			$settings['search']['highlight_enabled'] = (bool) $settings['search']['highlight_enabled'];
+			$settings['search']['highlight_enabled'] = $settings['search']['highlight_enabled'];
 		}
 
 		return $settings;
@@ -639,8 +639,8 @@ class Search extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Highlighting status', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( (bool) $settings['highlight_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( ! (bool) $settings['highlight_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( $settings['highlight_enabled'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( $settings['highlight_enabled'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ); ?></p>
 			</div>
 		</div>
@@ -660,8 +660,8 @@ class Search extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Excerpt highlighting', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( (bool) $settings['highlight_excerpt'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( ! (bool) $settings['highlight_excerpt'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( $settings['highlight_excerpt'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( $settings['highlight_excerpt'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. ', 'elasticpress' ); ?></p>
 			</div>
 		</div>
