@@ -43,8 +43,10 @@ class TestFeature extends BaseTestCase {
 			'defaultSettings'   => [],
 			'order'             => 1,
 			'isAvailable'       => false, // Set by status code 2
+			'isPoweredByEpio'   => false,
+			'isVisible'         => true,
 			'reqStatusCode'     => 2,
-			'reqStatusMessages' => 'Testing',
+			'reqStatusMessages' => [ 'Testing' ],
 			'settingsSchema'    => [
 				[
 					'default'          => false,
