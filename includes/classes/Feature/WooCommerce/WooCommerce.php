@@ -354,12 +354,12 @@ class WooCommerce extends Feature {
 
 		$this->settings_schema = [
 			[
-				'default'  => '0',
-				'disabled' => ! $available,
-				'help'     => $message,
-				'key'      => 'orders',
-				'label'    => __( 'Orders Autosuggest', 'elasticpress' ),
-				'options'  => [
+				'default'       => '0',
+				'disabled'      => ! $available,
+				'help'          => $message,
+				'key'           => 'orders',
+				'label'         => __( 'Orders Autosuggest', 'elasticpress' ),
+				'options'       => [
 					[
 						'label' => __( 'Enabled', 'elasticpress' ),
 						'value' => '1',
@@ -369,7 +369,8 @@ class WooCommerce extends Feature {
 						'value' => '0',
 					],
 				],
-				'type'     => 'radio',
+				'requires_sync' => true,
+				'type'          => 'radio',
 			],
 		];
 	}
