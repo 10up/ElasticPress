@@ -145,7 +145,7 @@ describe('Dashboard Sync', () => {
 
 		// Can not activate a feature.
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.error-overlay').should('have.class', 'syncing');
+		cy.contains('button', 'Save changes').should('be.disabled');
 
 		// Can not start a sync via WP-CLI
 		cy.wpCli('wp elasticpress sync', true)
@@ -162,7 +162,7 @@ describe('Dashboard Sync', () => {
 
 		// Features should be accessible again
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.error-overlay').should('not.have.class', 'syncing');
+		cy.contains('button', 'Save changes').should('not.be.disabled');
 
 		cy.setPerIndexCycle();
 	});

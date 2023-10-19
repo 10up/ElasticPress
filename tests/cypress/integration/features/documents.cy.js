@@ -1,9 +1,13 @@
 describe('Documents Feature', () => {
 	function enableDocumentsFeature() {
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-documents .settings-button').click();
-		cy.get('.ep-feature-documents [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-documents .button-primary').click();
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+		cy.contains('button', 'Documents').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save changes').click();
+
+		cy.wait('@apiRequest');
 	}
 
 	function uploadFile(fileName, mimeType) {

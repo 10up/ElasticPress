@@ -545,9 +545,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 * When Match Type is "any", all options need to be clickable
 			 */
 			cy.visitAdminPage('admin.php?page=elasticpress');
-			cy.get('.ep-feature-facets .settings-button').click();
-			cy.get('input[name="settings[match_type]"][value="any"]').check();
-			cy.get('.ep-feature-facets .button-primary').click();
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+			cy.contains('button', 'Filters').click();
+			cy.contains('label', 'Show all content tagged to any selected term').click();
+			cy.contains('button', 'Save changes').click();
+
+			cy.wait('@apiRequest');
 
 			cy.visit('/');
 			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();

@@ -250,13 +250,15 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.maybeDisableFeature('comments');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('.ep-feature-comments .settings-button').click();
-		cy.get('.ep-feature-comments [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-comments .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.contains('button', 'Comments').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
 
 		cy.contains('.components-button', 'Log').click();
 		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') }).as(

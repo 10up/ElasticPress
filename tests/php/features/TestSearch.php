@@ -268,7 +268,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 				'highlight_tag'     => 'span',
 			)
 		);
@@ -298,7 +298,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 				'highlight_tag'     => 'div',
 			)
 		);
@@ -326,8 +326,8 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
-				'highlight_excerpt' => true,
+				'highlight_enabled' => '1',
+				'highlight_excerpt' => '1',
 			)
 		);
 

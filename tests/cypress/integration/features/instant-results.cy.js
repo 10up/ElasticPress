@@ -53,12 +53,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 		cy.deactivatePlugin('elasticpress-proxy');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-instant-results .settings-button').click();
-		cy.get('.requirements-status-notice').should(
-			'contain.text',
-			'To use this feature you need to be an ElasticPress.io customer or implement a custom proxy',
-		);
-		cy.get('.ep-feature-instant-results .input-wrap').should('have.class', 'disabled');
+
+		cy.contains('button', 'Instant Results').click();
+		cy.contains('.components-notice', 'To use this feature you need').should('exist');
+		cy.get('.components-form-toggle__input').should('be.disabled');
 	});
 
 	describe('Instant Results Available', () => {
@@ -77,19 +75,21 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 		it('Can activate the feature and sync automatically', () => {
 			// Can see the warning if using custom proxy
 			cy.visitAdminPage('admin.php?page=elasticpress');
-			cy.get('.ep-feature-instant-results .settings-button').click();
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-			cy.get('.ep-feature-instant-results .input-wrap').should('not.have.class', 'disabled');
-			cy.get('.requirements-status-notice').should(
-				isEpIo ? 'not.contain.text' : 'contain.text',
-				'You are using a custom proxy. Make sure you implement all security measures needed',
-			);
+			cy.contains('button', 'Instant Results').click();
 
-			cy.get('.ep-feature-instant-results [name="settings[active]"][value="1"]').click();
-			cy.get('.ep-feature-instant-results .button-primary').click();
-			cy.on('window:confirm', () => {
-				return true;
-			});
+			const noticeShould = isEpIo ? 'not.contain.text' : 'contain.text';
+
+			cy.get('.components-form-toggle__input').should('not.be.disabled');
+			cy.get('.components-notice').should(noticeShould, 'You are using a custom proxy.');
+
+			cy.contains('label', 'Enable').click();
+			cy.contains('button', 'Save and sync now').click();
+
+			cy.wait('@apiRequest');
+
+			cy.on('window:confirm', () => true);
 
 			cy.get('.ep-sync-progress strong', {
 				timeout: Cypress.config('elasticPressIndexTimeout'),
@@ -126,14 +126,14 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Add product category facet to test the labelling of facets
 				 * with the same name.
 				 */
-				cy.intercept('**/wp-admin/admin-ajax.php*').as('ajaxRequest');
 				cy.visitAdminPage('admin.php?page=elasticpress');
-				cy.get('.ep-feature-instant-results .settings-button').click();
-				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
-					'prod{downArrow}{enter}{esc}',
-				);
-				cy.get('.ep-feature-instant-results .button-primary').click();
-				cy.wait('@ajaxRequest');
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type('prod{downArrow}{enter}{esc}');
+				cy.contains('button', 'Save changes').click();
+
+				cy.wait('@apiRequest');
 
 				/**
 				 * Perform a search.
@@ -232,14 +232,17 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Add price range facet.
 				 */
 				cy.maybeEnableFeature('instant-results');
+
 				cy.visitAdminPage('admin.php?page=elasticpress');
-				cy.intercept('/wp-admin/admin-ajax.php*').as('ajaxRequest');
-				cy.get('.ep-feature-instant-results .settings-button').click();
-				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type(
 					'{backspace}{backspace}{backspace}price{downArrow}{enter}{esc}',
 				);
-				cy.get('.ep-feature-instant-results .button-primary').click();
-				cy.wait('@ajaxRequest');
+				cy.contains('button', 'Save changes').click();
+
+				cy.wait('@apiRequest');
 
 				/**
 				 * Perform a search.
