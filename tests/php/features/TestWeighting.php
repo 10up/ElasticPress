@@ -79,7 +79,7 @@ class TestWeighting extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 		ElasticPress\Features::factory()->activate_feature( 'search' );

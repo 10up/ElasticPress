@@ -17,6 +17,7 @@ import Log from '../components/log';
 import Objects from '../components/objects';
 import Progress from '../components/progress';
 import PutMapping from '../components/put-mapping';
+import SyncHistory from '../components/sync-history';
 import { useSyncSettings } from '../provider';
 
 /**
@@ -26,7 +27,7 @@ import { useSyncSettings } from '../provider';
  */
 export default () => {
 	const { createNotice } = useSettingsScreen();
-	const { isComplete, isEpio, isSyncing, lastSyncDateTime, logMessage, startSync } = useSync();
+	const { isComplete, isEpio, isSyncing, logMessage, startSync, syncHistory } = useSync();
 	const { autoIndex } = useSyncSettings();
 
 	/**
@@ -56,7 +57,7 @@ export default () => {
 	return (
 		<>
 			<p>
-				{lastSyncDateTime
+				{syncHistory.length
 					? __(
 							'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
 							'elasticpress',
@@ -76,20 +77,25 @@ export default () => {
 				<PanelBody className="ep-sync-panel__controls">
 					{isSyncing || isComplete ? <Progress /> : null}
 					<Controls />
-					{lastSyncDateTime ? <PutMapping /> : null}
+					{syncHistory.length ? <PutMapping /> : null}
 				</PanelBody>
 				<PanelBody initialOpen={false} title="Log">
 					<Log />
 				</PanelBody>
-				{lastSyncDateTime ? (
-					<PanelBody
-						className="ep-sync-panel__advanced"
-						initialOpen={false}
-						title={__('Advanced options', 'elasticpress')}
-					>
-						<Indexables />
-						<Objects />
-					</PanelBody>
+				{syncHistory.length ? (
+					<>
+						<PanelBody
+							className="ep-sync-panel__advanced"
+							initialOpen={false}
+							title={__('Advanced options', 'elasticpress')}
+						>
+							<Indexables />
+							<Objects />
+						</PanelBody>
+						<PanelBody title={__('Sync history', 'elasticpress')}>
+							<SyncHistory />
+						</PanelBody>
+					</>
 				) : null}
 			</Panel>
 		</>

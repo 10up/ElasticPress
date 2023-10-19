@@ -7,8 +7,7 @@
 
 namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
-use \WP_Widget as WP_Widget;
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -17,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Facets widget class
  */
-class Widget extends WP_Widget {
+class Widget extends \WP_Widget {
 	/**
 	 * The renderer instance.
 	 *

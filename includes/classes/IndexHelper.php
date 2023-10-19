@@ -13,7 +13,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.
@@ -869,8 +869,9 @@ class IndexHelper {
 	 * Update last sync info.
 	 *
 	 * @since 4.2.0
+	 * @param string $final_status Optional final status
 	 */
-	protected function update_last_index() {
+	protected function update_last_index( string $final_status = '' ) {
 		$is_full_sync = $this->index_meta['put_mapping'];
 		$method       = $this->index_meta['method'];
 		$start_time   = $this->index_meta['start_time'];
@@ -892,6 +893,15 @@ class IndexHelper {
 		$totals['is_full_sync'] = $is_full_sync;
 		$totals['method']       = $method;
 		$totals['trigger']      = $trigger;
+
+		// Final status
+		if ( '' !== $final_status ) {
+			$totals['final_status'] = $final_status;
+		} elseif ( ! empty( $totals['failed'] ) ) {
+			$totals['final_status'] = 'with_errors';
+		} else {
+			$totals['final_status'] = 'success';
+		}
 
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
 
@@ -1030,6 +1040,10 @@ class IndexHelper {
 			'totals'     => $totals ?? [],
 			'status'     => $type,
 		];
+
+		if ( in_array( $type, [ 'warning', 'error' ], true ) ) {
+			$message['errors'] = $this->build_message_errors_data( $message_text );
+		}
 
 		if ( is_callable( $this->args['output_method'] ) ) {
 			call_user_func( $this->args['output_method'], $message, $this->args, $this->index_meta, $context );
@@ -1318,6 +1332,9 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		if ( ! empty( $this->index_meta ) ) {
+			$this->update_last_index( 'aborted' );
+		}
 		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
@@ -1377,7 +1394,7 @@ class IndexHelper {
 
 		$this->index_meta['totals']['errors'][] = $error['message'];
 		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
-		$this->update_last_index();
+		$this->update_last_index( 'failed' );
 
 		/**
 		 * Fires after a sync failed due to a PHP fatal error.
@@ -1464,6 +1481,33 @@ class IndexHelper {
 			$next_message = array_shift( $this->index_meta['messages_queue'] );
 			$this->output( $next_message['text'], $next_message['type'], $next_message['context'] );
 		}
+	}
+
+	/**
+	 * Get data for a given error message(s)
+	 *
+	 * @since 5.0.0
+	 * @param string|array $messages Messages
+	 * @return array
+	 */
+	protected function build_message_errors_data( $messages ) : array {
+		$messages          = (array) $messages;
+		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
+
+		$errors_list = [];
+		foreach ( $messages as $message ) {
+			$error = $error_interpreter->maybe_suggest_solution_for_es( $message );
+
+			if ( ! isset( $errors_list[ $error['error'] ] ) ) {
+				$errors_list[ $error['error'] ] = [
+					'solution' => $error['solution'],
+					'count'    => 1,
+				];
+			} else {
+				$errors_list[ $error['error'] ]['count']++;
+			}
+		}
+		return $errors_list;
 	}
 
 	/**

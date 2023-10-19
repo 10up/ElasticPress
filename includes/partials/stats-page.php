@@ -6,9 +6,8 @@
  * @package elasticpress
  */
 
-use ElasticPress\Stats as Stats;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Utils as Utils;
+use ElasticPress\IndexHelper;
+use ElasticPress\Stats;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -16,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/header.php';
 
-$index_meta = Utils\get_option( 'ep_index_meta', [] );
+$index_meta = IndexHelper::factory()->get_index_meta();
 
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$sync_url = network_admin_url( 'admin.php?page=elasticpress-sync' );

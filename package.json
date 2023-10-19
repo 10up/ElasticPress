@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "4.7.1",
+  "version": "4.7.2",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "devDependencies": {
@@ -9,7 +9,7 @@
     "@wordpress/env": "^5.0.0",
     "10up-toolkit": "^4.3.1",
     "classnames": "^2.3.1",
-    "cypress": "^12.9.0",
+    "cypress": "^13.3.0",
     "cypress-file-upload": "^5.0.8",
     "eslint-plugin-cypress": "^2.12.1",
     "husky": "^8.0.3",
@@ -87,7 +87,6 @@
       "ordering-styles": "./assets/css/ordering.css",
       "facets-block-styles": "./assets/css/facets-block.css",
       "related-posts-block-styles": "./assets/css/related-posts-block.css",
-      "status-report-styles": "./assets/css/status-report.css",
       "synonyms-styles": "./assets/css/synonyms.css",
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },

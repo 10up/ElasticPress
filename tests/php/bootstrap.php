@@ -88,21 +88,36 @@ tests_add_filter( 'muplugins_loaded', __NAMESPACE__ . '\load_plugin' );
  * @since  3.0
  */
 function setup_wc() {
-	if ( class_exists( '\WC_Install' ) ) {
-		define( 'WP_UNINSTALL_PLUGIN', true );
-
-		update_option( 'woocommerce_status_options', array( 'uninstall_data' => 1 ) );
-		include_once __DIR__ . '/../../vendor/woocommerce/uninstall.php';
-
-		\WC_Install::install();
-
-		$GLOBALS['wp_roles'] = new \WP_Roles();
-
-		echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL; // phpcs:ignore
+	if ( ! class_exists( '\WC_Install' ) ) {
+		return;
 	}
-}
 
+	define( 'WP_UNINSTALL_PLUGIN', true );
+
+	update_option( 'woocommerce_status_options', array( 'uninstall_data' => 1 ) );
+	include_once __DIR__ . '/../../vendor/woocommerce/uninstall.php';
+
+	\WC_Install::install();
+
+	$GLOBALS['wp_roles'] = new \WP_Roles();
+
+	echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL; // phpcs:ignore
+}
 tests_add_filter( 'setup_theme', __NAMESPACE__ . '\setup_wc' );
+
+/**
+ * Set WooCommerce as an active plugin
+ *
+ * @since 5.0.0
+ * @param array $active_plugins Active plugins
+ * @return array
+ */
+function add_woocommerce_to_active_plugins( $active_plugins ) {
+	$active_plugins   = (array) $active_plugins;
+	$active_plugins[] = 'woocommerce/woocommerce.php';
+	return $active_plugins;
+}
+tests_add_filter( 'option_active_plugins', __NAMESPACE__ . '\add_woocommerce_to_active_plugins' );
 
 /**
  * Completely skip looking up translations
@@ -127,6 +142,7 @@ require_once __DIR__ . '/includes/classes/factory/CommentFactory.php';
 require_once __DIR__ . '/includes/classes/factory/ProductFactory.php';
 require_once __DIR__ . '/includes/classes/BaseTestCase.php';
 require_once __DIR__ . '/includes/classes/FeatureTest.php';
+require_once __DIR__ . '/includes/classes/mock/Global/Feature.php';
 require_once __DIR__ . '/includes/classes/mock/class-wp-cli-command.php';
 require_once __DIR__ . '/includes/classes/mock/class-wp-cli.php';
 require_once __DIR__ . '/includes/wp-cli-utils.php';

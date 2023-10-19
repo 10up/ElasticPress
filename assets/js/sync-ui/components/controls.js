@@ -20,12 +20,12 @@ export default () => {
 	const {
 		isPaused,
 		isSyncing,
-		lastSyncDateTime,
 		logMessage,
 		pauseSync,
 		resumeSync,
 		startSync,
 		stopSync,
+		syncHistory,
 	} = useSync();
 
 	const { args } = useSyncSettings();
@@ -68,7 +68,7 @@ export default () => {
 	const onSync = async () => {
 		const { put_mapping } = args;
 
-		const putMapping = lastSyncDateTime ? put_mapping : true;
+		const putMapping = syncHistory.length ? put_mapping : true;
 		const syncArgs = { ...args, put_mapping: putMapping };
 
 		startSync(syncArgs);

@@ -3,7 +3,7 @@
  * Plugin Name:       ElasticPress
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
- * Version:           4.7.1
+ * Version:           4.7.2
  * Requires at least: 5.6
  * Requires PHP:      7.0
  * Author:            10up
@@ -23,7 +23,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI as WP_CLI;
+use \WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '4.7.1' );
+define( 'EP_VERSION', '4.7.2' );
 
 define( 'EP_PHP_VERSION_MIN', '7.0' );
 
@@ -192,24 +192,6 @@ function register_indexable_posts() {
 	Features::factory()->register_feature(
 		new Feature\Comments\Comments()
 	);
-
-	/**
-	 * Filter whether the Users feature should be registered or not.
-	 *
-	 * The Users feature is going to be migrated to ElasticPress Labs. If EP Labs is enabled
-	 * and in a more recent version, it will change this to false and load its own version
-	 * of the Users feature.
-	 *
-	 * @hook ep_user_register_feature
-	 * @since 4.5.0
-	 * @param {bool} $version Version
-	 * @return {bool} New version
-	 */
-	if ( apply_filters( 'ep_user_register_feature', true ) ) {
-		Features::factory()->register_feature(
-			new Feature\Users\Users()
-		);
-	}
 
 	Features::factory()->register_feature(
 		new Feature\Terms\Terms()

@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Indexable\Term;
 
+use \WP_Term_Query;
 use ElasticPress\Indexables;
-use \WP_Term_Query as WP_Term_Query;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {

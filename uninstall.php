@@ -53,7 +53,6 @@ class EP_Uninstaller {
 		'ep_hide_auto_activate_sync_notice',
 		'ep_hide_using_autosuggest_defaults_notice',
 		'ep_hide_yellow_health_notice',
-		'ep_hide_users_migration_notice',
 	];
 
 	/**

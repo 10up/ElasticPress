@@ -7,11 +7,11 @@
 
 namespace ElasticPress\Feature\Documents;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 /**
  * Documents feature class.

@@ -8,11 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\SyncManager as SyncManagerAbstract;
-use ElasticPress\Utils;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -23,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 
 	/**
 	 * Indexable slug
@@ -54,9 +53,9 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
-		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999, 3 );
+		add_action( 'wp_insert_post', array( $this, 'action_sync_on_update' ), 999 );
+		add_action( 'add_attachment', array( $this, 'action_sync_on_update' ), 999 );
+		add_action( 'edit_attachment', array( $this, 'action_sync_on_update' ), 999 );
 		add_action( 'wp_media_attach_action', array( $this, 'action_sync_on_media_attach' ), 999, 2 );
 		add_action( 'delete_post', array( $this, 'action_delete_post' ) );
 		add_action( 'updated_post_meta', array( $this, 'action_queue_meta_sync' ), 10, 4 );
@@ -304,9 +303,7 @@ class SyncManager extends SyncManagerAbstract {
 		 * Make sure to remove this post from the sync queue in case an shutdown happens
 		 * before a redirect when a redirect has already been triggered.
 		 */
-		if ( isset( $this->sync_queue[ $post_id ] ) ) {
-			unset( $this->sync_queue[ $post_id ] );
-		}
+		$this->remove_from_queue( $post_id );
 	}
 
 	/**
@@ -839,7 +836,7 @@ class SyncManager extends SyncManagerAbstract {
 		}
 
 		// If we have more items to update than the number set as Content Items per Index Cycle, skip it to avoid a timeout.
-		$single_ids_queued   = array_unique( array_keys( $this->sync_queue ) );
+		$single_ids_queued   = array_unique( array_keys( $this->get_sync_queue() ) );
 		$has_too_many_queued = count( $single_ids_queued ) > IndexHelper::factory()->get_index_default_per_page();
 
 		return ! $has_too_many_queued;

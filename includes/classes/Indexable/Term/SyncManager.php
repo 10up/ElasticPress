@@ -8,9 +8,8 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManagerAbstract;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexables;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -19,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Sync manager class
  */
-class SyncManager extends SyncManagerAbstract {
+class SyncManager extends \ElasticPress\SyncManager {
 	/**
 	 * Indexable slug
 	 *
@@ -99,7 +98,7 @@ class SyncManager extends SyncManagerAbstract {
 
 		do_action( 'ep_sync_term_on_transition', $term_id );
 
-		$this->sync_queue[ $term_id ] = true;
+		$this->add_to_queue( $term_id );
 
 		// Find all terms in the hierarchy so we resync those as well
 		$term      = get_term( $term_id );
@@ -118,7 +117,7 @@ class SyncManager extends SyncManagerAbstract {
 
 			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
 
-			$this->sync_queue[ $hierarchy_term_id ] = true;
+			$this->add_to_queue( $hierarchy_term_id );
 		}
 	}
 
@@ -157,7 +156,7 @@ class SyncManager extends SyncManagerAbstract {
 
 			do_action( 'ep_sync_term_on_transition', $term->term_id );
 
-			$this->sync_queue[ $term->term_id ] = true;
+			$this->add_to_queue( $term->term_id );
 
 			// Find all terms in the hierarchy so we resync those as well
 			$children  = get_term_children( $term->term_id, $term->taxonomy );
@@ -175,7 +174,7 @@ class SyncManager extends SyncManagerAbstract {
 
 				do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
 
-				$this->sync_queue[ $hierarchy_term_id ] = true;
+				$this->add_to_queue( $hierarchy_term_id );
 			}
 		}
 	}
@@ -192,7 +191,7 @@ class SyncManager extends SyncManagerAbstract {
 			return;
 		}
 
-		$this->sync_queue[ $term_id ] = true;
+		$this->add_to_queue( $term_id );
 	}
 
 	/**
@@ -242,7 +241,7 @@ class SyncManager extends SyncManagerAbstract {
 
 			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
 
-			$this->sync_queue[ $hierarchy_term_id ] = true;
+			$this->add_to_queue( $hierarchy_term_id );
 		}
 	}
 

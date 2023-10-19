@@ -10,8 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Utils as Utils;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -547,11 +547,11 @@ abstract class Feature {
 		$req_status = $this->requirements_status();
 
 		$active = [
-			'default'       => 0 === $req_status->code,
+			'default'       => false,
 			'key'           => 'active',
 			'label'         => __( 'Enabled', 'elasticpress' ),
 			'requires_sync' => $this->requires_install_reindex,
-			'type'          => 'checkbox',
+			'type'          => 'toggle',
 		];
 
 		$settings_schema = [
