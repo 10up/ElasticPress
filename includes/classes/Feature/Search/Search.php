@@ -942,10 +942,9 @@ class Search extends Feature {
 			);
 
 			$this->settings_schema[] = [
-				'default' => $text,
-				'key'     => 'additional_links',
-				'label'   => '',
-				'type'    => 'markup',
+				'key'   => 'additional_links',
+				'label' => $text,
+				'type'  => 'markup',
 			];
 		}
 	}
