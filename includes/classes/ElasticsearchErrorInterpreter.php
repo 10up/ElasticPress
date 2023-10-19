@@ -73,7 +73,7 @@ class ElasticsearchErrorInterpreter {
 			];
 		}
 
-		if ( preg_match( '/Limit of total fields \[(.*?)\] in index \[(.*?)\] has been exceeded/', $error, $matches ) ) {
+		if ( preg_match( '/Limit of total fields \[(.*?)\]( in index \[(.*?)\])? has been exceeded/', $error, $matches ) ) {
 			return [
 				'error'    => 'Limit of total fields [???] in index [???] has been exceeded',
 				'solution' => sprintf(
