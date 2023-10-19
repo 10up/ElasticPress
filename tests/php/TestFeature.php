@@ -49,14 +49,14 @@ class TestFeature extends BaseTestCase {
 				[
 					'default'       => false,
 					'key'           => 'active',
-					'label'         => __( 'Enabled', 'elasticpress' ),
+					'label'         => __( 'Enable', 'elasticpress' ),
 					'requires_sync' => false,
 					'type'          => 'toggle',
 				],
 			],
 		];
 
-		$this->assertSame( wp_json_encode( $expected ), $stub->get_json() );
+		$this->assertSame( $expected, $stub->get_json() );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class TestFeature extends BaseTestCase {
 				[
 					'default'       => false,
 					'key'           => 'active',
-					'label'         => __( 'Enabled', 'elasticpress' ),
+					'label'         => __( 'Enable', 'elasticpress' ),
 					'requires_sync' => false,
 					'type'          => 'toggle',
 				],
@@ -115,7 +115,7 @@ class TestFeature extends BaseTestCase {
 				[
 					'default'       => false,
 					'key'           => 'active',
-					'label'         => __( 'Enabled', 'elasticpress' ),
+					'label'         => __( 'Enable', 'elasticpress' ),
 					'requires_sync' => false,
 					'type'          => 'toggle',
 				],
