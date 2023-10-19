@@ -12,8 +12,8 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment_moderation').check();
 		cy.get('#comment_previously_approved').check();
 		cy.get('#submit').click();
-		cy.maybeEnableFeature('comments');
 		cy.activatePlugin('show-comments-and-terms', 'wpCli');
+		cy.maybeEnableFeature('comments');
 	});
 
 	/**
@@ -262,10 +262,16 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') }).as(
 			'syncMessages',
 		);
-		cy.get('@syncMessages').should('contain.text', 'Mapping sent');
-		cy.get('@syncMessages').should('contain.text', 'Sync complete');
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Mapping sent',
+		);
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
 		// check that the number of approved comments is the same as the default.
-		cy.get('@syncMessages').should(
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
 			'contain.text',
 			`Number of comments indexed: ${defaultApprovedComments}`,
 		);
@@ -292,29 +298,39 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.visit('/');
 		cy.contains('#main .entry-title a', 'Test Comment').first().click();
 		cy.get('#comment').type('This is a anonymous comment');
-		cy.get('#submit').click();
-
-		// start sync and test results.
-		cy.wpCli('wp elasticpress index')
-			.its('stdout')
-			.should('contain', `Number of comments indexed: ${defaultApprovedComments}`);
+		cy.get('#submit')
+			.click()
+			.then(() => {
+				cy.wpCli('wp elasticpress sync')
+					.its('stdout')
+					.should('contain', `Number of comments indexed: ${defaultApprovedComments}`);
+			});
 
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
-		cy.get('.approve a').first().click({ force: true });
-
-		// Check the number of comments.
-		cy.wpCli('wp elasticpress stats')
-			.its('stdout')
-			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.get('.approve a')
+			.first()
+			.click({ force: true })
+			.then(() => {
+				cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+				cy.wpCli('wp elasticpress stats')
+					.its('stdout')
+					.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
+			});
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
-		cy.get('.column-comment .trash a').first().click({ force: true });
-
-		cy.wpCli('wp elasticpress stats')
-			.its('stdout')
-			.should('contain', `Documents:  ${defaultApprovedComments}`);
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
+		cy.get('.column-comment .trash a')
+			.first()
+			.click({ force: true })
+			.then(() => {
+				cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
+				cy.wpCli('wp elasticpress stats')
+					.its('stdout')
+					.should('contain', `Documents:  ${defaultApprovedComments}`);
+			});
 	});
 
 	it('Can sync woocommerce reviews', () => {
@@ -380,15 +396,9 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment').type('This is a anonymous comment');
 		cy.get('#submit').click();
 
-		cy.wpCliEval(
-			`
-			$comments_index = \\ElasticPress\\Indexables::factory()->get( "comment" )->get_index_name();
-			WP_CLI::runcommand("elasticpress request {$comments_index}/_refresh --method=POST");`,
-		).then(() => {
-			cy.wpCli('wp elasticpress stats')
-				.its('stdout')
-				.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
-		});
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
