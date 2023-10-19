@@ -426,7 +426,7 @@ class Search extends Feature {
 	public function is_decaying_enabled( $args = [] ) {
 		$settings = $this->get_settings();
 
-		$is_decaying_enabled = '1' === $settings['decaying_enabled'];
+		$is_decaying_enabled = $settings['decaying_enabled'] && '0' !== $settings['decaying_enabled'];
 
 		/**
 		 * Filter to modify decaying
