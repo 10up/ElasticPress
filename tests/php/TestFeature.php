@@ -47,11 +47,12 @@ class TestFeature extends BaseTestCase {
 			'reqStatusMessages' => 'Testing',
 			'settingsSchema'    => [
 				[
-					'default'       => false,
-					'key'           => 'active',
-					'label'         => __( 'Enable', 'elasticpress' ),
-					'requires_sync' => false,
-					'type'          => 'toggle',
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
 				],
 			],
 		];
@@ -79,11 +80,12 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => false,
-					'key'           => 'active',
-					'label'         => __( 'Enable', 'elasticpress' ),
-					'requires_sync' => false,
-					'type'          => 'toggle',
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
 				],
 				[ 'key' => 'test_1' ],
 				[ 'key' => 'test_2' ],
@@ -113,11 +115,12 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => false,
-					'key'           => 'active',
-					'label'         => __( 'Enable', 'elasticpress' ),
-					'requires_sync' => false,
-					'type'          => 'toggle',
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
 				],
 				[ 'key' => 'new_field' ],
 			],
