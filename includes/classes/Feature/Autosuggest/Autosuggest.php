@@ -873,7 +873,8 @@ class Autosuggest extends Feature {
 		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
 
 		$this->settings_schema[] = [
-			'default' => sprintf(
+			'key'   => 'epio',
+			'label' => sprintf(
 				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
 				__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
 				'<a href="' . esc_url( $epio_link ) . '">',
@@ -883,9 +884,7 @@ class Autosuggest extends Feature {
 				'<a href="' . esc_url( $status_report_link ) . '">',
 				'</a>'
 			),
-			'key'     => 'epio',
-			'label'   => __( 'Connection', 'elasticpress' ),
-			'type'    => 'markup',
+			'type'  => 'markup',
 		];
 	}
 
@@ -919,7 +918,7 @@ class Autosuggest extends Feature {
 		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
 
 		$this->settings_schema[] = [
-			'readonly' => $set_in_wp_config,
+			'disabled' => $set_in_wp_config,
 			'help'     => $set_in_wp_config ? __( 'This address will be exposed to the public.', 'elasticpress' ) : '',
 			'key'      => 'endpoint_url',
 			'label'    => __( 'Endpoint URL', 'elasticpress' ),

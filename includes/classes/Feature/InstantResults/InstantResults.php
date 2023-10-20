@@ -83,7 +83,7 @@ class InstantResults extends Feature {
 
 		$this->default_settings = [
 			'highlight_tag'   => 'mark',
-			'facets'          => 'post_type,category,post_tag',
+			'facets'          => 'post_type,tax-category,tax-post_tag',
 			'match_type'      => 'all',
 			'term_count'      => '1',
 			'per_page'        => get_option( 'posts_per_page', 6 ),
@@ -954,6 +954,7 @@ class InstantResults extends Feature {
 		foreach ( $available_facets as $key => $facet ) {
 			$facets[ $key ] = array(
 				'label' => $facet['labels']['admin'],
+				'value' => $key,
 			);
 		}
 
@@ -1059,6 +1060,8 @@ class InstantResults extends Feature {
 	 * @since 5.0.0
 	 */
 	protected function set_settings_schema() {
+		$facets = $this->get_facets_for_admin();
+
 		$this->settings_schema = [
 			[
 				'default' => 'mark',
@@ -1094,23 +1097,10 @@ class InstantResults extends Feature {
 				'type'    => 'select',
 			],
 			[
-				'default' => 'post_type,category,post_tag',
+				'default' => 'post_type,tax-category,tax-post_tag',
 				'key'     => 'facets',
 				'label'   => __( 'Filters', 'elasticpress' ),
-				'options' => [
-					[
-						'label' => 'post_type',
-						'value' => 'post_type',
-					],
-					[
-						'label' => 'category',
-						'value' => 'category',
-					],
-					[
-						'label' => 'post_tag',
-						'value' => 'post_tag',
-					],
-				],
+				'options' => array_values( $facets ),
 				'type'    => 'multiple',
 			],
 			[
@@ -1153,7 +1143,7 @@ class InstantResults extends Feature {
 				'type'    => 'hidden',
 			],
 			[
-				'default'          => '',
+				'default'          => '0',
 				'key'              => 'search_behavior',
 				'label'            => __( 'Search behavior when no result is found', 'elasticpress' ),
 				'options'          => [

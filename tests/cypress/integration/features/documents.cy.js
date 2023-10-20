@@ -33,7 +33,7 @@ describe('Documents Feature', () => {
 	before(() => {
 		cy.wpCli('elasticpress sync --setup --yes');
 		cy.exec(
-			'npm run env run tests-wordpress "chown -R www-data:www-data /var/www/html/wp-content/uploads"',
+			'npm run env run tests-wordpress -- sudo chmod -R 777 /var/www/html/wp-content/uploads',
 		);
 	});
 

@@ -59,12 +59,16 @@ describe('Autosuggest Feature', () => {
 		cy.visit('/');
 
 		cy.get('.wp-block-search__input').type('blog');
-		cy.get('.ep-autosuggest li a')
-			.first()
-			.click()
-			.then(($link) => {
-				cy.url().should('eq', $link.prop('href'));
+		cy.get('.ep-autosuggest li a').first().as('firstLink');
+		cy.get('@firstLink')
+			.invoke('attr', 'href')
+			.then((href) => {
+				cy.wrap(href).as('linkHref');
 			});
+		cy.get('@firstLink').click();
+		cy.get('@linkHref').then((linkHref) => {
+			cy.url().should('eq', linkHref);
+		});
 	});
 
 	it('Can see post in autosuggest list when headers are modified', () => {
@@ -95,11 +99,7 @@ describe('Autosuggest Feature', () => {
 		cy.visit('/');
 		cy.get('.wp-block-search__input').type('blog');
 
-		cy.get('.ep-autosuggest li a')
-			.first()
-			.click()
-			.then(() => {
-				cy.url().should('include', 'cypress=foobar');
-			});
+		cy.get('.ep-autosuggest li a').first().click();
+		cy.url().should('include', 'cypress=foobar');
 	});
 });

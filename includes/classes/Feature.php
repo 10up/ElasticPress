@@ -547,11 +547,11 @@ abstract class Feature {
 		$req_status = $this->requirements_status();
 
 		$active = [
-			'default'       => 0 === $req_status->code,
+			'default'       => false,
 			'key'           => 'active',
 			'label'         => __( 'Enabled', 'elasticpress' ),
 			'requires_sync' => $this->requires_install_reindex,
-			'type'          => 'checkbox',
+			'type'          => 'toggle',
 		];
 
 		$settings_schema = [

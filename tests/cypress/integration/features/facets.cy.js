@@ -5,15 +5,20 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	 * before running tests.
 	 */
 	before(() => {
-		cy.maybeEnableFeature('facets');
-		cy.wpCli('elasticpress sync --setup --yes');
-		cy.wpCli('post list --s="A new" --ep_integrate=false --format=ids').then(
-			(wpCliResponse) => {
-				if (wpCliResponse.stdout) {
-					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
-				}
-			},
-		);
+		cy.wpCliEval(`
+			\\ElasticPress\\Features::factory()->activate_feature('facets' );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
+			$posts = new \\WP_Query(
+				[
+					's'            => 'A new',
+					'ep_integrate' => false,
+					'fields'       => 'ids',
+				]
+			);
+			foreach ( $posts->posts as $post ) {
+				wp_delete_post( $post, true );
+			}
+		`);
 	});
 
 	/**
@@ -52,19 +57,17 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@firstBlock').click();
 		cy.openBlockSettingsSidebar();
+		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
 		cy.get('.block-editor-block-inspector select').first().select('category');
+		cy.wait('@blockPreview');
 
 		/**
 		 * Set the last block to use Tags and sort by name in ascending order.
 		 */
 		cy.get('@secondBlock').click();
 		cy.get('.block-editor-block-inspector select').first().select('post_tag');
+		cy.wait('@blockPreview');
 		cy.get('.block-editor-block-inspector select').last().select('name/asc');
-
-		/**
-		 * Make sure it waits for the correct request.
-		 */
-		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
 		cy.wait('@blockPreview');
 
 		/**
@@ -279,12 +282,22 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	it('Does not change post types being displayed', () => {
 		cy.wpCliEval(
 			`
-			WP_CLI::runcommand( 'plugin activate cpt-and-custom-tax' );
-			WP_CLI::runcommand( 'post create --post_title="A new page" --post_type="page" --post_status="publish"' );
-			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
-			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
+			activate_plugin( 'cpt-and-custom-tax.php' );
+			wp_insert_post(
+				[
+					'post_title'  => 'A new page',
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+				]
+			);
+			wp_insert_post(
+				[
+					'post_title'  => 'A new post',
+					'post_type'   => 'post',
+					'post_status' => 'publish',
+				]
+			);
 
-			// tax_input does not seem to work properly in WP-CLI.
 			$movie_id = wp_insert_post(
 				[
 					'post_title'  => 'A new movie',
@@ -292,38 +305,34 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 					'post_status' => 'publish',
 				]
 			);
-			if ( $movie_id ) {
-				wp_set_object_terms( $movie_id, 'action', 'genre' );
-				WP_CLI::runcommand( 'elasticpress sync --include=' . $movie_id );
-				WP_CLI::runcommand( 'rewrite flush' );
-			}
+			wp_set_object_terms( $movie_id, 'action', 'genre' );
 			`,
-		);
+		).then(() => {
+			/**
+			 * Give Elasticsearch some time to process the post.
+			 *
+			 */
+			// eslint-disable-next-line cypress/no-unnecessary-waiting
+			cy.wait(2000);
 
-		/**
-		 * Give Elasticsearch some time to process the post.
-		 *
-		 */
-		// eslint-disable-next-line cypress/no-unnecessary-waiting
-		cy.wait(2000);
+			// Blog page
+			cy.visit('/');
+			cy.contains('.site-content article h2', 'A new page').should('not.exist');
+			cy.contains('.site-content article h2', 'A new post').should('exist');
+			cy.contains('.site-content article h2', 'A new movie').should('not.exist');
 
-		// Blog page
-		cy.visit('/');
-		cy.contains('.site-content article h2', 'A new page').should('not.exist');
-		cy.contains('.site-content article h2', 'A new post').should('exist');
-		cy.contains('.site-content article h2', 'A new movie').should('not.exist');
+			// Specific taxonomy archive
+			cy.visit('/blog/genre/action/');
+			cy.contains('.site-content article h2', 'A new page').should('not.exist');
+			cy.contains('.site-content article h2', 'A new post').should('not.exist');
+			cy.contains('.site-content article h2', 'A new movie').should('exist');
 
-		// Specific taxonomy archive
-		cy.visit('/blog/genre/action/');
-		cy.contains('.site-content article h2', 'A new page').should('not.exist');
-		cy.contains('.site-content article h2', 'A new post').should('not.exist');
-		cy.contains('.site-content article h2', 'A new movie').should('exist');
-
-		// Search
-		cy.visit('/?s=new');
-		cy.contains('.site-content article h2', 'A new page').should('exist');
-		cy.contains('.site-content article h2', 'A new post').should('exist');
-		cy.contains('.site-content article h2', 'A new movie').should('exist');
+			// Search
+			cy.visit('/?s=new');
+			cy.contains('.site-content article h2', 'A new page').should('exist');
+			cy.contains('.site-content article h2', 'A new post').should('exist');
+			cy.contains('.site-content article h2', 'A new movie').should('exist');
+		});
 	});
 
 	describe('Filter by Metadata block', () => {
@@ -415,6 +424,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				true,
 			);
 			cy.get('.block-editor-block-inspector select').first().select('meta_field_2');
+			cy.wait('@blockPreview');
 			cy.get('.block-editor-block-inspector select').last().select('name/asc');
 			cy.wait('@blockPreview');
 
@@ -601,7 +611,6 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
 			cy.intercept('/wp-json/elasticpress/v1/meta-keys*').as('keysApiRequest');
 			cy.intercept('/wp-json/elasticpress/v1/meta-range*').as('previewApiRequest');
-			cy.intercept('/wp-json/wp/v2/sidebars*').as('sidebarsRest');
 
 			/**
 			 * Insert a Filter by Metadata Range block.
@@ -674,6 +683,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * Save widgets and visit the front page.
 			 */
+			cy.intercept('/wp-json/wp/v2/sidebars*').as('sidebarsRest');
 			cy.get('.edit-widgets-header__actions button').contains('Update').click();
 			cy.wait('@sidebarsRest');
 			cy.visit('/');
