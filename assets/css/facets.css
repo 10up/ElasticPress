@@ -154,6 +154,7 @@
 
 .ep-radio {
 	appearance: none;
+	height: 1rem;
 	outline: transparent;
 	position: relative;
 	width: 1rem;
@@ -163,13 +164,11 @@
 		border: 1px solid #eee;
 		border-radius: 50%;
 		content: "";
-		display: inline-block;
 		height: 0.8rem;
 		left: 50%;
 		position: absolute;
 		top: 50%;
 		transform: translate(-50%, -50%);
-		vertical-align: middle;
 		width: 0.8rem;
 	}
 
@@ -178,10 +177,10 @@
 		content: "";
 		display: block;
 		height: 0.3rem;
-		left: 50%;
+		left: 50% !important;
 		position: absolute;
-		top: 50%;
-		transform: translate(-50%, -50%);
+		top: 50% !important;
+		transform: translate(-50%, -50%) !important;
 		width: 0.3rem;
 	}
 
