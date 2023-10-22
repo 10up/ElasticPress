@@ -2242,7 +2242,7 @@ class Post extends Indexable {
 
 				return [
 					$terms_map_name => [
-						'post_status' => $post_status,
+						'post_status' => is_array( $post_status ) ? array_values( $post_status ) : $post_status,
 					],
 				];
 			}

@@ -20,12 +20,15 @@ on:
 
 jobs:
   cypress_local:
-    name: Cypress - Local
+    name: Local - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: '6.0', wcVersion: '6.4.0'}
 
     steps:
     - name: Checkout
@@ -72,7 +75,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup
+      run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
 
     - name: Test
       run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
@@ -81,7 +84,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: cypress-artifact
+        name: cypress-artifact-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
@@ -102,12 +105,15 @@ jobs:
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"
 
   cypress_epio:
-    name: Cypress - EP.io
+    name: EP.io - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: '6.0', wcVersion: '6.4.0'}
 
     steps:
     - name: Checkout
@@ -156,7 +162,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }}
+      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
 
     - name: Test
       run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
@@ -165,7 +171,7 @@ jobs:
       uses: actions/upload-artifact@v3
       if: failure()
       with:
-        name: cypress-artifact-epio
+        name: cypress-artifact-epio-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/

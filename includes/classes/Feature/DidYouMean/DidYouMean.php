@@ -32,7 +32,7 @@ class DidYouMean extends Feature {
 		$this->available_during_installation = true;
 
 		$this->default_settings = [
-			'search_behavior' => false,
+			'search_behavior' => '0',
 		];
 
 		$this->set_settings_schema();
@@ -426,7 +426,7 @@ class DidYouMean extends Feature {
 	protected function set_settings_schema() {
 		$this->settings_schema = [
 			[
-				'default' => false,
+				'default' => '0',
 				'key'     => 'search_behavior',
 				'label'   => __( 'Search behavior when no result is found', 'elasticpress' ),
 				'options' => [

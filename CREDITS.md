@@ -217,6 +217,9 @@ Thank you to all the people who have already contributed to this repository via 
 [xxx (@wildberrylillet)](https://github.com/wildberrylillet)
 [@tomi10up](https://github.com/tomi10up)
 [Junaid Bhura (@junaidbhura)](https://github.com/junaidbhura)
+[Renato Alves (@renatonascalves)](https://github.com/renatonascalves)
+[Ben Marshall (@bmarshall511)](https://github.com/bmarshall511)
+[@dgnorrod](https://github.com/dgnorrod)
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

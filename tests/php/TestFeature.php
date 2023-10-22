@@ -51,7 +51,7 @@ class TestFeature extends BaseTestCase {
 					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
-					'type'          => 'checkbox',
+					'type'          => 'toggle',
 				],
 			],
 		];
@@ -79,11 +79,11 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => true,
+					'default'       => false,
 					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
-					'type'          => 'checkbox',
+					'type'          => 'toggle',
 				],
 				[ 'key' => 'test_1' ],
 				[ 'key' => 'test_2' ],
@@ -113,11 +113,11 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => true,
+					'default'       => false,
 					'key'           => 'active',
 					'label'         => __( 'Enabled', 'elasticpress' ),
 					'requires_sync' => false,
-					'type'          => 'checkbox',
+					'type'          => 'toggle',
 				],
 				[ 'key' => 'new_field' ],
 			],
