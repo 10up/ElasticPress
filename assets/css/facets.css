@@ -148,53 +148,29 @@
 }
 
 .ep-facet-date-option {
-	align-items: center;
-	display: flex;
-}
 
-.ep-radio {
-	appearance: none;
-	height: 1rem;
-	outline: transparent;
-	position: relative;
-	width: 1rem;
+	& label {
+		align-items: center;
+		display: flex;
 
-	&::before {
-		background: transparent;
-		border: 1px solid #eee;
-		border-radius: 50%;
-		content: "";
-		height: 0.8rem;
-		left: 50%;
-		position: absolute;
-		top: 50%;
-		transform: translate(-50%, -50%);
-		width: 0.8rem;
-	}
+		& .ep-radio {
+			appearance: none;
+			border: 1px solid #eee;
+			border-radius: 50%;
+			height: 1em;
+			margin-right: 0.25em;
+			outline: transparent;
+			position: relative;
+			width: 1em;
 
-	&::after {
-		border-radius: 50%;
-		content: "";
-		display: block;
-		height: 0.3rem;
-		left: 50% !important;
-		position: absolute;
-		top: 50% !important;
-		transform: translate(-50%, -50%) !important;
-		width: 0.3rem;
-	}
+			&:checked {
+				background-color: transparent;
+				border: 5px solid #5e5e5e;
 
-	&:checked {
-		background: transparent;
-		outline-color: transparent;
-
-		&::before {
-			background: #5e5e5e;
-			border-color: inherit;
-		}
-
-		&::after {
-			background: #eee;
+				&::after {
+					opacity: 0;
+				}
+			}
 		}
 	}
 }

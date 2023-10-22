@@ -27,15 +27,6 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	protected $display_custom_date;
 
 	/**
-	 * The number of instances of the class.
-	 *
-	 * This is used to generate unique IDs for the HTML elements.
-	 *
-	 * @var int
-	 */
-	public static $instance_count = 1;
-
-	/**
 	 * Output the widget or block HTML.
 	 *
 	 * @param array $args     Widget args
@@ -98,7 +89,6 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		// Enqueue Script & Styles
 		wp_enqueue_script( 'elasticpress-facets' );
 		wp_enqueue_style( 'elasticpress-facets' );
-		self::$instance_count++;
 	}
 
 	/**
@@ -111,14 +101,12 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 */
 	public function get_facet_item_value_html( $item, string $url ): string {
 		$checked = $item['is_selected'] ? 'checked' : '';
-		$id      = sprintf( 'option-%s-%s', esc_attr( $item['value'] ), self::$instance_count );
 
 		$html = sprintf(
-			'<div class="ep-facet-date-option"><input type="radio" value="%1$s" class="ep-radio" name="%2$s" %3$s id="%4$s" autocomplete="off"><label class="ep-radio-label" for="%4$s">%5$s</label></div>',
+			'<div class="ep-facet-date-option"><label><input type="radio" value="%1$s" class="ep-radio" name="%2$s" %3$s>%4$s</label></div>',
 			esc_attr( $item['value'] ),
 			esc_attr( $this->get_filter_name() ),
 			esc_attr( $checked ),
-			$id,
 			wp_kses_post( $item['label'] ),
 		);
 
@@ -185,9 +173,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 */
 	public function get_facet_custom_date_item( $is_custom_date, $applied_dates ) {
 		$radio_button = sprintf(
-			'<div class="ep-facet-date-option"><input class="ep-radio ep-date-range-custom-radio" type="radio" name="%1$s" value="custom" id="%2$s" class="ep-date-range-custom-radio" %3$s /><label for="%2$s">%4$s</label></div>',
+			'<div class="ep-facet-date-option"><label><input class="ep-radio ep-date-range-custom-radio" type="radio" name="%1$s" value="custom" class="ep-date-range-custom-radio" %2$s />%3$s</label></div>',
 			esc_attr( $this->get_filter_name() ),
-			sprintf( 'custom-%s-%s', esc_attr( $this->get_filter_name() ), esc_attr( self::$instance_count ) ),
 			$is_custom_date ? 'checked' : '',
 			esc_html__( 'Custom', 'elasticpress' )
 		);
