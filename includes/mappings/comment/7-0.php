@@ -64,9 +64,19 @@ return [
 			'analyzer'   => [
 				'default'          => [
 					'tokenizer' => 'standard',
-					'filter'    => [ 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ],
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'    => apply_filters( 'ep_default_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+				],
+				'default_search'   => [
+					'tokenizer'   => 'standard',
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', [ 'html_strip' ] ),
+					/* This filter is documented above */
+					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'shingle_analyzer' => [
 					'type'      => 'custom',
@@ -80,27 +90,23 @@ return [
 				],
 			],
 			'filter'     => [
-				'shingle_filter'     => [
+				'shingle_filter' => [
 					'type'             => 'shingle',
 					'min_shingle_size' => 2,
 					'max_shingle_size' => 5,
 				],
-				'ewp_word_delimiter' => [
-					'type'              => 'word_delimiter_graph',
-					'preserve_original' => true,
-				],
-				'ewp_snowball'       => [
+				'ewp_snowball'   => [
 					'type'     => 'snowball',
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				],
-				'edge_ngram'         => [
+				'edge_ngram'     => [
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
 					'type'     => 'edge_ngram',
 				],
-				'ep_stop'            => [
+				'ep_stop'        => [
 					'type'        => 'stop',
 					'ignore_case' => true,
 					/* This filter is documented in includes/mappings/post/7-0.php */

@@ -151,7 +151,8 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		// make sure the child term parent field is set to none.
-		cy.get('#tag-search-input').clear().type(`${childTerm}{enter}`);
+		cy.get('#tag-search-input').clear();
+		cy.get('#tag-search-input').type(`${childTerm}{enter}`);
 		cy.get('.wp-list-table tbody tr .column-primary a').first().click();
 		cy.get('#parent').should('have.value', '-1');
 
