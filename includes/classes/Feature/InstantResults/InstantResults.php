@@ -67,11 +67,11 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
 
-		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
+		$this->summary = __( '<p>Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.</p><p>WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.</p><p>Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#instant-results', 'elasticpress' );
 
@@ -96,7 +96,7 @@ class InstantResults extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->set_settings_schema();
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
 	}
@@ -1037,21 +1037,6 @@ class InstantResults extends Feature {
 		 * @param {array} $args_schema Results per page.
 		 */
 		return apply_filters( 'ep_instant_results_args_schema', $args_schema );
-	}
-
-	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Instant Results', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
 	}
 
 	/**

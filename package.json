@@ -59,6 +59,7 @@
       "comments-script": "./assets/js/comments.js",
       "comments-block-script": "./assets/js/blocks/comments/index.js",
       "dashboard-script": "./assets/js/dashboard.js",
+      "features-script": "./assets/js/features/index.js",
       "facets-script": "./assets/js/facets.js",
       "instant-results-script": "./assets/js/instant-results/index.js",
       "instant-results-admin-script": "./assets/js/instant-results/admin/index.js",

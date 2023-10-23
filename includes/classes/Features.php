@@ -118,7 +118,7 @@ class Features {
 		$saved_settings   = Utils\get_option( 'ep_feature_settings', [] );
 		$feature_settings = isset( $saved_settings[ $slug ] ) ? $saved_settings[ $slug ] : [ 'force_inactive' => false ];
 
-		$new_feature_settings = $feature->default_settings;
+		$new_feature_settings = wp_parse_args( $feature->default_settings, [ 'force_inactive' => false ] );
 		$new_feature_settings = wp_parse_args( $feature_settings, $new_feature_settings );
 		$new_feature_settings = wp_parse_args( $settings, $new_feature_settings );
 

@@ -127,6 +127,22 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
+	 * The slug of a feature that is required to be active.
+	 *
+	 * @since 5.0.0
+	 * @var false|string
+	 */
+	protected $requires_feature = false;
+
+	/**
+	 * Whether the feature is using ElasticPress.io.
+	 *
+	 * @since 5.0.0
+	 * @var boolean
+	 */
+	protected $is_powered_by_epio = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -140,7 +156,7 @@ abstract class Feature {
 	 */
 	public function output_feature_box_summary() {
 		if ( $this->summary ) {
-			echo '<p>' . esc_html( $this->summary ) . '</p>';
+			echo wp_kses_post( $this->summary );
 		}
 	}
 
@@ -509,7 +525,7 @@ abstract class Feature {
 		 * @since 4.5.0
 		 * @return {bool} New $is_available value
 		 */
-		return apply_filters( 'ep_feature_is_available', $this->is_visible && 2 !== $requirements_status->code, $this->slug, $this );
+		return apply_filters( 'ep_feature_is_available', $this->is_visible() && 2 !== $requirements_status->code, $this->slug, $this );
 	}
 
 	/**
@@ -530,11 +546,14 @@ abstract class Feature {
 			'defaultSettings'   => $this->default_settings,
 			'order'             => $this->order,
 			'isAvailable'       => $this->is_available(),
+			'isPoweredByEpio'   => $this->is_powered_by_epio,
+			'isVisible'         => $this->is_visible(),
 			'reqStatusCode'     => $requirements_status->code,
-			'reqStatusMessages' => $requirements_status->message,
+			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 		];
-		return wp_json_encode( $feature_desc );
+
+		return $feature_desc;
 	}
 
 	/**
@@ -544,14 +563,19 @@ abstract class Feature {
 	 * @return array
 	 */
 	public function get_settings_schema() {
+		if ( [] === $this->settings_schema && method_exists( $this, 'set_settings_schema' ) ) {
+			$this->set_settings_schema();
+		}
+
 		$req_status = $this->requirements_status();
 
 		$active = [
-			'default'       => false,
-			'key'           => 'active',
-			'label'         => __( 'Enabled', 'elasticpress' ),
-			'requires_sync' => $this->requires_install_reindex,
-			'type'          => 'toggle',
+			'default'          => false,
+			'key'              => 'active',
+			'label'            => __( 'Enable', 'elasticpress' ),
+			'requires_feature' => $this->requires_feature,
+			'requires_sync'    => $this->requires_install_reindex,
+			'type'             => 'toggle',
 		];
 
 		$settings_schema = [

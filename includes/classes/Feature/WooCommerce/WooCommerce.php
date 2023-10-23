@@ -56,7 +56,7 @@ class WooCommerce extends Feature {
 
 		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
 
-		$this->summary = __( "With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they're looking for, even if you have a large or complex product catalog.", 'elasticpress' );
+		$this->summary = __( '<p>With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they’re looking for, even if you have a large or complex product catalog.</p><p>Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#woocommerce', 'elasticpress' );
 
@@ -73,8 +73,6 @@ class WooCommerce extends Feature {
 		$this->orders             = new Orders( $this );
 		$this->products           = new Products( $this );
 		$this->orders_autosuggest = new OrdersAutosuggest();
-
-		$this->set_settings_schema();
 
 		parent::__construct();
 	}
@@ -354,12 +352,12 @@ class WooCommerce extends Feature {
 
 		$this->settings_schema = [
 			[
-				'default'  => '0',
-				'readonly' => ! $available,
-				'help'     => $message,
-				'key'      => 'orders',
-				'label'    => __( 'Orders Autosuggest', 'elasticpress' ),
-				'options'  => [
+				'default'       => '0',
+				'disabled'      => ! $available,
+				'help'          => $message,
+				'key'           => 'orders',
+				'label'         => __( 'Orders Autosuggest', 'elasticpress' ),
+				'options'       => [
 					[
 						'label' => __( 'Enabled', 'elasticpress' ),
 						'value' => '1',
@@ -369,7 +367,8 @@ class WooCommerce extends Feature {
 						'value' => '0',
 					],
 				],
-				'type'     => 'radio',
+				'requires_sync' => true,
+				'type'          => 'radio',
 			],
 		];
 	}
