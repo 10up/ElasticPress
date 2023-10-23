@@ -58,24 +58,18 @@ class Features {
 				}
 
 				$type     = $schema['type'] ?? '';
-				$property = [ 'description' => $schema['label'] ];
+				$property = [
+					'description' => $schema['label'],
+					'type'        => 'string',
+				];
 
 				switch ( $type ) {
 					case 'select':
 					case 'radio':
-						$property['enum'] = array_merge(
-							[ false ],
-							array_map( fn( $o ) => $o['value'], $schema['options'] )
-						);
-						$property['type'] = [ 'string', 'boolean' ];
+						$property['enum'] = array_map( fn( $o ) => $o['value'], $schema['options'] );
 						break;
 					case 'toggle':
 						$property['type'] = 'boolean';
-						break;
-					case 'checkbox':
-					case 'multiple':
-					default:
-						$property['type'] = 'string';
 						break;
 				}
 
