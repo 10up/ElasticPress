@@ -17,13 +17,15 @@ const initFacet = () => {
 			event.preventDefault();
 
 			const { value } = this.querySelector(`[name="${filterName}"]:checked`);
-			const { value: startDateValue } = this.querySelector(
-				'.ep-date-range-picker',
-			).querySelector(`[name="${filterName}_from"]`);
+			const { value: startDateValue } =
+				this.querySelector('.ep-date-range-picker')?.querySelector(
+					`[name="${filterName}_from"]`,
+				) || '';
 
-			const { value: endDateValue } = this.querySelector(
-				'.ep-date-range-picker',
-			).querySelector(`[name="${filterName}_to"]`);
+			const { value: endDateValue } =
+				this.querySelector('.ep-date-range-picker')?.querySelector(
+					`[name="${filterName}_to"]`,
+				) || '';
 
 			const currentURL = window.location.href;
 			const newUrl = new URL(currentURL);
@@ -44,9 +46,9 @@ const initFacet = () => {
 					.closest('.ep-facet-date-form')
 					.querySelector('.ep-date-range-picker');
 				if (element.value === 'custom') {
-					dateRangePicker.classList.remove('is-hidden');
+					dateRangePicker?.classList.remove('is-hidden');
 				} else {
-					dateRangePicker.classList.add('is-hidden');
+					dateRangePicker?.classList.add('is-hidden');
 				}
 			});
 		});
