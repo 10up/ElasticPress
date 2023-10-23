@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 4.7.1\n"
+"Project-Id-Version: ElasticPress 4.7.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-08-31T16:55:04+00:00\n"
+"POT-Creation-Date: 2023-10-10T17:34:33+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -34,6 +34,11 @@ msgstr ""
 
 #. Author URI of the plugin
 msgid "https://10up.com"
+msgstr ""
+
+#. translators: %s: Minimum required PHP version
+#: elasticpress.php:50
+msgid "ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin."
 msgstr ""
 
 #: includes/classes/AdminNotices.php:126
@@ -446,7 +451,7 @@ msgstr ""
 
 #: includes/classes/Feature.php:368
 #: includes/classes/StatusReport/ElasticPress.php:79
-#: includes/dashboard.php:689
+#: includes/dashboard.php:672
 #: includes/partials/settings-page.php:39
 #: assets/js/blocks/facets/common/edit.js:87
 #: assets/js/blocks/facets/meta-range/edit.js:89
@@ -467,9 +472,9 @@ msgstr ""
 #: includes/classes/Feature.php:374
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:110
 #: includes/classes/Feature/InstantResults/InstantResults.php:181
-#: includes/classes/Feature/Search/Search.php:614
-#: includes/classes/Feature/Search/Search.php:631
-#: includes/classes/Feature/Search/Search.php:652
+#: includes/classes/Feature/Search/Search.php:623
+#: includes/classes/Feature/Search/Search.php:640
+#: includes/classes/Feature/Search/Search.php:661
 #: includes/classes/Feature/WooCommerce/WooCommerce.php:163
 msgid "Enabled"
 msgstr ""
@@ -477,9 +482,9 @@ msgstr ""
 #: includes/classes/Feature.php:375
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:111
 #: includes/classes/Feature/InstantResults/InstantResults.php:184
-#: includes/classes/Feature/Search/Search.php:615
-#: includes/classes/Feature/Search/Search.php:632
-#: includes/classes/Feature/Search/Search.php:653
+#: includes/classes/Feature/Search/Search.php:624
+#: includes/classes/Feature/Search/Search.php:641
+#: includes/classes/Feature/Search/Search.php:662
 #: includes/classes/Feature/WooCommerce/WooCommerce.php:164
 msgid "Disabled"
 msgstr ""
@@ -493,7 +498,7 @@ msgid "Save"
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:45
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:831
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:837
 msgid "Autosuggest"
 msgstr ""
 
@@ -537,29 +542,29 @@ msgstr ""
 msgid "This address will be exposed to the public."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:600
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:598
 msgid "This is a fake request to build the ElasticPress Autosuggest query. It is not really sent."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:617
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:623
 msgid "This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:621
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:627
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:771
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:777
 msgid "Connection"
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>;
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:780
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:786
 msgid "You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s."
 msgstr ""
 
 #. translators: 1. elasticpress.io logo;
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:835
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:841
 msgid "Autosuggest By %s"
 msgstr ""
 
@@ -585,21 +590,21 @@ msgstr ""
 msgid "We could not find any results"
 msgstr ""
 
-#: includes/classes/Feature/Comments/Widget.php:31
+#: includes/classes/Feature/Comments/Widget.php:27
 msgid "A search form for comments."
 msgstr ""
 
-#: includes/classes/Feature/Comments/Widget.php:35
+#: includes/classes/Feature/Comments/Widget.php:31
 msgid "ElasticPress - Comments"
 msgstr ""
 
-#: includes/classes/Feature/Comments/Widget.php:109
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:130
-#: includes/classes/Feature/RelatedPosts/Widget.php:104
+#: includes/classes/Feature/Comments/Widget.php:105
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:129
+#: includes/classes/Feature/RelatedPosts/Widget.php:103
 msgid "Title:"
 msgstr ""
 
-#: includes/classes/Feature/Comments/Widget.php:116
+#: includes/classes/Feature/Comments/Widget.php:112
 msgid "Search for comments on:"
 msgstr ""
 
@@ -625,8 +630,8 @@ msgid "Did you mean"
 msgstr ""
 
 #: includes/classes/Feature/DidYouMean/DidYouMean.php:229
-#: includes/classes/Feature/Search/Synonyms.php:89
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:186
+#: includes/classes/Feature/Search/Synonyms.php:88
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:185
 msgid "This feature requires the \"Post Search\" feature to be enabled"
 msgstr ""
 
@@ -662,7 +667,7 @@ msgid "No results for: "
 msgstr ""
 
 #: includes/classes/Feature/Documents/Documents.php:28
-#: includes/partials/stats-page.php:60
+#: includes/partials/stats-page.php:59
 msgid "Documents"
 msgstr ""
 
@@ -751,7 +756,7 @@ msgid "Adds <a href='%s'>filter blocks</a> that administrators can add to the we
 msgstr ""
 
 #: includes/classes/Feature/Facets/Types/Meta/Block.php:171
-#: includes/classes/Feature/Facets/Types/MetaRange/Block.php:221
+#: includes/classes/Feature/Facets/Types/MetaRange/Block.php:231
 #: includes/classes/Feature/Facets/Types/PostType/Block.php:148
 #: includes/classes/Feature/Facets/Types/Taxonomy/Block.php:216
 msgid "Attribute parsing is now left to block.json."
@@ -791,54 +796,54 @@ msgstr ""
 msgid "Search %s"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:33
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:32
 msgid "Add a facet to an archive or search results page."
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:37
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:36
 msgid "ElasticPress - Filter by Taxonomy"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:101
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:106
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:100
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:105
 msgid "all"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:102
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:105
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:101
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:104
 msgid "any"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:117
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:116
 msgid "Count"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:118
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:117
 msgid "Term Name"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:122
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:121
 msgid "Descending"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:123
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:122
 msgid "Ascending"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:137
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:136
 msgid "Taxonomy:"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:149
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:148
 msgid "Order Terms By:"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:163
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:162
 msgid "Term Order:"
 msgstr ""
 
 #. translators: "all" or "any", depending on configuration values, 3: URL
-#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:176
+#: includes/classes/Feature/Facets/Types/Taxonomy/Widget.php:175
 msgid "Faceting will  filter out any content that is not tagged to all selected terms; change this to show <strong>%1$s</strong> content tagged to <strong>%2$s</strong> selected term in <a href=\"%3$s\">ElasticPress settings</a>."
 msgstr ""
 
@@ -865,7 +870,7 @@ msgid "ElasticPress.io plan"
 msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:139
-#: includes/classes/Feature/Search/Search.php:637
+#: includes/classes/Feature/Search/Search.php:646
 msgid "Highlight tag "
 msgstr ""
 
@@ -939,33 +944,33 @@ msgstr ""
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:29
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:28
 #: assets/js/blocks/related-posts/Edit.js:86
 #: dist/js/related-posts-block-script.js:1
 msgid "Related Posts"
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:31
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:30
 msgid "ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance."
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:33
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:32
 msgid "https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#related-posts"
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:349
+#: includes/classes/Feature/RelatedPosts/RelatedPosts.php:348
 msgid "Output related content using our Widget or directly in your theme using our <a href=\"https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features#related-posts\">API functions.</a>"
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/Widget.php:30
+#: includes/classes/Feature/RelatedPosts/Widget.php:29
 msgid "Show related posts using ElasticPress. This widget will only appear on single post, page, and custom type pages."
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/Widget.php:34
+#: includes/classes/Feature/RelatedPosts/Widget.php:33
 msgid "ElasticPress - Related Posts"
 msgstr ""
 
-#: includes/classes/Feature/RelatedPosts/Widget.php:112
+#: includes/classes/Feature/RelatedPosts/Widget.php:111
 msgid "Number of Posts to Show:"
 msgstr ""
 
@@ -981,172 +986,172 @@ msgstr ""
 msgid "https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#post-search"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:561
+#: includes/classes/Feature/Search/Search.php:570
 msgid "Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:612
+#: includes/classes/Feature/Search/Search.php:621
 msgid "Weight results by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:629
+#: includes/classes/Feature/Search/Search.php:638
 msgid "Highlighting status"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:650
+#: includes/classes/Feature/Search/Search.php:659
 msgid "Excerpt highlighting"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:654
+#: includes/classes/Feature/Search/Search.php:663
 msgid "By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. "
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:660
+#: includes/classes/Feature/Search/Search.php:669
 msgid "Advanced fields and weighting settings"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:661
+#: includes/classes/Feature/Search/Search.php:670
 msgid "Add synonyms to your post searches"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:751
+#: includes/classes/Feature/Search/Search.php:760
 #: assets/js/search/editor/plugins/exclude-from-search.js:23
 #: dist/js/search-editor-script.js:1
 msgid "Exclude from search results"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:754
+#: includes/classes/Feature/Search/Search.php:763
 msgid "Excludes this media from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:756
+#: includes/classes/Feature/Search/Search.php:765
 #: assets/js/search/editor/plugins/exclude-from-search.js:24
 #: dist/js/search-editor-script.js:1
 msgid "Excludes this post from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:173
+#: includes/classes/Feature/Search/Synonyms.php:172
 msgid "ElasticPress Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:174
+#: includes/classes/Feature/Search/Synonyms.php:173
 #: includes/classes/StatusReport/Features.php:91
 msgid "Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:220
+#: includes/classes/Feature/Search/Synonyms.php:219
 msgid "Successfully updated synonym filter."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:223
+#: includes/classes/Feature/Search/Synonyms.php:222
 msgid "There was an error storing your synonyms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:226
+#: includes/classes/Feature/Search/Synonyms.php:225
 msgid "There was a problem updating the index with your synonyms. If you have not indexed your data, please run an index."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:229
+#: includes/classes/Feature/Search/Synonyms.php:228
 msgid "There was an error updating the synonym list."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:246
+#: includes/classes/Feature/Search/Synonyms.php:245
 msgid "Elasticsearch Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:640
+#: includes/classes/Feature/Search/Synonyms.php:639
 msgid "# Defined sets (equivalent synonyms)."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:643
+#: includes/classes/Feature/Search/Synonyms.php:642
 msgid "# Defined alternatives (explicit mappings)."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:657
+#: includes/classes/Feature/Search/Synonyms.php:656
 msgid "Manage Synonyms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:658
+#: includes/classes/Feature/Search/Synonyms.php:657
 msgid "Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:659
+#: includes/classes/Feature/Search/Synonyms.php:658
 msgid "Switch to Advanced Text Editor"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:660
+#: includes/classes/Feature/Search/Synonyms.php:659
 msgid "Switch to Visual Editor"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:662
+#: includes/classes/Feature/Search/Synonyms.php:661
 msgid "Sets"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:663
+#: includes/classes/Feature/Search/Synonyms.php:662
 msgid "Sets are terms that will all match each other for search results. This is useful where all words are considered equivalent, such as product renaming or regional variations like sneakers, tennis shoes, trainers, and runners."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:664
+#: includes/classes/Feature/Search/Synonyms.php:663
 msgid "Comma separated list of terms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:665
+#: includes/classes/Feature/Search/Synonyms.php:664
 msgid "Add Set"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:666
+#: includes/classes/Feature/Search/Synonyms.php:665
 msgid "This set must contain at least 2 terms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:668
+#: includes/classes/Feature/Search/Synonyms.php:667
 msgid "Alternatives"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:669
+#: includes/classes/Feature/Search/Synonyms.php:668
 msgid "Alternatives are terms that will also be matched when you search for the primary term. For instance, a search for shoes can also include results for sneaker, sandals, boots, and high heels."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:670
+#: includes/classes/Feature/Search/Synonyms.php:669
 msgid "Primary term"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:671
+#: includes/classes/Feature/Search/Synonyms.php:670
 msgid "Comma separated list of alternatives"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:672
+#: includes/classes/Feature/Search/Synonyms.php:671
 msgid "Add Alternative"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:673
+#: includes/classes/Feature/Search/Synonyms.php:672
 msgid "You must enter both a primary term and at least one alternative term."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:675
+#: includes/classes/Feature/Search/Synonyms.php:674
 msgid "Advanced Synonym Editor"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:676
+#: includes/classes/Feature/Search/Synonyms.php:675
 msgid "When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site's synonyms for use on another site."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:677
+#: includes/classes/Feature/Search/Synonyms.php:676
 msgid "SolrSynonym Text"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:678
+#: includes/classes/Feature/Search/Synonyms.php:677
 msgid "Alternatives must have both a primary term and at least one alternative term."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:679
+#: includes/classes/Feature/Search/Synonyms.php:678
 msgid "Sets must contain at least 2 terms."
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:681
+#: includes/classes/Feature/Search/Synonyms.php:680
 msgid "Remove"
 msgstr ""
 
-#: includes/classes/Feature/Search/Synonyms.php:682
+#: includes/classes/Feature/Search/Synonyms.php:681
 msgid "Update Synonyms"
 msgstr ""
 
@@ -1195,194 +1200,194 @@ msgstr ""
 msgid "Weight: "
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:55
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:54
 msgid "Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:57
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:56
 msgid "Insert specific posts into search results for specific search queries."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:59
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:58
 msgid "https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:150
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:153
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:149
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:152
 msgid "Custom result updated."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:151
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:150
 msgid "Custom field updated."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:152
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:151
 msgid "Custom field deleted."
 msgstr ""
 
 #. translators: %s: date and time of the revision
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:155
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:154
 msgid "Custom result restored to revision from %s"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:156
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:155
 msgid "Custom result published."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:157
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:156
 msgid "Custom result saved."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:158
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:157
 msgid "Custom result submitted."
 msgstr ""
 
 #. translators: Scheduled date.
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:161
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:160
 msgid "Custom result scheduled for: %1$s."
 msgstr ""
 
 #. translators: Publish box date format, see https://php.net/date
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:163
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:162
 msgid "M j, Y @ G:i"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:165
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:164
 msgid "Custom result draft updated."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:197
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:196
 msgid "Selected posts will be inserted into search results in the specified position."
 msgstr ""
 
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:219
 #: includes/classes/Feature/SearchOrdering/SearchOrdering.php:220
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:221
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:327
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:326
 msgid "Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:279
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:278
 msgctxt "post type general name"
 msgid "Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:280
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:279
 msgctxt "post type singular name"
 msgid "Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:281
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:280
 msgctxt "admin menu"
 msgid "Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:282
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:281
 msgctxt "add new on admin bar"
 msgid "Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:283
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:282
 msgctxt "book"
 msgid "Add New"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:284
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:283
 msgid "Add New Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:285
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:284
 msgid "New Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:286
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:285
 msgid "Edit Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:287
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:286
 msgid "View Custom Search Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:288
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:287
 msgid "All Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:289
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:288
 msgid "Search Custom Search Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:290
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:289
 msgid "Parent Custom Search Result:"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:291
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:290
 #: assets/js/ordering/pointers.js:265
 #: dist/js/ordering-script.js:1
 msgid "No results found."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:292
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:291
 msgid "No results found in Trash."
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:297
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:296
 msgid "Posts to inject into search results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:317
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:316
 msgctxt "taxonomy general name"
 msgid "Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:318
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:317
 msgctxt "taxonomy singular name"
 msgid "Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:319
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:318
 msgid "Search Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:320
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:319
 msgid "All Custom Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:321
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:320
 msgid "Parent Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:322
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:321
 msgid "Parent Custom Result:"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:323
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:322
 msgid "Edit Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:324
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:323
 msgid "Update Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:325
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:324
 msgid "Add New Custom Result"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:326
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:325
 msgid "New Custom Result Name"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:354
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:353
 msgid "Manage Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:628
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:627
 msgid "Enter Search Query"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:642
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:641
 msgid "Search Query"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:889
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:888
 msgid "ElasticPress Custom Search Results"
 msgstr ""
 
@@ -1546,17 +1551,17 @@ msgid "Error while fetching the mapping version."
 msgstr ""
 
 #. translators: Sync Page URL
-#: includes/classes/Indexable/Post/SyncManager.php:422
+#: includes/classes/Indexable/Post/SyncManager.php:421
 msgid "Due to the number of posts associated with its child terms, you will need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
 #. translators: Sync Page URL
-#: includes/classes/Indexable/Post/SyncManager.php:437
+#: includes/classes/Indexable/Post/SyncManager.php:436
 msgid "Due to the number of posts associated with this term, you will need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
 #. translators: Sync Page URL
-#: includes/classes/Indexable/Post/SyncManager.php:471
+#: includes/classes/Indexable/Post/SyncManager.php:470
 msgid "Depending on the number of posts associated with a term, you may need to <a href=\"%s\">resync</a> after editing or deleting it."
 msgstr ""
 
@@ -1673,7 +1678,7 @@ msgid "Elasticsearch server"
 msgstr ""
 
 #: includes/classes/QueryLogger.php:247
-#: includes/partials/stats-page.php:92
+#: includes/partials/stats-page.php:91
 msgid "sync your content"
 msgstr ""
 
@@ -2090,46 +2095,46 @@ msgstr ""
 msgid "Feature registration API"
 msgstr ""
 
-#: includes/dashboard.php:295
+#: includes/dashboard.php:286
 msgid "Dashboard"
 msgstr ""
 
-#: includes/dashboard.php:679
+#: includes/dashboard.php:662
 msgid "ElasticPress Features"
 msgstr ""
 
-#: includes/dashboard.php:680
+#: includes/dashboard.php:663
 msgid "Features"
 msgstr ""
 
-#: includes/dashboard.php:688
+#: includes/dashboard.php:671
 msgid "ElasticPress Settings"
 msgstr ""
 
-#: includes/dashboard.php:697
-#: includes/dashboard.php:698
+#: includes/dashboard.php:680
+#: includes/dashboard.php:681
 msgid "Sync"
 msgstr ""
 
-#: includes/dashboard.php:706
+#: includes/dashboard.php:689
 msgid "ElasticPress Index Health"
 msgstr ""
 
-#: includes/dashboard.php:707
-#: includes/partials/stats-page.php:35
+#: includes/dashboard.php:690
+#: includes/partials/stats-page.php:34
 msgid "Index Health"
 msgstr ""
 
-#: includes/dashboard.php:715
+#: includes/dashboard.php:698
 msgid "ElasticPress Status Report"
 msgstr ""
 
-#: includes/dashboard.php:716
+#: includes/dashboard.php:699
 #: includes/partials/status-report-page.php:17
 msgid "Status Report"
 msgstr ""
 
-#: includes/dashboard.php:914
+#: includes/dashboard.php:897
 msgid "ElasticPress Indexing"
 msgstr ""
 
@@ -2296,33 +2301,47 @@ msgstr ""
 msgid "Save Changes"
 msgstr ""
 
-#: includes/partials/stats-page.php:40
+#: includes/partials/stats-page.php:39
 msgid "Index list"
 msgstr ""
 
-#: includes/partials/stats-page.php:40
+#: includes/partials/stats-page.php:39
 msgid "Health"
 msgstr ""
 
-#: includes/partials/stats-page.php:52
+#: includes/partials/stats-page.php:51
 msgid "Queries & Indexing total"
 msgstr ""
 
-#: includes/partials/stats-page.php:69
+#: includes/partials/stats-page.php:68
 msgid "Total Documents"
 msgstr ""
 
-#: includes/partials/stats-page.php:73
+#: includes/partials/stats-page.php:72
 msgid "Total Size"
 msgstr ""
 
-#: includes/partials/stats-page.php:77
+#: includes/partials/stats-page.php:76
 msgid "Total Memory"
 msgstr ""
 
 #. translators: %s: Sync page link.
-#: includes/partials/stats-page.php:88
+#: includes/partials/stats-page.php:87
 msgid "We could not find any data for your Elasticsearch indices. Maybe you need to %s?"
+msgstr ""
+
+#. translators: Error message
+#: assets/js/api-search/index.js:313
+#: dist/js/instant-results-script.js:1
+#: dist/js/woocommerce-order-search-script.js:1
+msgid "ElasticPress: Unable to fetch results. %s"
+msgstr ""
+
+#. translators: Response status code
+#: assets/js/api-search/src/hooks.js:68
+#: dist/js/instant-results-script.js:1
+#: dist/js/woocommerce-order-search-script.js:1
+msgid "HTTP %d."
 msgstr ""
 
 #: assets/js/blocks/comments/Edit.js:80

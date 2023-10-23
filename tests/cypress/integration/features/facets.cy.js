@@ -5,15 +5,20 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	 * before running tests.
 	 */
 	before(() => {
-		cy.maybeEnableFeature('facets');
-		cy.wpCli('elasticpress sync --setup --yes');
-		cy.wpCli('post list --s="A new" --ep_integrate=false --format=ids').then(
-			(wpCliResponse) => {
-				if (wpCliResponse.stdout) {
-					cy.wpCli(`post delete ${wpCliResponse.stdout} --force`);
-				}
-			},
-		);
+		cy.wpCliEval(`
+			\\ElasticPress\\Features::factory()->activate_feature('facets' );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
+			$posts = new \\WP_Query(
+				[
+					's'            => 'A new',
+					'ep_integrate' => false,
+					'fields'       => 'ids',
+				]
+			);
+			foreach ( $posts->posts as $post ) {
+				wp_delete_post( $post, true );
+			}
+		`);
 	});
 
 	/**
@@ -52,19 +57,17 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 */
 		cy.get('@firstBlock').click();
 		cy.openBlockSettingsSidebar();
+		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
 		cy.get('.block-editor-block-inspector select').first().select('category');
+		cy.wait('@blockPreview');
 
 		/**
 		 * Set the last block to use Tags and sort by name in ascending order.
 		 */
 		cy.get('@secondBlock').click();
 		cy.get('.block-editor-block-inspector select').first().select('post_tag');
+		cy.wait('@blockPreview');
 		cy.get('.block-editor-block-inspector select').last().select('name/asc');
-
-		/**
-		 * Make sure it waits for the correct request.
-		 */
-		cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet*').as('blockPreview');
 		cy.wait('@blockPreview');
 
 		/**
@@ -279,12 +282,22 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 	it('Does not change post types being displayed', () => {
 		cy.wpCliEval(
 			`
-			WP_CLI::runcommand( 'plugin activate cpt-and-custom-tax' );
-			WP_CLI::runcommand( 'post create --post_title="A new page" --post_type="page" --post_status="publish"' );
-			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
-			WP_CLI::runcommand( 'post create --post_title="A new post" --post_type="post" --post_status="publish"' );
+			activate_plugin( 'cpt-and-custom-tax.php' );
+			wp_insert_post(
+				[
+					'post_title'  => 'A new page',
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+				]
+			);
+			wp_insert_post(
+				[
+					'post_title'  => 'A new post',
+					'post_type'   => 'post',
+					'post_status' => 'publish',
+				]
+			);
 
-			// tax_input does not seem to work properly in WP-CLI.
 			$movie_id = wp_insert_post(
 				[
 					'post_title'  => 'A new movie',
@@ -292,38 +305,34 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 					'post_status' => 'publish',
 				]
 			);
-			if ( $movie_id ) {
-				wp_set_object_terms( $movie_id, 'action', 'genre' );
-				WP_CLI::runcommand( 'elasticpress sync --include=' . $movie_id );
-				WP_CLI::runcommand( 'rewrite flush' );
-			}
+			wp_set_object_terms( $movie_id, 'action', 'genre' );
 			`,
-		);
+		).then(() => {
+			/**
+			 * Give Elasticsearch some time to process the post.
+			 *
+			 */
+			// eslint-disable-next-line cypress/no-unnecessary-waiting
+			cy.wait(2000);
 
-		/**
-		 * Give Elasticsearch some time to process the post.
-		 *
-		 */
-		// eslint-disable-next-line cypress/no-unnecessary-waiting
-		cy.wait(2000);
+			// Blog page
+			cy.visit('/');
+			cy.contains('.site-content article h2', 'A new page').should('not.exist');
+			cy.contains('.site-content article h2', 'A new post').should('exist');
+			cy.contains('.site-content article h2', 'A new movie').should('not.exist');
 
-		// Blog page
-		cy.visit('/');
-		cy.contains('.site-content article h2', 'A new page').should('not.exist');
-		cy.contains('.site-content article h2', 'A new post').should('exist');
-		cy.contains('.site-content article h2', 'A new movie').should('not.exist');
+			// Specific taxonomy archive
+			cy.visit('/blog/genre/action/');
+			cy.contains('.site-content article h2', 'A new page').should('not.exist');
+			cy.contains('.site-content article h2', 'A new post').should('not.exist');
+			cy.contains('.site-content article h2', 'A new movie').should('exist');
 
-		// Specific taxonomy archive
-		cy.visit('/blog/genre/action/');
-		cy.contains('.site-content article h2', 'A new page').should('not.exist');
-		cy.contains('.site-content article h2', 'A new post').should('not.exist');
-		cy.contains('.site-content article h2', 'A new movie').should('exist');
-
-		// Search
-		cy.visit('/?s=new');
-		cy.contains('.site-content article h2', 'A new page').should('exist');
-		cy.contains('.site-content article h2', 'A new post').should('exist');
-		cy.contains('.site-content article h2', 'A new movie').should('exist');
+			// Search
+			cy.visit('/?s=new');
+			cy.contains('.site-content article h2', 'A new page').should('exist');
+			cy.contains('.site-content article h2', 'A new post').should('exist');
+			cy.contains('.site-content article h2', 'A new movie').should('exist');
+		});
 	});
 
 	describe('Filter by Metadata block', () => {
@@ -415,6 +424,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				true,
 			);
 			cy.get('.block-editor-block-inspector select').first().select('meta_field_2');
+			cy.wait('@blockPreview');
 			cy.get('.block-editor-block-inspector select').last().select('name/asc');
 			cy.wait('@blockPreview');
 
@@ -599,9 +609,8 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 		 * Test that the Filter by Metadata Range block is functional.
 		 */
 		it('Can insert, configure, and use the Filter by Metadata Range block', () => {
-			cy.intercept('**/meta/keys*').as('keysApiRequest');
-			cy.intercept('**/meta-range/block-preview*').as('previewApiRequest');
-			cy.intercept('**/sidebars/*').as('sidebarsRest');
+			cy.intercept('/wp-json/elasticpress/v1/meta-keys*').as('keysApiRequest');
+			cy.intercept('/wp-json/elasticpress/v1/meta-range*').as('previewApiRequest');
 
 			/**
 			 * Insert a Filter by Metadata Range block.
@@ -674,6 +683,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * Save widgets and visit the front page.
 			 */
+			cy.intercept('/wp-json/wp/v2/sidebars*').as('sidebarsRest');
 			cy.get('.edit-widgets-header__actions button').contains('Update').click();
 			cy.wait('@sidebarsRest');
 			cy.visit('/');
@@ -847,6 +857,129 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@firstBlock').contains('.term', 'Post').click();
 			cy.url().should('not.include', 'ep_post_type_filter=post');
+		});
+	});
+
+	describe('Facet by Date', () => {
+		it('Can insert, configure, and use the Facet by Date block', () => {
+			/**
+			 * Insert a Facet block.
+			 */
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Filter by Post Date');
+			cy.insertBlock('Filter by Post Date');
+			cy.get('.wp-block.wp-block-elasticpress-facet-date').last().as('block');
+
+			/**
+			 * Verify that there are 4 options
+			 */
+			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 4);
+
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+
+			/**
+			 * Test that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors(true);
+			cy.get('@block').supportsBlockTypography(true);
+			cy.get('@block').supportsBlockDimensions(true);
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@sidebarsRest');
+			cy.visit('/');
+
+			/**
+			 * Verify the blocks have the expected output on the front-end.
+			 */
+			cy.get('.wp-block-elasticpress-facet-date').first().as('block');
+
+			cy.get('@block')
+				.find('.ep-facet-date-form .ep-facet-date-option')
+				.should('have.length', 4);
+
+			cy.get('@block')
+				.find('.ep-facet-date-form__action-submit')
+				.should('exist')
+				.contains('Filter');
+
+			/**
+			 * Verify that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors();
+			cy.get('@block').supportsBlockTypography();
+			cy.get('@block').supportsBlockDimensions();
+
+			/**
+			 * Selecting the last 3 months option should lead to the correct URL, mark the correct
+			 */
+			cy.get('@block').find('.ep-facet-date-option label').first().click();
+			cy.get('@block').find('.wp-element-button').click();
+
+			cy.url().should('include', 'ep_date_filter=last-3-months');
+			cy.get('@block')
+				.find('.ep-facet-date-option')
+				.first()
+				.find('input')
+				.should('be.checked');
+
+			/**
+			 * Verify the custom date range
+			 */
+			cy.get('@block').find('.ep-facet-date-option').last().find('label').click();
+
+			cy.get('@block').find("[name='ep_date_filter_from']").type('2023-01-01');
+			cy.get('@block').find("[name='ep_date_filter_to']").type('2023-12-31');
+			cy.get('@block').find('.wp-element-button').click();
+			cy.url().should('include', 'ep_date_filter=2023-01-01,2023-12-31');
+
+			/**
+			 * Clear filter
+			 */
+			cy.get('@block').find('.ep-facet-date-form__action-clear').click();
+			cy.url().should('not.include', 'ep_date_filter');
+
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+
+			/**
+			 * Unselect the Custom Date option
+			 */
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="checkbox"]').uncheck();
+			cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet-date*').as(
+				'blockPreview',
+			);
+			cy.wait('@blockPreview');
+
+			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 3);
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/widgets*').as('widgetsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@widgetsRest');
+			cy.visit('/');
+
+			/**
+			 * Click on the last option and check its last-12-months.
+			 */
+			cy.get('@block').find('.ep-facet-date-option label').last().click();
+			cy.get('@block').find('.wp-element-button').click();
+
+			cy.url().should('include', 'ep_date_filter=last-12-months');
+			cy.get('@block')
+				.find('.ep-facet-date-option')
+				.last()
+				.find('input')
+				.should('be.checked');
 		});
 	});
 });

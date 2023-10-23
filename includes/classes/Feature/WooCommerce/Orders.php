@@ -48,6 +48,21 @@ class Orders {
 	}
 
 	/**
+	 * Unsetup order related hooks
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ] );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20 );
+		remove_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20 );
+		remove_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+		remove_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
+	}
+
+	/**
 	 * Allow order creations on the front end to get synced
 	 *
 	 * @param  bool $override Original order perms check value
@@ -134,6 +149,11 @@ class Orders {
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
+		$order = wc_get_order( $post_id );
+		if ( ! $order ) {
+			return $post_args;
+		}
+
 		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		// Make sure it is only WooCommerce orders we touch.
@@ -144,7 +164,6 @@ class Orders {
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		// Get order items.
-		$order     = wc_get_order( $post_id );
 		$item_meta = [];
 		foreach ( $order->get_items() as $delta => $product_item ) {
 			// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
@@ -298,10 +317,10 @@ class Orders {
 		 *
 		 * @hook ep_woocommerce_orders_supported_post_types
 		 * @since 4.7.0
-		 * @param {array} $post_types Post types
+		 * @param {array} $supported_post_types Post types
 		 * @return {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $supported_post_types );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,

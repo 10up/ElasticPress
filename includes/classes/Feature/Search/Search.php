@@ -239,7 +239,16 @@ class Search extends Feature {
 				'pre_tags'            => [ $opening_tag ],
 				'post_tags'           => [ $closing_tag ],
 				'type'                => 'plain',
-				'number_of_fragments' => 0,
+				/**
+				 * Filter the maximum number of fragments highlighted for a searched field.
+				 *
+				 * @since 4.7.2
+				 * @hook ep_highlight_number_of_fragments
+				 * @param  {int}    $max_fragments Maximum number of fragments for field.
+				 * @param  {string} $field Search field being setup.
+				 * @return {int}    New maximum number of fragments to highlight for the searched field.
+				 */
+				'number_of_fragments' => apply_filters( 'ep_highlight_number_of_fragments', 0, $field ),
 			];
 		}
 
@@ -912,19 +921,6 @@ class Search extends Feature {
 					],
 				],
 				'type'    => 'radio',
-			],
-			[
-				'default' => '.ep-autosuggest',
-				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
-				'key'     => 'autosuggest_selector',
-				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
-				'type'    => 'text',
-			],
-			[
-				'key'   => 'trigger_ga_event',
-				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
-				'label' => __( 'Google Analytics Events', 'elasticpress' ),
-				'type'  => 'checkbox',
 			],
 			[
 				'default' => 'simple',

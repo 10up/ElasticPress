@@ -192,7 +192,7 @@ class TestStatusReport extends BaseTestCase {
 		$this->assertSame( $expected_result, $report->get_groups() );
 		$this->assertEquals( 'Last Sync', $report->get_title() );
 
-		Utils\delete_option( 'ep_last_index' );
+		Utils\delete_option( 'ep_sync_history' );
 	}
 
 	/**
@@ -202,6 +202,9 @@ class TestStatusReport extends BaseTestCase {
 	 * @since 4.5.1
 	 */
 	public function testIndicesReport() {
+		// Make sure the index exists
+		\ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
 		$report = new \ElasticPress\StatusReport\Indices();
 
 		$group         = $report->get_groups();
@@ -357,7 +360,7 @@ class TestStatusReport extends BaseTestCase {
 			),
 			'recommended_solution' => array(
 				'label' => 'Recommended Solution',
-				'value' => 'We did not recognize this error. Please consider opening a <a href="https://github.com/10up/ElasticPress/issues/new/choose">GitHub Issue</a> so we can add it to our list of supported errors. ',
+				'value' => 'We did not recognize this error. Please consider opening a <a href="https://github.com/10up/ElasticPress/issues/new/choose">GitHub Issue</a> so we can add it to our list of supported errors.',
 			),
 			'es_req'               => array(
 				'label' => 'Elasticsearch Request',

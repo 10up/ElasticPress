@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\RelatedPosts;
 use \WP_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Feature;
+use ElasticPress\REST;
 use ElasticPress\Utils;
 
 /**
@@ -175,71 +176,8 @@ class RelatedPosts extends Feature {
 	 * @since  3.2
 	 */
 	public function setup_endpoint() {
-		register_rest_route(
-			'wp/v2',
-			'/posts/(?P<id>[0-9]+)/related',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'output_endpoint' ],
-				'permission_callback' => '__return_true',
-				'args'                => [
-					'id'     => [
-						'description' => 'Post ID.',
-						'type'        => 'numeric',
-					],
-					'number' => [
-						'description' => 'Number of posts',
-						'type'        => 'numeric',
-						'default'     => 5,
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * Output related posts endpoint
-	 *
-	 * @param  \WP_REST_Request $request REST request
-	 * @since  3.2
-	 * @return \WP_REST_Response
-	 */
-	public function output_endpoint( $request ) {
-		$id = $request['id'];
-
-		$posts          = $this->find_related( $id, (int) $request['number'] );
-		$prepared_posts = [];
-
-		if ( ! empty( $posts ) ) {
-			foreach ( $posts as $post ) {
-				$prepared_post = [];
-
-				$prepared_post['id']           = $post->ID;
-				$prepared_post['link']         = get_permalink( $post->ID );
-				$prepared_post['status']       = $post->post_status;
-				$prepared_post['title']        = [
-					'raw'      => $post->post_title,
-					'rendered' => get_the_title( $post->ID ),
-				];
-				$prepared_post['author']       = (int) $post->post_author;
-				$prepared_post['parent']       = (int) $post->post_parent;
-				$prepared_post['menu_order']   = (int) $post->menu_order;
-				$prepared_post['content']      = [
-					'rendered' => post_password_required( $post ) ? '' : apply_filters( 'the_content', $post->post_content ),
-				];
-				$prepared_post['date']         = $post->post_date;
-				$prepared_post['date_gmt']     = $post->post_date_gmt;
-				$prepared_post['modified']     = $post->post_modified;
-				$prepared_post['modified_gmt'] = $post->post_modified_gmt;
-
-				$prepared_posts[] = $prepared_post;
-			}
-		}
-
-		$response = new \WP_REST_Response();
-		$response->set_data( $prepared_posts );
-
-		return $response;
+		$controller = new REST\RelatedPosts();
+		$controller->register_routes();
 	}
 
 	/**
