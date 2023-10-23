@@ -876,28 +876,8 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 4);
 
-			/**
-			 * Unselect the Custom Date option
-			 */
 			cy.get('@block').click();
 			cy.openBlockSettingsSidebar();
-			cy.get('.block-editor-block-inspector input[type="checkbox"]').uncheck();
-			cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet-date*').as(
-				'blockPreview',
-			);
-			cy.wait('@blockPreview');
-
-			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 3);
-
-			/**
-			 * Revert back the settings
-			 */
-			cy.get('@block').click();
-			cy.get('.block-editor-block-inspector input[type="checkbox"]').check();
-
-			cy.wait('@blockPreview');
-
-			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 4);
 
 			/**
 			 * Test that the block supports changing styles.
@@ -963,6 +943,43 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@block').find('.ep-facet-date-form__action-clear').click();
 			cy.url().should('not.include', 'ep_date_filter');
+
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+
+			/**
+			 * Unselect the Custom Date option
+			 */
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="checkbox"]').uncheck();
+			cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet-date*').as(
+				'blockPreview',
+			);
+			cy.wait('@blockPreview');
+
+			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 3);
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/widgets*').as('widgetsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@widgetsRest');
+			cy.visit('/');
+
+			/**
+			 * Click on the last option and check its last-12-months.
+			 */
+			cy.get('@block').find('.ep-facet-date-option label').last().click();
+			cy.get('@block').find('.wp-element-button').click();
+
+			cy.url().should('include', 'ep_date_filter=last-12-months');
+			cy.get('@block')
+				.find('.ep-facet-date-option')
+				.last()
+				.find('input')
+				.should('be.checked');
 		});
 	});
 });
