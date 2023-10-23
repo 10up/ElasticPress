@@ -21,7 +21,7 @@ export default () => {
 		<ol className="ep-sync-history">
 			{syncHistory.map((s) => {
 				return (
-					<li>
+					<li key={s.start_date_time}>
 						<PreviousSync
 							failures={s.failed}
 							method={s.method}
