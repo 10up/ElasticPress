@@ -563,6 +563,10 @@ abstract class Feature {
 	 * @return array
 	 */
 	public function get_settings_schema() {
+		if ( [] === $this->settings_schema && method_exists( $this, 'set_settings_schema' ) ) {
+			$this->set_settings_schema();
+		}
+
 		$req_status = $this->requirements_status();
 
 		$active = [

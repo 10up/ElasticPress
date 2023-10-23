@@ -60,8 +60,6 @@ class Autosuggest extends Feature {
 
 		$this->is_powered_by_epio = Utils\is_epio();
 
-		$this->set_settings_schema();
-
 		parent::__construct();
 	}
 

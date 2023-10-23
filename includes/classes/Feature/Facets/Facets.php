@@ -100,8 +100,6 @@ class Facets extends Feature {
 			}
 		}
 
-		$this->set_settings_schema();
-
 		parent::__construct();
 	}
 

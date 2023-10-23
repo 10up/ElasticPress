@@ -74,8 +74,6 @@ class WooCommerce extends Feature {
 		$this->products           = new Products( $this );
 		$this->orders_autosuggest = new OrdersAutosuggest();
 
-		$this->set_settings_schema();
-
 		parent::__construct();
 	}
 

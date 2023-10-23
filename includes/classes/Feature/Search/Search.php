@@ -70,8 +70,6 @@ class Search extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->set_settings_schema();
-
 		parent::__construct();
 	}
 

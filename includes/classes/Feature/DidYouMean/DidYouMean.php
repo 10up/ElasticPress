@@ -37,8 +37,6 @@ class DidYouMean extends Feature {
 
 		$this->requires_feature = 'search';
 
-		$this->set_settings_schema();
-
 		parent::__construct();
 	}
 
