@@ -29,8 +29,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 	|PHP|7.4+|latest|
 
 ### Added
-* New Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), Apurv Ray, [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3657](https://github.com/10up/ElasticPress/pull/3657).
-* Added a sync history to the Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), Apurv Ray, [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3664](https://github.com/10up/ElasticPress/pull/3664).
+* New Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3657](https://github.com/10up/ElasticPress/pull/3657).
+* Added a sync history to the Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3664](https://github.com/10up/ElasticPress/pull/3664).
 * Final status of syncs (success, with errors, failed, or aborted.) Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3669](https://github.com/10up/ElasticPress/pull/3669).
 * Added a REST API endpoint at `elasticpress/v1/features` for updating feature settings. Props [@JakePT](https://github.com/JakePT) via [#3676](https://github.com/10up/ElasticPress/pull/3676).
 * New `ElasticsearchErrorInterpreter` class. Props [@felipeelia](https://github.com/felipeelia) via [#3661](https://github.com/10up/ElasticPress/pull/3661).

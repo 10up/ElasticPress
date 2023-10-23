@@ -221,7 +221,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Ben Marshall (@bmarshall511)](https://github.com/bmarshall511),
 [@dgnorrod](https://github.com/dgnorrod),
 [Pea Lutz (@misfist)](https://github.com/misfist),
-Apurv Ray,
+[@apurvrdx1](https://github.com/apurvrdx1),
 [Scott Buscemi (@scottbuscemi)](https://github.com/scottbuscemi),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
