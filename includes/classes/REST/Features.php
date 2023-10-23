@@ -8,7 +8,7 @@
 
 namespace ElasticPress\REST;
 
-use ElasticPress\IndexHelper;
+use ElasticPress\Features as FeaturesStore;
 use ElasticPress\Utils;
 
 /**
@@ -57,12 +57,17 @@ class Features {
 					continue;
 				}
 
+				$type     = $schema['type'] ?? '';
 				$property = [ 'description' => $schema['label'] ];
 
-				switch ( $schema['type'] ) {
+				switch ( $type ) {
 					case 'select':
 					case 'radio':
-						$property['enum'] = array_map( fn( $o ) => $o['value'], $schema['options'] );
+						$property['enum'] = array_merge(
+							[ false ],
+							array_map( fn( $o ) => $o['value'], $schema['options'] )
+						);
+						$property['type'] = [ 'string', 'boolean' ];
 						break;
 					case 'toggle':
 						$property['type'] = 'boolean';
@@ -88,7 +93,7 @@ class Features {
 	}
 
 	/**
-	 * Check that the request has permission to sync.
+	 * Check that the request has permission to save features.
 	 *
 	 * @return boolean
 	 */
@@ -99,7 +104,7 @@ class Features {
 	}
 
 	/**
-	 * Start or continue a sync.
+	 * Update features settings.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return void
@@ -132,6 +137,8 @@ class Features {
 					$settings[ $slug ][ $key ] = $param[ $key ];
 				}
 			}
+
+			FeaturesStore::factory()->update_feature( $slug, $settings[ $slug ] );
 		}
 
 		Utils\update_option( 'ep_feature_settings', $settings );
