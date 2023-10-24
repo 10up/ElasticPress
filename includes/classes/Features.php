@@ -366,6 +366,7 @@ class Features {
 		foreach ( $draft_settings as $feature => $settings ) {
 			$this->update_feature( $feature, $settings );
 		}
+		$this->setup_features();
 
 		Utils\delete_option( 'ep_feature_settings_draft' );
 	}

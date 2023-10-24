@@ -85,13 +85,12 @@ class IndexHelper {
 		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
+			$this->maybe_apply_feature_settings();
 			$this->build_index_meta();
 		}
 
 		// For the dashboard, this will be called and exit the script until the queue is empty again.
 		$this->flush_messages_queue();
-
-		$this->maybe_apply_feature_settings();
 
 		while ( $this->has_items_to_be_processed() ) {
 			$this->process_sync_item();
@@ -1518,7 +1517,7 @@ class IndexHelper {
 	 * @since 5.0.0
 	 */
 	protected function maybe_apply_feature_settings() {
-		if ( ! $this->index_meta['put_mapping'] ) {
+		if ( empty( $this->args['put_mapping'] ) ) {
 			return;
 		}
 
