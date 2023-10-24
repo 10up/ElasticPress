@@ -144,7 +144,7 @@ class IndexHelper {
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
 			'starting_indices'  => $starting_indices,
 			'messages_queue'    => [],
-			'trigger'           => 'manual',
+			'trigger'           => ! empty( $this->args['trigger'] ) ? sanitize_text_field( $this->args['trigger'] ) : null,
 			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,

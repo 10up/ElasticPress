@@ -27,7 +27,8 @@ import { useSyncSettings } from '../provider';
  */
 export default () => {
 	const { createNotice } = useSettingsScreen();
-	const { isComplete, isEpio, isSyncing, logMessage, startSync, syncHistory } = useSync();
+	const { isComplete, isEpio, isSyncing, logMessage, startSync, syncHistory, syncTrigger } =
+		useSync();
 	const { autoIndex } = useSyncSettings();
 
 	/**
@@ -46,13 +47,13 @@ export default () => {
 	 */
 	const onInit = () => {
 		if (autoIndex) {
-			startSync({ put_mapping: true });
+			startSync({ put_mapping: true, trigger: syncTrigger });
 			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 		}
 	};
 
 	useEffect(onComplete, [createNotice, isComplete]);
-	useEffect(onInit, [autoIndex, logMessage, startSync]);
+	useEffect(onInit, [autoIndex, logMessage, startSync, syncTrigger]);
 
 	return (
 		<>
