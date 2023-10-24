@@ -116,7 +116,7 @@ class Features {
 		/**
 		 * Prepare settings
 		 */
-		$saved_settings   = $this->get_feature_settings();
+		$saved_settings   = 'draft' === $target ? $this->get_feature_settings_draft() : $this->get_feature_settings();
 		$feature_settings = isset( $saved_settings[ $slug ] ) ? $saved_settings[ $slug ] : [ 'force_inactive' => false ];
 
 		$new_feature_settings = wp_parse_args(
