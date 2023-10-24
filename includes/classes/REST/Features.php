@@ -176,6 +176,9 @@ class Features {
 			FeaturesStore::factory()->save_feature_settings_draft( $new_settings );
 		}
 
-		return [ 'success' => true ];
+		return [
+			'data'    => $current_settings,
+			'success' => true,
+		];
 	}
 }

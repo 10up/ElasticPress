@@ -8,7 +8,15 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { SettingsScreenProvider } from '../settings-screen';
-import { apiUrl, epioLogoUrl, features, indexMeta, settings, syncUrl } from './config';
+import {
+	apiUrl,
+	epioLogoUrl,
+	features,
+	indexMeta,
+	settings,
+	settingsDraft,
+	syncUrl,
+} from './config';
 import { FeatureSettingsProvider } from './provider';
 import Features from './apps/features';
 
@@ -26,7 +34,7 @@ const App = () => (
 	<SettingsScreenProvider title={__('Features', 'elasticpress')}>
 		<FeatureSettingsProvider
 			apiUrl={apiUrl}
-			defaultSettings={settings}
+			defaultSettings={settingsDraft || settings}
 			epioLogoUrl={epioLogoUrl}
 			features={features}
 			indexMeta={indexMeta}
