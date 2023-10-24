@@ -85,6 +85,7 @@ class IndexHelper {
 		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
+			$this->maybe_apply_feature_settings();
 			$this->build_index_meta();
 		}
 
@@ -1508,6 +1509,19 @@ class IndexHelper {
 			}
 		}
 		return $errors_list;
+	}
+
+	/**
+	 * If this is a full sync, apply the draft feature settings
+	 *
+	 * @since 5.0.0
+	 */
+	protected function maybe_apply_feature_settings() {
+		if ( empty( $this->args['put_mapping'] ) ) {
+			return;
+		}
+
+		Features::factory()->apply_draft_feature_settings();
 	}
 
 	/**
