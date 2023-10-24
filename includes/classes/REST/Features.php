@@ -172,9 +172,7 @@ class Features {
 			FeaturesStore::factory()->update_feature( $slug, $feature );
 		}
 
-		if ( $current_settings !== $new_settings ) {
-			FeaturesStore::factory()->save_feature_settings_draft( $new_settings );
-		}
+		FeaturesStore::factory()->save_feature_settings_draft( $new_settings );
 
 		return [
 			'data'    => $current_settings,

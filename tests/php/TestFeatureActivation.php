@@ -402,7 +402,16 @@ class TestFeatureActivation extends BaseTestCase {
 		ob_clean();
 
 		$updated_settings = Features::factory()->get_feature_settings();
-		$this->assertSame( $settings['test'], $updated_settings['test'] );
+		$this->assertSame(
+			$updated_settings['test'],
+			[
+				'active'         => true,
+				'force_inactive' => false,
+				'field_1'        => '1',
+				'field_2'        => '1',
+				'field_3'        => '1',
+			]
+		);
 	}
 
 	/**

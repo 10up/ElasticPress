@@ -363,7 +363,10 @@ class Features {
 			return;
 		}
 
-		Utils\update_option( 'ep_feature_settings', $draft_settings );
+		foreach ( $draft_settings as $feature => $settings ) {
+			$this->update_feature( $feature, $settings );
+		}
+
 		Utils\delete_option( 'ep_feature_settings_draft' );
 	}
 
