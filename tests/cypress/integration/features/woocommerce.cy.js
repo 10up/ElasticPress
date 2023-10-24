@@ -336,12 +336,18 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			 */
 			cy.contains('button', 'WooCommerce').click();
 
+			cy.contains('label', 'Show suggestions')
+				.closest('.components-base-control')
+				.find('input')
+				.as('showSuggestionsCheck');
+
 			if (!isEpIo) {
-				cy.get('.components-radio-control__input').first().should('be.disabled');
+				cy.get('@showSuggestionsCheck').should('be.disabled');
 				return;
 			}
 
-			cy.get('.components-radio-control__input').first().click();
+			cy.get('@showSuggestionsCheck').check();
+
 			cy.contains('button', 'Save and sync now').click();
 
 			cy.wait('@apiRequest');

@@ -1067,11 +1067,11 @@ class Products {
 				$setting_schema['options'],
 				[
 					[
-						'label' => __( 'Disabled for product only queries', 'elasticpress' ),
+						'label' => __( 'Weight results by date, except for product-only queries', 'elasticpress' ),
 						'value' => 'disabled_only_products',
 					],
 					[
-						'label' => __( 'Disabled for any query that includes products', 'elasticpress' ),
+						'label' => __( 'Weight results by date, except for any query that includes products', 'elasticpress' ),
 						'value' => 'disabled_includes_products',
 					],
 				]

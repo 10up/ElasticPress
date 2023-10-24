@@ -82,6 +82,7 @@ class Sync {
 			'nonce'       => wp_create_nonce( 'wp_rest' ),
 			'postTypes'   => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),
 			'syncHistory' => $sync_history,
+			'syncTrigger' => ! empty( $_GET['do_sync'] ) ? sanitize_text_field( wp_unslash( $_GET['do_sync'] ) ) : null, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		];
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );
