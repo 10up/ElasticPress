@@ -23,12 +23,15 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 		cy.maybeDisableFeature('terms');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-terms .settings-button').click();
-		cy.get('.ep-feature-terms [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-terms .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+		cy.contains('button', 'Terms').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
 
 		cy.contains('.components-button', 'Log').click();
 		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
@@ -148,7 +151,8 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		// make sure the child term parent field is set to none.
-		cy.get('#tag-search-input').clear().type(`${childTerm}{enter}`);
+		cy.get('#tag-search-input').clear();
+		cy.get('#tag-search-input').type(`${childTerm}{enter}`);
 		cy.get('.wp-list-table tbody tr .column-primary a').first().click();
 		cy.get('#parent').should('have.value', '-1');
 

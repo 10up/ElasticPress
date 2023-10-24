@@ -107,10 +107,13 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 
 	it('Can see highlighted text', () => {
 		cy.login();
+
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-search .settings-button').click();
-		cy.get('.ep-feature-search [name="settings[highlight_excerpt]"][value="1"]').click();
-		cy.get('.ep-feature-search .button-primary').click();
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+		cy.contains('button', 'Post Search').click();
+		cy.get('.components-radio-control__input').eq(2).click();
+		cy.contains('button', 'Save changes').click();
 
 		cy.publishPost({
 			title: 'test highlight color',

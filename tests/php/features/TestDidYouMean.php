@@ -64,19 +64,6 @@ class TestDidYouMean extends BaseTestCase {
 	}
 
 	/**
-	 * Test Requirements status when search feature is not active.
-	 */
-	public function testRequirementsStatusWhenSearchFeatureIsNotActive() {
-		ElasticPress\Features::factory()->deactivate_feature( 'search' );
-
-		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
-		$status   = $instance->requirements_status();
-
-		$this->assertEquals( 2, $status->code );
-		$this->assertEquals( 'This feature requires the &quot;Post Search&quot; feature to be enabled', $status->message );
-	}
-
-	/**
 	 * Tests that ES returns a suggestion when search term has a typo.
 	 */
 	public function testEsSearchSuggestion() {

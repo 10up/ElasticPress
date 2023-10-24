@@ -26,7 +26,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce').should('have.class', 'feature-active');
+		cy.get('.components-form-toggle__input').should('be.checked');
 	});
 
 	it('Can automatically start a sync if activate the feature', () => {
@@ -35,12 +35,15 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.maybeDisableFeature('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce .settings-button').click();
-		cy.get('.ep-feature-woocommerce [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-woocommerce .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+		cy.contains('button', 'WooCommerce').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
 
 		cy.contains('.components-button', 'Log').click();
 		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
@@ -75,8 +78,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 		cy.updateFeatures('search', {
 			active: 1,
-			highlight_enabled: true,
-			highlight_excerpt: true,
+			highlight_enabled: '1',
+			highlight_excerpt: '1',
 			highlight_tag: 'mark',
 			highlight_color: '#157d84',
 			decaying_enabled: 'disabled_includes_products',
@@ -209,9 +212,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.visitAdminPage('edit.php?post_type=shop_order');
 
 			// search order by user's name.
-			cy.get('#post-search-input')
-				.clear()
-				.type(`${userData.firstName} ${userData.lastName}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.firstName} ${userData.lastName}{enter}`);
 
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
@@ -224,7 +226,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			);
 
 			// search order by user's address.
-			cy.get('#post-search-input').clear().type(`${userData.address}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.address}{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -236,7 +239,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			);
 
 			// search order by product.
-			cy.get('#post-search-input').clear().type(`fantastic-silk-knife{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`fantastic-silk-knife{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -323,28 +327,26 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 		it('Will require a sync when enabling Orders Autosuggest', () => {
 			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+			cy.contains('button', 'WooCommerce').click();
 
 			/**
 			 * Enable the feature.
 			 */
-			cy.get('.ep-feature-woocommerce .settings-button').click();
+			cy.contains('button', 'WooCommerce').click();
 
 			if (!isEpIo) {
-				cy.get('.ep-feature-woocommerce [name="settings[orders]"][value="1"]').should(
-					'be.disabled',
-				);
+				cy.get('.components-radio-control__input').first().should('be.disabled');
 				return;
 			}
 
-			cy.get('.ep-feature-woocommerce [name="settings[orders]"][value="1"]').click();
-			cy.get('.ep-feature-woocommerce .button-primary').click();
+			cy.get('.components-radio-control__input').first().click();
+			cy.contains('button', 'Save and sync now').click();
 
-			/**
-			 * Accept the prompt asking to sync.
-			 */
-			cy.on('window:confirm', () => {
-				return true;
-			});
+			cy.wait('@apiRequest');
+
+			cy.on('window:confirm', () => true);
 
 			/**
 			 * Syncing should complete.

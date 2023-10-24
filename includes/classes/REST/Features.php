@@ -8,7 +8,7 @@
 
 namespace ElasticPress\REST;
 
-use ElasticPress\IndexHelper;
+use ElasticPress\Features as FeaturesStore;
 use ElasticPress\Utils;
 
 /**
@@ -57,20 +57,19 @@ class Features {
 					continue;
 				}
 
-				$property = [ 'description' => $schema['label'] ];
+				$type     = $schema['type'] ?? '';
+				$property = [
+					'description' => $schema['label'],
+					'type'        => 'string',
+				];
 
-				switch ( $schema['type'] ) {
+				switch ( $type ) {
 					case 'select':
 					case 'radio':
 						$property['enum'] = array_map( fn( $o ) => $o['value'], $schema['options'] );
 						break;
 					case 'toggle':
 						$property['type'] = 'boolean';
-						break;
-					case 'checkbox':
-					case 'multiple':
-					default:
-						$property['type'] = 'string';
 						break;
 				}
 
@@ -88,7 +87,7 @@ class Features {
 	}
 
 	/**
-	 * Check that the request has permission to sync.
+	 * Check that the request has permission to save features.
 	 *
 	 * @return boolean
 	 */
@@ -99,12 +98,17 @@ class Features {
 	}
 
 	/**
-	 * Start or continue a sync.
+	 * Update features settings.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return void
 	 */
 	public function update_settings( \WP_REST_Request $request ) {
+		if ( Utils\is_indexing() ) {
+			wp_send_json_error( 'is_syncing', 400 );
+			exit;
+		}
+
 		$settings = [];
 
 		$features = \ElasticPress\Features::factory()->registered_features;
@@ -127,6 +131,8 @@ class Features {
 					$settings[ $slug ][ $key ] = $param[ $key ];
 				}
 			}
+
+			FeaturesStore::factory()->update_feature( $slug, $settings[ $slug ] );
 		}
 
 		Utils\update_option( 'ep_feature_settings', $settings );

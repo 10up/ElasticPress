@@ -28,7 +28,6 @@ const init = () => {
 			>
 				<Modal />
 			</ApiSearchProvider>,
-			el,
 		);
 	} else {
 		render(

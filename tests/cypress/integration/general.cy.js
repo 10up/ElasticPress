@@ -99,10 +99,12 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 	it('Cannot save settings while a sync is in progress', () => {
 		cy.login();
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
 		cy.wpCliEval(`update_option( 'ep_index_meta', [ 'indexing' => true ] );`).then(() => {
-			cy.get('.ep-feature-search .settings-button').click();
-			cy.get('.ep-feature-search .button-primary').click();
-			cy.get('.ep-feature-search .requirements-status-notice--syncing').should('be.visible');
+			cy.contains('button', 'Save changes').click();
+			cy.wait('@apiRequest');
+			cy.contains('.components-snackbar', 'Cannot save settings').should('be.visible');
 			cy.wpCliEval(`delete_option( 'ep_index_meta' );`);
 		});
 	});

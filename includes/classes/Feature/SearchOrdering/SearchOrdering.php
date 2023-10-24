@@ -54,11 +54,13 @@ class SearchOrdering extends Feature {
 
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
 
-		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
+		$this->summary = __( '<p>Insert specific posts into search results for specific search queries.</p><p>Selected posts will be inserted into search results in the specified position.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
 
 		$this->requires_install_reindex = false;
+
+		$this->requires_feature = 'search';
 
 		parent::__construct();
 	}
@@ -175,18 +177,8 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return FeatureRequirementsStatus
 	 */
-	public function requirements_status() {
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
-		return parent::requirements_status();
+	public function requirements_status() : FeatureRequirementsStatus {
+		return new FeatureRequirementsStatus( 0 );
 	}
 
 	/**

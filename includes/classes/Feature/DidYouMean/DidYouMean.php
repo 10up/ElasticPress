@@ -23,7 +23,7 @@ class DidYouMean extends Feature {
 
 		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
 
-		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results.', 'elasticpress' );
+		$this->summary = __( '<p>Recommend alternative search terms for misspelled queries or terms with no results.</p><p>"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean">this tutorial</a>.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean', 'elasticpress' );
 
@@ -35,7 +35,7 @@ class DidYouMean extends Feature {
 			'search_behavior' => '0',
 		];
 
-		$this->set_settings_schema();
+		$this->requires_feature = 'search';
 
 		parent::__construct();
 	}
@@ -224,13 +224,6 @@ class DidYouMean extends Feature {
 	 * Requires the search feature to be activated
 	 */
 	public function requirements_status() : FeatureRequirementsStatus {
-		$features = Features::factory();
-		$search   = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
 		return new FeatureRequirementsStatus( 1 );
 	}
 

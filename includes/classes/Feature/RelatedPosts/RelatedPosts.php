@@ -28,7 +28,7 @@ class RelatedPosts extends Feature {
 
 		$this->title = esc_html__( 'Related Posts', 'elasticpress' );
 
-		$this->summary = __( 'ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.', 'elasticpress' );
+		$this->summary = __( '<p>ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.</p><p>Output related content using our Widget or directly in your theme using our <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features#related-posts">API functions.</a></p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#related-posts', 'elasticpress' );
 

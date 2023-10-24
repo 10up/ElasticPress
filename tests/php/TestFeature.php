@@ -43,20 +43,23 @@ class TestFeature extends BaseTestCase {
 			'defaultSettings'   => [],
 			'order'             => 1,
 			'isAvailable'       => false, // Set by status code 2
+			'isPoweredByEpio'   => false,
+			'isVisible'         => true,
 			'reqStatusCode'     => 2,
-			'reqStatusMessages' => 'Testing',
+			'reqStatusMessages' => [ 'Testing' ],
 			'settingsSchema'    => [
 				[
-					'default'       => false,
-					'key'           => 'active',
-					'label'         => __( 'Enabled', 'elasticpress' ),
-					'requires_sync' => false,
-					'type'          => 'toggle',
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
 				],
 			],
 		];
 
-		$this->assertSame( wp_json_encode( $expected ), $stub->get_json() );
+		$this->assertSame( $expected, $stub->get_json() );
 	}
 
 	/**
@@ -79,11 +82,12 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => false,
-					'key'           => 'active',
-					'label'         => __( 'Enabled', 'elasticpress' ),
-					'requires_sync' => false,
-					'type'          => 'toggle',
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
 				],
 				[ 'key' => 'test_1' ],
 				[ 'key' => 'test_2' ],
@@ -113,11 +117,12 @@ class TestFeature extends BaseTestCase {
 		$this->assertSame(
 			[
 				[
-					'default'       => false,
-					'key'           => 'active',
-					'label'         => __( 'Enabled', 'elasticpress' ),
-					'requires_sync' => false,
-					'type'          => 'toggle',
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
 				],
 				[ 'key' => 'new_field' ],
 			],

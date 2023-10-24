@@ -40,11 +40,11 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
 
-		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
+		$this->summary = __( '<p>Suggest relevant content as text is entered into the search field.</p><p>Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
 
@@ -58,7 +58,7 @@ class Autosuggest extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->set_settings_schema();
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
 	}
@@ -826,21 +826,6 @@ class Autosuggest extends Feature {
 		}
 
 		return $allowed_params;
-	}
-
-	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Autosuggest', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Autosuggest By %s', 'elasticpress' ), $this->get_epio_logo() );
 	}
 
 	/**

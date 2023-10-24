@@ -8103,7 +8103,7 @@ class TestPost extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 			)
 		);
 
@@ -8241,7 +8241,7 @@ class TestPost extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 			)
 		);
 
@@ -8280,7 +8280,7 @@ class TestPost extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 			)
 		);
 
@@ -8318,8 +8318,8 @@ class TestPost extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
-				'highlight_excerpt' => true,
+				'highlight_enabled' => '1',
+				'highlight_excerpt' => '1',
 			)
 		);
 
@@ -8362,7 +8362,7 @@ class TestPost extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 			)
 		);
 

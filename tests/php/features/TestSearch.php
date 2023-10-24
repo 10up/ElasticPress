@@ -268,7 +268,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 				'highlight_tag'     => 'span',
 			)
 		);
@@ -298,7 +298,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 				'highlight_tag'     => 'div',
 			)
 		);
@@ -326,14 +326,14 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
-				'highlight_excerpt' => true,
+				'highlight_enabled' => '1',
+				'highlight_excerpt' => '1',
 			)
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( $settings['highlight_excerpt'] );
+		$this->assertSame( $settings['highlight_excerpt'], '1' );
 	}
 
 	/**
