@@ -338,7 +338,7 @@ class WooCommerce extends Feature {
 
 		$message = ( $available ) ?
 			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
-			__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable Orders Autosuggest to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
+			__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable autosuggest for Orders to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
 			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
 			__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
 
@@ -356,19 +356,9 @@ class WooCommerce extends Feature {
 				'disabled'      => ! $available,
 				'help'          => $message,
 				'key'           => 'orders',
-				'label'         => __( 'Orders Autosuggest', 'elasticpress' ),
-				'options'       => [
-					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
-					],
-					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
-					],
-				],
+				'label'         => __( 'Show suggestions when searching for Orders', 'elasticpress' ),
 				'requires_sync' => true,
-				'type'          => 'radio',
+				'type'          => 'checkbox',
 			],
 		];
 	}

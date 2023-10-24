@@ -1050,7 +1050,7 @@ class InstantResults extends Feature {
 		$this->settings_schema = [
 			[
 				'default' => 'mark',
-				'help'    => __( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ),
+				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
 				'key'     => 'highlight_tag',
 				'label'   => __( 'Highlight tag', 'elasticpress' ),
 				'options' => [
@@ -1090,16 +1090,15 @@ class InstantResults extends Feature {
 			],
 			[
 				'default' => 'all',
-				'help'    => __( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ),
 				'key'     => 'match_type',
-				'label'   => __( 'Match Type', 'elasticpress' ),
+				'label'   => __( 'Filter matching', 'elasticpress' ),
 				'options' => [
 					[
-						'label' => __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ),
+						'label' => __( 'Show results that match <strong>all</strong> selected filters', 'elasticpress' ),
 						'value' => 'all',
 					],
 					[
-						'label' => __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ),
+						'label' => __( 'Show results that match <strong>any</strong> selected filter', 'elasticpress' ),
 						'value' => 'any',
 					],
 				],
@@ -1107,20 +1106,10 @@ class InstantResults extends Feature {
 			],
 			[
 				'default' => '1',
-				'help'    => __( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ),
+				'help'    => __( 'Enable to show the number of matching results next to filter options.', 'elasticpress' ),
 				'key'     => 'term_count',
-				'label'   => __( 'Term Count', 'elasticpress' ),
-				'options' => [
-					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
-					],
-					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
-					],
-				],
-				'type'    => 'radio',
+				'label'   => __( 'Show filter counts', 'elasticpress' ),
+				'type'    => 'checkbox',
 			],
 			[
 				'default' => get_option( 'posts_per_page', 6 ),
