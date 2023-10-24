@@ -71,10 +71,16 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 		}
 
 		switch (trigger) {
+			case 'features':
+				return __('Automatic sync after settings change.', 'elasticpress');
+			case 'install':
+				return __('Automatic sync after installation.', 'elasticpress');
 			case 'manual':
-			default: {
 				return __('Manual sync from Sync Settings.', 'elasticpress');
-			}
+			case 'upgrade':
+				return __('Automatic sync after plugin update.', 'elasticpress');
+			default:
+				return null;
 		}
 	}, [method, trigger]);
 
@@ -101,7 +107,16 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 		>
 			<Icon icon={isError ? error : success} />
 			<div className="ep-previous-sync__title">
-				{when} &mdash; {why}
+				{why
+					? sprintf(
+							/* translators: %1$s Sync date and time. %2%s sync trigger. */ __(
+								'%1$s — %2$s',
+								'elasticpress',
+							),
+							when,
+							why,
+					  )
+					: when}
 			</div>
 			<div className="ep-previous-sync__help">{how}</div>
 		</div>

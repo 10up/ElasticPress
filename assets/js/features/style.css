@@ -72,6 +72,10 @@
 .ep-dashboard-control {
 	margin-bottom: 24px;
 	margin-top: 24px;
+
+	& .components-base-control__help code {
+		font-size: inherit;
+	}
 }
 
 .ep-dashboard-heading {

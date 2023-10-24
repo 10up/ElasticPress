@@ -28,6 +28,7 @@ class EP_Uninstaller {
 		'ep_host',
 		'ep_index_meta',
 		'ep_feature_settings',
+		'ep_feature_settings_draft',
 		'ep_version',
 		'ep_intro_shown',
 		'ep_last_sync',

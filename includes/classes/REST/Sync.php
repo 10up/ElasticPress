@@ -102,6 +102,10 @@ class Sync {
 				'type'        => 'boolean',
 				'required'    => false,
 			],
+			'trigger'               => [
+				'enum'     => [ 'features', 'install', 'manual', 'upgrade' ],
+				'required' => false,
+			],
 			'upper_limit_object_id' => [
 				'description' => __( 'End of object ID range to sync.', 'elasticpress' ),
 				'type'        => 'integer',

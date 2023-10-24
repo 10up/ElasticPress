@@ -584,7 +584,7 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
 			cy.contains('button', 'Filters').click();
-			cy.contains('label', 'Show all content tagged to any selected term').click();
+			cy.contains('label', 'Show results that match any selected filter').click();
 			cy.contains('button', 'Save changes').click();
 
 			cy.wait('@apiRequest');

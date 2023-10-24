@@ -670,15 +670,14 @@ class Facets extends Feature {
 	protected function set_settings_schema() {
 		$this->settings_schema[] = [
 			'key'     => 'match_type',
-			'label'   => __( 'Match Type', 'elasticpress' ),
-			'help'    => __( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ),
+			'label'   => __( 'Filter matching', 'elasticpress' ),
 			'options' => [
 				[
-					'label' => __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ),
+					'label' => __( 'Show results that match <strong>all</strong> selected filters', 'elasticpress' ),
 					'value' => 'all',
 				],
 				[
-					'label' => __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ),
+					'label' => __( 'Show results that match <strong>any</strong> selected filter', 'elasticpress' ),
 					'value' => 'any',
 				],
 			],

@@ -8,6 +8,7 @@
 
 namespace ElasticPress\Screen;
 
+use ElasticPress\Features as FeaturesStore;
 use ElasticPress\REST;
 use ElasticPress\Screen;
 use ElasticPress\Utils;
@@ -59,7 +60,9 @@ class Features {
 			Utils\get_asset_info( 'features-script', 'version' )
 		);
 
-		$features = \ElasticPress\Features::factory()->registered_features;
+		$store = FeaturesStore::factory();
+
+		$features = $store->registered_features;
 		$features = array_map( fn( $f ) => $f->get_json(), $features );
 		$features = array_values( $features );
 
@@ -68,12 +71,13 @@ class Features {
 				admin_url( 'admin.php?page=elasticpress-sync' );
 
 		$data = [
-			'apiUrl'      => rest_url( 'elasticpress/v1/features' ),
-			'epioLogoUrl' => esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ),
-			'features'    => $features,
-			'indexMeta'   => Utils\get_indexing_status(),
-			'settings'    => Utils\get_option( 'ep_feature_settings', [] ),
-			'syncUrl'     => $sync_url,
+			'apiUrl'        => rest_url( 'elasticpress/v1/features' ),
+			'epioLogoUrl'   => esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ),
+			'features'      => $features,
+			'indexMeta'     => Utils\get_indexing_status(),
+			'settings'      => $store->get_feature_settings(),
+			'settingsDraft' => $store->get_feature_settings_draft(),
+			'syncUrl'       => $sync_url,
 		];
 
 		wp_localize_script( 'ep_features_script', 'epDashboard', $data );

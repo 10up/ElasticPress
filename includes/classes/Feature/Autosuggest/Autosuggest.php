@@ -882,16 +882,17 @@ class Autosuggest extends Feature {
 		$this->settings_schema = [
 			[
 				'default' => '.ep-autosuggest',
-				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>', 'elasticpress' ),
 				'key'     => 'autosuggest_selector',
-				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
+				'label'   => __( 'Additional selectors', 'elasticpress' ),
 				'type'    => 'text',
 			],
 			[
-				'key'   => 'trigger_ga_event',
-				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
-				'label' => __( 'Google Analytics Events', 'elasticpress' ),
-				'type'  => 'checkbox',
+				'default' => '0',
+				'key'     => 'trigger_ga_event',
+				'help'    => __( 'Enable to fire a gtag tracking event when an autosuggest result is clicked.', 'elasticpress' ),
+				'label'   => __( 'Trigger Google Analytics events', 'elasticpress' ),
+				'type'    => 'checkbox',
 			],
 		];
 
