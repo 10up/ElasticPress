@@ -381,15 +381,18 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 */
 	public function test_feature_setting_applied_after_sync() {
-		$settings         = Features::factory()->get_feature_settings();
-		$settings['test'] = [
+		Features::factory()->register_feature(
+			new FeatureTest()
+		);
+
+		$test_settings = [
 			'active'  => '1',
 			'field_1' => '1',
 			'field_2' => '1',
 			'field_3' => '1',
 		];
 
-		Features::factory()->save_feature_settings_draft( $settings );
+		Features::factory()->update_feature( 'test', $test_settings, true, 'draft' );
 
 		$wp_cli = new \ElasticPress\Command();
 

@@ -157,9 +157,9 @@ class Features {
 						];
 					}
 				}
-
-				FeaturesStore::factory()->update_feature( $slug, $new_settings[ $slug ], true, 'draft' );
 			}
+
+			FeaturesStore::factory()->update_feature( $slug, $new_settings[ $slug ], true, 'draft' );
 		}
 
 		foreach ( $settings_that_requires_features as $feature => $fields ) {

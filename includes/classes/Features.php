@@ -349,16 +349,6 @@ class Features {
 	}
 
 	/**
-	 * Update features settings draft
-	 *
-	 * @since 5.0.0
-	 * @param array $settings_draft New settings draft
-	 */
-	public function save_feature_settings_draft( array $settings_draft ) {
-		Utils\update_option( 'ep_feature_settings_draft', $settings_draft );
-	}
-
-	/**
 	 * Apply settings draft (if present)
 	 *
 	 * @since 5.0.0
