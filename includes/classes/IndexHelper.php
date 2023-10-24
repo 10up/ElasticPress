@@ -91,6 +91,8 @@ class IndexHelper {
 		// For the dashboard, this will be called and exit the script until the queue is empty again.
 		$this->flush_messages_queue();
 
+		$this->maybe_apply_feature_settings();
+
 		while ( $this->has_items_to_be_processed() ) {
 			$this->process_sync_item();
 		}
@@ -1508,6 +1510,19 @@ class IndexHelper {
 			}
 		}
 		return $errors_list;
+	}
+
+	/**
+	 * If this is a full sync, apply the draft feature settings
+	 *
+	 * @since 5.0.0
+	 */
+	protected function maybe_apply_feature_settings() {
+		if ( ! $this->index_meta['put_mapping'] ) {
+			return;
+		}
+
+		Features::factory()->apply_draft_feature_settings();
 	}
 
 	/**

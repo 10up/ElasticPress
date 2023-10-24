@@ -118,7 +118,13 @@ class Features {
 		$saved_settings   = Utils\get_option( 'ep_feature_settings', [] );
 		$feature_settings = isset( $saved_settings[ $slug ] ) ? $saved_settings[ $slug ] : [ 'force_inactive' => false ];
 
-		$new_feature_settings = wp_parse_args( $feature->default_settings, [ 'force_inactive' => false ] );
+		$new_feature_settings = wp_parse_args(
+			$feature->default_settings,
+			[
+				'active'         => false,
+				'force_inactive' => false,
+			]
+		);
 		$new_feature_settings = wp_parse_args( $feature_settings, $new_feature_settings );
 		$new_feature_settings = wp_parse_args( $settings, $new_feature_settings );
 
@@ -314,6 +320,51 @@ class Features {
 				$feature->setup();
 			}
 		}
+	}
+
+	/**
+	 * Return currnt features settings
+	 *
+	 * @since 5.0.0
+	 * @return false|array
+	 */
+	public function get_feature_settings() {
+		return Utils\get_option( 'ep_feature_settings', false );
+	}
+
+	/**
+	 * Get features settings draft
+	 *
+	 * @since 5.0.0
+	 * @return false|array
+	 */
+	public function get_feature_settings_draft() {
+		return Utils\get_option( 'ep_feature_settings_draft', false );
+	}
+
+	/**
+	 * Update features settings draft
+	 *
+	 * @since 5.0.0
+	 * @param array $settings_draft New settings draft
+	 */
+	public function save_feature_settings_draft( array $settings_draft ) {
+		Utils\update_option( 'ep_feature_settings_draft', $settings_draft );
+	}
+
+	/**
+	 * Apply settings draft (if present)
+	 *
+	 * @since 5.0.0
+	 */
+	public function apply_draft_feature_settings() {
+		$draft_settings = Utils\get_option( 'ep_feature_settings_draft', false );
+		if ( ! $draft_settings ) {
+			return;
+		}
+
+		Utils\update_option( 'ep_feature_settings', $draft_settings );
+		Utils\delete_option( 'ep_feature_settings_draft' );
 	}
 
 	/**
