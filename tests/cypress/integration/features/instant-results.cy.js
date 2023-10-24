@@ -246,6 +246,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 				cy.get('.wp-block-search').last().as('searchBlock');
 				cy.get('@searchBlock').find('button').click();
+				cy.get('.ep-search-modal').should('be.visible');
 				cy.screenshot('instant-results-modal');
 				cy.get('body').type('{esc}');
 
