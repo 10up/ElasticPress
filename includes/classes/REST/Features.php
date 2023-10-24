@@ -157,6 +157,8 @@ class Features {
 						];
 					}
 				}
+
+				FeaturesStore::factory()->update_feature( $slug, $new_settings[ $slug ], true, 'draft' );
 			}
 		}
 
@@ -171,8 +173,6 @@ class Features {
 		foreach ( $current_settings as $slug => $feature ) {
 			FeaturesStore::factory()->update_feature( $slug, $feature );
 		}
-
-		FeaturesStore::factory()->save_feature_settings_draft( $new_settings );
 
 		return [
 			'data'    => $current_settings,

@@ -363,11 +363,12 @@ class TestFeatureActivation extends BaseTestCase {
 		$draft_settings = Features::factory()->get_feature_settings_draft();
 		$this->assertSame(
 			[
-				'active'  => '1',
-				'field_1' => '1',
-				'field_2' => '1',
-				'field_3' => '1',
-				'field_4' => '1',
+				'active'         => true,
+				'force_inactive' => false,
+				'field_1'        => '1',
+				'field_2'        => '1',
+				'field_3'        => '1',
+				'field_4'        => '1',
 			],
 			$draft_settings['test']
 		);
