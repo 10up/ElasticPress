@@ -56,7 +56,7 @@ export default () => {
 					return <PostType key={key} postType={key} />;
 				})}
 				<Button disabled={isBusy} isBusy={isBusy} isPrimary type="submit" variant="primary">
-					{__('Save Changes', 'elasticpress')}
+					{__('Save changes', 'elasticpress')}
 				</Button>
 			</form>
 		</>
