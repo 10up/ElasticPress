@@ -884,7 +884,7 @@ class Autosuggest extends Feature {
 				'default' => '.ep-autosuggest',
 				'help'    => __( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>', 'elasticpress' ),
 				'key'     => 'autosuggest_selector',
-				'label'   => __( 'Additional Selectors', 'elasticpress' ),
+				'label'   => __( 'Additional selectors', 'elasticpress' ),
 				'type'    => 'text',
 			],
 			[
