@@ -341,7 +341,11 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 				return;
 			}
 
-			cy.get('.components-radio-control__input').first().click();
+			cy.contains('label', 'Show suggestions')
+				.closest('.components-base-control')
+				.find('input')
+				.check();
+
 			cy.contains('button', 'Save and sync now').click();
 
 			cy.wait('@apiRequest');
