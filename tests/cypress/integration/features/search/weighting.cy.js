@@ -260,7 +260,6 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		 * Update the weighting so the meta field is weighted higher.
 		 */
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
-		cy.get('.components-panel__body-title').contains('Metadata').should('exist');
 		cy.get('.components-panel__header')
 			.contains('Posts')
 			.closest('.components-panel')
@@ -270,6 +269,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 			.closest('fieldset')
 			.find('input[type="number"]')
 			.clearThenType(1);
+		cy.get('@panel').find('button').contains('Metadata').click();
 		cy.get('@panel')
 			.find('fieldset')
 			.contains('_my_custom_field')
@@ -307,12 +307,12 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		cy.get('.components-panel__body-title').contains('Metadata').should('not.exist');
 
 		/**
-		 * With automatic meta management the post with a value in a public key
+		 * With automatic meta management the post with a value in content
 		 * should be returned, but the post with the value in a protected key
 		 * should not be.
 		 */
 		cy.visit('/?s=abc123');
 		cy.get('.entry-title').contains('Test meta weighting, post content').should('exist');
-		cy.get('.entry-title').contains('Test meta weighting, post meta').should('exist');
+		cy.get('.entry-title').contains('Test meta weighting, post meta').should('not.exist');
 	});
 });
