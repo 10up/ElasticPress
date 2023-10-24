@@ -136,8 +136,8 @@ class Features {
 				if ( isset( $param[ $key ] ) ) {
 					$new_settings[ $slug ][ $key ] = $param[ $key ];
 
-					// Only apply to the current settings if does not require a sync
-					if ( ! empty( $schema['requires_sync'] ) ) {
+					// Only apply to the current settings if does not require a sync or if it is activating it
+					if ( ! empty( $schema['requires_sync'] ) && ! empty( $param[ $key ] ) ) {
 						continue;
 					}
 
