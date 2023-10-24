@@ -841,38 +841,36 @@ class Search extends Feature {
 			[
 				'default' => '1',
 				'key'     => 'decaying_enabled',
-				'label'   => __( 'Weight results by date', 'elasticpress' ),
+				'label'   => __( 'Weighting by date', 'elasticpress' ),
 				'options' => [
 					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
+						'label' => __( 'Don\'t weight results by date', 'elasticpress' ),
+						'value' => '0',
 					],
 					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
+						'label' => __( 'Weight results by date', 'elasticpress' ),
+						'value' => '1',
 					],
 				],
 				'type'    => 'radio',
 			],
 			[
 				'default' => '0',
-				'help'    => __( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ),
+				'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.' ),
 				'key'     => 'highlight_enabled',
-				'label'   => __( 'Highlighting status', 'elasticpress' ),
-				'options' => [
-					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
-					],
-					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
-					],
-				],
-				'type'    => 'radio',
+				'label'   => __( 'Highlight search terms', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
+				'key'     => 'highlight_excerpt',
+				'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
+				'type'    => 'checkbox',
 			],
 			[
 				'default' => 'mark',
+				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
 				'key'     => 'highlight_tag',
 				'label'   => __( 'Highlight tag', 'elasticpress' ),
 				'options' => [
@@ -902,23 +900,6 @@ class Search extends Feature {
 					],
 				],
 				'type'    => 'select',
-			],
-			[
-				'default' => '0',
-				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results.', 'elasticpress' ),
-				'key'     => 'highlight_excerpt',
-				'label'   => __( 'Excerpt highlighting', 'elasticpress' ),
-				'options' => [
-					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
-					],
-					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
-					],
-				],
-				'type'    => 'radio',
 			],
 			[
 				'default' => 'simple',

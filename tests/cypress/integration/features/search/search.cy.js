@@ -112,7 +112,7 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
 		cy.contains('button', 'Post Search').click();
-		cy.get('.components-radio-control__input').eq(2).click();
+		cy.contains('label', 'Weight results by date').click();
 		cy.contains('button', 'Save changes').click();
 
 		cy.publishPost({
