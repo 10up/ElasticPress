@@ -173,6 +173,10 @@ export default ({ group, postType }) => {
 			{isMetadata ? (
 				<PanelRow className="ep-weighting-add-new">
 					<TextControl
+						help={__(
+							'Make sure to Sync after adding new fields to ensure that the fields are synced for any existing content that uses them.',
+							'elasticpress',
+						)}
 						label={__('Add field', 'elasticpress')}
 						onChange={(toAdd) => setToAdd(toAdd)}
 						onKeyDown={onKeyDown}
