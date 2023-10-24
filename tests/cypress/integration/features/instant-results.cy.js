@@ -232,6 +232,9 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('.components-form-token-field__input').type(
 					'{backspace}{backspace}{backspace}price{downArrow}{enter}{esc}',
 				);
+
+				cy.screenshot('instant-results-facets');
+
 				cy.contains('button', 'Save changes').click();
 
 				cy.wait('@apiRequest');
@@ -240,8 +243,13 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Perform a search.
 				 */
 				cy.visit('/');
-				cy.intercept('*search=ergonomic*').as('apiRequest');
+
 				cy.get('.wp-block-search').last().as('searchBlock');
+				cy.get('@searchBlock').find('button').click();
+				cy.screenshot('instant-results-modal');
+				cy.get('body').type('{esc}');
+
+				cy.intercept('*search=ergonomic*').as('apiRequest');
 				cy.get('@searchBlock').find('input[type="search"]').type('ergonomic');
 				cy.get('@searchBlock').find('button').click();
 				cy.get('.ep-search-modal').should('be.visible');
