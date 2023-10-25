@@ -40,11 +40,11 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
 
-		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
+		$this->summary = __( '<p>Suggest relevant content as text is entered into the search field.</p><p>Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
 
@@ -58,7 +58,7 @@ class Autosuggest extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->set_settings_schema();
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
 	}
@@ -829,21 +829,6 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Autosuggest', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Autosuggest By %s', 'elasticpress' ), $this->get_epio_logo() );
-	}
-
-	/**
 	 * Return true, so EP knows we want to intercept the remote request
 	 *
 	 * As we add and remove this function from `ep_intercept_remote_request`,
@@ -897,16 +882,17 @@ class Autosuggest extends Feature {
 		$this->settings_schema = [
 			[
 				'default' => '.ep-autosuggest',
-				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>', 'elasticpress' ),
 				'key'     => 'autosuggest_selector',
-				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
+				'label'   => __( 'Additional selectors', 'elasticpress' ),
 				'type'    => 'text',
 			],
 			[
-				'key'   => 'trigger_ga_event',
-				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
-				'label' => __( 'Google Analytics Events', 'elasticpress' ),
-				'type'  => 'checkbox',
+				'default' => '0',
+				'key'     => 'trigger_ga_event',
+				'help'    => __( 'Enable to fire a gtag tracking event when an autosuggest result is clicked.', 'elasticpress' ),
+				'label'   => __( 'Trigger Google Analytics events', 'elasticpress' ),
+				'type'    => 'checkbox',
 			],
 		];
 

@@ -69,7 +69,7 @@ export default () => {
 		const { put_mapping } = args;
 
 		const putMapping = syncHistory.length ? put_mapping : true;
-		const syncArgs = { ...args, put_mapping: putMapping };
+		const syncArgs = { ...args, put_mapping: putMapping, trigger: 'manual' };
 
 		startSync(syncArgs);
 		logMessage(__('Starting sync…', 'elasticpress'), 'info');

@@ -469,13 +469,39 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
+	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
+
+		wp_enqueue_style(
+			'ep_weighting_styles',
+			EP_URL . 'dist/css/weighting-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'weighting-script', 'version' )
+		);
+
 		wp_enqueue_script(
 			'ep_weighting_script',
 			EP_URL . 'dist/js/weighting-script.js',
 			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
+		);
+
+		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
+
+		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
+		$meta_mode               = $weighting->get_meta_mode();
+		$weightable_fields       = $weighting->get_weightable_fields();
+		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
+
+		wp_localize_script(
+			'ep_weighting_script',
+			'epWeighting',
+			array(
+				'apiUrl'                 => $api_url,
+				'metaMode'               => $meta_mode,
+				'weightableFields'       => $weightable_fields,
+				'weightingConfiguration' => $weighting_configuration,
+			)
 		);
 
 		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );

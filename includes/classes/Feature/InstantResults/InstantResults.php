@@ -67,11 +67,11 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
 
-		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
+		$this->summary = __( '<p>Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.</p><p>WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.</p><p>Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#instant-results', 'elasticpress' );
 
@@ -96,7 +96,7 @@ class InstantResults extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->set_settings_schema();
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
 	}
@@ -1040,21 +1040,6 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Instant Results', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
-	}
-
-	/**
 	 * Set the `settings_schema` attribute
 	 *
 	 * @since 5.0.0
@@ -1065,7 +1050,7 @@ class InstantResults extends Feature {
 		$this->settings_schema = [
 			[
 				'default' => 'mark',
-				'help'    => __( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ),
+				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
 				'key'     => 'highlight_tag',
 				'label'   => __( 'Highlight tag', 'elasticpress' ),
 				'options' => [
@@ -1105,16 +1090,15 @@ class InstantResults extends Feature {
 			],
 			[
 				'default' => 'all',
-				'help'    => __( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ),
 				'key'     => 'match_type',
-				'label'   => __( 'Match Type', 'elasticpress' ),
+				'label'   => __( 'Filter matching', 'elasticpress' ),
 				'options' => [
 					[
-						'label' => __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ),
+						'label' => __( 'Show results that match <strong>all</strong> selected filters', 'elasticpress' ),
 						'value' => 'all',
 					],
 					[
-						'label' => __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ),
+						'label' => __( 'Show results that match <strong>any</strong> selected filter', 'elasticpress' ),
 						'value' => 'any',
 					],
 				],
@@ -1122,20 +1106,10 @@ class InstantResults extends Feature {
 			],
 			[
 				'default' => '1',
-				'help'    => __( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ),
+				'help'    => __( 'Enable to show the number of matching results next to filter options.', 'elasticpress' ),
 				'key'     => 'term_count',
-				'label'   => __( 'Term Count', 'elasticpress' ),
-				'options' => [
-					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
-					],
-					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
-					],
-				],
-				'type'    => 'radio',
+				'label'   => __( 'Show filter counts', 'elasticpress' ),
+				'type'    => 'checkbox',
 			],
 			[
 				'default' => get_option( 'posts_per_page', 6 ),

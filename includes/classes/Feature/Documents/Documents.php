@@ -27,7 +27,7 @@ class Documents extends Feature {
 
 		$this->title = esc_html__( 'Documents', 'elasticpress' );
 
-		$this->summary = __( 'Indexes text inside of popular file types, and adds those files types to search results.', 'elasticpress' );
+		$this->summary = __( '<p>Indexes text inside of popular file types, and adds those files types to search results.</p><p>Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.</p>', 'elasticpress' );
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#documents', 'elasticpress' );
 

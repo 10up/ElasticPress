@@ -562,6 +562,13 @@ class TestAdminNotices extends BaseTestCase {
 	 */
 	public function testTooManyFieldsNoticeInAdmin() {
 		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function( $allowed_metakeys ) {
+				return array_merge( $allowed_metakeys, [ 'meta_key_1', 'meta_key_2', 'meta_key_3', 'meta_key_4' ] );
+			}
+		);
+
+		add_filter(
 			'ep_total_field_limit',
 			function() {
 				return 24;

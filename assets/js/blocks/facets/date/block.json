@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "elasticpress/facet-date",
+  "title": "Filter by Post Date",
+  "category": "elasticpress",
+  "description": "Let visitors filter your content by post date.",
+  "keywords": ["custom date", "facets"],
+  "textdomain": "elasticpress",
+  "attributes": {
+    "displayCustomDate": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "supports": {
+    "color": {
+      "background": true,
+      "link": true,
+      "text": false
+    },
+    "html": false,
+    "position": {
+      "sticky": true
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    }
+  },
+  "editorScript": "ep-facets-date-block-script",
+  "viewScript": "ep-facets-date-block-view-script",
+  "style": "elasticpress-facets"
+}

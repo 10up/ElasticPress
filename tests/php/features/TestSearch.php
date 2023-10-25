@@ -268,7 +268,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 				'highlight_tag'     => 'span',
 			)
 		);
@@ -298,7 +298,7 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
+				'highlight_enabled' => '1',
 				'highlight_tag'     => 'div',
 			)
 		);
@@ -326,14 +326,14 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
-				'highlight_excerpt' => true,
+				'highlight_enabled' => '1',
+				'highlight_excerpt' => '1',
 			)
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( $settings['highlight_excerpt'] );
+		$this->assertSame( $settings['highlight_excerpt'], '1' );
 	}
 
 	/**
@@ -347,7 +347,7 @@ class TestSearch extends BaseTestCase {
 
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
-		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_tag', 'highlight_excerpt', 'synonyms_editor_mode' ];
+		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_excerpt', 'highlight_tag', 'synonyms_editor_mode' ];
 		if ( ! is_multisite() ) {
 			$expected[] = 'additional_links';
 		}

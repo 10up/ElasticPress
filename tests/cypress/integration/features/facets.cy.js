@@ -19,6 +19,31 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				wp_delete_post( $post, true );
 			}
 		`);
+
+		cy.updateWeighting();
+
+		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
+
+		cy.intercept('/wp-json/elasticpress/v1/weighting*').as('apiRequest');
+		cy.contains('h2', 'Posts').closest('.components-panel').as('postsPanel');
+
+		cy.get('@postsPanel').contains('button', 'Metadata').click();
+
+		cy.get('@postsPanel').find('input[type="text"]').as('metaInput');
+		cy.get('@postsPanel').contains('button', 'Add').as('metaAdd');
+
+		cy.get('@metaInput').clearThenType('meta_field_1');
+		cy.get('@metaAdd').click();
+		cy.get('@metaInput').clearThenType('meta_field_2');
+		cy.get('@metaAdd').click();
+		cy.get('@metaInput').clearThenType('numeric_meta_field');
+		cy.get('@metaAdd').click();
+		cy.get('@metaInput').clearThenType('non_numeric_meta_field');
+		cy.get('@metaAdd').click();
+
+		cy.contains('button', 'Save changes').click();
+
+		cy.wait('@apiRequest');
 	});
 
 	/**
@@ -556,9 +581,13 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 * When Match Type is "any", all options need to be clickable
 			 */
 			cy.visitAdminPage('admin.php?page=elasticpress');
-			cy.get('.ep-feature-facets .settings-button').click();
-			cy.get('input[name="settings[match_type]"][value="any"]').check();
-			cy.get('.ep-feature-facets .button-primary').click();
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+			cy.contains('button', 'Filters').click();
+			cy.contains('label', 'Show results that match any selected filter').click();
+			cy.contains('button', 'Save changes').click();
+
+			cy.wait('@apiRequest');
 
 			cy.visit('/');
 			cy.get('@secondBlock').contains('.term', 'Meta Value (2) - 20').click();
@@ -857,6 +886,129 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('@firstBlock').contains('.term', 'Post').click();
 			cy.url().should('not.include', 'ep_post_type_filter=post');
+		});
+	});
+
+	describe('Facet by Date', () => {
+		it('Can insert, configure, and use the Facet by Date block', () => {
+			/**
+			 * Insert a Facet block.
+			 */
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+			cy.getBlocksList().should('contain.text', 'Filter by Post Date');
+			cy.insertBlock('Filter by Post Date');
+			cy.get('.wp-block.wp-block-elasticpress-facet-date').last().as('block');
+
+			/**
+			 * Verify that there are 4 options
+			 */
+			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 4);
+
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+
+			/**
+			 * Test that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors(true);
+			cy.get('@block').supportsBlockTypography(true);
+			cy.get('@block').supportsBlockDimensions(true);
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@sidebarsRest');
+			cy.visit('/');
+
+			/**
+			 * Verify the blocks have the expected output on the front-end.
+			 */
+			cy.get('.wp-block-elasticpress-facet-date').first().as('block');
+
+			cy.get('@block')
+				.find('.ep-facet-date-form .ep-facet-date-option')
+				.should('have.length', 4);
+
+			cy.get('@block')
+				.find('.ep-facet-date-form__action-submit')
+				.should('exist')
+				.contains('Filter');
+
+			/**
+			 * Verify that the block supports changing styles.
+			 */
+			cy.get('@block').supportsBlockColors();
+			cy.get('@block').supportsBlockTypography();
+			cy.get('@block').supportsBlockDimensions();
+
+			/**
+			 * Selecting the last 3 months option should lead to the correct URL, mark the correct
+			 */
+			cy.get('@block').find('.ep-facet-date-option label').first().click();
+			cy.get('@block').find('.wp-element-button').click();
+
+			cy.url().should('include', 'ep_date_filter=last-3-months');
+			cy.get('@block')
+				.find('.ep-facet-date-option')
+				.first()
+				.find('input')
+				.should('be.checked');
+
+			/**
+			 * Verify the custom date range
+			 */
+			cy.get('@block').find('.ep-facet-date-option').last().find('label').click();
+
+			cy.get('@block').find("[name='ep_date_filter_from']").type('2023-01-01');
+			cy.get('@block').find("[name='ep_date_filter_to']").type('2023-12-31');
+			cy.get('@block').find('.wp-element-button').click();
+			cy.url().should('include', 'ep_date_filter=2023-01-01,2023-12-31');
+
+			/**
+			 * Clear filter
+			 */
+			cy.get('@block').find('.ep-facet-date-form__action-clear').click();
+			cy.url().should('not.include', 'ep_date_filter');
+
+			cy.openWidgetsPage();
+			cy.openBlockInserter();
+
+			/**
+			 * Unselect the Custom Date option
+			 */
+			cy.get('@block').click();
+			cy.openBlockSettingsSidebar();
+			cy.get('.block-editor-block-inspector input[type="checkbox"]').uncheck();
+			cy.intercept('/wp-json/wp/v2/block-renderer/elasticpress/facet-date*').as(
+				'blockPreview',
+			);
+			cy.wait('@blockPreview');
+
+			cy.get('.ep-facet-date-form .ep-facet-date-option').should('have.length', 3);
+
+			/**
+			 * Save widgets and visit the front page.
+			 */
+			cy.intercept('/wp-json/wp/v2/widgets*').as('widgetsRest');
+			cy.get('.edit-widgets-header__actions button').contains('Update').click();
+			cy.wait('@widgetsRest');
+			cy.visit('/');
+
+			/**
+			 * Click on the last option and check its last-12-months.
+			 */
+			cy.get('@block').find('.ep-facet-date-option label').last().click();
+			cy.get('@block').find('.wp-element-button').click();
+
+			cy.url().should('include', 'ep_date_filter=last-12-months');
+			cy.get('@block')
+				.find('.ep-facet-date-option')
+				.last()
+				.find('input')
+				.should('be.checked');
 		});
 	});
 });

@@ -7,9 +7,9 @@ import classnames from 'classnames';
  * WordPress dependencies.
  */
 import { Icon } from '@wordpress/components';
-import { useMemo, WPElement } from '@wordpress/element';
+import { createInterpolateElement, useMemo, WPElement } from '@wordpress/element';
 import { dateI18n } from '@wordpress/date';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { update } from '@wordpress/icons';
 
 /**
@@ -23,8 +23,16 @@ import { useSync } from '../../sync';
  * @returns {WPElement} Component.
  */
 export default () => {
-	const { isCli, isComplete, isFailed, isPaused, itemsProcessed, itemsTotal, syncStartDateTime } =
-		useSync();
+	const {
+		isCli,
+		isComplete,
+		isFailed,
+		isPaused,
+		itemsProcessed,
+		itemsTotal,
+		syncStartDateTime,
+		syncTrigger,
+	} = useSync();
 
 	/**
 	 * Sync progress label.
@@ -59,6 +67,43 @@ export default () => {
 
 	const now = itemsTotal ? Math.floor((itemsProcessed / itemsTotal) * 100) : 100;
 
+	const why = useMemo(() => {
+		if (isCli) {
+			/* translators: %1$s Sync start date and time. */
+			return __('Started manually from WP CLI at <time>%s</time>.', 'elasticpress');
+		}
+
+		switch (syncTrigger) {
+			case 'features':
+				/* translators: %1$s Sync start date and time. */
+				return __(
+					'Started automatically after a change to feature settings at <time>%s</time>.',
+					'elasticpress',
+				);
+			case 'install':
+				/* translators: %1$s Sync start date and time. */
+				return __(
+					'Started automatically after installing the ElasticPress plugin at <time>%s</time>.',
+					'elasticpress',
+				);
+			case 'manual':
+				/* translators: %1$s Sync start date and time. */
+				return __(
+					'Started manually from the Sync page at <time>%s</time>.',
+					'elasticpress',
+				);
+			case 'upgrade':
+				/* translators: %1$s Sync start date and time. */
+				return __(
+					'Started automatically after updating the ElasticPress plugin at <time>%s</time>.',
+					'elasticpress',
+				);
+			default:
+				/* translators: %1$s Sync start date and time. */
+				return __('Started on <time>%s</time>.', 'elasticpress');
+		}
+	}, [isCli, syncTrigger]);
+
 	return (
 		<div
 			className={classnames('ep-sync-progress', {
@@ -68,14 +113,14 @@ export default () => {
 			<Icon icon={update} />
 			<div className="ep-sync-progress__details">
 				<strong>{label}</strong>
-				{syncStartDateTime ? (
-					<>
-						{__('Started on', 'elasticpress')}{' '}
-						<time dateTime={dateI18n('c', syncStartDateTime)}>
-							{dateI18n('D, F d, Y H:i', syncStartDateTime)}
-						</time>
-					</>
-				) : null}
+				{syncStartDateTime
+					? createInterpolateElement(
+							sprintf(why, dateI18n('g:ia l F jS, Y', syncStartDateTime)),
+							{
+								time: <time dateTime={dateI18n('c', syncStartDateTime)} />,
+							},
+					  )
+					: null}
 			</div>
 			<div className="ep-sync-progress__progress-bar">
 				<div
