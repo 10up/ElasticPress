@@ -2491,26 +2491,35 @@ class Post extends Indexable {
 	 */
 	protected function filter_allowed_metas_manual( $metas, $post ) {
 		$filtered_metas = [];
+		$search_feature = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
-		$weighting = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->get_weighting_configuration_with_defaults();
-		if ( empty( $post->post_type ) || empty( $weighting[ $post->post_type ] ) ) {
+		if ( empty( $post->post_type ) ) {
+			return $filtered_metas;
+		}
+
+		$weighting     = $search_feature->weighting->get_weighting_configuration_with_defaults();
+		$is_searchable = in_array( $search_feature, $search_feature->get_searchable_post_types(), true );
+		if ( empty( $weighting[ $post->post_type ] ) && $is_searchable ) {
 			return $filtered_metas;
 		}
 
 		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
 		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
 
-		$selected_keys = array_map(
-			function ( $field ) {
-				if ( false === strpos( $field, 'meta.' ) ) {
-					return null;
-				}
-				$field_name_parts = explode( '.', $field );
-				return $field_name_parts[1];
-			},
-			array_keys( $weighting[ $post->post_type ] )
-		);
-		$selected_keys = array_filter( $selected_keys );
+		$selected_keys = [];
+		if ( ! empty( $weighting[ $post->post_type ] ) ) {
+			$selected_keys = array_map(
+				function ( $field ) {
+					if ( false === strpos( $field, 'meta.' ) ) {
+						return null;
+					}
+					$field_name_parts = explode( '.', $field );
+					return $field_name_parts[1];
+				},
+				array_keys( $weighting[ $post->post_type ] )
+			);
+			$selected_keys = array_filter( $selected_keys );
+		}
 
 		/**
 		 * Filter indexable meta keys for posts
