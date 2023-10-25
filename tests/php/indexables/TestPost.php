@@ -3961,7 +3961,7 @@ class TestPost extends BaseTestCase {
 		// Set changed weighting
 		remove_filter( 'ep_weighting_configuration', $set_default_weighting );
 		$set_changed_weighting = function() use ( $weighting_default ) {
-			$weighting_default['post']['meta.test_key2.value']          = [
+			$weighting_default['post']['meta.test_key2.value']            = [
 				'enabled' => true,
 				'weight'  => 1,
 			];
@@ -4203,7 +4203,7 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_content' => 'post content findme',
 				'meta_input'   => array(
-					'test_key'   => 5,
+					'test_key'  => 5,
 					'test_key2' => 'aaa',
 				),
 			)
@@ -8672,8 +8672,8 @@ class TestPost extends BaseTestCase {
 				'post_type'  => 'ep_test',
 				'meta_input' => [
 					'_private_key' => 'private-meta',
-					'test_key1'   => 'meta value 1',
-					'test_key2'   => 'meta value 2.1',
+					'test_key1'    => 'meta value 1',
+					'test_key2'    => 'meta value 2.1',
 				],
 			]
 		);
@@ -8713,8 +8713,8 @@ class TestPost extends BaseTestCase {
 				'post_type'  => 'ep_test',
 				'meta_input' => [
 					'_private_key' => 'private-meta',
-					'test_key1'   => 'meta value 1',
-					'test_key2'   => 'meta value 2.1',
+					'test_key1'    => 'meta value 1',
+					'test_key2'    => 'meta value 2.1',
 				],
 			]
 		);
@@ -8782,8 +8782,8 @@ class TestPost extends BaseTestCase {
 				'post_type'  => 'ep_test',
 				'meta_input' => [
 					'_private_key' => 'private-meta',
-					'test_key1'   => 'meta value 1',
-					'test_key2'   => 'meta value 2.1',
+					'test_key1'    => 'meta value 1',
+					'test_key2'    => 'meta value 2.1',
 				],
 			]
 		);
