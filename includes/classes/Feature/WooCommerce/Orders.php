@@ -39,7 +39,7 @@ class Orders {
 	 */
 	public function setup() {
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ], 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
 		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
@@ -101,10 +101,15 @@ class Orders {
 	/**
 	 * Index WooCommerce orders meta fields
 	 *
-	 * @param  array $meta Existing post meta
+	 * @param array    $meta Existing post meta
+	 * @param \WP_Post $post Post object.
 	 * @return array
 	 */
-	public function allow_meta_keys( $meta ) {
+	public function allow_meta_keys( $meta, $post ) {
+		if ( ! in_array( $post->post_type, [ 'shop_order', 'shop_order_refund' ], true ) ) {
+			return $meta;
+		}
+
 		return array_unique(
 			array_merge(
 				$meta,

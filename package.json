@@ -81,7 +81,7 @@
       "synonyms-script": "./assets/js/synonyms/index.js",
       "woocommerce-order-search-script": "./assets/js/woocommerce/admin/orders/index.js",
       "admin-script": "./assets/js/admin.js",
-      "weighting-script": "./assets/js/weighting.js",
+      "weighting-script": "./assets/js/weighting/index.js",
       "search-editor-script": "./assets/js/search/editor/index.js",
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",

@@ -41,7 +41,7 @@ class Products {
 	 */
 	public function setup() {
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ], 10, 2 );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'sync_taxonomies' ] );
 		add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
@@ -157,10 +157,15 @@ class Products {
 	/**
 	 * Index WooCommerce products meta fields
 	 *
-	 * @param  array $meta Existing post meta
+	 * @param array    $meta Existing post meta
+	 * @param \WP_Post $post Post object.
 	 * @return array
 	 */
-	public function allow_meta_keys( $meta ) {
+	public function allow_meta_keys( $meta, $post ) {
+		if ( 'product' !== $post->post_type ) {
+			return $meta;
+		}
+
 		return array_unique(
 			array_merge(
 				$meta,
@@ -314,12 +319,16 @@ class Products {
 
 		$sku_key = 'meta._sku.value';
 
+		unset( $fields['ep_metadata']['children'][ $sku_key ] );
+
 		$fields['attributes']['children'][ $sku_key ] = array(
 			'key'   => $sku_key,
 			'label' => __( 'SKU', 'elasticpress' ),
 		);
 
 		$variations_skus_key = 'meta._variations_skus.value';
+
+		unset( $fields['ep_metadata']['children'][ $variations_skus_key ] );
 
 		$fields['attributes']['children'][ $variations_skus_key ] = array(
 			'key'   => $variations_skus_key,

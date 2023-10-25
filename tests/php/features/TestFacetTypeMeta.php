@@ -146,6 +146,13 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testGetMetaValues() {
+		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function( $allowed_metakeys ) {
+				return array_merge( $allowed_metakeys, [ 'new_meta_key_1', 'new_meta_key_2' ] );
+			}
+		);
+
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 

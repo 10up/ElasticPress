@@ -1,0 +1,16 @@
+.ep-weighting-add-new {
+	align-items: start;
+	gap: 4px;
+	justify-content: start;
+	margin-top: 16px;
+	max-width: 100%;
+	width: 50ch;
+
+	& .components-base-control .components-text-control__input {
+		min-height: 36px;
+	}
+
+	& .components-button {
+		margin-top: calc(1.4 * 11px + 8px);
+	}
+}

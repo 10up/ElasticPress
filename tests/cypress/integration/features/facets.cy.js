@@ -19,6 +19,31 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				wp_delete_post( $post, true );
 			}
 		`);
+
+		cy.updateWeighting();
+
+		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
+
+		cy.intercept('/wp-json/elasticpress/v1/weighting*').as('apiRequest');
+		cy.contains('h2', 'Posts').closest('.components-panel').as('postsPanel');
+
+		cy.get('@postsPanel').contains('button', 'Metadata').click();
+
+		cy.get('@postsPanel').find('input[type="text"]').as('metaInput');
+		cy.get('@postsPanel').contains('button', 'Add').as('metaAdd');
+
+		cy.get('@metaInput').clearThenType('meta_field_1');
+		cy.get('@metaAdd').click();
+		cy.get('@metaInput').clearThenType('meta_field_2');
+		cy.get('@metaAdd').click();
+		cy.get('@metaInput').clearThenType('numeric_meta_field');
+		cy.get('@metaAdd').click();
+		cy.get('@metaInput').clearThenType('non_numeric_meta_field');
+		cy.get('@metaAdd').click();
+
+		cy.contains('button', 'Save changes').click();
+
+		cy.wait('@apiRequest');
 	});
 
 	/**
