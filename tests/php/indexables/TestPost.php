@@ -50,6 +50,25 @@ class TestPost extends BaseTestCase {
 
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		// Allow some meta fields to be indexed.
+		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function( $allowed_metakeys ) {
+				return array_merge(
+					$allowed_metakeys,
+					[
+						'test_key',
+						'test_key1',
+						'test_key2',
+						'test_key3',
+						'test_key4',
+						'test_key5',
+						'test_key6',
+					]
+				);
+			}
+		);
 	}
 
 	/**
@@ -3443,21 +3462,21 @@ class TestPost extends BaseTestCase {
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
-				'meta_input'   => array( 'meta_key_1' => '1' ),
+				'meta_input'   => array( 'test_key1' => '1' ),
 			)
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
-				'meta_input'   => array( 'meta_key_1' => '1' ),
+				'meta_input'   => array( 'test_key1' => '1' ),
 			)
 		);
 		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme',
 				'meta_input'   => array(
-					'meta_key_1' => '1',
-					'meta_key_2' => '4',
+					'test_key1' => '1',
+					'test_key2' => '4',
 				),
 			)
 		);
@@ -3465,8 +3484,8 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_content' => 'findme',
 				'meta_input'   => array(
-					'meta_key_1' => '1',
-					'meta_key_2' => '0',
+					'test_key1' => '1',
+					'test_key2' => '0',
 				),
 			)
 		);
@@ -3474,8 +3493,8 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_content' => 'findme',
 				'meta_input'   => array(
-					'meta_key_1' => '1',
-					'meta_key_3' => '4',
+					'test_key1' => '1',
+					'test_key3' => '4',
 				),
 			)
 		);
@@ -3486,7 +3505,7 @@ class TestPost extends BaseTestCase {
 			's'          => 'findme',
 			'meta_query' => array(
 				array(
-					'key'     => 'meta_key_2',
+					'key'     => 'test_key2',
 					'value'   => '0',
 					'compare' => '>=',
 				),
@@ -3504,18 +3523,18 @@ class TestPost extends BaseTestCase {
 			'meta_query' => array(
 				'relation' => 'AND',
 				array(
-					'key'   => 'meta_key_1',
+					'key'   => 'test_key1',
 					'value' => '1',
 				),
 				array(
 					'relation' => 'OR',
 					array(
-						'key'     => 'meta_key_2',
+						'key'     => 'test_key2',
 						'value'   => '2',
 						'compare' => '>=',
 					),
 					array(
-						'key'   => 'meta_key_3',
+						'key'   => 'test_key3',
 						'value' => '4',
 					),
 				),
@@ -3836,9 +3855,9 @@ class TestPost extends BaseTestCase {
 			'value 2',
 		);
 
-		add_post_meta( $post_id, 'test_meta_1', 'value 1' );
-		add_post_meta( $post_id, 'test_meta_1', 'value 2' );
-		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+		add_post_meta( $post_id, 'test_key1', 'value 1' );
+		add_post_meta( $post_id, 'test_key1', 'value 2' );
+		add_post_meta( $post_id, 'test_key1', $meta_values );
 		add_post_meta( $post_id, '_test_private_meta_1', 'value 1' );
 		add_post_meta( $post_id, '_test_private_meta_1', 'value 2' );
 		add_post_meta( $post_id, '_test_private_meta_1', $meta_values );
@@ -3849,14 +3868,20 @@ class TestPost extends BaseTestCase {
 
 		$meta_2 = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
 
+		add_filter(
+			'ep_meta_mode',
+			function () {
+				return 'auto';
+			}
+		);
 		add_filter( 'ep_prepare_meta_excluded_public_keys', array( $this, 'filter_ep_prepare_meta_excluded_public_keys' ) );
 
 		$meta_3 = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
 
 		$this->assertTrue( is_array( $meta_1 ) && 1 === count( $meta_1 ) );
-		$this->assertTrue( is_array( $meta_1 ) && array_key_exists( 'test_meta_1', $meta_1 ) );
+		$this->assertTrue( is_array( $meta_1 ) && array_key_exists( 'test_key1', $meta_1 ) );
 		$this->assertTrue( is_array( $meta_2 ) && 2 === count( $meta_2 ) );
-		$this->assertTrue( is_array( $meta_2 ) && array_key_exists( 'test_meta_1', $meta_2 ) && array_key_exists( '_test_private_meta_1', $meta_2 ) );
+		$this->assertTrue( is_array( $meta_2 ) && array_key_exists( 'test_key1', $meta_2 ) && array_key_exists( '_test_private_meta_1', $meta_2 ) );
 		$this->assertTrue( is_array( $meta_3 ) && 1 === count( $meta_3 ) );
 		$this->assertTrue( is_array( $meta_3 ) && array_key_exists( '_test_private_meta_1', $meta_3 ) );
 	}
@@ -3892,8 +3917,8 @@ class TestPost extends BaseTestCase {
 		$post_id = $this->ep_factory->post->create(
 			[
 				'meta_input' => [
-					'test_meta_1'          => 'value 1',
-					'test_meta_2'          => 'value 2',
+					'not_allowed_key1'     => 'value 1',
+					'not_allowed_key2'     => 'value 2',
 					'_test_private_meta_1' => 'private value 1',
 					'_test_private_meta_2' => 'private value 2',
 				],
@@ -3925,18 +3950,18 @@ class TestPost extends BaseTestCase {
 			$this->assertInstanceOf( '\WP_Post', $post );
 			$this->assertIsArray( $fields );
 
-			$fields[] = 'test_meta_1';
+			$fields[] = 'not_allowed_key1';
 			return $fields;
 		};
 		add_filter( 'ep_prepare_meta_allowed_keys', $add_meta_via_allowed, 10, 2 );
 
 		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
-		$this->assertSame( [ 'test_meta_1', '_test_private_meta_1' ], array_keys( $prepared_meta ) );
+		$this->assertSame( [ 'not_allowed_key1', '_test_private_meta_1' ], array_keys( $prepared_meta ) );
 
 		// Set changed weighting
 		remove_filter( 'ep_weighting_configuration', $set_default_weighting );
 		$set_changed_weighting = function() use ( $weighting_default ) {
-			$weighting_default['post']['meta.test_meta_2.value']          = [
+			$weighting_default['post']['meta.test_key2.value']          = [
 				'enabled' => true,
 				'weight'  => 1,
 			];
@@ -3950,7 +3975,7 @@ class TestPost extends BaseTestCase {
 
 		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
 		$this->assertSame(
-			[ 'test_meta_1', 'test_meta_2', '_test_private_meta_1', '_test_private_meta_2' ],
+			[ 'not_allowed_key1', '_test_private_meta_1', '_test_private_meta_2' ],
 			array_keys( $prepared_meta )
 		);
 	}
@@ -3977,7 +4002,7 @@ class TestPost extends BaseTestCase {
 	 */
 	public function filter_ep_prepare_meta_excluded_public_keys( $meta_keys ) {
 
-		$meta_keys[] = 'test_meta_1';
+		$meta_keys[] = 'test_key1';
 
 		return $meta_keys;
 
@@ -3999,7 +4024,7 @@ class TestPost extends BaseTestCase {
 			'value 1',
 			'value 2',
 		);
-		add_post_meta( $post_id, 'test_meta_1', $meta_values );
+		add_post_meta( $post_id, 'test_key1', $meta_values );
 
 		$wpdb->insert(
 			$wpdb->postmeta,
@@ -4019,7 +4044,7 @@ class TestPost extends BaseTestCase {
 
 		$this->assertIsArray( $meta_data );
 		$this->assertCount( 1, $meta_data );
-		$this->assertArrayHasKey( 'test_meta_1', $meta_data );
+		$this->assertArrayHasKey( 'test_key1', $meta_data );
 	}
 
 	/**
@@ -4179,7 +4204,7 @@ class TestPost extends BaseTestCase {
 				'post_content' => 'post content findme',
 				'meta_input'   => array(
 					'test_key'   => 5,
-					'test_key_2' => 'aaa',
+					'test_key2' => 'aaa',
 				),
 			)
 		);
@@ -4191,7 +4216,7 @@ class TestPost extends BaseTestCase {
 			'meta_value_num' => 5,
 			'meta_query'     => array(
 				array(
-					'key'   => 'test_key_2',
+					'key'   => 'test_key2',
 					'value' => 'aaa',
 				),
 			),
@@ -6882,7 +6907,7 @@ class TestPost extends BaseTestCase {
 
 		$posts = [];
 		foreach ( $meta_values as $value ) {
-			$posts[] = $this->ep_factory->post->create( [ 'meta_input' => [ 'custom_meta_key' => $value ] ] );
+			$posts[] = $this->ep_factory->post->create( [ 'meta_input' => [ 'test_key' => $value ] ] );
 		}
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -6891,14 +6916,14 @@ class TestPost extends BaseTestCase {
 			'fields'       => 'ids',
 			'orderby'      => 'meta_value' . ( $meta_value_type ? "_{$meta_value_type}" : '' ),
 			'order'        => 'asc',
-			'meta_key'     => 'custom_meta_key',
+			'meta_key'     => 'test_key',
 		];
 
 		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
 			$method_executed = true;
 
-			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
+			$this->assertArrayHasKey( "meta.test_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.test_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -6933,7 +6958,7 @@ class TestPost extends BaseTestCase {
 			'order'        => 'asc',
 			'meta_query'   => [
 				[
-					'key'     => 'custom_meta_key',
+					'key'     => 'test_key',
 					'compare' => 'EXISTS',
 				],
 			],
@@ -6942,8 +6967,8 @@ class TestPost extends BaseTestCase {
 		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
 			$method_executed = true;
 
-			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
+			$this->assertArrayHasKey( "meta.test_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.test_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -6975,11 +7000,11 @@ class TestPost extends BaseTestCase {
 			'order'        => 'asc',
 			'meta_query'   => [
 				[
-					'key'  => 'unused_key',
+					'key'  => 'test_key1',
 					'type' => 'NUMERIC',
 				],
 				'named_clause' => [
-					'key'  => 'custom_meta_key',
+					'key'  => 'test_key',
 					'type' => $meta_value_type,
 				],
 			],
@@ -6988,8 +7013,8 @@ class TestPost extends BaseTestCase {
 		$assert_callback = function( $args ) use ( &$method_executed, $es_type ) {
 			$method_executed = true;
 
-			$this->assertArrayHasKey( "meta.custom_meta_key.{$es_type}", $args['sort'][0] );
-			$this->assertSame( 'asc', $args['sort'][0][ "meta.custom_meta_key.{$es_type}" ]['order'] );
+			$this->assertArrayHasKey( "meta.test_key.{$es_type}", $args['sort'][0] );
+			$this->assertSame( 'asc', $args['sort'][0][ "meta.test_key.{$es_type}" ]['order'] );
 
 			return $args;
 		};
@@ -7430,7 +7455,7 @@ class TestPost extends BaseTestCase {
 		// Turn on the filter to kill syncing.
 		add_filter( 'ep_post_sync_kill', '__return_true' );
 
-		update_post_meta( $post_id, 'custom_key', 123 );
+		update_post_meta( $post_id, 'test_key', 123 );
 
 		// Make sure sync queue is still empty when meta is updated for
 		// an existing post.
@@ -7449,7 +7474,7 @@ class TestPost extends BaseTestCase {
 		remove_filter( 'ep_post_sync_kill', '__return_true' );
 
 		// Now verify the queue when this filter is not enabled.
-		update_post_meta( $post_id, 'custom_key', 456 );
+		update_post_meta( $post_id, 'test_key', 456 );
 
 		$this->assertNotEmpty( ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->get_sync_queue() );
 
@@ -7653,8 +7678,8 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_title' => 'one',
 				'meta_input' => array(
-					'common_meta_one' => 'lorem',
-					'common_meta_two' => 'ipsum',
+					'test_key1' => 'lorem',
+					'test_key2' => 'ipsum',
 				),
 			)
 		);
@@ -7662,13 +7687,13 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_title' => 'two',
 				'meta_input' => array(
-					'common_meta_one' => 'lorem',
-					'common_meta_two' => 'ipsum',
+					'test_key1' => 'lorem',
+					'test_key2' => 'ipsum',
 				),
 			)
 		);
 
-		delete_metadata( 'post', null, 'common_meta_one', 'lorem', true );
+		delete_metadata( 'post', null, 'test_key1', 'lorem', true );
 
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->index_sync_queue();
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -7677,7 +7702,7 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_type'    => 'post',
 				'ep_integrate' => true,
-				'meta_key'     => 'common_meta_one',
+				'meta_key'     => 'test_key1',
 				'meta_value'   => 'lorem',
 			)
 		);
@@ -7689,7 +7714,7 @@ class TestPost extends BaseTestCase {
 			array(
 				'post_type'    => 'post',
 				'ep_integrate' => true,
-				'meta_key'     => 'common_meta_two',
+				'meta_key'     => 'test_key2',
 				'meta_value'   => 'ipsum',
 			)
 		);
@@ -8007,6 +8032,12 @@ class TestPost extends BaseTestCase {
 		$meta_protected_allowed      = '_meta_allowed';
 
 		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function( $allowed_metakeys ) {
+				return array_merge( $allowed_metakeys, [ 'meta' ] );
+			}
+		);
+		add_filter(
 			'ep_prepare_meta_allowed_protected_keys',
 			function () use ( $meta_protected_allowed ) {
 				return [ $meta_protected_allowed ];
@@ -8020,12 +8051,13 @@ class TestPost extends BaseTestCase {
 		);
 
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
+		$post      = new \WP_Post( (object) [ 'post_type' => 'post' ] );
 
-		$this->assertTrue( $indexable->is_meta_allowed( $meta_not_protected, null ) );
-		$this->assertTrue( $indexable->is_meta_allowed( $meta_protected_allowed, null ) );
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_not_protected, $post ) );
+		$this->assertTrue( $indexable->is_meta_allowed( $meta_protected_allowed, $post ) );
 
-		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, null ) );
-		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, null ) );
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_not_protected_excluded, $post ) );
+		$this->assertFalse( $indexable->is_meta_allowed( $meta_protected, $post ) );
 	}
 
 	/**
@@ -8037,16 +8069,16 @@ class TestPost extends BaseTestCase {
 	public function testGetDistinctMetaFieldKeys() {
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => '' ) ) );
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => '' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key1' => '' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key2' => '' ) ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$distinct_meta_field_keys = $indexable->get_distinct_meta_field_keys();
 
 		$this->assertIsArray( $distinct_meta_field_keys );
-		$this->assertContains( 'new_meta_key_1', $distinct_meta_field_keys );
-		$this->assertContains( 'new_meta_key_2', $distinct_meta_field_keys );
+		$this->assertContains( 'test_key1', $distinct_meta_field_keys );
+		$this->assertContains( 'test_key2', $distinct_meta_field_keys );
 	}
 
 	/**
@@ -8058,36 +8090,36 @@ class TestPost extends BaseTestCase {
 	public function testGetAllDistinctValues() {
 		$indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foo' ) ) );
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'bar' ) ) );
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foobar' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key1' => 'foo' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key1' => 'bar' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key1' => 'foobar' ) ) );
 
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'lorem' ) ) );
-		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'ipsum' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key2' => 'lorem' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'test_key2' => 'ipsum' ) ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.test_key1.raw' );
 
 		$this->assertCount( 3, $distinct_values );
 		$this->assertContains( 'foo', $distinct_values );
 		$this->assertContains( 'bar', $distinct_values );
 		$this->assertContains( 'foobar', $distinct_values );
 
-		$distinct_values = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw', 1 );
+		$distinct_values = $indexable->get_all_distinct_values( 'meta.test_key1.raw', 1 );
 		$this->assertCount( 1, $distinct_values );
 		$this->assertContains( 'bar', $distinct_values );
 
 		$change_bucket_size = function( $count, $field ) {
-			return ( 'meta.new_meta_key_1.raw' === $field ) ? 1 : $count;
+			return ( 'meta.test_key1.raw' === $field ) ? 1 : $count;
 		};
 		add_filter( 'ep_post_all_distinct_values', $change_bucket_size, 10, 2 );
 
-		$distinct_values_1 = $indexable->get_all_distinct_values( 'meta.new_meta_key_1.raw' );
+		$distinct_values_1 = $indexable->get_all_distinct_values( 'meta.test_key1.raw' );
 		$this->assertCount( 1, $distinct_values_1 );
 		$this->assertContains( 'bar', $distinct_values_1 );
 
-		$distinct_values_2 = $indexable->get_all_distinct_values( 'meta.new_meta_key_2.raw' );
+		$distinct_values_2 = $indexable->get_all_distinct_values( 'meta.test_key2.raw' );
 		$this->assertCount( 2, $distinct_values_2 );
 		$this->assertContains( 'lorem', $distinct_values_2 );
 		$this->assertContains( 'ipsum', $distinct_values_2 );
@@ -8558,7 +8590,7 @@ class TestPost extends BaseTestCase {
 
 		$this->setupDistinctMetaFieldKeysDbPerPostType();
 
-		$meta_keys = [ '_private_key', 'test_key_1', 'test_key_2' ];
+		$meta_keys = [ '_private_key', 'test_key1', 'test_key2' ];
 		$this->assertSame( $meta_keys, $indexable->get_distinct_meta_field_keys_db_per_post_type( 'ep_test' ) );
 
 		/**
@@ -8640,8 +8672,8 @@ class TestPost extends BaseTestCase {
 				'post_type'  => 'ep_test',
 				'meta_input' => [
 					'_private_key' => 'private-meta',
-					'test_key_1'   => 'meta value 1',
-					'test_key_2'   => 'meta value 2.1',
+					'test_key1'   => 'meta value 1',
+					'test_key2'   => 'meta value 2.1',
 				],
 			]
 		);
@@ -8649,21 +8681,21 @@ class TestPost extends BaseTestCase {
 			[
 				'post_type'  => 'ep_test_2',
 				'meta_input' => [
-					'test_key_2' => 'meta value 2.2',
-					'test_key_3' => 'meta value 3',
+					'test_key2' => 'meta value 2.2',
+					'test_key3' => 'meta value 3',
 				],
 			]
 		);
 
-		$meta_keys = [ 'test_key_1', 'test_key_2' ];
+		$meta_keys = [ 'test_key1', 'test_key2' ];
 		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
 
 		$change_allowed_meta = function () {
-			return [ 'test_key_1' => 'meta value 1' ];
+			return [ 'test_key1' => 'meta value 1' ];
 		};
 		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
 
-		$meta_keys = [ 'test_key_1' ];
+		$meta_keys = [ 'test_key1' ];
 		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_indexable_meta_keys_per_post_type( 'ep_test' ) );
 	}
 
@@ -8681,8 +8713,8 @@ class TestPost extends BaseTestCase {
 				'post_type'  => 'ep_test',
 				'meta_input' => [
 					'_private_key' => 'private-meta',
-					'test_key_1'   => 'meta value 1',
-					'test_key_2'   => 'meta value 2.1',
+					'test_key1'   => 'meta value 1',
+					'test_key2'   => 'meta value 2.1',
 				],
 			]
 		);
@@ -8690,21 +8722,21 @@ class TestPost extends BaseTestCase {
 			[
 				'post_type'  => 'ep_test_2',
 				'meta_input' => [
-					'test_key_2' => 'meta value 2.2',
-					'test_key_3' => 'meta value 3',
+					'test_key2' => 'meta value 2.2',
+					'test_key3' => 'meta value 3',
 				],
 			]
 		);
 
-		$meta_keys = [ 'test_key_1', 'test_key_2', 'test_key_3' ];
+		$meta_keys = [ 'test_key1', 'test_key2', 'test_key3' ];
 		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
 
 		$change_allowed_meta = function () {
-			return [ 'test_key_1' => 'meta value 1' ];
+			return [ 'test_key1' => 'meta value 1' ];
 		};
 		add_filter( 'ep_prepare_meta_data', $change_allowed_meta );
 
-		$meta_keys = [ 'test_key_1' ];
+		$meta_keys = [ 'test_key1' ];
 		$this->assertEqualsCanonicalizing( $meta_keys, $indexable->get_predicted_indexable_meta_keys() );
 	}
 
@@ -8750,8 +8782,8 @@ class TestPost extends BaseTestCase {
 				'post_type'  => 'ep_test',
 				'meta_input' => [
 					'_private_key' => 'private-meta',
-					'test_key_1'   => 'meta value 1',
-					'test_key_2'   => 'meta value 2.1',
+					'test_key1'   => 'meta value 1',
+					'test_key2'   => 'meta value 2.1',
 				],
 			]
 		);
@@ -8759,8 +8791,8 @@ class TestPost extends BaseTestCase {
 			[
 				'post_type'  => 'ep_test_2',
 				'meta_input' => [
-					'test_key_2' => 'meta value 2.2',
-					'test_key_3' => 'meta value 3',
+					'test_key2' => 'meta value 2.2',
+					'test_key3' => 'meta value 3',
 				],
 			]
 		);
