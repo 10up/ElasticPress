@@ -44,6 +44,8 @@ class EP_Uninstaller {
 		'ep_bulk_setting',
 		'ep_sync_history',
 
+		'elasticpress_weighting',
+
 		// Admin notices options
 		'ep_hide_host_error_notice',
 		'ep_hide_es_below_compat_notice',
