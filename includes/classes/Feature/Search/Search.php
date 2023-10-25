@@ -107,6 +107,7 @@ class Search extends Feature {
 		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
 
 		add_action( 'init', [ $this, 'register_meta' ], 20 );
+		add_filter( 'ep_prepare_meta_allowed_keys', [ $this, 'add_exclude_from_search' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
 		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
@@ -686,6 +687,18 @@ class Search extends Feature {
 				'type'         => 'boolean',
 			]
 		);
+	}
+
+	/**
+	 * Add ep_exclude_from_search to the allowed meta fields list.
+	 *
+	 * @since 5.0.0
+	 * @param array $keys List of allowed meta fields
+	 * @return array
+	 */
+	public function add_exclude_from_search( $keys ) {
+		$keys[] = 'ep_exclude_from_search';
+		return $keys;
 	}
 
 	/**
