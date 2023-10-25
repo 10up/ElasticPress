@@ -429,16 +429,24 @@ class Weighting {
 	}
 
 	/**
-	 * Handles processing the new weighting values and saving them to the
-	 * elasticpress.io service.
+	 * Handles processing the new weighting values and saving them.
 	 *
 	 * @param \WP_Rest_Request $request REST API request.
-	 * @return void
+	 * @return array
 	 * @since 5.0.0
 	 */
 	public function update_weighting( $request = null ) {
 		$meta_mode = $this->get_meta_mode();
 		$weighting = $request->get_json_params();
+
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+
+		// Add default fields for post types not sent.
+		foreach ( $post_types as $post_type ) {
+			if ( ! isset( $weighting[ $post_type ] ) ) {
+				$weighting[ $post_type ] = [];
+			}
+		}
 
 		/**
 		 * If metadata is not being managed manually, remove any custom
@@ -465,6 +473,13 @@ class Weighting {
 			}
 		}
 
+		// Cleanup any post type sent (or added via filters) that does not exist.
+		foreach ( $weighting as $post_type => $fields ) {
+			if ( ! post_type_exists( $post_type ) ) {
+				unset( $weighting[ $post_type ] );
+			}
+		}
+
 		update_option( 'elasticpress_weighting', $weighting );
 
 		/**
@@ -475,9 +490,10 @@ class Weighting {
 		 */
 		do_action( 'ep_saved_weighting_configuration' );
 
-		wp_send_json_success( $weighting );
-
-		exit;
+		return [
+			'data'    => $weighting,
+			'success' => true,
+		];
 	}
 
 	/**
