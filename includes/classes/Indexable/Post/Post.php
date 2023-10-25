@@ -2492,7 +2492,7 @@ class Post extends Indexable {
 	protected function filter_allowed_metas_manual( $metas, $post ) {
 		$filtered_metas = [];
 
-		$weighting = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->get_weighting_configuration();
+		$weighting = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->weighting->get_weighting_configuration_with_defaults();
 		if ( empty( $post->post_type ) || empty( $weighting[ $post->post_type ] ) ) {
 			return $filtered_metas;
 		}
