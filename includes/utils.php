@@ -879,3 +879,17 @@ function delete_transient( $transient ) {
 	}
 	return \delete_transient( $transient );
 }
+
+/**
+ * Whether we are in the top level admin context or not.
+ *
+ * In a single site, the top level admin context would be `is_admin()`,
+ * in a multisite, it would be `is_network_admin()`.
+ *
+ * @since 5.0.0
+ * @return boolean
+ */
+function is_top_level_admin_context() {
+	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+	return $is_network ? is_network_admin() : is_admin();
+}

@@ -8,9 +8,6 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
-use ElasticPress\Indexables;
-use ElasticPress\Feature;
-use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Utils;
 
 /**
@@ -302,10 +299,6 @@ class Weighting {
 	 * @since 5.0.0
 	 */
 	public function get_meta_mode() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			return 'auto';
-		}
-
 		/**
 		 * Filter meta management mode.
 		 *
@@ -327,12 +320,16 @@ class Weighting {
 	 * Adds the submenu page for controlling weighting
 	 */
 	public function add_weighting_submenu_page() {
+		$menu_slug = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! Utils\is_top_level_admin_context() ) ?
+			'elasticpress' :
+			'elasticpress-weighting';
+
 		add_submenu_page(
 			'elasticpress',
 			esc_html__( 'ElasticPress Search Fields & Weighting', 'elasticpress' ),
 			esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
 			Utils\get_capability(),
-			'elasticpress-weighting',
+			$menu_slug,
 			[ $this, 'render_settings_page' ]
 		);
 	}
