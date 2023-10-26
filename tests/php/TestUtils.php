@@ -577,4 +577,22 @@ class TestUtils extends BaseTestCase {
 		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_indexable_sites' ) );
 		$this->assertTrue( $sites['test'] );
 	}
+
+	/**
+	 * Test the `is_top_level_admin_context` function
+	 *
+	 * @since 5.0.0
+	 * @group utils
+	 */
+	public function test_is_top_level_admin_context() {
+		if ( is_multisite() ) {
+			// It will be in network admin mode by default as `WP_NETWORK_ADMIN` is set in bootstrap.php
+			$this->assertTrue( Utils\is_top_level_admin_context() );
+			set_current_screen( '/' );
+			$this->assertFalse( Utils\is_top_level_admin_context() );
+		} else {
+			set_current_screen( 'edit-comments.php' );
+			$this->assertTrue( Utils\is_top_level_admin_context() );
+		}
+	}
 }

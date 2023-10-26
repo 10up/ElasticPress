@@ -75,7 +75,11 @@ class SearchOrdering extends Feature {
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
-		if ( ! $search->is_active() && $this->is_active() ) {
+		if ( ! Utils\is_site_indexable() ) {
+			return false;
+		}
+
+		if ( ( ! $search->is_active() && $this->is_active() ) ) {
 			$features->deactivate_feature( $this->slug );
 			return false;
 		}
@@ -264,9 +268,6 @@ class SearchOrdering extends Feature {
 	 * Registers the pointer post type for the injected results
 	 */
 	public function register_post_type() {
-		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
-		$menu       = $is_network ? null : false;
-
 		$labels = array(
 			'name'               => esc_html_x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
 			'singular_name'      => esc_html_x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
@@ -290,7 +291,7 @@ class SearchOrdering extends Feature {
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
-			'show_in_menu'         => $menu,
+			'show_in_menu'         => false,
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
 			'capabilities'         => Utils\get_post_map_capabilities(),
