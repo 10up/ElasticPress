@@ -63,6 +63,12 @@ class AdminNotices {
 	public function process_notices() {
 		$this->notices = [];
 
+		// If in network mode, don't output notice in admin and vice-versa.
+		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		if ( ( $network_activated && ! is_network_admin() ) || is_network_admin() ) {
+			return;
+		}
+
 		foreach ( $this->notice_keys as $notice ) {
 			$output = call_user_func( [ $this, 'process_' . $notice . '_notice' ] );
 
