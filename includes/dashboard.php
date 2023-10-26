@@ -8,12 +8,13 @@
 
 namespace ElasticPress\Dashboard;
 
-use ElasticPress\Utils;
+use ElasticPress\AdminNotices;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Features;
-use ElasticPress\AdminNotices;
+use ElasticPress\Installer;
 use ElasticPress\Screen;
 use ElasticPress\Stats;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -595,6 +596,11 @@ function resolve_screen() {
  * @return void
  */
 function action_admin_menu() {
+	Installer::factory()->calculate_install_status();
+	if ( true !== Installer::factory()->get_install_status() && ! Utils\is_top_level_admin_context() ) {
+		return;
+	}
+
 	if ( ! Utils\is_site_indexable() && ! is_network_admin() ) {
 		return;
 	}
