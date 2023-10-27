@@ -39,9 +39,9 @@ export default () => {
 			indexables.splice(indexables.indexOf(indexable), 1);
 		}
 
-		const post_types = !indexables.length || indexables.includes('post') ? args.post_types : [];
+		const post_type = !indexables.length || indexables.includes('post') ? args.post_type : [];
 
-		setArgs({ ...args, indexables, post_types });
+		setArgs({ ...args, indexables, post_type });
 	};
 
 	return indexables.length > 1 ? (

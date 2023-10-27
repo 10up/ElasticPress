@@ -28,15 +28,15 @@ export default () => {
 	 * @returns {void}
 	 */
 	const onChange = (postType, checked) => {
-		const post_types = [...args.post_types];
+		const post_type = [...args.post_type];
 
 		if (checked) {
-			post_types.push(postType);
+			post_type.push(postType);
 		} else {
-			post_types.splice(post_types.indexOf(postType), 1);
+			post_type.splice(post_type.indexOf(postType), 1);
 		}
 
-		setArgs({ ...args, post_types });
+		setArgs({ ...args, post_type });
 	};
 
 	return postTypes.length > 1 ? (
@@ -46,9 +46,9 @@ export default () => {
 			</legend>
 			{postTypes.map(([postType, label]) => (
 				<CheckboxControl
-					checked={args.post_types.includes(postType)}
+					checked={args.post_type.includes(postType)}
 					disabled={isSyncing}
-					indeterminate={!args.post_types.length}
+					indeterminate={!args.post_type.length}
 					key={postType}
 					label={label}
 					onChange={(checked) => onChange(postType, checked)}

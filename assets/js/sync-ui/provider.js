@@ -29,7 +29,7 @@ export const SyncSettingsProvider = ({ autoIndex, children, indexables, postType
 		lower_limit_object_id: null,
 		offset: 0,
 		put_mapping: false,
-		post_types: [],
+		post_type: [],
 		upper_limit_object_id: null,
 	});
 
