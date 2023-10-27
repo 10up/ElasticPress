@@ -4,11 +4,9 @@
  * @returns {void}
  */
 export const clearSyncParam = () => {
-	window.history.replaceState(
-		{},
-		document.title,
-		document.location.pathname + document.location.search.replace(/&do_sync/, ''),
-	);
+	const url = new URL(document.location.href);
+	url.searchParams.delete('do_sync');
+	window.history.replaceState({}, document.title, url);
 };
 
 /**

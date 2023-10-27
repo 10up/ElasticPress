@@ -122,7 +122,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 													</span>
 												</a>
 												<span role="tooltip" class="a11y-tip__help a11y-tip__help--top">
-													<?php echo esc_html( $feature->summary ); ?>
+													<?php echo wp_kses( $feature->summary, 'ep-html' ); ?>
 													<?php esc_html_e( 'Click to learn more.', 'elasticpress' ); ?>
 												</span>
 											</span>
