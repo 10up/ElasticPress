@@ -593,7 +593,7 @@ abstract class Feature {
 	}
 
 	/**
-	 * Default implementation of `set_settings_schema` basedd on the `default_settings` attribute
+	 * Default implementation of `set_settings_schema` based on the `default_settings` attribute
 	 *
 	 * @since 5.0.0
 	 */
