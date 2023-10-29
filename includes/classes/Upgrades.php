@@ -8,6 +8,7 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Features;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -49,12 +50,7 @@ class Upgrades {
 			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
 			'4.7.0' => [ 'upgrade_4_7_0', 'init' ],
-			/**
-			 * Adding this without changing the number will make it run on every load.
-			 *
-			 * @todo Uncomment this before the reelase
-			 * '5.0.0' => [ 'upgrade_5_0_0', 'init' ],
-			 */
+			'5.0.0' => [ 'upgrade_5_0_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -255,6 +251,16 @@ class Upgrades {
 	 * Upgrade routine of v5.0.0.
 	 */
 	public function upgrade_5_0_0() {
+		$feature_settings = Features::factory()->get_feature_settings();
+		foreach ( $feature_settings as &$settings ) {
+			foreach ( $settings as $name => &$value ) {
+				if ( 'active' === $name ) {
+					$value = (bool) $value;
+				}
+			}
+		}
+		Utils\update_option( 'ep_feature_settings', $feature_settings );
+
 		/**
 		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_sync_history'
 		 */
