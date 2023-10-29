@@ -165,7 +165,7 @@ abstract class Feature {
 	 *
 	 * @since  3.0
 	 */
-	abstract public function output_feature_box_long();
+	public function output_feature_box_long() {}
 
 	/**
 	 * Create feature
@@ -563,11 +563,7 @@ abstract class Feature {
 	 * @return array
 	 */
 	public function get_settings_schema() {
-		if ( [] === $this->settings_schema && method_exists( $this, 'set_settings_schema' ) ) {
-			$this->set_settings_schema();
-		}
-
-		$req_status = $this->requirements_status();
+		$this->set_settings_schema();
 
 		$active = [
 			'default'          => false,
@@ -594,5 +590,33 @@ abstract class Feature {
 		 * @return {array} New $settings_schema value
 		 */
 		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
+	}
+
+	/**
+	 * Default implementation of `set_settings_schema` based on the `default_settings` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		if ( [] === $this->default_settings ) {
+			return;
+		}
+
+		foreach ( $this->default_settings as $key => $default_value ) {
+			$type = 'text';
+			if ( in_array( $default_value, [ '0', '1' ], true ) ) {
+				$type = 'checkbox';
+			}
+			if ( is_bool( $default_value ) ) {
+				$type = 'toggle';
+			}
+
+			$this->settings_schema[] = [
+				'default' => $default_value,
+				'key'     => $key,
+				'label'   => $key,
+				'type'    => $type,
+			];
+		}
 	}
 }

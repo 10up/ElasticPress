@@ -8,6 +8,7 @@ import {
 	RadioControl,
 	SelectControl,
 	TextControl,
+	TextareaControl,
 	ToggleControl,
 } from '@wordpress/components';
 import { safeHTML } from '@wordpress/dom';
@@ -216,6 +217,17 @@ export default ({
 									label={label}
 									onChange={onChange}
 									disabled={isDisabled}
+								/>
+							);
+						}
+						case 'textarea': {
+							return (
+								<TextareaControl
+									help={helpHtml}
+									label={label}
+									onChange={onChange}
+									disabled={isDisabled}
+									value={value}
 								/>
 							);
 						}
