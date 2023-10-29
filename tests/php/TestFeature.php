@@ -129,4 +129,65 @@ class TestFeature extends BaseTestCase {
 			$settings_schema
 		);
 	}
+
+	/**
+	 * Test set_settings_schema.
+	 *
+	 * @group feature
+	 */
+	public function test_set_settings_schema() {
+		$stub                   = $this->getMockForAbstractClass( '\ElasticPress\Feature' );
+		$stub->slug             = 'slug';
+		$stub->default_settings = [
+			'field_1' => '0',
+			'field_2' => '1',
+			'field_3' => 'text',
+			'field_4' => true,
+			'field_5' => false,
+		];
+
+		$this->assertSame(
+			[
+				[
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => 'Enable',
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
+				],
+				[
+					'default' => '0',
+					'key'     => 'field_1',
+					'label'   => 'field_1',
+					'type'    => 'checkbox',
+				],
+				[
+					'default' => '1',
+					'key'     => 'field_2',
+					'label'   => 'field_2',
+					'type'    => 'checkbox',
+				],
+				[
+					'default' => 'text',
+					'key'     => 'field_3',
+					'label'   => 'field_3',
+					'type'    => 'text',
+				],
+				[
+					'default' => true,
+					'key'     => 'field_4',
+					'label'   => 'field_4',
+					'type'    => 'toggle',
+				],
+				[
+					'default' => false,
+					'key'     => 'field_5',
+					'label'   => 'field_5',
+					'type'    => 'toggle',
+				],
+			],
+			$stub->get_settings_schema()
+		);
+	}
 }
