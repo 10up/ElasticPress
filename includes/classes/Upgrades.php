@@ -251,15 +251,29 @@ class Upgrades {
 	 * Upgrade routine of v5.0.0.
 	 */
 	public function upgrade_5_0_0() {
-		$feature_settings = Features::factory()->get_feature_settings();
-		foreach ( $feature_settings as &$settings ) {
-			foreach ( $settings as $name => &$value ) {
-				if ( 'active' === $name ) {
-					$value = (bool) $value;
+		$features_in_settings = Features::factory()->get_feature_settings();
+		foreach ( $features_in_settings as $feature_slug => $feature_settings ) {
+			$feature = Features::factory()->get_registered_feature( $feature_slug );
+			if ( ! $feature ) {
+				continue;
+			}
+
+			$settings_schema = $feature->get_settings_schema();
+			foreach ( $settings_schema as $setting_schema ) {
+				if ( ! isset( $feature_settings[ $setting_schema['key'] ] ) ) {
+					continue;
 				}
+
+				$value = $feature_settings[ $setting_schema['key'] ];
+
+				if ( ! in_array( $setting_schema['type'], [ 'checkbox', 'radio' ], true ) || ! is_bool( $value ) ) {
+					continue;
+				}
+
+				$features_in_settings[ $feature_slug ][ $setting_schema['key'] ] = $value ? '1' : '0';
 			}
 		}
-		Utils\update_option( 'ep_feature_settings', $feature_settings );
+		Utils\update_option( 'ep_feature_settings', $features_in_settings );
 
 		/**
 		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_sync_history'
