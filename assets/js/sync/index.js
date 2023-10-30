@@ -358,7 +358,13 @@ export const SyncProvider = ({
 		 * @returns {void}
 		 */
 		() => {
-			cancelIndex().then(syncStopped);
+			cancelIndex()
+				.then(syncStopped)
+				.catch((error) => {
+					if (error?.name !== 'AbortError') {
+						throw error;
+					}
+				});
 		},
 		[cancelIndex, syncStopped],
 	);
