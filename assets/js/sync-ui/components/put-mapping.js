@@ -25,7 +25,7 @@ export default () => {
 			{args.put_mapping ? (
 				<Notice isDismissible={false} status="warning">
 					{__(
-						'May result in small changes in website search behaviour while sync is completed.',
+						'Search results could be out of date or returned in different order while the sync completes.',
 						'elasticpress',
 					)}
 				</Notice>

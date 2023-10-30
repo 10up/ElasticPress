@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { createRoot, render, WPElement } from '@wordpress/element';
+import { createInterpolateElement, createRoot, render, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -42,9 +42,21 @@ const App = () => (
 			syncUrl={syncUrl}
 		>
 			<p>
-				{__(
-					'Features explanation. Bacon ipsum dolor amet turkey cow turducken, tri-tip bresaola landjaeger biltong kevin short ribs alcatra shoulder frankfurter. Buffalo boudin meatloaf sausage cow prosciutto.',
-					'elasticpress',
+				{createInterpolateElement(
+					__(
+						'ElasticPress Features add functionality to enhance search and queries on your site. You may choose to activate some or all of these Features depending on your needs. You can learn more about each Feature <a>here</a>.',
+						'elasticpress',
+					),
+					{
+						a: (
+							// eslint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label
+							<a
+								target="_blank"
+								href="https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features"
+								rel="noreferrer"
+							/>
+						),
+					},
 				)}
 			</p>
 			<Features />
