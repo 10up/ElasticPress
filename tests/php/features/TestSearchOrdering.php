@@ -105,7 +105,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Insert specific posts into search results for specific search queries.', $output );
+		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
 	}
 
 	/**

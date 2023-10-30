@@ -40,21 +40,19 @@ class Facets extends Feature {
 
 		$this->title = esc_html__( 'Filters', 'elasticpress' );
 
-		$this->summary = sprintf(
-			/* translators: %s: Long feature summary. */
-			__( '<p>Add controls to your website to filter content by one or more taxonomies.</p><p>%s</p>', 'elasticpress' ),
+		$this->summary = '<p>' .
 			wp_is_block_theme()
 				? sprintf(
 					/* translators: Site Editor URL */
-					__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms.', 'elasticpress' ),
+					__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
 					esc_url( admin_url( 'site-editor.php' ) )
 				)
 				: sprintf(
 					/* translators: Widgets Edit Screen URL */
-					__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.', 'elasticpress' ),
+					__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
 					esc_url( admin_url( 'widgets.php' ) )
 				)
-		);
+			. '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#facets', 'elasticpress' );
 

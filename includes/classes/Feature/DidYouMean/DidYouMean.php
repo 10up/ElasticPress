@@ -23,7 +23,7 @@ class DidYouMean extends Feature {
 
 		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
 
-		$this->summary = __( '<p>Recommend alternative search terms for misspelled queries or terms with no results.</p><p>"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean">this tutorial</a>.</p>', 'elasticpress' );
+		$this->summary = '<p>' . __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean">this tutorial</a>.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean', 'elasticpress' );
 

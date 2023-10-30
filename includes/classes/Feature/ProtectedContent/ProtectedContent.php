@@ -32,7 +32,8 @@ class ProtectedContent extends Feature {
 
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
-		$this->summary = __( '<p>Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.</p><p>Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.</p><p><em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em></p>', 'elasticpress' );
+		$this->summary = '<p>' . __( 'Syncs unpublished content — including private, draft, and scheduled posts — improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.', 'elasticpress' ) . '</p>' .
+			'<p><em>' . __( 'We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.', 'elasticpress' ) . '</em></p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#protected-content', 'elasticpress' );
 

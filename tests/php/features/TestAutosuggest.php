@@ -81,7 +81,7 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Suggest relevant content as text is entered into the search field', $output );
+		$this->assertStringContainsString( 'As text is entered into the search field, suggested content will appear below it', $output );
 	}
 
 	/**
