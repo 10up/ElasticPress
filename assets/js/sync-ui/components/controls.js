@@ -17,16 +17,7 @@ import { useSyncSettings } from '../provider';
  * @returns {WPElement} Component.
  */
 export default () => {
-	const {
-		isPaused,
-		isSyncing,
-		logMessage,
-		pauseSync,
-		resumeSync,
-		startSync,
-		stopSync,
-		syncHistory,
-	} = useSync();
+	const { isPaused, isSyncing, logMessage, pauseSync, resumeSync, stopSync } = useSync();
 
 	const { args } = useSyncSettings();
 
@@ -61,21 +52,6 @@ export default () => {
 	};
 
 	/**
-	 * Handle clicking sync button.
-	 *
-	 * @returns {void}
-	 */
-	const onSync = async () => {
-		const { put_mapping } = args;
-
-		const putMapping = syncHistory.length ? put_mapping : true;
-		const syncArgs = { ...args, put_mapping: putMapping, trigger: 'manual' };
-
-		startSync(syncArgs);
-		logMessage(__('Starting sync…', 'elasticpress'), 'info');
-	};
-
-	/**
 	 * Render.
 	 */
 	return (
@@ -96,7 +72,7 @@ export default () => {
 					)}
 				</>
 			) : (
-				<Button onClick={onSync} variant="primary">
+				<Button variant="primary" type="submit">
 					{__('Start sync', 'elasticpress')}
 				</Button>
 			)}
