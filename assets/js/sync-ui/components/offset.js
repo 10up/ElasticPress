@@ -24,7 +24,7 @@ export default () => {
 		<TextControl
 			className="ep-sync-advanced-control"
 			disabled={isSyncing}
-			help={__('Skip this many objects when syncing.', 'elasticpress')}
+			help={__('Specify the number of objects to skip during syncing.', 'elasticpress')}
 			label={__('Skip objects', 'elasticpress')}
 			onChange={(offset) => setArgs({ ...args, offset })}
 			type="number"

@@ -89,7 +89,7 @@ class TestComments extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Improve comment search relevancy and query performance.', $output );
+		$this->assertStringContainsString( 'This feature is only needed if you are using <code>WP_Comment_Query</code> directly.', $output );
 	}
 
 	/**
