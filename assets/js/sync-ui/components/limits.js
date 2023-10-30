@@ -23,20 +23,24 @@ export default () => {
 	/**
 	 * Handle changing the lower limit.
 	 *
-	 * @param {string} lower_limit_object_id Selected lower ID.
+	 * @param {string} value Selected lower ID.
 	 * @returns {void}
 	 */
-	const onChangeLower = (lower_limit_object_id) => {
+	const onChangeLower = (value) => {
+		const lower_limit_object_id = value ? Math.max(0, value) : value;
+
 		setArgs({ ...args, lower_limit_object_id });
 	};
 
 	/**
 	 * Handle changing the upper limit.
 	 *
-	 * @param {string} upper_limit_object_id Selected upper ID.
+	 * @param {string} value Selected upper ID.
 	 * @returns {void}
 	 */
-	const onChangeUpper = (upper_limit_object_id) => {
+	const onChangeUpper = (value) => {
+		const upper_limit_object_id = value ? Math.max(0, value) : value;
+
 		setArgs({ ...args, upper_limit_object_id });
 	};
 

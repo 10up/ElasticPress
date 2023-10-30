@@ -29,7 +29,7 @@ export default () => {
 	const { createNotice } = useSettingsScreen();
 	const { isComplete, isEpio, isSyncing, logMessage, startSync, syncHistory, syncTrigger } =
 		useSync();
-	const { autoIndex } = useSyncSettings();
+	const { args, autoIndex } = useSyncSettings();
 
 	/**
 	 * Handle a completed sync.
@@ -52,11 +52,29 @@ export default () => {
 		}
 	};
 
+	/**
+	 * Handle clicking sync button.
+	 *
+	 * @param {Event} event Submit event.
+	 * @returns {void}
+	 */
+	const onSync = async (event) => {
+		event.preventDefault();
+
+		const { put_mapping } = args;
+
+		const putMapping = syncHistory.length ? put_mapping : true;
+		const syncArgs = { ...args, put_mapping: putMapping, trigger: 'manual' };
+
+		startSync(syncArgs);
+		logMessage(__('Starting sync…', 'elasticpress'), 'info');
+	};
+
 	useEffect(onComplete, [createNotice, isComplete]);
 	useEffect(onInit, [autoIndex, logMessage, startSync, syncTrigger]);
 
 	return (
-		<>
+		<form onSubmit={onSync}>
 			<p>
 				{syncHistory.length
 					? __(
@@ -99,6 +117,6 @@ export default () => {
 					</>
 				) : null}
 			</Panel>
-		</>
+		</form>
 	);
 };

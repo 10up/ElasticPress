@@ -5,6 +5,14 @@
 		margin-left: 0;
 		margin-right: 0;
 	}
+
+	& .components-checkbox-control:has([disabled]) {
+
+		& input[disabled],
+		& .components-checkbox-control__label {
+			opacity: 0.5;
+		}
+	}
 }
 
 .ep-sync-panel__controls {

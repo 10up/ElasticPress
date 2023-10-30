@@ -125,7 +125,13 @@ export const useIndex = (apiUrl, nonce) => {
 		 * @returns {Promise} Current request promise.
 		 */
 		(url, options) => {
-			request.current = fetch(url, options).then(onResponse).finally(onComplete);
+			try {
+				request.current = fetch(url, options).then(onResponse).finally(onComplete);
+			} catch (error) {
+				if (error?.name !== 'AbortError') {
+					throw error;
+				}
+			}
 
 			return request.current;
 		},
