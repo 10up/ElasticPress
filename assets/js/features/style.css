@@ -8,6 +8,14 @@
 	& .components-notice__actions {
 		display: inline-flex;
 	}
+
+	& .components-checkbox-control:has([disabled]) {
+
+		& input[disabled],
+		& .components-checkbox-control__label {
+			opacity: 0.5;
+		}
+	}
 }
 
 .ep-dashboard-tabs {

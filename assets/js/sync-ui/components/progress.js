@@ -10,12 +10,12 @@ import { Icon } from '@wordpress/components';
 import { createInterpolateElement, useMemo, WPElement } from '@wordpress/element';
 import { dateI18n } from '@wordpress/date';
 import { __, sprintf } from '@wordpress/i18n';
-import { update } from '@wordpress/icons';
 
 /**
  * Internal dependencies.
  */
 import { useSync } from '../../sync';
+import sync from './icons/sync';
 
 /**
  * Sync button component.
@@ -110,7 +110,7 @@ export default () => {
 				'ep-sync-progress--syncing': !isPaused && !isComplete && !isFailed,
 			})}
 		>
-			<Icon icon={update} />
+			<Icon icon={sync} />
 			<div className="ep-sync-progress__details">
 				<strong>{label}</strong>
 				{syncStartDateTime

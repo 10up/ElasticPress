@@ -132,6 +132,8 @@ class Sync {
 	 * @return void
 	 */
 	public function sync( \WP_REST_Request $request ) {
+		nocache_headers();
+
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
@@ -179,6 +181,8 @@ class Sync {
 	 * @return void
 	 */
 	public function get_sync_status( \WP_REST_Request $request ) {
+		nocache_headers();
+
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
@@ -211,6 +215,8 @@ class Sync {
 	 * @return void
 	 */
 	public function cancel_sync( \WP_REST_Request $request ) {
+		nocache_headers();
+
 		$index_meta = Utils\get_indexing_status();
 
 		if ( isset( $index_meta['method'] ) && 'cli' === $index_meta['method'] ) {
