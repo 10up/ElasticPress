@@ -29,16 +29,18 @@ All notable changes to this project will be documented in this file, per [the Ke
 	|PHP|7.4+|latest|
 
 ### Added
-* New Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3657](https://github.com/10up/ElasticPress/pull/3657).
+* New Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), [@anjulahettige](https://github.com/anjulahettige), [@burhandodhy](https://github.com/burhandodhy), and [@MARQAS](https://github.com/MARQAS) via [#3657](https://github.com/10up/ElasticPress/pull/3657) and [#3735](https://github.com/10up/ElasticPress/pull/3735).
 * New feature settings screen. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3712](https://github.com/10up/ElasticPress/pull/3712).
 * New weighting dashboard with support for making meta fields searchable. Props [@JakePT](https://github.com/JakePT), [@mehidi258](https://github.com/mehidi258), and [@felipeelia](https://github.com/felipeelia) via [#3068](https://github.com/10up/ElasticPress/pull/3068).
 * New Date Filter Block. Props [@burhandodhy](https://github.com/burhandodhy), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#3700](https://github.com/10up/ElasticPress/pull/3700).
-* Added a sync history to the Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3664](https://github.com/10up/ElasticPress/pull/3664).
+* Sync history to the Sync page. Props [@JakePT](https://github.com/JakePT), [@felipeelia](https://github.com/felipeelia), [@apurvrdx1](https://github.com/apurvrdx1), [@brandwaffle](https://github.com/brandwaffle), and [@anjulahettige](https://github.com/anjulahettige) via [#3664](https://github.com/10up/ElasticPress/pull/3664).
 * Final status of syncs (success, with errors, failed, or aborted.) Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3669](https://github.com/10up/ElasticPress/pull/3669).
-* Added a REST API endpoint at `elasticpress/v1/features` for updating feature settings. Props [@JakePT](https://github.com/JakePT) via [#3676](https://github.com/10up/ElasticPress/pull/3676).
+* REST API endpoint at `elasticpress/v1/features` for updating feature settings. Props [@JakePT](https://github.com/JakePT) via [#3676](https://github.com/10up/ElasticPress/pull/3676).
 * New `ElasticsearchErrorInterpreter` class. Props [@felipeelia](https://github.com/felipeelia) via [#3661](https://github.com/10up/ElasticPress/pull/3661).
-* Added a `default_search` analyzer to differentiate what is applied during sync and search time. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#3610](https://github.com/10up/ElasticPress/pull/3610) and [#3703](https://github.com/10up/ElasticPress/pull/3703).
+* New `default_search` analyzer to differentiate what is applied during sync and search time. Props [@felipeelia](https://github.com/felipeelia) and [@MARQAS](https://github.com/MARQAS) via [#3610](https://github.com/10up/ElasticPress/pull/3610) and [#3703](https://github.com/10up/ElasticPress/pull/3703).
 * The sync page now describes what triggered the current sync, and previous syncs. Props [@JakePT](https://github.com/JakePT) via [#3722](https://github.com/10up/ElasticPress/pull/3722).
+* Weighting and Synonyms Dashboards to multisites. Props [@felipeelia](https://github.com/felipeelia) via [#3724](https://github.com/10up/ElasticPress/pull/3724).
+* No-cache headers to sync calls. Props [@felipeelia](https://github.com/felipeelia) via [#3731](https://github.com/10up/ElasticPress/pull/3731).
 
 ### Changed
 * Abstracted Sync page logic into a provider pattern. Props [@JakePT](https://github.com/JakePT) via [#3630](https://github.com/10up/ElasticPress/pull/3630).
@@ -57,6 +59,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Updated the labels of feature settings and options for consistency and clarity. Props [@JakePT](https://github.com/JakePT) via [#3721](https://github.com/10up/ElasticPress/pull/3721).
 * Depending on the requirements, some feature settings are now saved to be applied after a full sync. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3720](https://github.com/10up/ElasticPress/pull/3720).
 * Minimum requirements. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#3668](https://github.com/10up/ElasticPress/pull/3668).
+* Old features will have their settings displayed based on their default setting values. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3728](https://github.com/10up/ElasticPress/pull/3728).
+* Radio and checkbox settings were changed from booleans to strings. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3730](https://github.com/10up/ElasticPress/pull/3730).
 
 ### Deprecated
 * The `IndexHelper::get_last_index` method was replaced by `IndexHelper::get_last_sync`. See [#3647](https://github.com/10up/ElasticPress/pull/3647).
@@ -73,6 +77,12 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Total fields limit message interpretation. Props [@felipeelia](https://github.com/felipeelia) [@JakePT](https://github.com/JakePT) via [#3702](https://github.com/10up/ElasticPress/pull/3702).
 * End to end tests intermittent failures. Props [@felipeelia](https://github.com/felipeelia) via [#3572](https://github.com/10up/ElasticPress/pull/3572).
 * React warning on Sync page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3718](https://github.com/10up/ElasticPress/pull/3718).
+* Content was not showing properly on the tooltop on install page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3725](https://github.com/
+* 10up/ElasticPress/pull/3725).
+* Redirect to correct sync url after enabling feature that requires a new sync. Props [@burhandodhy](https://github.com/burhandodhy) via [#3726](https://github.com/10up/ElasticPress/pull/3726).
+* Post type setting wasn't respected during sync. Props [@burhandodhy](https://github.com/burhandodhy) via [#3727](https://github.com/10up/ElasticPress/pull/3727).
+* Fix a JS error appearing when sync requests are intentionally stopped. Props [@burhandodhy](https://github.com/burhandodhy) via [#3736](https://github.com/10up/ElasticPress/pull/3736).
+* Features description copy. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@MARQAS](https://github.com/MARQAS) via [#3737](https://github.com/10up/ElasticPress/pull/3737).
 
 ### Security
 
