@@ -563,7 +563,10 @@ abstract class Feature {
 	 * @return array
 	 */
 	public function get_settings_schema() {
-		$this->set_settings_schema();
+		// Settings were not set yet.
+		if ( [] === $this->settings_schema ) {
+			$this->set_settings_schema();
+		}
 
 		$active = [
 			'default'          => false,
