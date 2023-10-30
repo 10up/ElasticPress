@@ -42,7 +42,11 @@ export default ({ feature }) => {
 			{/* eslint-disable-next-line react/no-danger */}
 			<p dangerouslySetInnerHTML={{ __html: safeHTML(summary) }} />
 			{reqStatusMessages.map((m) => (
-				<Notice isDismissible={false} status={reqStatusCode === 2 ? 'error' : 'warning'}>
+				<Notice
+					isDismissible={false}
+					status={reqStatusCode === 2 ? 'error' : 'warning'}
+					key={m}
+				>
 					{/* eslint-disable-next-line react/no-danger */}
 					<span dangerouslySetInnerHTML={{ __html: safeHTML(m) }} />
 				</Notice>
