@@ -155,6 +155,13 @@ class FailedQueries extends Report {
 	 * @return array The error in index 0, solution in index 1
 	 */
 	public function analyze_log( $log ) {
+		if ( is_array( $log['result'] ) && ! empty( $log['result']['is_wp_error'] ) ) {
+			return [
+				$log['result']['message'],
+				__( 'It seems WordPress was not able to complete the request. Review the error message and your configuration.', 'elasticpress' ),
+			];
+		}
+
 		$error = Utils\get_elasticsearch_error_reason( $log );
 
 		$solution = ( ! empty( $error ) ) ?

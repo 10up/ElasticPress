@@ -239,6 +239,7 @@ export default ({
 									onChange={onChange}
 									disabled={isDisabled}
 									value={value}
+									type={type}
 								/>
 							);
 						}

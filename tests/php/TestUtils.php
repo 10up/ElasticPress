@@ -367,6 +367,9 @@ class TestUtils extends BaseTestCase {
 				'items'  => [
 					[
 						'index' => [
+							'status' => 201,
+						],
+						'index' => [
 							'error' => [
 								'reason' => 'Error reason',
 							],
