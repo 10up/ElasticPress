@@ -827,8 +827,15 @@ function get_elasticsearch_error_reason( $response ) : string {
 		return (string) $response['result']['error']['root_cause'][0]['reason'];
 	}
 
-	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) && ! empty( $response['result']['items'][0]['index']['error']['reason'] ) ) {
-		return (string) $response['result']['items'][0]['index']['error']['reason'];
+	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) ) {
+		$error = '';
+		foreach ( $response['result']['items'] as $item ) {
+			if ( ! empty( $item['index']['error']['reason'] ) ) {
+				$error = $item['index']['error']['reason'];
+				break;
+			}
+		}
+		return $error;
 	}
 
 	return '';

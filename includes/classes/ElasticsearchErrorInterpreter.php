@@ -25,6 +25,17 @@ class ElasticsearchErrorInterpreter {
 	public function maybe_suggest_solution_for_es( $error ) {
 		$sync_url = Utils\get_sync_url();
 
+		if ( 'no such index' === $error ) { // ES 5.x error
+			return [
+				'error'    => 'no such index',
+				'solution' => sprintf(
+					/* translators: Sync Page URL */
+					__( 'It seems one of the indices is missing. <a href="%1$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
+					$sync_url
+				),
+			];
+		}
+
 		if ( preg_match( '/no such index \[(.*?)\]/', $error, $matches ) ) {
 			return [
 				'error'    => 'no such index [???]',
