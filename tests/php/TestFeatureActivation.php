@@ -366,9 +366,9 @@ class TestFeatureActivation extends BaseTestCase {
 				'active'         => true,
 				'force_inactive' => false,
 				'field_1'        => '1',
+				'field_4'        => '1',
 				'field_2'        => '1',
 				'field_3'        => '1',
-				'field_4'        => '1',
 			],
 			$draft_settings['test']
 		);

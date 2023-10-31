@@ -41,11 +41,12 @@ class Features {
 	/**
 	 * Activate a feature
 	 *
-	 * @param  string $slug Feature slug
-	 * @since  2.2
+	 * @param string $slug   Feature slug
+	 * @param string $target Whether to update a feature settings' draft or current
+	 * @since 2.2, 5.0.0 added $target
 	 */
-	public function activate_feature( $slug ) {
-		$this->update_feature( $slug, array( 'active' => true ) );
+	public function activate_feature( $slug, $target = 'current' ) {
+		$this->update_feature( $slug, array( 'active' => true ), true, $target );
 	}
 
 	/**
@@ -92,7 +93,7 @@ class Features {
 	 * @param  string $slug     Feature slug
 	 * @param  array  $settings Array of settings
 	 * @param  bool   $force    Whether to force activate/deactivate
-	 * @param  string $target   Whether to update a feature settings' draft or current
+	 * @param  string $target   Whether to update a feature settings' draft or current. Changing current will also save the draft.
 	 * @since  2.2, 5.0.0 added $target
 	 * @return array|bool
 	 */
@@ -268,41 +269,48 @@ class Features {
 		 * If a requirement status changes, we need to handle that by activating/deactivating/showing notification
 		 */
 
-		if ( ( $is_wp_cli || is_admin() ) && ! empty( $old_requirement_statuses ) ) {
-			foreach ( $new_requirement_statuses as $slug => $code ) {
-				$feature = $this->get_registered_feature( $slug );
+		if ( ( ! $is_wp_cli && ! is_admin() ) || empty( $old_requirement_statuses ) ) {
+			return;
+		}
 
-				// If a feature is forced inactive, do nothing
-				$feature_settings = $feature->get_settings();
-				if ( is_array( $feature_settings ) && ! empty( $feature_settings['force_inactive'] ) ) {
-					continue;
+		foreach ( $new_requirement_statuses as $slug => $code ) {
+			$feature = $this->get_registered_feature( $slug );
+
+			// If a feature is forced inactive, do nothing
+			$feature_settings = $feature->get_settings();
+			if ( is_array( $feature_settings ) && ! empty( $feature_settings['force_inactive'] ) ) {
+				continue;
+			}
+
+			// By default we will activate the feature in the current settings. If it requires a sync, we'll only update the draft
+			$activate_feature_target = 'current';
+
+			// This is a new feature
+			if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
+				if ( 0 === $code ) {
+					if ( $feature->requires_install_reindex ) {
+						$activate_feature_target = 'draft';
+						Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
+					}
+
+					$this->activate_feature( $slug, $activate_feature_target );
 				}
+			} else {
+				// This feature has a 0 "ok" code when it did not before
+				if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
+					$active = ( 0 === $code );
 
-				// This is a new feature
-				if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
-					if ( 0 === $code ) {
-						$this->activate_feature( $slug );
-
+					if ( ! $feature->is_active() && $active ) {
+						// Need to activate and maybe set a sync notice
 						if ( $feature->requires_install_reindex ) {
+							$activate_feature_target = 'draft';
 							Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 						}
-					}
-				} else {
-					// This feature has a 0 "ok" code when it did not before
-					if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
-						$active = ( 0 === $code );
 
-						if ( ! $feature->is_active() && $active ) {
-							$this->activate_feature( $slug );
-
-							// Need to activate and maybe set a sync notice
-							if ( $feature->requires_install_reindex ) {
-								Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-							}
-						} elseif ( $feature->is_active() && ! $active ) {
-							// Just deactivate, don't force
-							$this->deactivate_feature( $slug, false );
-						}
+						$this->activate_feature( $slug, $activate_feature_target );
+					} elseif ( $feature->is_active() && ! $active ) {
+						// Just deactivate, don't force
+						$this->deactivate_feature( $slug, false );
 					}
 				}
 			}
