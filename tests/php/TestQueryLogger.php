@@ -348,7 +348,7 @@ class TestQueryLogger extends BaseTestCase {
 	 */
 	public function test_format_log_entry_with_wp_error() {
 		$query_logger = new QueryLogger();
-		$query = [
+		$query        = [
 			'time_start'  => 1,
 			'time_finish' => 2,
 			'args'        => [
