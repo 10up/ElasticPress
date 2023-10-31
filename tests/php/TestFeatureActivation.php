@@ -180,15 +180,17 @@ class TestFeatureActivation extends BaseTestCase {
 	 * test that when it's req status changes, it's enabled.
 	 *
 	 * @group feature-activation
-	 * @since  2.2
+	 * @since 5.0.0
 	 */
-	public function testAutoActivateWithFeature() {
+	public function test_auto_activate_with_feature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
-		ElasticPress\Features::factory()->register_feature(
-			new FeatureTest()
-		);
+		$feature = new FeatureTest();
+
+		$feature->requires_install_reindex = false;
+
+		ElasticPress\Features::factory()->register_feature( $feature );
 
 		update_site_option( 'ep_test_feature_on', 2 );
 
