@@ -158,8 +158,6 @@ class Features {
 					}
 				}
 			}
-
-			FeaturesStore::factory()->update_feature( $slug, $new_settings[ $slug ], true, 'draft' );
 		}
 
 		foreach ( $settings_that_requires_features as $feature => $fields ) {
@@ -172,6 +170,10 @@ class Features {
 
 		foreach ( $current_settings as $slug => $feature ) {
 			FeaturesStore::factory()->update_feature( $slug, $feature );
+		}
+
+		foreach ( $new_settings as $slug => $feature ) {
+			FeaturesStore::factory()->update_feature( $slug, $feature, true, 'draft' );
 		}
 
 		return [
