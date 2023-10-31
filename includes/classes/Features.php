@@ -145,8 +145,10 @@ class Features {
 		$new_settings = wp_parse_args( [ $slug => $new_feature_settings ], $saved_settings );
 		$new_settings = apply_filters( 'ep_sanitize_feature_settings', $new_settings, $feature );
 
+		Utils\update_option( 'ep_feature_settings_draft', $new_settings );
+
+		// This is as far as we go if saving just a draft
 		if ( 'draft' === $target ) {
-			Utils\update_option( 'ep_feature_settings_draft', $new_settings );
 			return true;
 		}
 
