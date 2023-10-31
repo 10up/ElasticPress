@@ -341,6 +341,42 @@ class TestQueryLogger extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `format_log_entry` method when the request is a WP_Error object
+	 *
+	 * @since 5.0.0
+	 * @group queryLogger
+	 */
+	public function test_format_log_entry_with_wp_error() {
+		$query_logger = new QueryLogger();
+		$query = [
+			'time_start'  => 1,
+			'time_finish' => 2,
+			'args'        => [
+				'method' => 'GET',
+				'body'   => 'request body plain text',
+			],
+			'request'     => new \WP_Error( 123, 'Custom message', 'additional data' ),
+			'url'         => 'ep-url',
+			'query_args'  => [ 'post_type' => 'test' ],
+		];
+
+		$class  = new \ReflectionClass( $query_logger );
+		$method = $class->getMethod( 'format_log_entry' );
+		$method->setAccessible( true );
+		$formatted_log = $method->invokeArgs( $query_logger, [ $query, 'type' ] );
+
+		$this->assertSame(
+			[
+				'is_wp_error' => true,
+				'code'        => 123,
+				'message'     => 'Custom message',
+				'data'        => 'additional data',
+			],
+			$formatted_log['result']
+		);
+	}
+
+	/**
 	 * Test the should_log_query_type method
 	 *
 	 * @group queryLogger
