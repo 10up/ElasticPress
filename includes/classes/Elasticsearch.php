@@ -1210,7 +1210,7 @@ class Elasticsearch {
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
-	public function remote_request( $path, $args = [], $query_args = [], $type = null ) {
+	public function remote_request( $path, $args = [], $query_args = [], $type = '' ) {
 
 		if ( empty( $args['method'] ) ) {
 			$args['method'] = 'GET';
