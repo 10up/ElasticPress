@@ -144,11 +144,16 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		$active_features = Utils\get_option( 'ep_feature_settings', [] );
+		$active_features       = (array) Features::factory()->get_feature_settings();
+		$active_features_draft = (array) Features::factory()->get_feature_settings_draft();
 
-		$key = array_search( $feature->slug, array_keys( $active_features ), true );
+		$key_current = array_search( $feature->slug, array_keys( $active_features ), true );
+		$key_draft   = array_search( $feature->slug, array_keys( $active_features_draft ), true );
 
-		if ( false === $key || empty( $active_features[ $feature->slug ]['active'] ) ) {
+		$in_current = false !== $key_current && ! empty( $active_features[ $feature->slug ]['active'] );
+		$in_draft   = false !== $key_draft && ! empty( $active_features_draft[ $feature->slug ]['active'] );
+
+		if ( ! $in_current && ! $in_draft ) {
 			WP_CLI::error( esc_html__( 'Feature is not active', 'elasticpress' ) );
 		}
 

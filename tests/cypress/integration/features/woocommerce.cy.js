@@ -26,6 +26,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.get('#tab-panel-0-woocommerce').click();
 		cy.get('.components-form-toggle__input').should('be.checked');
 	});
 
