@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
-## [5.0.0] - 2023-XX-XX
+## [5.0.0] - 2023-11-01
 
 **ElasticPress 5.0.0 contains some important changes. Make sure to read these highlights before upgrading:**
 - This version does not require a full reindex but it is recommended, especially for websites using synonyms containing spaces. See [#3610](https://.github.com/10up/ElasticPress/pull/3610).
@@ -78,8 +78,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Total fields limit message interpretation. Props [@felipeelia](https://github.com/felipeelia) [@JakePT](https://github.com/JakePT) via [#3702](https://github.com/10up/ElasticPress/pull/3702).
 * End to end tests intermittent failures. Props [@felipeelia](https://github.com/felipeelia) via [#3572](https://github.com/10up/ElasticPress/pull/3572).
 * React warning on Sync page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3718](https://github.com/10up/ElasticPress/pull/3718).
-* Content was not showing properly on the tooltop on install page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3725](https://github.com/
-* 10up/ElasticPress/pull/3725).
+* Content was not showing properly on the tooltop on install page. Props [@burhandodhy](https://github.com/burhandodhy) via [#3725](https://github.com/10up/ElasticPress/pull/3725).
 * Redirect to correct sync url after enabling feature that requires a new sync. Props [@burhandodhy](https://github.com/burhandodhy) via [#3726](https://github.com/10up/ElasticPress/pull/3726).
 * Post type setting wasn't respected during sync. Props [@burhandodhy](https://github.com/burhandodhy) via [#3727](https://github.com/10up/ElasticPress/pull/3727).
 * Fix a JS error appearing when sync requests are intentionally stopped. Props [@burhandodhy](https://github.com/burhandodhy) via [#3736](https://github.com/10up/ElasticPress/pull/3736).
@@ -87,6 +86,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Endpoint URL field is not a URL type field. Props [@burhandodhy](https://github.com/burhandodhy) via [#3733](https://github.com/10up/ElasticPress/pull/3733).
 * WooCommerce feature not autoactivating. Props [@felipeelia](https://github.com/felipeelia) via [#3739](https://github.com/10up/ElasticPress/pull/3739).
 * Elasticsearch errors interpretation. Props [@felipeelia](https://github.com/felipeelia) via [#3741](https://github.com/10up/ElasticPress/pull/3741).
+* Deactivating a feature via WP-CLI also takes into account draft states. Props [@felipeelia](https://github.com/felipeelia) via [#3749](https://github.com/10up/ElasticPress/pull/3749).
 
 ### Security
 
