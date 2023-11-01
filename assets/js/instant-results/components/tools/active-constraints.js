@@ -23,7 +23,7 @@ const ref = createRef();
  * @param {Function} props.onClick Click handler.
  * @returns {WPElement} Element.
  */
-export const ActiveContraint = ({ label, onClick }) => {
+export const ActiveConstraint = ({ label, onClick }) => {
 	if (!ref.current) {
 		return null;
 	}

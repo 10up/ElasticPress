@@ -25,7 +25,7 @@ const { epas } = window;
 if (epas.endpointUrl && epas.endpointUrl !== '') {
 	init();
 
-	// Publically expose API
+	// Publicly expose API
 	window.epasAPI = {
 		hideAutosuggestBox,
 		updateAutosuggestBox,
@@ -594,7 +594,7 @@ function init() {
 	 * @param {Node} input - search input field
 	 */
 	const fetchResults = async (input) => {
-		// retrieves the PHP-genereated query to pass to ElasticSearch
+		// retrieves the PHP-generated query to pass to ElasticSearch
 		const queryJSON = getJsonQuery();
 
 		if (queryJSON.error) {

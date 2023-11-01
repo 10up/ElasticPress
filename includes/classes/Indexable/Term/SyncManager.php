@@ -213,7 +213,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 	}
 
 	/**
-	 * Enqueue sync of children terms in hierchy when deleting parent. Children terms will be reasigned to
+	 * Enqueue sync of children terms in hierarchy when deleting parent. Children terms will be reasigned to
 	 * a different parent and we want to reflect that change in ElasticSearch
 	 *
 	 * @param int $term_id Term ID.

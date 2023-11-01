@@ -12,7 +12,7 @@ import { useApiSearch } from '../../../api-search';
 import { facets, postTypeLabels } from '../../config';
 import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
-import { ActiveContraint } from '../tools/active-constraints';
+import { ActiveConstraint } from '../tools/active-constraints';
 
 /**
  * Taxonomy filter component.
@@ -146,7 +146,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 						{selectedTerms.map(
 							(value) =>
 								labels?.[value] && (
-									<ActiveContraint
+									<ActiveConstraint
 										key={value}
 										label={labels[value]}
 										onClick={() => onClear(value)}

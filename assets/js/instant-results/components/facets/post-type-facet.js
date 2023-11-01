@@ -11,7 +11,7 @@ import { useApiSearch } from '../../../api-search';
 import { postTypeLabels } from '../../config';
 import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
-import { ActiveContraint } from '../tools/active-constraints';
+import { ActiveConstraint } from '../tools/active-constraints';
 
 /**
  * Post type facet component.
@@ -100,7 +100,7 @@ export default ({ defaultIsOpen, label }) => {
 						/>
 
 						{selectedPostTypes.map((value) => (
-							<ActiveContraint
+							<ActiveConstraint
 								key={value}
 								label={postTypeLabels[value].singular}
 								onClick={() => onClear(value)}

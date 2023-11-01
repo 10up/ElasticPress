@@ -1398,7 +1398,7 @@ __Enhancements:__
 * Refactor CLI indexing code for simplicity.
 * Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
 * Cast taxonomy slug to array in case it's already an array in `WP_Query`.
-* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Remove unnecessary usage of `--network-wide` CLI parameter.
 * Add name, nickname, and display name to fields used for user search.
 * Add `clear-transient` WP CLI command.
 * Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
@@ -1767,7 +1767,7 @@ We've bumped the minimum Elasticsearch version to 1.7 (although we strongly reco
 * WooCommerce feature breaking image search in media library. Props [Ritesh-patel](https://github.com/Ritesh-patel)
 * WooCommerce order search broken
 * Stop the insansity made private. Props [sc0ttclark](https://github.com/sc0ttclark)
-* Fix multidimensional meta querys. Props [Ritesh-patel](https://github.com/Ritesh-patel).
+* Fix multidimensional meta queries. Props [Ritesh-patel](https://github.com/Ritesh-patel).
 * Properly show bulk index errors in WP-CLI
 * Update ep_delete_post, include $post_type argument. Props [Ritesh-patel](https://github.com/Ritesh-patel)
 * Fix post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props [Ritesh-patel](https://github.com/Ritesh-patel)

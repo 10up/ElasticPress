@@ -19,7 +19,7 @@ require_once $_tests_dir . '/includes/functions.php';
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
 /**
- * Make sure we only test on 1 shard because any more will lead to inconsitent results
+ * Make sure we only test on 1 shard because any more will lead to inconsistent results
  *
  * @since  3.0
  */

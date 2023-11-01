@@ -778,7 +778,7 @@ class Post extends Indexable {
 	}
 
 	/**
-	 * Retreives term order for the object/term_taxonomy_id combination
+	 * Retrieves term order for the object/term_taxonomy_id combination
 	 *
 	 * @param int $term_taxonomy_id Term Taxonomy ID
 	 * @param int $object_id        Post ID
