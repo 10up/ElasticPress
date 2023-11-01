@@ -4,6 +4,7 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 
 	before(() => {
 		cy.visitAdminPage('edit-tags.php?taxonomy=post_tag');
+		cy.activatePlugin('show-comments-and-terms', 'wpCli');
 
 		/**
 		 * Delete all tags.
@@ -22,19 +23,20 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 		cy.maybeDisableFeature('terms');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-terms .settings-button').click();
-		cy.get('.ep-feature-terms [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-terms .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Sync complete')
-			.should('contain.text', 'Mapping sent');
+		cy.contains('button', 'Terms').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
+
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			.should('contain.text', 'Mapping sent')
+			.should('contain.text', 'Sync complete');
 
 		cy.wpCli('wp elasticpress list-features').its('stdout').should('contain', 'terms');
 	});
@@ -149,7 +151,8 @@ describe('Terms Feature', { tags: '@slow' }, () => {
 		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 
 		// make sure the child term parent field is set to none.
-		cy.get('#tag-search-input').clear().type(`${childTerm}{enter}`);
+		cy.get('#tag-search-input').clear();
+		cy.get('#tag-search-input').type(`${childTerm}{enter}`);
 		cy.get('.wp-list-table tbody tr .column-primary a').first().click();
 		cy.get('#parent').should('have.value', '-1');
 

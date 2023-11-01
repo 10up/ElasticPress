@@ -174,7 +174,7 @@ class Command extends WP_CLI_Command {
 		$list_all = \WP_CLI\Utils\get_flag_value( $assoc_args, 'all', null );
 
 		if ( empty( $list_all ) ) {
-			$features = Utils\get_option( 'ep_feature_settings', [] );
+			$features = Features::factory()->get_feature_settings();
 
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
@@ -936,6 +936,7 @@ class Command extends WP_CLI_Command {
 
 		$index_names_imploded = implode( ',', $index_names );
 
+		Elasticsearch::factory()->refresh_indices();
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
 
 		if ( is_wp_error( $request ) ) {
@@ -1068,7 +1069,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function get_last_sync( $args, $assoc_args ) {
 		$pretty    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
-		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_sync();
 
 		$this->pretty_json_encode( $last_sync, $pretty );
 	}

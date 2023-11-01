@@ -54,7 +54,8 @@ class Search extends Feature {
 
 		$this->title = esc_html__( 'Post Search', 'elasticpress' );
 
-		$this->summary = __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' );
+		$this->summary = '<p>' . __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ) . '</p>' .
+			'<p>' . __( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#post-search', 'elasticpress' );
 
@@ -107,6 +108,7 @@ class Search extends Feature {
 		add_action( 'ep_highlighting_pre_add_highlight', [ $this, 'allow_excerpt_html' ] );
 
 		add_action( 'init', [ $this, 'register_meta' ], 20 );
+		add_filter( 'ep_prepare_meta_allowed_keys', [ $this, 'add_exclude_from_search' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
 		add_filter( 'ep_post_filters', [ $this, 'exclude_posts_from_search' ], 10, 3 );
 		add_action( 'post_submitbox_misc_actions', [ $this, 'output_exclude_from_search_setting' ] );
@@ -124,7 +126,7 @@ class Search extends Feature {
 	public function enqueue_scripts() {
 		$settings = $this->get_settings();
 
-		if ( true !== $settings['highlight_enabled'] ) {
+		if ( '1' !== $settings['highlight_enabled'] ) {
 			return;
 		}
 
@@ -159,7 +161,7 @@ class Search extends Feature {
 		// get current config
 		$settings = $this->get_settings();
 
-		if ( true !== $settings['highlight_enabled'] ) {
+		if ( '1' !== $settings['highlight_enabled'] ) {
 			return $formatted_args;
 		}
 
@@ -266,7 +268,7 @@ class Search extends Feature {
 
 		$settings = $this->get_settings();
 
-		if ( ! empty( $settings['highlight_excerpt'] ) && true === $settings['highlight_excerpt'] ) {
+		if ( ! empty( $settings['highlight_excerpt'] ) && '1' === $settings['highlight_excerpt'] ) {
 			remove_filter( 'get_the_excerpt', 'wp_trim_excerpt' );
 			add_filter( 'get_the_excerpt', [ $this, 'ep_highlight_excerpt' ], 10, 2 );
 			add_filter( 'ep_highlighting_fields', [ $this, 'ep_highlight_add_excerpt_field' ] );
@@ -346,11 +348,11 @@ class Search extends Feature {
 	 */
 	public function sanitize_highlighting_settings( $settings ) {
 		if ( ! empty( $settings['search']['highlight_excerpt'] ) ) {
-			$settings['search']['highlight_excerpt'] = (bool) $settings['search']['highlight_excerpt'];
+			$settings['search']['highlight_excerpt'] = $settings['search']['highlight_excerpt'];
 		}
 
 		if ( ! empty( $settings['search']['highlight_enabled'] ) ) {
-			$settings['search']['highlight_enabled'] = (bool) $settings['search']['highlight_enabled'];
+			$settings['search']['highlight_enabled'] = $settings['search']['highlight_enabled'];
 		}
 
 		return $settings;
@@ -424,7 +426,7 @@ class Search extends Feature {
 	public function is_decaying_enabled( $args = [] ) {
 		$settings = $this->get_settings();
 
-		$is_decaying_enabled = (bool) $settings['decaying_enabled'];
+		$is_decaying_enabled = $settings['decaying_enabled'] && '0' !== $settings['decaying_enabled'];
 
 		/**
 		 * Filter to modify decaying
@@ -637,8 +639,8 @@ class Search extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Highlighting status', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( (bool) $settings['highlight_enabled'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( ! (bool) $settings['highlight_enabled'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( $settings['highlight_enabled'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_enabled]" type="radio" <?php checked( $settings['highlight_enabled'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'Wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the "ep-highlight" class for easy styling.' ); ?></p>
 			</div>
 		</div>
@@ -658,8 +660,8 @@ class Search extends Feature {
 		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Excerpt highlighting', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( (bool) $settings['highlight_excerpt'] ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( ! (bool) $settings['highlight_excerpt'] ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( $settings['highlight_excerpt'], '1' ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
+				<label><input name="settings[highlight_excerpt]" type="radio" <?php checked( $settings['highlight_excerpt'], '0' ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
 				<p class="field-description"><?php esc_html_e( 'By default, WordPress strips HTML from content excerpts. Enable when using the_excerpt() to display search results. ', 'elasticpress' ); ?></p>
 			</div>
 		</div>
@@ -686,6 +688,18 @@ class Search extends Feature {
 				'type'         => 'boolean',
 			]
 		);
+	}
+
+	/**
+	 * Add ep_exclude_from_search to the allowed meta fields list.
+	 *
+	 * @since 5.0.0
+	 * @param array $keys List of allowed meta fields
+	 * @return array
+	 */
+	public function add_exclude_from_search( $keys ) {
+		$keys[] = 'ep_exclude_from_search';
+		return $keys;
 	}
 
 	/**
@@ -829,5 +843,102 @@ class Search extends Feature {
 		}
 
 		return $skip;
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '1',
+				'key'     => 'decaying_enabled',
+				'label'   => __( 'Weighting by date', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Don\'t weight results by date', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Weight results by date', 'elasticpress' ),
+						'value' => '1',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.' ),
+				'key'     => 'highlight_enabled',
+				'label'   => __( 'Highlight search terms', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
+				'key'     => 'highlight_excerpt',
+				'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
+				'default' => 'mark',
+				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
+				'key'     => 'highlight_tag',
+				'label'   => __( 'Highlight tag', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'None', 'elasticpress' ),
+						'value' => '',
+					],
+					[
+						'label' => 'mark',
+						'value' => 'mark',
+					],
+					[
+						'label' => 'span',
+						'value' => 'span',
+					],
+					[
+						'label' => 'strong',
+						'value' => 'strong',
+					],
+					[
+						'label' => 'em',
+						'value' => 'em',
+					],
+					[
+						'label' => 'i',
+						'value' => 'i',
+					],
+				],
+				'type'    => 'select',
+			],
+			[
+				'default' => 'simple',
+				'key'     => 'synonyms_editor_mode',
+				'type'    => 'hidden',
+			],
+		];
+
+		if ( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) {
+			$weighting_url = esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) );
+			$synonyms_url  = esc_url( admin_url( 'admin.php?page=elasticpress-synonyms' ) );
+
+			$text = sprintf(
+				'<p><a href="%1$s">%2$s</a></p><p><a href="%3$s">%4$s</a></p>',
+				$weighting_url,
+				__( 'Advanced fields and weighting settings', 'elasticpress' ),
+				$synonyms_url,
+				__( 'Add synonyms to your post searches', 'elasticpress' ),
+			);
+
+			$this->settings_schema[] = [
+				'key'   => 'additional_links',
+				'label' => $text,
+				'type'  => 'markup',
+			];
+		}
 	}
 }

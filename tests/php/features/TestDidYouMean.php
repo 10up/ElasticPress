@@ -49,7 +49,7 @@ class TestDidYouMean extends BaseTestCase {
 		$this->assertTrue( $instance->requires_install_reindex );
 		$this->assertTrue( $instance->available_during_installation );
 		$this->assertTrue( $instance->is_visible() );
-		$this->assertSame( [ 'search_behavior' => false ], $instance->default_settings );
+		$this->assertSame( [ 'search_behavior' => '0' ], $instance->default_settings );
 	}
 
 	/**
@@ -61,19 +61,6 @@ class TestDidYouMean extends BaseTestCase {
 
 		$this->assertEquals( 1, $status->code );
 		$this->assertEquals( null, $status->message );
-	}
-
-	/**
-	 * Test Requirements status when search feature is not active.
-	 */
-	public function testRequirementsStatusWhenSearchFeatureIsNotActive() {
-		ElasticPress\Features::factory()->deactivate_feature( 'search' );
-
-		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
-		$status   = $instance->requirements_status();
-
-		$this->assertEquals( 2, $status->code );
-		$this->assertEquals( 'This feature requires the &quot;Post Search&quot; feature to be enabled', $status->message );
 	}
 
 	/**
@@ -450,5 +437,23 @@ class TestDidYouMean extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEmpty( $query->suggested_terms['options'] );
+	}
+
+	/**
+	 * Test Did You Mean settings schema
+	 *
+	 * @since 5.0.0
+	 * @group did-you-mean
+	 */
+	public function test_get_settings_schema() {
+		$instance        = new \ElasticPress\Feature\DidYouMean\DidYouMean();
+		$settings_schema = $instance->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'search_behavior' ],
+			$settings_keys
+		);
 	}
 }

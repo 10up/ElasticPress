@@ -30,31 +30,27 @@ cy.elasticPress = {
 	defaultFeatures: {
 		search: {
 			active: 1,
-			highlight_enabled: true,
-			highlight_excerpt: true,
+			highlight_enabled: '1',
+			highlight_excerpt: '1',
 			highlight_tag: 'mark',
-			highlight_color: '#157d84',
 		},
 		related_posts: {
-			active: 1,
+			active: true,
 		},
 		facets: {
-			active: 1,
+			active: true,
 		},
 		searchordering: {
-			active: 1,
+			active: true,
 		},
 		autosuggest: {
-			active: 1,
+			active: true,
 		},
 		woocommerce: {
-			active: 0,
+			active: false,
 		},
 		protected_content: {
-			active: 0,
-		},
-		users: {
-			active: 0,
+			active: false,
 		},
 	},
 };

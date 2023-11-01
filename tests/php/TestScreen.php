@@ -32,7 +32,7 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -90,11 +90,7 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		// This will be 'install' for single site, but null for multisite.
-		if ( is_multisite() ) {
-			$this->assertNull( ElasticPress\Screen::factory()->get_current_screen() );
-		} else {
-			$this->assertSame( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-		}
+		$this->assertSame( 'install', ElasticPress\Screen::factory()->get_current_screen() );
 	}
 
 	/**

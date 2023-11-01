@@ -56,7 +56,7 @@ class WooCommerce extends Feature {
 
 		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
 
-		$this->summary = __( "With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they're looking for, even if you have a large or complex product catalog.", 'elasticpress' );
+		$this->summary = '<p>' . __( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#woocommerce', 'elasticpress' );
 
@@ -87,19 +87,51 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		$this->products->setup();
-		$this->orders->setup();
+		add_action( 'switch_blog', [ $this, 'setup_or_tear_down' ] );
 
 		add_filter( 'ep_integrate_search_queries', [ $this, 'disallow_coupons' ], 10, 2 );
 
-		// These hooks are deprecated and will be removed in an upcoming major version of ElasticPress
-		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
+		$this->products->setup();
+		$this->orders->setup();
 
 		// Orders Autosuggest feature.
 		if ( $this->is_orders_autosuggest_enabled() ) {
 			$this->orders_autosuggest->setup();
+		}
+	}
+
+	/**
+	 * Setup or tear down the functionality depending on the plugin being active for the current site.
+	 *
+	 * If the site wasn't initialized yet (it does not have its database tables created) we skip it.
+	 *
+	 * @since 5.0.0
+	 * @param int $blog_id Blog ID
+	 * @return void
+	 */
+	public function setup_or_tear_down( $blog_id ) {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		if ( wp_is_site_initialized( $blog_id ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+			$this->setup();
+		} else {
+			$this->tear_down();
+		}
+	}
+
+	/**
+	 * Un-setup all feature filters
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_filter( 'ep_integrate_search_queries', [ $this, 'disallow_coupons' ] );
+
+		$this->products->tear_down();
+		$this->orders->tear_down();
+
+		// Orders Autosuggest feature.
+		if ( $this->is_orders_autosuggest_enabled() ) {
+			$this->orders_autosuggest->tear_down();
 		}
 	}
 
@@ -295,6 +327,43 @@ class WooCommerce extends Feature {
 	}
 
 	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$available = $this->is_orders_autosuggest_available();
+
+		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest';
+
+		$message = ( $available ) ?
+			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+			__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable autosuggest for Orders to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
+			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+			__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
+
+		$message = sprintf(
+			wp_kses( $message, 'ep-html' ),
+			'<a href="https://elasticpress.io/" target="_blank">',
+			'</a>',
+			'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
+			'</a>'
+		);
+
+		$this->settings_schema = [
+			[
+				'default'       => '0',
+				'disabled'      => ! $available,
+				'help'          => $message,
+				'key'           => 'orders',
+				'label'         => __( 'Show suggestions when searching for Orders', 'elasticpress' ),
+				'requires_sync' => true,
+				'type'          => 'checkbox',
+			],
+		];
+	}
+
+	/**
 	 * DEPRECATED. Translate args to ElasticPress compat format. This is the meat of what the feature does
 	 *
 	 * @param  \WP_Query $query WP Query
@@ -349,19 +418,6 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Make sure all loop shop post ins are IDS. We have to pass post objects here since we override
-	 * the fields=>id query for the layered filter nav query
-	 *
-	 * @param   array $posts Post object array.
-	 * @since   2.1
-	 * @return  array
-	 */
-	public function convert_post_object_to_id( $posts ) {
-		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
-		return $posts;
-	}
-
-	/**
 	 * DEPRECATED. Index WooCommerce taxonomies
 	 *
 	 * @param   array $taxonomies Index taxonomies array.
@@ -372,22 +428,6 @@ class WooCommerce extends Feature {
 	public function whitelist_taxonomies( $taxonomies, $post ) {
 		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->sync_taxonomies()" );
 		return $this->products->sync_taxonomies( $taxonomies );
-	}
-
-	/**
-	 * DEPRECATED. Disallow duplicated ES queries on Orders page.
-	 *
-	 * @since 2.4
-	 *
-	 * @param array    $value Original filter values.
-	 * @param WP_Query $query WP_Query
-	 *
-	 * @return array
-	 */
-	public function disallow_duplicated_query( $value, $query ) {
-		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
-
-		return $value;
 	}
 
 	/**

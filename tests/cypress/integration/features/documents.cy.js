@@ -1,9 +1,13 @@
 describe('Documents Feature', () => {
 	function enableDocumentsFeature() {
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-documents .settings-button').click();
-		cy.get('.ep-feature-documents [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-documents .button-primary').click();
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+		cy.contains('button', 'Documents').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save changes').click();
+
+		cy.wait('@apiRequest');
 	}
 
 	function uploadFile(fileName, mimeType) {
@@ -33,8 +37,12 @@ describe('Documents Feature', () => {
 	before(() => {
 		cy.wpCli('elasticpress sync --setup --yes');
 		cy.exec(
-			'npm run env run tests-wordpress "chown -R www-data:www-data /var/www/html/wp-content/uploads"',
+			'npm run env run tests-wordpress -- sudo chmod -R 777 /var/www/html/wp-content/uploads',
 		);
+	});
+
+	beforeEach(() => {
+		cy.maybeDisableFeature('documents');
 	});
 
 	it('Can search .pdf', () => {
@@ -54,7 +62,7 @@ describe('Documents Feature', () => {
 			 * @todo instead of waiting for an arbitrary time, we should ensure the file is processed.
 			 */
 			// eslint-disable-next-line cypress/no-unnecessary-waiting
-			cy.wait(500);
+			cy.wait(1000);
 
 			cy.visit('/?s=dummy+pdf');
 			cy.get('.hentry').should('contain.text', 'pdf-file');

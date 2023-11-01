@@ -33,7 +33,7 @@ class TestUtils extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -367,6 +367,9 @@ class TestUtils extends BaseTestCase {
 				'items'  => [
 					[
 						'index' => [
+							'status' => 201,
+						],
+						'index' => [
 							'error' => [
 								'reason' => 'Error reason',
 							],
@@ -576,5 +579,23 @@ class TestUtils extends BaseTestCase {
 		$sites = Utils\get_sites();
 		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_indexable_sites' ) );
 		$this->assertTrue( $sites['test'] );
+	}
+
+	/**
+	 * Test the `is_top_level_admin_context` function
+	 *
+	 * @since 5.0.0
+	 * @group utils
+	 */
+	public function test_is_top_level_admin_context() {
+		if ( is_multisite() ) {
+			// It will be in network admin mode by default as `WP_NETWORK_ADMIN` is set in bootstrap.php
+			$this->assertTrue( Utils\is_top_level_admin_context() );
+			set_current_screen( '/' );
+			$this->assertFalse( Utils\is_top_level_admin_context() );
+		} else {
+			set_current_screen( 'edit-comments.php' );
+			$this->assertTrue( Utils\is_top_level_admin_context() );
+		}
 	}
 }

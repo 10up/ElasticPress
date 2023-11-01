@@ -40,11 +40,11 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = $this->get_title();
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
 
-		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
+		$this->summary = '<p>' . __( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
 
@@ -57,6 +57,8 @@ class Autosuggest extends Feature {
 		];
 
 		$this->available_during_installation = true;
+
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
 	}
@@ -827,21 +829,6 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Autosuggest', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Autosuggest By %s', 'elasticpress' ), $this->get_epio_logo() );
-	}
-
-	/**
 	 * Return true, so EP knows we want to intercept the remote request
 	 *
 	 * As we add and remove this function from `ep_intercept_remote_request`,
@@ -853,6 +840,76 @@ class Autosuggest extends Feature {
 	 */
 	public function intercept_remote_request() {
 		return true;
+	}
+
+	/**
+	 * Conditionally add EP.io information to the settings schema
+	 *
+	 * @since 5.0.0
+	 */
+	protected function maybe_add_epio_settings_schema() {
+		$allowed_params = $this->epio_autosuggest_set_and_get();
+		if ( empty( $allowed_params ) ) {
+			return;
+		}
+
+		$epio_link                = 'https://elasticpress.io';
+		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
+
+		$this->settings_schema[] = [
+			'key'   => 'epio',
+			'label' => sprintf(
+				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
+				__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
+				'<a href="' . esc_url( $epio_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $status_report_link ) . '">',
+				'</a>'
+			),
+			'type'  => 'markup',
+		];
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '.ep-autosuggest',
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>', 'elasticpress' ),
+				'key'     => 'autosuggest_selector',
+				'label'   => __( 'Additional selectors', 'elasticpress' ),
+				'type'    => 'text',
+			],
+			[
+				'default' => '0',
+				'key'     => 'trigger_ga_event',
+				'help'    => __( 'Enable to fire a gtag tracking event when an autosuggest result is clicked.', 'elasticpress' ),
+				'label'   => __( 'Trigger Google Analytics events', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+		];
+
+		if ( Utils\is_epio() ) {
+			$this->maybe_add_epio_settings_schema();
+			return;
+		}
+
+		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
+
+		$this->settings_schema[] = [
+			'disabled' => $set_in_wp_config,
+			'help'     => $set_in_wp_config ? __( 'This address will be exposed to the public.', 'elasticpress' ) : '',
+			'key'      => 'endpoint_url',
+			'label'    => __( 'Endpoint URL', 'elasticpress' ),
+			'type'     => 'url',
+		];
 	}
 
 	/**

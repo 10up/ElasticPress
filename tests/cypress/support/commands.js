@@ -33,7 +33,8 @@ Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.get('body').then(($body) => {
 		if ($body.find('#wpwrap').length === 0) {
 			cy.get('input#user_login').clear();
-			cy.get('input#user_login').click().type(username);
+			cy.get('input#user_login').click();
+			cy.get('input#user_login').type(username);
 			cy.get('input#user_pass').type(`${password}{enter}`);
 		}
 	});
@@ -75,12 +76,14 @@ Cypress.Commands.add('createTerm', (data) => {
 
 	// wait for ajax request to finish.
 	cy.intercept('POST', 'wp-admin/admin-ajax.php*').as('ajaxRequest');
-	cy.get('#tag-name').click().type(`${name}{enter}`);
+	cy.get('#tag-name').click();
+	cy.get('#tag-name').type(`${name}{enter}`);
 	cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 });
 
 Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text, force = false) => {
-	cy.wrap(subject).clear().type(text, { force });
+	cy.wrap(subject).clear();
+	cy.wrap(subject).type(text, { force });
 });
 
 Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
@@ -140,8 +143,12 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 			}
 		});
 		cy.get('.edit-post-post-visibility__toggle').click();
-		cy.get('.editor-post-visibility__radio').check('password');
-		cy.get('.editor-post-visibility__password-input').type(newPostData.password);
+		cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
+			'password',
+		);
+		cy.get(
+			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+		).type(newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
@@ -169,13 +176,16 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	cy.wait(2000);
 });
 
-Cypress.Commands.add('updateFeatures', (newFeaturesValues = {}) => {
-	const features = Object.assign({}, cy.elasticPress.defaultFeatures, ...newFeaturesValues);
-
-	const escapedFeatures = JSON.stringify(features);
+Cypress.Commands.add('updateFeatures', (featureName, newValues) => {
+	const escapedNewValues = JSON.stringify(newValues);
 
 	cy.wpCliEval(
-		`$features = json_decode( '${escapedFeatures}', true ); update_option( 'ep_feature_settings', $features );`,
+		`
+		$feature_settings = get_option( 'ep_feature_settings', [] );
+
+		$feature_settings['${featureName}'] = json_decode( '${escapedNewValues}', true );
+		update_option( 'ep_feature_settings', $feature_settings );
+		`,
 	);
 });
 
@@ -301,12 +311,11 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 	/**
 	 * Find and add the widget to the first widget area.
 	 */
-	cy.get(`#widget-list [id$="${widgetId}-__i__"]`)
-		.click('top')
-		.within(() => {
-			cy.get('.widgets-chooser-add').click();
-		})
-		.wait('@adminAjax');
+	cy.get(`#widget-list [id$="${widgetId}-__i__"]`).click('top');
+	cy.get(`#widget-list [id$="${widgetId}-__i__"]`).within(() => {
+		cy.get('.widgets-chooser-add').click();
+	});
+	cy.wait('@adminAjax');
 
 	/**
 	 * Set widget settings and save.
@@ -334,8 +343,8 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 
 			cy.get('input[type="submit"]').click();
 			cy.wait('@adminAjax').its('response.statusCode').should('eq', 200);
-		})
-		.wait('@adminAjax');
+		});
+	cy.wait('@adminAjax');
 });
 
 Cypress.Commands.add('emptyWidgets', () => {
@@ -373,27 +382,25 @@ Cypress.Commands.add('dragAndDrop', (subject, target) => {
 				.first()
 				.then((subject) => {
 					const coordsDrag = subject[0].getBoundingClientRect();
-					cy.wrap(subject)
-						.trigger('mousedown', {
-							button: BUTTON_INDEX,
-							clientX: coordsDrag.x,
-							clientY: coordsDrag.y,
-							force: true,
-						})
-						.trigger('mousemove', {
-							button: BUTTON_INDEX,
-							clientX: coordsDrag.x + SLOPPY_CLICK_THRESHOLD,
-							clientY: coordsDrag.y,
-							force: true,
-						});
-					cy.get('body')
-						.trigger('mousemove', {
-							button: BUTTON_INDEX,
-							clientX: coordsDrop.x,
-							clientY: coordsDrop.y,
-							force: true,
-						})
-						.trigger('mouseup');
+					cy.wrap(subject).trigger('mousedown', {
+						button: BUTTON_INDEX,
+						clientX: coordsDrag.x,
+						clientY: coordsDrag.y,
+						force: true,
+					});
+					cy.wrap(subject).trigger('mousemove', {
+						button: BUTTON_INDEX,
+						clientX: coordsDrag.x + SLOPPY_CLICK_THRESHOLD,
+						clientY: coordsDrag.y,
+						force: true,
+					});
+					cy.get('body').trigger('mousemove', {
+						button: BUTTON_INDEX,
+						clientX: coordsDrop.x,
+						clientY: coordsDrop.y,
+						force: true,
+					});
+					cy.get('body').trigger('mouseup');
 				});
 		});
 });
@@ -456,8 +463,10 @@ Cypress.Commands.add('createUser', (userData) => {
 
 	if (newUserDate.login) {
 		cy.visit('wp-login.php');
-		cy.get('#user_login').clear().type(newUserDate.username);
-		cy.get('#user_pass').clear().type(`${newUserDate.password}{enter}`);
+		cy.get('#user_login').clear();
+		cy.get('#user_login').type(newUserDate.username);
+		cy.get('#user_pass').clear();
+		cy.get('#user_pass').type(`${newUserDate.password}{enter}`);
 	}
 });
 

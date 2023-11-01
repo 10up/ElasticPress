@@ -41,7 +41,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -490,7 +490,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
@@ -534,7 +534,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$mapping = function() {
 			return 'idonotmatch';
@@ -561,6 +561,13 @@ class TestAdminNotices extends BaseTestCase {
 	 * @since 4.4.0
 	 */
 	public function testTooManyFieldsNoticeInAdmin() {
+		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function( $allowed_metakeys ) {
+				return array_merge( $allowed_metakeys, [ 'meta_key_1', 'meta_key_2', 'meta_key_3', 'meta_key_4' ] );
+			}
+		);
+
 		add_filter(
 			'ep_total_field_limit',
 			function() {
