@@ -135,12 +135,14 @@ class OrdersAutosuggest {
 	 * @param string $hook_suffix The current admin page.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( 'edit.php' !== $hook_suffix ) {
+		if ( ! in_array( $hook_suffix, [ 'edit.php', 'woocommerce_page_wc-orders' ], true ) ) {
 			return;
 		}
 
-		if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
+		if ( 'edit.php' === $hook_suffix ) {
+			if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				return;
+			}
 		}
 
 		wp_enqueue_style(

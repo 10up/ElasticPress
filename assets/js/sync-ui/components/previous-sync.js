@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import { Icon } from '@wordpress/components';
 import { useMemo, WPElement } from '@wordpress/element';
 import { dateI18n } from '@wordpress/date';
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { __, _n, _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -44,6 +44,7 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 			case 'with_errors':
 				return failures
 					? sprintf(
+							/* translators: number of errors */
 							_n(
 								'Completed with %d error.',
 								'Completed with %d errors.',
@@ -109,8 +110,9 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 			<div className="ep-previous-sync__title">
 				{why
 					? sprintf(
-							/* translators: %1$s Sync date and time. %2%s sync trigger. */ __(
+							/* translators: %1$s Sync date and time. %2%s sync trigger. */ _x(
 								'%1$s — %2$s',
+								'Sync info',
 								'elasticpress',
 							),
 							when,
