@@ -107,6 +107,7 @@ export default ({ group, postType }) => {
 		const isCustomField = customFields.some((f) => f.key === key);
 
 		if (isDefaultField || isCustomField) {
+			/* translators: Field name */
 			createNotice('info', sprintf(__('%s is already being synced.', 'elasticpress'), toAdd));
 			return;
 		}

@@ -84,8 +84,10 @@ export default ({
 	 */
 	const requiredFeatureNotice =
 		name === 'active'
-			? __('The %s feature must be enabled to use this feature.', 'elasticpress')
-			: __('The %s feature must be enabled to use the following setting.', 'elasticpress');
+			? /* translators: Feature name */
+			  __('The %s feature must be enabled to use this feature.', 'elasticpress')
+			: /* translators: Feature name */
+			  __('The %s feature must be enabled to use the following setting.', 'elasticpress');
 
 	/**
 	 * The notice to display if a sync is required.
