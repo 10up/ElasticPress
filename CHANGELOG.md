@@ -61,6 +61,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Minimum requirements. Props [@felipeelia](https://github.com/felipeelia) and [@brandwaffle](https://github.com/brandwaffle) via [#3668](https://github.com/10up/ElasticPress/pull/3668).
 * Old features will have their settings displayed based on their default setting values. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3728](https://github.com/10up/ElasticPress/pull/3728).
 * Radio and checkbox settings were changed from booleans to strings. Props [@felipeelia](https://github.com/felipeelia) and [@JakePT](https://github.com/JakePT) via [#3730](https://github.com/10up/ElasticPress/pull/3730).
+* The troubleshooting article link was updated. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige) via [#3748](https://github.com/10up/ElasticPress/pull/3748).
 
 ### Deprecated
 * The `IndexHelper::get_last_index` method was replaced by `IndexHelper::get_last_sync`. See [#3647](https://github.com/10up/ElasticPress/pull/3647).
@@ -83,6 +84,9 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Post type setting wasn't respected during sync. Props [@burhandodhy](https://github.com/burhandodhy) via [#3727](https://github.com/10up/ElasticPress/pull/3727).
 * Fix a JS error appearing when sync requests are intentionally stopped. Props [@burhandodhy](https://github.com/burhandodhy) via [#3736](https://github.com/10up/ElasticPress/pull/3736).
 * Features description copy. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@MARQAS](https://github.com/MARQAS) via [#3737](https://github.com/10up/ElasticPress/pull/3737).
+* Endpoint URL field is not a URL type field. Props [@burhandodhy](https://github.com/burhandodhy) via [#3733](https://github.com/10up/ElasticPress/pull/3733).
+* WooCommerce feature not autoactivating. Props [@felipeelia](https://github.com/felipeelia) via [#3739](https://github.com/10up/ElasticPress/pull/3739).
+* Elasticsearch errors interpretation. Props [@felipeelia](https://github.com/felipeelia) via [#3741](https://github.com/10up/ElasticPress/pull/3741).
 
 ### Security
 
