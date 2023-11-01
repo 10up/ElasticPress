@@ -119,6 +119,30 @@ abstract class Feature {
 	protected $is_visible = true;
 
 	/**
+	 * Settings description
+	 *
+	 * @since 5.0.0
+	 * @var array
+	 */
+	protected $settings_schema = [];
+
+	/**
+	 * The slug of a feature that is required to be active.
+	 *
+	 * @since 5.0.0
+	 * @var false|string
+	 */
+	protected $requires_feature = false;
+
+	/**
+	 * Whether the feature is using ElasticPress.io.
+	 *
+	 * @since 5.0.0
+	 * @var boolean
+	 */
+	protected $is_powered_by_epio = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -132,7 +156,7 @@ abstract class Feature {
 	 */
 	public function output_feature_box_summary() {
 		if ( $this->summary ) {
-			echo '<p>' . esc_html( $this->summary ) . '</p>';
+			echo wp_kses_post( $this->summary );
 		}
 	}
 
@@ -141,7 +165,7 @@ abstract class Feature {
 	 *
 	 * @since  3.0
 	 */
-	abstract public function output_feature_box_long();
+	public function output_feature_box_long() {}
 
 	/**
 	 * Create feature
@@ -501,6 +525,101 @@ abstract class Feature {
 		 * @since 4.5.0
 		 * @return {bool} New $is_available value
 		 */
-		return apply_filters( 'ep_feature_is_available', $this->is_visible && 2 !== $requirements_status->code, $this->slug, $this );
+		return apply_filters( 'ep_feature_is_available', $this->is_visible() && 2 !== $requirements_status->code, $this->slug, $this );
+	}
+
+	/**
+	 * Get a JSON representation of the feature
+	 *
+	 * @since 5.0.0
+	 * @return string
+	 */
+	public function get_json() {
+		$requirements_status = $this->requirements_status();
+
+		$feature_desc = [
+			'slug'              => $this->slug,
+			'title'             => $this->get_title(),
+			'shortTitle'        => $this->get_short_title(),
+			'summary'           => $this->summary,
+			'docsUrl'           => $this->docs_url,
+			'defaultSettings'   => $this->default_settings,
+			'order'             => $this->order,
+			'isAvailable'       => $this->is_available(),
+			'isPoweredByEpio'   => $this->is_powered_by_epio,
+			'isVisible'         => $this->is_visible(),
+			'reqStatusCode'     => $requirements_status->code,
+			'reqStatusMessages' => (array) $requirements_status->message,
+			'settingsSchema'    => $this->get_settings_schema(),
+		];
+
+		return $feature_desc;
+	}
+
+	/**
+	 * Return the feature settings schema
+	 *
+	 * @since 5.0.0
+	 * @return array
+	 */
+	public function get_settings_schema() {
+		// Settings were not set yet.
+		if ( [] === $this->settings_schema ) {
+			$this->set_settings_schema();
+		}
+
+		$active = [
+			'default'          => false,
+			'key'              => 'active',
+			'label'            => __( 'Enable', 'elasticpress' ),
+			'requires_feature' => $this->requires_feature,
+			'requires_sync'    => $this->requires_install_reindex,
+			'type'             => 'toggle',
+		];
+
+		$settings_schema = [
+			$active,
+			...$this->settings_schema,
+		];
+
+		/**
+		 * Filter the settings schema of a feature
+		 *
+		 * @hook ep_feature_is_available
+		 * @since 5.0.0
+		 * @param {array}   $settings_schema True if the feature is available
+		 * @param {string}  $feature_slug    Feature slug
+		 * @param {Feature} $feature         Feature object
+		 * @return {array} New $settings_schema value
+		 */
+		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
+	}
+
+	/**
+	 * Default implementation of `set_settings_schema` based on the `default_settings` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		if ( [] === $this->default_settings ) {
+			return;
+		}
+
+		foreach ( $this->default_settings as $key => $default_value ) {
+			$type = 'text';
+			if ( in_array( $default_value, [ '0', '1' ], true ) ) {
+				$type = 'checkbox';
+			}
+			if ( is_bool( $default_value ) ) {
+				$type = 'toggle';
+			}
+
+			$this->settings_schema[] = [
+				'default' => $default_value,
+				'key'     => $key,
+				'label'   => $key,
+				'type'    => $type,
+			];
+		}
 	}
 }

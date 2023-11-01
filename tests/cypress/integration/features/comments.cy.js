@@ -12,6 +12,7 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment_moderation').check();
 		cy.get('#comment_previously_approved').check();
 		cy.get('#submit').click();
+		cy.activatePlugin('show-comments-and-terms', 'wpCli');
 		cy.maybeEnableFeature('comments');
 	});
 
@@ -249,22 +250,33 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.maybeDisableFeature('comments');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('.ep-feature-comments .settings-button').click();
-		cy.get('.ep-feature-comments [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-comments .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.contains('button', 'Comments').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
-			.should('contain.text', 'Sync complete')
-			.should('contain.text', 'Mapping sent')
-			// check that the number of approved comments is the same as the default.
-			.should('contain.text', `Number of comments indexed: ${defaultApprovedComments}`);
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
+
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') }).as(
+			'syncMessages',
+		);
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Mapping sent',
+		);
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			'Sync complete',
+		);
+		// check that the number of approved comments is the same as the default.
+		cy.get('@syncMessages', { timeout: Cypress.config('elasticPressIndexTimeout') }).should(
+			'contain.text',
+			`Number of comments indexed: ${defaultApprovedComments}`,
+		);
 
 		cy.wpCli('elasticpress list-features').its('stdout').should('contain', 'comments');
 	});
@@ -289,25 +301,24 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.contains('#main .entry-title a', 'Test Comment').first().click();
 		cy.get('#comment').type('This is a anonymous comment');
 		cy.get('#submit').click();
-
-		// start sync and test results.
-		cy.wpCli('wp elasticpress index')
+		cy.wpCli('wp elasticpress sync')
 			.its('stdout')
 			.should('contain', `Number of comments indexed: ${defaultApprovedComments}`);
 
 		// approve the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=moderated');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('.approve a').first().click({ force: true });
-
-		// Check the number of comments.
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.wpCli('wp elasticpress stats')
 			.its('stdout')
 			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');
+		cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 		cy.get('.column-comment .trash a').first().click({ force: true });
-
+		cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 		cy.wpCli('wp elasticpress stats')
 			.its('stdout')
 			.should('contain', `Documents:  ${defaultApprovedComments}`);
@@ -341,10 +352,17 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		});
 
 		// trash the review
-		cy.visitAdminPage(
-			'edit.php?post_type=product&page=product-reviews&comment_status=approved',
-		);
-		cy.get('.column-comment .trash a').first().click({ force: true });
+		cy.wpCli('plugin get woocommerce --field=version').then((wpCliResponse) => {
+			const wcVersion = wpCliResponse.stdout;
+			if (wcVersion === '6.4.0') {
+				cy.visitAdminPage('edit-comments.php?comment_type=review&comment_status=approved');
+			} else {
+				cy.visitAdminPage(
+					'edit.php?post_type=product&page=product-reviews&comment_status=approved',
+				);
+			}
+			cy.get('.column-comment .trash a').first().click({ force: true });
+		});
 
 		cy.deactivatePlugin('woocommerce', 'wpCli');
 	});
@@ -369,15 +387,9 @@ describe('Comments Feature', { tags: '@slow' }, () => {
 		cy.get('#comment').type('This is a anonymous comment');
 		cy.get('#submit').click();
 
-		cy.wpCliEval(
-			`
-			$comments_index = \\ElasticPress\\Indexables::factory()->get( "comment" )->get_index_name();
-			WP_CLI::runcommand("elasticpress request {$comments_index}/_refresh --method=POST");`,
-		).then(() => {
-			cy.wpCli('wp elasticpress stats')
-				.its('stdout')
-				.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
-		});
+		cy.wpCli('wp elasticpress stats')
+			.its('stdout')
+			.should('contain', `Documents:  ${defaultApprovedComments + 1}`);
 
 		// trash the comment
 		cy.visitAdminPage('edit-comments.php?comment_status=approved');

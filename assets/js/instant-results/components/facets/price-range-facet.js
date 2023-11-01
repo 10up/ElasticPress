@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { useLayoutEffect, useState, WPElement } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -140,7 +140,7 @@ export default ({ defaultIsOpen, label }) => {
 							<ActiveContraint
 								label={sprintf(
 									/* translators: %1$s: Minimum price. %2$s: Maximum price. */
-									__('%1$s — %2$s', 'elasticpress'),
+									_x('%1$s — %2$s', 'Price range', 'elasticpress'),
 									minPrice,
 									maxPrice,
 								)}

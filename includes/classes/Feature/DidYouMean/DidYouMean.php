@@ -23,7 +23,7 @@ class DidYouMean extends Feature {
 
 		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
 
-		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results.', 'elasticpress' );
+		$this->summary = '<p>' . __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean">this tutorial</a>.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean', 'elasticpress' );
 
@@ -32,8 +32,10 @@ class DidYouMean extends Feature {
 		$this->available_during_installation = true;
 
 		$this->default_settings = [
-			'search_behavior' => false,
+			'search_behavior' => '0',
 		];
+
+		$this->requires_feature = 'search';
 
 		parent::__construct();
 	}
@@ -222,13 +224,6 @@ class DidYouMean extends Feature {
 	 * Requires the search feature to be activated
 	 */
 	public function requirements_status() : FeatureRequirementsStatus {
-		$features = Features::factory();
-		$search   = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
 		return new FeatureRequirementsStatus( 1 );
 	}
 
@@ -414,5 +409,35 @@ class DidYouMean extends Feature {
 		$html .= $this->get_suggestion( $query );
 
 		echo wp_kses_post( $html );
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '0',
+				'key'     => 'search_behavior',
+				'label'   => __( 'Search behavior when no result is found', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Display the top suggestion', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Display all the suggestions', 'elasticpress' ),
+						'value' => 'list',
+					],
+					[
+						'label' => __( 'Automatically redirect the user to the top suggestion', 'elasticpress' ),
+						'value' => 'redirect',
+					],
+				],
+				'type'    => 'radio',
+			],
+		];
 	}
 }

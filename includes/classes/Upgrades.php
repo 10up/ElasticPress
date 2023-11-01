@@ -8,6 +8,7 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Features;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -49,6 +50,7 @@ class Upgrades {
 			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
 			'4.7.0' => [ 'upgrade_4_7_0', 'init' ],
+			'5.0.0' => [ 'upgrade_5_0_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -243,6 +245,46 @@ class Upgrades {
 			wp_cache_flush_group( 'ep_autosuggest' );
 		}
 		delete_transient( 'ep_autosuggest_query_request_cache' );
+	}
+
+	/**
+	 * Upgrade routine of v5.0.0.
+	 */
+	public function upgrade_5_0_0() {
+		$features_in_settings = Features::factory()->get_feature_settings();
+		if ( ! empty( $features_in_settings ) ) {
+			foreach ( $features_in_settings as $feature_slug => $feature_settings ) {
+				$feature = Features::factory()->get_registered_feature( $feature_slug );
+				if ( ! $feature ) {
+					continue;
+				}
+
+				$settings_schema = $feature->get_settings_schema();
+				foreach ( $settings_schema as $setting_schema ) {
+					if ( ! isset( $feature_settings[ $setting_schema['key'] ] ) ) {
+						continue;
+					}
+
+					$value = $feature_settings[ $setting_schema['key'] ];
+
+					if ( ! in_array( $setting_schema['type'], [ 'checkbox', 'radio' ], true ) || ! is_bool( $value ) ) {
+						continue;
+					}
+
+					$features_in_settings[ $feature_slug ][ $setting_schema['key'] ] = $value ? '1' : '0';
+				}
+			}
+			Utils\update_option( 'ep_feature_settings', $features_in_settings );
+		}
+
+		/**
+		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_sync_history'
+		 */
+		$last_sync = Utils\get_option( 'ep_last_index', [] );
+		if ( ! empty( $last_sync ) ) {
+			Utils\delete_option( 'ep_last_index' );
+			Utils\update_option( 'ep_sync_history', [ $last_sync ] );
+		}
 	}
 
 	/**

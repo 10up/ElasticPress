@@ -24,81 +24,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
-		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
-	}
-
-	/**
-	 * Setup REST endpoints for the feature.
-	 */
-	public function setup_endpoints() {
-		register_rest_route(
-			'elasticpress/v1',
-			'facets/taxonomies',
-			[
-				'methods'             => 'GET',
-				'permission_callback' => [ $this, 'check_facets_rest_permission' ],
-				'callback'            => [ $this, 'get_rest_facetable_taxonomies' ],
-			]
-		);
-	}
-
-	/**
-	 * DEPRECATED Check permissions of the /facets/taxonomies and facets/block-preview REST endpoints.
-	 *
-	 * @deprecated 4.7.0
-	 * @return WP_Error|true
-	 */
-	public function check_facets_taxonomies_rest_permission() {
-		_deprecated_function( __FUNCTION__, '4.7.0', '$this->check_facets_rest_permission()' );
-
-		return $this->check_facets_rest_permission();
-	}
-
-	/**
-	 * Check permissions of the /facets/taxonomies and facets/block-preview REST endpoints.
-	 *
-	 * @return true|\WP_Error
-	 */
-	public function check_facets_rest_permission() {
-		if ( ! is_user_logged_in() ) {
-			return new \WP_Error( 'ep_rest_forbidden', esc_html__( 'Sorry, you cannot view this resource.', 'elasticpress' ), array( 'status' => 401 ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Return an array of taxonomies, their name, plural label, and a sample of terms.
-	 *
-	 * @return array
-	 */
-	public function get_rest_facetable_taxonomies() {
-		$taxonomies_raw = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
-
-		$taxonomies = [];
-		foreach ( $taxonomies_raw as $slug => $taxonomy ) {
-			$terms_sample = get_terms(
-				[
-					'taxonomy' => $slug,
-					'number'   => 20,
-				]
-			);
-			if ( is_array( $terms_sample ) ) {
-				// This way we make sure it will be an array in the outputted JSON.
-				$terms_sample = array_values( $terms_sample );
-			} else {
-				$terms_sample = [];
-			}
-
-			$taxonomies[ $slug ] = [
-				'label'  => $taxonomy->labels->singular_name,
-				'plural' => $taxonomy->labels->name,
-				'terms'  => $terms_sample,
-			];
-		}
-
-		return $taxonomies;
 	}
 
 	/**
@@ -165,7 +91,7 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		 * @param {string} $classname  The name of the class to be instantiated and used as a renderer.
 		 * @param {string} $facet_type The type of the facet.
 		 * @param {string} $context    Context where the renderer will be used: `block` or `widget`, for example.
-		 * @param {string} $attributes Element attributes.
+		 * @param {array} $attributes Element attributes.
 		 * @return {string} The name of the class
 		 */
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'taxonomy', 'block', $attributes );
@@ -188,35 +114,5 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			wp_kses_data( $wrapper_attributes ),
 			$block_content
 		);
-	}
-
-	/**
-	 * Outputs the block preview
-	 *
-	 * @param \WP_REST_Request $request REST request
-	 * @return string
-	 */
-	public function render_block_preview( $request ) {
-		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Taxonomy\render_block()' );
-
-		$attributes = $request->get_params();
-
-		return $this->render_block( $attributes );
-	}
-
-	/**
-	 * Utilitary method to set default attributes.
-	 *
-	 * @param array $attributes Attributes passed
-	 * @return array
-	 */
-	protected function parse_attributes( $attributes ) {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'Attribute parsing is now left to block.json.', 'elasticpress' ),
-			'4.7.0'
-		);
-
-		return $attributes;
 	}
 }

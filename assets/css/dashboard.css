@@ -1,9 +1,9 @@
 @import "@10up/component-tooltip";
 
 :root {
-	--statusOk: #6aa000;
-	--statusWarning: #e3e600;
-	--statusError: #f00;
+	--ep-dashboard-status-ok: #6aa000;
+	--ep-dashboard-status-warning: #e3e600;
+	--ep-dashboard-status-error: #f00;
 }
 
 html.wp-toolbar {
@@ -206,11 +206,11 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--statusError);
+		border: 1px solid var(--ep-dashboard-status-error);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--statusError);
+		border-color: var(--ep-dashboard-status-error);
 	}
 }
 
@@ -218,15 +218,15 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--statusWarning);
+		border: 1px solid var(--ep-dashboard-status-warning);
 	}
 
 	&.feature-active .postbox .hndle .settings-button::after {
-		background-color: var(--statusWarning);
+		background-color: var(--ep-dashboard-status-warning);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--statusWarning);
+		border-color: var(--ep-dashboard-status-warning);
 	}
 }
 
@@ -234,15 +234,15 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--statusOk);
+		border: 1px solid var(--ep-dashboard-status-ok);
 	}
 
 	&.feature-active .postbox .hndle .settings-button::after {
-		background-color: var(--statusOk);
+		background-color: var(--ep-dashboard-status-ok);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--statusOk);
+		border-color: var(--ep-dashboard-status-ok);
 	}
 }
 
@@ -306,17 +306,17 @@ h2.ep-list-features {
 
 .ep-feature .settings .requirements-status-notice {
 	background-color: #efefef;
-	border-left: 4px solid var(--statusOk);
+	border-left: 4px solid var(--ep-dashboard-status-ok);
 	margin-bottom: 10px;
 	padding: 8px 12px;
 
 	&.requirements-status-notice--reindex {
-		border-color: var(--statusWarning);
+		border-color: var(--ep-dashboard-status-warning);
 		display: none; /* Controlled by JavaScript. */
 	}
 
 	&.requirements-status-notice--syncing {
-		border-color: var(--statusError);
+		border-color: var(--ep-dashboard-status-error);
 		display: none; /* Controlled by JavaScript. */
 	}
 }
@@ -665,180 +665,6 @@ h2.ep-list-features {
 	color: #d84440;
 }
 
-/**
- * Weighting
- */
-
-.weighting-settings .postbox {
-	box-sizing: border-box;
-	max-width: 650px;
-
-	& * {
-		box-sizing: border-box;
-	}
-}
-
-.weighting-settings .postbox h2.hndle {
-	color: #444;
-	cursor: inherit;
-}
-
-.weighting-settings fieldset {
-	padding: 10px;
-}
-
-.weighting-settings fieldset legend {
-	float: left; /* legend cannot use display */
-	position: relative;
-	top: 5px;
-	width: 100px;
-}
-
-.weighting-settings fieldset p {
-	display: inline-block;
-	float: left;
-	margin: 0;
-}
-
-.weighting-settings .field-group {
-	margin: 10px 0 0;
-}
-
-.weighting-settings .field-group h3 {
-	font-size: 1em;
-	margin: 10px;
-}
-
-.weighting-settings .fields > fieldset:nth-of-type(odd) {
-	background: #f9f9f9;
-}
-
-.weighting-settings .searchable {
-	display: inline-block;
-	width: 120px;
-}
-
-.weighting-settings .weighting {
-	align-items: center;
-	display: flex;
-}
-
-.weighting-settings .weighting label {
-	margin-right: 10px;
-	min-width: 80px;
-}
-
-.weighting-settings input[type="range"] {
-	-webkit-appearance: none;
-	background: transparent;
-	display: inline-block;
-	height: 1em;
-	margin: 0;
-	vertical-align: middle;
-	width: 200px;
-}
-
-.weighting-settings input[type="range"]:focus {
-	outline: none;
-}
-
-.weighting-settings input[type="range"]:disabled {
-	opacity: 0.5;
-	pointer-events: none;
-}
-
-.weighting-settings input[type="range"]::-webkit-slider-runnable-track {
-	background: #ddd;
-	border: 0 solid #000;
-	border-radius: 1px;
-	box-shadow: 0 0 0 #000;
-	cursor: pointer;
-	height: 3px;
-	width: 100%;
-}
-
-.weighting-settings input[type="range"]::-webkit-slider-thumb {
-	-webkit-appearance: none;
-	background: #1e8cbe;
-	border: 1px solid #1e8cbe;
-	border-radius: 25px;
-	box-shadow: 0 0 0 #000;
-	cursor: pointer;
-	height: 14px;
-	margin-top: -6px;
-	width: 14px;
-}
-
-.weighting-settings input[type="range"]:focus::-webkit-slider-runnable-track {
-	background: #ddd;
-}
-
-.weighting-settings input[type="range"]:focus::-webkit-slider-thumb {
-	background: #fff !important;
-}
-
-.weighting-settings input[type="range"]::-moz-range-track {
-	background: #1e8cbe;
-	border: 0 solid #000;
-	border-radius: 1px;
-	box-shadow: 0 0 0 #000;
-	cursor: pointer;
-	height: 3px;
-	width: 100%;
-}
-
-.weighting-settings input[type="range"]::-moz-range-thumb {
-	background: #1e8cbe;
-	border: 1px solid #1e8cbe;
-	border-radius: 25px;
-	box-shadow: 0 0 0 #000;
-	cursor: pointer;
-	height: 14px;
-	width: 14px;
-}
-
-.weighting-settings input[type="range"]::-ms-track {
-	background: transparent;
-	border-color: transparent;
-	color: transparent;
-	cursor: pointer;
-	height: 3px;
-	width: 100%;
-}
-
-.weighting-settings input[type="range"]::-ms-fill-lower {
-	background: #1e8cbe;
-	border: 0 solid #000;
-	border-radius: 2px;
-	box-shadow: 0 0 0 #000;
-}
-
-.weighting-settings input[type="range"]::-ms-fill-upper {
-	background: #1e8cbe;
-	border: 0 solid #000;
-	border-radius: 2px;
-	box-shadow: 0 0 0 #000;
-}
-
-.weighting-settings input[type="range"]::-ms-thumb {
-	background: #a1d0ff;
-	border: 1px solid #1e8cbe;
-	border-radius: 25px;
-	box-shadow: 0 0 0 #000;
-	cursor: pointer;
-	height: 14px;
-	margin-top: 1px;
-	width: 14px;
-}
-
-.weighting-settings input[type="range"]:focus::-ms-fill-lower {
-	background: #1e8cbe;
-}
-
-.weighting-settings input[type="range"]:focus::-ms-fill-upper {
-	background: #1e8cbe;
-}
-
 .ep-feature-search .wp-color-result.button {
 	margin-bottom: 10px;
 }
@@ -1082,27 +908,27 @@ h2 .nav-tab.ep-credentials-tab {
 }
 
 .green-status {
-	color: var(--statusOk);
+	color: var(--ep-dashboard-status-ok);
 }
 
 .yellow-status {
-	color: var(--statusWarning);
+	color: var(--ep-dashboard-status-warning);
 }
 
 .red-status {
-	color: var(--statusError);
+	color: var(--ep-dashboard-status-error);
 }
 
 .green-status::after {
-	background-color: var(--statusOk);
+	background-color: var(--ep-dashboard-status-ok);
 }
 
 .yellow-status::after {
-	background-color: var(--statusWarning);
+	background-color: var(--ep-dashboard-status-warning);
 }
 
 .red-status::after {
-	background-color: var(--statusError);
+	background-color: var(--ep-dashboard-status-error);
 }
 
 .doc-chart {

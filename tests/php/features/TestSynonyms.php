@@ -32,7 +32,7 @@ class TestSynonyms extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 		ElasticPress\Features::factory()->activate_feature( 'synonyms' );
@@ -124,5 +124,40 @@ class TestSynonyms extends BaseTestCase {
 		$this->assertFalse( $instance->validate_synonym( '// Comments are not valid.' ) );
 		$this->assertEquals( 'foo, bar', $instance->validate_synonym( ' foo, bar ' ) );
 		$this->assertEquals( 'foo => bar', $instance->validate_synonym( ' foo => bar ' ) );
+	}
+
+	/**
+	 * Test synonyms with spaces
+	 *
+	 * @since 5.0.0
+	 * @group synonyms
+	 * @group skip-on-single-site
+	 */
+	public function test_synonyms_with_spaces() {
+		$instance = $this->getFeature();
+
+		wp_insert_post(
+			[
+				'ID'           => $instance->get_synonym_post_id(),
+				'post_content' => 'internet of things, IoT',
+				'post_type'    => $instance::POST_TYPE_NAME,
+			],
+			true
+		);
+		$instance->update_synonyms();
+
+		$post_id = $this->ep_factory->post->create( [ 'post_content' => 'IoT' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's'      => 'internet of things',
+				'fields' => 'ids',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $post_id, $query->posts['0'] );
 	}
 }

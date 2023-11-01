@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexables;
+use ElasticPress\REST;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -64,6 +65,26 @@ class OrdersAutosuggest {
 	}
 
 	/**
+	 * Un-setup feature functionality.
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		remove_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ] );
+		remove_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
+		remove_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		remove_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
+		remove_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
+		remove_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		remove_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ] );
+		remove_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
+		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
+		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
+		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
+	}
+
+	/**
 	 * Get the endpoint for WooCommerce Orders search.
 	 *
 	 * @return string WooCommerce orders search endpoint.
@@ -99,44 +120,13 @@ class OrdersAutosuggest {
 	}
 
 	/**
-	 * Get the endpoint for temporary tokens.
-	 *
-	 * @return string Temporary token endpoint.
-	 */
-	public function get_token_endpoint() {
-		/**
-		 * Filters the temporary token API endpoint.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_token_endpoint
-		 * @param {string} $endpoint Endpoint path.
-		 * @returns {string} Token API endpoint.
-		 */
-		return apply_filters( 'ep_token_endpoint', 'api/v1/token' );
-	}
-
-	/**
 	 * Registers the API endpoint to get a token.
 	 *
 	 * @return void
 	 */
 	public function rest_api_init() {
-		register_rest_route(
-			'elasticpress/v1',
-			'token',
-			[
-				[
-					'callback'            => [ $this, 'get_token' ],
-					'permission_callback' => [ $this, 'check_token_permission' ],
-					'methods'             => 'GET',
-				],
-				[
-					'callback'            => [ $this, 'refresh_token' ],
-					'permission_callback' => [ $this, 'check_token_permission' ],
-					'methods'             => 'POST',
-				],
-			]
-		);
+		$controller = new REST\Token();
+		$controller->register_routes();
 	}
 
 	/**
@@ -145,12 +135,14 @@ class OrdersAutosuggest {
 	 * @param string $hook_suffix The current admin page.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( 'edit.php' !== $hook_suffix ) {
+		if ( ! in_array( $hook_suffix, [ 'edit.php', 'woocommerce_page_wc-orders' ], true ) ) {
 			return;
 		}
 
-		if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
+		if ( 'edit.php' === $hook_suffix ) {
+			if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				return;
+			}
 		}
 
 		wp_enqueue_style(
@@ -389,66 +381,6 @@ class OrdersAutosuggest {
 		);
 
 		return $args;
-	}
-
-	/**
-	 * Get a temporary token.
-	 *
-	 * @return string|false Authorization header, or false on failure.
-	 */
-	public function get_token() {
-		$user_id = get_current_user_id();
-
-		$credentials = get_user_meta( $user_id, 'ep_token', true );
-
-		if ( $credentials ) {
-			return $credentials;
-		}
-
-		return $this->refresh_token();
-	}
-
-	/**
-	 * Refresh the temporary token.
-	 *
-	 * @return string|false Authorization header, or false on failure.
-	 */
-	public function refresh_token() {
-		$user_id = get_current_user_id();
-
-		$endpoint = $this->get_token_endpoint();
-		$response = Elasticsearch::factory()->remote_request( $endpoint, [ 'method' => 'POST' ] );
-
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			return false;
-		}
-
-		$response = wp_remote_retrieve_body( $response );
-		$response = json_decode( $response );
-
-		$credentials = base64_encode( "$response->username:$response->clear_password" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-
-		update_user_meta( $user_id, 'ep_token', $credentials );
-
-		return $credentials;
-	}
-
-	/**
-	 * Checks if the token API can be used.
-	 *
-	 * @return boolean Whether the token API can be used.
-	 */
-	public function check_token_permission() {
-		/**
-		 * Filters the capability required to use the token API.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_token_capability
-		 * @param {string} $capability Required capability.
-		 */
-		$capability = apply_filters( 'ep_token_capability', 'edit_others_shop_orders' );
-
-		return current_user_can( $capability );
 	}
 
 	/**

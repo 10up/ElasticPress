@@ -15,10 +15,11 @@ module.exports = defineConfig({
 			/* eslint-disable global-require */
 			require('@cypress/grep/src/plugin')(config);
 			const path = require('path');
-			const { readConfig } = require('@wordpress/env/lib/config');
+			const { loadConfig } = require('@wordpress/env/lib/config');
 			/* eslint-enable global-require */
 
-			const wpEnvConfig = await readConfig('wp-env');
+			const configPath = path.resolve('../../');
+			const wpEnvConfig = await loadConfig(configPath);
 
 			if (wpEnvConfig) {
 				const port = wpEnvConfig.env.tests.port || null;

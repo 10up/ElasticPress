@@ -301,7 +301,16 @@ class QueryLogger {
 			null;
 
 		$status = wp_remote_retrieve_response_code( $query['request'] );
-		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
+		if ( is_wp_error( $query['request'] ) ) {
+			$result = [
+				'is_wp_error' => true,
+				'code'        => $query['request']->get_error_code(),
+				'message'     => $query['request']->get_error_message(),
+				'data'        => $query['request']->get_error_data(),
+			];
+		} else {
+			$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
+		}
 
 		$formatted_log = [
 			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
