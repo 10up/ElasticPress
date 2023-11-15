@@ -319,6 +319,28 @@ class Elasticsearch {
 		 */
 		$path = apply_filters( 'ep_query_request_path', $path, $index, $type, $query, $query_args, $query_object );
 
+		/**
+		 * Allows a preference to be defined.
+		 *
+		 * This filter allows a preference to be specified so the same shard is hit for searching with custom sorting.
+		 * The importance of this is to avoid duplications during pagination.
+		 *
+		 * @link https://www.elastic.co/guide/en/elasticsearch/reference/6.4/search-request-preference.html
+		 *
+		 * @param string If the results of this filter are not null and a string it will be used as the preference filter.
+		 * @param string The path to the search endpoint.
+		 * @param string The index name.
+		 * @param string The index type.
+		 * @param array  Prepared ES query.
+		 * @param array  WP Query args.
+		 */
+		$preference = apply_filters( 'ep_preference', null, $path, $index, $type, $query, $query_args );
+
+		// Add the preference query parameter if needed.
+		if ( ! empty( $preference ) && is_string( $preference ) ) {
+			$path = add_query_arg( 'preference', $preference, $path );
+		}
+
 		$request_args = array(
 			'body'    => wp_json_encode( $query ),
 			'method'  => 'POST',
