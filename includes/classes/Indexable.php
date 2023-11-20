@@ -386,6 +386,10 @@ abstract class Indexable {
 
 			$document = $this->prepare_document( $object_id );
 
+			if ( empty( $document ) ) {
+				continue;
+			}
+
 			/**
 			 * Conditionally kill indexing on a specific object
 			 *
@@ -400,6 +404,12 @@ abstract class Indexable {
 			$document_str .= "\n\n";
 
 			$documents[] = $document_str;
+		}
+
+		if ( empty( $documents ) ) {
+			return [
+				new \WP_Error( 'ep_bulk_index_no_documents', esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ), $object_ids ),
+			];
 		}
 
 		$results = $this->send_bulk_index_request( $documents );
