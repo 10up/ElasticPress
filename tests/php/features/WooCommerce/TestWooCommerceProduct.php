@@ -1113,4 +1113,26 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		$this->assertEquals( $sample_test, $query_filters );
 	}
+
+	/**
+	 * Test the `add_weight_settings_search_schema` method
+	 *
+	 * @since 5.0.0
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function test_add_weight_settings_search_schema() {
+		$settings_schema = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertContains( 'decaying_enabled', $settings_keys );
+
+		$decaying = wp_list_filter( $settings_schema, [ 'key' => 'decaying_enabled' ] );
+		$decaying = reset( $decaying );
+
+		$options = wp_list_pluck( $decaying['options'], 'value' );
+		$this->assertContains( 'disabled_only_products', $options );
+		$this->assertContains( 'disabled_includes_products', $options );
+	}
 }

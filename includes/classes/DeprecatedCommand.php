@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI depreceated commands for ElasticPress
+ * WP-CLI deprecated commands for ElasticPress
  *
  * @since  4.4.0
  * @package elasticpress

@@ -98,7 +98,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 		do_action( 'ep_sync_term_on_transition', $term_id );
 
-		$this->sync_queue[ $term_id ] = true;
+		$this->add_to_queue( $term_id );
 
 		// Find all terms in the hierarchy so we resync those as well
 		$term      = get_term( $term_id );
@@ -117,7 +117,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
 
-			$this->sync_queue[ $hierarchy_term_id ] = true;
+			$this->add_to_queue( $hierarchy_term_id );
 		}
 	}
 
@@ -156,7 +156,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 			do_action( 'ep_sync_term_on_transition', $term->term_id );
 
-			$this->sync_queue[ $term->term_id ] = true;
+			$this->add_to_queue( $term->term_id );
 
 			// Find all terms in the hierarchy so we resync those as well
 			$children  = get_term_children( $term->term_id, $term->taxonomy );
@@ -174,7 +174,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 				do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
 
-				$this->sync_queue[ $hierarchy_term_id ] = true;
+				$this->add_to_queue( $hierarchy_term_id );
 			}
 		}
 	}
@@ -191,7 +191,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return;
 		}
 
-		$this->sync_queue[ $term_id ] = true;
+		$this->add_to_queue( $term_id );
 	}
 
 	/**
@@ -213,7 +213,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 	}
 
 	/**
-	 * Enqueue sync of children terms in hierchy when deleting parent. Children terms will be reasigned to
+	 * Enqueue sync of children terms in hierarchy when deleting parent. Children terms will be reasigned to
 	 * a different parent and we want to reflect that change in ElasticSearch
 	 *
 	 * @param int $term_id Term ID.
@@ -241,7 +241,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 			do_action( 'ep_sync_term_on_transition', $hierarchy_term_id );
 
-			$this->sync_queue[ $hierarchy_term_id ] = true;
+			$this->add_to_queue( $hierarchy_term_id );
 		}
 	}
 

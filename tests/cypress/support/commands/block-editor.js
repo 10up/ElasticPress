@@ -1,3 +1,5 @@
+/* global wpVersion */
+
 Cypress.Commands.add('openBlockSettingsSidebar', () => {
 	cy.get('body').then(($el) => {
 		if ($el.hasClass('widgets-php')) {
@@ -37,12 +39,28 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 	if (isEdit) {
 		cy.get('.block-editor-block-inspector').as('blockInspector');
 
-		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
-		cy.get('.block-editor-block-inspector button').contains('Background').click();
+		if (wpVersion === '6.0') {
+			cy.get(
+				'.color-block-support-panel .components-button[aria-label="View and add options"]',
+			).click();
 
-		cy.get('.popover-slot button[aria-label="Color: Black"').click();
+			cy.get('.components-button[aria-label="Show Background"]').click();
+			cy.get('.block-editor-panel-color-gradient-settings__dropdown').click();
 
-		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+			cy.get('.components-button[aria-label="Color: Black"]').click();
+
+			cy.get('.color-block-support-panel').click();
+		} else {
+			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+			cy.get('.block-editor-block-inspector button').contains('Background').click();
+
+			cy.get(
+				`.popover-slot button[aria-label="Color: Black"],
+				.block-editor-color-gradient-control__panel button[aria-label="Color: Black"]`,
+			).click();
+
+			cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+		}
 	}
 
 	cy.wrap(subject).should('have.css', 'background-color', 'rgb(0, 0, 0)');
@@ -50,18 +68,40 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 
 Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
-		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
-		cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
+		if (wpVersion === '6.0') {
+			cy.get(
+				'.typography-block-support-panel .components-button[aria-label="View and add options"]',
+			).click();
 
-		cy.get('.popover-slot button').contains('Font size').click();
-		cy.get('.popover-slot button').contains('Font size').click().type('{esc}');
+			cy.get('.components-button[aria-label="Show Font size"]').click();
+			cy.get('.components-custom-select-control__button[aria-label="Font size"]').click();
+			cy.get('.components-custom-select-control__item').contains('Extra small').click();
 
-		cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
-		cy.get('.block-editor-block-inspector li[role="option"]').contains('Extra small').click();
+			cy.get(
+				'.typography-block-support-panel .components-button[aria-label="View options"]',
+			).click();
+			cy.get('.components-button[aria-label="Show Line height"]').click();
+			cy.get('.components-input-control__input[placeholder="1.5"]').clearThenType(2);
+		} else {
+			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+			cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
 
-		cy.get('.block-editor-line-height-control input').clearThenType(2);
+			cy.get('[aria-label="Typography options"] button, .popover-slot button')
+				.contains('Font size')
+				.as('fontSizeButton');
+			cy.get('@fontSizeButton').click();
+			cy.get('@fontSizeButton').click();
+			cy.get('@fontSizeButton').type('{esc}');
 
-		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+			cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
+			cy.get('.block-editor-block-inspector li[role="option"]')
+				.contains('Extra small')
+				.click();
+
+			cy.get('.block-editor-line-height-control input').clearThenType(2);
+
+			cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+		}
 	}
 
 	cy.wrap(subject).should('have.css', 'font-size', '16px');
@@ -70,36 +110,55 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 
 Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
-		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
-		cy.get('.block-editor-block-inspector button[aria-label="Dimensions options"]').click();
+		if (wpVersion === '6.0') {
+			cy.get(
+				'.dimensions-block-support-panel .components-button[aria-label="View and add options"]',
+			).click();
 
-		cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
+			cy.get('.components-button[aria-label="Show Padding"]').click();
+			cy.get('.components-button[aria-label="Unlink Sides"]').click();
+			cy.get('.components-input-control__input[aria-label="Top"]').clearThenType(10);
+			cy.get('.components-input-control__input[aria-label="Right"]').clearThenType(15);
+			cy.get('.components-input-control__input[aria-label="Bottom"]').clearThenType(10);
+			cy.get('.components-input-control__input[aria-label="Left"]').clearThenType(15);
 
-		cy.get('.popover-slot button').contains('Padding').click().type('{esc}');
+			cy.get('.dimensions-block-support-panel').click();
+		} else {
+			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+			cy.get('.block-editor-block-inspector button[aria-label="Dimensions options"]').click();
 
-		cy.get('@dimensionsPanel')
-			.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
-			.first()
-			.as('verticalInputsWrapper');
+			cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
 
-		cy.get('@verticalInputsWrapper')
-			.find('button[aria-label="Set custom size"]')
-			.first()
-			.click();
-		cy.get('@verticalInputsWrapper').find('input[type="number"]').clearThenType('10');
+			cy.get('[aria-label="Dimensions options"] button, .popover-slot button')
+				.contains('Padding')
+				.as('paddingButton');
+			cy.get('@paddingButton').click();
+			cy.get('@paddingButton').type('{esc}');
 
-		cy.get('@dimensionsPanel')
-			.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
-			.eq(1)
-			.as('horizontalInputsWrapper');
+			cy.get('@dimensionsPanel')
+				.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+				.first()
+				.as('verticalInputsWrapper');
 
-		cy.get('@horizontalInputsWrapper')
-			.find('button[aria-label="Set custom size"]')
-			.first()
-			.click();
-		cy.get('@horizontalInputsWrapper').find('input[type="number"]').clearThenType('15');
+			cy.get('@verticalInputsWrapper')
+				.find('button[aria-label="Set custom size"]')
+				.first()
+				.click();
+			cy.get('@verticalInputsWrapper').find('input[type="number"]').clearThenType('10');
 
-		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+			cy.get('@dimensionsPanel')
+				.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+				.eq(1)
+				.as('horizontalInputsWrapper');
+
+			cy.get('@horizontalInputsWrapper')
+				.find('button[aria-label="Set custom size"]')
+				.first()
+				.click();
+			cy.get('@horizontalInputsWrapper').find('input[type="number"]').clearThenType('15');
+
+			cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
+		}
 	}
 
 	cy.wrap(subject).should('have.css', 'padding', '10px 15px');

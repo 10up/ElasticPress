@@ -26,7 +26,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce').should('have.class', 'feature-active');
+		cy.get('#tab-panel-0-woocommerce').click();
+		cy.get('.components-form-toggle__input').should('be.checked');
 	});
 
 	it('Can automatically start a sync if activate the feature', () => {
@@ -35,17 +36,18 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.maybeDisableFeature('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce .settings-button').click();
-		cy.get('.ep-feature-woocommerce [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-woocommerce .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+		cy.contains('button', 'WooCommerce').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
+
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
@@ -75,26 +77,35 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce', 'wpCli');
 		cy.maybeEnableFeature('woocommerce');
 
-		cy.updateWeighting({
-			product: {
-				'meta._variations_skus.value': {
-					weight: 1,
-					enabled: true,
-				},
-			},
+		cy.updateFeatures('search', {
+			active: 1,
+			highlight_enabled: '1',
+			highlight_excerpt: '1',
+			highlight_tag: 'mark',
+			highlight_color: '#157d84',
+			decaying_enabled: 'disabled_includes_products',
 		}).then(() => {
-			cy.wpCli('elasticpress sync --setup --yes').then(() => {
-				/**
-				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
-				 *
-				 */
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(2000);
-				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-				cy.contains(
-					'.site-content article:nth-of-type(1) h2',
-					'Awesome Aluminum Shoes',
-				).should('exist');
+			cy.updateWeighting({
+				product: {
+					'meta._variations_skus.value': {
+						weight: 1,
+						enabled: true,
+					},
+				},
+			}).then(() => {
+				cy.wpCli('elasticpress sync --setup --yes').then(() => {
+					/**
+					 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+					 *
+					 */
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(2000);
+					cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+					cy.contains(
+						'.site-content article:nth-of-type(1) h2',
+						'Awesome Aluminum Shoes',
+					).should('exist');
+				});
 			});
 		});
 	});
@@ -102,9 +113,9 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 	context('Dashboard', () => {
 		before(() => {
 			cy.login();
+			cy.activatePlugin('woocommerce', 'wpCli');
 			cy.maybeEnableFeature('protected_content');
 			cy.maybeEnableFeature('woocommerce');
-			cy.activatePlugin('woocommerce', 'wpCli');
 		});
 
 		it('Can fetch orders and products from Elasticsearch', () => {
@@ -153,13 +164,25 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 			// checkout and place order.
 			cy.visit('checkout');
-			cy.get('#billing_first_name').type(userData.firstName);
-			cy.get('#billing_last_name').type(userData.lastName);
-			cy.get('#billing_address_1').type(userData.address);
-			cy.get('#billing_city').type(userData.city);
-			cy.get('#billing_postcode').type(userData.postCode);
-			cy.get('#billing_phone').type(userData.phoneNumber);
-			cy.get('#place_order').click();
+			cy.get('#billing-first_name, #billing_first_name').type(userData.firstName);
+			cy.get('#billing-last_name, #billing_last_name').type(userData.lastName);
+			cy.get('#billing-address_1, #billing_address_1').type(userData.address);
+			cy.get('#billing-city, #billing_city').type(userData.city);
+			cy.get('#billing-postcode, #billing_postcode').type(userData.postCode);
+			cy.get('#billing-phone, #billing_phone').type(userData.phoneNumber);
+			cy.get('#email, #billing_email').clearThenType(userData.email);
+
+			/**
+			 * It is unclear why this work if wrapped in a WP-CLI command and not directly.
+			 */
+			cy.wpCli('plugin get woocommerce --field=version').then((wpCliResponse) => {
+				const wcVersion = wpCliResponse.stdout;
+				if (wcVersion === '6.4.0') {
+					cy.get('#place_order').click();
+				} else {
+					cy.get('.wc-block-components-checkout-place-order-button').click();
+				}
+			});
 
 			// ensure order is placed.
 			cy.url().should('include', '/checkout/order-received');
@@ -201,9 +224,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.visitAdminPage('edit.php?post_type=shop_order');
 
 			// search order by user's name.
-			cy.get('#post-search-input')
-				.clear()
-				.type(`${userData.firstName} ${userData.lastName}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.firstName} ${userData.lastName}{enter}`);
 
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
@@ -216,7 +238,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			);
 
 			// search order by user's address.
-			cy.get('#post-search-input').clear().type(`${userData.address}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.address}{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -228,7 +251,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			);
 
 			// search order by product.
-			cy.get('#post-search-input').clear().type(`fantastic-silk-knife{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`fantastic-silk-knife{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -282,9 +306,11 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 					thirdProductId = id;
 				});
 
+			cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 			cy.get('@thirdProduct')
-				.drag('#the-list tr:eq(0)', { force: true })
+				.drag('#the-list tr:eq(0)', { target: { position: 'top' }, force: true })
 				.then(() => {
+					cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {
@@ -313,36 +339,38 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 		it('Will require a sync when enabling Orders Autosuggest', () => {
 			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+			cy.contains('button', 'WooCommerce').click();
 
 			/**
 			 * Enable the feature.
 			 */
-			cy.get('.ep-feature-woocommerce .settings-button').click();
+			cy.contains('button', 'WooCommerce').click();
+
+			cy.contains('label', 'Show suggestions')
+				.closest('.components-base-control')
+				.find('input')
+				.as('showSuggestionsCheck');
 
 			if (!isEpIo) {
-				cy.get('.ep-feature-woocommerce [name="settings[orders]"][value="1"]').should(
-					'be.disabled',
-				);
+				cy.get('@showSuggestionsCheck').should('be.disabled');
 				return;
 			}
 
-			cy.get('.ep-feature-woocommerce [name="settings[orders]"][value="1"]').click();
-			cy.get('.ep-feature-woocommerce .button-primary').click();
+			cy.get('@showSuggestionsCheck').check();
 
-			/**
-			 * Accept the prompt asking to sync.
-			 */
-			cy.on('window:confirm', () => {
-				return true;
-			});
+			cy.contains('button', 'Save and sync now').click();
+
+			cy.wait('@apiRequest');
+
+			cy.on('window:confirm', () => true);
 
 			/**
 			 * Syncing should complete.
 			 */
-			cy.get('.ep-sync-panel').last().as('syncPanel');
-			cy.get('@syncPanel').find('.components-form-toggle').click();
-			cy.get('@syncPanel')
-				.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+			cy.contains('.components-button', 'Log').click();
+			cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 				.should('contain.text', 'Mapping sent')
 				.should('contain.text', 'Sync complete');
 		});

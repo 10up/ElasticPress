@@ -18,8 +18,18 @@ return [
 			'analyzer'   => [
 				'default'          => [
 					'tokenizer' => 'standard',
-					'filter'    => [ 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ],
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'    => apply_filters( 'ep_default_analyzer_filters', [ 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+				],
+				'default_search'   => [
+					'tokenizer'   => 'standard',
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', [ 'html_strip' ] ),
+					/* This filter is documented above */
+					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'shingle_analyzer' => [
 					'type'      => 'custom',

@@ -11,6 +11,7 @@ namespace ElasticPress\Feature\Facets;
 use ElasticPress\Feature;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
+use ElasticPress\REST;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,7 +40,19 @@ class Facets extends Feature {
 
 		$this->title = esc_html__( 'Filters', 'elasticpress' );
 
-		$this->summary = __( 'Add controls to your website to filter content by one or more taxonomies.', 'elasticpress' );
+		$this->summary = '<p>' .
+			wp_is_block_theme()
+				? sprintf(
+					/* translators: Site Editor URL */
+					__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
+					esc_url( admin_url( 'site-editor.php' ) )
+				)
+				: sprintf(
+					/* translators: Widgets Edit Screen URL */
+					__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
+					esc_url( admin_url( 'widgets.php' ) )
+				)
+			. '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#facets', 'elasticpress' );
 
@@ -57,6 +70,8 @@ class Facets extends Feature {
 			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
 			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
 			$types['post-type']  = __NAMESPACE__ . '\Types\PostType\FacetType';
+			$types['date']       = __NAMESPACE__ . '\Types\Date\FacetType';
+
 		}
 
 		/**
@@ -113,6 +128,7 @@ class Facets extends Feature {
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 	}
 
 	/**
@@ -645,6 +661,29 @@ class Facets extends Feature {
 	}
 
 	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema[] = [
+			'key'     => 'match_type',
+			'label'   => __( 'Filter matching', 'elasticpress' ),
+			'options' => [
+				[
+					'label' => __( 'Show results that match <strong>all</strong> selected filters', 'elasticpress' ),
+					'value' => 'all',
+				],
+				[
+					'label' => __( 'Show results that match <strong>any</strong> selected filter', 'elasticpress' ),
+					'value' => 'any',
+				],
+			],
+			'type'    => 'radio',
+		];
+	}
+
+	/**
 	 * Figure out if Facet widget can display on page.
 	 *
 	 * @param  WP_Query $query WP Query
@@ -653,5 +692,21 @@ class Facets extends Feature {
 	 */
 	protected function is_facetable_page( $query ) {
 		return $query->is_home() || $query->is_search() || $query->is_tax() || $query->is_tag() || $query->is_category() || $query->is_post_type_archive();
+	}
+
+	/**
+	 * Setup REST endpoints
+	 *
+	 * @since 5.0.0
+	 */
+	public function setup_endpoints() {
+		$meta_keys = new REST\MetaKeys();
+		$meta_keys->register_routes();
+
+		$meta_range = new REST\MetaRange();
+		$meta_range->register_routes();
+
+		$taxonomies = new REST\Taxonomies();
+		$taxonomies->register_routes();
 	}
 }

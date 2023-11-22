@@ -15,11 +15,13 @@
         "https://downloads.wordpress.org/plugin/debug-bar.zip",
         "https://downloads.wordpress.org/plugin/debug-bar-elasticpress.zip",
         "https://downloads.wordpress.org/plugin/wordpress-importer.zip",
-        "https://downloads.wordpress.org/plugin/woocommerce.zip",
         "10up/elasticpress-proxy#develop"
       ],
       "mappings": {
+        ".htaccess": "./tests/cypress/wordpress-files/.htaccess",
+        "wp-content/mu-plugins/skip-wp-lookup.php": "./tests/cypress/wordpress-files/test-mu-plugins/skip-wp-lookup.php",
         "wp-content/mu-plugins/unique-index-name.php": "./tests/cypress/wordpress-files/test-mu-plugins/unique-index-name.php",
+        "wp-content/plugins/auto-meta-mode.php": "./tests/cypress/wordpress-files/test-plugins/auto-meta-mode.php",
         "wp-content/mu-plugins/disable-welcome-guide.php": "./tests/cypress/wordpress-files/test-mu-plugins/disable-welcome-guide.php",
         "wp-content/plugins/cpt-and-custom-tax.php": "./tests/cypress/wordpress-files/test-plugins/cpt-and-custom-tax.php",
         "wp-content/plugins/custom-instant-results-template.php": "./tests/cypress/wordpress-files/test-plugins/custom-instant-results-template.php",
@@ -34,6 +36,7 @@
         "wp-content/plugins/filter-instant-results-per-page.php": "./tests/cypress/wordpress-files/test-plugins/filter-instant-results-per-page.php",
         "wp-content/plugins/filter-instant-results-args-schema.php": "./tests/cypress/wordpress-files/test-plugins/filter-instant-results-args-schema.php",
         "wp-content/plugins/filter-autosuggest-navigate-callback.php": "./tests/cypress/wordpress-files/test-plugins/filter-autosuggest-navigate-callback.php",
+        "wp-content/plugins/show-comments-and-terms.php": "./tests/cypress/wordpress-files/test-plugins/show-comments-and-terms.php",
         "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml"
       }
     }

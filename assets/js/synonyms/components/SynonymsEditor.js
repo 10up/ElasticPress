@@ -7,7 +7,7 @@ import { useContext, useEffect, WPElement } from '@wordpress/element';
  * Internal dependencies.
  */
 import { State, Dispatch } from '../context';
-import AlterativesEditor from './editors/AlternativesEditor';
+import AlternativesEditor from './editors/AlternativesEditor';
 import SetsEditor from './editors/SetsEditor';
 import SolrEditor from './editors/SolrEditor';
 
@@ -95,10 +95,10 @@ const SynonymsEditor = () => {
 						<p>{setsDescription}</p>
 						<SetsEditor sets={sets} />
 					</div>
-					<div className="synonym-editor synonym-editor__alteratives">
+					<div className="synonym-editor synonym-editor__alternatives">
 						<h2>{`${alternativesTitle} (${alternatives.length})`}</h2>
 						<p>{alternativesDescription}</p>
-						<AlterativesEditor alternatives={alternatives} />
+						<AlternativesEditor alternatives={alternatives} />
 					</div>
 				</>
 			)}

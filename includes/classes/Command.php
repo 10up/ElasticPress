@@ -144,11 +144,16 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		$active_features = Utils\get_option( 'ep_feature_settings', [] );
+		$active_features       = (array) Features::factory()->get_feature_settings();
+		$active_features_draft = (array) Features::factory()->get_feature_settings_draft();
 
-		$key = array_search( $feature->slug, array_keys( $active_features ), true );
+		$key_current = array_search( $feature->slug, array_keys( $active_features ), true );
+		$key_draft   = array_search( $feature->slug, array_keys( $active_features_draft ), true );
 
-		if ( false === $key || empty( $active_features[ $feature->slug ]['active'] ) ) {
+		$in_current = false !== $key_current && ! empty( $active_features[ $feature->slug ]['active'] );
+		$in_draft   = false !== $key_draft && ! empty( $active_features_draft[ $feature->slug ]['active'] );
+
+		if ( ! $in_current && ! $in_draft ) {
 			WP_CLI::error( esc_html__( 'Feature is not active', 'elasticpress' ) );
 		}
 
@@ -174,7 +179,7 @@ class Command extends WP_CLI_Command {
 		$list_all = \WP_CLI\Utils\get_flag_value( $assoc_args, 'all', null );
 
 		if ( empty( $list_all ) ) {
-			$features = Utils\get_option( 'ep_feature_settings', [] );
+			$features = Features::factory()->get_feature_settings();
 
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
@@ -936,6 +941,7 @@ class Command extends WP_CLI_Command {
 
 		$index_names_imploded = implode( ',', $index_names );
 
+		Elasticsearch::factory()->refresh_indices();
 		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
 
 		if ( is_wp_error( $request ) ) {
@@ -1068,7 +1074,7 @@ class Command extends WP_CLI_Command {
 	 */
 	public function get_last_sync( $args, $assoc_args ) {
 		$pretty    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'pretty' );
-		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$last_sync = \ElasticPress\IndexHelper::factory()->get_last_sync();
 
 		$this->pretty_json_encode( $last_sync, $pretty );
 	}

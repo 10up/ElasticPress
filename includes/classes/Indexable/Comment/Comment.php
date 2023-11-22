@@ -101,7 +101,7 @@ class Comment extends Indexable {
 		/**
 		 * Support `paged` query var
 		 *
-		 * If `offset` is used, that takes precendence
+		 * If `offset` is used, that takes precedence
 		 * over this.
 		 */
 		if ( isset( $query_vars['paged'] ) && empty( $query_vars['offset'] ) && $query_vars['paged'] > 1 ) {
@@ -703,12 +703,10 @@ class Comment extends Indexable {
 
 		$es_version = (string) $es_version;
 
-		$mapping_file = 'initial.php';
+		$mapping_file = '7-0.php';
 
-		if ( version_compare( $es_version, '5.0', '<' ) ) {
-			$mapping_file = 'pre-5-0.php';
-		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
-			$mapping_file = '7-0.php';
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
+			$mapping_file = 'initial.php';
 		}
 
 		/**

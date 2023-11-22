@@ -1,5 +1,5 @@
 /**
- * WordPress depdendencies.
+ * WordPress dependencies.
  */
 import { ReactElement, useCallback, useEffect, useMemo, useState } from '@wordpress/element';
 import { _n, sprintf } from '@wordpress/i18n';
@@ -24,7 +24,7 @@ export default ({ children, id, isBusy, onSelect, ...props }) => {
 	/**
 	 * Active descendant ID.
 	 *
-	 * @returns {string|null} Actve descendant id.
+	 * @returns {string|null} Active descendant id.
 	 */
 	const activeDescendant = useMemo(() => {
 		return children[selected] ? children[selected].props.id : null;

@@ -146,3 +146,65 @@
 	height: var(--ep-range-slider-thumb-size);
 	width: var(--ep-range-slider-thumb-size);
 }
+
+.ep-facet-date-option {
+
+	& label {
+		align-items: center;
+		display: flex;
+
+		& .ep-radio {
+			appearance: none;
+			border: 1px solid #eee;
+			border-radius: 50%;
+			height: 1em;
+			margin-right: 0.25em;
+			outline: transparent;
+			position: relative;
+			width: 1em;
+
+			&:checked {
+				background-color: transparent;
+				border: 5px solid #5e5e5e;
+
+				&::after {
+					opacity: 0;
+				}
+			}
+		}
+	}
+}
+
+.ep-date-range-picker {
+	column-gap: 1rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	margin-top: 1rem;
+
+	&.is-hidden {
+		display: none;
+	}
+
+	& label {
+		margin-right: 0.5rem;
+	}
+}
+
+.ep-date-range-picker__from,
+.ep-date-range-picker__to {
+	align-items: baseline;
+	display: grid;
+	grid-template-columns: max-content 1fr;
+}
+
+.ep-date-range-picker__action {
+	grid-column: 1 / -1;
+	text-align: right;
+}
+
+.ep-facet-date-form__action {
+	align-items: center;
+	display: flex;
+	gap: 1.5rem;
+	margin-top: 0.75rem;
+}

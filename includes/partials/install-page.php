@@ -12,11 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$setup_url     = admin_url( 'network/admin.php?page=elasticpress-settings' );
-	$sync_url      = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
+	$sync_url      = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync=install' );
 	$dashboard_url = admin_url( 'network/admin.php?page=elasticpress' );
 } else {
 	$setup_url     = admin_url( 'admin.php?page=elasticpress-settings' );
-	$sync_url      = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
+	$sync_url      = admin_url( 'admin.php?page=elasticpress-sync&do_sync=install' );
 	$dashboard_url = admin_url( 'admin.php?page=elasticpress' );
 }
 
@@ -64,7 +64,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 					</div>
 					<h2><?php esc_html_e( 'Set up Elasticsearch hosting', 'elasticpress' ); ?></h2>
 					<p class="ep-copy-text">
-						<?php echo wp_kses_post( __( 'The next step is to make sure you have a working Elasticsearch server. We recommend creating an <a href="https://elasticpress.io">ElasticPress.io</a> account or if you want you can set up your own hosting.', 'elasticpress' ) ); ?>
+						<?php echo wp_kses_post( __( 'The next step is to make sure you have a working Elasticsearch server. We recommend creating an <a href="https://elasticpress.io" target="_blank">ElasticPress.io</a> account or if you want you can set up your own hosting.', 'elasticpress' ) ); ?>
 					</p>
 					<?php if ( 2 === $install_status ) : ?>
 						<div class="setup-message">
@@ -122,7 +122,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 													</span>
 												</a>
 												<span role="tooltip" class="a11y-tip__help a11y-tip__help--top">
-													<?php echo esc_html( $feature->summary ); ?>
+													<?php echo wp_kses( $feature->summary, 'ep-html' ); ?>
 													<?php esc_html_e( 'Click to learn more.', 'elasticpress' ); ?>
 												</span>
 											</span>

@@ -17,6 +17,13 @@ use ElasticPress\Indexables;
  * Terms feature class
  */
 class Terms extends Feature {
+	/**
+	 * Whether the feature should be always visible in the dashboard
+	 *
+	 * @since 5.0.0
+	 * @var boolean
+	 */
+	protected $is_visible = false;
 
 	/**
 	 * Initialize feature, setting it's config
@@ -28,7 +35,7 @@ class Terms extends Feature {
 
 		$this->title = esc_html__( 'Terms', 'elasticpress' );
 
-		$this->summary = __( 'Improve WP_Term_Query relevancy and query performance. This feature is only needed if you are using WP_Term_Query directly.', 'elasticpress' );
+		$this->summary = '<p>' . __( 'This feature will empower your website to overcome traditional WordPress term search and query limitations that can present themselves at scale. This feature is only needed if you are using <code>WP_Term_Query</code> directly.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#terms', 'elasticpress' );
 

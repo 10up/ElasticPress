@@ -43,7 +43,7 @@ abstract class SyncManager {
 		if ( defined( 'EP_SYNC_CHUNK_LIMIT' ) && is_numeric( EP_SYNC_CHUNK_LIMIT ) ) {
 			/**
 			 * We also sync when we exceed Chunk limit set.
-			 * This is sometimes useful when posts are generated programatically.
+			 * This is sometimes useful when posts are generated programmatically.
 			 */
 			add_action( 'ep_after_add_to_queue', [ $this, 'index_sync_on_chunk_limit' ] );
 		}
@@ -67,6 +67,25 @@ abstract class SyncManager {
 	}
 
 	/**
+	 * Get sync queue.
+	 *
+	 * @since 5.0.0
+	 * @param int $blog_id Blog ID to retrieve queue.
+	 * @return array
+	 */
+	public function get_sync_queue( $blog_id = false ) {
+		if ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		if ( ! isset( $this->sync_queue[ $blog_id ] ) ) {
+			$this->sync_queue[ $blog_id ] = [];
+		}
+
+		return $this->sync_queue[ $blog_id ];
+	}
+
+	/**
 	 * Add an object to the sync queue.
 	 *
 	 * @since 3.1.2
@@ -78,7 +97,13 @@ abstract class SyncManager {
 		if ( ! is_numeric( $object_id ) ) {
 			return false;
 		}
-		$this->sync_queue[ $object_id ] = true;
+
+		$current_blog_id = get_current_blog_id();
+		if ( ! isset( $this->sync_queue[ $current_blog_id ] ) ) {
+			$this->sync_queue[ $current_blog_id ] = [];
+		}
+
+		$this->sync_queue[ $current_blog_id ][ $object_id ] = true;
 
 		/**
 		 * Fires after item is added to sync queue
@@ -88,7 +113,7 @@ abstract class SyncManager {
 		 * @param  {array} $sync_queue Current sync queue
 		 * @since  3.1.2
 		 */
-		do_action( 'ep_after_add_to_queue', $object_id, $this->sync_queue );
+		do_action( 'ep_after_add_to_queue', $object_id, $this->get_sync_queue() );
 
 		return true;
 	}
@@ -106,7 +131,12 @@ abstract class SyncManager {
 			return false;
 		}
 
-		unset( $this->sync_queue[ $object_id ] );
+		$current_blog_id = get_current_blog_id();
+		if ( ! isset( $this->sync_queue[ $current_blog_id ] ) ) {
+			$this->sync_queue[ $current_blog_id ] = [];
+		}
+
+		unset( $this->sync_queue[ $current_blog_id ][ $object_id ] );
 
 		/**
 		 * Fires after item is removed from sync queue
@@ -116,9 +146,23 @@ abstract class SyncManager {
 		 * @param  {array} $sync_queue Current sync queue
 		 * @since  3.5
 		 */
-		do_action( 'ep_after_remove_from_queue', $object_id, $this->sync_queue );
+		do_action( 'ep_after_remove_from_queue', $object_id, $this->get_sync_queue() );
 
 		return true;
+	}
+
+	/**
+	 * Reset the sync queue.
+	 *
+	 * @since 5.0.0
+	 * @param int $blog_id Blog ID to reset queue
+	 */
+	public function reset_sync_queue( $blog_id = false ) {
+		if ( ! $blog_id ) {
+			$blog_id = get_current_blog_id();
+		}
+
+		$this->sync_queue[ $blog_id ] = [];
 	}
 
 	/**
@@ -129,7 +173,7 @@ abstract class SyncManager {
 	 */
 	public function index_sync_on_chunk_limit() {
 		if ( defined( 'EP_SYNC_CHUNK_LIMIT' ) && is_numeric( EP_SYNC_CHUNK_LIMIT ) &&
-			is_array( $this->sync_queue ) && count( $this->sync_queue ) > EP_SYNC_CHUNK_LIMIT ) {
+			is_array( $this->get_sync_queue() ) && count( $this->get_sync_queue() ) > EP_SYNC_CHUNK_LIMIT ) {
 			$this->index_sync_queue();
 		}
 		return true;
@@ -159,40 +203,55 @@ abstract class SyncManager {
 			return;
 		}
 
-		/**
-		 * Allow other code to intercept the sync process
-		 *
-		 * @hook pre_ep_index_sync_queue
-		 * @param {boolean} $bail True to skip the rest of index_sync_queue(), false to continue normally
-		 * @param {SyncManager} $sync_manager SyncManager instance for the indexable
-		 * @param {string} $indexable_slug Slug of the indexable being synced
-		 * @since 3.5
-		 */
-		if ( apply_filters( 'pre_ep_index_sync_queue', false, $this, $this->indexable_slug ) ) {
-			return;
-		}
+		$current_blog_id = get_current_blog_id();
+		foreach ( $this->sync_queue as $blog_id => $sync_queue ) {
+			if ( empty( $sync_queue ) ) {
+				continue;
+			}
 
-		/**
-		 * Backwards compat for pre-3.0
-		 */
-		foreach ( $this->sync_queue as $object_id => $value ) {
+			if ( $current_blog_id !== $blog_id ) {
+				switch_to_blog( $blog_id );
+			}
+
 			/**
-			 * Fires when object in queue are synced
+			 * Allow other code to intercept the sync process
 			 *
-			 * @hook ep_sync_on_meta_update_queue
-			 * @param  {int} $object_id ID of object
+			 * @hook pre_ep_index_sync_queue
+			 * @param {boolean} $bail True to skip the rest of index_sync_queue(), false to continue normally
+			 * @param {SyncManager} $sync_manager SyncManager instance for the indexable
+			 * @param {string} $indexable_slug Slug of the indexable being synced
+			 * @since 3.5
 			 */
-			do_action( 'ep_sync_on_meta_update', $object_id );
+			if ( apply_filters( 'pre_ep_index_sync_queue', false, $this, $this->indexable_slug ) ) {
+				return;
+			}
+
+			/**
+			 * Backwards compat for pre-3.0
+			 */
+			foreach ( $sync_queue as $object_id => $value ) {
+				/**
+				 * Fires when object in queue are synced
+				 *
+				 * @hook ep_sync_on_meta_update_queue
+				 * @param  {int} $object_id ID of object
+				 */
+				do_action( 'ep_sync_on_meta_update', $object_id );
+			}
+
+			// Bulk sync them all.
+			Indexables::factory()->get( $this->indexable_slug )->bulk_index_dynamically( array_keys( $this->get_sync_queue( $blog_id ) ) );
+
+			/**
+			 * Make sure to reset sync queue in case an shutdown happens before a redirect
+			 * when a redirect has already been triggered.
+			 */
+			$this->reset_sync_queue( $blog_id );
+
+			if ( $current_blog_id !== $blog_id ) {
+				restore_current_blog();
+			}
 		}
-
-		// Bulk sync them all.
-		Indexables::factory()->get( $this->indexable_slug )->bulk_index_dynamically( array_keys( $this->sync_queue ) );
-
-		/**
-		 * Make sure to reset sync queue in case an shutdown happens before a redirect
-		 * when a redirect has already been triggered.
-		 */
-		$this->sync_queue = [];
 	}
 
 	/**

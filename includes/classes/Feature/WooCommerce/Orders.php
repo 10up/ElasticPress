@@ -39,12 +39,27 @@ class Orders {
 	 */
 	public function setup() {
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ], 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
 		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+	}
+
+	/**
+	 * Unsetup order related hooks
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ] );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20 );
+		remove_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20 );
+		remove_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+		remove_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
 	}
 
 	/**
@@ -86,10 +101,15 @@ class Orders {
 	/**
 	 * Index WooCommerce orders meta fields
 	 *
-	 * @param  array $meta Existing post meta
+	 * @param array    $meta Existing post meta
+	 * @param \WP_Post $post Post object.
 	 * @return array
 	 */
-	public function allow_meta_keys( $meta ) {
+	public function allow_meta_keys( $meta, $post ) {
+		if ( ! in_array( $post->post_type, [ 'shop_order', 'shop_order_refund' ], true ) ) {
+			return $meta;
+		}
+
 		return array_unique(
 			array_merge(
 				$meta,

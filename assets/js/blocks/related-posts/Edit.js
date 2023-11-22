@@ -49,7 +49,7 @@ const RelatedPostsEdit = ({ attributes, context, setAttributes }) => {
 		const { postId = 0 } = context;
 
 		apiFetch({
-			path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
+			path: addQueryArgs(`/elasticpress/v1/related-posts/${postId}`, urlArgs),
 		})
 			.then((posts) => {
 				setPosts(posts);

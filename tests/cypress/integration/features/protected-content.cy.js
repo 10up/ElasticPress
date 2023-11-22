@@ -3,17 +3,18 @@ describe('Protected Content Feature', () => {
 		cy.login();
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-protected_content .settings-button').click();
-		cy.get('.ep-feature-protected_content [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-protected_content .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+		cy.contains('button', 'Protected Content').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
+
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
