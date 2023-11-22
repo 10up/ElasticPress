@@ -205,6 +205,10 @@ abstract class SyncManager {
 
 		$current_blog_id = get_current_blog_id();
 		foreach ( $this->sync_queue as $blog_id => $sync_queue ) {
+			if ( empty( $sync_queue ) ) {
+				continue;
+			}
+
 			if ( $current_blog_id !== $blog_id ) {
 				switch_to_blog( $blog_id );
 			}
