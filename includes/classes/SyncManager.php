@@ -43,7 +43,7 @@ abstract class SyncManager {
 		if ( defined( 'EP_SYNC_CHUNK_LIMIT' ) && is_numeric( EP_SYNC_CHUNK_LIMIT ) ) {
 			/**
 			 * We also sync when we exceed Chunk limit set.
-			 * This is sometimes useful when posts are generated programatically.
+			 * This is sometimes useful when posts are generated programmatically.
 			 */
 			add_action( 'ep_after_add_to_queue', [ $this, 'index_sync_on_chunk_limit' ] );
 		}

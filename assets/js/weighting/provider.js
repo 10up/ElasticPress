@@ -42,7 +42,7 @@ export const WeightingSettingsProvider = ({
 	 * Handle data change.
 	 *
 	 * @param {string} postType Post type to update.
-	 * @param {Array} values New valus.
+	 * @param {Array} values New values.
 	 * @returns {void}
 	 */
 	const setWeightingForPostType = (postType, values) => {

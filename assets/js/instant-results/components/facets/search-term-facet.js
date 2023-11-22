@@ -9,7 +9,7 @@ import { __, sprintf } from '@wordpress/i18n';
  */
 import { useApiSearch } from '../../../api-search';
 import { useDebounce } from '../../hooks';
-import { ActiveContraint } from '../tools/active-constraints';
+import { ActiveConstraint } from '../tools/active-constraints';
 
 /**
  * Search field component.
@@ -68,7 +68,7 @@ export default () => {
 				onChange={onChange}
 			/>
 			{searchTerm && (
-				<ActiveContraint
+				<ActiveConstraint
 					label={sprintf(
 						/* translators: %s: Search term. */
 						__('“%s”', 'elasticpress'),

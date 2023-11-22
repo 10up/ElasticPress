@@ -339,7 +339,7 @@ class Features {
 	}
 
 	/**
-	 * Return currnt features settings
+	 * Return current features settings
 	 *
 	 * @since 5.0.0
 	 * @return false|array
