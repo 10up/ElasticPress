@@ -101,7 +101,7 @@ class Comment extends Indexable {
 		/**
 		 * Support `paged` query var
 		 *
-		 * If `offset` is used, that takes precendence
+		 * If `offset` is used, that takes precedence
 		 * over this.
 		 */
 		if ( isset( $query_vars['paged'] ) && empty( $query_vars['offset'] ) && $query_vars['paged'] > 1 ) {

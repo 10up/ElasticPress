@@ -143,7 +143,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 				cy.get('@searchBlock').find('.wp-block-search__input').type('blog');
 				cy.get('@searchBlock').find('.wp-block-search__button').click();
-				cy.get('.ep-search-modal').as('searchModal').should('be.visible'); // Should be visible immediatly
+				cy.get('.ep-search-modal').as('searchModal').should('be.visible'); // Should be visible immediately
 				cy.get('@searchModal')
 					.find('.ep-search-results__title')
 					.contains('Loading results');
