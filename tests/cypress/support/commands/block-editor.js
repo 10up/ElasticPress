@@ -54,7 +54,10 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 			cy.get('.block-editor-block-inspector button').contains('Background').click();
 
-			cy.get('.popover-slot button[aria-label="Color: Black"').click();
+			cy.get(
+				`.popover-slot button[aria-label="Color: Black"],
+				.block-editor-color-gradient-control__panel button[aria-label="Color: Black"]`,
+			).click();
 
 			cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
 		}
@@ -83,7 +86,9 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 			cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
 
-			cy.get('.popover-slot button').contains('Font size').as('fontSizeButton');
+			cy.get('[aria-label="Typography options"] button, .popover-slot button')
+				.contains('Font size')
+				.as('fontSizeButton');
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').type('{esc}');
@@ -124,7 +129,9 @@ Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject,
 
 			cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
 
-			cy.get('.popover-slot button').contains('Padding').as('paddingButton');
+			cy.get('[aria-label="Dimensions options"] button, .popover-slot button')
+				.contains('Padding')
+				.as('paddingButton');
 			cy.get('@paddingButton').click();
 			cy.get('@paddingButton').type('{esc}');
 

@@ -1,5 +1,5 @@
 /**
- * WordPress deendencies.
+ * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
 import { chevronDown, chevronUp, Icon } from '@wordpress/icons';

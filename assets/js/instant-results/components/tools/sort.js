@@ -1,11 +1,11 @@
 /**
- * WordPress deendencies.
+ * WordPress dependencies.
  */
 import { useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
- * Internal deendencies.
+ * Internal dependencies.
  */
 import { useApiSearch } from '../../../api-search';
 import { sortOptions } from '../../config';

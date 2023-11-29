@@ -13,7 +13,7 @@ import { useWeightingSettings } from '../provider';
 import Field from './field';
 
 /**
- * Post type propertes component.
+ * Post type properties component.
  *
  * @param {object} props Component props.
  * @param {string} props.group Group.
@@ -42,7 +42,7 @@ export default ({ group, postType }) => {
 	const isMetadata = group === 'ep_metadata';
 
 	/**
-	 * Fields that belond to this group.
+	 * Fields that belong to this group.
 	 */
 	const defaultFields = useMemo(() => fields.filter((f) => f.group === group), [fields, group]);
 

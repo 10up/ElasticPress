@@ -138,7 +138,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 	 * Filter to allow cron and WP CLI processes to index/delete documents
 	 *
 	 * @param  boolean $bypass The current filtered value
-	 * @return boolean Boolean indicating if permission checking should be bypased or not
+	 * @return boolean Boolean indicating if permission checking should be bypassed or not
 	 * @since  3.6.0
 	 */
 	public function filter_bypass_permission_checks_for_machines( $bypass ) {
