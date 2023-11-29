@@ -74,6 +74,14 @@ class Stats {
 	protected $nodes = 0;
 
 	/**
+	 * Failed queries and their errors.
+	 *
+	 * @since 5.0.1
+	 * @var string
+	 */
+	protected $failed_queries = [];
+
+	/**
 	 * Makes an api call to elasticsearch endpoint
 	 *
 	 * @param  string $path Endpoint path to query
@@ -83,13 +91,29 @@ class Stats {
 	protected function remote_request_helper( $path ) {
 		$request = Elasticsearch::factory()->remote_request( $path );
 
-		if ( is_wp_error( $request ) || empty( $request ) ) {
+		if ( empty( $request ) ) {
 			return false;
 		}
 
-		$body = wp_remote_retrieve_body( $request );
+		if ( is_wp_error( $request ) ) {
+			$this->failed_queries[] = [
+				'path'  => $path,
+				'error' => $request->get_error_message(),
+			];
+			return false;
+		}
 
-		return json_decode( $body, true );
+		$body   = wp_remote_retrieve_body( $request );
+		$return = json_decode( $body, true );
+
+		if ( ! empty( $return['errors'] ) ) {
+			$this->failed_queries[] = [
+				'path'  => $path,
+				'error' => json_encode( $return['errors'] ),
+			];
+		}
+
+		return $return;
 	}
 
 	/**
@@ -290,6 +314,25 @@ class Stats {
 		$f_base = floor( $base );
 
 		return round( pow( 1024, $base - floor( $base ) ), 1 ) . $suffix[ $f_base ];
+	}
+
+	/**
+	 * Return all failed queries.
+	 *
+	 * @return array
+	 * @since 5.0.1
+	 */
+	public function get_failed_queries() {
+		return $this->failed_queries;
+	}
+
+	/**
+	 * Clear all failed queries registered.
+	 *
+	 * @since 5.0.1
+	 */
+	public function clear_failed_queries() {
+		$this->failed_queries = [];
 	}
 
 	/**
