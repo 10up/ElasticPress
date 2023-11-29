@@ -109,7 +109,7 @@ class Stats {
 		if ( ! empty( $return['errors'] ) ) {
 			$this->failed_queries[] = [
 				'path'  => $path,
-				'error' => json_encode( $return['errors'] ),
+				'error' => wp_json_encode( $return['errors'] ),
 			];
 		}
 
