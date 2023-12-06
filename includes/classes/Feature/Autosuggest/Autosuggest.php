@@ -658,6 +658,10 @@ class Autosuggest extends Feature {
 		// Pass the same cookies, so the same authenticated user is used (and we can check the nonce).
 		$cookies = [];
 		foreach ( $_COOKIE as $name => $value ) {
+			if ( ! is_string( $name ) || ! is_string( $value ) ) {
+				continue;
+			}
+
 			$cookies[] = new \WP_Http_Cookie(
 				[
 					'name'  => $name,
