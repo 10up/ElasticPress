@@ -1,8 +1,8 @@
 === ElasticPress ===
 Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
-Tested up to: 6.3
-Stable tag:   5.0.0
+Tested up to: 6.4
+Stable tag:   5.0.1
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
