@@ -223,6 +223,12 @@ Thank you to all the people who have already contributed to this repository via 
 [Pea Lutz (@misfist)](https://github.com/misfist),
 [@apurvrdx1](https://github.com/apurvrdx1),
 [Scott Buscemi (@scottbuscemi)](https://github.com/scottbuscemi),
+[Viktor Szépe (@szepeviktor)](https://github.com/szepeviktor),
+[Paweł Knap (@pknap)](https://github.com/pknap),
+[@iazema](https://github.com/iazema),
+[Igor Yavych (@Igor-Yavych)](https://github.com/Igor-Yavych),
+[Deanna Steers (@tropicandid)](https://github.com/tropicandid),
+[@pvnanini](https://github.com/pvnanini),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

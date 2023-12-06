@@ -13,6 +13,22 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [5.0.1] - 2023-12-XX
+
+### Added
+* Failed queries in the Index Health page will now be outputted with their error messages. Props [@felipeelia](https://github.com/felipeelia) and [@pvnanini](https://github.com/pvnanini) via [#3776](https://github.com/10up/ElasticPress/pull/3776).
+
+### Fixed
+* Queries failing due to a "request body is required" error. Props [@felipeelia](https://github.com/felipeelia) via [#3770](https://github.com/10up/ElasticPress/pull/3770).
+* Fatal error when site has a bad cookie. Props [@burhandodhy](https://github.com/burhandodhy) via [#3778](https://github.com/10up/ElasticPress/pull/3778).
+* Broken i18n of some strings. Props [@felipeelia](https://github.com/felipeelia) and [@iazema](https://github.com/iazema) via [#3780](https://github.com/10up/ElasticPress/pull/3780).
+* PHP Warning on term archive pages when the term was not found. Props [@felipeelia](https://github.com/felipeelia) and [@Igor-Yavych](https://github.com/Igor-Yavych) via [#3777](https://github.com/10up/ElasticPress/pull/3777).
+* PHP warning when using block themes. Props [@felipeelia](https://github.com/felipeelia) and [@tropicandid](https://github.com/tropicandid) via [#3781](https://github.com/10up/ElasticPress/pull/3781).
+* Several typos. Props [@szepeviktor](https://github.com/szepeviktor) via [#3750](https://github.com/10up/ElasticPress/pull/3750).
+* Index cleanup process - offset being zeroed too late. Props [@pknap](https://github.com/pknap) via [#3765](https://github.com/10up/ElasticPress/pull/3765).
+* PHP warning in site health page. Props [@turtlepod](https://github.com/turtlepod) via [#3758](https://github.com/10up/ElasticPress/pull/3758).
+* E2e tests with WordPress 6.4. Props [@felipeelia](https://github.com/felipeelia) via [#3771](https://github.com/10up/ElasticPress/pull/3771).
+
 ## [5.0.0] - 2023-11-01
 
 **ElasticPress 5.0.0 contains some important changes. Make sure to read these highlights before upgrading:**
@@ -2032,6 +2048,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.0.1]: https://github.com/10up/ElasticPress/compare/5.0.0...5.0.1
 [5.0.0]: https://github.com/10up/ElasticPress/compare/4.7.2...5.0.0
 [4.7.2]: https://github.com/10up/ElasticPress/compare/4.7.1...4.7.2
 [4.7.1]: https://github.com/10up/ElasticPress/compare/4.7.0...4.7.1
