@@ -737,16 +737,9 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			/**
 			 * Selecting a range and pressing Filter should filter the results.
 			 */
-			cy.get('@thumbs')
-				.eq(0)
-				.type(
-					'{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}',
-				);
-			cy.get('@thumbs')
-				.eq(1)
-				.type(
-					'{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}',
-				);
+			cy.window().then((window) => {
+				window.app.sliderChange([9, 12]);
+			});
 			cy.get('@block').should('contain.text', '$9/day — $12/day');
 			cy.get('@block').get('button').first().click();
 			cy.get('.post').should('have.length', 4);
@@ -764,8 +757,9 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 			 * After selecting a narrow range of values it should be possible
 			 * to adjust the filter to a wider range.
 			 */
-			cy.get('@thumbs').eq(0).type('{leftArrow}{leftArrow}');
-			cy.get('@thumbs').eq(1).type('{rightArrow}{rightArrow}');
+			cy.window().then((window) => {
+				window.app.sliderChange([7, 14]);
+			});
 			cy.get('@block').should('contain.text', '$7/day — $14/day');
 			cy.get('@block').get('button').first().click();
 			cy.url().should('include', 'ep_meta_range_filter_numeric_meta_field_min=7');
