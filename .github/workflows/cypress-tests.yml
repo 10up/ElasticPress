@@ -60,6 +60,9 @@ jobs:
     - name: composer install
       run: composer install
 
+    - name: Zip
+      run: npm run build:zip
+
     - name: Make artifacts available
       uses: actions/upload-artifact@v3
       if: failure()
@@ -67,7 +70,7 @@ jobs:
         name: cypress-artifact-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
-          ${{ github.workspace }}/vendor
+          ${{ github.workspace }}/elasticpress.zip
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3
