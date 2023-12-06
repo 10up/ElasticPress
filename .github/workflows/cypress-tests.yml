@@ -60,6 +60,15 @@ jobs:
     - name: composer install
       run: composer install
 
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: cypress-artifact-${{ matrix.core.name }}-${{ matrix.testGroup }}
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}
+
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3
       with:
