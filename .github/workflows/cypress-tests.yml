@@ -53,7 +53,7 @@ jobs:
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.1'
         tools: cs2pr
         coverage: none
 
