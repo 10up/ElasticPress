@@ -42,14 +42,6 @@ jobs:
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
 
-    - name: Prepare composer cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.COMPOSER_CACHE }}
-        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          composer-${{ env.COMPOSER_VERSION }}-
-
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
