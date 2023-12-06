@@ -61,6 +61,7 @@ jobs:
       run: composer install
 
     - name: Zip
+      if: failure()
       run: npm run build:zip
 
     - name: Make artifacts available
