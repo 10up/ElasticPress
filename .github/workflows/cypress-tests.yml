@@ -42,36 +42,8 @@ jobs:
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
 
-    - name: Prepare composer cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.COMPOSER_CACHE }}
-        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          composer-${{ env.COMPOSER_VERSION }}-
-
-    - name: Set PHP version
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        tools: cs2pr
-        coverage: none
-
     - name: composer install
-      run: composer install
-
-    - name: Zip
-      if: failure()
-      run: npm run build:zip
-
-    - name: Make artifacts available
-      uses: actions/upload-artifact@v3
-      if: failure()
-      with:
-        name: cypress-artifact-${{ matrix.core.name }}-${{ matrix.testGroup }}
-        retention-days: 2
-        path: |
-          ${{ github.workspace }}/elasticpress.zip
+      run: composer install -vvv
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v3
