@@ -22,6 +22,11 @@ import { __ } from '@wordpress/i18n';
  * @returns {WPElement} Component element.
  */
 export default ({ clearUrl, min, max, prefix, suffix, value, ...props }) => {
+	// Expose the onChange() method so that Cypress can set the app state
+	if (window.Cypress) {
+		window.app = { sliderChange: props.onChange };
+	}
+
 	return (
 		<div className="ep-range-facet">
 			<div className="ep-range-facet__slider">
