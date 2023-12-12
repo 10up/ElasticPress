@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.0.0\n"
+"Project-Id-Version: ElasticPress 5.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2023-11-01T17:31:06+00:00\n"
+"POT-Creation-Date: 2023-12-12T13:14:03+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -213,7 +213,7 @@ msgstr ""
 #: includes/classes/Command.php:293
 #: includes/classes/Command.php:333
 #: includes/classes/Command.php:374
-#: includes/classes/IndexHelper.php:1413
+#: includes/classes/IndexHelper.php:1412
 msgid "Mapping failed: %s"
 msgstr ""
 
@@ -567,7 +567,7 @@ msgid "When enabled, a gtag tracking event is fired when an autosuggest result i
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:128
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:910
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:914
 msgid "Endpoint URL"
 msgstr ""
 
@@ -576,7 +576,7 @@ msgid "Your autosuggest endpoint is set in wp-config.php"
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:136
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:908
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:912
 msgid "This address will be exposed to the public."
 msgstr ""
 
@@ -592,29 +592,29 @@ msgstr ""
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:779
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:783
 msgid "Connection"
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>;
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:788
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:864
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:792
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:868
 msgid "You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:885
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:889
 msgid "Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type=\"text\"]</code>"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:887
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:891
 msgid "Additional selectors"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:893
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:897
 msgid "Enable to fire a gtag tracking event when an autosuggest result is clicked."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:894
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:898
 msgid "Trigger Google Analytics events"
 msgstr ""
 
@@ -717,7 +717,7 @@ msgid "No results for: "
 msgstr ""
 
 #: includes/classes/Feature/Documents/Documents.php:28
-#: includes/partials/stats-page.php:59
+#: includes/partials/stats-page.php:77
 msgid "Documents"
 msgstr ""
 
@@ -832,14 +832,14 @@ msgid "Last 12 months"
 msgstr ""
 
 #: includes/classes/Feature/Facets/Types/Date/Renderer.php:135
-#: assets/js/blocks/facets/common/components/range-filter.js:52
+#: assets/js/blocks/facets/common/components/range-filter.js:57
 #: dist/js/facets-meta-range-block-script.js:1
 #: dist/js/facets-meta-range-block-view-script.js:1
 msgid "Filter"
 msgstr ""
 
 #: includes/classes/Feature/Facets/Types/Date/Renderer.php:141
-#: assets/js/blocks/facets/common/components/range-filter.js:50
+#: assets/js/blocks/facets/common/components/range-filter.js:55
 #: dist/js/facets-meta-range-block-script.js:1
 #: dist/js/facets-meta-range-block-view-script.js:1
 msgid "Clear"
@@ -970,7 +970,7 @@ msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:145
 #: includes/classes/Feature/InstantResults/InstantResults.php:1059
-#: includes/classes/Feature/Search/Search.php:892
+#: includes/classes/Feature/Search/Search.php:894
 msgid "None"
 msgstr ""
 
@@ -1016,12 +1016,12 @@ msgid "Price"
 msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:1054
-#: includes/classes/Feature/Search/Search.php:887
+#: includes/classes/Feature/Search/Search.php:889
 msgid "Select the HTML tag used to highlight search terms."
 msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:1056
-#: includes/classes/Feature/Search/Search.php:889
+#: includes/classes/Feature/Search/Search.php:891
 msgid "Highlight tag"
 msgstr ""
 
@@ -1105,7 +1105,7 @@ msgid "https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuri
 msgstr ""
 
 #: includes/classes/Feature/Search/Search.php:623
-#: includes/classes/Feature/Search/Search.php:865
+#: includes/classes/Feature/Search/Search.php:867
 msgid "Weight results by date"
 msgstr ""
 
@@ -1122,48 +1122,48 @@ msgid "By default, WordPress strips HTML from content excerpts. Enable when usin
 msgstr ""
 
 #: includes/classes/Feature/Search/Search.php:671
-#: includes/classes/Feature/Search/Search.php:932
+#: includes/classes/Feature/Search/Search.php:934
 msgid "Advanced fields and weighting settings"
 msgstr ""
 
 #: includes/classes/Feature/Search/Search.php:672
-#: includes/classes/Feature/Search/Search.php:934
+#: includes/classes/Feature/Search/Search.php:936
 msgid "Add synonyms to your post searches"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:774
+#: includes/classes/Feature/Search/Search.php:776
 #: assets/js/search/editor/plugins/exclude-from-search.js:23
 #: dist/js/search-editor-script.js:1
 msgid "Exclude from search results"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:777
+#: includes/classes/Feature/Search/Search.php:779
 msgid "Excludes this media from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:779
+#: includes/classes/Feature/Search/Search.php:781
 #: assets/js/search/editor/plugins/exclude-from-search.js:24
 #: dist/js/search-editor-script.js:1
 msgid "Excludes this post from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:858
+#: includes/classes/Feature/Search/Search.php:860
 msgid "Weighting by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:861
+#: includes/classes/Feature/Search/Search.php:863
 msgid "Don't weight results by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:875
+#: includes/classes/Feature/Search/Search.php:877
 msgid "Highlight search terms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:880
+#: includes/classes/Feature/Search/Search.php:882
 msgid "By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:882
+#: includes/classes/Feature/Search/Search.php:884
 msgid "Highlight search terms in excerpts"
 msgstr ""
 
@@ -1623,6 +1623,10 @@ msgstr ""
 msgid "Check if your Elasticsearch host URL is correct and you have the right access to the host."
 msgstr ""
 
+#: includes/classes/Indexable.php:411
+msgid "It was not possible to create a body request with the document IDs provided."
+msgstr ""
+
 #: includes/classes/Indexable/Comment/Comment.php:43
 msgid "Comment"
 msgstr ""
@@ -1698,52 +1702,52 @@ msgid "Reached maximum number of errors to store"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of failed objects
-#: includes/classes/IndexHelper.php:830
+#: includes/classes/IndexHelper.php:831
 msgid "Number of %1$s index errors on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of failed objects
-#: includes/classes/IndexHelper.php:838
+#: includes/classes/IndexHelper.php:839
 msgid "Number of %1$s index errors: %2$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: Blog ID, 3: number of synced objects
-#: includes/classes/IndexHelper.php:852
+#: includes/classes/IndexHelper.php:851
 msgid "Number of %1$s indexed on site %2$d: %3$d"
 msgstr ""
 
 #. translators: 1: indexable (plural), 2: number of synced objects
-#: includes/classes/IndexHelper.php:860
+#: includes/classes/IndexHelper.php:859
 msgid "Number of %1$s indexed: %2$d"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:970
+#: includes/classes/IndexHelper.php:969
 #: assets/js/sync-ui/components/progress.js:52
 #: dist/js/sync-script.js:1
 msgid "Sync complete"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:1006
+#: includes/classes/IndexHelper.php:1005
 msgid "Network alias created for %1$s"
 msgstr ""
 
 #. translators: 1: Indexable name
-#: includes/classes/IndexHelper.php:1014
+#: includes/classes/IndexHelper.php:1013
 msgid "Network alias creation failed for %1$s"
 msgstr ""
 
 #. translators: Index name
-#: includes/classes/IndexHelper.php:1261
+#: includes/classes/IndexHelper.php:1260
 msgid "Index %s deleted"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:1417
+#: includes/classes/IndexHelper.php:1416
 msgid "Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping."
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/IndexHelper.php:1421
+#: includes/classes/IndexHelper.php:1420
 msgid "Index failed: %s"
 msgstr ""
 
@@ -1766,7 +1770,7 @@ msgid "Elasticsearch server"
 msgstr ""
 
 #: includes/classes/QueryLogger.php:247
-#: includes/partials/stats-page.php:91
+#: includes/partials/stats-page.php:109
 msgid "sync your content"
 msgstr ""
 
@@ -2210,7 +2214,7 @@ msgid "ElasticPress Index Health"
 msgstr ""
 
 #: includes/dashboard.php:653
-#: includes/partials/stats-page.php:34
+#: includes/partials/stats-page.php:35
 msgid "Index Health"
 msgstr ""
 
@@ -2384,31 +2388,35 @@ msgid "Save Changes"
 msgstr ""
 
 #: includes/partials/stats-page.php:39
+msgid "It seems some requests to Elasticsearch failed and it was not possible to build your stats properly:"
+msgstr ""
+
+#: includes/partials/stats-page.php:57
 msgid "Index list"
 msgstr ""
 
-#: includes/partials/stats-page.php:39
+#: includes/partials/stats-page.php:57
 msgid "Health"
 msgstr ""
 
-#: includes/partials/stats-page.php:51
+#: includes/partials/stats-page.php:69
 msgid "Queries & Indexing total"
 msgstr ""
 
-#: includes/partials/stats-page.php:68
+#: includes/partials/stats-page.php:86
 msgid "Total Documents"
 msgstr ""
 
-#: includes/partials/stats-page.php:72
+#: includes/partials/stats-page.php:90
 msgid "Total Size"
 msgstr ""
 
-#: includes/partials/stats-page.php:76
+#: includes/partials/stats-page.php:94
 msgid "Total Memory"
 msgstr ""
 
 #. translators: %s: Sync page link.
-#: includes/partials/stats-page.php:87
+#: includes/partials/stats-page.php:105
 msgid "We could not find any data for your Elasticsearch indices. Maybe you need to %s?"
 msgstr ""
 
@@ -2709,6 +2717,7 @@ msgstr ""
 
 #. translators: %1$s: Minimum price. %2$s: Maximum price.
 #: assets/js/instant-results/components/facets/price-range-facet.js:143
+#: dist/js/instant-results-script.js:1
 msgctxt "Price range"
 msgid "%1$s — %2$s"
 msgstr ""
@@ -3156,6 +3165,7 @@ msgstr ""
 
 #. translators: %1$s Sync date and time. %2%s sync trigger.
 #: assets/js/sync-ui/components/previous-sync.js:113
+#: dist/js/sync-script.js:1
 msgctxt "Sync info"
 msgid "%1$s — %2$s"
 msgstr ""
@@ -3262,10 +3272,12 @@ msgid "Permission denied. Reload the sync page and try again."
 msgstr ""
 
 #: assets/js/sync/src/hooks.js:67
+#: dist/js/sync-script.js:1
 msgid "Something went wrong. Find troubleshooting steps at https://elasticpress.zendesk.com/hc/en-us/articles/20857557098125/."
 msgstr ""
 
 #: assets/js/sync/src/hooks.js:93
+#: dist/js/sync-script.js:1
 msgid "Unable to parse response. Find troubleshooting steps at https://elasticpress.zendesk.com/hc/en-us/articles/20857557098125/."
 msgstr ""
 
@@ -3345,19 +3357,6 @@ msgid "%1$d item @ %2$s"
 msgid_plural "%1$d items @ %2$s"
 msgstr[0] ""
 msgstr[1] ""
-
-#: dist/js/instant-results-script.js:1
-#: dist/js/sync-script.js:1
-msgid "%1$s — %2$s"
-msgstr ""
-
-#: dist/js/sync-script.js:1
-msgid "Something went wrong. Find troubleshooting steps at https://elasticpress.zendesk.com/hc/en-us/sections/360010868652-Troubleshooting."
-msgstr ""
-
-#: dist/js/sync-script.js:1
-msgid "Unable to parse response. Find troubleshooting steps at https://elasticpress.zendesk.com/hc/en-us/sections/360010868652-Troubleshooting."
-msgstr ""
 
 #: assets/js/blocks/comments/block.json
 msgctxt "block title"

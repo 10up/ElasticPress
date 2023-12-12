@@ -1,8 +1,8 @@
 === ElasticPress ===
-Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
+Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
-Tested up to: 6.3
-Stable tag:   5.0.0
+Tested up to: 6.4
+Stable tag:   5.0.1
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,26 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.0.1 - 2023-12-12 =
+
+__Added:__
+
+* Failed queries in the Index Health page will now be outputted with their error messages. Props [@felipeelia](https://github.com/felipeelia) and [@pvnanini](https://github.com/pvnanini).
+
+__Fixed:__
+
+* Queries failing due to a "request body is required" error. Props [@felipeelia](https://github.com/felipeelia).
+* Fatal error when site has a bad cookie. Props [@burhandodhy](https://github.com/burhandodhy).
+* Broken i18n of some strings. Props [@felipeelia](https://github.com/felipeelia) and [@iazema](https://github.com/iazema).
+* PHP Warning on term archive pages when the term was not found. Props [@felipeelia](https://github.com/felipeelia) and [@Igor-Yavych](https://github.com/Igor-Yavych).
+* PHP warning when using block themes. Props [@felipeelia](https://github.com/felipeelia) and [@tropicandid](https://github.com/tropicandid).
+* Several typos. Props [@szepeviktor](https://github.com/szepeviktor).
+* Index cleanup process - offset being zeroed too late. Props [@pknap](https://github.com/pknap).
+* PHP warning in site health page. Props [@turtlepod](https://github.com/turtlepod).
+* ReactDOM.render is no longer supported in React 18. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* E2e tests with WordPress 6.4. Props [@felipeelia](https://github.com/felipeelia).
+* PHP Setup in GitHub Actions. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.0.0 - 2023-11-01 =
 
