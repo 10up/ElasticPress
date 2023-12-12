@@ -113,9 +113,9 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 	context('Dashboard', () => {
 		before(() => {
 			cy.login();
+			cy.activatePlugin('woocommerce', 'wpCli');
 			cy.maybeEnableFeature('protected_content');
 			cy.maybeEnableFeature('woocommerce');
-			cy.activatePlugin('woocommerce', 'wpCli');
 		});
 
 		it('Can fetch orders and products from Elasticsearch', () => {
@@ -164,14 +164,25 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 			// checkout and place order.
 			cy.visit('checkout');
-			cy.get('#billing_first_name').type(userData.firstName);
-			cy.get('#billing_last_name').type(userData.lastName);
-			cy.get('#billing_address_1').type(userData.address);
-			cy.get('#billing_city').type(userData.city);
-			cy.get('#billing_postcode').type(userData.postCode);
-			cy.get('#billing_phone').type(userData.phoneNumber);
-			cy.get('#billing_email').clearThenType(userData.email);
-			cy.get('#place_order').click();
+			cy.get('#billing-first_name, #billing_first_name').type(userData.firstName);
+			cy.get('#billing-last_name, #billing_last_name').type(userData.lastName);
+			cy.get('#billing-address_1, #billing_address_1').type(userData.address);
+			cy.get('#billing-city, #billing_city').type(userData.city);
+			cy.get('#billing-postcode, #billing_postcode').type(userData.postCode);
+			cy.get('#billing-phone, #billing_phone').type(userData.phoneNumber);
+			cy.get('#email, #billing_email').clearThenType(userData.email);
+
+			/**
+			 * It is unclear why this work if wrapped in a WP-CLI command and not directly.
+			 */
+			cy.wpCli('plugin get woocommerce --field=version').then((wpCliResponse) => {
+				const wcVersion = wpCliResponse.stdout;
+				if (wcVersion === '6.4.0') {
+					cy.get('#place_order').click();
+				} else {
+					cy.get('.wc-block-components-checkout-place-order-button').click();
+				}
+			});
 
 			// ensure order is placed.
 			cy.url().should('include', '/checkout/order-received');

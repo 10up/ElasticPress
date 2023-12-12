@@ -256,7 +256,7 @@ class QueryIntegration {
 		 * If not search and not set default to post. If not set and is search, use searchable post types
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			if ( $query->is_tax() ) {
+			if ( $query->is_tax() && $query->get_queried_object() ) {
 				$query_vars['post_type'] = get_taxonomy( $query->get_queried_object()->taxonomy )->object_type;
 			} elseif ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';

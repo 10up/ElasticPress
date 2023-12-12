@@ -74,7 +74,7 @@ const reduceSolrToState = (solr, currentState) => {
 	 *
 	 * @param {string}  value   The value.
 	 * @param {boolean} primary Whether it's a primary.
-	 * @returns {object} Formated token
+	 * @returns {object} Formatted token
 	 */
 	const formatToken = (value, primary = false) => {
 		return {

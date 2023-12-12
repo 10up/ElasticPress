@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Block extends \ElasticPress\Feature\Facets\Block {
 	/**
-	 * Hook block funcionality.
+	 * Hook block functionality.
 	 */
 	public function setup() {
 		add_action( 'init', [ $this, 'register_block' ] );
