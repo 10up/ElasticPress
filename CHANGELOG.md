@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
-## [5.0.1] - 2023-12-XX
+## [5.0.1] - 2023-12-12
 
 ### Added
 * Failed queries in the Index Health page will now be outputted with their error messages. Props [@felipeelia](https://github.com/felipeelia) and [@pvnanini](https://github.com/pvnanini) via [#3776](https://github.com/10up/ElasticPress/pull/3776).

@@ -79,7 +79,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 5.0.1 - 2023-12-XX =
+= 5.0.1 - 2023-12-12 =
 
 __Added:__
 
