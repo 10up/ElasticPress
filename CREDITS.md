@@ -6,7 +6,7 @@ The following acknowledges the Maintainers for this repository, those who have C
 
 The following individual is responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen:
 
-[Vasken Hauri (@brandwaffle)](https://github.com/brandwaffle).
+[Thorsten Ott (@tott)](https://github.com/tott) and [Felipe Elia (@felipeelia)](https://github.com/felipeelia).
 
 ## Contributors
 

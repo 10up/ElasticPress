@@ -1,5 +1,5 @@
 === ElasticPress ===
-Contributors: 10up, tlovett1, vhauri, tott, oscarssanchez, cmmarslender
+Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, slow, search, elasticsearch, fuzzy, facet, aggregation, searching, autosuggest, suggest, elastic, advanced search, woocommerce, related posts, woocommerce
 Tested up to: 6.4
 Stable tag:   5.0.1
