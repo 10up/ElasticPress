@@ -27,7 +27,9 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Several typos. Props [@szepeviktor](https://github.com/szepeviktor) via [#3750](https://github.com/10up/ElasticPress/pull/3750).
 * Index cleanup process - offset being zeroed too late. Props [@pknap](https://github.com/pknap) via [#3765](https://github.com/10up/ElasticPress/pull/3765).
 * PHP warning in site health page. Props [@turtlepod](https://github.com/turtlepod) via [#3758](https://github.com/10up/ElasticPress/pull/3758).
+* ReactDOM.render is no longer supported in React 18. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3686](https://github.com/10up/ElasticPress/pull/3686).
 * E2e tests with WordPress 6.4. Props [@felipeelia](https://github.com/felipeelia) via [#3771](https://github.com/10up/ElasticPress/pull/3771).
+* PHP Setup in GitHub Actions. Props [@felipeelia](https://github.com/felipeelia) via [#3784](https://github.com/10up/ElasticPress/pull/3784).
 
 ## [5.0.0] - 2023-11-01
 
