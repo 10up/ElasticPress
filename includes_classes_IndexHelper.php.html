@@ -855,6 +855,7 @@ class IndexHelper {
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
 		$this->index_meta['current_sync_item'] = null;
+		$this->index_meta['offset']            = 0;
 
 		if ( $current_sync_item['failed'] ) {
 			if ( ! empty( $current_sync_item['blog_id'] ) &amp;&amp; defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
@@ -876,8 +877,6 @@ class IndexHelper {
 
 			$this->output( $message, 'warning' );
 		}
-
-		$this->index_meta['offset'] = 0;
 
 		if ( ! empty( $current_sync_item['blog_id'] ) &amp;&amp; defined( 'EP_IS_NETWORK' ) &amp;&amp; EP_IS_NETWORK ) {
 			$message = sprintf(
