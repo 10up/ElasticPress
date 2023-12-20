@@ -691,7 +691,7 @@ class IndexHelper {
 
 				$wp_error_messages = $return->get_error_messages();
 
-				$this->process_error_limit(
+				$this->maybe_process_error_limit(
 					count( $this->index_meta['current_sync_item']['errors'] ) + count( $wp_error_messages ),
 					count( $this->index_meta['current_sync_item']['errors'] ),
 					$wp_error_messages
