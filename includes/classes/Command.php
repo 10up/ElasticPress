@@ -1562,7 +1562,7 @@ class Command extends WP_CLI_Command {
 	 * @param boolean $pretty_print_flag Whether it should or not be formatted.
 	 */
 	protected function pretty_json_encode( $json_obj, $pretty_print_flag ) {
-		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : null;
+		$flag = $pretty_print_flag ? JSON_PRETTY_PRINT : 0;
 		WP_CLI::line( wp_json_encode( $json_obj, $flag ) );
 	}
 }
