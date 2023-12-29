@@ -111,12 +111,23 @@ class Facets extends Feature {
 	public function setup() {
 		global $pagenow;
 
-		// This feature should not run while in the editor.
-		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) ) {
-			return;
-		}
-
 		foreach ( $this->types as $type => $class ) {
+			/**
+			 * Filter if facet should be enabled in the editor.
+			 *
+			 * @hook  ep_facet_enabled_in_editor
+			 * @since   TBD
+			 * @param  {bool}   $enabled  If enabled
+			 * @param  {string} $type     The facet type
+			 * @return {bool}   If enabled or not
+			 */
+			$enabled = apply_filters( 'ep_facet_enabled_in_editor', false, $type );
+
+			// Skip if this feature should not run while in the post editor.
+			if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && ! $enabled ) {
+				continue;
+			}
+
 			$this->types[ $type ]->setup();
 		}
 
