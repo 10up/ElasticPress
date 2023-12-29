@@ -124,7 +124,7 @@ class Facets extends Feature {
 			$enabled = apply_filters( 'ep_facet_enabled_in_editor', false, $type );
 
 			// Skip if this feature should not run while in the post editor.
-			if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && ! $enabled ) {
+			if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) && ! (bool) $enabled ) {
 				continue;
 			}
 
