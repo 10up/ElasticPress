@@ -44,7 +44,7 @@ const reduceStateToSolr = ({ sets, alternatives }) => {
 	synonymsList.push('# Defined alternatives (explicit mappings).');
 	synonymsList.push(
 		...alternatives.map((alternative) =>
-			alternative.synonyms.find((item) => item.primary && item.value.length)
+			alternative.synonyms.find((item) => item.primary)
 				? alternative.synonyms
 						.find((item) => item.primary)
 						.value.concat(' => ')

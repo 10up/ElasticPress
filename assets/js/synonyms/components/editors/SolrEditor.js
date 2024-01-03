@@ -1,12 +1,14 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, WPElement } from '@wordpress/element';
+import { TextareaControl } from '@wordpress/components';
+import { WPElement } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import { State, Dispatch } from '../../context';
+import { useSynonymsSettings } from '../../provider';
 
 /**
  * Synonym Inspector
@@ -14,47 +16,24 @@ import { State, Dispatch } from '../../context';
  * @returns {WPElement} SolrEditor Component
  */
 const SolrEditor = () => {
-	const state = useContext(State);
-	const dispatch = useContext(Dispatch);
-	const { alternatives, isSolrEditable, isSolrVisible, sets, solr } = state;
-	const {
-		synonymsTextareaInputName,
-		solrInputHeading,
-		solrAlternativesErrorMessage,
-		solrSetsErrorMessage,
-	} = window.epSynonyms.i18n;
+	const { solr, updateSolr } = useSynonymsSettings();
+
+	/**
+	 * Handle changes to the Solr synonyms value.
+	 *
+	 * @param {Event} value Textarea control value.
+	 */
+	const onChange = (value) => {
+		updateSolr(value);
+	};
 
 	return (
-		<div className={`synonym-solr-editor metabox-holder ${!isSolrVisible ? 'hidden' : ''}`}>
-			<div className="postbox">
-				<h2 className="hndle">
-					<span>{solrInputHeading}</span>
-				</h2>
-				<div className="inside">
-					<textarea
-						className="large-text"
-						id="ep-synonym-input"
-						name={synonymsTextareaInputName}
-						rows="20"
-						value={solr}
-						readOnly={!isSolrEditable}
-						onChange={(event) =>
-							dispatch({ type: 'UPDATE_SOLR', data: event.target.value })
-						}
-					/>
-					<div
-						role="region"
-						aria-live="assertive"
-						className="synonym-solr-editor__validation"
-					>
-						{alternatives.some((alternative) => !alternative.valid) && (
-							<p>{solrAlternativesErrorMessage}</p>
-						)}
-						{sets.some((set) => !set.valid) && <p>{solrSetsErrorMessage}</p>}
-					</div>
-				</div>
-			</div>
-		</div>
+		<TextareaControl
+			label={__('Solr synonyms', 'elasticpress')}
+			rows="20"
+			value={solr}
+			onChange={onChange}
+		/>
 	);
 };
 

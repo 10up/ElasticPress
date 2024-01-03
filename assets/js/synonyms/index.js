@@ -2,12 +2,20 @@
  * WordPress dependencies.
  */
 import { createRoot, render } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import { AppContext } from './context';
-import SynonymsEditor from './components/SynonymsEditor';
+import { SettingsScreenProvider } from '../settings-screen';
+import { defaultIsSolr, defaultAlternatives, defaultSets } from './config';
+import { SynonymsSettingsProvider } from './provider';
+import SynonymsEditor from './apps/synonyms-settings';
+
+/**
+ * Styles.
+ */
+import './style.css';
 
 const SELECTOR = '#synonym-root';
 
@@ -21,15 +29,27 @@ const getRoot = () => document.querySelector(SELECTOR) || false;
 if (typeof createRoot === 'function') {
 	const root = createRoot(getRoot());
 	root.render(
-		<AppContext>
-			<SynonymsEditor />
-		</AppContext>,
+		<SettingsScreenProvider title={__('Manage Synonyms', 'elasticpress')}>
+			<SynonymsSettingsProvider
+				defaultAlternatives={defaultAlternatives}
+				defaultIsSolr={defaultIsSolr}
+				defaultSets={defaultSets}
+			>
+				<SynonymsEditor />
+			</SynonymsSettingsProvider>
+		</SettingsScreenProvider>,
 	);
 } else {
 	render(
-		<AppContext>
-			<SynonymsEditor />
-		</AppContext>,
+		<SettingsScreenProvider title={__('Manage Synonyms', 'elasticpress')}>
+			<SynonymsSettingsProvider
+				defaultAlternatives={defaultAlternatives}
+				defaultIsSolr={defaultIsSolr}
+				defaultSets={defaultSets}
+			>
+				<SynonymsEditor />
+			</SynonymsSettingsProvider>
+		</SettingsScreenProvider>,
 		getRoot(),
 	);
 }

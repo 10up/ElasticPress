@@ -144,6 +144,14 @@ class Synonyms {
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
+			'ep_synonyms_scripts',
+			EP_URL . 'dist/css/synonyms-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'synonyms-styles', 'version' ),
+			'all'
+		);
+
+		wp_enqueue_style(
 			'ep_synonyms_styles',
 			EP_URL . 'dist/css/synonyms-styles.css',
 			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
