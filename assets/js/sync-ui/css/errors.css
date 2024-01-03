@@ -1,0 +1,33 @@
+.ep-sync-errors {
+	background: var(--ep-sync-color-light-grey);
+	padding: 8px 16px;
+}
+
+.ep-sync-errors__table {
+	width: 100%;
+
+	& thead {
+		color: rgb(117, 117, 117);
+	}
+
+	& th,
+	& td {
+		padding: 8px 16px 8px 0;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	& th {
+		font-weight: 500;
+	}
+}
+
+.ep-sync-errors__count {
+	font-weight: 700;
+}
+
+.ep-sync-errors__solution {
+	color: rgb(117, 117, 117);
+	display: block;
+	font-size: 12px;
+}

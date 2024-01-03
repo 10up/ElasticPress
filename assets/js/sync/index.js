@@ -66,6 +66,11 @@ export const SyncProvider = ({
 	const [log, setLog] = useState([]);
 
 	/**
+	 * Error types state.
+	 */
+	const [errorCounts, setErrorCounts] = useState([]);
+
+	/**
 	 * Sync state.
 	 */
 	const [state, setState] = useState({
@@ -97,6 +102,35 @@ export const SyncProvider = ({
 		stateRef.current = { ...stateRef.current, ...newState };
 		setState((state) => ({ ...state, ...newState }));
 	};
+
+	const countErrors = useCallback(
+		/**
+		 * Add up the counts for each error type.
+		 *
+		 * @param {object} errors Errors returned by the sync request.
+		 */
+		(errors) => {
+			setErrorCounts((errorCounts) => {
+				const newErrorCounts = [...errorCounts];
+
+				Object.keys(errors).forEach((e) => {
+					const i = newErrorCounts.findIndex((t) => e === t.type);
+
+					if (i !== -1) {
+						newErrorCounts[i].count += errors[e].count;
+					} else {
+						newErrorCounts.push({
+							...errors[e],
+							type: e,
+						});
+					}
+				});
+
+				return newErrorCounts;
+			});
+		},
+		[],
+	);
 
 	const logMessage = useCallback(
 		/**
@@ -135,6 +169,7 @@ export const SyncProvider = ({
 		 */
 		() => {
 			setLog([]);
+			setErrorCounts([]);
 		},
 		[setLog],
 	);
@@ -288,7 +323,7 @@ export const SyncProvider = ({
 		 */
 		(response) => {
 			const { isPaused, isSyncing } = stateRef.current;
-			const { message, status, totals = [], index_meta: indexMeta } = response.data;
+			const { errors, message, status, totals = [], index_meta: indexMeta } = response.data;
 
 			return new Promise((resolve) => {
 				/**
@@ -296,6 +331,10 @@ export const SyncProvider = ({
 				 */
 				if (!isSyncing) {
 					return;
+				}
+
+				if (errors) {
+					countErrors(errors);
 				}
 
 				/**
@@ -348,7 +387,7 @@ export const SyncProvider = ({
 				resolve(indexMeta.method);
 			});
 		},
-		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, logMessage],
+		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, countErrors, logMessage],
 	);
 
 	const doCancelIndex = useCallback(
@@ -544,6 +583,7 @@ export const SyncProvider = ({
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
 		clearLog,
+		errorCounts,
 		isCli,
 		isComplete,
 		isDeleting,
