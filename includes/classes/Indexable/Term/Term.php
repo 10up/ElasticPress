@@ -621,13 +621,15 @@ class Term extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'number'       => $this->get_bulk_items_per_page(),
-			'offset'       => 0,
-			'orderby'      => 'id',
-			'order'        => 'desc',
-			'taxonomy'     => $this->get_indexable_taxonomies(),
-			'hide_empty'   => false,
-			'hierarchical' => false,
+			'number'                 => $this->get_bulk_items_per_page(),
+			'offset'                 => 0,
+			'orderby'                => 'id',
+			'order'                  => 'desc',
+			'taxonomy'               => $this->get_indexable_taxonomies(),
+			'hide_empty'             => false,
+			'hierarchical'           => false,
+			'update_term_meta_cache' => false,
+			'cache_results'          => false,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
