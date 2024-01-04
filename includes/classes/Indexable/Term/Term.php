@@ -676,12 +676,15 @@ class Term extends Indexable {
 	public function query_db( $args ) {
 
 		$defaults = [
-			'number'     => $this->get_bulk_items_per_page(),
-			'offset'     => 0,
-			'orderby'    => 'id',
-			'order'      => 'desc',
-			'taxonomy'   => $this->get_indexable_taxonomies(),
-			'hide_empty' => false,
+			'number'                 => $this->get_bulk_items_per_page(),
+			'offset'                 => 0,
+			'orderby'                => 'id',
+			'order'                  => 'desc',
+			'taxonomy'               => $this->get_indexable_taxonomies(),
+			'hide_empty'             => false,
+			'hierarchical'           => false,
+			'update_term_meta_cache' => false,
+			'cache_results'          => false,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -705,22 +708,15 @@ class Term extends Indexable {
 		unset( $all_query_args['fields'] );
 
 		/**
-		 * This just seems so inefficient.
-		 *
-		 * @todo Better way to do this?
-		 */
-
-		/**
 		 * Filter database arguments for term count query
 		 *
 		 * @hook ep_term_all_query_db_args
-		 * @param  {array} $args Query arguments based to WP_Term_Query
+		 * @param  {array} $args Query arguments based to `wp_count_terms()`
 		 * @since  3.4
 		 * @return {array} New arguments
 		 */
-		$all_query = new WP_Term_Query( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
-
-		$total_objects = count( $all_query->terms );
+		$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
+		$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
 
 		if ( ! empty( $args['offset'] ) ) {
 			if ( (int) $args['offset'] >= $total_objects ) {
