@@ -88,8 +88,18 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return;
 		}
 
-		if ( ! current_user_can( 'edit_term', $term_id ) ) {
-			return;
+		/**
+		 * Filter whether to skip the permissions check on editing a term
+		 *
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $term_id ID of term
+		 * @return {boolean} New value
+		 */
+		if ( ! apply_filters( 'ep_sync_insert_term_permissions_bypass', false, $term_id ) ) {
+			if ( ! current_user_can( 'edit_term', $term_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+				// Bypass saving if user does not have access to edit term and we're not in a cron process.
+				return;
+			}
 		}
 
 		if ( apply_filters( 'ep_term_sync_kill', false, $term_id ) ) {
@@ -107,8 +117,18 @@ class SyncManager extends \ElasticPress\SyncManager {
 		$hierarchy = array_merge( $ancestors, $children );
 
 		foreach ( $hierarchy as $hierarchy_term_id ) {
-			if ( ! current_user_can( 'edit_term', $hierarchy_term_id ) ) {
-				return;
+			/**
+			 * Filter whether to skip the permissions check on editing a term
+			 *
+			 * @param  {bool} $bypass True to bypass
+			 * @param  {int} $hierarchy_term_id ID of term
+			 * @return {boolean} New value
+			 */
+			if ( ! apply_filters( 'ep_sync_insert_term_permissions_bypass', false, $hierarchy_term_id ) ) {
+				if ( ! current_user_can( 'edit_term', $hierarchy_term_id ) && ( ! defined( 'DOING_CRON' ) || ! DOING_CRON ) ) {
+					// Bypass saving if user does not have access to edit term and we're not in a cron process.
+					return;
+				}
 			}
 
 			if ( apply_filters( 'ep_term_sync_kill', false, $hierarchy_term_id ) ) {
@@ -205,7 +225,14 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return;
 		}
 
-		if ( ! current_user_can( 'delete_term', $term_id ) ) {
+		/**
+		 * Filter whether to skip the permissions check on deleting a term
+		 *
+		 * @param  {bool} $bypass True to bypass
+		 * @param  {int} $term_id ID of term
+		 * @return {boolean} New value
+		 */
+		if ( ! current_user_can( 'delete_term', $term_id ) && ! apply_filters( 'ep_sync_delete_term_permissions_bypass', false, $term_id ) ) {
 			return;
 		}
 
