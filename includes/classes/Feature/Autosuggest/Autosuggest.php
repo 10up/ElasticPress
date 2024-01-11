@@ -852,11 +852,6 @@ class Autosuggest extends Feature {
 	 * @since 5.0.0
 	 */
 	protected function maybe_add_epio_settings_schema() {
-		$allowed_params = $this->epio_autosuggest_set_and_get();
-		if ( empty( $allowed_params ) ) {
-			return;
-		}
-
 		$epio_link                = 'https://elasticpress.io';
 		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
 		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
