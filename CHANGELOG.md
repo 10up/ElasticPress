@@ -13,6 +13,19 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [5.0.2] - 2024-01-XX
+
+### Changed
+* [Terms] Counts are now calculated with `wp_count_terms()` in `query_db`. Props [@rebeccahum](https://github.com/rebeccahum) via [#3791](https://github.com/10up/ElasticPress/pull/3791).
+* Composer and npm files are now part of the final package. Props [@felipeelia](https://github.com/felipeelia) via [#3810](https://github.com/10up/ElasticPress/pull/3810).
+
+### Fixed
+* [WooCommerce] Not use a hard-coded list of order post types. Props [@felipeelia](https://github.com/felipeelia) via [#3807](https://github.com/10up/ElasticPress/pull/3807).
+* [Autosuggest] Stop calling the get`-autosuggest-allowed` endpoint to build the REST API schema. Props [@felipeelia](https://github.com/felipeelia) via [#3809](https://github.com/10up/ElasticPress/pull/3809).
+
+### Security
+* Bumped `follow-redirects` from 1.15.3 to 1.15.4. Props [@dependabot](https://github.com/dependabot) via [#3808](https://github.com/10up/ElasticPress/pull/3808).
+
 ## [5.0.1] - 2023-12-12
 
 ### Added
@@ -2050,6 +2063,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.0.2]: https://github.com/10up/ElasticPress/compare/5.0.1...5.0.2
 [5.0.1]: https://github.com/10up/ElasticPress/compare/5.0.0...5.0.1
 [5.0.0]: https://github.com/10up/ElasticPress/compare/4.7.2...5.0.0
 [4.7.2]: https://github.com/10up/ElasticPress/compare/4.7.1...4.7.2
