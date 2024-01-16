@@ -852,6 +852,10 @@ class Autosuggest extends Feature {
 	 * @since 5.0.0
 	 */
 	protected function maybe_add_epio_settings_schema() {
+		if ( ! Utils\is_epio() ) {
+			return;
+		}
+
 		$epio_link                = 'https://elasticpress.io';
 		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
 		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
@@ -895,10 +899,7 @@ class Autosuggest extends Feature {
 			],
 		];
 
-		if ( Utils\is_epio() ) {
-			$this->maybe_add_epio_settings_schema();
-			return;
-		}
+		$this->maybe_add_epio_settings_schema();
 
 		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
 
