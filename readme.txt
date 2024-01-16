@@ -79,6 +79,22 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 5.0.2 - 2024-01-XX =
+
+__Changed:__
+
+* [Terms] Counts are now calculated with `wp_count_terms()` in `query_db`. Props [@rebeccahum](https://github.com/rebeccahum).
+* Composer and npm files are now part of the final package. Props [@felipeelia](https://github.com/felipeelia).
+
+__Fixed:__
+
+* [WooCommerce] Not use a hard-coded list of order post types. Props [@felipeelia](https://github.com/felipeelia).
+* [Autosuggest] Stop calling the get`-autosuggest-allowed` endpoint to build the REST API schema. Props [@felipeelia](https://github.com/felipeelia).
+
+__Security:__
+
+* Bumped `follow-redirects` from 1.15.3 to 1.15.4. Props [@dependabot](https://github.com/dependabot).
+
 = 5.0.1 - 2023-12-12 =
 
 __Added:__
