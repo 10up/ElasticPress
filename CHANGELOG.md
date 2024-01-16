@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
-## [5.0.2] - 2024-01-XX
+## [5.0.2] - 2024-01-16
 
 ### Changed
 * [Terms] Counts are now calculated with `wp_count_terms()` in `query_db`. Props [@rebeccahum](https://github.com/rebeccahum) via [#3791](https://github.com/10up/ElasticPress/pull/3791).
