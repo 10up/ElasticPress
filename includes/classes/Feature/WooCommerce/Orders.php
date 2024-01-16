@@ -106,7 +106,7 @@ class Orders {
 	 * @return array
 	 */
 	public function allow_meta_keys( $meta, $post ) {
-		if ( ! in_array( $post->post_type, [ 'shop_order', 'shop_order_refund' ], true ) ) {
+		if ( ! in_array( $post->post_type, $this->get_supported_post_types(), true ) ) {
 			return $meta;
 		}
 

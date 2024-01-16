@@ -852,8 +852,7 @@ class Autosuggest extends Feature {
 	 * @since 5.0.0
 	 */
 	protected function maybe_add_epio_settings_schema() {
-		$allowed_params = $this->epio_autosuggest_set_and_get();
-		if ( empty( $allowed_params ) ) {
+		if ( ! Utils\is_epio() ) {
 			return;
 		}
 
@@ -900,10 +899,7 @@ class Autosuggest extends Feature {
 			],
 		];
 
-		if ( Utils\is_epio() ) {
-			$this->maybe_add_epio_settings_schema();
-			return;
-		}
+		$this->maybe_add_epio_settings_schema();
 
 		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
 
