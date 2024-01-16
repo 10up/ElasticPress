@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-01-16T12:48:02+00:00\n"
+"POT-Creation-Date: 2024-01-16T13:04:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -567,7 +567,7 @@ msgid "When enabled, a gtag tracking event is fired when an autosuggest result i
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:128
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:909
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:910
 msgid "Endpoint URL"
 msgstr ""
 
@@ -576,7 +576,7 @@ msgid "Your autosuggest endpoint is set in wp-config.php"
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:136
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:907
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:908
 msgid "This address will be exposed to the public."
 msgstr ""
 
@@ -598,23 +598,23 @@ msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>;
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:792
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:863
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:867
 msgid "You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:884
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:888
 msgid "Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type=\"text\"]</code>"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:886
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:890
 msgid "Additional selectors"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:892
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:896
 msgid "Enable to fire a gtag tracking event when an autosuggest result is clicked."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:893
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:897
 msgid "Trigger Google Analytics events"
 msgstr ""
 
