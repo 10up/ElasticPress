@@ -1,0 +1,28 @@
+<?php
+/**
+ * @license MIT
+ *
+ * Modified by Taylor Lovett on 16-January-2024 using Strauss.
+ * @see https://github.com/BrianHenryIE/strauss
+ */
+
+namespace ElasticPress\Vendor_Prefixed\Composer\Installers;
+
+class WHMCSInstaller extends BaseInstaller
+{
+    /** @var array<string, string> */
+    protected $locations = array(
+        'addons' => 'modules/addons/{$vendor}_{$name}/',
+        'fraud' => 'modules/fraud/{$vendor}_{$name}/',
+        'gateways' => 'modules/gateways/{$vendor}_{$name}/',
+        'notifications' => 'modules/notifications/{$vendor}_{$name}/',
+        'registrars' => 'modules/registrars/{$vendor}_{$name}/',
+        'reports' => 'modules/reports/{$vendor}_{$name}/',
+        'security' => 'modules/security/{$vendor}_{$name}/',
+        'servers' => 'modules/servers/{$vendor}_{$name}/',
+        'social' => 'modules/social/{$vendor}_{$name}/',
+        'support' => 'modules/support/{$vendor}_{$name}/',
+        'templates' => 'templates/{$vendor}_{$name}/',
+        'includes' => 'includes/{$vendor}_{$name}/'
+    );
+}
