@@ -1,0 +1,15 @@
+.ep-synonyms-edit-panel {
+	margin: 16px 0;
+
+	& .components-notice {
+		margin: 0 0 16px 0;
+	}
+
+	& .components-form-token-field {
+
+		& .components-flex {
+			padding-bottom: 4px;
+			padding-top: 4px;
+		}
+	}
+}

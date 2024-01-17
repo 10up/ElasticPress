@@ -1,55 +1,52 @@
 /**
  * WordPress dependencies.
  */
-import { createRoot, render } from '@wordpress/element';
+import { createRoot, render, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
 import { SettingsScreenProvider } from '../settings-screen';
-import { defaultIsSolr, defaultAlternatives, defaultSets } from './config';
+import { apiUrl, defaultIsSolr, defaultSolr, syncUrl } from './config';
 import { SynonymsSettingsProvider } from './provider';
-import SynonymsEditor from './apps/synonyms-settings';
+import SynonymsSettings from './apps/synonyms-settings';
 
 /**
  * Styles.
  */
 import './style.css';
 
-const SELECTOR = '#synonym-root';
+/**
+ * App component.
+ *
+ * @returns {WPElement}
+ */
+const App = () => (
+	<SettingsScreenProvider title={__('Manage Synonyms', 'elasticpress')}>
+		<SynonymsSettingsProvider
+			apiUrl={apiUrl}
+			defaultIsSolr={defaultIsSolr}
+			defaultSolr={defaultSolr}
+			syncUrl={syncUrl}
+		>
+			<SynonymsSettings />
+		</SynonymsSettingsProvider>
+	</SettingsScreenProvider>
+);
 
 /**
- * Get Root.
- *
- * @returns {Element|false} Root element
+ * Root element.
  */
-const getRoot = () => document.querySelector(SELECTOR) || false;
+const el = document.getElementById('ep-synonyms');
 
+/**
+ * Render.
+ */
 if (typeof createRoot === 'function') {
-	const root = createRoot(getRoot());
-	root.render(
-		<SettingsScreenProvider title={__('Manage Synonyms', 'elasticpress')}>
-			<SynonymsSettingsProvider
-				defaultAlternatives={defaultAlternatives}
-				defaultIsSolr={defaultIsSolr}
-				defaultSets={defaultSets}
-			>
-				<SynonymsEditor />
-			</SynonymsSettingsProvider>
-		</SettingsScreenProvider>,
-	);
+	const root = createRoot(el);
+
+	root.render(<App />);
 } else {
-	render(
-		<SettingsScreenProvider title={__('Manage Synonyms', 'elasticpress')}>
-			<SynonymsSettingsProvider
-				defaultAlternatives={defaultAlternatives}
-				defaultIsSolr={defaultIsSolr}
-				defaultSets={defaultSets}
-			>
-				<SynonymsEditor />
-			</SynonymsSettingsProvider>
-		</SettingsScreenProvider>,
-		getRoot(),
-	);
+	render(<App />, el);
 }

@@ -3,26 +3,28 @@
  */
 import { Button, Panel, PanelBody, PanelHeader, TabPanel } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
-
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { useSettingsScreen } from '../../settings-screen';
 import { useSynonymsSettings } from '../provider';
-import Tab from '../components/shared/tab';
-import Hyponyms from '../components/hyponyms';
-import Replacements from '../components/replacements';
-import SolrEditor from '../components/editors/SolrEditor';
-import Synonyms from '../components/synonyms';
+import GroupTab from '../components/common/group-tab';
+import SolrEditor from '../components/editors/solr-editor';
+import Hyponyms from '../components/groups/hyponyms';
+import Replacements from '../components/groups/replacements';
+import Synonyms from '../components/groups/synonyms';
 
 /**
- * Synonyms editor component.
+ * Synonyms settings app.
  *
- * @returns {WPElement} Synonyms editor component.
+ * @returns {WPElement} App element.
  */
-const SynonymsEditor = () => {
-	const { hyponyms, isSolr, replacements, synonyms, switchEditor } = useSynonymsSettings();
+export default () => {
+	const { ActionSlot, createNotice } = useSettingsScreen();
+	const { isBusy, hyponyms, isSolr, replacements, save, synonyms, switchEditor, syncUrl } =
+		useSynonymsSettings();
 
 	/**
 	 * Handle clicking the editor switch button.
@@ -34,86 +36,118 @@ const SynonymsEditor = () => {
 	};
 
 	/**
-	 * Handles submitting the form.
+	 * Submit event.
 	 *
-	 * @returns {void}
+	 * @param {Event} event Submit event.
 	 */
-	const onSubmit = () => {
-		return null;
+	const onSubmit = async (event) => {
+		event.preventDefault();
+
+		try {
+			await save();
+			createNotice('success', __('Synonym settings saved.', 'elasticpress'));
+		} catch (e) {
+			if (e.code === 'error-update-index') {
+				createNotice(
+					'error',
+					__(
+						'Could not update index with synonyms. Make sure your data is synced.',
+						'elasticpress',
+					),
+					{
+						actions: [
+							{
+								url: syncUrl,
+								label: __('Sync', 'elasticpress'),
+							},
+						],
+					},
+				);
+			} else {
+				createNotice(
+					'error',
+					__('Something went wrong. Please try again.', 'elasticpress'),
+				);
+			}
+		}
 	};
 
 	/**
 	 * Tabs.
+	 *
+	 * @type {Array}
 	 */
 	const tabs = [
 		{
 			name: 'synonyms',
 			title: (
-				<Tab isInvalid={synonyms.some((s) => !s.valid)}>
+				<GroupTab isValid={!synonyms.some((s) => !s.valid)}>
 					{sprintf(__('Synonyms (%d)', 'elasticpress'), synonyms.length)}
-				</Tab>
+				</GroupTab>
 			),
 		},
 		{
 			name: 'hyponyms',
 			title: (
-				<Tab isInvalid={hyponyms.some((s) => !s.valid)}>
+				<GroupTab isValid={!hyponyms.some((s) => !s.valid)}>
 					{sprintf(__('Hyponyms (%d)', 'elasticpress'), hyponyms.length)}
-				</Tab>
+				</GroupTab>
 			),
 		},
 		{
 			name: 'replacements',
 			title: (
-				<Tab isInvalid={replacements.some((s) => !s.valid)}>
+				<GroupTab isValid={!replacements.some((s) => !s.valid)}>
 					{sprintf(__('Replacements (%d)', 'elasticpress'), replacements.length)}
-				</Tab>
+				</GroupTab>
 			),
 		},
 	];
 
 	return (
 		<>
-			<button onClick={onClick} type="button">
-				{isSolr
-					? __('Switch to Visual Editor', 'elasticpress')
-					: __('Switch to Advanced Text Editor', 'elasticpress')}
-			</button>
-
+			<ActionSlot>
+				<Button onClick={onClick} size="small" type="button" variant="secondary">
+					{isSolr
+						? __('Switch to visual editor', 'elasticpress')
+						: __('Switch to advanced text editor', 'elasticpress')}
+				</Button>
+			</ActionSlot>
 			<p>
 				{__(
-					'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.',
+					'Synonym rules enable a more flexible search experience that returns relevant results even without an exact match. Rules can be defined as synonyms, for terms with similar meanings; hyponyms, for terms with a hierarchical relationship; or replacements, for corrections and substitutions.',
 					'elasticpress',
 				)}
 			</p>
-
 			{!isSolr ? (
 				<Panel className="ep-synonyms-panel">
-					<PanelBody>
-						<TabPanel tabs={tabs}>
-							{({ name }) => {
-								switch (name) {
-									case 'hyponyms':
-										return <Hyponyms />;
-									case 'replacements':
-										return <Replacements />;
-									case 'synonyms':
-									default:
-										return <Synonyms />;
-								}
-							}}
-						</TabPanel>
-					</PanelBody>
+					<TabPanel tabs={tabs}>
+						{({ name }) => (
+							<PanelBody>
+								{() => {
+									switch (name) {
+										case 'hyponyms':
+											return <Hyponyms />;
+										case 'replacements':
+											return <Replacements />;
+										case 'synonyms':
+										default:
+											return <Synonyms />;
+									}
+								}}
+							</PanelBody>
+						)}
+					</TabPanel>
 				</Panel>
 			) : (
-				<Panel>
+				<Panel className="ep-synonyms-panel">
 					<PanelHeader>
-						<h2>{__('Advanced Synonym Editor', 'elasticpress')}</h2>
+						<h2>{__('Advanced Synonyms Editor', 'elasticpress')}</h2>
 					</PanelHeader>
 					<PanelBody>
 						<p>
 							{__(
-								"When you add Sets and Alternatives above, we reduce them to SolrSynonyms which Elasticsearch can understand. If you are an advanced user, you can edit synonyms directly using Solr synonym formatting. This is beneficial if you want to import a large dictionary of synonyms, or want to export this site's synonyms for use on another site.",
+								'ElasticPress uses the Solr format to define your synonym rules for Elasticsearch. Advanced users can use the field below to edit the synonym rules in this format directly. This can also be used to import a large dictionary of synonyms, or to export your synonyms for use on another site.',
 								'elasticpress',
 							)}
 						</p>
@@ -121,12 +155,15 @@ const SynonymsEditor = () => {
 					</PanelBody>
 				</Panel>
 			)}
-
-			<Button onClick={onSubmit} type="button" variant="primary">
+			<Button
+				disabled={isBusy}
+				isBusy={isBusy}
+				onClick={onSubmit}
+				type="button"
+				variant="primary"
+			>
 				{__('Save changes', 'elasticpress')}
 			</Button>
 		</>
 	);
 };
-
-export default SynonymsEditor;

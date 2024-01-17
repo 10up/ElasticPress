@@ -1,0 +1,57 @@
+.ep-synonyms-list-table {
+	border-collapse: collapse;
+	border-spacing: 16px;
+	table-layout: fixed;
+	width: 100%;
+
+	& td,
+	& th {
+		padding: 8px 8px 8px 16px;
+	}
+
+	& th {
+		font-weight: inherit;
+		text-align: inherit;
+	}
+
+	& thead {
+
+
+		& th {
+			font-weight: 500;
+		}
+	}
+
+	& tbody {
+
+		& tr {
+			border-top: 1px solid #e0e0e0;
+		}
+	}
+
+	& svg {
+		display: block;
+	}
+
+	& .components-base-control__field,
+	& .components-checkbox-control__input-container,
+	& .components-checkbox-control__input {
+		margin: 0;
+	}
+}
+
+.ep-synonyms-list-table__checkbox-column {
+	width: 36px;
+}
+
+.ep-synonyms-list-table__primary-column {
+	width: 25%;
+
+	@nest .ep-synonyms-list-table--replacements & {
+		width: auto;
+	}
+}
+
+.ep-synonyms-list-table__actions-column {
+	width: 140px;
+}

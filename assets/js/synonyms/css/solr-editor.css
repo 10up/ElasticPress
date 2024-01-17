@@ -1,0 +1,11 @@
+.ep-synonyms-solr-editor {
+	margin-top: 16px;
+
+	& textarea {
+		font-family: Menlo, Consolas, monaco, monospace !important;
+		font-size: 13px !important;
+		line-height: 1.5;
+		overflow-wrap: break-word;
+		overflow-x: hidden;
+	}
+}

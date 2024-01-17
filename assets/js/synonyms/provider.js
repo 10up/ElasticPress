@@ -1,12 +1,30 @@
 /**
  * WordPress dependencies.
  */
-import { createContext, useContext, useMemo, useState, WPElement } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch';
+import {
+	createContext,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+	WPElement,
+} from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
-import { reduceStateToSolr, mapEntry, reduceSolrToState } from './utils';
+import {
+	isHyponyms,
+	isHyponymsValid,
+	isReplacements,
+	isReplacementsValid,
+	isSynonyms,
+	isSynonymsValid,
+	getRule,
+	getRulesFromSolr,
+	getSolrFromRules,
+} from './utils';
 
 /**
  * Sync context.
@@ -16,120 +34,104 @@ const Context = createContext();
 /**
  * Synonyms settings context.
  *
+ * @typedef Synonym
+ * @property {string} value The synonym value.
+ * @property {boolean} primary Whether the synonym is a primary term.
+ *
+ * @typedef Rule
+ * @property {string} id Rule ID.
+ * @property {Synonym[]} synonyms Rule synonyms.
+ * @property {boolean} valid Whether the rule is valid.
+ *
  * @param {object} props Props.
+ * @param {string} props.apiUrl API Url.
  * @param {WPElement} props.children Component children.
- * @param {Array} props.defaultAlternatives Default replacements.
  * @param {boolean} props.defaultIsSolr Whether the Solr editor is being used.
- * @param {Array} props.defaultSets Default synonyms.
+ * @param {Array} props.defaultSolr Default Solr.
  * @returns {WPElement} AppContext component
  */
-export const SynonymsSettingsProvider = ({
-	children,
-	defaultAlternatives,
-	defaultIsSolr,
-	defaultSets,
-}) => {
-	const defaultSolr = useMemo(
-		() => reduceStateToSolr({ sets: defaultSets, alternatives: defaultAlternatives }),
-		[defaultAlternatives, defaultSets],
-	);
+export const SynonymsSettingsProvider = ({ apiUrl, children, defaultIsSolr, defaultSolr }) => {
+	const defaultRules = useMemo(() => getRulesFromSolr(defaultSolr), [defaultSolr]);
 
+	/**
+	 * State.
+	 */
 	const [selected, setSelected] = useState(null);
+	const [isBusy, setIsBusy] = useState(false);
 	const [isDirty, setIsDirty] = useState(false);
 	const [isSolr, setIsSolr] = useState(defaultIsSolr);
+	const [rules, setRules] = useState(defaultRules);
 	const [solr, setSolr] = useState(defaultSolr);
-	const [sets, setSets] = useState([...defaultAlternatives, ...defaultSets]);
 
 	/**
-	 * Hyponym sets.
+	 * Hyponym rules.
 	 *
-	 * Hyponyms sets are sets with a primary term where the primary term is
-	 * also included as a replacement.
+	 * @type {Rule[]}
 	 */
-	const hyponyms = useMemo(
-		() =>
-			sets.filter((s) => {
-				const primary = s.synonyms.filter((s) => s.primary);
-
-				return (
-					primary.length === 1 &&
-					s.synonyms.some((s) => !s.primary && s.value === primary[0].value)
-				);
-			}),
-		[sets],
-	);
+	const hyponyms = useMemo(() => rules.filter(isHyponyms), [rules]);
 
 	/**
-	 * Replacement sets.
+	 * Replacement rules.
 	 *
-	 * Replacement sets are sets with multiple primary terms, or a single
-	 * primary term and replacements that do not include the the primary term
-	 * as a replacement. The latter case is a hyponym.
+	 * @type {Rule[]}
 	 */
-	const replacements = useMemo(
-		() =>
-			sets.filter((s) => {
-				const primary = s.synonyms.filter((s) => s.primary);
-
-				return (
-					primary.length > 1 ||
-					(primary.length === 1 &&
-						!s.synonyms.some((s) => !s.primary && s.value === primary[0].value))
-				);
-			}),
-		[sets],
-	);
+	const replacements = useMemo(() => rules.filter(isReplacements), [rules]);
 
 	/**
-	 * Synonym sets.
+	 * Synonym rules.
 	 *
-	 * Synonym sets are sets without a primary term.
+	 * @type {Rule[]}
 	 */
-	const synonyms = useMemo(
-		() =>
-			sets.filter((s) => {
-				return !s.synonyms.some((s) => s.primary);
-			}),
-		[sets],
-	);
+	const synonyms = useMemo(() => rules.filter(isSynonyms), [rules]);
 
 	/**
-	 * Add a set.
+	 * Add a rule.
 	 *
-	 * @param {Array} synonyms New synonyms.
+	 * @param {Synonym[]} synonyms New synonyms.
 	 * @returns {void}
 	 */
-	const addSet = (synonyms) => {
-		const updated = [...sets, mapEntry(synonyms)];
+	const addRule = (synonyms) => {
+		const updatedRules = [...rules, getRule(synonyms)];
 
-		setSets(updated);
+		setRules(updatedRules);
 		setIsDirty(true);
 	};
 
 	/**
-	 * Delete sets.
+	 * Delete rules.
 	 *
-	 * @param {Array} ids IDs of sets to remove.
-	 * @returns {void}.
+	 * @param {string[]} ids IDs of rules to remove.
+	 * @returns {void}
 	 */
-	const deleteSets = (ids) => {
-		const updated = sets.filter((s) => !ids.includes(s.id));
+	const deleteRules = (ids) => {
+		const updatedRules = rules.filter((s) => !ids.includes(s.id));
 
-		setSets(updated);
+		setRules(updatedRules);
 		setIsDirty(true);
 	};
 
 	/**
-	 * Update a set.
+	 * Update a rule.
 	 *
-	 * @param {string} id ID of set to update.
-	 * @param {Array} synonyms New synonyms.
+	 * @param {string} id ID of rule to update.
+	 * @param {Synonym[]} synonyms New synonyms.
 	 * @returns {void}
 	 */
-	const updateSet = (id, synonyms) => {
-		const updated = sets.map((s) => (s.id === id ? mapEntry(synonyms, id) : s));
+	const updateRule = (id, synonyms) => {
+		const updatedRules = rules.map((s) => (s.id === id ? getRule(synonyms, id) : s));
 
-		setSets(updated);
+		setRules(updatedRules);
+		setIsDirty(true);
+	};
+
+	/**
+	 * Update rules.
+	 *
+	 * @param {Rule[]} rules New rules.
+	 * @returns {void}
+	 */
+	const updateRules = (rules) => {
+		setRules(rules);
 		setIsDirty(true);
 	};
 
@@ -140,7 +142,7 @@ export const SynonymsSettingsProvider = ({
 	 */
 	const updateSolr = (solr) => {
 		setSolr(solr);
-		setIsDirty(true);
+		setIsDirty(false);
 	};
 
 	/**
@@ -148,13 +150,10 @@ export const SynonymsSettingsProvider = ({
 	 *
 	 * @returns {void}
 	 */
-	const updateSolrFromSets = () => {
-		const updated = reduceStateToSolr({
-			alternatives: [...hyponyms, ...replacements],
-			sets: synonyms,
-		});
+	const updateSolrFromRules = () => {
+		const updatedSolr = getSolrFromRules(rules);
 
-		setSolr(updated);
+		updateSolr(updatedSolr);
 	};
 
 	/**
@@ -162,51 +161,10 @@ export const SynonymsSettingsProvider = ({
 	 *
 	 * @returns {void}
 	 */
-	const updateSetsFromSolr = () => {
-		const { alternatives, sets } = reduceSolrToState(solr);
+	const updateRulesFromSolr = () => {
+		const updatedRules = getRulesFromSolr(solr);
 
-		setSets([...alternatives, ...sets]);
-		setIsDirty(true);
-	};
-
-	/**
-	 * Validate a set of synonyms.
-	 *
-	 * @param {Object} hypernym Hypernym.
-	 * @param {Array} hyponyms Hyponyms.
-	 * @returns {boolean}
-	 */
-	const validateHyponyms = (hypernym, hyponyms) => {
-		const isHypernymValid = hypernym.value.trim().length > 0;
-		const isHyponymsValid =
-			hyponyms.filter((s) => s.value.trim()).filter((s) => s.value !== hypernym.value)
-				.length > 0;
-
-		return isHypernymValid && isHyponymsValid;
-	};
-
-	/**
-	 * Validate a set of replacements.
-	 *
-	 * @param {Array} terms Terms.
-	 * @param {Array} replacements Replacements
-	 * @returns {boolean}
-	 */
-	const validateReplacements = (terms, replacements) => {
-		const isTermsValid = terms.filter((s) => s.value.trim()).length > 0;
-		const isReplacementsValid = replacements.filter((s) => s.value.trim()).length > 0;
-
-		return isTermsValid && isReplacementsValid;
-	};
-
-	/**
-	 * Validate a set of synonyms.
-	 *
-	 * @param {Array} synonyms Synonyms.
-	 * @returns {boolean}
-	 */
-	const validateSynonyms = (synonyms) => {
-		return synonyms.length > 1;
+		updateRules(updatedRules);
 	};
 
 	/**
@@ -215,36 +173,27 @@ export const SynonymsSettingsProvider = ({
 	 * @returns {void}
 	 */
 	const validate = () => {
-		setSets((sets) =>
-			sets.map((s) => {
-				const primary = s.synonyms.filter((s) => s.primary);
-				const synonyms = s.synonyms.filter((s) => !s.primary);
+		setRules((rules) =>
+			rules.map((r) => {
+				const rule = { ...r };
 
-				if (primary.length > 0) {
-					if (primary.length === 1) {
-						const valid = validateHyponyms(primary[0], synonyms);
-
-						return { ...s, valid };
-					}
-
-					const valid = validateReplacements(primary, synonyms);
-
-					return { ...s, valid };
+				if (isHyponyms(rule)) {
+					rule.valid = isHyponymsValid(rule.synonyms);
+				} else if (isReplacements(rule)) {
+					rule.valid = isReplacementsValid(rule.synonyms);
+				} else {
+					rule.valid = isSynonymsValid(rule.synonyms);
 				}
 
-				const valid = validateSynonyms(synonyms);
-
-				return { ...s, valid };
+				return rule;
 			}),
 		);
-
-		setIsDirty(false);
 	};
 
 	/**
-	 * Select a group for editing.
+	 * Select a rule for editing.
 	 *
-	 * @param {string|null} id ID of group to edit, or null for none.
+	 * @param {string|null} id ID of the rule to select.
 	 * @returns {void}
 	 */
 	const select = (id) => {
@@ -252,41 +201,78 @@ export const SynonymsSettingsProvider = ({
 	};
 
 	/**
-	 * Switch between Solor and visual editing.
+	 * Switch between Solr and visual editing.
 	 *
 	 * @returns {void}
 	 */
 	const switchEditor = () => {
 		if (isSolr) {
-			updateSetsFromSolr();
+			updateRulesFromSolr();
 		} else {
-			updateSolrFromSets();
+			updateSolrFromRules();
 		}
 
-		setIsSolr(!isSolr);
+		setIsSolr((isSolr) => !isSolr);
 		validate();
 	};
 
+	/**
+	 * Save settings.
+	 *
+	 * @returns {void}
+	 */
+	const save = async () => {
+		setIsBusy(true);
+
+		const updated = isDirty ? getSolrFromRules(rules) : solr;
+
+		try {
+			const response = await apiFetch({
+				body: JSON.stringify({
+					mode: isSolr ? 'advanced' : 'simple',
+					solr: updated,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				method: 'PUT',
+				url: apiUrl,
+			});
+
+			updateSolr(response.data);
+			updateRulesFromSolr();
+		} catch (e) {
+			console.error(e); // eslint-disable-line no-console
+			throw e;
+		} finally {
+			setIsBusy(false);
+		}
+	};
+
+	/**
+	 * Effects.
+	 */
+	useEffect(validate, []);
+
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
-		addSet,
-		deleteSets,
+		addRule,
+		deleteRules,
 		hyponyms,
-		isDirty,
+		isBusy,
+		isHyponymsValid,
+		isReplacementsValid,
 		isSolr,
+		isSynonymsValid,
 		select,
 		selected,
 		solr,
 		replacements,
+		save,
 		switchEditor,
 		synonyms,
-		updateSet,
+		updateRule,
 		updateSolr,
-		updateSetsFromSolr,
-		updateSolrFromSets,
-		validateHyponyms,
-		validateReplacements,
-		validateSynonyms,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;

@@ -11,12 +11,12 @@ import { __ } from '@wordpress/i18n';
 import { useSynonymsSettings } from '../../provider';
 
 /**
- * Synonym Inspector
+ * Solr editor component.
  *
- * @returns {WPElement} SolrEditor Component
+ * @returns {WPElement}
  */
 const SolrEditor = () => {
-	const { solr, updateSolr } = useSynonymsSettings();
+	const { isBusy, solr, updateSolr } = useSynonymsSettings();
 
 	/**
 	 * Handle changes to the Solr synonyms value.
@@ -29,6 +29,8 @@ const SolrEditor = () => {
 
 	return (
 		<TextareaControl
+			className="ep-synonyms-solr-editor"
+			disabled={isBusy}
 			label={__('Solr synonyms', 'elasticpress')}
 			rows="20"
 			value={solr}

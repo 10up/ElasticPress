@@ -92,6 +92,12 @@ export default () => {
 					'Started manually from the Sync page at <time>%s</time>.',
 					'elasticpress',
 				);
+			case 'synonyms-error':
+				/* translators: %1$s Sync start date and time. */
+				return __(
+					'Started manually from an error on the Synonyms Settings page at <time>%s</time>.',
+					'elasticpress',
+				);
 			case 'upgrade':
 				/* translators: %1$s Sync start date and time. */
 				return __(
