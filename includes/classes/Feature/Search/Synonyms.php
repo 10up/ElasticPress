@@ -674,7 +674,7 @@ class Synonyms {
 			'shoes => shoes, sneakers, sandals, boots, high heels',
 			'',
 			__( '# Defined replacements.', 'elasticpress' ),
-			'elastic press' => 'ElasticPress',
+			'',
 		];
 
 		return $as_array ? $lines : implode( PHP_EOL, $lines );
