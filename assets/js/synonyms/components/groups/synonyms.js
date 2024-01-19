@@ -30,7 +30,7 @@ export default () => {
 				)}
 				{safeHTML(
 					__(
-						'<p>Use synonyms when you want queries for a specific term to also return results relevant to any of its synonyms. This can be useful for supporting regional variations in terminology, or products and services whose names have changed over time. For example, when a search for "sneaker" should return sneakers, tennis shoes, trainers and running shoes.</p>',
+						'<p>Use synonyms when you want queries for a specific term to also return results relevant to any of its synonyms. This can be useful for supporting products and services whose names have changed over time or regional variations in terminology. For example, when a search for "sneaker" should return sneakers, tennis shoes, trainers and running shoes.</p>',
 						'elasticpress',
 					),
 				)}
