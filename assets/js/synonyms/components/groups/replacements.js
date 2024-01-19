@@ -24,13 +24,13 @@ export default () => {
 			<RawHTML>
 				{safeHTML(
 					__(
-						'<p><strong>Replacements</strong> are terms that replace other incorrect or obsolete terms in search queries.</p>',
+						'<p><strong>Replacements</strong> are terms that replace other incorrect or obsolete terms.</p>',
 						'elasticpress',
 					),
 				)}
 				{safeHTML(
 					__(
-						'<p>Use replacements when you want queries for certain terms to return results that are only relevant to another term, or set of terms. This can be useful for supporting incorrect phrasing or specific typos. For example, when a search for "i phone" should return results for "iPhone", but not other possible matches for "i phone".</p>',
+						'<p>Use replacements when you want search queries for certain terms to return results that are only relevant to another term, or set of terms. This can be useful for supporting specific typos or incorrect phrasing. For example, when a search for the phrase "intensive purposes" should only return results including the phrase "intents and purposes".</p>',
 						'elasticpress',
 					),
 				)}

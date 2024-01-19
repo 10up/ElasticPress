@@ -24,13 +24,13 @@ export default () => {
 			<RawHTML>
 				{safeHTML(
 					__(
-						'<p><strong>Synonyms</strong> are terms with similar meanings. For example, <em>sneakers</em>, <em>tennis shoes</em>, <em>trainers</em>, and <em>runners</em> can all refer to a particular type of shoe.</p>',
+						'<p><strong>Synonyms</strong> are terms with similar meanings. For example, <em>sneaker</em>, <em>tennis shoe</em>, <em>trainer</em>, and <em>running shoe</em> could all refer to a particular type of shoe.</p>',
 						'elasticpress',
 					),
 				)}
 				{safeHTML(
 					__(
-						'<p>Use synonyms when you want queries for a specific term to also return results relevant to any of its synonyms. This can be useful for supporting regional variations in terminology, or products and services whose names have changed over time. For example, when a search for "sneakers" should also return tennis shoes, trainers and runners.</p>',
+						'<p>Use synonyms when you want queries for a specific term to also return results relevant to any of its synonyms. This can be useful for supporting regional variations in terminology, or products and services whose names have changed over time. For example, when a search for "sneaker" should return sneakers, tennis shoes, trainers and running shoes.</p>',
 						'elasticpress',
 					),
 				)}

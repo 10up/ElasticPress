@@ -52,10 +52,8 @@ class Synonyms {
 				'enum'        => [ 'advanced', 'simple' ],
 			],
 			'solr' => [
-				'default'           => $feature->example_synonym_list( false ),
 				'description'       => __( 'Synonyms in Solr format.', 'elasticpress' ),
 				'type'              => 'string',
-				'required'          => true,
 				'sanitize_callback' => [ $this, 'sanitize_solr' ],
 			],
 		];

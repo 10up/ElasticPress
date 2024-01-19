@@ -668,13 +668,15 @@ class Synonyms {
 	public function example_synonym_list( $as_array = false ) {
 		$lines = [
 			__( '# Defined synonyms.', 'elasticpress' ),
-			'sneakers, tennis shoes, trainers, runners',
+			'runner, running shoe, sneaker, tennis shoe, trainer',
 			'',
 			__( '# Defined hyponyms.', 'elasticpress' ),
-			'shoes => shoes, sneakers, sandals, boots, high heels',
+			'blue => blue, aqua, azure, cerulean, cyan, ultramarine',
 			'',
 			__( '# Defined replacements.', 'elasticpress' ),
-			'',
+			'supposably => supposedly',
+			'flustrated => flustered, frustrated',
+			'intensive purposes => intents and purposes',
 		];
 
 		return $as_array ? $lines : implode( PHP_EOL, $lines );
