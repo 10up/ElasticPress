@@ -204,15 +204,15 @@ const getSolrFromRules = (rules) => {
 	const replacements = rules.filter(isReplacements).map(getSolr);
 
 	const lines = [
-		__('#Defined synonyms.', 'elasticpress'),
+		__('# Defined synonyms.', 'elasticpress'),
 		'',
 		...synonyms,
 		'',
-		__('#Defined hyponyms.', 'elasticpress'),
+		__('# Defined hyponyms.', 'elasticpress'),
 		'',
 		...hyponyms,
 		'',
-		__('#Defined replacements.', 'elasticpress'),
+		__('# Defined replacements.', 'elasticpress'),
 		'',
 		...replacements,
 		'',
