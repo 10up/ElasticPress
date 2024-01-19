@@ -4,6 +4,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import {
 	createContext,
+	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
@@ -146,26 +147,28 @@ export const SynonymsSettingsProvider = ({ apiUrl, children, defaultIsSolr, defa
 	};
 
 	/**
-	 * Update Solr data from groups.
+	 * Update Solr data from rules.
 	 *
+	 * @param {Rule[]} rules Rules.
 	 * @returns {void}
 	 */
-	const updateSolrFromRules = () => {
+	const updateSolrFromRules = useCallback((rules) => {
 		const updatedSolr = getSolrFromRules(rules);
 
 		updateSolr(updatedSolr);
-	};
+	}, []);
 
 	/**
 	 * Update synonym groups from Solr data.
 	 *
+	 * @param {string} solr Solr data.
 	 * @returns {void}
 	 */
-	const updateRulesFromSolr = () => {
+	const updateRulesFromSolr = useCallback((solr) => {
 		const updatedRules = getRulesFromSolr(solr);
 
 		updateRules(updatedRules);
-	};
+	}, []);
 
 	/**
 	 * Validate synonyms.
@@ -205,16 +208,16 @@ export const SynonymsSettingsProvider = ({ apiUrl, children, defaultIsSolr, defa
 	 *
 	 * @returns {void}
 	 */
-	const switchEditor = () => {
+	const switchEditor = useCallback(() => {
 		if (isSolr) {
-			updateRulesFromSolr();
+			updateRulesFromSolr(solr);
 		} else {
-			updateSolrFromRules();
+			updateSolrFromRules(rules);
 		}
 
-		setIsSolr((isSolr) => !isSolr);
+		setIsSolr(!isSolr);
 		validate();
-	};
+	}, [isSolr, rules, solr, updateRulesFromSolr, updateSolrFromRules]);
 
 	/**
 	 * Save settings.
@@ -240,7 +243,7 @@ export const SynonymsSettingsProvider = ({ apiUrl, children, defaultIsSolr, defa
 			});
 
 			updateSolr(response.data);
-			updateRulesFromSolr();
+			updateRulesFromSolr(response.data);
 		} catch (e) {
 			console.error(e); // eslint-disable-line no-console
 			throw e;
