@@ -317,7 +317,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test a term query get paramater.
+	 * Test a term query get parameter.
 	 *
 	 * @since 3.3
 	 * @group term
@@ -368,7 +368,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test a term query object ids paramater
+	 * Test a term query object ids parameter
 	 *
 	 * @since 3.3
 	 * @group term

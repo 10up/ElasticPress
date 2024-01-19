@@ -25,15 +25,33 @@ if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 
 Stats::factory()->build_stats();
 
-$index_health = Stats::factory()->get_health();
-$totals       = Stats::factory()->get_totals();
+$index_health   = Stats::factory()->get_health();
+$totals         = Stats::factory()->get_totals();
+$failed_queries = Stats::factory()->get_failed_queries();
 ?>
 
 <div class="error-overlay <?php if ( ! empty( $index_meta ) ) : ?>syncing<?php endif; ?>"></div>
 <div class="wrap metabox-holder">
 	<h1><?php esc_html_e( 'Index Health', 'elasticpress' ); ?></h1>
 
-	<?php if ( ! empty( $index_health ) ) : ?>
+	<?php if ( ! empty( $failed_queries ) ) : ?>
+		<p>
+			<?php esc_html_e( 'It seems some requests to Elasticsearch failed and it was not possible to build your stats properly:', 'elasticpress' ); ?>
+		</p>
+		<ul>
+			<?php foreach ( $failed_queries as $failed_query ) : ?>
+				<li>
+					<?php
+					printf(
+						'<code>%1$s</code>: <code>%2$s</code>',
+						esc_html( $failed_query['path'] ),
+						esc_html( $failed_query['error'] )
+					);
+					?>
+				</li>
+			<?php endforeach; ?>
+		</ul>
+	<?php elseif ( ! empty( $index_health ) ) : ?>
 		<div class="ep-flex-container">
 			<div class="stats-list postbox">
 				<h2 class="hndle stats-list-th"><span><?php esc_html_e( 'Index list', 'elasticpress' ); ?></span><span><?php esc_html_e( 'Health', 'elasticpress' ); ?></span></h2>

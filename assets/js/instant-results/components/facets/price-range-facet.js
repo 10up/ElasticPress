@@ -12,7 +12,7 @@ import { currencyCode } from '../../config';
 import { formatPrice } from '../../utilities';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
-import { ActiveContraint } from '../tools/active-constraints';
+import { ActiveConstraint } from '../tools/active-constraints';
 
 /**
  * Price range facet.
@@ -137,7 +137,7 @@ export default ({ defaultIsOpen, label }) => {
 						</div>
 
 						{maxArg !== null && minArg !== null && (
-							<ActiveContraint
+							<ActiveConstraint
 								label={sprintf(
 									/* translators: %1$s: Minimum price. %2$s: Maximum price. */
 									_x('%1$s — %2$s', 'Price range', 'elasticpress'),

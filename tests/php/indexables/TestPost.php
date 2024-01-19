@@ -6896,7 +6896,7 @@ class TestPost extends BaseTestCase {
 	 * Test the parse_orderby_meta_fields() method when dealing with `'meta_value*'` and `'meta_key'` parameters
 	 *
 	 * @param string $meta_value_type Meta value type (as in WP)
-	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @param string $es_type         Meta value type in Elasticsearch
 	 * @param array  $meta_values     Meta values for post creation
 	 * @since 4.6.0
 	 * @dataProvider parseOrderbyMetaDataProvider
@@ -6944,7 +6944,7 @@ class TestPost extends BaseTestCase {
 	 * Test the parse_orderby_meta_fields() method when dealing with `'meta_value*'` parameters
 	 *
 	 * @param string $meta_value_type Meta value type (as in WP)
-	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @param string $es_type         Meta value type in Elasticsearch
 	 * @since 4.6.0
 	 * @dataProvider parseOrderbyMetaDataProvider
 	 * @group post
@@ -6986,7 +6986,7 @@ class TestPost extends BaseTestCase {
 	 * Test the parse_orderby_meta_fields() method when dealing with named meta queries
 	 *
 	 * @param string $meta_value_type Meta value type (as in WP)
-	 * @param string $es_type         Meta valye type in Elasticsearch
+	 * @param string $es_type         Meta value type in Elasticsearch
 	 * @since 4.6.0
 	 * @dataProvider parseOrderbyMetaDataProvider
 	 * @group post
@@ -7978,7 +7978,7 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( $version_40, $search_algorithm );
 
 		/**
-		 * Test setting a diffent algorithm through the `ep_search_algorithm_version` filter
+		 * Test setting a different algorithm through the `ep_search_algorithm_version` filter
 		 */
 		$version_35 = \ElasticPress\SearchAlgorithms::factory()->get( '3.5' );
 
@@ -8177,7 +8177,7 @@ class TestPost extends BaseTestCase {
 		);
 		$this->ep_factory->post->create(
 			array(
-				'post_content' => 'exlcude from search',
+				'post_content' => 'exclude from search',
 				'meta_input'   => array( 'ep_exclude_from_search' => true ),
 			)
 		);
@@ -8223,7 +8223,7 @@ class TestPost extends BaseTestCase {
 		);
 		$this->ep_factory->post->create(
 			array(
-				'post_content' => 'exlcude from search',
+				'post_content' => 'exclude from search',
 				'meta_input'   => array( 'ep_exclude_from_search' => true ),
 			)
 		);
@@ -8254,7 +8254,7 @@ class TestPost extends BaseTestCase {
 		);
 		$post_ids[1] = $this->ep_factory->post->create(
 			array(
-				'post_content' => 'exlcude from search',
+				'post_content' => 'exclude from search',
 				'meta_input'   => array( 'ep_exclude_from_search' => true ),
 			)
 		);
@@ -8343,7 +8343,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test get_the_excerpt() has HTML tags when highlight_excerpt is enabled.
 	 */
-	public function testExcerptHasHiglightHTMLTags() {
+	public function testExcerptHasHighlightHTMLTags() {
 
 		ElasticPress\Features::factory()->update_feature(
 			'search',

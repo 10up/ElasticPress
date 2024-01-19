@@ -13,6 +13,37 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 -->
 
+## [5.0.2] - 2024-01-16
+
+### Changed
+* [Terms] Counts are now calculated with `wp_count_terms()` in `query_db`. Props [@rebeccahum](https://github.com/rebeccahum) via [#3791](https://github.com/10up/ElasticPress/pull/3791).
+* Composer and npm files are now part of the final package. Props [@felipeelia](https://github.com/felipeelia) via [#3810](https://github.com/10up/ElasticPress/pull/3810).
+
+### Fixed
+* [WooCommerce] Not use a hard-coded list of order post types. Props [@felipeelia](https://github.com/felipeelia) via [#3807](https://github.com/10up/ElasticPress/pull/3807).
+* [Autosuggest] Stop calling the get`-autosuggest-allowed` endpoint to build the REST API schema. Props [@felipeelia](https://github.com/felipeelia) via [#3809](https://github.com/10up/ElasticPress/pull/3809).
+
+### Security
+* Bumped `follow-redirects` from 1.15.3 to 1.15.4. Props [@dependabot](https://github.com/dependabot) via [#3808](https://github.com/10up/ElasticPress/pull/3808).
+
+## [5.0.1] - 2023-12-12
+
+### Added
+* Failed queries in the Index Health page will now be outputted with their error messages. Props [@felipeelia](https://github.com/felipeelia) and [@pvnanini](https://github.com/pvnanini) via [#3776](https://github.com/10up/ElasticPress/pull/3776).
+
+### Fixed
+* Queries failing due to a "request body is required" error. Props [@felipeelia](https://github.com/felipeelia) via [#3770](https://github.com/10up/ElasticPress/pull/3770).
+* Fatal error when site has a bad cookie. Props [@burhandodhy](https://github.com/burhandodhy) via [#3778](https://github.com/10up/ElasticPress/pull/3778).
+* Broken i18n of some strings. Props [@felipeelia](https://github.com/felipeelia) and [@iazema](https://github.com/iazema) via [#3780](https://github.com/10up/ElasticPress/pull/3780).
+* PHP Warning on term archive pages when the term was not found. Props [@felipeelia](https://github.com/felipeelia) and [@Igor-Yavych](https://github.com/Igor-Yavych) via [#3777](https://github.com/10up/ElasticPress/pull/3777).
+* PHP warning when using block themes. Props [@felipeelia](https://github.com/felipeelia) and [@tropicandid](https://github.com/tropicandid) via [#3781](https://github.com/10up/ElasticPress/pull/3781).
+* Several typos. Props [@szepeviktor](https://github.com/szepeviktor) via [#3750](https://github.com/10up/ElasticPress/pull/3750).
+* Index cleanup process - offset being zeroed too late. Props [@pknap](https://github.com/pknap) via [#3765](https://github.com/10up/ElasticPress/pull/3765).
+* PHP warning in site health page. Props [@turtlepod](https://github.com/turtlepod) via [#3758](https://github.com/10up/ElasticPress/pull/3758).
+* ReactDOM.render is no longer supported in React 18. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3686](https://github.com/10up/ElasticPress/pull/3686).
+* E2e tests with WordPress 6.4. Props [@felipeelia](https://github.com/felipeelia) via [#3771](https://github.com/10up/ElasticPress/pull/3771).
+* PHP Setup in GitHub Actions. Props [@felipeelia](https://github.com/felipeelia) via [#3784](https://github.com/10up/ElasticPress/pull/3784).
+
 ## [5.0.0] - 2023-11-01
 
 **ElasticPress 5.0.0 contains some important changes. Make sure to read these highlights before upgrading:**
@@ -1254,7 +1285,7 @@ Enhancements:
 * Refactor CLI indexing code for simplicity.
 * Limit indexed Protected Content post types removing `revision`, `oembed_cache`, `custom_css`, `user_request`, `customize_changeset`, and `wp_block`.
 * Cast taxonomy slug to array in case it's already an array in `WP_Query`.
-* Remove unnecessary usage of `--network-wide` CLI paramter.
+* Remove unnecessary usage of `--network-wide` CLI parameter.
 * Add name, nickname, and display name to fields used for user search.
 * Add `clear-transient` WP CLI command.
 * Don't make product categories facetable when WooCommerce feature is not active. Props [mustafauysal](https://github.com/mustafauysal).
@@ -1635,7 +1666,7 @@ This is a bug fix release with some filter additions.
 - WooCommerce feature breaking image search in media library. Props [@Ritesh-patel](https://github.com/Ritesh-patel)
 - WooCommerce order search broken
 - Stop the insansity made private. Props [@sc0ttclark](https://github.com/sc0ttclark)
-- Multidimensional meta querys. Props [@Ritesh-patel](https://github.com/Ritesh-patel).
+- Multidimensional meta queries. Props [@Ritesh-patel](https://github.com/Ritesh-patel).
 - Properly show bulk index errors in WP-CLI
 - Update ep_delete_post, include $post_type argument. Props [@Ritesh-patel](https://github.com/Ritesh-patel)
 - post_type product getting set in any WP_Query if tax_query is provided in WooCommerce feature. Props [@Ritesh-patel](https://github.com/Ritesh-patel)
@@ -2032,6 +2063,8 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.0.2]: https://github.com/10up/ElasticPress/compare/5.0.1...5.0.2
+[5.0.1]: https://github.com/10up/ElasticPress/compare/5.0.0...5.0.1
 [5.0.0]: https://github.com/10up/ElasticPress/compare/4.7.2...5.0.0
 [4.7.2]: https://github.com/10up/ElasticPress/compare/4.7.1...4.7.2
 [4.7.1]: https://github.com/10up/ElasticPress/compare/4.7.0...4.7.1

@@ -111,6 +111,10 @@ abstract class FacetType {
 						return $acc;
 					}
 
+					if ( empty( $block['attrs']['facet'] ) ) {
+						return $acc;
+					}
+
 					$acc[] = $block['attrs']['facet'];
 					return $acc;
 				},
