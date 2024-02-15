@@ -166,6 +166,11 @@ class Documents extends Feature {
 
 		$query->set( 'post_status', array_unique( $post_status ) );
 
+		// Bail, if query is for media library.
+		if ( isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action'] ) {
+			return;
+		}
+
 		if ( ! empty( $mime_types ) && is_string( $mime_types ) ) {
 			$mime_types = explode( ' ', $mime_types );
 		}
