@@ -132,6 +132,12 @@ class TestDashboard extends BaseTestCase {
 		);
 
 		switch_to_blog( $site_pt_br );
+		echo '<pre>';
+		print_r( $site_pt_br );
+		echo '</pre>';
+		echo '<pre>';
+		print_r( Dashboard\use_language_in_setting() );
+		echo '</pre>';
 		$this->assertSame( 'brazilian', Dashboard\use_language_in_setting() );
 
 		/*
