@@ -114,7 +114,7 @@ jobs:
         coverage: none
 
     - name: Install dependencies
-      run: composer install
+      run: composer install --no-cache
 
     - name: Setup WP Tests
       run: |
