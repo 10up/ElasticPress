@@ -111,6 +111,12 @@ class TestDashboard extends BaseTestCase {
 	 * @group dashboard
 	 */
 	public function test_use_language_in_setting_for_multisite() {
+		$enable_pt_br = function ( $languages ) {
+			$languages[] = 'pt_BR';
+			return $languages;
+		};
+		add_filter( 'get_available_languages', $enable_pt_br );
+
 		$site_factory = new \WP_UnitTest_Factory_For_Blog();
 		$site_pt_br   = $site_factory->create(
 			[
@@ -132,12 +138,6 @@ class TestDashboard extends BaseTestCase {
 		);
 
 		switch_to_blog( $site_pt_br );
-		echo '<pre>';
-		print_r( $site_pt_br );
-		echo '</pre>';
-		echo '<pre>';
-		print_r( Dashboard\use_language_in_setting() );
-		echo '</pre>';
 		$this->assertSame( 'brazilian', Dashboard\use_language_in_setting() );
 
 		/*
