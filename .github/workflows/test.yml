@@ -120,6 +120,9 @@ jobs:
       run: |
         bash bin/install-wp-tests.sh wordpress_test root root 127.0.0.1
         sleep 10
+    
+    - name: Debug
+      run: ./vendor/bin/phpunit --filter test_use_language_in_setting_for_multisite
 
     - name: PHPUnit
       run: |

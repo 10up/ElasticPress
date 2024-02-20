@@ -901,15 +901,17 @@ class Autosuggest extends Feature {
 
 		$this->maybe_add_epio_settings_schema();
 
-		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
+		if ( ! Utils\is_epio() ) {
+			$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
 
-		$this->settings_schema[] = [
-			'disabled' => $set_in_wp_config,
-			'help'     => $set_in_wp_config ? __( 'This address will be exposed to the public.', 'elasticpress' ) : '',
-			'key'      => 'endpoint_url',
-			'label'    => __( 'Endpoint URL', 'elasticpress' ),
-			'type'     => 'url',
-		];
+			$this->settings_schema[] = [
+				'disabled' => $set_in_wp_config,
+				'help'     => $set_in_wp_config ? __( 'This address will be exposed to the public.', 'elasticpress' ) : '',
+				'key'      => 'endpoint_url',
+				'label'    => __( 'Endpoint URL', 'elasticpress' ),
+				'type'     => 'url',
+			];
+		}
 	}
 
 	/**
