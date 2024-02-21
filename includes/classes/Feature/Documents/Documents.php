@@ -129,6 +129,11 @@ class Documents extends Feature {
 			return;
 		}
 
+		// Bail, if query is for media library.
+		if ( isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
 		$post_status = $query->get( 'post_status', [] );
 		$post_type   = $query->get( 'post_type', [] );
 		$mime_types  = $query->get( 'post_mime_type', [] );
@@ -165,11 +170,6 @@ class Documents extends Feature {
 		}
 
 		$query->set( 'post_status', array_unique( $post_status ) );
-
-		// Bail, if query is for media library.
-		if ( isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action'] ) {
-			return;
-		}
 
 		if ( ! empty( $mime_types ) && is_string( $mime_types ) ) {
 			$mime_types = explode( ' ', $mime_types );
