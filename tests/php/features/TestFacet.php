@@ -14,6 +14,17 @@ use ElasticPress\Features;
  */
 class TestFacet extends BaseTestCase {
 	/**
+	 * Clean up after each test.
+	 *
+	 * @since 5.1.0
+	 */
+	public function tear_down() {
+		parent::tear_down();
+
+		$GLOBALS['pagenow'] = '';
+	}
+
+	/**
 	 * Test the setup method
 	 *
 	 * @since 5.1.0
@@ -62,8 +73,6 @@ class TestFacet extends BaseTestCase {
 		$facet_feature->setup();
 
 		$this->assertSame( 10, has_action( 'rest_api_init', [ $facet_feature, 'setup_endpoints' ] ) );
-
-		remove_filter( 'ep_facet_enabled_in_editor', '__return_true' );
 	}
 
 	/**
