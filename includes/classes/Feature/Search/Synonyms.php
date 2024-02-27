@@ -463,7 +463,12 @@ class Synonyms {
 			function( $success, $index ) {
 				$filter  = $this->get_synonym_filter();
 				$mapping = Elasticsearch::factory()->get_mapping( $index );
-				$filters = $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default_search']['filter'];
+
+				if ( empty( $mapping ) || empty( $mapping[ $index ] ) ) {
+					return false;
+				}
+
+				$filters = (array) $mapping[ $index ]['settings']['index']['analysis']['analyzer']['default_search']['filter'];
 
 				/*
 				 * Due to limitations in Elasticsearch, we can't remove the filter and analyzer
