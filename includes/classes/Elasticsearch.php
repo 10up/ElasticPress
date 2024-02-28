@@ -1483,17 +1483,21 @@ class Elasticsearch {
 			// Save version of last node. We assume all nodes are same version.
 			$this->elasticsearch_version = $node['version'];
 
+			// Elasticsearch calls "modules" all default plugins that can't be uninstalled
+			if ( isset( $node['modules'] ) && is_array( $node['modules'] ) ) {
+				foreach ( $node['modules'] as $plugin ) {
+					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+				}
+
+				if ( ! empty( $node['modules'] ) && ! empty( $node['modules'][0]['opensearch_version'] ) ) {
+					$this->server_type = 'opensearch';
+				}
+			}
+
 			if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 				foreach ( $node['plugins'] as $plugin ) {
 					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
 				}
-			}
-			if ( isset( $node['modules'] )
-				&& is_array( $node['modules'] )
-				&& ! empty( $node['modules'] )
-				&& ! empty( $node['modules'][0]['opensearch_version'] )
-			) {
-				$this->server_type = 'opensearch';
 			}
 		}
 

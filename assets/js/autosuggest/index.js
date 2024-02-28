@@ -798,7 +798,7 @@ function init() {
 		 */
 		input.addEventListener('keyup', handleKeyup);
 		input.addEventListener('blur', function () {
-			window.setTimeout(hideAutosuggestBox, 200);
+			window.setTimeout(hideAutosuggestBox, 300);
 		});
 	};
 
