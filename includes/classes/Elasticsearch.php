@@ -405,10 +405,12 @@ class Elasticsearch {
 				 */
 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, '', $query_args );
 
-				if ( method_exists( $query_object, 'set' ) ) {
-					$query_object->set( 'ep_aggregations', $response['aggregations'] );
-				} else {
-					$query_object->query_vars['ep_aggregations'] = $response['aggregations'];
+				if ( is_object( $query_object ) ) {
+					if ( method_exists( $query_object, 'set' ) ) {
+						$query_object->set( 'ep_aggregations', $response['aggregations'] );
+					} else {
+						$query_object->query_vars['ep_aggregations'] = $response['aggregations'];
+					}
 				}
 			}
 
