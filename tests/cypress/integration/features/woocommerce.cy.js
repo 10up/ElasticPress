@@ -169,7 +169,7 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.get('#billing-address_1, #billing_address_1').type(userData.address);
 			cy.get('#billing-city, #billing_city').type(userData.city);
 			cy.get('#billing-postcode, #billing_postcode').type(userData.postCode);
-			cy.get('#billing-phone, #billing_phone').type(userData.phoneNumber);
+			cy.get('#billing-phone, #billing_phone').type(userData.phoneNumber, { force: true }); // Label covers it
 			cy.get('#email, #billing_email').clearThenType(userData.email);
 
 			/**
