@@ -2825,7 +2825,10 @@ class Post extends Indexable {
 		$empty_post = new \WP_Post( (object) [] );
 		$meta_keys  = $this->get_distinct_meta_field_keys_db( $force_refresh );
 
-		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
+		$fake_meta_values = array_combine(
+			$meta_keys,
+			array_fill( 0, count( $meta_keys ), $this->get_test_meta_value() )
+		);
 		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $empty_post );
 
 		$all_keys = array_filter(
@@ -2838,6 +2841,24 @@ class Post extends Indexable {
 		sort( $all_keys );
 
 		return $all_keys;
+	}
+
+	/**
+	 * Return the value used to fill meta fields while predicting indexable content.
+	 *
+	 * @since 5.1.0
+	 * @return string
+	 */
+	public function get_test_meta_value() : string {
+		/**
+		 * Filter the value used to fill meta fields while predicting indexable content.
+		 *
+		 * @hook ep_post_test_meta_value
+		 * @since 5.1.0
+		 * @param {string} $test_meta_value The test meta value. Default: test-value
+		 * @return {string} New test meta value
+		 */
+		return (string) apply_filters( 'ep_post_test_meta_value', 'test-value' );
 	}
 
 	/**

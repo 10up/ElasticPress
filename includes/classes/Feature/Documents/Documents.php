@@ -129,6 +129,11 @@ class Documents extends Feature {
 			return;
 		}
 
+		// Bail, if query is for media library.
+		if ( isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+
 		$post_status = $query->get( 'post_status', [] );
 		$post_type   = $query->get( 'post_type', [] );
 		$mime_types  = $query->get( 'post_mime_type', [] );

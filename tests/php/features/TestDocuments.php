@@ -107,8 +107,6 @@ class TestDocuments extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		$post_ids = array();
-
 		$this->ep_factory->post->create();
 		$this->ep_factory->post->create(
 			array(
@@ -151,8 +149,6 @@ class TestDocuments extends BaseTestCase {
 
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-
-		$post_ids = array();
 
 		$this->ep_factory->post->create(
 			array(
@@ -225,5 +221,39 @@ class TestDocuments extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
+	}
+
+	/**
+	 * Test that search in media library is working correctly.
+	 *
+	 * @since 5.1.0
+	 * @group documents
+	 */
+	public function testQueryForAttachments() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->activate_feature( 'documents' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content'   => 'search me',
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$_REQUEST['action'] = 'query-attachments';
+		$args               = array(
+			's'           => 'search me',
+			'post_type'   => 'attachment',
+			'post_status' => 'inherit',
+		);
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
 	}
 }

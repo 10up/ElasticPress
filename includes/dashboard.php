@@ -493,15 +493,28 @@ function action_admin_enqueue_dashboard_scripts() {
 		$weightable_fields       = $weighting->get_weightable_fields();
 		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
 
-		wp_localize_script(
-			'ep_weighting_script',
-			'epWeighting',
-			array(
+		/**
+		 * Filter weighting dashboard options.
+		 *
+		 * @hook ep_weighting_options
+		 * @param  {array} $data Weighting dashboard options
+		 * @return  {array} New options array
+		 * @since 5.1.0
+		 */
+		$data = apply_filters(
+			'ep_weighting_options',
+			[
 				'apiUrl'                 => $api_url,
 				'metaMode'               => $meta_mode,
 				'weightableFields'       => $weightable_fields,
 				'weightingConfiguration' => $weighting_configuration,
-			)
+			]
+		);
+
+		wp_localize_script(
+			'ep_weighting_script',
+			'epWeighting',
+			$data
 		);
 
 		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );

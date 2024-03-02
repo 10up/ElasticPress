@@ -111,8 +111,17 @@ class Facets extends Feature {
 	public function setup() {
 		global $pagenow;
 
-		// This feature should not run while in the editor.
-		if ( in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) ) {
+		$in_editor = in_array( $pagenow, [ 'post-new.php', 'post.php' ], true );
+
+		/**
+		 * Filter if facet should be enabled in the editor. Default: false
+		 *
+		 * @hook  ep_facet_enabled_in_editor
+		 * @since 5.1.0
+		 * @param {bool}  $enabled
+		 * @return {bool} If enabled or not
+		 */
+		if ( $in_editor && ! apply_filters( 'ep_facet_enabled_in_editor', false ) ) {
 			return;
 		}
 
@@ -129,6 +138,23 @@ class Facets extends Feature {
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
 		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
+	}
+
+	/**
+	 * Unsetup Facets related hooks
+	 *
+	 * @since 5.1.0
+	 */
+	public function tear_down() {
+		remove_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
+		remove_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
+		remove_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
+		remove_action( 'enqueue_block_editor_assets', [ $this, 'front_scripts' ] );
+		remove_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ] );
+		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ] );
+		remove_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		remove_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ] );
+		remove_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 	}
 
 	/**

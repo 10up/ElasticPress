@@ -111,7 +111,14 @@ class TestDashboard extends BaseTestCase {
 	 * @group dashboard
 	 */
 	public function test_use_language_in_setting_for_multisite() {
-		$site_pt_br = wp_insert_site(
+		$enable_pt_br = function ( $languages ) {
+			$languages[] = 'pt_BR';
+			return $languages;
+		};
+		add_filter( 'get_available_languages', $enable_pt_br );
+
+		$site_factory = new \WP_UnitTest_Factory_For_Blog();
+		$site_pt_br   = $site_factory->create(
 			[
 				'domain'  => 'example.org',
 				'path'    => '/pt_BR',
@@ -120,7 +127,7 @@ class TestDashboard extends BaseTestCase {
 				],
 			]
 		);
-		$site_he_il = wp_insert_site(
+		$site_he_il   = $site_factory->create(
 			[
 				'domain'  => 'example.org',
 				'path'    => '/he_IL',
