@@ -53,7 +53,7 @@ jobs:
         discovery type: 'single-node'
 
     - name: Check ES response
-      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 http://localhost:8890
+      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
 
     - name: Set standard 10up cache directories
       run: |
