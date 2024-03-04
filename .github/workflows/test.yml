@@ -35,25 +35,11 @@ jobs:
     - name: Start MySQL
       run: sudo systemctl start mysql.service
 
-    - name: Configure sysctl limits
-      run: |
-        sudo swapoff -a
-        sudo sysctl -w vm.swappiness=1
-        sudo sysctl -w fs.file-max=262144
-        sudo sysctl -w vm.max_map_count=262144
-
     - name: Setup Elasticsearch
-      uses: getong/elasticsearch-action@v1.2
-      with:
-        elasticsearch version: ${{ matrix.esVersion }}
-        host port: 9200
-        container port: 9200
-        host node port: 9300
-        node port: 9300
-        discovery type: 'single-node'
+      run: cd bin/es-docker/ && docker-compose build --build-arg ES_VERSION=${{ matrix.esVersion }} && docker-compose up -d
 
     - name: Check ES response
-      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://127.0.0.1:9200
+      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://127.0.0.1:8890
 
     - name: Set standard 10up cache directories
       run: |
@@ -84,4 +70,4 @@ jobs:
 
     - name: PHPUnit
       run: |
-        composer run-script ${{ matrix.type.command }}
+         EP_HOST=http://127.0.0.1:8890/ composer run-script ${{ matrix.type.command }}
