@@ -74,7 +74,7 @@ jobs:
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
 
     - name: Check ES response
-      run: wget http://localhost:8890
+      run: curl http://localhost:8890
 
     - name: Build asset
       run: npm run build

@@ -21,6 +21,7 @@ jobs:
     name: PHP Unit (${{ matrix.type.name }} - ES ${{ matrix.esVersion }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         esVersion: ['7.10.1', '8.12.2']
         type:
@@ -45,6 +46,14 @@ jobs:
       uses: getong/elasticsearch-action@v1.2
       with:
         elasticsearch version: ${{ matrix.esVersion }}
+        host port: 9200
+        container port: 9200
+        host node port: 9300
+        node port: 9300
+        discovery type: 'single-node'
+
+    - name: Check ES response
+      run: curl http://127.0.0.1:9200
 
     - name: Set standard 10up cache directories
       run: |
