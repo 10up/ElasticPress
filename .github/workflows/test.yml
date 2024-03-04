@@ -18,8 +18,14 @@ on:
 
 jobs:
   phpunit_single_site:
-    name: PHP Unit (Single Site)
+    name: PHP Unit (${{ matrix.type.name }} - ES ${{ matrix.esVersion }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        esVersion: ['7.10.1', '8.12.2']
+        type:
+         - {name: 'Single Site', command: 'test-single-site'}
+         - {name: 'Multisite', command: 'test'}
 
     steps:
     - name: Checkout
@@ -38,7 +44,7 @@ jobs:
     - name: Setup Elasticsearch
       uses: getong/elasticsearch-action@v1.2
       with:
-        elasticsearch version: '7.10.1'
+        elasticsearch version: ${{ matrix.esVersion }}
 
     - name: Set standard 10up cache directories
       run: |
@@ -69,61 +75,4 @@ jobs:
 
     - name: PHPUnit
       run: |
-        composer run-script test-single-site
-
-  phpunit_multisite:
-    name: PHP Unit (Multisite)
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-
-    - name: Start MySQL
-      run: sudo systemctl start mysql.service
-
-    - name: Configure sysctl limits
-      run: |
-        sudo swapoff -a
-        sudo sysctl -w vm.swappiness=1
-        sudo sysctl -w fs.file-max=262144
-        sudo sysctl -w vm.max_map_count=262144
-
-    - name: Setup Elasticsearch
-      uses: getong/elasticsearch-action@v1.2
-      with:
-        elasticsearch version: '7.10.1'
-
-    - name: Set standard 10up cache directories
-      run: |
-        composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
-
-    - name: Prepare composer cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.COMPOSER_CACHE }}
-        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          composer-${{ env.COMPOSER_VERSION }}-
-
-    - name: Set PHP version
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        extensions: :php-psr
-        coverage: none
-
-    - name: Install dependencies
-      run: composer install
-
-    - name: Setup WP Tests
-      run: |
-        bash bin/install-wp-tests.sh wordpress_test root root 127.0.0.1
-        sleep 10
-    
-    - name: Debug
-      run: ./vendor/bin/phpunit --filter test_use_language_in_setting_for_multisite
-
-    - name: PHPUnit
-      run: |
-        composer run-script test
+        composer run-script ${{ matrix.type.command }}
