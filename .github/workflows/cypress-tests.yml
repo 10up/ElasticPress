@@ -20,7 +20,7 @@ on:
 
 jobs:
   cypress_local:
-    name: Local - ${{ matrix.core.name }} (${{ matrix.testGroup }} - ES ${{ matrix.esVersion }})
+    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

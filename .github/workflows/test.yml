@@ -1,4 +1,4 @@
-name: Test
+name: Unit Test
 
 env:
   COMPOSER_VERSION: "2"
@@ -18,7 +18,7 @@ on:
 
 jobs:
   phpunit_single_site:
-    name: PHP Unit (${{ matrix.type.name }} - ES ${{ matrix.esVersion }})
+    name: ${{ matrix.type.name }} - ES ${{ matrix.esVersion }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
