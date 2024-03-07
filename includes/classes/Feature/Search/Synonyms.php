@@ -390,8 +390,8 @@ class Synonyms {
 		// Tell the analyzer to use our newly created filter.
 		$mapping['settings']['analysis']['analyzer']['default_search']['filter'] = array_values(
 			array_merge(
-				[ $filter_name ],
-				$mapping['settings']['analysis']['analyzer']['default_search']['filter']
+				$mapping['settings']['analysis']['analyzer']['default_search']['filter'],
+				[ $filter_name ]
 			)
 		);
 
@@ -486,8 +486,8 @@ class Synonyms {
 				$setting['index']['analysis']['analyzer']['default_search']['filter'] = array_values(
 					array_unique(
 						array_merge(
-							[ $this->get_synonym_filter_name() ],
-							$filters
+							$filters,
+							[ $this->get_synonym_filter_name() ]
 						)
 					)
 				);
