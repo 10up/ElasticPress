@@ -17,8 +17,8 @@ on:
       - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
 jobs:
-  phpunit_single_site:
-    name: ${{ matrix.type.name }} - ES ${{ matrix.esVersion }})
+  phpunit:
+    name: ${{ matrix.type.name }} - ES ${{ matrix.esVersion }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
