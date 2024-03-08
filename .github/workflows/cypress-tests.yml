@@ -20,12 +20,13 @@ on:
 
 jobs:
   cypress_local:
-    name: Local - ${{ matrix.core.name }} (${{ matrix.testGroup }})
+    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         testGroup: ['@slow', '-@slow']
+        esVersion: ['7.10.1', '8.12.2']
         core:
           - {name: 'WP latest', version: '', wcVersion: ''}
           - {name: 'WP minimum', version: '6.0', wcVersion: '6.4.0'}
@@ -70,7 +71,10 @@ jobs:
       run: npm ci --include=dev
 
     - name: Set up WP environment with Elasticsearch
-      run: npm run env:start
+      run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
+
+    - name: Check ES response
+      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
 
     - name: Build asset
       run: npm run build
