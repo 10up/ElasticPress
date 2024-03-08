@@ -388,10 +388,12 @@ class Synonyms {
 		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
 
 		// Tell the analyzer to use our newly created filter.
-		$mapping['settings']['analysis']['analyzer']['default_search']['filter'] = array_values(
-			array_merge(
-				$mapping['settings']['analysis']['analyzer']['default_search']['filter'],
-				[ $filter_name ]
+		$mapping['settings']['analysis']['analyzer']['default_search']['filter'] = $this->maybe_change_filter_position(
+			array_values(
+				array_merge(
+					[ $filter_name ],
+					$mapping['settings']['analysis']['analyzer']['default_search']['filter'],
+				)
 			)
 		);
 
@@ -483,11 +485,13 @@ class Synonyms {
 				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
 
 				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default_search']['filter'] = array_values(
-					array_unique(
-						array_merge(
-							$filters,
-							[ $this->get_synonym_filter_name() ]
+				$setting['index']['analysis']['analyzer']['default_search']['filter'] = $this->maybe_change_filter_position(
+					array_values(
+						array_unique(
+							array_merge(
+								[ $this->get_synonym_filter_name() ],
+								$filters
+							)
 						)
 					)
 				);
@@ -823,4 +827,23 @@ class Synonyms {
 			true
 		);
 	}
+
+	/**
+	 * Change the position of the lowercase filter to the beginning of the array.
+	 *
+	 * @param array $filters Array of filters.
+	 *
+	 * @return array
+	 */
+	private function maybe_change_filter_position( $filters ) {
+		$lowercase_index = array_search( 'lowercase', $filters, true );
+
+		if ( false !== $lowercase_index ) {
+			unset( $filters[ $lowercase_index ] );
+			array_unshift( $filters, 'lowercase' );
+		}
+
+		return $filters;
+	}
+
 }

@@ -167,7 +167,7 @@ class TestSynonyms extends BaseTestCase {
 	 * @since 5.1.0
 	 * @group synonyms
 	 */
-	public function testSynonymsCaseInsensitive() {
+	public function test_synonyms_case_insensitive() {
 		$instance = $this->getFeature();
 
 		$this->ep_factory->post->create(
