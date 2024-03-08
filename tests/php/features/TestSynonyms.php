@@ -160,4 +160,46 @@ class TestSynonyms extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertSame( $post_id, $query->posts['0'] );
 	}
+
+	/**
+	 * Tests synonyms are case insensitive
+	 *
+	 * @since 5.1.0
+	 * @group synonyms
+	 */
+	public function testSynonymsCaseInsensitive() {
+		$instance = $this->getFeature();
+
+		$this->ep_factory->post->create(
+			[
+				'ID'           => $instance->get_synonym_post_id(),
+				'post_content' => 'hoodie, sweatshirt',
+				'post_type'    => $instance::POST_TYPE_NAME,
+			]
+		);
+
+		$instance->update_synonyms();
+
+		$post_id = $this->ep_factory->post->create( [ 'post_content' => 'sweatshirt' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's'      => 'HoOdiE',
+				'fields' => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $post_id, $query->posts['0'] );
+
+		$query = new \WP_Query(
+			[
+				's'      => 'hoodie',
+				'fields' => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $post_id, $query->posts['0'] );
+	}
 }
