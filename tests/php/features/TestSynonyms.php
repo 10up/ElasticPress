@@ -195,7 +195,7 @@ class TestSynonyms extends BaseTestCase {
 
 		$query = new \WP_Query(
 			[
-				's'      => 'hoodie',
+				's'      => 'HOODIE',
 				'fields' => 'ids',
 			]
 		);
