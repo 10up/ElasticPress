@@ -560,9 +560,6 @@ class Post extends Indexable {
 		/**
 		 * Filters the image size to use when indexing the post thumbnail.
 		 *
-		 * Defaults to the `woocommerce_thumbnail` size if WooCommerce is in
-		 * use. Otherwise the `thumbnail` size is used.
-		 *
 		 * @hook ep_thumbnail_image_size
 		 * @since 4.0.0
 		 * @param {string|int[]} $image_size Image size. Can be any registered
@@ -574,23 +571,32 @@ class Post extends Indexable {
 		 */
 		$image_size = apply_filters(
 			'ep_post_thumbnail_image_size',
-			function_exists( 'WC' ) ? 'woocommerce_thumbnail' : 'thumbnail',
+			'medium',
 			$post
 		);
 
-		$image_src = wp_get_attachment_image_src( $attachment_id, $image_size );
+		$image     = wp_get_attachment_image_src( $attachment_id, $image_size );
 		$image_alt = trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) );
 
-		if ( ! $image_src ) {
+		if ( ! $image ) {
 			return null;
 		}
 
+		list( $src, $width, $height ) = $image;
+
+		$image_meta = wp_get_attachment_metadata( $attachment_id );
+
+		$size_array = array( absint( $width ), absint( $height ) );
+		$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $attachment_id );
+		$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $attachment_id );
+
 		return [
 			'ID'     => $attachment_id,
-			'src'    => $image_src[0],
-			'width'  => $image_src[1],
-			'height' => $image_src[2],
+			'src'    => $src,
+			'width'  => $width,
+			'height' => $height,
 			'alt'    => $image_alt,
+			'srcset' => $srcset,
 		];
 	}
 

@@ -8881,6 +8881,41 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test if post thumbnail has all attributes.
+	 *
+	 * @since 5.0.0
+	 */
+	public function testPostThumbnailHasAllAttributes() {
+		$post_id      = $this->ep_factory->post->create();
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$post_id,
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			]
+		);
+
+		set_post_thumbnail( $post_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$ep_post   = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$thumbnail = $ep_post['thumbnail'];
+
+		$this->assertEquals( 6, count( $thumbnail ) );
+
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
+		foreach ( $keys as $key ) {
+			$this->assertArrayHasKey( $key, $thumbnail );
+		}
+	}
+
+	/**
 	 * Test that query with unsupported orderby does not use EP.
 	 *
 	 * @since 4.5.0
