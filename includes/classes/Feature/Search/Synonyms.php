@@ -836,10 +836,10 @@ class Synonyms {
 	 * @return array
 	 */
 	private function maybe_change_filter_position( $filters ) {
-		$lowercase_index = array_search( 'lowercase', $filters, true );
+		$lowercase_filter = array_search( 'lowercase', $filters, true );
 
-		if ( false !== $lowercase_index ) {
-			unset( $filters[ $lowercase_index ] );
+		if ( false !== $lowercase_filter ) {
+			unset( $filters[ $lowercase_filter ] );
 			array_unshift( $filters, 'lowercase' );
 		}
 
