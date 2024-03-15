@@ -329,4 +329,45 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 			[ 'set_search_fields', [] ],
 		];
 	}
+
+	/**
+	 * Test the `hpos_compatibility_notice` method
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_compatibility_notice() {
+		$notices = [
+			'test' => [],
+		];
+		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
+
+		\set_current_screen( 'woocommerce_page_wc-orders' );
+		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
+
+		$option_name = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$change_value = function() {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $option_name, $change_value );
+
+		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+		$this->assertCount( 2, $new_notices );
+		$this->assertArrayHasKey( 'wc_orders_incompatible', $new_notices );
+
+		/**
+		 * Test if the notice is hidden when the user already dismissed it
+		 */
+		$change_hide_option = function() {
+			return 1;
+		};
+		add_filter( 'pre_option_ep_hide_wc_orders_incompatible_notice', $change_hide_option );
+		add_filter( 'pre_site_option_ep_hide_wc_orders_incompatible_notice', $change_hide_option );
+		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+		$this->assertCount( 1, $new_notices );
+		$this->assertArrayNotHasKey( 'wc_orders_incompatible', $new_notices );
+	}
 }
