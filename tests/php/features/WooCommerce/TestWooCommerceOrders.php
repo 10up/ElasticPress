@@ -348,7 +348,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
 
-		$option_name = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$option_name  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
 		$change_value = function() {
 			return 'yes';
 		};
