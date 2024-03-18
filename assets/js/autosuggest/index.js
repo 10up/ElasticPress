@@ -83,14 +83,22 @@ function triggerAutosuggestEvent(detail) {
 	const event = new CustomEvent('ep-autosuggest-click', { detail });
 	window.dispatchEvent(event);
 
-	if (
-		detail.searchTerm &&
-		parseInt(epas.triggerAnalytics, 10) === 1 &&
-		typeof gtag === 'function'
-	) {
+	/**
+	 * Check if window.gtag was already defined, otherwise
+	 * try to use window.dataLayer.push, available by default
+	 * for Tag Manager users.
+	 */
+	let epGtag = null;
+	if (typeof window?.gtag === 'function') {
+		epGtag = window.gtag;
+	} else if (typeof window?.dataLayer?.push === 'function') {
+		epGtag = window.dataLayer.push;
+	}
+
+	if (detail.searchTerm && parseInt(epas.triggerAnalytics, 10) === 1 && epGtag) {
 		const action = `click - ${detail.searchTerm}`;
 		// eslint-disable-next-line no-undef
-		gtag('event', action, {
+		epGtag('event', action, {
 			event_category: 'EP :: Autosuggest',
 			event_label: detail.url,
 			transport_type: 'beacon',
@@ -354,6 +362,8 @@ function updateAutosuggestBox(options, input) {
 		}
 	});
 
+	setInputActiveDescendant('', input);
+
 	return true;
 }
 
@@ -365,6 +375,7 @@ function updateAutosuggestBox(options, input) {
 function hideAutosuggestBox() {
 	const lists = document.querySelectorAll('.autosuggest-list');
 	const containers = document.querySelectorAll('.ep-autosuggest');
+	const inputs = document.querySelectorAll('.ep-autosuggest-container [aria-activedescendant]');
 
 	// empty all EP results lists
 	lists.forEach((list) => {
@@ -378,6 +389,9 @@ function hideAutosuggestBox() {
 		// eslint-disable-next-line
 		container.style = 'display: none;';
 	});
+
+	// Remove active descendant attribute from all inputs
+	inputs.forEach((input) => setInputActiveDescendant('', input));
 
 	return true;
 }
@@ -790,7 +804,7 @@ function init() {
 		 */
 		input.addEventListener('keyup', handleKeyup);
 		input.addEventListener('blur', function () {
-			window.setTimeout(hideAutosuggestBox, 200);
+			window.setTimeout(hideAutosuggestBox, 300);
 		});
 	};
 

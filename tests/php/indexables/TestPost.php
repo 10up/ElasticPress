@@ -9146,4 +9146,33 @@ class TestPost extends BaseTestCase {
 		$index_settings = $settings[ $index_name ]['settings'];
 		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
+
+	/**
+	 * Test if aggregations are set
+	 *
+	 * @since 5.1.0
+	 * @group post
+	 */
+	public function test_aggregations_return() {
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'fields'       => 'ids',
+				'aggs'         => [
+					'name' => 'my_aggs',
+					'aggs' => [
+						'terms' => [
+							'size'  => 10000,
+							'field' => 'terms.category.slug',
+						],
+					],
+				],
+				'ep_custom_id' => 'my_query',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertArrayHasKey( 'ep_aggregations', $query->query_vars );
+		$this->assertArrayHasKey( 'my_aggs', $query->query_vars['ep_aggregations'] );
+	}
 }

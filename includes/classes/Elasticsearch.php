@@ -404,6 +404,14 @@ class Elasticsearch {
 				 * @param  {array} $query_args Current WP Query arguments
 				 */
 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, '', $query_args );
+
+				if ( is_object( $query_object ) ) {
+					if ( method_exists( $query_object, 'set' ) ) {
+						$query_object->set( 'ep_aggregations', $response['aggregations'] );
+					} else {
+						$query_object->query_vars['ep_aggregations'] = $response['aggregations'];
+					}
+				}
 			}
 
 			/**
@@ -456,11 +464,15 @@ class Elasticsearch {
 			 *
 			 * @hook ep_es_query_results
 			 * @param {array} $results Results from Elasticsearch
-			 * @param  {response} $response Raw response from Elasticsearch
-			 * @param  {array} $query Raw Elasticsearch query
-			 * @param  {array} $query_args Query arguments
-			 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
-			 * @return  {array} New results
+			 *      @param {int}   $results.found_documents Total number of documents.
+			 *      @param {array} $results.documents       Array of documents.
+			 *      @param {array} $results.aggregations    Array of aggregations.
+			 *      @param {array} $results.suggest         Array of suggestions.
+			 * @param {response} $response Raw response from Elasticsearch
+			 * @param {array} $query Raw Elasticsearch query
+			 * @param {array} $query_args Query arguments
+			 * @param {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
+			 * @return {array} New results
 			 */
 			return apply_filters(
 				'ep_es_query_results',
@@ -1483,17 +1495,21 @@ class Elasticsearch {
 			// Save version of last node. We assume all nodes are same version.
 			$this->elasticsearch_version = $node['version'];
 
+			// Elasticsearch calls "modules" all default plugins that can't be uninstalled
+			if ( isset( $node['modules'] ) && is_array( $node['modules'] ) ) {
+				foreach ( $node['modules'] as $plugin ) {
+					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+				}
+
+				if ( ! empty( $node['modules'] ) && ! empty( $node['modules'][0]['opensearch_version'] ) ) {
+					$this->server_type = 'opensearch';
+				}
+			}
+
 			if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 				foreach ( $node['plugins'] as $plugin ) {
 					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
 				}
-			}
-			if ( isset( $node['modules'] )
-				&& is_array( $node['modules'] )
-				&& ! empty( $node['modules'] )
-				&& ! empty( $node['modules'][0]['opensearch_version'] )
-			) {
-				$this->server_type = 'opensearch';
 			}
 		}
 

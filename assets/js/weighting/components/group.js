@@ -150,7 +150,7 @@ export default ({ group, postType }) => {
 				<PanelRow key={key}>
 					<Field
 						label={label}
-						value={values[key] || {}}
+						value={values?.[key] || {}}
 						onChange={(value) => {
 							onChange(value, key);
 						}}
@@ -161,13 +161,14 @@ export default ({ group, postType }) => {
 				<PanelRow key={key}>
 					<Field
 						label={label}
-						value={values[key] || {}}
+						value={values?.[key] || {}}
 						onChange={(value) => {
 							onChange(value, key);
 						}}
 						onDelete={() => {
 							onDelete(key);
 						}}
+						showTooltip
 					/>
 				</PanelRow>
 			))}
