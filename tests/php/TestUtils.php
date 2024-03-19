@@ -276,13 +276,14 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_capability` filter.
 		 */
-		$change_cap_name = function( $cap ) {
+		$change_cap_name = function( $cap, $context ) {
 			$this->assertSame( 'manage_elasticpress', $cap );
+			$this->assertSame( 'context', $context );
 			return 'custom_manage_ep';
 		};
-		add_filter( 'ep_capability', $change_cap_name );
+		add_filter( 'ep_capability', $change_cap_name, 10, 2 );
 
-		$this->assertSame( 'custom_manage_ep', Utils\get_capability() );
+		$this->assertSame( 'custom_manage_ep', Utils\get_capability( 'context' ) );
 	}
 
 	/**
@@ -296,13 +297,14 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_network_capability` filter.
 		 */
-		$change_cap_name = function( $cap ) {
+		$change_cap_name = function( $cap, $context ) {
 			$this->assertSame( 'manage_network_elasticpress', $cap );
+			$this->assertSame( 'context', $context );
 			return 'custom_manage_network_ep';
 		};
-		add_filter( 'ep_network_capability', $change_cap_name );
+		add_filter( 'ep_network_capability', $change_cap_name, 10, 2 );
 
-		$this->assertSame( 'custom_manage_network_ep', Utils\get_network_capability() );
+		$this->assertSame( 'custom_manage_network_ep', Utils\get_network_capability( 'context' ) );
 	}
 
 	/**
@@ -322,6 +324,32 @@ class TestUtils extends BaseTestCase {
 		];
 
 		$this->assertSame( $expected, Utils\get_post_map_capabilities() );
+	}
+
+	/**
+	 * Test the `get_post_map_capabilities` function passing context
+	 *
+	 * @since 5.1.0
+	 */
+	public function test_get_post_map_capabilities_with_context() {
+		$change_cap_name = function( $cap, $context ) {
+			$this->assertSame( 'manage_elasticpress', $cap );
+			$this->assertSame( 'context', $context );
+			return 'custom_manage_ep';
+		};
+		add_filter( 'ep_capability', $change_cap_name, 10, 2 );
+
+		$expected = [
+			'edit_post'          => 'custom_manage_ep',
+			'edit_posts'         => 'custom_manage_ep',
+			'edit_others_posts'  => 'custom_manage_ep',
+			'publish_posts'      => 'custom_manage_ep',
+			'read_post'          => 'custom_manage_ep',
+			'read_private_posts' => 'custom_manage_ep',
+			'delete_post'        => 'custom_manage_ep',
+		];
+
+		$this->assertSame( $expected, Utils\get_post_map_capabilities( 'context' ) );
 	}
 
 	/**
