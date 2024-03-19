@@ -294,4 +294,60 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 
 		$this->assertSame( $expected_fields, $changed_search_fields );
 	}
+
+	/**
+	 * Test the `is_available` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_available() {
+		$this->assertSame( $this->orders_autosuggest->is_available(), \ElasticPress\Utils\is_epio() );
+
+		/**
+		 * Test the `ep_woocommerce_orders_autosuggest_available` filter
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertTrue( $this->orders_autosuggest->is_available() );
+
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_false' );
+		$this->assertFalse( $this->orders_autosuggest->is_available() );
+	}
+
+	/**
+	 * Test the `is_enabled` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 */
+	public function test_is_enabled() {
+		$this->assertFalse( $this->orders_autosuggest->is_enabled() );
+
+		/**
+		 * Make it available but it won't be enabled
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $this->orders_autosuggest->is_enabled() );
+
+		/**
+		 * Enable it
+		 */
+		$filter = function() {
+			return [
+				'woocommerce' => [
+					'orders' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+		$this->assertTrue( $this->orders_autosuggest->is_enabled() );
+
+		/**
+		 * Make it unavailable. Even activated, it should not be considered enabled if not available anymore.
+		 */
+		remove_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $this->orders_autosuggest->is_enabled() );
+	}
 }

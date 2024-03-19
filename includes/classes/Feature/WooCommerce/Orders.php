@@ -520,7 +520,7 @@ class Orders {
 				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
 			);
 
-			if ( $this->woocommerce->is_orders_autosuggest_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
+			if ( $this->woocommerce->orders_autosuggest->is_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
 				call_user_func_array( [ $this->woocommerce->orders_autosuggest, $method_name ], $arguments );
 			}
 		}
