@@ -363,14 +363,14 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
 
 		// Turn HPOS on
-		$custom_orders_table  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
 		$change_custom_orders_table = function() {
 			return 'yes';
 		};
 		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
 
 		// Disable legacy mode
-		$legacy_mode  = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
+		$legacy_mode        = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
 		$change_legacy_mode = function() {
 			return 'no';
 		};
@@ -417,7 +417,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 */
 	public function test_get_setting_help_message_feature_hpos_incompatible() {
 		// Turn HPOS on
-		$custom_orders_table  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
 		$change_custom_orders_table = function() {
 			return 'yes';
 		};
