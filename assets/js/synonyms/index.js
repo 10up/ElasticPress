@@ -1,35 +1,52 @@
 /**
  * WordPress dependencies.
  */
-import { createRoot, render } from '@wordpress/element';
+import { createRoot, render, WPElement } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import { AppContext } from './context';
-import SynonymsEditor from './components/SynonymsEditor';
-
-const SELECTOR = '#synonym-root';
+import { SettingsScreenProvider } from '../settings-screen';
+import { apiUrl, defaultIsSolr, defaultSolr, syncUrl } from './config';
+import { SynonymsSettingsProvider } from './provider';
+import SynonymsSettings from './apps/synonyms-settings';
 
 /**
- * Get Root.
- *
- * @returns {Element|false} Root element
+ * Styles.
  */
-const getRoot = () => document.querySelector(SELECTOR) || false;
+import './style.css';
 
+/**
+ * App component.
+ *
+ * @returns {WPElement}
+ */
+const App = () => (
+	<SettingsScreenProvider title={__('Manage Synonyms', 'elasticpress')}>
+		<SynonymsSettingsProvider
+			apiUrl={apiUrl}
+			defaultIsSolr={defaultIsSolr}
+			defaultSolr={defaultSolr}
+			syncUrl={syncUrl}
+		>
+			<SynonymsSettings />
+		</SynonymsSettingsProvider>
+	</SettingsScreenProvider>
+);
+
+/**
+ * Root element.
+ */
+const el = document.getElementById('ep-synonyms');
+
+/**
+ * Render.
+ */
 if (typeof createRoot === 'function') {
-	const root = createRoot(getRoot());
-	root.render(
-		<AppContext>
-			<SynonymsEditor />
-		</AppContext>,
-	);
+	const root = createRoot(el);
+
+	root.render(<App />);
 } else {
-	render(
-		<AppContext>
-			<SynonymsEditor />
-		</AppContext>,
-		getRoot(),
-	);
+	render(<App />, el);
 }

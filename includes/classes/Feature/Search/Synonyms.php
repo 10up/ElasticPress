@@ -11,6 +11,7 @@ use ElasticPress\Elasticsearch;
 use ElasticPress\FeatureRequirementsStatus;
 use ElasticPress\Features;
 use ElasticPress\Indexables;
+use ElasticPress\REST;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -108,15 +109,11 @@ class Synonyms {
 		add_action( 'admin_menu', [ $this, 'admin_menu' ], 50 );
 		add_action( 'admin_enqueue_scripts', [ $this, 'scripts' ] );
 
-		// Handle the update synonyms action.
-		$action = $this->get_action();
-		add_action( "admin_post_$action", [ $this, 'handle_update_synonyms' ] );
-
-		// Handle the admin notices.
-		add_action( 'admin_notices', [ $this, 'admin_notices' ] );
-
 		// Add the synonyms to the elasticsearch query.
 		add_filter( 'ep_config_mapping', [ $this, 'add_search_synonyms' ], 20, 2 );
+
+		// Register REST routes.
+		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 
 		return true;
 	}
@@ -144,6 +141,14 @@ class Synonyms {
 		wp_enqueue_style( 'wp-edit-post' );
 
 		wp_enqueue_style(
+			'ep_synonyms_scripts',
+			EP_URL . 'dist/css/synonyms-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'synonyms-styles', 'version' ),
+			'all'
+		);
+
+		wp_enqueue_style(
 			'ep_synonyms_styles',
 			EP_URL . 'dist/css/synonyms-styles.css',
 			Utils\get_asset_info( 'synonyms-styles', 'dependencies' ),
@@ -151,13 +156,18 @@ class Synonyms {
 			'all'
 		);
 
+		$api_url  = rest_url( 'elasticpress/v1/synonyms' );
+		$sync_url = Utils\get_sync_url();
+
 		wp_localize_script(
 			'ep_synonyms_scripts',
 			'epSynonyms',
-			array(
-				'i18n' => $this->get_localized_strings(),
-				'data' => $this->get_localized_data(),
-			)
+			[
+				'apiUrl'        => esc_url_raw( $api_url ),
+				'defaultIsSolr' => $this->synonyms_editor_mode() === 'advanced',
+				'defaultSolr'   => $this->get_synonyms_raw(),
+				'syncUrl'       => esc_url_raw( $sync_url ),
+			]
 		);
 	}
 
@@ -187,10 +197,7 @@ class Synonyms {
 
 		?>
 		<div class="wrap">
-			<form action="<?php echo esc_url( $this->get_form_action() ); ?>" method="POST">
-				<?php $this->form_hidden_fields(); ?>
-				<div id="synonym-root"></div>
-			</form>
+			<div id="ep-synonyms"></div>
 		</div>
 		<?php
 	}
@@ -199,8 +206,11 @@ class Synonyms {
 	 * Admin notices.
 	 *
 	 * @return void
+	 * @deprecated 5.1.0
 	 */
 	public function admin_notices() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::admin_notices', '5.1.0' );
+
 		if ( ! $this->is_synonym_page() ) {
 			return;
 		}
@@ -402,8 +412,11 @@ class Synonyms {
 	 * Handles updating the synonym list.
 	 *
 	 * @return void
+	 * @deprecated 5.1.0
 	 */
 	public function handle_update_synonyms() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::handle_update_synonyms', '5.1.0' );
+
 		$nonce   = filter_input( INPUT_POST, $this->get_nonce_field(), FILTER_SANITIZE_SPECIAL_CHARS );
 		$referer = filter_input( INPUT_POST, '_wp_http_referer', FILTER_SANITIZE_URL );
 		$post_id = false;
@@ -566,8 +579,11 @@ class Synonyms {
 	 *
 	 * @access protected
 	 * @return string The admin post form action url.
+	 * @deprecated 5.1.0
 	 */
 	public function get_form_action() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_form_action', '5.1.0' );
+
 		return esc_url_raw( admin_url( 'admin-post.php' ) );
 	}
 
@@ -575,8 +591,11 @@ class Synonyms {
 	 * Render admin page form hidden fields.
 	 *
 	 * @return void
+	 * @deprecated 5.1.0
 	 */
 	public function form_hidden_fields() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_form_action', '5.1.0', );
+
 		wp_nonce_field( $this->get_nonce_action(), $this->get_nonce_field() );
 		?>
 		<input type="hidden" name="action" value="<?php echo esc_attr( $this->get_action() ); ?>" />
@@ -587,8 +606,11 @@ class Synonyms {
 	 * Get nonce action for admin page form.
 	 *
 	 * @return string
+	 * @deprecated 5.1.0
 	 */
 	public function get_nonce_action() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_form_action', '5.1.0', );
+
 		return $this->get_action();
 	}
 
@@ -596,8 +618,11 @@ class Synonyms {
 	 * Get nonce field for admin page form.
 	 *
 	 * @return string
+	 * @deprecated 5.1.0
 	 */
 	public function get_nonce_field() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_nonce_field', '5.1.0', );
+
 		return 'ep_synonyms_nonce';
 	}
 
@@ -605,8 +630,11 @@ class Synonyms {
 	 * Get synonym field name for admin page form.
 	 *
 	 * @return string
+	 * @deprecated 5.1.0
 	 */
 	public function get_synonym_field() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_synonym_field', '5.1.0', );
+
 		return 'ep_synonyms';
 	}
 
@@ -614,8 +642,11 @@ class Synonyms {
 	 * Get the action slug for admin page form.
 	 *
 	 * @return string
+	 * @deprecated 5.1.0
 	 */
 	public function get_action() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_action', '5.1.0', );
+
 		return 'ep_synonyms_update';
 	}
 
@@ -641,11 +672,16 @@ class Synonyms {
 	 */
 	public function example_synonym_list( $as_array = false ) {
 		$lines = [
-			__( '# Defined sets (equivalent synonyms).', 'elasticpress' ),
-			'sneakers, tennis shoes, trainers, runners',
+			__( '# Defined synonyms.', 'elasticpress' ),
+			'runner, running shoe, sneaker, tennis shoe, trainer',
 			'',
-			__( '# Defined alternatives (explicit mappings).', 'elasticpress' ),
-			'shoes => sneaker, sandal, boots, high heels',
+			__( '# Defined hyponyms.', 'elasticpress' ),
+			'blue => blue, aqua, azure, cerulean, cyan, ultramarine',
+			'',
+			__( '# Defined replacements.', 'elasticpress' ),
+			'supposably => supposedly',
+			'flustrated => flustered, frustrated',
+			'intensive purposes => intents and purposes',
 		];
 
 		return $as_array ? $lines : implode( PHP_EOL, $lines );
@@ -655,8 +691,11 @@ class Synonyms {
 	 * Gets localized strings for use on the front end.
 	 *
 	 * @return array
+	 * @deprecated 5.1.0
 	 */
 	public function get_localized_strings() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_localized_strings', '5.1.0' );
+
 		return array(
 			'pageHeading'                  => __( 'Manage Synonyms', 'elasticpress' ),
 			'pageDescription'              => __( 'Synonyms enable more flexible search results that show relevant results even without an exact match. Synonyms can be defined as a sets where all words are synonyms for each other, or as alternatives where searches for the primary word will also match the rest, but no vice versa.', 'elasticpress' ),
@@ -693,8 +732,11 @@ class Synonyms {
 	 * Get data to export to the frontend with localization strings.
 	 *
 	 * @return array
+	 * @deprecated 5.1.0
 	 */
 	public function get_localized_data() {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::get_localized_strings', '5.1.0' );
+
 		$data     = array(
 			'sets'         => array(),
 			'alternatives' => array(),
@@ -777,8 +819,11 @@ class Synonyms {
 	 * @param string  $token    The synonym token to prepare.
 	 * @param boolean $primary Whether this string is the primary term of an alternative.
 	 * @return array
+	 * @deprecated 5.1.0
 	 */
 	public static function prepare_localized_token( $token, $primary = false ) {
+		_deprecated_function( 'ElasticPress\Feature\Search\Synonyms::prepare_localized_token', '5.1.0' );
+
 		return array(
 			'label'   => trim( sanitize_text_field( $token ) ),
 			'value'   => trim( sanitize_text_field( $token ) ),
@@ -807,7 +852,7 @@ class Synonyms {
 	 * @param string $content The content post.
 	 * @return int|WP_Error
 	 */
-	private function update_synonym_post( $content ) {
+	public function update_synonym_post( $content ) {
 		$synonym_post_id = $this->get_synonym_post_id();
 
 		if ( ! $synonym_post_id ) {
@@ -822,5 +867,15 @@ class Synonyms {
 			],
 			true
 		);
+	}
+
+	/**
+	 * Setup REST endpoints
+	 *
+	 * @since  3.2
+	 */
+	public function setup_endpoint() {
+		$controller = new REST\Synonyms();
+		$controller->register_routes();
 	}
 }

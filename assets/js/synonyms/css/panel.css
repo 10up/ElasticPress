@@ -1,0 +1,16 @@
+.ep-synonyms-panel {
+	margin-bottom: 16px;
+
+	& .components-tab-panel__tabs-item {
+		margin: -1px 0;
+
+		& svg {
+			display: block;
+			fill: #cc1818;
+		}
+	}
+
+	& p {
+		margin-top: 0;
+	}
+}

@@ -4,6 +4,16 @@
 	max-width: 800px;
 }
 
+.ep-settings-page__header {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+
+	& button {
+		margin-top: 5px;
+	}
+}
+
 .ep-settings-page__snackbar-list {
 	bottom: 40px;
 	left: 0;

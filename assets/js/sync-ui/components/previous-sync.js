@@ -76,6 +76,8 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 				return __('Automatic sync after settings change.', 'elasticpress');
 			case 'install':
 				return __('Automatic sync after installation.', 'elasticpress');
+			case 'synonyms-error':
+				return __('Manual sync following an error in synonyms settings.', 'elasticpress');
 			case 'manual':
 				return __('Manual sync from Sync Settings.', 'elasticpress');
 			case 'upgrade':

@@ -109,8 +109,11 @@ class TestSynonyms extends BaseTestCase {
 		);
 
 		$this->assertNotEmpty( $synonyms );
-		$this->assertContains( 'sneakers, tennis shoes, trainers, runners', $synonyms );
-		$this->assertContains( 'shoes =&gt; sneaker, sandal, boots, high heels', $synonyms );
+		$this->assertContains( 'runner, running shoe, sneaker, tennis shoe, trainer', $synonyms );
+		$this->assertContains( 'blue =&gt; blue, aqua, azure, cerulean, cyan, ultramarine', $synonyms );
+		$this->assertContains( 'supposably =&gt; supposedly', $synonyms );
+		$this->assertContains( 'flustrated =&gt; flustered, frustrated', $synonyms );
+		$this->assertContains( 'intensive purposes =&gt; intents and purposes', $synonyms );
 	}
 
 	/**

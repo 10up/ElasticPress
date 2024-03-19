@@ -1,0 +1,12 @@
+.ep-synonyms-error-badge {
+	align-items: center;
+	display: flex;
+	height: 36px;
+	justify-content: center;
+	width: 36px;
+
+	& svg {
+		display: block;
+		fill: #cc1818;
+	}
+}
