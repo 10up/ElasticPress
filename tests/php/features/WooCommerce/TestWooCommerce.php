@@ -153,6 +153,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	 *
 	 * @since 4.5.0
 	 * @group woocommerce
+	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::is_orders_autosuggest_available
 	 */
 	public function testIsOrdersAutosuggestAvailable() {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
@@ -170,10 +171,11 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Test the `is_orders_autosuggest_available` method
+	 * Test the `is_orders_autosuggest_enabled` method
 	 *
 	 * @since 4.5.0
 	 * @group woocommerce
+	 * @expectedDeprecated ElasticPress\Feature\WooCommerce\WooCommerce::is_orders_autosuggest_enabled
 	 */
 	public function testIsOrdersAutosuggestEnabled() {
 		$woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
