@@ -831,11 +831,11 @@ class Synonyms {
 	/**
 	 * Change the position of the lowercase filter to the beginning of the array.
 	 *
+	 * @since 5.1.0
 	 * @param array $filters Array of filters.
-	 *
 	 * @return array
 	 */
-	private function maybe_change_filter_position( $filters ) {
+	protected function maybe_change_filter_position( array $filters ) : array {
 		$lowercase_filter = array_search( 'lowercase', $filters, true );
 
 		if ( false !== $lowercase_filter ) {
