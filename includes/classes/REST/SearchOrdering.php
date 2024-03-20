@@ -71,7 +71,7 @@ class SearchOrdering {
 	 * @return boolean
 	 */
 	public function check_permission() {
-		$capability = Utils\get_capability();
+		$capability = Utils\get_capability( 'search-ordering' );
 
 		return current_user_can( $capability );
 	}

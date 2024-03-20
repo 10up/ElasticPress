@@ -49,6 +49,15 @@ export default () => {
 
 			inputRef.current = event.target.s;
 
+			/**
+			 * Don't open the modal if an autosuggest suggestion is selected.
+			 */
+			const activeDescendant = inputRef.current.getAttribute('aria-activedescendant');
+
+			if (activeDescendant) {
+				return;
+			}
+
 			const { value } = inputRef.current;
 			const post_type = getPostTypesFromForm(inputRef.current.form);
 
