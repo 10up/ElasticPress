@@ -3,8 +3,7 @@
  */
 import { Button, Flex, FlexItem, TabPanel } from '@wordpress/components';
 import { useCopyToClipboard } from '@wordpress/compose';
-import { dateI18n } from '@wordpress/date';
-import { Fragment, useMemo, WPElement } from '@wordpress/element';
+import { useMemo, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -12,6 +11,8 @@ import { __, sprintf } from '@wordpress/i18n';
  */
 import { useSettingsScreen } from '../../settings-screen';
 import { useSync } from '../../sync';
+import Errors from './errors';
+import Messages from './messages';
 
 /**
  * Sync logs component.
@@ -19,8 +20,18 @@ import { useSync } from '../../sync';
  * @returns {WPElement} Component.
  */
 export default () => {
-	const { clearLog, log } = useSync();
+	const { clearLog, errorCounts, log } = useSync();
 	const { createNotice } = useSettingsScreen();
+
+	/**
+	 * The number of errors in the log.
+	 *
+	 * @type {number}
+	 */
+	const errorCount = useMemo(
+		() => errorCounts.reduce((errorCount, e) => errorCount + e.count, 0),
+		[errorCounts],
+	);
 
 	/**
 	 * The log as plain text.
@@ -30,16 +41,6 @@ export default () => {
 	const plainTextLog = useMemo(() => {
 		return log.map((m) => `${m.dateTime} ${m.message}`).join('\n');
 	}, [log]);
-
-	/**
-	 * Error messages from the log.
-	 *
-	 * @type {Array}
-	 */
-	const errorLog = useMemo(
-		() => log.filter((m) => m.status === 'error' || m.status === 'warning'),
-		[log],
-	);
 
 	/**
 	 * Handle clicking the clear log button.
@@ -66,17 +67,15 @@ export default () => {
 	 */
 	const tabs = [
 		{
-			messages: log,
 			name: 'full',
-			title: __('Full Log', 'elasticpress'),
+			title: __('Log', 'elasticpress'),
 		},
 		{
-			messages: errorLog,
 			name: 'error',
 			title: sprintf(
 				/* translators: %d: Error message count. */
 				__('Errors (%d)', 'elasticpress'),
-				errorLog.length,
+				errorCount,
 			),
 		},
 	];
@@ -84,22 +83,16 @@ export default () => {
 	return (
 		<>
 			<TabPanel className="ep-sync-log" tabs={tabs}>
-				{({ messages }) => (
-					<div className="ep-sync-messages">
-						{messages.map((m) => (
-							<Fragment key={m.id}>
-								<div className="ep-sync-messages__line-number" role="presentation">
-									{dateI18n('Y-m-d H:i:s', m.dateTime)}
-								</div>
-								<div
-									className={`ep-sync-messages__message ep-sync-messages__message--${m.status}`}
-								>
-									{m.message}
-								</div>
-							</Fragment>
-						))}
-					</div>
-				)}
+				{({ name }) => {
+					switch (name) {
+						case 'full':
+							return <Messages />;
+						case 'error':
+							return <Errors />;
+						default:
+							return null;
+					}
+				}}
 			</TabPanel>
 			<Flex justify="start">
 				<FlexItem>
