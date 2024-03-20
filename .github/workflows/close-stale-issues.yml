@@ -17,18 +17,16 @@ jobs:
     steps:
       - uses: actions/stale@v9
         with:
-          days-before-stale: 7
-          days-before-close: 7
+          days-before-stale: 3
+          days-before-close: 3
           stale-issue-message: >
-            It has been 7 days since more information was requested from you in this issue and we have not heard back. This issue is now marked as stale and will be closed in 7 days, but if you have more information to add then please comment and the issue will stay open.
+            It has been 3 days since more information was requested from you in this issue and we have not heard back. This issue is now marked as stale and will be closed in 3 days, but if you have more information to add then please comment and the issue will stay open.
           close-issue-message: >
             This issue has been automatically closed because there has been no response
-            to our request for more information. With only the
-            information that is currently in the issue, we don't have enough information
-            to take action. Please reach out if you have or find the answers we need so
-            that we can investigate further. See [this blog post on bug reports and the
-            importance of repro steps](https://www.lee-dohm.com/2015/01/04/writing-good-bug-reports/)
-            for more information about the kind of information that may be helpful.
+            to our request for more information in the past 3 days.  With only the
+            information that is currently available, we are unable to take further action on this ticket.
+            Please reach out if you have found or find the answer we need so that we
+            can investigate further.  When the information is ready, you can re-open this ticket to share it with us.
           stale-issue-label: 'stale'
           close-issue-reason: 'not_planned'
           any-of-labels: 'reporter feedback'
