@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
+	"apiVersion": 3,
 	"title": "Filter by Post Type",
 	"description": "Let visitors filter your content by post type.",
 	"textdomain": "elasticpress",
