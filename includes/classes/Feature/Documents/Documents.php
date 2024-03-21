@@ -607,6 +607,6 @@ class Documents extends Feature {
 	 * @return boolean
 	 */
 	protected function is_admin_ajax_search() {
-		return defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return wp_doing_ajax() && isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 }
