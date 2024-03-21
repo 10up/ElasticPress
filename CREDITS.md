@@ -229,6 +229,12 @@ Thank you to all the people who have already contributed to this repository via 
 [Igor Yavych (@Igor-Yavych)](https://github.com/Igor-Yavych),
 [Deanna Steers (@tropicandid)](https://github.com/tropicandid),
 [@pvnanini](https://github.com/pvnanini),
+[Roman (@romanberdnikov)](https://github.com/romanberdnikov),
+[@Serverfox](https://github.com/Serverfox),
+[@jerasokcm](https://github.com/jerasokcm),
+[Randall Hedglin (@randallhedglin)](https://github.com/randallhedglin),
+[@bispldeveloper](https://github.com/bispldeveloper),
+[Michael Gurtzweiler (@mgurtzweiler)](https://github.com/mgurtzweiler),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
