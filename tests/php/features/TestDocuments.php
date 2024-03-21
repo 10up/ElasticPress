@@ -230,8 +230,10 @@ class TestDocuments extends BaseTestCase {
 	 * @group documents
 	 */
 	public function testQueryForAttachments() {
+		define( 'DOING_AJAX', true );
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->ep_factory->post->create(
