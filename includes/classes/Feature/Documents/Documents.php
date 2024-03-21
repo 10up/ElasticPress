@@ -60,6 +60,8 @@ class Documents extends Feature {
 
 		add_filter( 'ep_weighting_fields_for_post_type', [ $this, 'filter_weightable_fields_for_post_type' ], 10, 2 );
 		add_filter( 'ep_weighting_default_post_type_weights', [ $this, 'filter_attachment_post_type_weights' ], 10, 2 );
+
+		add_filter( 'ep_ajax_wp_query_integration', [ $this, 'maybe_enable_ajax_wp_query_integration' ] );
 	}
 
 	/**
@@ -110,10 +112,7 @@ class Documents extends Feature {
 	}
 
 	/**
-	 * This is some complex logic to handle the front end search query. If we have a search query,
-	 * add the attachment post type to post_type and inherit to post_status. If post_status is not set,
-	 * we assume publish/inherit is wanted. post_type should always be set. We also add allowed mime types.
-	 * If mime types are already set, append.
+	 * Handle the search query
 	 *
 	 * @param  WP_Query $query WP_Query to modify to search.
 	 * @since  2.3
@@ -123,62 +122,15 @@ class Documents extends Feature {
 			return;
 		}
 
+		// If not a search, return.
 		$s = $query->get( 's', false );
-
 		if ( empty( $s ) ) {
 			return;
 		}
 
-		// Bail, if query is for media library.
-		if ( isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
-		}
-
-		$post_status = $query->get( 'post_status', [] );
-		$post_type   = $query->get( 'post_type', [] );
-		$mime_types  = $query->get( 'post_mime_type', [] );
-
-		if ( ! empty( $post_type ) ) {
-			if ( 'any' !== $post_type ) {
-				if ( is_string( $post_type ) ) {
-					$post_type   = explode( ' ', $post_type );
-					$post_type[] = 'attachment';
-
-					$query->set( 'post_type', array_unique( $post_type ) );
-				}
-			}
-		}
-
-		if ( empty( $post_status ) ) {
-			$post_status = array_values(
-				get_post_stati(
-					[
-						'public'              => true,
-						'exclude_from_search' => false,
-					]
-				)
-			);
-
-			// Add inherit for documents
-			$post_status[] = 'inherit';
-		} else {
-			if ( is_string( $post_status ) ) {
-				$post_status = explode( ' ', $post_status );
-			}
-
-			$post_status[] = 'inherit';
-		}
-
-		$query->set( 'post_status', array_unique( $post_status ) );
-
-		if ( ! empty( $mime_types ) && is_string( $mime_types ) ) {
-			$mime_types = explode( ' ', $mime_types );
-		}
-
-		$mime_types   = array_merge( $mime_types, $this->get_allowed_ingest_mime_types() );
-		$mime_types[] = ''; // This let's us query non-attachments as well as attachments.
-
-		$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
+		$this->maybe_set_post_status( $query );
+		$this->maybe_set_post_type( $query );
+		$this->maybe_set_mime_type( $query );
 	}
 
 	/**
@@ -195,25 +147,29 @@ class Documents extends Feature {
 			return $path;
 		}
 
-		if ( 'attachment' === $post['post_type'] ) {
-			if ( ! empty( $post['attachments'][0]['data'] ) && isset( $post['post_mime_type'] ) && in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
-				$index = Indexables::factory()->get( 'post' )->get_index_name();
+		if ( 'attachment' !== $post['post_type'] ) {
+			return $path;
+		}
 
-				/**
-				 * Filter documents pipeline ID
-				 *
-				 * @hook ep_documents_pipeline_id
-				 * @param  {string} $id Pipeline ID
-				 * @return  {string} new ID
-				 */
-				$pipeline_id = apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+		if ( empty( $post['attachments'][0]['data'] ) || ! isset( $post['post_mime_type'] ) || ! in_array( $post['post_mime_type'], $this->get_allowed_ingest_mime_types(), true ) ) {
+			return $path;
+		}
 
-				if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-					$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . $pipeline_id;
-				} else {
-					$path = trailingslashit( $index ) . '_doc/' . $post['ID'] . '?pipeline=' . $pipeline_id;
-				}
-			}
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
+		/**
+		 * Filter documents pipeline ID
+		 *
+		 * @hook ep_documents_pipeline_id
+		 * @param  {string} $id Pipeline ID
+		 * @return  {string} new ID
+		 */
+		$pipeline_id = apply_filters( 'ep_documents_pipeline_id', Indexables::factory()->get( 'post' )->get_index_name() . '-attachment' );
+
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$path = trailingslashit( $index ) . 'post/' . $post['ID'] . '?pipeline=' . $pipeline_id;
+		} else {
+			$path = trailingslashit( $index ) . '_doc/' . $post['ID'] . '?pipeline=' . $pipeline_id;
 		}
 
 		return $path;
@@ -521,5 +477,136 @@ class Documents extends Feature {
 		}
 
 		return $weights;
+	}
+
+	/**
+	 * Enable integration if we are in the media library admin ajax search
+	 *
+	 * @param bool $integrate Whether it should be integrated or not
+	 * @return bool
+	 */
+	public function maybe_enable_ajax_wp_query_integration( $integrate ) {
+		return ( $this->is_admin_ajax_search() && $this->is_media_library_ajax_enabled() ) ? true : $integrate;
+	}
+
+	/**
+	 * If post_status is not set, we assume publish/inherit is wanted.
+	 *
+	 * @param WP_Query $query WP_Query to modify to search.
+	 * @return void
+	 */
+	protected function maybe_set_post_status( $query ) {
+		$post_status = $query->get( 'post_status', [] );
+
+		if ( empty( $post_status ) ) {
+			$post_status = array_values(
+				get_post_stati(
+					[
+						'public'              => true,
+						'exclude_from_search' => false,
+					]
+				)
+			);
+
+			// Add inherit for documents
+			$post_status[] = 'inherit';
+		} else {
+			if ( is_string( $post_status ) ) {
+				$post_status = explode( ' ', $post_status );
+			}
+
+			$post_status[] = 'inherit';
+		}
+
+		$query->set( 'post_status', array_unique( $post_status ) );
+	}
+
+	/**
+	 * Add the attachment post type to post_type.
+	 *
+	 * @param WP_Query $query WP_Query to modify to search.
+	 * @return void
+	 */
+	protected function maybe_set_post_type( $query ) {
+		$post_type = $query->get( 'post_type', [] );
+		if ( empty( $post_type ) || ! is_string( $post_type ) || 'any' === $post_type ) {
+			return;
+		}
+
+		$post_type   = explode( ' ', $post_type );
+		$post_type[] = 'attachment';
+
+		$query->set( 'post_type', array_unique( $post_type ) );
+	}
+
+	/**
+	 * Add allowed mime types. If mime types are already set, append.
+	 *
+	 * @param WP_Query $query WP_Query to modify to search.
+	 * @return void
+	 */
+	protected function maybe_set_mime_type( $query ) {
+		/**
+		 * Mime types
+		 *
+		 * By default, we do not restrict results by mime types in the Media Library AJAX search,
+		 * otherwise images, and SVGs, for example, will not be returned.
+		 */
+		$should_set_mime_types = ! $this->is_admin_ajax_search() || ! $this->is_media_library_ajax_enabled();
+
+		/**
+		 * Filter whether mime type restriction should be applied to the current WP Query
+		 *
+		 * @since 5.1.0
+		 * @hook ep_documents_wp_query_set_mime_types
+		 * @param {bool}     $should_set Whether to restrict this query with mime types or not
+		 * @param {WP_Query} $query      WP Query object
+		 * @return {bool} New value
+		 */
+		$should_set_mime_types = apply_filters( 'ep_documents_wp_query_set_mime_types', $should_set_mime_types, $query );
+
+		if ( ! $should_set_mime_types ) {
+			return;
+		}
+
+		// Set mime types
+		$mime_types = $query->get( 'post_mime_type', [] );
+
+		if ( ! empty( $mime_types ) && is_string( $mime_types ) ) {
+			$mime_types = explode( ' ', $mime_types );
+		}
+
+		$mime_types   = array_merge( $mime_types, $this->get_allowed_ingest_mime_types() );
+		$mime_types[] = ''; // This let's us query non-attachments as well as attachments.
+
+		$query->set( 'post_mime_type', array_unique( array_values( $mime_types ) ) );
+	}
+
+	/**
+	 * Whether the feature should work on the Media Library admin ajax request
+	 *
+	 * @return boolean
+	 */
+	protected function is_media_library_ajax_enabled() {
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+
+		/**
+		 * Filter whether the feature should work on the Media Library admin ajax request
+		 *
+		 * @since 5.1.0
+		 * @hook ep_documents_media_library_ajax_enabled
+		 * @param {bool} $enabled Whether to integrate or not
+		 * @return {bool} New value
+		 */
+		return apply_filters( 'ep_documents_media_library_ajax_enabled', $protected_content->is_active() );
+	}
+
+	/**
+	 * Whether we are in the admin ajax search request for the media library
+	 *
+	 * @return boolean
+	 */
+	protected function is_admin_ajax_search() {
+		return wp_doing_ajax() && isset( $_REQUEST['action'] ) && 'query-attachments' === $_REQUEST['action']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 }
