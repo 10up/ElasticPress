@@ -325,11 +325,11 @@ class TestAutosuggest extends BaseTestCase {
 	/**
 	 * Test whether autosuggest ngram fields apply to the search query when AJAX integration and weighting is enabled.
 	 *
-	 * @since 5.1.o
+	 * @since 5.1.0
 	 * @group autosuggest
 	 */
 	public function test_autosuggest_ngram_fields_for_ajax_call() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 
 		$this->get_feature()->setup();
 
