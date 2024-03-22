@@ -321,4 +321,50 @@ class TestAutosuggest extends BaseTestCase {
 			$settings_keys
 		);
 	}
+
+	/**
+	 * Test whether autosuggest ngram fields apply to the search query when AJAX integration and weighting is enabled.
+	 *
+	 * @since 5.1.o
+	 * @group autosuggest
+	 */
+	public function test_autosuggest_ngram_fields_for_ajax_call() {
+		define( 'DOING_AJAX', true );
+
+		$this->get_feature()->setup();
+
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+		add_filter( 'ep_enable_do_weighting', '__return_true' );
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function( $path, $index, $type, $query, $query_args, $query_object ) {
+				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
+
+				$this->assertContains( 'term_suggest^1', $fields );
+				$this->assertContains( 'post_title.suggest^1', $fields );
+				return $path;
+			},
+			10,
+			6
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+	}
 }

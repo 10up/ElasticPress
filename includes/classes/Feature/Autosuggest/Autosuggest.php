@@ -195,7 +195,7 @@ class Autosuggest extends Feature {
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
-		if ( ! Utils\is_integrated_request( $this->slug, [ 'public' ] ) || empty( $args['s'] ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, [ 'public', 'ajax' ] ) || empty( $args['s'] ) ) {
 			return $query;
 		}
 
