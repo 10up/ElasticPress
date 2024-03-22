@@ -366,5 +366,6 @@ class TestAutosuggest extends BaseTestCase {
 		);
 
 		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 }
