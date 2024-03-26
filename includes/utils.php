@@ -675,7 +675,7 @@ function is_integrated_request( $context, $types = [] ) {
 	}
 
 	$is_admin_request             = is_admin();
-	$is_ajax_request              = defined( 'DOING_AJAX' ) && DOING_AJAX;
+	$is_ajax_request              = wp_doing_ajax();
 	$is_rest_request              = defined( 'REST_REQUEST' ) && REST_REQUEST;
 	$is_integrated_admin_request  = false;
 	$is_integrated_ajax_request   = false;

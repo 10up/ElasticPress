@@ -180,7 +180,7 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function set_fuzziness( $fuzziness, $search_fields, $args ) {
-		if ( Utils\is_integrated_request( $this->slug, [ 'public' ] ) && ! empty( $args['s'] ) ) {
+		if ( Utils\is_integrated_request( $this->slug, $this->get_contexts() ) && ! empty( $args['s'] ) ) {
 			return 'auto';
 		}
 		return $fuzziness;
@@ -195,7 +195,7 @@ class Autosuggest extends Feature {
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
-		if ( ! Utils\is_integrated_request( $this->slug, [ 'public' ] ) || empty( $args['s'] ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, $this->get_contexts() ) || empty( $args['s'] ) ) {
 			return $query;
 		}
 
@@ -925,5 +925,23 @@ class Autosuggest extends Feature {
 			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.' ),
 			'ElasticPress 4.7.0'
 		);
+	}
+
+	/**
+	 * Get the contexts for autosuggest.
+	 *
+	 * @since 5.1.0
+	 * @return array
+	 */
+	protected function get_contexts() : array {
+		/**
+		 * Filter contexts for autosuggest.
+		 *
+		 * @hook ep_autosuggest_contexts
+		 * @since 5.1.0
+		 * @param {array} $contexts Contexts for autosuggest
+		 * @return {array} New contexts
+		 */
+		return apply_filters( 'ep_autosuggest_contexts', [ 'public', 'ajax' ] );
 	}
 }
