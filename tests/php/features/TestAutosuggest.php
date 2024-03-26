@@ -328,13 +328,12 @@ class TestAutosuggest extends BaseTestCase {
 	 * @since 5.1.0
 	 * @group autosuggest
 	 */
-	public function test_autosuggest_ngram_fields_for_ajax_call() {
+	public function test_autosuggest_ngram_fields_for_ajax_request() {
 		add_filter( 'wp_doing_ajax', '__return_true' );
-
-		$this->get_feature()->setup();
-
 		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
 		add_filter( 'ep_enable_do_weighting', '__return_true' );
+
+		$this->get_feature()->setup();
 
 		$this->ep_factory->post->create(
 			array(
@@ -367,5 +366,155 @@ class TestAutosuggest extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test whether autosuggest ngram fields do not apply to the search query when `ep_autosuggest_contexts` is only set to public.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_autosuggest_ngram_fields_for_ajax_request_negative() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+		add_filter( 'ep_enable_do_weighting', '__return_true' );
+
+		$autosuggest_context = function() {
+			return [ 'public' ];
+		};
+
+		add_filter( 'ep_autosuggest_contexts', $autosuggest_context );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function( $path, $index, $type, $query, $query_args, $query_object ) {
+				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
+
+				$this->assertNotContains( 'term_suggest^1', $fields );
+				$this->assertNotContains( 'post_title.suggest^1', $fields );
+				return $path;
+			},
+			10,
+			6
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test whether fuzziness is set to `auto` for AJAX calls.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_fuziness_with_type_auto_set_for_ajax_call() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+
+		$algorithm = function() {
+			return 'default';
+		};
+		add_filter( 'ep_search_algorithm_version', $algorithm );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function( $path, $index, $type, $query, $query_args, $query_object ) {
+				$this->assertEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
+				return $path;
+			},
+			10,
+			6
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test whether fuzziness is not set to `auto` for AJAX calls when `ep_autosuggest_contexts` is only set to public.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_fuziness_with_type_auto_set_for_ajax_call_negative() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+
+		$algorithm = function() {
+			return 'default';
+		};
+		add_filter( 'ep_search_algorithm_version', $algorithm );
+
+		$autosuggest_context = function() {
+			return [ 'public' ];
+		};
+		add_filter( 'ep_autosuggest_contexts', $autosuggest_context );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function( $path, $index, $type, $query, $query_args, $query_object ) {
+				$this->assertNotEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
+				return $path;
+			},
+			10,
+			6
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+
 	}
 }
