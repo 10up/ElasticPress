@@ -928,18 +928,18 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Get the contexts where autosuggest is used.
+	 * Get the contexts for autosuggest.
 	 *
 	 * @since 5.1.0
 	 * @return array
 	 */
 	protected function get_contexts() : array {
 		/**
-		 * Filter contexts where autosuggest is used.
+		 * Filter contexts for autosuggest.
 		 *
 		 * @hook ep_autosuggest_contexts
 		 * @since 5.1.0
-		 * @param {array} $contexts Contexts where autosuggest is used
+		 * @param {array} $contexts Contexts for autosuggest
 		 * @return {array} New contexts
 		 */
 		return apply_filters( 'ep_autosuggest_contexts', [ 'public', 'ajax' ] );
