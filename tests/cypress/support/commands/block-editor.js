@@ -4,10 +4,10 @@ Cypress.Commands.add('openBlockSettingsSidebar', () => {
 	cy.get('body').then(($el) => {
 		if ($el.hasClass('widgets-php')) {
 			cy.get('.edit-widgets-header__actions button[aria-label="Settings"]').click();
-			cy.get('.edit-widgets-sidebar__panel-tab').contains('Block').click();
+			cy.get('.edit-widgets-sidebar__panel-tabs').contains('Block').click();
 		} else {
 			cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
-			cy.get('.edit-post-sidebar__panel-tab').contains('Block').click();
+			cy.get('.edit-post-sidebar__panel-tabs').contains('Block').click();
 		}
 	});
 });
@@ -15,13 +15,13 @@ Cypress.Commands.add('openBlockSettingsSidebar', () => {
 Cypress.Commands.add('openBlockInserter', () => {
 	cy.get('body').then(($body) => {
 		// If already open, skip.
-		if ($body.find('.edit-widgets-layout__inserter-panel-content').length > 0) {
+		if ($body.find('.block-editor-inserter__menu').length > 0) {
 			return;
 		}
 		if ($body.hasClass('widgets-php')) {
 			cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		} else {
-			cy.get('.edit-post-header-toolbar__inserter-toggle').click();
+			cy.get('.editor-document-tools__inserter-toggle').click();
 		}
 	});
 });
@@ -162,4 +162,13 @@ Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject,
 	}
 
 	cy.wrap(subject).should('have.css', 'padding', '10px 15px');
+});
+
+Cypress.Commands.add('getBlockEditorIframe', {}, () => {
+	return cy
+		.get('.editor-canvas__iframe')
+		.its('0.contentDocument')
+		.find('.block-editor-iframe__body', { timeout: 500 })
+		.should('exist')
+		.then(cy.wrap);
 });

@@ -121,7 +121,7 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	cy.visitAdminPage('post-new.php');
-	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+
 	cy.get('body').then(($body) => {
 		const welcomeGuide = $body.find(
 			'.edit-post-welcome-guide .components-modal__header button',
@@ -131,8 +131,11 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 		}
 	});
 
-	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
-	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+	cy.getBlockEditorIframe().as('iframe');
+	cy.get('@iframe').find('.editor-post-title__input').type(newPostData.title);
+	cy.get('@iframe')
+		.find('.block-editor-default-block-appender__content')
+		.type(newPostData.content);
 
 	if (newPostData.password && newPostData.password !== '') {
 		cy.get('h1.editor-post-title__input').click();
@@ -336,7 +339,7 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 						break;
 					default:
 						cy.get('@control').clear();
-						cy.get('@control').type(setting.value);
+						cy.get('@control').clearThenType(setting.value);
 						break;
 				}
 			}
