@@ -4,6 +4,7 @@ describe('Autosuggest Feature', () => {
 	});
 
 	beforeEach(() => {
+		cy.maybeDisableFeature('instant-results');
 		cy.deactivatePlugin('custom-headers-for-autosuggest', 'wpCli');
 	});
 
@@ -101,5 +102,12 @@ describe('Autosuggest Feature', () => {
 
 		cy.get('.ep-autosuggest li a').first().click();
 		cy.url().should('include', 'cypress=foobar');
+	});
+
+	it('Can select an Autosuggest suggestion even if Instant Results is active', () => {
+		cy.maybeEnableFeature('instant-results');
+		cy.visit('/');
+		cy.get('.wp-block-search__input').type('blog{downArrow}{enter}');
+		cy.url().should('include', 'blog');
 	});
 });

@@ -171,7 +171,7 @@ class Synonyms {
 			'elasticpress',
 			esc_html__( 'ElasticPress Synonyms', 'elasticpress' ),
 			esc_html__( 'Synonyms', 'elasticpress' ),
-			Utils\get_capability(),
+			Utils\get_capability( 'synonyms' ),
 			'elasticpress-synonyms',
 			[ $this, 'admin_page' ]
 		);
@@ -248,7 +248,7 @@ class Synonyms {
 			'show_ui'            => false,
 			'show_in_menu'       => false,
 			'query_var'          => true,
-			'capabilities'       => Utils\get_post_map_capabilities(),
+			'capabilities'       => Utils\get_post_map_capabilities( 'synonyms' ),
 			'has_archive'        => false,
 			'hierarchical'       => false,
 			'menu_position'      => 100,
@@ -388,10 +388,12 @@ class Synonyms {
 		$mapping['settings']['analysis']['filter'][ $filter_name ] = $this->get_synonym_filter();
 
 		// Tell the analyzer to use our newly created filter.
-		$mapping['settings']['analysis']['analyzer']['default_search']['filter'] = array_values(
-			array_merge(
-				[ $filter_name ],
-				$mapping['settings']['analysis']['analyzer']['default_search']['filter']
+		$mapping['settings']['analysis']['analyzer']['default_search']['filter'] = $this->maybe_change_filter_position(
+			array_values(
+				array_merge(
+					[ $filter_name ],
+					$mapping['settings']['analysis']['analyzer']['default_search']['filter'],
+				)
 			)
 		);
 
@@ -483,11 +485,13 @@ class Synonyms {
 				$setting['index']['analysis']['filter']['ep_synonyms_filter'] = $filter;
 
 				// Add the analyzer.
-				$setting['index']['analysis']['analyzer']['default_search']['filter'] = array_values(
-					array_unique(
-						array_merge(
-							[ $this->get_synonym_filter_name() ],
-							$filters
+				$setting['index']['analysis']['analyzer']['default_search']['filter'] = $this->maybe_change_filter_position(
+					array_values(
+						array_unique(
+							array_merge(
+								[ $this->get_synonym_filter_name() ],
+								$filters
+							)
 						)
 					)
 				);
@@ -823,4 +827,23 @@ class Synonyms {
 			true
 		);
 	}
+
+	/**
+	 * Change the position of the lowercase filter to the beginning of the array.
+	 *
+	 * @since 5.1.0
+	 * @param array $filters Array of filters.
+	 * @return array
+	 */
+	protected function maybe_change_filter_position( array $filters ) : array {
+		$lowercase_filter = array_search( 'lowercase', $filters, true );
+
+		if ( false !== $lowercase_filter ) {
+			unset( $filters[ $lowercase_filter ] );
+			array_unshift( $filters, 'lowercase' );
+		}
+
+		return $filters;
+	}
+
 }

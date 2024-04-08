@@ -215,7 +215,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			Utils\get_capability(),
+			Utils\get_capability( 'search-ordering' ),
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -294,7 +294,7 @@ class SearchOrdering extends Feature {
 			'show_in_menu'         => false,
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
-			'capabilities'         => Utils\get_post_map_capabilities(),
+			'capabilities'         => Utils\get_post_map_capabilities( 'search-ordering' ),
 			'has_archive'          => false,
 			'hierarchical'         => false,
 			'menu_position'        => 100,

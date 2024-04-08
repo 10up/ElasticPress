@@ -1,7 +1,7 @@
 /**
  * WordPress Dependencies.
  */
-import { Button, CheckboxControl, RangeControl } from '@wordpress/components';
+import { Button, CheckboxControl, RangeControl, Tooltip } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { trash } from '@wordpress/icons';
@@ -14,9 +14,10 @@ import { trash } from '@wordpress/icons';
  * @param {Function} props.onChange Change handler.
  * @param {Function} props.onDelete Delete handler.
  * @param {object} props.value Values.
+ * @param {boolean} props.showTooltip Whether to show field name tooltip.
  * @returns {WPElement} Component element.
  */
-export default ({ label, onChange, onDelete, value }) => {
+export default ({ label, onChange, onDelete, value, showTooltip }) => {
 	const { enabled = false, weight = 0 } = value;
 
 	/**
@@ -45,7 +46,15 @@ export default ({ label, onChange, onDelete, value }) => {
 	return (
 		<div className="ep-weighting-field">
 			<fieldset>
-				<legend className="ep-weighting-field__name">{label}</legend>
+				<legend className="ep-weighting-field__name">
+					{showTooltip ? (
+						<Tooltip text={label}>
+							<span>{label}</span>
+						</Tooltip>
+					) : (
+						label
+					)}
+				</legend>
 				<div className="ep-weighting-field__searchable">
 					<CheckboxControl
 						checked={enabled}

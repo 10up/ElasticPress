@@ -294,4 +294,148 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 
 		$this->assertSame( $expected_fields, $changed_search_fields );
 	}
+
+	/**
+	 * Test the `is_available` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_available() {
+		$this->assertSame( $this->orders_autosuggest->is_available(), \ElasticPress\Utils\is_epio() );
+
+		/**
+		 * Test the `ep_woocommerce_orders_autosuggest_available` filter
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertTrue( $this->orders_autosuggest->is_available() );
+
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_false' );
+		$this->assertFalse( $this->orders_autosuggest->is_available() );
+	}
+
+	/**
+	 * Test the `is_enabled` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_enabled() {
+		$this->assertFalse( $this->orders_autosuggest->is_enabled() );
+
+		/**
+		 * Make it available but it won't be enabled
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $this->orders_autosuggest->is_enabled() );
+
+		/**
+		 * Enable it
+		 */
+		$filter = function() {
+			return [
+				'woocommerce' => [
+					'orders' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+		$this->assertTrue( $this->orders_autosuggest->is_enabled() );
+
+		/**
+		 * Make it unavailable. Even activated, it should not be considered enabled if not available anymore.
+		 */
+		remove_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		$this->assertFalse( $this->orders_autosuggest->is_enabled() );
+	}
+
+	/**
+	 * Test the `is_hpos_compatible` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_hpos_compatible() {
+		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
+
+		// Turn HPOS on
+		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$change_custom_orders_table = function() {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
+
+		// Disable legacy mode
+		$legacy_mode        = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
+		$change_legacy_mode = function() {
+			return 'no';
+		};
+		add_filter( 'pre_option_' . $legacy_mode, $change_legacy_mode );
+
+		$this->assertFalse( $this->orders_autosuggest->is_hpos_compatible() );
+	}
+
+	/**
+	 * Test the `add_settings_schema` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_add_settings_schema() {
+		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
+		$this->assertSame( 'orders', $new_settings_schema[0]['key'] );
+	}
+
+	/**
+	 * Test the `get_setting_help_message` method when the feature is available
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_get_setting_help_message_feature_available() {
+		/**
+		 * Make it available but it won't be enabled
+		 */
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+
+		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
+		$this->assertStringContainsString( 'You are directly connected to', $new_settings_schema[0]['help'] );
+	}
+
+	/**
+	 * Test the `get_setting_help_message` method when incompatible with HPOS
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_get_setting_help_message_feature_hpos_incompatible() {
+		// Turn HPOS on
+		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$change_custom_orders_table = function() {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
+
+		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
+		$this->assertStringContainsString( 'Currently, autosuggest for orders is only available', $new_settings_schema[0]['help'] );
+	}
+
+	/**
+	 * Test the `get_setting_help_message` method when the feature is not available
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_get_setting_help_message_feature_not_available() {
+		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
+		$this->assertStringContainsString( 'Due to the sensitive nature of orders', $new_settings_schema[0]['help'] );
+	}
 }

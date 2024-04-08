@@ -844,8 +844,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not']['terms']['term_id'][0] );
-		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must_not']['terms']['parent'][0] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not'][0]['terms']['term_id'][0] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not'][1]['terms']['parent'][0] );
 	}
 
 	/**
@@ -1173,7 +1173,7 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertSame( 'category', $args['post_filter']['bool']['must'][0]['term']['taxonomy.raw'] );
-		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must'][0]['match_phrase']['hierarchy.ancestors.terms'] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must']['match_phrase']['hierarchy.ancestors.terms'] );
 
 		$args = $term->format_args(
 			[

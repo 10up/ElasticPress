@@ -45,6 +45,7 @@ class Orders {
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
 	}
 
 	/**
@@ -336,6 +337,48 @@ class Orders {
 	}
 
 	/**
+	 * Display a notice if WooCommerce Orders are not compatible with ElasticPress
+	 *
+	 * If the user has WooCommerce, Protected Content, and HPOS enabled, orders will not go through ElasticPress.
+	 *
+	 * @param array $notices Current EP notices
+	 * @return array
+	 */
+	public function hpos_compatibility_notice( array $notices ) : array {
+		$current_screen = \get_current_screen();
+		if ( empty( $current_screen->id ) || 'woocommerce_page_wc-orders' !== $current_screen->id ) {
+			return $notices;
+		}
+
+		if ( \ElasticPress\Utils\get_option( 'ep_hide_wc_orders_incompatible_notice' ) ) {
+			return $notices;
+		}
+
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		if ( ! $protected_content->is_active() ) {
+			return $notices;
+		}
+
+		if (
+			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+			return $notices;
+		}
+
+		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+			return $notices;
+		}
+
+		$notices['wc_orders_incompatible'] = [
+			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled.", 'elasticpress' ),
+			'type'    => 'warning',
+			'dismiss' => true,
+		];
+
+		return $notices;
+	}
+
+	/**
 	 * If the query has a search term, add the order fields that need to be searched.
 	 *
 	 * @param \WP_Query $query The WP_Query
@@ -477,7 +520,7 @@ class Orders {
 				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
 			);
 
-			if ( $this->woocommerce->is_orders_autosuggest_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
+			if ( $this->woocommerce->orders_autosuggest->is_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
 				call_user_func_array( [ $this->woocommerce->orders_autosuggest, $method_name ], $arguments );
 			}
 		}

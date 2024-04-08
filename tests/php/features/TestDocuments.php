@@ -230,8 +230,10 @@ class TestDocuments extends BaseTestCase {
 	 * @group documents
 	 */
 	public function testQueryForAttachments() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		ElasticPress\Features::factory()->activate_feature( 'search' );
 		ElasticPress\Features::factory()->activate_feature( 'documents' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->ep_factory->post->create(
@@ -255,5 +257,47 @@ class TestDocuments extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
+	}
+
+	/**
+	 * Test the `get_allowed_ingest_mime_types` method.
+	 *
+	 * @since 5.1.0
+	 * @group documents
+	 */
+	public function test_get_allowed_ingest_mime_types() {
+		$feature = ElasticPress\Features::factory()->get_registered_feature( 'documents' );
+
+		$expected = [
+			'pdf'  => 'application/pdf',
+			'ppt'  => 'application/vnd.ms-powerpoint',
+			'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			'xls'  => 'application/vnd.ms-excel',
+			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'doc'  => 'application/msword',
+			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'csv'  => 'text/csv',
+			'txt'  => 'text/plain',
+		];
+		$this->assertSame( $expected, $feature->get_allowed_ingest_mime_types() );
+	}
+
+
+	/**
+	 * Test the `ep_allowed_documents_ingest_mime_types` filter.
+	 *
+	 * @since 5.1.0
+	 * @group documents
+	 */
+	public function test_ep_allowed_documents_ingest_mime_types_filter() {
+		$feature = ElasticPress\Features::factory()->get_registered_feature( 'documents' );
+
+		$change_filter = function ( $allowed_mime_types ) {
+			$allowed_mime_types['test'] = 'text/test';
+			return $allowed_mime_types;
+		};
+		add_filter( 'ep_allowed_documents_ingest_mime_types', $change_filter );
+
+		$this->assertSame( 'text/test', $feature->get_allowed_ingest_mime_types()['test'] );
 	}
 }

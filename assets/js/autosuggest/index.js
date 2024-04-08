@@ -362,6 +362,8 @@ function updateAutosuggestBox(options, input) {
 		}
 	});
 
+	setInputActiveDescendant('', input);
+
 	return true;
 }
 
@@ -373,6 +375,7 @@ function updateAutosuggestBox(options, input) {
 function hideAutosuggestBox() {
 	const lists = document.querySelectorAll('.autosuggest-list');
 	const containers = document.querySelectorAll('.ep-autosuggest');
+	const inputs = document.querySelectorAll('.ep-autosuggest-container [aria-activedescendant]');
 
 	// empty all EP results lists
 	lists.forEach((list) => {
@@ -386,6 +389,9 @@ function hideAutosuggestBox() {
 		// eslint-disable-next-line
 		container.style = 'display: none;';
 	});
+
+	// Remove active descendant attribute from all inputs
+	inputs.forEach((input) => setInputActiveDescendant('', input));
 
 	return true;
 }

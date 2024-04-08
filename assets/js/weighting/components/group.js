@@ -168,6 +168,7 @@ export default ({ group, postType }) => {
 						onDelete={() => {
 							onDelete(key);
 						}}
+						showTooltip
 					/>
 				</PanelRow>
 			))}

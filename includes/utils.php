@@ -54,47 +54,66 @@ function get_epio_credentials() {
 /**
  * Get WP capability needed for a user to interact with ElasticPress in the admin
  *
- * @since 4.5.0
+ * @since 4.5.0, 5.1.0 added $context
+ * @param string $context Context for the capability. Defaults to empty string.
  * @return string
  */
-function get_capability() : string {
+function get_capability( string $context = '' ) : string {
 	/**
 	 * Filter the WP capability needed to interact with ElasticPress in the admin
 	 *
-	 * @since 4.5.0
+	 * Example:
+	 * ```
+	 * add_filter(
+	 *     'ep_capability',
+	 *     function ( $cacapability, $context ) {
+	 *         return ( 'synonyms' === $context ) ?
+	 *            'manage_elasticpress_synonyms' :
+	 *            $cacapability;
+	 *     },
+	 *     10,
+	 *     2
+	 * );
+	 * ```
+	 *
+	 * @since 4.5.0, 5.1.0 added $context
 	 * @hook ep_capability
 	 * @param  {string} $capability Capability name. Defaults to `'manage_elasticpress'`
+	 * @param  {string} $context    Additional context
 	 * @return {string} New capability value
 	 */
-	return apply_filters( 'ep_capability', 'manage_elasticpress' );
+	return apply_filters( 'ep_capability', 'manage_elasticpress', $context );
 }
 
 /**
  * Get WP capability needed for a user to interact with ElasticPress in the network admin
  *
- * @since 4.5.0
+ * @since 4.5.0, 5.1.0 added $context
+ * @param string $context Context for the capability. Defaults to empty string.
  * @return string
  */
-function get_network_capability() : string {
+function get_network_capability( string $context = '' ) : string {
 	/**
 	 * Filter the WP capability needed to interact with ElasticPress in the network admin
 	 *
-	 * @since 4.5.0
+	 * @since 4.5.0, 5.1.0 added $context
 	 * @hook ep_network_capability
 	 * @param  {string} $capability Capability name. Defaults to `'manage_network_elasticpress'`
+	 * @param  {string} $context    Additional context
 	 * @return {string} New capability value
 	 */
-	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress' );
+	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress', $context );
 }
 
 /**
  * Get mapped capabilities for post types
  *
- * @since 4.5.0
+ * @since 4.5.0, 5.1.0 added $context
+ * @param string $context Context for the capability. Defaults to empty string.
  * @return array
  */
-function get_post_map_capabilities() : array {
-	$capability = get_capability();
+function get_post_map_capabilities( string $context = '' ) : array {
+	$capability = get_capability( $context );
 
 	return [
 		'edit_post'          => $capability,
