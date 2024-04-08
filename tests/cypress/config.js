@@ -9,6 +9,7 @@ module.exports = defineConfig({
 	retries: {
 		runMode: 1,
 	},
+	chromeWebSecurity: false,
 	elasticPressIndexTimeout: 100000,
 	e2e: {
 		async setupNodeEvents(on, config) {
