@@ -356,7 +356,8 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 		// Our post was published, but is no longer, so let's remove it from the Elasticsearch index.
 		if ( ! in_array( $post->post_status, $indexable_post_statuses, true ) ) {
-			$this->action_delete_post( $post_id );
+			// Check that the document exists - it may not in the case of auto-saving a new post. If it exists, remove it.
+			$indexable->get( $post_id ) && $this->action_delete_post( $post_id );
 		} else {
 			$indexable_post_types = $indexable->get_indexable_post_types();
 
