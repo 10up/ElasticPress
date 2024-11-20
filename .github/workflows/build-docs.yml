@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: 'wp-content/plugins/elasticpress'
 
@@ -55,7 +55,7 @@ jobs:
         wp cli-command-docs elasticpress --custom-order=sync,activate-feature,deactivate-feature,list-features,get-algorithm-version,set-algorithm-version --remove=delete_transient_on_int,custom_get_transient,stop_on_failed_mapping,call_ep_cli_put_mapping,should_interrupt_sync,index_output,get-indexes,get-cluster-indexes,index,clear-index,get-indexing-status,get-last-cli-index,stop-indexing --custom-intro='The following WP-CLI commands are supported by ElasticPress:' > wp-content/plugins/elasticpress/docs/wp-cli.md
 
     - name: Use Node.js 18
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
 

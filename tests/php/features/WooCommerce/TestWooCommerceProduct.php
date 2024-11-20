@@ -694,11 +694,23 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		// mock the query as main query
 		$wp_the_query = $query;
 
-		$query = $query->query( $args );
+		$query_results = $query->query( $args );
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success );
-		$this->assertEquals( 1, count( $query ) );
-		$this->assertEquals( 'Cap', $query[0]->post_title );
+		$this->assertEquals( 1, count( $query_results ) );
+		$this->assertEquals( 'Cap', $query_results[0]->post_title );
+
+		// Enable the product attributes lookup table for catalog filtering
+		$enable_attribute_lookup = function() {
+			return 'yes';
+		};
+		add_filter( 'pre_option_woocommerce_attribute_lookup_enabled', $enable_attribute_lookup );
+
+		$query_results = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+		$this->assertEquals( 1, count( $query_results ) );
+		$this->assertEquals( 'Cap', $query_results[0]->post_title );
 	}
 
 	/**

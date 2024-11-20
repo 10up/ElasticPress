@@ -816,6 +816,31 @@ class Products {
 			}
 		}
 
+		/*
+		 * If the site is set to use the product attributes lookup table for catalog filtering
+		 * we need to add filters back to WP_Query, so EP can handle the filtering.
+		 */
+		$filterer_class = 'Automattic\WooCommerce\Internal\ProductAttributesLookup\Filterer';
+		if (
+			function_exists( 'wc_get_container' ) &&
+			class_exists( $filterer_class ) &&
+			method_exists( 'WC_Query', 'get_layered_nav_chosen_attributes' )
+		) {
+			$filterer = wc_get_container()->get( $filterer_class );
+
+			if ( $filterer->filtering_via_lookup_table_is_active() ) {
+				foreach ( \WC_Query::get_layered_nav_chosen_attributes() as $taxonomy => $data ) {
+					$tax_query[] = array(
+						'taxonomy'         => $taxonomy,
+						'field'            => 'slug',
+						'terms'            => $data['terms'],
+						'operator'         => 'and' === $data['query_type'] ? 'AND' : 'IN',
+						'include_children' => false,
+					);
+				}
+			}
+		}
+
 		$query->set( 'tax_query', $tax_query );
 	}
 

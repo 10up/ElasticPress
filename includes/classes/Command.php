@@ -874,8 +874,6 @@ class Command extends WP_CLI_Command {
 	public function status() {
 		$this->connect_check();
 
-		$request_args = [ 'headers' => Elasticsearch::factory()->format_request_headers() ];
-
 		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
@@ -896,7 +894,7 @@ class Command extends WP_CLI_Command {
 
 		$index_names_imploded = implode( ',', $index_names );
 
-		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
+		$request = Elasticsearch::factory()->remote_request( $index_names_imploded . '/_recovery/?pretty' );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -919,8 +917,6 @@ class Command extends WP_CLI_Command {
 	public function stats() {
 		$this->connect_check();
 
-		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
-
 		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
@@ -942,7 +938,7 @@ class Command extends WP_CLI_Command {
 		$index_names_imploded = implode( ',', $index_names );
 
 		Elasticsearch::factory()->refresh_indices();
-		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
+		$request = Elasticsearch::factory()->remote_request( $index_names_imploded . '/_stats/' );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );

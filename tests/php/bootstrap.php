@@ -38,7 +38,7 @@ function load_plugin() {
 	$host = getenv( 'EP_HOST' );
 
 	if ( empty( $host ) ) {
-		$host = 'http://127.0.0.1:9200';
+		$host = 'http://127.0.0.1:8890';
 	}
 
 	update_option( 'ep_host', $host );

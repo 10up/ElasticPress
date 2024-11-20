@@ -30,7 +30,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Start MySQL
       run: sudo systemctl start mysql.service
@@ -46,7 +46,7 @@ jobs:
         composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
     - name: Prepare composer cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}

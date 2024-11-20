@@ -106,8 +106,12 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').type('{esc}');
 
-			cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
-			cy.get('.block-editor-block-inspector li[role="option"]')
+			cy.get(
+				'.block-editor-block-inspector fieldset.components-font-size-picker button[role="combobox"]',
+			).click();
+			cy.get(
+				'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
+			)
 				.contains('Extra small')
 				.click();
 
