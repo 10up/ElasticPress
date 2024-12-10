@@ -190,10 +190,10 @@ class Sync {
 				[
 					'message'    => sprintf(
 						/* translators: 1. Number of objects indexed, 2. Total number of objects, 3. Last object ID. */
-						esc_html__( 'Processed %1$s/%2$s. Last Object ID: %3$s', 'elasticpress' ),
-						number_format( $index_meta['offset'] ),
-						number_format( $index_meta['found_items'] ),
-						number_format( $index_meta['current_sync_item']['last_processed_object_id'] )
+						esc_html__( 'Processed %1$s/%2$s. Last Object ID: %3$d', 'elasticpress' ),
+						number_format_i18n( $index_meta['offset'] ),
+						number_format_i18n( $index_meta['found_items'] ),
+						$index_meta['current_sync_item']['last_processed_object_id']
 					),
 					'index_meta' => $index_meta,
 				]

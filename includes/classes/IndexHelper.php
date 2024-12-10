@@ -728,9 +728,9 @@ class IndexHelper {
 			/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
 			esc_html__( 'Processed %1$s %2$s - %3$s of %4$s. Last Object ID: %5$d', 'elasticpress' ),
 			esc_html( strtolower( $indexable->labels['plural'] ) ),
-			number_format( $this->index_meta['from'] ),
-			number_format( $this->index_meta['offset'] ),
-			number_format( $this->index_meta['found_items'] ),
+			number_format_i18n( $this->index_meta['from'] ),
+			number_format_i18n( $this->index_meta['offset'] ),
+			number_format_i18n( $this->index_meta['found_items'] ),
 			$this->index_meta['current_sync_item']['last_processed_object_id']
 		);
 
