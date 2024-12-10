@@ -11,6 +11,7 @@
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       elasticpress
+ * Domain Path:       /lang
  *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
@@ -275,14 +276,22 @@ function handle_upgrades() {
  * @since  2.2
  */
 function setup_misc() {
-	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' ); // Load any available translations first.
-
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
+
+/**
+ * Load text domain
+ *
+ * @since 5.1.4
+ */
+function i18n() {
+	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' );
+}
+add_action( 'init', __NAMESPACE__ . '\i18n' );
 
 /**
  * Set up role(s) with EP capability
