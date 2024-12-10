@@ -348,11 +348,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
 
-		$option_name  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_value = function() {
-			return 'yes';
-		};
-		add_filter( 'pre_option_' . $option_name, $change_value );
+		$this->enable_hpos();
 
 		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
 		$this->assertCount( 2, $new_notices );
@@ -369,5 +365,33 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
 		$this->assertCount( 1, $new_notices );
 		$this->assertArrayNotHasKey( 'wc_orders_incompatible', $new_notices );
+	}
+
+	/**
+	 * Test the `is_hpos_enabled` method
+	 *
+	 * @since 5.3.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_is_hpos_enabled() {
+		$this->assertFalse( $this->orders->is_hpos_enabled() );
+
+		$this->enable_hpos();
+
+		$this->assertTrue( $this->orders->is_hpos_enabled() );
+	}
+
+	/**
+	 * Utilitary function to enable WooCommerce HPOS
+	 *
+	 * @since 5.3.0
+	 */
+	protected function enable_hpos() {
+		$option_name  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$change_value = function() {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $option_name, $change_value );
 	}
 }

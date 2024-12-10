@@ -26,12 +26,20 @@ class Orders {
 	protected $woocommerce;
 
 	/**
+	 * Receive the OrdersHPOS object instance
+	 *
+	 * @var OrdersHPOS
+	 */
+	protected $orders_hpos;
+
+	/**
 	 * Class constructor
 	 *
 	 * @param WooCommerce $woocommerce WooCommerce feature object instance
 	 */
 	public function __construct( WooCommerce $woocommerce ) {
 		$this->woocommerce = $woocommerce;
+		$this->orders_hpos = new OrdersHPOS( $this );
 	}
 
 	/**
@@ -46,6 +54,10 @@ class Orders {
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
+
+		if ( $this->is_hpos_enabled() ) {
+			$this->orders_hpos->setup();
+		}
 	}
 
 	/**
@@ -61,6 +73,10 @@ class Orders {
 		remove_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		remove_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
+
+		if ( $this->is_hpos_enabled() ) {
+			$this->orders_hpos->tear_down();
+		}
 	}
 
 	/**
@@ -359,13 +375,7 @@ class Orders {
 			return $notices;
 		}
 
-		if (
-			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
-			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
-			return $notices;
-		}
-
-		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+		if ( ! $this->is_hpos_enabled() ) {
 			return $notices;
 		}
 
@@ -478,6 +488,22 @@ class Orders {
 		$query->set( 'suppress_filters', false );
 
 		$this->maybe_set_search_fields( $query );
+	}
+
+	/**
+	 * Whether WooCommerce HPOS is enabled or not
+	 *
+	 * @since 5.3.0
+	 * @return boolean Whether WooCommerce HPOS is enabled or not
+	 */
+	public function is_hpos_enabled() : bool {
+		if (
+			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+			return false;
+		}
+
+		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
 	}
 
 	/**
