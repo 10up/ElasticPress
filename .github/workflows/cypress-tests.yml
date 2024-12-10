@@ -3,7 +3,7 @@ name: E2E Test
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
