@@ -57,6 +57,7 @@ const ElasticPressToggleControl = ({ blogId, isDefaultChecked }) => {
 			disabled={isLoading}
 			label={isChecked ? __('On', 'elasticpress') : __('Off', 'elasticpress')}
 			onChange={onChange}
+			__nextHasNoMarginBottom
 		/>
 	);
 };
