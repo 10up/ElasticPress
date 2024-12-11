@@ -719,6 +719,10 @@ class Search extends Feature {
 			return;
 		}
 
+		if ( ! $post->post_type || ! post_type_supports( $post->post_type, 'custom-fields' ) ) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'ep-search-editor',
 			EP_URL . 'dist/js/search-editor-script.js',
@@ -817,7 +821,6 @@ class Search extends Feature {
 		} else {
 			delete_post_meta( $post_id, 'ep_exclude_from_search' );
 		}
-
 	}
 
 	/**
