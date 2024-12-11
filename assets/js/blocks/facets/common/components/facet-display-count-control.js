@@ -19,6 +19,7 @@ export default ({ onChange, checked }) => {
 			checked={checked}
 			label={__('Display count', 'elasticpress')}
 			onChange={onChange}
+			__nextHasNoMarginBottom
 		/>
 	);
 };

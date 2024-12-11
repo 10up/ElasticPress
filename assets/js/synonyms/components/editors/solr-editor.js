@@ -35,6 +35,7 @@ const SolrEditor = () => {
 			rows="20"
 			value={solr}
 			onChange={onChange}
+			__nextHasNoMarginBottom
 		/>
 	);
 };
