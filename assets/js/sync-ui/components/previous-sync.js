@@ -52,7 +52,7 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 								'elasticpress',
 							),
 							failures,
-					  )
+						)
 					: __('Completed with errors.', 'elasticpress');
 			case 'aborted':
 				return __('Stopped.', 'elasticpress');
@@ -119,7 +119,7 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 							),
 							when,
 							why,
-					  )
+						)
 					: when}
 			</div>
 			<div className="ep-previous-sync__help">{how}</div>

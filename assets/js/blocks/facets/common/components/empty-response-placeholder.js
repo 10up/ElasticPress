@@ -21,11 +21,11 @@ export default ({ attributes }) => {
 				? __(
 						'Preview unavailable. The selected taxonomy has no terms assigned to searchable content.',
 						'elasticpress',
-				  )
+					)
 				: __(
 						'Preview unavailable. There is no searchable content available with the selected metadata.',
 						'elasticpress',
-				  )}
+					)}
 		</Warning>
 	);
 };

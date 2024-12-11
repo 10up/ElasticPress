@@ -238,7 +238,7 @@ export default ({ disabled, label, locale, options, onChange, selected, sortBy }
 									'elasticpress',
 								),
 								options.length - optionsLimit,
-						  )}
+							)}
 				</SmallButton>
 			)}
 		</>

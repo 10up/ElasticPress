@@ -47,7 +47,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 					__('%1$s (%2$s)', 'elasticpress'),
 					label,
 					typeLabels.join(typeSeparator),
-			  )
+				)
 			: label;
 	}, [label, postTypes, name]);
 

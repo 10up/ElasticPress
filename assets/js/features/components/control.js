@@ -68,7 +68,7 @@ export default ({
 					value: o.value,
 					label: <span dangerouslySetInnerHTML={{ __html: safeHTML(o.label) }} />, // eslint-disable-line react/no-danger
 				};
-		  })
+			})
 		: [];
 
 	/**
@@ -85,9 +85,9 @@ export default ({
 	const requiredFeatureNotice =
 		name === 'active'
 			? /* translators: Feature name */
-			  __('The %s feature must be enabled to use this feature.', 'elasticpress')
+				__('The %s feature must be enabled to use this feature.', 'elasticpress')
 			: /* translators: Feature name */
-			  __('The %s feature must be enabled to use the following setting.', 'elasticpress');
+				__('The %s feature must be enabled to use the following setting.', 'elasticpress');
 
 	/**
 	 * The notice to display if a sync is required.

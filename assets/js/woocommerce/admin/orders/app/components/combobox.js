@@ -46,7 +46,7 @@ export default ({ children, id, isBusy, onSelect, ...props }) => {
 						'elasticpress',
 					),
 					children.length,
-			  )
+				)
 			: '';
 	}, [children, isBusy]);
 

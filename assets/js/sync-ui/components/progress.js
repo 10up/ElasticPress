@@ -117,7 +117,7 @@ export default () => {
 			})}
 		>
 			<Icon icon={sync} />
-			<div className="ep-sync-progress__details">
+			<div id="ep-sync-progress-details" className="ep-sync-progress__details">
 				<strong>{label}</strong>
 				{syncStartDateTime
 					? createInterpolateElement(
@@ -125,11 +125,12 @@ export default () => {
 							{
 								time: <time dateTime={dateI18n('c', syncStartDateTime)} />,
 							},
-					  )
+						)
 					: null}
 			</div>
 			<div className="ep-sync-progress__progress-bar">
 				<div
+					aria-labelledby="ep-sync-progress-details"
 					aria-valuemax={100}
 					aria-valuemin={0}
 					aria-valuenow={now}
