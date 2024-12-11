@@ -24,10 +24,10 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	 * @since 5.1.4
 	 */
 	public function set_up() {
+		parent::set_up();
+
 		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
 		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-
-		parent::set_up();
 	}
 
 	/**
@@ -37,10 +37,10 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	 * @since 5.1.4
 	 */
 	public function tear_down() {
+		parent::tear_down();
+
 		add_filter( 'query', [ $this, '_create_temporary_tables' ] );
 		add_filter( 'query', [ $this, '_drop_temporary_tables' ] );
-
-		parent::tear_down();
 	}
 
 	/**
@@ -55,7 +55,7 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 	/**
 	 * Test ajax output.
 	 */
-	public function testAjaxOutput() {
+	public function testAjaxOutput_1() {
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $admin_id );
 

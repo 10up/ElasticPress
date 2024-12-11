@@ -13,7 +13,7 @@ use ElasticPress\SearchAlgorithm;
 /**
  * Test abstract SearchAlgorithm class
  */
-class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
+class TestSearchAlgorithm extends BaseTestCase {
 	/**
 	 * "Concrete" stub for the abstract class
 	 *
