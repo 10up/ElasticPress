@@ -665,7 +665,7 @@ class Products {
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
-	public function should_integrate_with_query( \WP_Query $query ) : bool {
+	public function should_integrate_with_query( \WP_Query $query ): bool {
 		$has_ep_integrate = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
 		$is_search        = '' !== $this->woocommerce->get_search_term( $query );
 
@@ -703,7 +703,7 @@ class Products {
 	 *
 	 * @return array
 	 */
-	public function get_supported_taxonomies() : array {
+	public function get_supported_taxonomies(): array {
 		$supported_taxonomies = array(
 			'product_cat',
 			'product_tag',
@@ -749,7 +749,7 @@ class Products {
 	 * @param \WP_Query $query The WP_Query object
 	 * @return array
 	 */
-	public function get_supported_post_types( \WP_Query $query ) : array {
+	public function get_supported_post_types( \WP_Query $query ): array {
 		$post_types = [ 'product_variation' ];
 
 		$is_main_post_type_archive = $query->is_main_query() && $query->is_post_type_archive( 'product' );
@@ -935,7 +935,7 @@ class Products {
 	 * @param array $search_fields Array of search fields.
 	 * @return array
 	 */
-	public function remove_author( array $search_fields ) : array {
+	public function remove_author( array $search_fields ): array {
 		foreach ( $search_fields as $field_key => $field ) {
 			if ( 'author_name' === $field ) {
 				unset( $search_fields[ $field_key ] );
@@ -1035,7 +1035,7 @@ class Products {
 	 * @param array $meta_key The meta key to get the mapping for.
 	 * @return string The mapped meta key.
 	 */
-	public function get_orderby_meta_mapping( $meta_key ) : string {
+	public function get_orderby_meta_mapping( $meta_key ): string {
 		/**
 		 * Filter WooCommerce to Elasticsearch meta mapping
 		 *
@@ -1070,7 +1070,7 @@ class Products {
 	 * @param array $attribute_taxonomies  Attribute taxonomies.
 	 * @return array $attribute_taxonomies Attribute taxonomies.
 	 */
-	public function add_taxonomy_attributes( array $attribute_taxonomies ) : array {
+	public function add_taxonomy_attributes( array $attribute_taxonomies ): array {
 		$all_attr_taxonomies = wc_get_attribute_taxonomies();
 
 		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {

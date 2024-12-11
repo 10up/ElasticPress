@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use \WP_Query;
+use WP_Query;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -189,7 +189,6 @@ class QueryIntegration {
 				$this->switched = false;
 			}
 		}
-
 	}
 
 	/**
@@ -588,7 +587,7 @@ class QueryIntegration {
 
 		$suggestion['options'] = array_filter(
 			$suggestion['options'],
-			function( $option ) use ( $min_score ) {
+			function ( $option ) use ( $min_score ) {
 				return number_format( $option['score'], 10 ) > $min_score;
 			}
 		);

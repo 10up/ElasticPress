@@ -11,7 +11,7 @@
 
 add_filter(
 	'ep_instant_results_per_page',
-	function() {
+	function () {
 		return 3;
 	}
 );

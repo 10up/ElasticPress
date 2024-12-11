@@ -136,7 +136,7 @@ class WooCommerce extends Feature {
 	 * @param \WP_Query $query The WP_Query object
 	 * @return string
 	 */
-	public function get_search_term( \WP_Query $query ) : string {
+	public function get_search_term( \WP_Query $query ): string {
 		$search = $query->get( 'search' );
 		return ( ! empty( $search ) ) ? $search : $query->get( 's', '' );
 	}
@@ -290,7 +290,7 @@ class WooCommerce extends Feature {
 	 * @deprecated 5.1.0
 	 * @return boolean
 	 */
-	public function is_orders_autosuggest_available() : bool {
+	public function is_orders_autosuggest_available(): bool {
 		_deprecated_function( __METHOD__, '5.1.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->is_available()" );
 		return $this->orders_autosuggest->is_available();
 	}
@@ -302,7 +302,7 @@ class WooCommerce extends Feature {
 	 * @deprecated 5.1.0
 	 * @return boolean
 	 */
-	public function is_orders_autosuggest_enabled() : bool {
+	public function is_orders_autosuggest_enabled(): bool {
 		_deprecated_function( __METHOD__, '5.1.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->is_enabled()" );
 		return $this->orders_autosuggest->is_enabled();
 	}

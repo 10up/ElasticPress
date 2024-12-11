@@ -504,7 +504,7 @@ class OrdersAutosuggest {
 	 * @param \WP_Query $query         Query being executed
 	 * @return array New search fields
 	 */
-	public function set_search_fields( array $search_fields, \WP_Query $query ) : array {
+	public function set_search_fields( array $search_fields, \WP_Query $query ): array {
 		$is_orders_search_template = (bool) $query->get( 'ep_order_search_template' );
 
 		if ( $is_orders_search_template ) {
@@ -574,7 +574,7 @@ class OrdersAutosuggest {
 	 * @since 5.1.0
 	 * @return boolean
 	 */
-	public function is_available() : bool {
+	public function is_available(): bool {
 		/**
 		 * Whether the autosuggest feature is available for non
 		 * ElasticPress.io customers.
@@ -592,7 +592,7 @@ class OrdersAutosuggest {
 	 * @since 5.1.0
 	 * @return boolean
 	 */
-	public function is_enabled() : bool {
+	public function is_enabled(): bool {
 		return $this->is_available() && '1' === $this->woocommerce->get_setting( 'orders' );
 	}
 
@@ -627,7 +627,7 @@ class OrdersAutosuggest {
 	 * @param array $settings_schema Current settings schema
 	 * @return array
 	 */
-	public function add_settings_schema( array $settings_schema ) : array {
+	public function add_settings_schema( array $settings_schema ): array {
 		$available = $this->is_available();
 
 		$settings_schema[] = [
@@ -649,7 +649,7 @@ class OrdersAutosuggest {
 	 * @since 5.1.0
 	 * @return string
 	 */
-	protected function get_setting_help_message() : string {
+	protected function get_setting_help_message(): string {
 		$available = $this->is_available();
 
 		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-io-order-autosuggest/';

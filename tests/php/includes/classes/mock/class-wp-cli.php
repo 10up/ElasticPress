@@ -121,5 +121,4 @@ class WP_CLI {
 		$runner->assoc_args = [];
 		return $runner;
 	}
-
 }

@@ -24,7 +24,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI;
+use WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -40,7 +40,7 @@ define( 'EP_PHP_VERSION_MIN', '7.4' );
 if ( ! version_compare( phpversion(), EP_PHP_VERSION_MIN, '>=' ) ) {
 	add_action(
 		'admin_notices',
-		function() {
+		function () {
 			?>
 			<div class="notice notice-error">
 				<p>
@@ -72,7 +72,7 @@ if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
  * @since 2.6
  */
 spl_autoload_register(
-	function( $class ) {
+	function ( $class ) {
 			// project-specific namespace prefix.
 			$prefix = 'ElasticPress\\';
 

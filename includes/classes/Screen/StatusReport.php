@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Screen;
 
-use \ElasticPress\Utils;
+use ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -87,7 +87,7 @@ class StatusReport {
 	 *
 	 * @return array
 	 */
-	public function get_reports() : array {
+	public function get_reports(): array {
 		$reports = [];
 
 		$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
@@ -125,7 +125,7 @@ class StatusReport {
 
 		$filtered_reports = array_filter(
 			$filtered_reports,
-			function( $report_slug ) use ( $skipped_reports ) {
+			function ( $report_slug ) use ( $skipped_reports ) {
 				return ! in_array( $report_slug, $skipped_reports, true );
 			},
 			ARRAY_FILTER_USE_KEY
@@ -140,12 +140,12 @@ class StatusReport {
 	 * @since 4.5.0
 	 * @return array
 	 */
-	protected function get_formatted_reports() : array {
+	protected function get_formatted_reports(): array {
 		if ( empty( $this->formatted_reports ) ) {
 			$reports = $this->get_reports();
 
 			$this->formatted_reports = array_map(
-				function( $report ) {
+				function ( $report ) {
 					return [
 						'actions'  => $report->get_actions(),
 						'groups'   => $report->get_groups(),
@@ -166,7 +166,7 @@ class StatusReport {
 	 * @param array  $groups Report groups
 	 * @return string
 	 */
-	protected function render_copy_paste_report( string $title, array $groups ) : string {
+	protected function render_copy_paste_report( string $title, array $groups ): string {
 		$output = "## {$title} ##\n\n";
 
 		foreach ( $groups as $group ) {

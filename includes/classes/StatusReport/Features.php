@@ -8,8 +8,8 @@
 
 namespace ElasticPress\StatusReport;
 
-use \ElasticPress\Features as EP_Features;
-use \ElasticPress\Feature\Search\Search;
+use ElasticPress\Features as EP_Features;
+use ElasticPress\Feature\Search\Search;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -25,7 +25,7 @@ class Features extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Feature Settings', 'elasticpress' );
 	}
 
@@ -34,12 +34,12 @@ class Features extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$features_settings = \ElasticPress\Utils\get_option( 'ep_feature_settings', [] );
 
 		$features = array_filter(
 			EP_Features::factory()->registered_features,
-			function( $feature ) {
+			function ( $feature ) {
 				return $feature->is_active();
 			}
 		);
@@ -79,7 +79,7 @@ class Features extends Report {
 	 * @param Search $feature Feature object
 	 * @return array New fields
 	 */
-	protected function get_search_extra_fields( array $fields, Search $feature ) : array {
+	protected function get_search_extra_fields( array $fields, Search $feature ): array {
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			return $fields;
 		}

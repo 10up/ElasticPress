@@ -181,7 +181,7 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return FeatureRequirementsStatus
 	 */
-	public function requirements_status() : FeatureRequirementsStatus {
+	public function requirements_status(): FeatureRequirementsStatus {
 		return new FeatureRequirementsStatus( 0 );
 	}
 
@@ -796,5 +796,4 @@ class SearchOrdering extends Feature {
 
 		return $admin_title;
 	}
-
 }

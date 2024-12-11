@@ -93,7 +93,7 @@ class TestUninstall extends BaseTestCase {
 	 * @param string $method_name The method name
 	 * @return \ReflectionMethod
 	 */
-	protected function get_protected_method( string $method_name ) : \ReflectionMethod {
+	protected function get_protected_method( string $method_name ): \ReflectionMethod {
 		$reflection = new \ReflectionClass( '\EP_Uninstaller' );
 		$method     = $reflection->getMethod( $method_name );
 		$method->setAccessible( true );

@@ -303,10 +303,8 @@ function maybe_notice( $force = false ) {
 		if ( ! is_super_admin() || ! is_network_admin() ) {
 			return false;
 		}
-	} else {
-		if ( is_network_admin() || ! current_user_can( Utils\get_capability() ) ) {
+	} elseif ( is_network_admin() || ! current_user_can( Utils\get_capability() ) ) {
 			return false;
-		}
 	}
 
 	/**
@@ -691,7 +689,7 @@ function action_admin_menu() {
  * @param string $format Format of the return ('locales' or 'elasticsearch' )
  * @return array
  */
-function get_available_languages( string $format = 'elasticsearch' ) : array {
+function get_available_languages( string $format = 'elasticsearch' ): array {
 	/**
 	 * Filter available languages in Elasticsearch.
 	 *
@@ -973,7 +971,7 @@ function block_categories( $block_categories ) {
 	];
 
 	return $block_categories;
-};
+}
 
 /**
  * Enqueue shared block editor assets.

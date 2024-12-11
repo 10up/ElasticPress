@@ -244,5 +244,4 @@ class SyncManager extends \ElasticPress\SyncManager {
 			$this->add_to_queue( $hierarchy_term_id );
 		}
 	}
-
 }

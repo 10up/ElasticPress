@@ -174,10 +174,8 @@ class ProtectedContent extends Feature {
 			}
 
 			$query->set( 'ep_integrate', true );
-		} else {
-			if ( ! empty( $supported_post_types[ $post_type ] ) ) {
+		} elseif ( ! empty( $supported_post_types[ $post_type ] ) ) {
 				$query->set( 'ep_integrate', true );
-			}
 		}
 
 		/**
@@ -356,12 +354,9 @@ class ProtectedContent extends Feature {
 			}
 
 			$comment_query->query_vars['ep_integrate'] = true;
-		} else {
-			if ( in_array( $comment_type, $supported_comment_types, true ) ) {
+		} elseif ( in_array( $comment_type, $supported_comment_types, true ) ) {
 				$comment_query->query_vars['ep_integrate'] = true;
-			}
 		}
-
 	}
 
 	/**
@@ -425,7 +420,7 @@ class ProtectedContent extends Feature {
 	 * @param bool      $skip     Current value of $skip
 	 * @return bool
 	 */
-	public function sync_password_protected( $new_skip, bool $skip ) : bool {
+	public function sync_password_protected( $new_skip, bool $skip ): bool {
 		return $skip;
 	}
 

@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\RelatedPosts;
 
-use \WP_Query;
+use WP_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Feature;
 use ElasticPress\REST;

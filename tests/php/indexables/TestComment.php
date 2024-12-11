@@ -133,7 +133,7 @@ class TestComment extends BaseTestCase {
 	public function testCommentSync() {
 		add_action(
 			'ep_sync_comment_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_comment_on_transition'] = true;
 			}
 		);
@@ -229,7 +229,7 @@ class TestComment extends BaseTestCase {
 
 		add_filter(
 			'ep_comment_sync_kill',
-			function( $kill, $comment_id ) use ( $created_comment_id ) {
+			function ( $kill, $comment_id ) use ( $created_comment_id ) {
 				if ( $created_comment_id === $comment_id ) {
 					return true;
 				}
@@ -279,7 +279,7 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 
 		// Test some of the filters and defaults.
-		$return_2 = function() {
+		$return_2 = function () {
 			return 2;
 		};
 
@@ -606,14 +606,14 @@ class TestComment extends BaseTestCase {
 	public function testCommentDelete() {
 		add_action(
 			'ep_sync_comment_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_comment_on_transition'] = true;
 			}
 		);
 
 		add_action(
 			'deleted_comment',
-			function() {
+			function () {
 				$this->fired_actions['deleted_comment'] = true;
 			}
 		);
@@ -2473,7 +2473,7 @@ class TestComment extends BaseTestCase {
 		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
 		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 
-		$change_lang = function( $lang, $context ) {
+		$change_lang = function ( $lang, $context ) {
 			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
 		};
 		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
