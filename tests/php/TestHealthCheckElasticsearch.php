@@ -17,6 +17,31 @@ use WPAjaxDieContinueException;
  *  Health check elasticsearch test class
  */
 class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
+	/**
+	 * Set up the test case.
+	 *
+	 * @var obj
+	 * @since 5.1.4
+	 */
+	public function set_up() {
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+
+		parent::set_up();
+	}
+
+	/**
+	 * Clean up the test case.
+	 *
+	 * @var obj
+	 * @since 5.1.4
+	 */
+	public function tear_down() {
+		add_filter( 'query', [ $this, '_create_temporary_tables' ] );
+		add_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+
+		parent::tear_down();
+	}
 
 	/**
 	 * Test if the test is registered

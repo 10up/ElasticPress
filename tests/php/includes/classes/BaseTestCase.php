@@ -50,7 +50,23 @@ class BaseTestCase extends WP_UnitTestCase {
 
 		\ElasticPress\setup_roles();
 
+		remove_filter( 'query', [ $this, '_create_temporary_tables' ] );
+		remove_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+
 		parent::set_up();
+	}
+
+	/**
+	 * Clean up the test case.
+	 *
+	 * @var obj
+	 * @since 5.1.4
+	 */
+	public function tear_down() {
+		add_filter( 'query', [ $this, '_create_temporary_tables' ] );
+		add_filter( 'query', [ $this, '_drop_temporary_tables' ] );
+
+		parent::tear_down();
 	}
 
 	/**
