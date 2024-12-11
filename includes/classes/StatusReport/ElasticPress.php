@@ -24,7 +24,7 @@ class ElasticPress extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'ElasticPress', 'elasticpress' );
 	}
 
@@ -33,7 +33,7 @@ class ElasticPress extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		return [
 			$this->get_basic_settings(),
 			$this->get_timeouts(),
@@ -45,7 +45,7 @@ class ElasticPress extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_basic_settings() : array {
+	protected function get_basic_settings(): array {
 		$is_epio = Utils\is_epio();
 
 		$fields = [];

@@ -111,7 +111,7 @@ class TestAutosuggest extends BaseTestCase {
 	 * Test the mapping change in ES 5 method
 	 */
 	public function testMappingES5() {
-		$change_es_version = function() {
+		$change_es_version = function () {
 			return '5.2';
 		};
 
@@ -133,7 +133,7 @@ class TestAutosuggest extends BaseTestCase {
 	 * Test the mapping change in ES 7 method
 	 */
 	public function testMappingES7() {
-		$change_es_version = function() {
+		$change_es_version = function () {
 			return '7.0';
 		};
 
@@ -193,7 +193,7 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->enqueue_scripts();
 		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
 
-		$filter = function() {
+		$filter = function () {
 			return [
 				'autosuggest' => [
 					'endpoint_url' => 'http://example.com',
@@ -226,7 +226,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
 		 */
-		$test_placeholder_filter = function() {
+		$test_placeholder_filter = function () {
 			return 'lorem-ipsum';
 		};
 
@@ -238,7 +238,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
 		 */
-		$test_post_type_filter = function() {
+		$test_post_type_filter = function () {
 			return [ 'my-custom-post-type' ];
 		};
 
@@ -249,7 +249,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_term_suggest_post_status` filter.
 		 */
-		$test_post_status_filter = function() {
+		$test_post_status_filter = function () {
 			return [ 'trash' ];
 		};
 
@@ -261,7 +261,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_term_suggest_post_status` filter.
 		 */
-		$test_args_filter = function( $args ) {
+		$test_args_filter = function ( $args ) {
 			$args['posts_per_page'] = 1234;
 			return $args;
 		};
@@ -283,7 +283,7 @@ class TestAutosuggest extends BaseTestCase {
 	 * Test the filters in the `apply_autosuggest_weighting` method
 	 */
 	public function testApplyAutosuggestWeighting() {
-		$filter = function() {
+		$filter = function () {
 			return [ 'hello' => 'world' ];
 		};
 
@@ -346,7 +346,7 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query, $query_args, $query_object ) {
 				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
 
 				$this->assertContains( 'term_suggest^1', $fields );
@@ -379,7 +379,7 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
 		add_filter( 'ep_enable_do_weighting', '__return_true' );
 
-		$autosuggest_context = function() {
+		$autosuggest_context = function () {
 			return [ 'public' ];
 		};
 
@@ -398,7 +398,7 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query, $query_args, $query_object ) {
 				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
 
 				$this->assertNotContains( 'term_suggest^1', $fields );
@@ -430,7 +430,7 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
 
-		$algorithm = function() {
+		$algorithm = function () {
 			return 'default';
 		};
 		add_filter( 'ep_search_algorithm_version', $algorithm );
@@ -448,7 +448,7 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query, $query_args, $query_object ) {
 				$this->assertEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
 				return $path;
 			},
@@ -476,12 +476,12 @@ class TestAutosuggest extends BaseTestCase {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
 
-		$algorithm = function() {
+		$algorithm = function () {
 			return 'default';
 		};
 		add_filter( 'ep_search_algorithm_version', $algorithm );
 
-		$autosuggest_context = function() {
+		$autosuggest_context = function () {
 			return [ 'public' ];
 		};
 		add_filter( 'ep_autosuggest_contexts', $autosuggest_context );
@@ -499,7 +499,7 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query, $query_args, $query_object ) {
 				$this->assertNotEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
 				return $path;
 			},
@@ -515,6 +515,5 @@ class TestAutosuggest extends BaseTestCase {
 		);
 
 		$this->assertTrue( $query->elasticsearch_success );
-
 	}
 }

@@ -54,7 +54,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
 
-		$test_filter = function() {
+		$test_filter = function () {
 			return 1234;
 		};
 
@@ -101,7 +101,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
 
-		$test_filter = function() {
+		$test_filter = function () {
 			return 1234;
 		};
 
@@ -148,7 +148,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 		$search_term   = 'search_term';
 		$search_fields = [ 'post_title', 'post_content' ];
 
-		$test_filter = function() {
+		$test_filter = function () {
 			return 1234;
 		};
 
@@ -188,7 +188,7 @@ class TestDefaultSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @param array  $search_fields Search fields
 	 * @return array
 	 */
-	protected function getModel( string $search_term, array $search_fields ) : array {
+	protected function getModel( string $search_term, array $search_fields ): array {
 		return [
 			'bool' => [
 				'should' => [

@@ -33,7 +33,7 @@ const frameLoaded = (selector, opts) => {
 				name: 'frame loaded',
 				displayName: 'frame loaded',
 				message: [selector],
-		  }).snapshot()
+			}).snapshot()
 		: null;
 
 	return cy.get(selector, { log: false }).then({ timeout: fullOpts.timeout }, async ($frame) => {
@@ -97,7 +97,7 @@ export const getIframe = (selector, opts) => {
 				name: 'iframe',
 				displayName: 'iframe',
 				message: [selector],
-		  }).snapshot()
+			}).snapshot()
 		: null;
 
 	return frameLoaded(selector, { ...fullOpts, log: false }).then(($frame) => {

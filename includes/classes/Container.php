@@ -9,9 +9,9 @@
 
 namespace ElasticPress;
 
-use \ElasticPress\Vendor_Prefixed\Psr\Container\ContainerInterface;
+use ElasticPress\Vendor_Prefixed\Psr\Container\ContainerInterface;
 
-use \ElasticPress\Exception\NotFoundException;
+use ElasticPress\Exception\NotFoundException;
 
 /**
  * PSR11 compliant container class
@@ -49,7 +49,7 @@ final class Container implements ContainerInterface {
 	 *
 	 * @return bool
 	 */
-	public function has( $id ) : bool {
+	public function has( $id ): bool {
 		return isset( $this->instances[ $id ] );
 	}
 

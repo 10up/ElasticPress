@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use \WP_Comment_Query;
+use WP_Comment_Query;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -331,7 +331,7 @@ class QueryIntegration {
 				}
 			}
 
-			$level ++;
+			++$level;
 			$levels[ $level ] = $child_comments;
 		} while ( $child_comments );
 
@@ -372,5 +372,4 @@ class QueryIntegration {
 
 		return $comments;
 	}
-
 }

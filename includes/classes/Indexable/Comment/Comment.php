@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use \WP_Comment_Query;
+use WP_Comment_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Features;
 use ElasticPress\Indexable;
@@ -987,11 +987,9 @@ class Comment extends Indexable {
 				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
-			} else {
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
-				}
 			}
 
 			/**
@@ -1082,5 +1080,4 @@ class Comment extends Indexable {
 
 		return $sort;
 	}
-
 }

@@ -418,7 +418,7 @@ class Weighting {
 			[
 				'callback'            => [ $this, 'update_weighting' ],
 				'methods'             => 'POST',
-				'permission_callback' => function() {
+				'permission_callback' => function () {
 					return current_user_can( Utils\get_capability() );
 				},
 			]

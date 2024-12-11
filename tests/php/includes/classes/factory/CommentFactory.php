@@ -30,5 +30,4 @@ class CommentFactory extends \WP_UnitTest_Factory_For_Comment {
 
 		return $id;
 	}
-
 }

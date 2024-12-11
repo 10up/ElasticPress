@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Command;
 
-use \WP_CLI;
+use WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.

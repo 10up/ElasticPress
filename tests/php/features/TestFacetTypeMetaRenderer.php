@@ -7,7 +7,7 @@
 
 namespace ElasticPressTest;
 
-use \ElasticPress\Feature\Facets\Types\Meta\Renderer;
+use ElasticPress\Feature\Facets\Types\Meta\Renderer;
 
 /**
  * Facets\Types\Taxonomy\FacetType test class
@@ -68,7 +68,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_value_label` filter
 		 */
-		$change_label = function( $label, $value ) {
+		$change_label = function ( $label, $value ) {
 			return ( 'my_meta_value' === $value['value'] ) ? 'Different Label' : $label;
 		};
 		add_filter( 'ep_facet_meta_value_label', $change_label, 10, 2 );
@@ -84,7 +84,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_value_accessible_label` filter
 		 */
-		$change_accessible_label = function( $label, $value ) {
+		$change_accessible_label = function ( $label, $value ) {
 			return ( 'my_meta_value' === $value['value'] ) ? 'Apply filter!' : $label;
 		};
 		add_filter( 'ep_facet_meta_value_accessible_label', $change_accessible_label, 10, 2 );
@@ -100,7 +100,7 @@ class TestFacetTypeMetaRenderer extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_value_html` filter
 		 */
-		$change_html = function( $html, $value, $url ) {
+		$change_html = function ( $html, $value, $url ) {
 			return ( 'https://example.com' === $url ) ? '<p>Completely custom made element</p>' : $html;
 		};
 		add_filter( 'ep_facet_meta_value_html', $change_html, 10, 3 );

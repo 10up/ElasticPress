@@ -165,7 +165,7 @@ class TestDidYouMean extends BaseTestCase {
 		$expected_result = '<span class="ep-spell-suggestion">Did you mean: test filter is working ?</span>';
 		add_filter(
 			'ep_suggestion_html',
-			function( $html, $terms, $query ) use ( $expected_result ) {
+			function ( $html, $terms, $query ) use ( $expected_result ) {
 				$this->assertEquals( 'test', $terms[0]['text'] );
 				$this->assertInstanceOf( '\WP_Query', $query );
 				return $expected_result;
@@ -188,7 +188,7 @@ class TestDidYouMean extends BaseTestCase {
 	public function testMapping() {
 		add_filter(
 			'ep_elasticsearch_version',
-			function() {
+			function () {
 				return '7.0';
 			}
 		);
@@ -211,7 +211,7 @@ class TestDidYouMean extends BaseTestCase {
 	public function testMappingForESVersionLowerThanSeven() {
 		add_filter(
 			'ep_elasticsearch_version',
-			function() {
+			function () {
 				return '5.2.0';
 			}
 		);
@@ -244,14 +244,14 @@ class TestDidYouMean extends BaseTestCase {
 
 		add_filter(
 			'ep_search_suggestion_analyzer',
-			function() use ( $search_analyzer ) {
+			function () use ( $search_analyzer ) {
 				return $search_analyzer;
 			}
 		);
 
 		add_filter(
 			'ep_query_request_args',
-			function( $request_args, $path, $index, $type, $query, $query_args, $query_object ) use ( $search_analyzer ) {
+			function ( $request_args, $path, $index, $type, $query, $query_args, $query_object ) use ( $search_analyzer ) {
 				$this->assertEquals( $search_analyzer, $query['suggest']['ep_suggestion'] );
 				return $request_args;
 			},
@@ -390,7 +390,7 @@ class TestDidYouMean extends BaseTestCase {
 		// mock the score.
 		add_filter(
 			'ep_es_query_results',
-			function( $response ) {
+			function ( $response ) {
 				$response['suggest']['ep_suggestion'][0]['options'][0]['score'] = '3.730e-6';
 				return $response;
 			}
@@ -425,7 +425,7 @@ class TestDidYouMean extends BaseTestCase {
 
 		add_filter(
 			'ep_suggestion_minimum_score',
-			function() {
+			function () {
 				return 0.1;
 			}
 		);

@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\Facets\Types\Meta;
 
-use \ElasticPress\Features;
+use ElasticPress\Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -66,7 +66,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_name() : string {
+	public function get_filter_name(): string {
 		/**
 		 * Filter the facet filter name that's added to the URL
 		 *
@@ -83,7 +83,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_type() : string {
+	public function get_filter_type(): string {
 		/**
 		 * Filter the facet filter type. Used by the Facet feature to organize filters.
 		 *
@@ -312,7 +312,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @param string $meta_key The meta field.
 	 * @return array
 	 */
-	public function get_meta_values( string $meta_key ) : array {
+	public function get_meta_values( string $meta_key ): array {
 		/**
 		 * Short-circuits the process of getting distinct meta values.
 		 *

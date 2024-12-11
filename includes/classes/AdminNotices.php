@@ -682,7 +682,6 @@ class AdminNotices {
 			];
 
 		}
-
 	}
 
 	/**

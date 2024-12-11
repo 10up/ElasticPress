@@ -106,7 +106,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @return boolean
 	 */
-	protected function should_render() : bool {
+	protected function should_render(): bool {
 		global $wp_query;
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );

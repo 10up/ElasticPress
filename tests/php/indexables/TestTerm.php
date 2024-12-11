@@ -139,7 +139,7 @@ class TestTerm extends BaseTestCase {
 	public function testTermSync() {
 		add_action(
 			'ep_sync_term_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_term_on_transition'] = true;
 			}
 		);
@@ -211,14 +211,14 @@ class TestTerm extends BaseTestCase {
 
 		add_action(
 			'ep_sync_term_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_term_on_transition'] = true;
 			}
 		);
 
 		add_filter(
 			'ep_term_sync_kill',
-			function( $kill, $term_id ) use ( $created_term_id ) {
+			function ( $kill, $term_id ) use ( $created_term_id ) {
 				if ( $created_term_id === $term_id ) {
 					return true;
 				}
@@ -273,7 +273,7 @@ class TestTerm extends BaseTestCase {
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
 		// Test some of the filters and defaults.
-		$return_2 = function() {
+		$return_2 = function () {
 			return 2;
 		};
 
@@ -1009,7 +1009,7 @@ class TestTerm extends BaseTestCase {
 			// Remove uncategorized, not synced to ES.
 			$wp_slugs[ $query_type ] = array_filter(
 				$wp_slugs[ $query_type ],
-				function( $slug ) {
+				function ( $slug ) {
 					return 'uncategorized' !== $slug;
 				}
 			);
@@ -1396,7 +1396,7 @@ class TestTerm extends BaseTestCase {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
-		$callback = function( $keys ) {
+		$callback = function ( $keys ) {
 			$keys[] = '_custom_protected_key';
 			return $keys;
 		};
@@ -1525,12 +1525,12 @@ class TestTerm extends BaseTestCase {
 
 		foreach ( $version_and_file as $version => $file ) {
 
-			$version_callback = function() use ( $version ) {
+			$version_callback = function () use ( $version ) {
 				return $version;
 			};
 
 			// Callback to test the mapping file that was selected.
-			$assert_callback = function( $mapping_file ) use ( $file ) {
+			$assert_callback = function ( $mapping_file ) use ( $file ) {
 				$this->assertSame( $file, basename( $mapping_file ) );
 				return $mapping_file;
 			};
@@ -1548,7 +1548,6 @@ class TestTerm extends BaseTestCase {
 			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
 			remove_filter( 'ep_term_mapping_file', $assert_callback );
 		}
-
 	}
 
 	/**
@@ -1737,7 +1736,7 @@ class TestTerm extends BaseTestCase {
 		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
 		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 
-		$change_lang = function( $lang, $context ) {
+		$change_lang = function ( $lang, $context ) {
 			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
 		};
 		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );

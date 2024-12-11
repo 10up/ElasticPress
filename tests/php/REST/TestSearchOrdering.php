@@ -8,9 +8,9 @@
 
 namespace ElasticPressTest\REST;
 
-use \ElasticPress\Elasticsearch;
-use \ElasticPress\Features;
-use \ElasticPress\REST\SearchOrdering;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Features;
+use ElasticPress\REST\SearchOrdering;
 
 /**
  * SearchOrdering test class

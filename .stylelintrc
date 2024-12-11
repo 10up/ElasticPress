@@ -11,7 +11,8 @@
       }
     ],
     "font-family-no-missing-generic-family-keyword": null,
-    "declaration-property-unit-allowed-list": null
+    "declaration-property-unit-allowed-list": null,
+    "at-rule-disallowed-list": null
   }
 
 }
