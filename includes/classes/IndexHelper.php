@@ -1277,14 +1277,12 @@ class IndexHelper {
 		 */
 		if ( function_exists( 'wp_cache_flush_runtime' ) ) {
 			wp_cache_flush_runtime();
-		} else {
+		} elseif ( ! wp_using_ext_object_cache() ) {
 			/*
 			 * In the case where we're not using an external object cache, we need to call flush on the default
 			 * WordPress object cache class to clear the values from the cache property
 			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
+			wp_cache_flush();
 		}
 
 		if ( is_object( $wp_object_cache ) ) {

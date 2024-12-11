@@ -4,6 +4,8 @@
  *
  * @since  3.0
  * @package elasticpress
+ *
+ * phpcs:disable Universal.Files.SeparateFunctionsFromOO.Mixed
  */
 
 /**
