@@ -1335,9 +1335,11 @@ class Command extends WP_CLI_Command {
 				$time_elapsed      = Utility::timer_stop( 2 );
 				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . Utility::timer_format( $time_elapsed ) . $time_elapsed_diff ) );
 
-				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
-				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+				$current_memory = memory_get_usage() / 1024 / 1024;
+				$current_memory = ( $current_memory > 1000 ) ? round( $current_memory / 1024, 2 ) . 'gb' : round( $current_memory, 2 ) . 'mb';
+				$peak_memory    = memory_get_peak_usage() / 1024 / 1024;
+				$peak_memory    = ( $peak_memory > 1000 ) ? round( $peak_memory / 1024, 2 ) . 'gb' : round( $peak_memory, 2 ) . 'mb';
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . ' (Peak: ' . $peak_memory . ')' ) );
 			}
 		}
 	}
