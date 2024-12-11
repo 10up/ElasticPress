@@ -52,6 +52,7 @@ export default () => {
 					key={postType}
 					label={label}
 					onChange={(checked) => onChange(postType, checked)}
+					__nextHasNoMarginBottom
 				/>
 			))}
 		</fieldset>

@@ -57,6 +57,7 @@ export default () => {
 					key={indexable}
 					label={label}
 					onChange={(checked) => onChange(indexable, checked)}
+					__nextHasNoMarginBottom
 				/>
 			))}
 		</fieldset>
