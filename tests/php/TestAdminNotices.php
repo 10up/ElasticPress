@@ -218,6 +218,15 @@ class TestAdminNotices extends BaseTestCase {
 
 		remove_all_filters( 'ep_elasticsearch_version' );
 
+		// As we know the call will fail, let's fail faster.
+		add_filter(
+			'ep_pre_request_args',
+			function ( $args ) {
+				$args['timeout'] = 1;
+				return $args;
+			}
+		);
+
 		ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
 
 		ElasticPress\Screen::factory()->set_current_screen( null );
@@ -251,6 +260,15 @@ class TestAdminNotices extends BaseTestCase {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
+
+		// As we know the call will fail, let's fail faster.
+		add_filter(
+			'ep_pre_request_args',
+			function ( $args ) {
+				$args['timeout'] = 1;
+				return $args;
+			}
+		);
 
 		ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
 
