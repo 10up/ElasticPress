@@ -225,7 +225,7 @@ export class Pointers extends Component {
 
 		items.forEach((item, index) => {
 			// Reordering an existing pointer or adding a default post to the pointers array
-			if (item.order || item.ID === result.draggableId) {
+			if (item.order || Number(item.ID) === Number(result.draggableId)) {
 				pointers.push({
 					ID: item.ID,
 					order: index + 1,

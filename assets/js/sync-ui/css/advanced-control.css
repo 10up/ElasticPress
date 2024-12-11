@@ -8,6 +8,10 @@
 	&.components-flex .components-flex-item {
 		flex-grow: 2;
 	}
+
+	& .components-checkbox-control {
+		margin-bottom: 1em;
+	}
 }
 
 .ep-sync-advanced-control__label {
