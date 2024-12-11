@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use \WP_Error;
+use WP_Error;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -1325,7 +1325,7 @@ class Elasticsearch {
 			$is_non_blocking_request = ( 0 === $request_response_code );
 
 			if ( false === $request || is_wp_error( $request ) || ( ! $is_valid_res && ! $is_non_blocking_request ) ) {
-				$failures++;
+				++$failures;
 
 				/**
 				 * Filter max number of times to attempt remote requests
@@ -1369,7 +1369,6 @@ class Elasticsearch {
 		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
-
 	}
 
 	/**
@@ -1419,7 +1418,6 @@ class Elasticsearch {
 			'status' => true,
 			'data'   => $response->_all->primaries->indexing,
 		);
-
 	}
 
 	/**
@@ -1797,7 +1795,7 @@ class Elasticsearch {
 	 * @since 4.4.0
 	 * @return array Array of indices in Elasticsearch
 	 */
-	public function get_cluster_indices() : array {
+	public function get_cluster_indices(): array {
 		$path = '_cat/indices?format=json';
 
 		$response = $this->remote_request( $path );

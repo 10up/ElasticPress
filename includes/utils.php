@@ -58,7 +58,7 @@ function get_epio_credentials() {
  * @param string $context Context for the capability. Defaults to empty string.
  * @return string
  */
-function get_capability( string $context = '' ) : string {
+function get_capability( string $context = '' ): string {
 	/**
 	 * Filter the WP capability needed to interact with ElasticPress in the admin
 	 *
@@ -92,7 +92,7 @@ function get_capability( string $context = '' ) : string {
  * @param string $context Context for the capability. Defaults to empty string.
  * @return string
  */
-function get_network_capability( string $context = '' ) : string {
+function get_network_capability( string $context = '' ): string {
 	/**
 	 * Filter the WP capability needed to interact with ElasticPress in the network admin
 	 *
@@ -112,7 +112,7 @@ function get_network_capability( string $context = '' ) : string {
  * @param string $context Context for the capability. Defaults to empty string.
  * @return array
  */
-function get_post_map_capabilities( string $context = '' ) : array {
+function get_post_map_capabilities( string $context = '' ): array {
 	$capability = get_capability( $context );
 
 	return [
@@ -437,7 +437,7 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 		}
 
 		foreach ( $all_terms as $key => $term ) {
-			$iteration_id++;
+			++$iteration_id;
 
 			if ( ! isset( $term->children ) ) {
 				$term->children = [];
@@ -464,16 +464,15 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				}
 
 				unset( $all_terms[ $key ] );
-			} else {
-				if ( ! empty( $terms_map[ $term->parent ] ) && isset( $terms_map[ $term->parent ]->level ) ) {
+			} elseif ( ! empty( $terms_map[ $term->parent ] ) && isset( $terms_map[ $term->parent ]->level ) ) {
 
-					if ( empty( $orderby ) ) {
-						$terms_map[ $term->parent ]->children[] = $term;
-					} elseif ( 'count' === $orderby ) {
-						$terms_map[ $term->parent ]->children[ ( ( $term->count * 10000000 ) + $iteration_id ) ] = $term;
-					} elseif ( 'name' === $orderby ) {
-						$terms_map[ $term->parent ]->children[ $term->name ] = $term;
-					}
+				if ( empty( $orderby ) ) {
+					$terms_map[ $term->parent ]->children[] = $term;
+				} elseif ( 'count' === $orderby ) {
+					$terms_map[ $term->parent ]->children[ ( ( $term->count * 10000000 ) + $iteration_id ) ] = $term;
+				} elseif ( 'name' === $orderby ) {
+					$terms_map[ $term->parent ]->children[ $term->name ] = $term;
+				}
 
 					$parent_level = ( $terms_map[ $term->parent ]->level ) ? $terms_map[ $term->parent ]->level : 0;
 
@@ -481,7 +480,6 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 					$term->parent_term = $terms_map[ $term->parent ];
 
 					unset( $all_terms[ $key ] );
-				}
 			}
 		}
 	}
@@ -596,7 +594,6 @@ function get_indexing_status() {
 	}
 
 	return $index_status;
-
 }
 
 /**
@@ -770,7 +767,7 @@ function get_asset_info( $slug, $attribute = null ) {
  * @param boolean|string $do_sync Whether the link should or should not start a resync. Pass a string to store the reason of the resync.
  * @return string
  */
-function get_sync_url( $do_sync = false ) : string {
+function get_sync_url( $do_sync = false ): string {
 	$page = 'admin.php?page=elasticpress-sync';
 	if ( $do_sync ) {
 		$page .= '&do_sync';
@@ -790,7 +787,7 @@ function get_sync_url( $do_sync = false ) : string {
  * @since 5.1.2
  * @return boolean
  */
-function isset_do_sync_parameter() : bool {
+function isset_do_sync_parameter(): bool {
 	return isset( $_GET['do_sync'] ) && ! empty( $_GET['ep_sync_nonce'] ) && wp_verify_nonce( sanitize_key( $_GET['ep_sync_nonce'] ), 'ep_sync_nonce' );
 }
 
@@ -822,7 +819,7 @@ function get_request_id_base() {
  * @since 4.5.0
  * @return string
  */
-function generate_request_id() : string {
+function generate_request_id(): string {
 	$uuid = str_replace( '-', '', wp_generate_uuid4() );
 
 	/**
@@ -843,7 +840,7 @@ function generate_request_id() : string {
  * @param mixed $response The Elasticsearch response
  * @return string
  */
-function get_elasticsearch_error_reason( $response ) : string {
+function get_elasticsearch_error_reason( $response ): string {
 	if ( is_string( $response ) ) {
 		return $response;
 	}

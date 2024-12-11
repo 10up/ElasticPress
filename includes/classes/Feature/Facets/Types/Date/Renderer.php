@@ -250,7 +250,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @return string The filter name.
 	 */
-	protected function get_filter_name() : string {
+	protected function get_filter_name(): string {
 		$feature    = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type = $feature->types['date'];
 		return $facet_type->get_filter_name();

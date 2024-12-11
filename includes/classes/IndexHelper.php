@@ -250,7 +250,7 @@ class IndexHelper {
 	protected function filter_indexables( $indexables ) {
 		return array_filter(
 			$indexables,
-			function( $indexable ) {
+			function ( $indexable ) {
 				return empty( $this->args['indexables'] ) || in_array( $indexable, $this->args['indexables'], true );
 			}
 		);
@@ -572,7 +572,7 @@ class IndexHelper {
 
 		foreach ( $this->current_query['objects'] as $object ) {
 			if ( $this->should_skip_object_index( $object, $indexable ) ) {
-				$this->index_meta['current_sync_item']['skipped']++;
+				++$this->index_meta['current_sync_item']['skipped'];
 			} else {
 				$queued_items[ $object->ID ] = true;
 			}
@@ -675,7 +675,7 @@ class IndexHelper {
 								$failed_objects,
 								array_filter(
 									$return['items'],
-									function( $item ) {
+									function ( $item ) {
 										return ! empty( $item['index']['error'] );
 									}
 								)
@@ -918,7 +918,7 @@ class IndexHelper {
 	protected function add_last_sync( array $last_sync_info ) {
 		// Remove error messages from previous syncs - we only store msgs for the newest one.
 		$last_syncs = array_map(
-			function( $sync ) {
+			function ( $sync ) {
 				unset( $sync['errors'] );
 				return $sync;
 			},
@@ -1144,7 +1144,7 @@ class IndexHelper {
 	 * @since 5.0.0
 	 * @return array
 	 */
-	public function get_sync_history() : array {
+	public function get_sync_history(): array {
 		return Utils\get_option( 'ep_sync_history', [] );
 	}
 
@@ -1154,7 +1154,7 @@ class IndexHelper {
 	 * @since 5.0.0
 	 * @return array
 	 */
-	public function get_last_sync() : array {
+	public function get_last_sync(): array {
 		$syncs = $this->get_sync_history();
 		if ( empty( $syncs ) ) {
 			return [];
@@ -1277,14 +1277,12 @@ class IndexHelper {
 		 */
 		if ( function_exists( 'wp_cache_flush_runtime' ) ) {
 			wp_cache_flush_runtime();
-		} else {
+		} elseif ( ! wp_using_ext_object_cache() ) {
 			/*
 			 * In the case where we're not using an external object cache, we need to call flush on the default
 			 * WordPress object cache class to clear the values from the cache property
 			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
+			wp_cache_flush();
 		}
 
 		if ( is_object( $wp_object_cache ) ) {
@@ -1432,7 +1430,7 @@ class IndexHelper {
 	 * @since 4.4.0
 	 * @return integer
 	 */
-	public function get_index_default_per_page() : int {
+	public function get_index_default_per_page(): int {
 		/**
 		 * Filter number of items to index per cycle in the dashboard
 		 *
@@ -1492,7 +1490,7 @@ class IndexHelper {
 	 * @param string|array $messages Messages
 	 * @return array
 	 */
-	protected function build_message_errors_data( $messages ) : array {
+	protected function build_message_errors_data( $messages ): array {
 		$messages          = (array) $messages;
 		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
 
@@ -1506,7 +1504,7 @@ class IndexHelper {
 					'count'    => 1,
 				];
 			} else {
-				$errors_list[ $error['error'] ]['count']++;
+				++$errors_list[ $error['error'] ]['count'];
 			}
 		}
 		return $errors_list;

@@ -349,12 +349,10 @@ class Autosuggest extends Feature {
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
-		} else {
-			if ( Utils\is_epio() ) {
+		} elseif ( Utils\is_epio() ) {
 				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
-			} else {
-				$endpoint_url = $settings['endpoint_url'];
-			}
+		} else {
+			$endpoint_url = $settings['endpoint_url'];
 		}
 
 		if ( empty( $endpoint_url ) ) {
@@ -933,7 +931,7 @@ class Autosuggest extends Feature {
 	 * @since 5.1.0
 	 * @return array
 	 */
-	protected function get_contexts() : array {
+	protected function get_contexts(): array {
 		/**
 		 * Filter contexts for autosuggest.
 		 *

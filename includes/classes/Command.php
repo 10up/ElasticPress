@@ -10,8 +10,8 @@
 
 namespace ElasticPress;
 
-use \WP_CLI_Command;
-use \WP_CLI;
+use WP_CLI_Command;
+use WP_CLI;
 use ElasticPress\Features;
 use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
@@ -1329,7 +1329,7 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( 'index_next_batch' === $context ) {
-			$counter++;
+			++$counter;
 			if ( ( $counter % 10 ) === 0 ) {
 				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( Utility::timer_stop() - $time_elapsed ) . ')' : '';
 				$time_elapsed      = Utility::timer_stop( 2 );

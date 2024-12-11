@@ -141,7 +141,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param string $url   Filter URL.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_facet_item_value_html( $item, $url ) : string {
+	public function get_facet_item_value_html( $item, $url ): string {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
@@ -227,7 +227,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @return boolean
 	 */
-	protected function should_render() : bool {
+	protected function should_render(): bool {
 		global $wp_query;
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );

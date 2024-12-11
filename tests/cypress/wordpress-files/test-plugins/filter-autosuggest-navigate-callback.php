@@ -11,7 +11,7 @@
 
 add_action(
 	'wp_enqueue_scripts',
-	function() {
+	function () {
 		wp_register_script( 'filter-autosuggest-navigate-callback', '', [], EP_VERSION, true );
 		wp_enqueue_script( 'filter-autosuggest-navigate-callback' );
 		wp_add_inline_script(

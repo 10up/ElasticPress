@@ -32,7 +32,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_filter_name', $change_filter_name );
@@ -57,7 +57,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_filter_type', $change_filter_type );
@@ -94,7 +94,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_include_taxonomies` filter
 		 */
-		$change_facetable_taxonomies = function( $taxonomies ) {
+		$change_facetable_taxonomies = function ( $taxonomies ) {
 			unset( $taxonomies['category'] );
 			return $taxonomies;
 		};
@@ -130,7 +130,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_use_field` filter
 		 */
-		$change_cat_facet_field = function( $field, $taxonomy ) {
+		$change_cat_facet_field = function ( $field, $taxonomy ) {
 			return ( 'category' === $taxonomy->name ) ? 'term_id' : $field;
 		};
 
@@ -145,7 +145,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_taxonomies_size` filter
 		 */
-		$change_tax_bucket_size = function( $size, $taxonomy ) {
+		$change_tax_bucket_size = function ( $size, $taxonomy ) {
 			return ( 'category' === $taxonomy->name ) ? 5 : $size;
 		};
 
@@ -219,7 +219,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$expected_result = sanitize_title( $test_taxonomy );
 		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
 
-		$sanitize_function = function( $function ) {
+		$sanitize_function = function ( $function ) {
 
 			$this->assertSame( 'sanitize_title', $function );
 
@@ -332,7 +332,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 	public function test_ep_facet_special_slug_taxonomies_filter() {
 		add_filter(
 			'ep_facet_tax_special_slug_taxonomies',
-			function( $special_slug_taxonomies ) {
+			function ( $special_slug_taxonomies ) {
 				$special_slug_taxonomies['testmyfilter'] = 'testmyfilterchangedfilter';
 				return $special_slug_taxonomies;
 			},

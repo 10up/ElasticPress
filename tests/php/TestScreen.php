@@ -104,7 +104,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstallTrue() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return true;
 		};
 
@@ -125,7 +125,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstall1() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 1;
 		};
 
@@ -146,7 +146,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstall2() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 2;
 		};
 
@@ -167,7 +167,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstallTrue() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return true;
 		};
 
@@ -188,7 +188,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall1() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 1;
 		};
 
@@ -209,7 +209,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall2() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 1;
 		};
 
@@ -230,7 +230,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstallComplete() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return true;
 		};
 
@@ -252,7 +252,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall3DoSync() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 3;
 		};
 

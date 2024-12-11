@@ -57,7 +57,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_meta_range_filter_name', $change_filter_name );
@@ -78,7 +78,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_meta_range_filter_type', $change_filter_type );
@@ -180,7 +180,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testSetWpQueryAggs() {
-		$set_facet_meta_field = function() {
+		$set_facet_meta_field = function () {
 			return [ 'new_meta_key_1', 'new_meta_key_2' ];
 		};
 		add_filter( 'ep_facet_meta_range_fields', $set_facet_meta_field );
@@ -206,7 +206,7 @@ class TestFacetTypeMetaRange extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_use_field` filter
 		 */
-		$change_meta_facet_field = function( $es_field, $meta_field ) {
+		$change_meta_facet_field = function ( $es_field, $meta_field ) {
 			return ( 'new_meta_key_1' === $meta_field ) ? 'long' : $es_field;
 		};
 

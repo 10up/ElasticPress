@@ -23,7 +23,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	 *
 	 * @return string
 	 */
-	public function get_slug() : string {
+	public function get_slug(): string {
 		return 'default';
 	}
 
@@ -32,7 +32,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	 *
 	 * @return string
 	 */
-	public function get_name() : string {
+	public function get_name(): string {
 		return esc_html__( 'Default', 'elasticpress' );
 	}
 
@@ -41,7 +41,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	 *
 	 * @return string
 	 */
-	public function get_description() : string {
+	public function get_description(): string {
 		return esc_html__( 'Use a fuzzy match approach which includes results that have misspellings, and also includes matches on only some of the words in the search.', 'elasticpress' );
 	}
 
@@ -54,7 +54,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	 * @param array  $query_vars     Query vars
 	 * @return array ES `query`
 	 */
-	protected function get_raw_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ) : array {
+	protected function get_raw_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ): array {
 		$query = [
 			'bool' => [
 				'should' => [
@@ -130,7 +130,7 @@ class DefaultAlgorithm extends \ElasticPress\SearchAlgorithm {
 	 * @param array  $query_vars     Query vars
 	 * @return array ES `query`
 	 */
-	protected function apply_legacy_filters( array $query, string $indexable_slug, array $search_fields, array $query_vars ) : array {
+	protected function apply_legacy_filters( array $query, string $indexable_slug, array $search_fields, array $query_vars ): array {
 		if ( 'post' !== $indexable_slug ) {
 			return $query;
 		}

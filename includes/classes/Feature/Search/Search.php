@@ -817,7 +817,6 @@ class Search extends Feature {
 		} else {
 			delete_post_meta( $post_id, 'ep_exclude_from_search' );
 		}
-
 	}
 
 	/**

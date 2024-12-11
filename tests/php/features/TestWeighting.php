@@ -8,7 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use \ElasticPress\Utils;
+use ElasticPress\Utils;
 
 /**
  * Weighting test class
@@ -177,7 +177,6 @@ class TestWeighting extends BaseTestCase {
 
 		$weighting_configuration = $this->save_weighting_configuration( $weighting_settings );
 		$this->assertEquals( false, $weighting_configuration['post']['post_title']['enabled'] );
-
 	}
 
 	/**
@@ -292,14 +291,14 @@ class TestWeighting extends BaseTestCase {
 
 		add_filter(
 			'ep_searchable_post_types',
-			function( $config ) {
+			function ( $config ) {
 				return array_merge( $config, [ 'invalid_post_type' ] );
 			}
 		);
 
 		add_filter(
 			'ep_weighting_configuration',
-			function( $config ) {
+			function ( $config ) {
 				return array_merge( $config, [ 'invalid_post_type' ] );
 			}
 		);
@@ -350,7 +349,7 @@ class TestWeighting extends BaseTestCase {
 	 * @since 4.1.0
 	 */
 	public function testPostTypeHasFieldsWithCustomConfigViaFilter() {
-		$function = function() {
+		$function = function () {
 			return [
 				'page'   => [],
 				'post'   => [
@@ -411,7 +410,7 @@ class TestWeighting extends BaseTestCase {
 	 * Test the `do_weighting` method (with the default config)
 	 */
 	public function testDoWeightingWithDefaultConfig() {
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
 
 		// We have 5 searchable post types.
 		$this->assertEquals( 5, count( $new_formatted_args['query']['function_score']['query']['bool']['should'] ) );
@@ -470,21 +469,21 @@ class TestWeighting extends BaseTestCase {
 	public function testApplyFilterWhenWeightingConfigWasNotSaved() {
 		delete_option( 'elasticpress_weighting' );
 
-		$add_post_content_filter = function( $weight_config ) {
+		$add_post_content_filter = function ( $weight_config ) {
 			$weight_config['new_cpt']['post_content_filtered'] = [
 				'enabled' => true,
 				'weight'  => 40,
 			];
 			return $weight_config;
 		};
-		$set_query_post_type     = function() {
+		$set_query_post_type     = function () {
 			return 'new_cpt';
 		};
 
 		add_filter( 'ep_weighting_configuration_for_search', $add_post_content_filter );
 		add_filter( 'ep_query_post_type', $set_query_post_type );
 
-		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ... $this->getArgs() );
+		$new_formatted_args = $this->get_weighting_feature()->do_weighting( ...$this->getArgs() );
 
 		$query_multi_match = $new_formatted_args['query']['function_score']['query']
 			['bool']['should'][0]['bool']['must'][0]

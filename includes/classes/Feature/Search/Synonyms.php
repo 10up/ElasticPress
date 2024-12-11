@@ -475,7 +475,7 @@ class Synonyms {
 	public function update_synonyms() {
 		return array_reduce(
 			$this->get_affected_indices(),
-			function( $success, $index ) {
+			function ( $success, $index ) {
 				$filter  = $this->get_synonym_filter();
 				$mapping = Elasticsearch::factory()->get_mapping( $index );
 
@@ -532,7 +532,7 @@ class Synonyms {
 
 		return array_filter(
 			array_map(
-				function( $index ) {
+				function ( $index ) {
 					$indexable = Indexables::factory()->get( $index );
 					return $indexable ? $indexable->get_index_name() : false;
 				},
@@ -890,7 +890,7 @@ class Synonyms {
 	 * @param array $filters Array of filters.
 	 * @return array
 	 */
-	protected function maybe_change_filter_position( array $filters ) : array {
+	protected function maybe_change_filter_position( array $filters ): array {
 		$lowercase_filter = array_search( 'lowercase', $filters, true );
 
 		if ( false !== $lowercase_filter ) {

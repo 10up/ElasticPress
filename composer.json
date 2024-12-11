@@ -33,7 +33,7 @@
     "psr/container": "1.0.0"
   },
   "require-dev": {
-    "10up/phpcs-composer": "dev-master",
+    "10up/phpcs-composer": "dev-trunk",
     "wpackagist-plugin/woocommerce":"*",
     "phpcompatibility/phpcompatibility-wp": "*",
     "yoast/phpunit-polyfills": "^1.0",

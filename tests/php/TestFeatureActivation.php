@@ -8,8 +8,8 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
-use \ElasticPress\Features;
-use \ElasticPress\REST\Features as FeaturesRest;
+use ElasticPress\Features;
+use ElasticPress\REST\Features as FeaturesRest;
 
 /**
  * Feature activation test class
@@ -274,7 +274,7 @@ class TestFeatureActivation extends BaseTestCase {
 			'setting_3' => 'custom_string',
 		];
 
-		$filter = function() use ( $new_values ) {
+		$filter = function () use ( $new_values ) {
 			return [
 				'test' => $new_values,
 			];
@@ -302,7 +302,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
 		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
 
-		$filter = function() {
+		$filter = function () {
 			return [
 				'test' => [
 					'setting_1' => 456,

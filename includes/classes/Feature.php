@@ -433,7 +433,7 @@ abstract class Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	public function get_epio_logo() : string {
+	public function get_epio_logo(): string {
 		return sprintf( '<img class="feature-epio-logo" alt="ElasticPress.io logo" src="%s" width="110" height="20">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
 	}
 
@@ -443,7 +443,7 @@ abstract class Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return $this->title;
 	}
 
@@ -453,7 +453,7 @@ abstract class Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	public function get_short_title() : string {
+	public function get_short_title(): string {
 		if ( ! empty( $this->short_title ) ) {
 			return $this->short_title;
 		}
@@ -501,7 +501,7 @@ abstract class Feature {
 	 * @since 4.5.0
 	 * @return boolean
 	 */
-	public function is_available() : bool {
+	public function is_available(): bool {
 		$requirements_status = $this->requirements_status();
 		/**
 		 * Filter whether a feature is available or not.

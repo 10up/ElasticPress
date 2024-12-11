@@ -474,7 +474,7 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( $exact_match_id, $query->posts[0]->ID );
 
-		$filter = function( $value ) {
+		$filter = function ( $value ) {
 			$value['protected_content']['use_default_wp_sort'] = '1';
 			return $value;
 		};
