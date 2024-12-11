@@ -29,6 +29,7 @@ export default () => {
 			onChange={(offset) => setArgs({ ...args, offset })}
 			type="number"
 			value={args.offset}
+			__nextHasNoMarginBottom
 		/>
 	);
 };

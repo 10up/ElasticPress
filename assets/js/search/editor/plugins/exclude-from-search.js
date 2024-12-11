@@ -18,15 +18,10 @@ export default () => {
 		editPost({ meta: { ...meta, ep_exclude_from_search } });
 	};
 
-	let WrapperElement = null;
-	let marginBottomProp = {};
-
-	if (typeof PluginPostStatusInfo !== 'undefined') {
-		WrapperElement = PluginPostStatusInfo;
-		marginBottomProp = { __nextHasNoMarginBottom: true };
-	} else {
-		WrapperElement = PluginPostStatusInfoLegacy;
-	}
+	const WrapperElement =
+		typeof PluginPostStatusInfo !== 'undefined'
+			? PluginPostStatusInfo
+			: PluginPostStatusInfoLegacy;
 
 	return (
 		<WrapperElement>
@@ -38,7 +33,7 @@ export default () => {
 				)}
 				checked={ep_exclude_from_search}
 				onChange={onChange}
-				{...marginBottomProp}
+				__nextHasNoMarginBottom
 			/>
 		</WrapperElement>
 	);

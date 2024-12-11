@@ -69,6 +69,7 @@ const EditPanel = (
 							label={labels.primary}
 							onChange={onChangePrimary}
 							value={primaryValue.map((p) => p.value).join('')}
+							__nextHasNoMarginBottom
 						/>
 					) : null}
 					{mode === 'replacements' ? (
@@ -77,6 +78,7 @@ const EditPanel = (
 							label={labels.primary}
 							onChange={onChangePrimary}
 							value={primaryValue.map((p) => p.value)}
+							__nextHasNoMarginBottom
 						/>
 					) : null}
 					<FormTokenField
@@ -84,6 +86,7 @@ const EditPanel = (
 						label={labels.synonyms}
 						onChange={onChangeSynonyms}
 						value={synonymsValue.map((h) => h.value)}
+						__nextHasNoMarginBottom
 					/>
 					<Flex justify="start">
 						<FlexItem>
