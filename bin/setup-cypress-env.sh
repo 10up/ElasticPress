@@ -59,7 +59,7 @@ fi
 
 # Fix the debug-bar-elasticpress dependency of ElasticPress
 ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install debug-bar-elasticpress"
-sed -i "s/Requires Plugins:  elasticpress/Requires Plugins:  $PLUGIN_NAME/" /var/www/html/wp-content/plugins/debug-bar-elasticpress/debug-bar-elasticpress.php
+./bin/wp-env-cli tests-wordpress "sed -i ""s/Requires Plugins:  elasticpress/Requires Plugins:  $PLUGIN_NAME/"" /var/www/html/wp-content/plugins/debug-bar-elasticpress/debug-bar-elasticpress.php"
 ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate debug-bar-elasticpress"
 
 if [ ! -z $WP_VERSION ]; then
