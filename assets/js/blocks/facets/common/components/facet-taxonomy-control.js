@@ -44,6 +44,7 @@ export default ({ onChange, value }) => {
 			onChange={onChange}
 			options={options}
 			value={value}
+			__nextHasNoMarginBottom
 		/>
 	);
 };

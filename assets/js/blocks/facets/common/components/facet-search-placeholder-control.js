@@ -19,6 +19,7 @@ export default ({ onChange, value }) => {
 			label={__('Search field placeholder', 'elasticpress')}
 			value={value}
 			onChange={onChange}
+			__nextHasNoMarginBottom
 		/>
 	);
 };

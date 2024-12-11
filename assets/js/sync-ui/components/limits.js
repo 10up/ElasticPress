@@ -56,6 +56,7 @@ export default () => {
 					onChange={onChangeLower}
 					type="number"
 					value={args.lower_limit_object_id}
+					__nextHasNoMarginBottom
 				/>
 			</FlexItem>
 			<FlexItem grow="2">
@@ -67,6 +68,7 @@ export default () => {
 					onChange={onChangeUpper}
 					type="number"
 					value={args.upper_limit_object_id}
+					__nextHasNoMarginBottom
 				/>
 			</FlexItem>
 		</Flex>

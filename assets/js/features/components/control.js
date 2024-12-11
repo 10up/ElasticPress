@@ -159,6 +159,7 @@ export default ({
 									label={label}
 									onChange={onChangeCheckbox}
 									disabled={isDisabled}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -184,6 +185,7 @@ export default ({
 									disabled={isDisabled}
 									suggestions={suggestions}
 									value={values}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -208,6 +210,7 @@ export default ({
 									options={options}
 									disabled={isDisabled}
 									value={value}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -219,6 +222,7 @@ export default ({
 									label={label}
 									onChange={onChange}
 									disabled={isDisabled}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -242,6 +246,7 @@ export default ({
 									disabled={isDisabled}
 									value={value}
 									type={type}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
