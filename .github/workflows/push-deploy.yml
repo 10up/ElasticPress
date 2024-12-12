@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: WordPress Plugin Deploy
-      if: ! github.event.release.prerelease
+      if: "! github.event.release.prerelease"
       id: deploy
       uses: 10up/action-wordpress-plugin-deploy@stable
       env:
