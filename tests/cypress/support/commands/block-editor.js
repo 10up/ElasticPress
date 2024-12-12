@@ -1,5 +1,7 @@
 /* global wpVersion */
 
+import { getIframe } from '../functions/get-iframe';
+
 Cypress.Commands.add('openBlockSettingsSidebar', () => {
 	cy.get('body').then(($el) => {
 		if ($el.hasClass('widgets-php')) {
@@ -8,8 +10,15 @@ Cypress.Commands.add('openBlockSettingsSidebar', () => {
 				.contains('Block')
 				.click();
 		} else {
-			cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
-			cy.get('.edit-post-sidebar__panel-tab,.edit-post-sidebar__panel-tabs button')
+			cy.get(
+				`.edit-post-header__settings button[aria-label="Settings"],
+				.editor-header__settings button[aria-label="Settings"]`,
+			).click();
+			cy.get(
+				`.edit-post-sidebar__panel-tab,
+				.edit-post-sidebar__panel-tabs button,
+				.editor-sidebar__panel-tabs button:contains('Block')`,
+			)
 				.contains('Block')
 				.click();
 		}
@@ -22,6 +31,18 @@ Cypress.Commands.add('openBlockInserter', () => {
 		if ($body.find('.edit-widgets-layout__inserter-panel-content').length > 0) {
 			return;
 		}
+		if ($body.hasClass('widgets-php')) {
+			cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
+		} else {
+			cy.get(
+				'.edit-post-header-toolbar__inserter-toggle,.editor-document-tools__inserter-toggle',
+			).click();
+		}
+	});
+});
+
+Cypress.Commands.add('closeBlockInserter', () => {
+	cy.get('body').then(($body) => {
 		if ($body.hasClass('widgets-php')) {
 			cy.get('.edit-widgets-header-toolbar__inserter-toggle').click();
 		} else {
@@ -93,14 +114,18 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 			cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
 
 			cy.get('[aria-label="Typography options"] button, .popover-slot button')
-				.contains('Font size')
+				.contains(/Font size|Size/)
 				.as('fontSizeButton');
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').type('{esc}');
 
-			cy.get('.block-editor-block-inspector button[aria-label="Font size"]').click();
-			cy.get('.block-editor-block-inspector li[role="option"]')
+			cy.get(
+				'.block-editor-block-inspector fieldset.components-font-size-picker button[role="combobox"]',
+			).click();
+			cy.get(
+				'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
+			)
 				.contains('Extra small')
 				.click();
 
@@ -168,4 +193,19 @@ Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject,
 	}
 
 	cy.wrap(subject).should('have.css', 'padding', '10px 15px');
+});
+
+Cypress.Commands.add('getBlockEditor', () => {
+	// Ensure the editor is loaded.
+	cy.get('.edit-post-visual-editor').should('exist');
+
+	return cy
+		.get('body')
+		.then(($body) => {
+			if ($body.find('iframe[name="editor-canvas"]').length) {
+				return getIframe('iframe[name="editor-canvas"]');
+			}
+			return $body;
+		})
+		.then(cy.wrap);
 });

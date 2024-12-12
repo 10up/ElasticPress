@@ -41,7 +41,7 @@ class Facets extends Feature {
 		$this->title = esc_html__( 'Filters', 'elasticpress' );
 
 		$this->summary = '<p>' .
-			wp_is_block_theme()
+			( wp_is_block_theme()
 				? sprintf(
 					/* translators: Site Editor URL */
 					__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
@@ -52,7 +52,7 @@ class Facets extends Feature {
 					__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
 					esc_url( admin_url( 'widgets.php' ) )
 				)
-			. '</p>';
+			) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#filters', 'elasticpress' );
 
@@ -445,7 +445,15 @@ class Facets extends Feature {
 			}
 		}
 
-		return $filters;
+		/**
+		 * Filter selected filters.
+		 *
+		 * @hook ep_facet_selected_filters
+		 * @since 5.1.4
+		 * @param  {array} $filters Current filters
+		 * @return {array} New filters
+		 */
+		return apply_filters( 'ep_facet_selected_filters', $filters );
 	}
 
 	/**
@@ -608,7 +616,6 @@ class Facets extends Feature {
 		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies()" );
 
 		return $this->types['taxonomy']->get_filter_name();
-
 	}
 
 	/**

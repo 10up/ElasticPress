@@ -5,7 +5,6 @@ ElasticPress e2e tests use [Cypress](https://www.cypress.io/), [wp-env](https://
 ## Requirements
 
 * docker
-* docker-compose
 * npm (>= 10)
 
 ## Instructions
@@ -57,8 +56,8 @@ export DISPLAY=:0
 This error may appear when running tests on an Apple Silicon device that was restored from a backup of an Intel machine. Run the following in `./bin/es-docker` to ensure the Docker image is for the right platform:
 
 ```
-docker-compose down
-docker-compose up -d --build --force-recreate
+docker compose down
+docker compose up -d --build --force-recreate
 ```
 
 ### Running tests with ElasticPress.io

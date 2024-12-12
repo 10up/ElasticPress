@@ -50,7 +50,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_meta_filter_name', $change_filter_name );
@@ -75,7 +75,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_meta_filter_type', $change_filter_type );
@@ -92,7 +92,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
-		$set_facet_meta_field = function() {
+		$set_facet_meta_field = function () {
 			return [ 'new_meta_key_1', 'new_meta_key_2' ];
 		};
 		add_filter( 'ep_facet_meta_fields', $set_facet_meta_field );
@@ -113,7 +113,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_use_field` filter
 		 */
-		$change_meta_facet_field = function( $es_field, $meta_field ) {
+		$change_meta_facet_field = function ( $es_field, $meta_field ) {
 			return ( 'new_meta_key_1' === $meta_field ) ? 'boolean' : $es_field;
 		};
 
@@ -128,7 +128,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_size` filter
 		 */
-		$change_meta_bucket_size = function( $size, $meta_field ) {
+		$change_meta_bucket_size = function ( $size, $meta_field ) {
 			return ( 'new_meta_key_1' === $meta_field ) ? 5 : $size;
 		};
 
@@ -148,7 +148,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	public function testGetMetaValues() {
 		add_filter(
 			'ep_prepare_meta_allowed_keys',
-			function( $allowed_metakeys ) {
+			function ( $allowed_metakeys ) {
 				return array_merge( $allowed_metakeys, [ 'new_meta_key_1', 'new_meta_key_2' ] );
 			}
 		);
@@ -180,7 +180,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_custom_meta_values` filter
 		 */
-		$change_meta_values = function( $meta_values, $meta_key ) {
+		$change_meta_values = function ( $meta_values, $meta_key ) {
 			return ( 'new_meta_key_1' === $meta_key ) ? [ '123' ] : $meta_values;
 		};
 		add_filter( 'ep_facet_meta_custom_meta_values', $change_meta_values, 10, 2 );
@@ -198,7 +198,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_value_max_strlen` filter
 		 */
-		$change_max_str_len = function( $length, $meta_key ) {
+		$change_max_str_len = function ( $length, $meta_key ) {
 			return ( 'new_meta_key_2' === $meta_key ) ? 4 : $length;
 		};
 		add_filter( 'ep_facet_meta_value_max_strlen', $change_max_str_len, 10, 2 );
@@ -365,7 +365,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$expected_result = sanitize_text_field( $test_meta );
 		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
 
-		$sanitize_function = function( $function ) {
+		$sanitize_function = function ( $function ) {
 
 			$this->assertSame( 'sanitize_text_field', $function );
 

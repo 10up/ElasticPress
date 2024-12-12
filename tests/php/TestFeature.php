@@ -29,7 +29,7 @@ class TestFeature extends BaseTestCase {
 
 		add_filter(
 			'ep_feature_requirements_status',
-			function() {
+			function () {
 				return new \ElasticPress\FeatureRequirementsStatus( 2, 'Testing' );
 			}
 		);
@@ -105,7 +105,7 @@ class TestFeature extends BaseTestCase {
 		$stub       = $this->getMockForAbstractClass( '\ElasticPress\Feature' );
 		$stub->slug = 'slug';
 
-		$change_settings_schema = function( $settings_schema, $feature_slug, $feature ) use ( $stub ) {
+		$change_settings_schema = function ( $settings_schema, $feature_slug, $feature ) use ( $stub ) {
 			$this->assertSame( $feature_slug, 'slug' );
 			$this->assertSame( $feature, $stub );
 			$settings_schema[] = [ 'key' => 'new_field' ];

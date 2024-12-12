@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use \WP_Query;
-use \WP_User;
+use WP_Query;
+use WP_User;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexable;
 
@@ -597,7 +597,7 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $date_to_prepare Post date
+	 * @param null|string $date_to_prepare Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
@@ -618,7 +618,7 @@ class Post extends Indexable {
 
 		// Combine all the date term formats and perform one single call to date_i18n() for performance.
 		$date_format    = implode( '||', array_values( $terms_to_prepare ) );
-		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( $date_to_prepare ) ) );
+		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( (string) $date_to_prepare ) ) );
 
 		// Then split up the results for individual indexing.
 		$date_terms = [];
@@ -755,7 +755,7 @@ class Post extends Indexable {
 	 * @param int      $post_id The post ID
 	 * @return array
 	 */
-	private function get_formatted_term( \WP_Term $term, int $post_id ) : array {
+	private function get_formatted_term( \WP_Term $term, int $post_id ): array {
 		$formatted_term = [
 			'term_id'          => $term->term_id,
 			'slug'             => $term->slug,
@@ -810,7 +810,6 @@ class Post extends Indexable {
 		}
 
 		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
-
 	}
 
 	/**
@@ -902,7 +901,6 @@ class Post extends Indexable {
 		 * @return  {array} Prepared meta
 		 */
 		return apply_filters( 'ep_prepared_post_meta', $prepared_meta, $post );
-
 	}
 
 	/**
@@ -934,24 +932,24 @@ class Post extends Indexable {
 		$formatted_args = $this->maybe_set_aggs( $formatted_args, $args, $filters );
 
 		/**
-		 * Filter formatted Elasticsearch [ost ]query (entire query)
+		 * Filter formatted Elasticsearch query (entire query)
 		 *
 		 * @hook ep_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
-		 * @param {array} $query_vars Query variables
-		 * @param {array} $query Query part
-		 * @return  {array} New query
+		 * @param {array} $args WP_Query variables
+		 * @param {object} $wp_query WP_Query object
+		 * @return {array} New query
 		 */
 		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args, $wp_query );
 
 		/**
-		 * Filter formatted Elasticsearch [ost ]query (entire query)
+		 * Filter formatted Elasticsearch post query (entire query)
 		 *
 		 * @hook ep_post_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
-		 * @param {array} $query_vars Query variables
-		 * @param {array} $query Query part
-		 * @return  {array} New query
+		 * @param {array} $args WP_Query variables
+		 * @param {object} $wp_query WP_Query object
+		 * @return {array} New query
 		 */
 		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 
@@ -1418,7 +1416,7 @@ class Post extends Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		$search_algorithm_version_option = \ElasticPress\Utils\get_option( 'ep_search_algorithm_version', '4.0' );
 
 		/**
@@ -2465,7 +2463,7 @@ class Post extends Indexable {
 	 * @param string $field Field name
 	 * @return string
 	 */
-	protected function parse_tax_query_field( string $field ) : string {
+	protected function parse_tax_query_field( string $field ): string {
 
 		$from_to = [
 			'name'             => 'name.raw',
@@ -2590,11 +2588,9 @@ class Post extends Indexable {
 				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
-			} else {
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
-				}
 			}
 
 			/**
@@ -2620,7 +2616,7 @@ class Post extends Indexable {
 	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ) : array {
+	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ): array {
 		global $wpdb;
 
 		/**
@@ -2706,7 +2702,7 @@ class Post extends Indexable {
 	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ): array {
 		$allowed_screen = 'status-report' === \ElasticPress\Screen::factory()->get_current_screen();
 
 		/**
@@ -2794,7 +2790,7 @@ class Post extends Indexable {
 	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ): array {
 		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
 		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type, $force_refresh );
 
@@ -2821,7 +2817,7 @@ class Post extends Indexable {
 	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ) : array {
+	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ): array {
 		$empty_post = new \WP_Post( (object) [] );
 		$meta_keys  = $this->get_distinct_meta_field_keys_db( $force_refresh );
 
@@ -2833,7 +2829,7 @@ class Post extends Indexable {
 
 		$all_keys = array_filter(
 			array_keys( $filtered_meta ),
-			function( $meta_key ) use ( $empty_post ) {
+			function ( $meta_key ) use ( $empty_post ) {
 				return $this->is_meta_allowed( $meta_key, $empty_post );
 			}
 		);
@@ -2849,7 +2845,7 @@ class Post extends Indexable {
 	 * @since 5.1.0
 	 * @return string
 	 */
-	public function get_test_meta_value() : string {
+	public function get_test_meta_value(): string {
 		/**
 		 * Filter the value used to fill meta fields while predicting indexable content.
 		 *
@@ -2931,7 +2927,7 @@ class Post extends Indexable {
 	 * @param array $post_ids Set of post IDs
 	 * @return array
 	 */
-	protected function get_meta_keys_from_post_ids( array $post_ids ) : array {
+	protected function get_meta_keys_from_post_ids( array $post_ids ): array {
 		global $wpdb;
 
 		if ( empty( $post_ids ) ) {
@@ -2959,7 +2955,7 @@ class Post extends Indexable {
 	 * @param array $mapping The mapping array
 	 * @return array
 	 */
-	public function add_term_suggest_field( array $mapping ) : array {
+	public function add_term_suggest_field( array $mapping ): array {
 		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
@@ -2975,5 +2971,45 @@ class Post extends Indexable {
 		);
 
 		return $mapping;
+	}
+
+	/**
+	 * Return all meta data added to the Weighting Dashboard plus all allowed keys via code.
+	 *
+	 * @since 5.1.4
+	 * @return array
+	 */
+	public function get_all_allowed_metas_manual(): array {
+		$post_types     = \ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
+		$search_feature = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$weighting      = $search_feature->weighting->get_weighting_configuration_with_defaults();
+		$fake_post      = new \WP_Post( new \stdClass() );
+
+		$all_allowed_metas = [];
+		foreach ( $post_types as $post_type ) {
+			$fake_post->post_type   = $post_type;
+			$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $fake_post );
+
+			$selected_keys = [];
+			if ( ! empty( $weighting[ $post_type ] ) ) {
+				$selected_keys = array_map(
+					function ( $field ) {
+						if ( false === strpos( $field, 'meta.' ) ) {
+							return null;
+						}
+						$field_name_parts = explode( '.', $field );
+						return $field_name_parts[1];
+					},
+					array_keys( $weighting[ $post_type ] )
+				);
+				$selected_keys = array_filter( $selected_keys );
+			}
+
+			$allowed_keys = apply_filters( 'ep_prepare_meta_allowed_keys', array_merge( $allowed_protected_keys, $selected_keys ), $fake_post );
+
+			$all_allowed_metas = array_merge( $all_allowed_metas, $allowed_keys );
+		}
+
+		return array_unique( $all_allowed_metas );
 	}
 }

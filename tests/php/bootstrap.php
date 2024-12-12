@@ -11,7 +11,7 @@ set_time_limit( 0 );
 
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
-	$_tests_dir = '/tmp/wordpress-tests-lib';
+	$_tests_dir = rtrim( sys_get_temp_dir(), '/\\' ) . '/wordpress-tests-lib';
 }
 
 require_once $_tests_dir . '/includes/functions.php';
@@ -38,7 +38,7 @@ function load_plugin() {
 	$host = getenv( 'EP_HOST' );
 
 	if ( empty( $host ) ) {
-		$host = 'http://127.0.0.1:9200';
+		$host = 'http://127.0.0.1:8890';
 	}
 
 	update_option( 'ep_host', $host );
@@ -130,8 +130,47 @@ function skip_translations_api() {
 		'translations' => [],
 	];
 }
-
 tests_add_filter( 'translations_api', __NAMESPACE__ . '\skip_translations_api' );
+
+/**
+ * Make sure the wc_orders table is NOT temporary
+ *
+ * As WC does a subselect with that table, it can not be temporary.
+ *
+ * @param string $query SQL Query
+ * @return string
+ */
+function create_wc_order_table( $query ) {
+	if ( ! str_contains( $query, 'wc_orders' ) ) {
+		return $query;
+	}
+
+	if ( ! str_starts_with( trim( $query ), 'CREATE TEMPORARY TABLE' ) ) {
+		return $query;
+	}
+
+	return substr_replace( trim( $query ), 'CREATE TABLE', 0, 22 );
+}
+tests_add_filter( 'query', __NAMESPACE__ . '\create_wc_order_table', 11 );
+
+/**
+ * Complement the change applied in create_wc_order_table, so the table is dropped correctly
+ *
+ * @param string $query SQL Query
+ * @return string
+ */
+function drop_wc_order_table( $query ) {
+	if ( ! str_contains( $query, 'wc_orders' ) ) {
+		return $query;
+	}
+
+	if ( ! str_starts_with( trim( $query ), 'DROP TEMPORARY TABLE' ) ) {
+		return $query;
+	}
+
+	return substr_replace( trim( $query ), 'DROP TABLE', 0, 22 );
+}
+tests_add_filter( 'query', __NAMESPACE__ . '\drop_wc_order_table', 11 );
 
 require_once $_tests_dir . '/includes/bootstrap.php';
 

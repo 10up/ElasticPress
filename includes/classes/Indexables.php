@@ -111,7 +111,7 @@ class Indexables {
 	 * @param string $slug Indexable slug
 	 * @return boolean
 	 */
-	public function is_active( string $slug ) : bool {
+	public function is_active( string $slug ): bool {
 		return ! empty( $this->active_indexables[ $slug ] );
 	}
 
@@ -135,13 +135,11 @@ class Indexables {
 				} else {
 					$indexables[] = $indexable;
 				}
-			} else {
-				if ( $global === $indexable->global ) {
-					if ( $slug_only ) {
-						$indexables[] = $slug;
-					} else {
-						$indexables[] = $indexable;
-					}
+			} elseif ( $global === $indexable->global ) {
+				if ( $slug_only ) {
+					$indexables[] = $slug;
+				} else {
+					$indexables[] = $indexable;
 				}
 			}
 		}

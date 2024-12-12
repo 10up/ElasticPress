@@ -160,7 +160,6 @@ class TestSearch extends BaseTestCase {
 		$this->assertTrue( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
 		add_filter( 'ep_is_decaying_enabled', '__return_false' );
 		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
-
 	}
 
 	/**

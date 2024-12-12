@@ -57,6 +57,10 @@
 			color: #0073aa;
 		}
 
+		& .removed .title {
+			color: #999;
+		}
+
 		& .pointer-actions {
 			float: right;
 
@@ -65,7 +69,7 @@
 			}
 
 			& .delete-pointer {
-				margin-left: 10px;
+				margin-right: 10px;
 			}
 		}
 

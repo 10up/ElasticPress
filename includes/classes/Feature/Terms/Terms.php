@@ -125,5 +125,4 @@ class Terms extends Feature {
 		}
 		return $fuzziness;
 	}
-
 }

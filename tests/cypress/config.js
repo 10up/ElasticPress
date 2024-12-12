@@ -1,17 +1,33 @@
+const fs = require('fs');
 const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
+	chromeWebSecurity: false,
 	fixturesFolder: 'tests/cypress/fixtures',
 	screenshotsFolder: 'tests/cypress/screenshots',
 	videosFolder: 'tests/cypress/videos',
 	downloadsFolder: 'tests/cypress/downloads',
-	video: false,
+	video: true,
+	videoCompression: true,
 	retries: {
 		runMode: 1,
 	},
 	elasticPressIndexTimeout: 100000,
 	e2e: {
 		async setupNodeEvents(on, config) {
+			on('after:spec', (spec, results) => {
+				if (results && results.video) {
+					// Do we have failures for any retry attempts?
+					const failures = results.tests.some((test) =>
+						test.attempts.some((attempt) => attempt.state === 'failed'),
+					);
+					if (!failures) {
+						// delete the video if the spec passed and no tests retried
+						fs.unlinkSync(results.video);
+					}
+				}
+			});
+
 			/* eslint-disable global-require */
 			require('@cypress/grep/src/plugin')(config);
 			const path = require('path');

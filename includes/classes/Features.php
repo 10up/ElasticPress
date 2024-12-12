@@ -295,23 +295,21 @@ class Features {
 
 					$this->activate_feature( $slug, $activate_feature_target );
 				}
-			} else {
+			} elseif ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
 				// This feature has a 0 "ok" code when it did not before
-				if ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
-					$active = ( 0 === $code );
+				$active = ( 0 === $code );
 
-					if ( ! $feature->is_active() && $active ) {
-						// Need to activate and maybe set a sync notice
-						if ( $feature->requires_install_reindex ) {
-							$activate_feature_target = 'draft';
-							Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
-						}
-
-						$this->activate_feature( $slug, $activate_feature_target );
-					} elseif ( $feature->is_active() && ! $active ) {
-						// Just deactivate, don't force
-						$this->deactivate_feature( $slug, false );
+				if ( ! $feature->is_active() && $active ) {
+					// Need to activate and maybe set a sync notice
+					if ( $feature->requires_install_reindex ) {
+						$activate_feature_target = 'draft';
+						Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
 					}
+
+					$this->activate_feature( $slug, $activate_feature_target );
+				} elseif ( $feature->is_active() && ! $active ) {
+					// Just deactivate, don't force
+					$this->deactivate_feature( $slug, false );
 				}
 			}
 		}

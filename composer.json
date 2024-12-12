@@ -33,11 +33,12 @@
     "psr/container": "1.0.0"
   },
   "require-dev": {
-    "10up/phpcs-composer": "dev-master",
+    "10up/phpcs-composer": "dev-trunk",
     "wpackagist-plugin/woocommerce":"*",
     "phpcompatibility/phpcompatibility-wp": "*",
-    "yoast/phpunit-polyfills": "^1.0",
-    "brianhenryie/strauss": "^0.14.0"
+    "brianhenryie/strauss": "^0.14.0",
+    "yoast/phpunit-polyfills": "^1.0 || ^2.0 || ^3.0",
+    "phpunit/phpunit": "^9.0.0"
   },
   "scripts": {
     "lint": "phpcs . -s --runtime-set testVersion 7.4-",

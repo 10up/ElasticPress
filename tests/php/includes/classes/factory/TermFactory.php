@@ -34,5 +34,4 @@ class TermFactory extends \WP_UnitTest_Factory_For_Term {
 
 		return $term_id;
 	}
-
 }

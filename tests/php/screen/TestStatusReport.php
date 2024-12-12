@@ -8,8 +8,8 @@
 
 namespace ElasticPressTest;
 
-use \ElasticPress\Screen\StatusReport;
-use \ElasticPress\Utils;
+use ElasticPress\Screen\StatusReport;
+use ElasticPress\Utils;
 
 /**
  * Test the Status Report class
@@ -39,7 +39,7 @@ class TestStatusReport extends BaseTestCase {
 	public function testGetReportsFilter() {
 		$status_report = new StatusReport();
 
-		$add_filter = function( $reports ) {
+		$add_filter = function ( $reports ) {
 			$reports['custom'] = new \stdClass();
 			return $reports;
 		};
@@ -328,7 +328,7 @@ class TestStatusReport extends BaseTestCase {
 
 		add_filter(
 			'ep_query_logger_logs',
-			function( $logs ) use ( $time_stamp, $random_no ) {
+			function ( $logs ) use ( $time_stamp, $random_no ) {
 				$logs = array(
 					[
 						'wp_url'      => 'http://example.com',

@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI;
+use WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -274,5 +274,4 @@ trait DeprecatedCommand {
 		);
 		$this->stop_sync( $args, $assoc_args );
 	}
-
 }

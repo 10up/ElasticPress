@@ -11,7 +11,7 @@
 
 add_action(
 	'wp_enqueue_scripts',
-	function() {
+	function () {
 		wp_add_inline_script(
 			'elasticpress-autosuggest',
 			"const epAutosuggestFetchOptions = (fetchOptions) => {

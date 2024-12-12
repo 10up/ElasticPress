@@ -25,6 +25,7 @@ const FacetDate = (props) => {
 						label={__('Display custom date option', 'elasticpress')}
 						checked={displayCustomDate}
 						onChange={(displayCustomDate) => setAttributes({ displayCustomDate })}
+						__nextHasNoMarginBottom
 					/>
 				</PanelBody>
 			</InspectorControls>

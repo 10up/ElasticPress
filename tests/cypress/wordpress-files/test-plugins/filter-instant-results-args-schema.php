@@ -11,7 +11,7 @@
 
 add_filter(
 	'ep_instant_results_args_schema',
-	function( $args_schema ) {
+	function ( $args_schema ) {
 		$args_schema['orderby']['default'] = 'date';
 
 		return $args_schema;

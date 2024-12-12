@@ -33,7 +33,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		add_filter(
 			'ep_elasticsearch_version',
-			function() {
+			function () {
 				return (int) EP_ES_VERSION_MAX - 1;
 			}
 		);
@@ -218,6 +218,15 @@ class TestAdminNotices extends BaseTestCase {
 
 		remove_all_filters( 'ep_elasticsearch_version' );
 
+		// As we know the call will fail, let's fail faster.
+		add_filter(
+			'ep_pre_request_args',
+			function ( $args ) {
+				$args['timeout'] = 1;
+				return $args;
+			}
+		);
+
 		ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
 
 		ElasticPress\Screen::factory()->set_current_screen( null );
@@ -251,6 +260,15 @@ class TestAdminNotices extends BaseTestCase {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
+
+		// As we know the call will fail, let's fail faster.
+		add_filter(
+			'ep_pre_request_args',
+			function ( $args ) {
+				$args['timeout'] = 1;
+				return $args;
+			}
+		);
 
 		ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
 
@@ -287,7 +305,7 @@ class TestAdminNotices extends BaseTestCase {
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
-		$es_version = function() {
+		$es_version = function () {
 			return '100';
 		};
 
@@ -324,7 +342,7 @@ class TestAdminNotices extends BaseTestCase {
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
-		$es_version = function() {
+		$es_version = function () {
 			return '1';
 		};
 
@@ -483,7 +501,7 @@ class TestAdminNotices extends BaseTestCase {
 		$es_version = $this->real_es_version;
 		add_filter(
 			'ep_elasticsearch_version',
-			function() use ( $es_version ) {
+			function () use ( $es_version ) {
 				return $es_version;
 			}
 		);
@@ -527,7 +545,7 @@ class TestAdminNotices extends BaseTestCase {
 		$es_version = $this->real_es_version;
 		add_filter(
 			'ep_elasticsearch_version',
-			function() use ( $es_version ) {
+			function () use ( $es_version ) {
 				return $es_version;
 			}
 		);
@@ -536,7 +554,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
-		$mapping = function() {
+		$mapping = function () {
 			return 'idonotmatch';
 		};
 		add_filter( 'ep_post_mapping_version_determined', $mapping );
@@ -562,15 +580,22 @@ class TestAdminNotices extends BaseTestCase {
 	 */
 	public function testTooManyFieldsNoticeInAdmin() {
 		add_filter(
+			'ep_meta_mode',
+			function () {
+				return 'auto';
+			}
+		);
+
+		add_filter(
 			'ep_prepare_meta_allowed_keys',
-			function( $allowed_metakeys ) {
+			function ( $allowed_metakeys ) {
 				return array_merge( $allowed_metakeys, [ 'meta_key_1', 'meta_key_2', 'meta_key_3', 'meta_key_4' ] );
 			}
 		);
 
 		add_filter(
 			'ep_total_field_limit',
-			function() {
+			function () {
 				return 24;
 			}
 		);
@@ -578,7 +603,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		add_filter(
 			'ep_post_pre_meta_keys_db',
-			function() {
+			function () {
 				return [ 'meta_key_1', 'meta_key_2' ];
 			}
 		);
@@ -590,7 +615,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		add_filter(
 			'ep_post_pre_meta_keys_db',
-			function( $values ) {
+			function ( $values ) {
 				$values[] = 'meta_key_3';
 				return $values;
 			}
@@ -605,7 +630,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		add_filter(
 			'ep_post_pre_meta_keys_db',
-			function( $values ) {
+			function ( $values ) {
 				$values[] = 'meta_key_4';
 				return $values;
 			}

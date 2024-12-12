@@ -203,7 +203,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 *
 	 * @return array
 	 */
-	public function productQueryOrderDataProvider() : array {
+	public function productQueryOrderDataProvider(): array {
 		return [
 			[
 				'total_sales',
@@ -360,7 +360,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 			// mock the query as post type archive
 			add_action(
 				'parse_query',
-				function( \WP_Query $query ) {
+				function ( \WP_Query $query ) {
 					$query->is_post_type_archive = true;
 				}
 			);
@@ -439,7 +439,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		add_filter(
 			'ep_post_filters',
-			function( $filters, $args, $query ) {
+			function ( $filters, $args, $query ) {
 				$expected_result = array(
 					'terms' => array(
 						'post_type.raw' => array(
@@ -679,7 +679,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		// mock the query as post type archive
 		add_action(
 			'parse_query',
-			function( \WP_Query $query ) {
+			function ( \WP_Query $query ) {
 				$query->is_post_type_archive = true;
 			}
 		);
@@ -694,11 +694,23 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		// mock the query as main query
 		$wp_the_query = $query;
 
-		$query = $query->query( $args );
+		$query_results = $query->query( $args );
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success );
-		$this->assertEquals( 1, count( $query ) );
-		$this->assertEquals( 'Cap', $query[0]->post_title );
+		$this->assertEquals( 1, count( $query_results ) );
+		$this->assertEquals( 'Cap', $query_results[0]->post_title );
+
+		// Enable the product attributes lookup table for catalog filtering
+		$enable_attribute_lookup = function () {
+			return 'yes';
+		};
+		add_filter( 'pre_option_woocommerce_attribute_lookup_enabled', $enable_attribute_lookup );
+
+		$query_results = $query->query( $args );
+
+		$this->assertTrue( $wp_the_query->elasticsearch_success );
+		$this->assertEquals( 1, count( $query_results ) );
+		$this->assertEquals( 'Cap', $query_results[0]->post_title );
 	}
 
 	/**
@@ -922,7 +934,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 *
 	 * @return array
 	 */
-	public function decayingDisabledOnProductsProvider() : array {
+	public function decayingDisabledOnProductsProvider(): array {
 		return [
 			[
 				'disabled_only_products',
@@ -984,7 +996,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		/**
 		 * Test the `ep_woocommerce_products_supported_post_types` filter
 		 */
-		$add_post_type = function( $post_types, $filter_query ) use ( $query ) {
+		$add_post_type = function ( $post_types, $filter_query ) use ( $query ) {
 			$this->assertSame( $filter_query, $query );
 			$post_types[] = 'post';
 			return $post_types;
@@ -1017,7 +1029,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		/**
 		 * Test the `ep_woocommerce_products_supported_taxonomies` filter
 		 */
-		$add_taxonomy = function( $taxonomies ) {
+		$add_taxonomy = function ( $taxonomies ) {
 			$taxonomies[] = 'custom_category';
 			return $taxonomies;
 		};

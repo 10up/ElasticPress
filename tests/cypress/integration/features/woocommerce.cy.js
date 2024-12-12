@@ -147,7 +147,10 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			// enable payment gateway.
 			cy.visitAdminPage('admin.php?page=wc-settings&tab=checkout&section=cod');
 			cy.get('#woocommerce_cod_enabled').check();
-			cy.get('.button-primary.woocommerce-save-button').click();
+			cy.get(
+				`.button-primary.woocommerce-save-button,
+				.components-button.is-primary.woocommerce-save-button`,
+			).click();
 
 			cy.logout();
 
@@ -180,6 +183,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 				if (wcVersion === '6.4.0') {
 					cy.get('#place_order').click();
 				} else {
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(1000);
 					cy.get('.wc-block-components-checkout-place-order-button').click();
 				}
 			});

@@ -16,6 +16,8 @@
 /.eslintrc.js export-ignore
 /.gitattributes export-ignore
 /.gitignore export-ignore
+/.nvmrc export-ignore
+/.npmrc export-ignore
 /.husky export-ignore
 /.lintstagedrc.json export-ignore
 /.stylelintrc export-ignore

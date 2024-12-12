@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use \WP_Term_Query;
+use WP_Term_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexable;
 
@@ -357,11 +357,9 @@ class Term extends Indexable {
 				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
-			} else {
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
-				}
 			}
 
 			/**

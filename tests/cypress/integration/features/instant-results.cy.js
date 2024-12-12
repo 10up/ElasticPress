@@ -309,14 +309,18 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 					content: 'Testing openModal()',
 				});
 
+				cy.getBlockEditor().as('iframe');
 				cy.openBlockInserter();
 				cy.insertBlock('Buttons');
-				cy.get('.wp-block-button__link').type('Search "Block"');
+				cy.closeBlockInserter();
+				cy.get('@iframe').find('.wp-block-button__link').type('Search "Block"');
 
 				/**
 				 * Update the post and visit the front end.
 				 */
+				cy.wait(500); // eslint-disable-line
 				cy.get('.editor-post-publish-button__button').click();
+				cy.wait(2000); // eslint-disable-line
 				cy.get('.components-snackbar__action').click();
 
 				/**

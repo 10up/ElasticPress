@@ -682,7 +682,6 @@ class AdminNotices {
 			];
 
 		}
-
 	}
 
 	/**
@@ -876,8 +875,14 @@ class AdminNotices {
 	protected function check_field_count() {
 		$post_indexable = Indexables::factory()->get( 'post' );
 
-		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
-		$count_fields_db  = count( $indexable_fields );
+		$search = Features::factory()->get_registered_feature( 'search' );
+		if ( $search && ! empty( $search->weighting ) && 'manual' === $search->weighting->get_meta_mode() ) {
+			$indexable_fields = $post_indexable->get_all_allowed_metas_manual();
+			$count_fields_db  = count( $indexable_fields );
+		} else {
+			$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
+			$count_fields_db  = count( $indexable_fields );
+		}
 
 		$index_name     = $post_indexable->get_index_name();
 		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );

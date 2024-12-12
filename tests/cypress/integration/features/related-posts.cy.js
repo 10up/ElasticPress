@@ -51,18 +51,21 @@ describe('Related Posts Feature', () => {
 			content: 'Inceptos tristique class ac eleifend leo.',
 		});
 
+		cy.getBlockEditor().as('iframe');
+
 		/**
 		 * On the last post insert a Related Posts block.
 		 */
 		cy.openBlockInserter();
 		cy.getBlocksList().should('contain.text', 'Related Posts');
 		cy.insertBlock('Related Posts');
+		cy.closeBlockInserter();
 
 		/**
 		 * Verify that the block is inserted into the editor, and contains the
 		 * expected content.
 		 */
-		cy.get('.wp-block.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('@iframe').find('.wp-block.wp-block-elasticpress-related-posts').first().as('block');
 		cy.get('@block')
 			.find('li')
 			.should('contain', 'Test related posts block #')
@@ -104,6 +107,7 @@ describe('Related Posts Feature', () => {
 		 * Update the post and visit the front end.
 		 */
 		cy.get('.editor-post-publish-button__button').click();
+		cy.wait(2000); // eslint-disable-line
 		cy.get('.components-snackbar__action').click();
 
 		/**

@@ -181,7 +181,7 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return FeatureRequirementsStatus
 	 */
-	public function requirements_status() : FeatureRequirementsStatus {
+	public function requirements_status(): FeatureRequirementsStatus {
 		return new FeatureRequirementsStatus( 0 );
 	}
 
@@ -492,6 +492,7 @@ class SearchOrdering extends Feature {
 				$final_order_data[] = [
 					'ID'    => intval( $order_data['ID'] ),
 					'order' => intval( $order_data['order'] ),
+					'type'  => ! empty( $order_data['type'] ) ? sanitize_text_field( $order_data['type'] ) : 'reordered',
 				];
 			} else {
 				$previous_post_ids[ intval( $order_data['ID'] ) ] = true;
@@ -795,5 +796,4 @@ class SearchOrdering extends Feature {
 
 		return $admin_title;
 	}
-
 }

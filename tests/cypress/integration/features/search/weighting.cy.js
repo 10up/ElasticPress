@@ -246,7 +246,7 @@ describe('Post Search Feature - Weighting Functionality', () => {
 		 * Sync.
 		 */
 		cy.wpCli('wp elasticpress sync --yes').its('stdout').should('contain', 'Success: Done!');
-		cy.wait(500); // eslint-disable-line cypress/no-unnecessary-waiting
+		cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
 
 		/**
 		 * Both results should be returned, but the post with the value in its

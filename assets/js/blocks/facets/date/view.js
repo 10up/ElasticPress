@@ -16,7 +16,11 @@ const initFacet = () => {
 		form.addEventListener('submit', function (event) {
 			event.preventDefault();
 
-			const { value } = this.querySelector(`[name="${filterName}"]:checked`);
+			const { value } = this.querySelector(`[name="${filterName}"]:checked`) || '';
+			if (!value) {
+				return;
+			}
+
 			const { value: startDateValue } =
 				this.querySelector('.ep-date-range-picker')?.querySelector(
 					`[name="${filterName}_from"]`,

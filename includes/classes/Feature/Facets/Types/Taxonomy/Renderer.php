@@ -260,7 +260,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 									break;
 								}
 
-								$i++;
+								++$i;
 							}
 
 							$flat_ordered_terms = array();
@@ -526,24 +526,22 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 			if ( 'asc' === $order ) {
 				uasort(
 					$ordered_terms,
-					function( $a, $b ) {
+					function ( $a, $b ) {
 						return $a->count <=> $b->count;
 					}
 				);
 			} else {
 				uasort(
 					$ordered_terms,
-					function( $a, $b ) {
+					function ( $a, $b ) {
 						return $b->count <=> $a->count;
 					}
 				);
 			}
-		} else {
-			if ( 'asc' === $order ) {
+		} elseif ( 'asc' === $order ) {
 				ksort( $ordered_terms );
-			} else {
-				krsort( $ordered_terms );
-			}
+		} else {
+			krsort( $ordered_terms );
 		}
 
 		return array_values( $ordered_terms );

@@ -71,6 +71,10 @@ class Features {
 					case 'toggle':
 						$property['type'] = 'boolean';
 						break;
+					case 'url':
+						$property['type']   = 'string';
+						$property['format'] = 'uri';
+						break;
 				}
 
 				$properties[ $schema['key'] ] = $property;

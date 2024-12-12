@@ -41,6 +41,7 @@ export default () => {
 				indeterminate={isSyncing && isDeleting && !args.put_mapping}
 				label={__('Delete all data and start fresh sync', 'elasticpress')}
 				onChange={(checked) => setArgs({ ...args, put_mapping: checked })}
+				__nextHasNoMarginBottom
 			/>
 		</>
 	);

@@ -665,7 +665,7 @@ class Products {
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
-	public function should_integrate_with_query( \WP_Query $query ) : bool {
+	public function should_integrate_with_query( \WP_Query $query ): bool {
 		$has_ep_integrate = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
 		$is_search        = '' !== $this->woocommerce->get_search_term( $query );
 
@@ -703,7 +703,7 @@ class Products {
 	 *
 	 * @return array
 	 */
-	public function get_supported_taxonomies() : array {
+	public function get_supported_taxonomies(): array {
 		$supported_taxonomies = array(
 			'product_cat',
 			'product_tag',
@@ -749,7 +749,7 @@ class Products {
 	 * @param \WP_Query $query The WP_Query object
 	 * @return array
 	 */
-	public function get_supported_post_types( \WP_Query $query ) : array {
+	public function get_supported_post_types( \WP_Query $query ): array {
 		$post_types = [ 'product_variation' ];
 
 		$is_main_post_type_archive = $query->is_main_query() && $query->is_post_type_archive( 'product' );
@@ -813,6 +813,31 @@ class Products {
 					'field'    => 'slug',
 					'terms'    => (array) $term,
 				);
+			}
+		}
+
+		/*
+		 * If the site is set to use the product attributes lookup table for catalog filtering
+		 * we need to add filters back to WP_Query, so EP can handle the filtering.
+		 */
+		$filterer_class = 'Automattic\WooCommerce\Internal\ProductAttributesLookup\Filterer';
+		if (
+			function_exists( 'wc_get_container' ) &&
+			class_exists( $filterer_class ) &&
+			method_exists( 'WC_Query', 'get_layered_nav_chosen_attributes' )
+		) {
+			$filterer = wc_get_container()->get( $filterer_class );
+
+			if ( $filterer->filtering_via_lookup_table_is_active() ) {
+				foreach ( \WC_Query::get_layered_nav_chosen_attributes() as $taxonomy => $data ) {
+					$tax_query[] = array(
+						'taxonomy'         => $taxonomy,
+						'field'            => 'slug',
+						'terms'            => $data['terms'],
+						'operator'         => 'and' === $data['query_type'] ? 'AND' : 'IN',
+						'include_children' => false,
+					);
+				}
 			}
 		}
 
@@ -910,7 +935,7 @@ class Products {
 	 * @param array $search_fields Array of search fields.
 	 * @return array
 	 */
-	public function remove_author( array $search_fields ) : array {
+	public function remove_author( array $search_fields ): array {
 		foreach ( $search_fields as $field_key => $field ) {
 			if ( 'author_name' === $field ) {
 				unset( $search_fields[ $field_key ] );
@@ -1010,7 +1035,7 @@ class Products {
 	 * @param array $meta_key The meta key to get the mapping for.
 	 * @return string The mapped meta key.
 	 */
-	public function get_orderby_meta_mapping( $meta_key ) : string {
+	public function get_orderby_meta_mapping( $meta_key ): string {
 		/**
 		 * Filter WooCommerce to Elasticsearch meta mapping
 		 *
@@ -1045,7 +1070,7 @@ class Products {
 	 * @param array $attribute_taxonomies  Attribute taxonomies.
 	 * @return array $attribute_taxonomies Attribute taxonomies.
 	 */
-	public function add_taxonomy_attributes( array $attribute_taxonomies ) : array {
+	public function add_taxonomy_attributes( array $attribute_taxonomies ): array {
 		$all_attr_taxonomies = wc_get_attribute_taxonomies();
 
 		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {

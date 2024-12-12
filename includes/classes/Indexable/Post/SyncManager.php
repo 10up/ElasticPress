@@ -224,7 +224,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 			if ( $query->have_posts() && $query->elasticsearch_success ) {
 				$posts_to_be_synced = array_filter(
 					$query->posts,
-					function( $object_id ) {
+					function ( $object_id ) {
 						return ! apply_filters( 'ep_post_sync_kill', false, $object_id, $object_id );
 					}
 				);
@@ -852,7 +852,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 	 * @param \WP_Taxonomy $tax The taxonomy object
 	 * @return boolean
 	 */
-	protected function is_tax_max_count_bigger_than_items_per_cycle( \WP_Taxonomy $tax ) : bool {
+	protected function is_tax_max_count_bigger_than_items_per_cycle( \WP_Taxonomy $tax ): bool {
 		$transient_name   = "ep_term_max_count_{$tax->name}";
 		$cached_max_count = get_transient( $transient_name );
 

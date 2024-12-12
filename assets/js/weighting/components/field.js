@@ -60,6 +60,7 @@ export default ({ label, onChange, onDelete, value, showTooltip }) => {
 						checked={enabled}
 						label={__('Searchable', 'elasticpress')}
 						onChange={onChangeSearchable}
+						__nextHasNoMarginBottom
 					/>
 				</div>
 				<div className="ep-weighting-field__weighting">
@@ -70,6 +71,7 @@ export default ({ label, onChange, onDelete, value, showTooltip }) => {
 						min={1}
 						onChange={onChangeWeight}
 						value={weight}
+						__nextHasNoMarginBottom
 					/>
 				</div>
 				<div className="ep-weighting-field__actions">

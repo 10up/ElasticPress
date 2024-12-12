@@ -54,6 +54,14 @@ else
 	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --activate --version=${WC_VERSION}"
 fi
 
+# Set twentytwentyone as the active theme here, as 2025 won't work with WP 6.0
+./bin/wp-env-cli tests-wordpress "wp --allow-root theme activate twentytwentyone"
+
+# Fix the debug-bar-elasticpress dependency of ElasticPress
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install debug-bar-elasticpress"
+./bin/wp-env-cli tests-wordpress "sed -i \"s/Requires Plugins:  elasticpress/Requires Plugins:  $PLUGIN_NAME/\" /var/www/html/wp-content/plugins/debug-bar-elasticpress/debug-bar-elasticpress.php"
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate debug-bar-elasticpress"
+
 if [ ! -z $WP_VERSION ]; then
 	./bin/wp-env-cli tests-wordpress "wp --allow-root core update --version=${WP_VERSION} --force"
 fi
@@ -93,8 +101,6 @@ fi
 # Not sure why, wp-env makes it http://localhost:8889/:8889 (not related to the command above)
 ./bin/wp-env-cli tests-wordpress "wp --allow-root option set home 'http://localhost:8889'"
 ./bin/wp-env-cli tests-wordpress "wp --allow-root option set siteurl 'http://localhost:8889'"
-
-./bin/wp-env-cli tests-wordpress "wp --allow-root theme enable twentytwentyone --network --activate"
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
 

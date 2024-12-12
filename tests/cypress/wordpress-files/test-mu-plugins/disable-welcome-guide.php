@@ -11,7 +11,7 @@
 
 add_action(
 	'enqueue_block_editor_assets',
-	function() {
+	function () {
 		wp_add_inline_script(
 			'wp-data',
 			"window.onload = function() {
@@ -21,4 +21,3 @@ add_action(
 	},
 	999
 );
-

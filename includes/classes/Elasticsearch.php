@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use \WP_Error;
+use WP_Error;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -1325,7 +1325,7 @@ class Elasticsearch {
 			$is_non_blocking_request = ( 0 === $request_response_code );
 
 			if ( false === $request || is_wp_error( $request ) || ( ! $is_valid_res && ! $is_non_blocking_request ) ) {
-				$failures++;
+				++$failures;
 
 				/**
 				 * Filter max number of times to attempt remote requests
@@ -1369,7 +1369,6 @@ class Elasticsearch {
 		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
-
 	}
 
 	/**
@@ -1419,7 +1418,6 @@ class Elasticsearch {
 			'status' => true,
 			'data'   => $response->_all->primaries->indexing,
 		);
-
 	}
 
 	/**
@@ -1730,12 +1728,25 @@ class Elasticsearch {
 	 * Query logging. Don't log anything to the queries property when
 	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
 	 * want to access the query outside of the ElasticPress plugin. This
-	 * runs regardless of debufg settings.
+	 * runs regardless of debug settings.
 	 *
 	 * @param array $query Query to log.
 	 */
 	protected function add_query_log( $query ) {
-		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
+		$wp_debug    = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$wp_ep_debug = defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG;
+
+		/**
+		 * Filter query logging. Don't log anything to the queries property when true.
+		 *
+		 * @hook ep_disable_query_logging
+		 * @param  {bool} Whether to log to the queries property. Defaults to false.
+		 * @return {bool} New value
+		 * @since  5.1.4
+		 */
+		$disable_query_logging = apply_filters( 'ep_disable_query_logging', false );
+
+		if ( ! $disable_query_logging && ( $wp_debug || $wp_ep_debug ) ) {
 			$this->queries[] = $query;
 		}
 
@@ -1784,7 +1795,7 @@ class Elasticsearch {
 	 * @since 4.4.0
 	 * @return array Array of indices in Elasticsearch
 	 */
-	public function get_cluster_indices() : array {
+	public function get_cluster_indices(): array {
 		$path = '_cat/indices?format=json';
 
 		$response = $this->remote_request( $path );

@@ -83,26 +83,42 @@ function triggerAutosuggestEvent(detail) {
 	const event = new CustomEvent('ep-autosuggest-click', { detail });
 	window.dispatchEvent(event);
 
-	/**
-	 * Check if window.gtag was already defined, otherwise
-	 * try to use window.dataLayer.push, available by default
-	 * for Tag Manager users.
-	 */
-	let epGtag = null;
-	if (typeof window?.gtag === 'function') {
-		epGtag = window.gtag;
-	} else if (typeof window?.dataLayer?.push === 'function') {
-		epGtag = window.dataLayer.push;
+	if (parseInt(epas.triggerAnalytics, 10) !== 1) {
+		return;
 	}
 
-	if (detail.searchTerm && parseInt(epas.triggerAnalytics, 10) === 1 && epGtag) {
-		const action = `click - ${detail.searchTerm}`;
-		// eslint-disable-next-line no-undef
-		epGtag('event', action, {
-			event_category: 'EP :: Autosuggest',
-			event_label: detail.url,
-			transport_type: 'beacon',
-		});
+	if (!detail.searchTerm) {
+		return;
+	}
+
+	const action = `click - ${detail.searchTerm}`;
+	try {
+		/**
+		 * Check if window.gtag was already defined, otherwise
+		 * try to use window.dataLayer.push, available by default
+		 * for Tag Manager users.
+		 */
+		if (typeof window?.gtag === 'function') {
+			window.gtag('event', action, {
+				ep_autosuggest_search_term: detail.searchTerm,
+				ep_autosuggest_clicked_url: detail.url,
+				event_category: 'EP :: Autosuggest',
+				event_label: detail.url,
+				transport_type: 'beacon',
+			});
+			return;
+		}
+		if (typeof window?.dataLayer?.push === 'function') {
+			window.dataLayer.push({
+				event: 'ep_autosuggest_click',
+				ep_autosuggest_search_term: detail.searchTerm,
+				ep_autosuggest_clicked_url: detail.url,
+				event_category: 'EP :: Autosuggest',
+				event_label: detail.url,
+			});
+		}
+	} catch (error) {
+		// When Ad blocks are enabled, the call above will fail
 	}
 }
 

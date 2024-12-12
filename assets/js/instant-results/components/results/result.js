@@ -8,6 +8,7 @@ import { WPElement } from '@wordpress/element';
  */
 import { postTypeLabels } from '../../config';
 import { formatDate } from '../../utilities';
+import { escapeRegExp } from '../../../utils/helpers';
 import Result from '../common/result';
 
 /**
@@ -36,7 +37,7 @@ export default ({ hit, searchTerm, highlightTag }) => {
 	/**
 	 * Note: highlighting is redone here because the unified highlight type is not supported in ES5
 	 */
-	const regex = new RegExp(`\\b(${searchTerm})`, 'gi');
+	const regex = new RegExp(`\\b(${escapeRegExp(searchTerm)})`, 'gi');
 	let title;
 
 	if (highlightTag === '' || highlightTag === undefined) {

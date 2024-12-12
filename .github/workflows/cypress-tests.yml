@@ -3,7 +3,7 @@ name: E2E Test
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
@@ -33,18 +33,17 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Prepare npm cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
-
     - name: Prepare composer cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -63,7 +62,7 @@ jobs:
       run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -89,7 +88,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: cypress-artifact-${{ matrix.core.name }}-${{ matrix.testGroup }}
+        name: cypress-artifact-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
@@ -98,7 +97,7 @@ jobs:
 
     - name: Stop Elasticsearch
       if: always()
-      run: cd bin/es-docker/ && docker-compose down
+      run: cd bin/es-docker/ && docker compose down
 
     - name: Test plugin uninstall
       if: always()
@@ -122,18 +121,17 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Prepare npm cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
-
     - name: Prepare composer cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -152,7 +150,7 @@ jobs:
       run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
 
