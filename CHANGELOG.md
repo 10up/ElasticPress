@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.1.4] - 2024-12-XX
+## [5.1.4] - 2024-12-12
 
 ### Added
 * New filter `ep_facet_selected_filters`. Props [@burhandodhy](https://github.com/burhandodhy) via [#3953](https://github.com/10up/ElasticPress/pull/3953).
