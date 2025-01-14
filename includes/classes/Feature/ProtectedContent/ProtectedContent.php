@@ -441,11 +441,7 @@ class ProtectedContent extends Feature {
 		}
 
 		$screen = get_current_screen();
-		if ( empty( $screen ) ) {
-			return $default_sort;
-		}
-
-		if ( 'edit' !== $screen->base ) {
+		if ( empty( $screen ) || 'edit' !== $screen->base ) {
 			return $default_sort;
 		}
 
