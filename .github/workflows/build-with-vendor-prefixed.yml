@@ -1,5 +1,8 @@
 name: Build with vendor-prefixed
 
+env:
+  NODE_VERSION: "20"
+
 on:
   pull_request:
     branches:
@@ -24,10 +27,10 @@ jobs:
     - name: composer install
       run: composer install
 
-    - name: install node v20
+    - name: "install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Build
       run: |
