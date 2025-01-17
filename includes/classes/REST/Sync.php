@@ -177,10 +177,9 @@ class Sync {
 	/**
 	 * Get the status of a sync in progress.
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return void
 	 */
-	public function get_sync_status( \WP_REST_Request $request ) {
+	public function get_sync_status() {
 		nocache_headers();
 
 		$index_meta = Utils\get_indexing_status();
@@ -211,10 +210,9 @@ class Sync {
 	/**
 	 * Cancel a sync in progress.
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return void
 	 */
-	public function cancel_sync( \WP_REST_Request $request ) {
+	public function cancel_sync() {
 		nocache_headers();
 
 		$index_meta = Utils\get_indexing_status();

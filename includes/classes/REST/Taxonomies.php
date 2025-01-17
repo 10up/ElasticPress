@@ -49,10 +49,9 @@ class Taxonomies {
 	/**
 	 * Get filterable taxonomies.
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return array
 	 */
-	public function get_taxonomies( \WP_REST_Request $request ) {
+	public function get_taxonomies() {
 		$filterable_taxonomies = Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies();
 
 		$taxonomies = [];

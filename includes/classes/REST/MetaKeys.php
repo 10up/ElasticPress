@@ -50,10 +50,9 @@ class MetaKeys {
 	/**
 	 * Get indexed meta keys.
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return array
 	 */
-	public function get_meta_keys( \WP_REST_Request $request ) {
+	public function get_meta_keys() {
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		try {
