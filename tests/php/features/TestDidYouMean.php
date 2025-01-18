@@ -251,12 +251,12 @@ class TestDidYouMean extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_args',
-			function ( $request_args, $path, $index, $type, $query, $query_args, $query_object ) use ( $search_analyzer ) {
+			function ( $request_args, $path, $index, $type, $query ) use ( $search_analyzer ) {
 				$this->assertEquals( $search_analyzer, $query['suggest']['ep_suggestion'] );
 				return $request_args;
 			},
 			10,
-			7
+			5
 		);
 
 		$query = new \WP_Query(
