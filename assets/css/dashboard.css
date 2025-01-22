@@ -1,12 +1,6 @@
 @import "@10up/component-tooltip";
 @import "./global/colors.css";
 
-:root {
-	--ep-dashboard-status-ok: #6aa000;
-	--ep-dashboard-status-warning: #e3e600;
-	--ep-dashboard-status-error: #f00;
-}
-
 html.wp-toolbar {
 	background: transparent;
 }
@@ -207,11 +201,11 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--ep-dashboard-status-error);
+		border: 1px solid var(--ep-status-error);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--ep-dashboard-status-error);
+		border-color: var(--ep-status-error);
 	}
 }
 
@@ -219,15 +213,15 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--ep-dashboard-status-warning);
+		border: 1px solid var(--ep-status-warning);
 	}
 
 	&.feature-active .postbox .hndle .settings-button::after {
-		background-color: var(--ep-dashboard-status-warning);
+		background-color: var(--ep-status-warning);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--ep-dashboard-status-warning);
+		border-color: var(--ep-status-warning);
 	}
 }
 
@@ -235,15 +229,15 @@ h2.ep-list-features {
 
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
-		border: 1px solid var(--ep-dashboard-status-ok);
+		border: 1px solid var(--ep-status-ok);
 	}
 
 	&.feature-active .postbox .hndle .settings-button::after {
-		background-color: var(--ep-dashboard-status-ok);
+		background-color: var(--ep-status-ok);
 	}
 
 	& .settings .requirements-status-notice {
-		border-color: var(--ep-dashboard-status-ok);
+		border-color: var(--ep-status-ok);
 	}
 }
 
@@ -307,17 +301,17 @@ h2.ep-list-features {
 
 .ep-feature .settings .requirements-status-notice {
 	background-color: var(--ep-c-medium-white);
-	border-left: 4px solid var(--ep-dashboard-status-ok);
+	border-left: 4px solid var(--ep-status-ok);
 	margin-bottom: 10px;
 	padding: 8px 12px;
 
 	&.requirements-status-notice--reindex {
-		border-color: var(--ep-dashboard-status-warning);
+		border-color: var(--ep-status-warning);
 		display: none; /* Controlled by JavaScript. */
 	}
 
 	&.requirements-status-notice--syncing {
-		border-color: var(--ep-dashboard-status-error);
+		border-color: var(--ep-status-error);
 		display: none; /* Controlled by JavaScript. */
 	}
 }
@@ -909,27 +903,27 @@ h2 .nav-tab.ep-credentials-tab {
 }
 
 .green-status {
-	color: var(--ep-dashboard-status-ok);
+	color: var(--ep-status-ok);
 }
 
 .yellow-status {
-	color: var(--ep-dashboard-status-warning);
+	color: var(--ep-status-warning);
 }
 
 .red-status {
-	color: var(--ep-dashboard-status-error);
+	color: var(--ep-status-error);
 }
 
 .green-status::after {
-	background-color: var(--ep-dashboard-status-ok);
+	background-color: var(--ep-status-ok);
 }
 
 .yellow-status::after {
-	background-color: var(--ep-dashboard-status-warning);
+	background-color: var(--ep-status-warning);
 }
 
 .red-status::after {
-	background-color: var(--ep-dashboard-status-error);
+	background-color: var(--ep-status-error);
 }
 
 .doc-chart {
