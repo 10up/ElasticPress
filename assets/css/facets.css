@@ -72,7 +72,7 @@
 	}
 
 	& .term a:hover .ep-checkbox {
-		background-color: #ccc;
+		background-color: var(--ep-c-white-gray);
 	}
 }
 

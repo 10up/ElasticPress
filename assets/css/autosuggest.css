@@ -5,7 +5,7 @@
 
 	& .ep-autosuggest {
 		background: var(--ep-c-white);
-		border: 1px solid #ccc;
+		border: 1px solid var(--ep-c-white-gray);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 		display: none;
 		position: absolute;
