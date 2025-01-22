@@ -1,4 +1,4 @@
-@import "./global/colors.css";
+@import "../../global/colors.css";
 @import "components/combobox.css";
 @import "components/suggestion.css";
 
