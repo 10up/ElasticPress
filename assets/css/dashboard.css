@@ -181,7 +181,7 @@ h2.ep-list-features {
 }
 
 .ep-feature .settings-button::before {
-	color: #72777c;
+	color: var(--ep-c-medium-gray);
 	content: "\f140";
 	display: inline-block;
 	font: 400 19px/1 dashicons;
