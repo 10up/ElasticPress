@@ -1,0 +1,27 @@
+/*
+ * Colors
+ */
+:root {
+
+	/**
+	 * Brand colors
+	 */
+	--ep-c-white: #fff;
+	--ep-c-medium-white: #eee;
+	--ep-c-white-gray: #ccc;
+	--ep-c-white-red: #ffe8ed;
+	--ep-c-white-yellow: #fdeeca;
+	--ep-c-medium-gray: #626262;
+	--ep-c-light-gray: #999;
+	--ep-c-black: #000;
+	--ep-c-medium-red: #d73c38;
+	--ep-c-dark-red: #b93431;
+	--ep-c-medium-dark-blue: #0073aa;
+
+	/**
+	 * Status colors
+	 */
+	--ep-status-ok: #6aa000;
+	--ep-status-warning: #e3e600;
+	--ep-status-error: #f00;
+}
