@@ -21,9 +21,10 @@
 	width: 100%;
 	z-index: 1;
 
-	@nest .ep-combobox__input[aria-expanded="true"] ~ & {
-		display: block;
-	}
+}
+
+.ep-combobox__input[aria-expanded="true"] ~ .ep-combobox__list {
+	display: block;
 }
 
 .ep-combobox__option {

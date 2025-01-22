@@ -1,6 +1,7 @@
 @import "./global/colors.css";
 
 :root {
+
 	@media ( min-width: 768px ) {
 		--ep-range-slider-thumb-size: 1.25em;
 		--ep-range-slider-track-size: 0.5em;
