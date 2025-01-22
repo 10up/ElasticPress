@@ -106,7 +106,7 @@ h2.ep-list-features {
 }
 
 .ep-header-menu .progress-bar {
-	background-color: var(--ep-c-light-red);
+	background-color: var(--ep-c-medium-red);
 	bottom: 0;
 	height: 5px;
 	left: 0;
@@ -617,7 +617,7 @@ h2.ep-list-features {
 }
 
 .ep-circle--active {
-	background-color: var(--ep-c-light-red);
+	background-color: var(--ep-c-medium-red);
 	color: var(--ep-c-white);
 }
 
@@ -645,7 +645,7 @@ h2.ep-list-features {
 
 .setup-button {
 	-webkit-appearance: none;
-	background-color: #e63e3b;
+	background-color: var(--ep-c-medium-red);
 	border: none;
 	border-radius: 10px;
 	box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.25);
@@ -657,13 +657,13 @@ h2.ep-list-features {
 }
 
 .setup-button:hover {
-	background-color: #b93431;
+	background-color: var(--ep-c-dark-red);
 	color: #ffe8ed;
 }
 
 .setup-message .setup-button-primary {
 	background-color: var(--ep-c-white);
-	color: var(--ep-c-light-red);
+	color: var(--ep-c-medium-red);
 }
 
 .ep-feature-search .wp-color-result.button {
