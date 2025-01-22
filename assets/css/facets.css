@@ -98,7 +98,7 @@
 }
 
 .ep-checkbox.checked {
-	background-color: #5e5e5e;
+	background-color: var(--ep-c-medium-gray);
 }
 
 .ep-checkbox.checked::after {
@@ -164,7 +164,7 @@
 
 			&:checked {
 				background-color: transparent;
-				border: 5px solid #5e5e5e;
+				border: 5px solid var(--ep-c-medium-gray);
 
 				&::after {
 					opacity: 0;
