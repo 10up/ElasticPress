@@ -5,7 +5,7 @@
 	border-right-width: 0;
 
 	& .inside {
-		background-color: #f1f1f1;
+		background-color: var(--ep-c-white);
 		margin: 0;
 		padding: 0;
 	}
@@ -14,8 +14,8 @@
 	& .pointer-search,
 	& .loading {
 		background-color: var(--ep-c-white);
-		border-left: 1px solid #eee;
-		border-right: 1px solid #eee;
+		border-left: 1px solid var(--ep-c-medium-white);
+		border-right: 1px solid var(--ep-c-medium-white);
 	}
 
 	& .new-post {
@@ -84,7 +84,7 @@
 
 	& .legend {
 		background: var(--ep-c-white);
-		border-bottom: 1px solid #eee;
+		border-bottom: 1px solid var(--ep-c-medium-white);
 		padding: 1em 0;
 		text-align: center;
 	}
@@ -104,8 +104,8 @@
 		}
 
 		& .section-title {
-			border-bottom: 1px solid #eee;
-			border-top: 1px solid #eee;
+			border-bottom: 1px solid var(--ep-c-medium-white);
+			border-top: 1px solid var(--ep-c-medium-white);
 			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 			font-weight: 700;
 		}

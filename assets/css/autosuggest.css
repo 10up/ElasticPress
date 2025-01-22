@@ -28,7 +28,7 @@
 
 					&:hover,
 					&:active {
-						background-color: #eee;
+						background-color: var(--ep-c-medium-white);
 						text-decoration: none;
 					}
 				}
@@ -37,7 +37,7 @@
 	}
 
 	& .selected {
-		background-color: #eee;
+		background-color: var(--ep-c-medium-white);
 		text-decoration: none;
 	}
 }

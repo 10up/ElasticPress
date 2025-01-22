@@ -1,8 +1,6 @@
 @import "./global/colors.css";
 
 :root {
-	--ep-range-slider-track-color: #eee;
-
 	@media ( min-width: 768px ) {
 		--ep-range-slider-thumb-size: 1.25em;
 		--ep-range-slider-track-size: 0.5em;
@@ -80,7 +78,7 @@
 
 .ep-checkbox {
 	align-items: center;
-	background-color: #eee;
+	background-color: var(--ep-c-medium-white);
 	display: flex;
 	flex-shrink: 0;
 	height: 1em;
@@ -129,7 +127,7 @@
 }
 
 .ep-range-slider__track {
-	background: var(--ep-range-slider-track-color);
+	background: var(--ep-c-medium-white);
 	border-radius: calc(var(--ep-range-slider-track-size) / 2);
 	height: var(--ep-range-slider-track-size);
 }
@@ -156,7 +154,7 @@
 
 		& .ep-radio {
 			appearance: none;
-			border: 1px solid #eee;
+			border: 1px solid var(--ep-c-medium-white);
 			border-radius: 50%;
 			height: 1em;
 			margin-right: 0.25em;

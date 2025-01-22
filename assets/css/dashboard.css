@@ -777,7 +777,7 @@ h2 .nav-tab.ep-credentials-tab {
 }
 
 .ep-credentials-tab.nav-tab-active {
-	border-bottom-color: #f1f1f1;
+	border-bottom-color: var(--ep-c-white);
 }
 
 .ep-credentials-tab img,
