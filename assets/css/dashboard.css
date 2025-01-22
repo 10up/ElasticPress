@@ -106,7 +106,7 @@ h2.ep-list-features {
 }
 
 .ep-header-menu .progress-bar {
-	background-color: #d84440;
+	background-color: var(--ep-c-light-red);
 	bottom: 0;
 	height: 5px;
 	left: 0;
@@ -663,7 +663,7 @@ h2.ep-list-features {
 
 .setup-message .setup-button-primary {
 	background-color: var(--ep-c-white);
-	color: #d84440;
+	color: var(--ep-c-light-red);
 }
 
 .ep-feature-search .wp-color-result.button {
