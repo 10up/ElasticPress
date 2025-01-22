@@ -411,7 +411,7 @@ h2.ep-list-features {
 	}
 
 	& .components-form-token-field__input-container {
-		border-color: #8c8f94;
+		border-color: var(--ep-c-light-gray);
 	}
 }
 
