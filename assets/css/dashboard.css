@@ -97,7 +97,7 @@ h2.ep-list-features {
 
 .ep-header-menu .sync-status {
 	bottom: -1px;
-	color: #666;
+	color: var(--ep-c-medium-gray);
 	display: none;
 	font-style: italic;
 	margin-right: 8px;
@@ -388,7 +388,7 @@ h2.ep-list-features {
 	}
 
 	& .field-description {
-		color: #666;
+		color: var(--ep-c-medium-gray);
 		font-style: italic;
 		margin-bottom: 0;
 		margin-top: 4px;
