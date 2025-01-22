@@ -12,11 +12,11 @@
 }
 
 .ep-search-range-slider__track-1 {
-	background-color: currentcolor;
+	background-color: currentcolor; /* stylelint-disable-line scale-unlimited/declaration-strict-value */
 }
 
 .ep-search-range-slider__thumb {
-	background-color: currentcolor;
+	background-color: currentcolor; /* stylelint-disable-line scale-unlimited/declaration-strict-value */
 	border-radius: calc(var(--ep-search-range-thumb-size) / 2);
 	box-shadow:
 		inset 0 0 0 calc(var(--ep-search-range-thumb-size) / 10) currentcolor,
