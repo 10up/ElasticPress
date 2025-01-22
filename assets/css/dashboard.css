@@ -334,7 +334,7 @@ h2.ep-list-features {
 	}
 
 	& .no-dash-sync {
-		color: #aaa;
+		color: var(--ep-c-light-gray);
 		display: none;
 		line-height: 27px;
 		padding-right: 8px;
