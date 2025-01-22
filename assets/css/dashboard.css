@@ -462,7 +462,7 @@ h2.ep-list-features {
 }
 
 .intro h1 {
-	color: #626262;
+	color: var(--ep-c-medium-gray);
 	font-weight: 600;
 	margin: 0.5em 0 2em;
 	text-align: center;
@@ -485,7 +485,7 @@ h2.ep-list-features {
 	}
 
 	& h2 {
-		color: #626262;
+		color: var(--ep-c-medium-gray);
 		height: 8%;
 	}
 
@@ -579,7 +579,7 @@ h2.ep-list-features {
 .ep-circle {
 	background: var(--ep-c-white);
 	border-radius: 50%;
-	color: #626262;
+	color: var(--ep-c-medium-gray);
 	display: inline-block;
 	font-size: 16px;
 	font-weight: 400;
