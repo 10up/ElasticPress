@@ -617,7 +617,7 @@ h2.ep-list-features {
 }
 
 .ep-circle--active {
-	background-color: #d73c38;
+	background-color: var(--ep-c-light-red);
 	color: var(--ep-c-white);
 }
 
