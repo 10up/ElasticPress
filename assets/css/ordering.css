@@ -34,9 +34,9 @@
 	}
 
 	& .pointer-type {
-		border: 2px solid #0073aa;
+		border: 2px solid var(--ep-c-medium-dark-blue);
 		border-radius: 2px;
-		color: #0073aa;
+		color: var(--ep-c-medium-dark-blue);
 		display: inline-block;
 		font-size: 0.75em;
 		font-weight: 700;
@@ -56,7 +56,7 @@
 		}
 
 		& .title {
-			color: #0073aa;
+			color: var(--ep-c-medium-dark-blue);
 		}
 
 		& .removed .title {
