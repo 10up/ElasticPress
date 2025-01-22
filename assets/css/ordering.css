@@ -60,7 +60,7 @@
 		}
 
 		& .removed .title {
-			color: #999;
+			color: var(--ep-c-light-gray);
 		}
 
 		& .pointer-actions {
