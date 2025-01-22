@@ -6,7 +6,7 @@
 }
 
 .ep-search-range-slider__track {
-	background: var(--ep-search-alternate-background-color);
+	background: var(--ep-c-medium-white);
 	border-radius: calc(var(--ep-search-range-track-size) / 2);
 	height: var(--ep-search-range-track-size);
 }

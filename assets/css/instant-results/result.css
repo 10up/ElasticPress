@@ -61,7 +61,7 @@
 }
 
 .ep-search-result__type {
-	background-color: var(--ep-search-alternate-background-color);
+	background-color: var(--ep-c-medium-white);
 	border-radius: 0.25em;
 	display: inline-block;
 	font-size: 0.875em;
