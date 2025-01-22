@@ -1,8 +1,10 @@
+@import "./global/colors.css";
+
 .ep-autosuggest-container {
 	position: relative;
 
 	& .ep-autosuggest {
-		background: #fff;
+		background: var(--ep-c-white);
 		border: 1px solid #ccc;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 		display: none;

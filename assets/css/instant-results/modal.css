@@ -36,7 +36,7 @@
 }
 
 .ep-search-modal__content {
-	background-color: var(--ep-search-background-color);
+	background-color: var(--ep-c-white);
 	bottom: 0;
 	display: flex;
 	flex-direction: column;

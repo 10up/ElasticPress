@@ -1,4 +1,5 @@
 @import "@10up/component-tooltip";
+@import "./global/colors.css";
 
 :root {
 	--ep-dashboard-status-ok: #6aa000;
@@ -40,7 +41,7 @@ h2.ep-list-features {
 }
 
 .ep-header-menu {
-	background-color: #fff;
+	background-color: var(--ep-c-white);
 	border-bottom: 2px solid #ddd;
 	margin-left: -20px;
 	padding-bottom: 5px;
@@ -132,7 +133,7 @@ h2.ep-list-features {
 
 .error-overlay.cant-connect,
 .error-overlay.syncing {
-	background-color: #fff;
+	background-color: var(--ep-c-white);
 	bottom: 0;
 	content: " ";
 	display: block;
@@ -576,7 +577,7 @@ h2.ep-list-features {
 }
 
 .ep-circle {
-	background: #fff;
+	background: var(--ep-c-white);
 	border-radius: 50%;
 	color: #626262;
 	display: inline-block;
@@ -617,7 +618,7 @@ h2.ep-list-features {
 
 .ep-circle--active {
 	background-color: #d73c38;
-	color: #fff;
+	color: var(--ep-c-white);
 }
 
 .wrap.intro {
@@ -648,7 +649,7 @@ h2.ep-list-features {
 	border: none;
 	border-radius: 10px;
 	box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.25);
-	color: #fff;
+	color: var(--ep-c-white);
 	display: inline-block;
 	margin: 0 0.75em;
 	padding: 1em 1.5em;
@@ -661,7 +662,7 @@ h2.ep-list-features {
 }
 
 .setup-message .setup-button-primary {
-	background-color: #fff;
+	background-color: var(--ep-c-white);
 	color: #d84440;
 }
 
@@ -859,14 +860,14 @@ h2 .nav-tab.ep-credentials-tab {
 	} */
 
 	@media (--wide-min) {
-		background-color: #fff;
+		background-color: var(--ep-c-white);
 		margin-right: 28px;
 		width: 37%;
 	}
 }
 
 .stats-queries {
-	background-color: #fff;
+	background-color: var(--ep-c-white);
 	width: 100%;
 
 	/* @media( --tablet-min ) {
