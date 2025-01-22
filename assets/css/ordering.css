@@ -76,7 +76,7 @@
 		}
 
 		& .next-page-notice {
-			background-color: #fdeeca;
+			background-color: var(--ep-c-white-yellow);
 			padding: 1em 0;
 			text-align: center;
 		}
