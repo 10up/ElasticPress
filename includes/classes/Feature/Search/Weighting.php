@@ -348,9 +348,13 @@ class Weighting {
 	/**
 	 * Recursively renders each settings section and its children.
 	 *
+	 * @param string $post_type      Current post type we're rendering
+	 * @param array  $field          Current field to render
+	 * @param array  $current_values Current stored weighting values
+	 *
 	 * @deprecated
 	 */
-	public function render_settings_section() {
+	public function render_settings_section( $post_type, $field, $current_values ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		_doing_it_wrong(
 			__METHOD__,
 			esc_html( 'Weighting sections display are now handled via React components.' ),
@@ -375,9 +379,10 @@ class Weighting {
 	/**
 	 * We need this method to test handle_save properly.
 	 *
+	 * @param string $redirect_url Redirect URL.
 	 * @deprecated
 	 */
-	protected function redirect() {
+	protected function redirect( $redirect_url ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed,Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		_doing_it_wrong(
 			__METHOD__,
 			esc_html( 'Weighting settings are now updated using the REST API, and do not redirect server-side.' ),
@@ -388,11 +393,12 @@ class Weighting {
 	/**
 	 * Save weighting configuration for each searchable post_type.
 	 *
+	 * @param array $settings weighting settings
 	 * @return void
 	 * @since 3.4.1
 	 * @deprecated
 	 */
-	public function save_weighting_configuration() {
+	public function save_weighting_configuration( $settings ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed,Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		_doing_it_wrong(
 			__METHOD__,
 			esc_html( 'Weighting sections display are now handled via React components.' ),
