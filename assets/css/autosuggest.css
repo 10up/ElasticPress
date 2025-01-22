@@ -21,7 +21,7 @@
 				font-family: sans-serif;
 
 				& > a.autosuggest-link {
-					color: #000;
+					color: var(--ep-c-black);
 					cursor: pointer;
 					display: block;
 					padding: 2px 10px;
