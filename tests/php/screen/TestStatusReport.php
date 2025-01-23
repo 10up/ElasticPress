@@ -64,7 +64,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
-			[ 'failed-queries', 'elasticpress', 'indices', 'last-sync', 'features' ],
+			[ 'failed-queries', 'wordpress', 'elasticpress', 'indices', 'last-sync', 'features' ],
 			array_keys( $reports )
 		);
 	}
