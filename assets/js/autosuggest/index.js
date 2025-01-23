@@ -671,23 +671,36 @@ function init() {
 
 			if (response && response._shards && response._shards.successful > 0) {
 				const hits = checkForOrderedPosts(response.hits.hits, searchText);
+				cachedAutosuggestResults = hits;
 
-				if (hits.length === 0) {
-					hideAutosuggestBox();
-				} else {
-					updateAutosuggestBox(hits, input);
-				}
+				toggleAutosuggest(hits, input);
 			} else {
 				hideAutosuggestBox();
 			}
 
 			setFormIsLoading(false, input);
 		} else if (searchText.length === 0) {
+			cachedAutosuggestResults = false;
 			hideAutosuggestBox();
 		}
 	};
 
+	/**
+	 * Toggle Autosuggest.
+	 *
+	 * @param {hits} hits - ES result.
+	 * @param {input} input - HTML Input field.
+	 */
+	const toggleAutosuggest = (hits, input) => {
+		if (hits.length === 0) {
+			hideAutosuggestBox();
+		} else {
+			updateAutosuggestBox(hits, input);
+		}
+	};
+
 	const debounceFetchResults = debounce(fetchResults, 200);
+	let cachedAutosuggestResults;
 
 	/**
 	 * Callback for keyup in Autosuggest container.
@@ -817,8 +830,19 @@ function init() {
 		 *
 		 * blur
 		 * hide the autosuggest box
+		 *
+		 * focus
+		 * use the cached results from keyup to show the autosuggest box
 		 */
 		input.addEventListener('keyup', handleKeyup);
+		input.addEventListener('focus', () => {
+			const searchText = input.value;
+			if (!cachedAutosuggestResults || searchText.length === 0) {
+				return;
+			}
+
+			toggleAutosuggest(cachedAutosuggestResults, input);
+		});
 		input.addEventListener('blur', function () {
 			window.setTimeout(hideAutosuggestBox, 300);
 		});
