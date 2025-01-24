@@ -391,7 +391,6 @@ function updateAutosuggestBox(options, input) {
 function hideAutosuggestBox() {
 	const lists = document.querySelectorAll('.autosuggest-list');
 	const containers = document.querySelectorAll('.ep-autosuggest');
-	const inputs = document.querySelectorAll('.ep-autosuggest-container [aria-activedescendant]');
 
 	// empty all EP results lists
 	lists.forEach((list) => {
@@ -406,11 +405,18 @@ function hideAutosuggestBox() {
 		container.style = 'display: none;';
 	});
 
-	// Remove active descendant attribute from all inputs
-	inputs.forEach((input) => setInputActiveDescendant('', input));
+	hideInputActiveDescendant();
 
 	return true;
 }
+
+/**
+ * Remove active descendant attribute from all inputs.
+ */
+const hideInputActiveDescendant = () => {
+	const inputs = document.querySelectorAll('.ep-autosuggest-container [aria-activedescendant]');
+	inputs.forEach((input) => setInputActiveDescendant('', input));
+};
 
 /**
  * Checks for any manually ordered posts and puts them in the correct place
@@ -491,7 +497,7 @@ function init() {
 
 	// to be used by the handleUpDown function
 	// to keep track of the currently selected result
-	let currentIndex;
+	let currentIndex = -1;
 
 	// these are the keycodes we listen for in handleUpDown,
 	// and in handleKeyup
@@ -552,14 +558,14 @@ function init() {
 		// if enter, navigate to that element
 		switch (event.keyCode) {
 			case 38: // Up
-				// don't go less than the 0th index
-				currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : 0;
+				currentIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : -1;
+				hideInputActiveDescendant();
 				deSelectResults();
 				break;
 			case 40: // Down
-				if (typeof currentIndex === 'undefined') {
-					// index is not yet defined, so let's
-					// start with the first one
+				if (currentIndex === -1) {
+					// -1 means we are at the search input
+					// manually move the index to the first one when pressing down.
 					currentIndex = 0;
 				} else {
 					const current = getSelectedResultIndex();
