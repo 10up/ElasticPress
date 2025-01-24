@@ -17,7 +17,6 @@
 @import "instant-results/tokens.css";
 @import "instant-results/toolbar.css";
 
-
 :root {
 	--ep-search-border-color: #dfdfdf;
 	--ep-search-range-thumb-size: 1.625em;
