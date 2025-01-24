@@ -165,7 +165,6 @@ class RelatedPosts extends Feature {
 		return $query->posts;
 	}
 
-
 	/**
 	 * Setup all feature filters
 	 *
