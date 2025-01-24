@@ -57,7 +57,6 @@ class Comments extends Feature {
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#comments', 'elasticpress' );
 	}
 
-
 	/**
 	 * Setup search functionality
 	 *

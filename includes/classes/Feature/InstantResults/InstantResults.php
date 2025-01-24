@@ -110,7 +110,6 @@ class InstantResults extends Feature {
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
 	}
 
-
 	/**
 	 * Output detailed feature description.
 	 *
