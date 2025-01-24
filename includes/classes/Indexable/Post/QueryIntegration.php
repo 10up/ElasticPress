@@ -194,9 +194,11 @@ class QueryIntegration {
 	/**
 	 * Make sure the correct blog is restored
 	 *
+	 * @param WP_Query $query WP_Query instance
+	 *
 	 * @since 0.9
 	 */
-	public function maybe_restore_blog() {
+	public function maybe_restore_blog( $query ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		if ( ! is_multisite() ) {
 			// @codeCoverageIgnoreStart
 			return;
