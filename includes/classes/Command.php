@@ -1114,7 +1114,7 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-host'] ) ) {
 			add_filter(
 				'ep_host',
-				function ( $host ) use ( $assoc_args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+				function () use ( $assoc_args ) {
 					return $assoc_args['ep-host'];
 				}
 			);
