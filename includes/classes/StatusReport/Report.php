@@ -49,4 +49,13 @@ abstract class Report {
 	public function get_messages(): array {
 		return [];
 	}
+
+	/**
+	 * Return whether the report is loaded via AJAX.
+	 *
+	 * @return bool
+	 */
+	public function is_ajax_report(): bool {
+		return false;
+	}
 }

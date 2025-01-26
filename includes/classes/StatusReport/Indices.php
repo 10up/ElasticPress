@@ -102,4 +102,13 @@ class Indices extends Report {
 
 		return $groups;
 	}
+
+	/**
+	 * Return whether the report is loaded via AJAX.
+	 *
+	 * @return bool
+	 */
+	public function is_ajax_report(): bool {
+		return true;
+	}
 }
