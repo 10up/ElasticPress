@@ -468,5 +468,30 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 			 */
 			cy.get('.ep-search-sort :selected').should('contain.text', 'Date, newest to oldest');
 		});
+
+		it('Is possible to filter the taxonomy terms', () => {
+			/**
+			 * Activate test plugin.
+			 */
+			cy.maybeEnableFeature('instant-results');
+			cy.activatePlugin('filter-instant-results-facet-terms', 'wpCli');
+
+			/**
+			 * Perform a search.
+			 */
+			cy.intercept('*search=block*').as('apiRequest');
+			cy.visit('/');
+			cy.get('.wp-block-search').last().as('searchBlock');
+			cy.get('@searchBlock').find('input[type="search"]').type('block');
+			cy.get('@searchBlock').find('button').click();
+			cy.wait('@apiRequest');
+
+			/**
+			 * The number of terms displayed in the facet should be one.
+			 */
+			cy.get('[id^="ep-search-tax-category-"]').should('have.length', 1);
+
+			cy.deactivatePlugin('filter-instant-results-facet-terms', 'wpCli');
+		});
 	});
 });
