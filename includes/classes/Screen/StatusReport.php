@@ -151,6 +151,7 @@ class StatusReport {
 						'groups'   => $report->get_groups(),
 						'messages' => $report->get_messages(),
 						'title'    => $report->get_title(),
+						'is_ajax_report' => $report->is_ajax_report(),
 					];
 				},
 				$reports

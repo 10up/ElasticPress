@@ -65,16 +65,19 @@ export default ({ plainTextReport, reports }) => {
 					</FlexItem>
 				</Flex>
 			</p>
-			{Object.entries(reports).map(([key, { actions, groups, messages, title }]) => (
-				<Report
-					actions={actions}
-					groups={groups}
-					id={key}
-					key={key}
-					messages={messages}
-					title={title}
-				/>
-			))}
+			{Object.entries(reports).map(
+				([key, { actions, groups, messages, title, is_ajax_report }]) => (
+					<Report
+						actions={actions}
+						groups={groups}
+						id={key}
+						key={key}
+						is_ajax_report={is_ajax_report}
+						messages={messages}
+						title={title}
+					/>
+				),
+			)}
 		</>
 	);
 };

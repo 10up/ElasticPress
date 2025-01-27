@@ -20,13 +20,52 @@ import Value from './report/value';
  * @param {string} props.id Report ID.
  * @param {string} props.messages Report messages.
  * @param {string} props.title Report title.
+ * @param {boolean} props.is_ajax_report Whether the report is loaded via AJAX.
+ *
  * @returns {WPElement} Report component.
  */
-export default ({ actions, groups, id, messages, title }) => {
+export default ({ actions, groups, id, messages, title, is_ajax_report }) => {
 	if (groups.length < 1) {
 		return null;
 	}
 
+	const loadAjax = () => {
+		console.log('test panel opened');
+	};
+
+	if (is_ajax_report) {
+		return (
+			<Panel id={title} className="ep-status-report">
+				<PanelHeader>
+					<h2 id={id}>{title}</h2>
+					{actions.map(({ href, label }) => (
+						<Button
+							href={decodeEntities(href)}
+							isDestructive
+							isSecondary
+							isSmall
+							key={href}
+						>
+							{label}
+						</Button>
+					))}
+				</PanelHeader>
+				{messages.map(({ message, type }) => (
+					<Notice status={type} isDismissible={false}>
+						<RawHTML>{safeHTML(message)}</RawHTML>
+					</Notice>
+				))}
+				{groups.map(({ fields, title }) => (
+					<PanelBody
+						initialOpen={false}
+						onToggle={loadAjax}
+						key={title}
+						title={decodeEntities(title)}
+					/>
+				))}
+			</Panel>
+		);
+	}
 	return (
 		<Panel id={title} className="ep-status-report">
 			<PanelHeader>
