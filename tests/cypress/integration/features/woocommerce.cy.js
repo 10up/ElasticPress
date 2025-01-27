@@ -154,10 +154,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 				.components-button.is-primary.woocommerce-save-button`,
 			).click();
 
-			// set the store to live.
-			cy.visitAdminPage('admin.php?page=wc-settings&tab=site-visibility');
-			cy.contains('label', 'Live').siblings('input[type="radio"]').check();
-			cy.get('.components-button.is-primary.woocommerce-save-button').click();
+			// disable coming soon option.
+			cy.wpCli('option update woocommerce_coming_soon off');
 
 			cy.logout();
 
