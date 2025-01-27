@@ -146,11 +146,18 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 
 			// enable payment gateway.
 			cy.visitAdminPage('admin.php?page=wc-settings&tab=checkout&section=cod');
+			// if the checkbox is already checked, uncheck it first to enable the save button.
+			cy.get('#woocommerce_cod_enabled').uncheck();
 			cy.get('#woocommerce_cod_enabled').check();
 			cy.get(
 				`.button-primary.woocommerce-save-button,
 				.components-button.is-primary.woocommerce-save-button`,
 			).click();
+
+			// set the store to live.
+			cy.visitAdminPage('admin.php?page=wc-settings&tab=site-visibility');
+			cy.contains('label', 'Live').siblings('input[type="radio"]').check();
+			cy.get('.components-button.is-primary.woocommerce-save-button').click();
 
 			cy.logout();
 
