@@ -622,4 +622,13 @@ abstract class Feature {
 			];
 		}
 	}
+
+	/**
+	 * Sets the i18n strings for the feature.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+	}
 }

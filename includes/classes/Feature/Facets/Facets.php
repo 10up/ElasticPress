@@ -38,24 +38,6 @@ class Facets extends Feature {
 	public function __construct() {
 		$this->slug = 'facets';
 
-		$this->title = esc_html__( 'Filters', 'elasticpress' );
-
-		$this->summary = '<p>' .
-			( wp_is_block_theme()
-				? sprintf(
-					/* translators: Site Editor URL */
-					__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
-					esc_url( admin_url( 'site-editor.php' ) )
-				)
-				: sprintf(
-					/* translators: Widgets Edit Screen URL */
-					__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
-					esc_url( admin_url( 'widgets.php' ) )
-				)
-			) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#filters', 'elasticpress' );
-
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [
@@ -101,6 +83,32 @@ class Facets extends Feature {
 		}
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Filters', 'elasticpress' );
+
+		$this->summary = '<p>' .
+		( wp_is_block_theme()
+			? sprintf(
+				/* translators: Site Editor URL */
+				__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
+				esc_url( admin_url( 'site-editor.php' ) )
+			)
+			: sprintf(
+				/* translators: Widgets Edit Screen URL */
+				__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
+				esc_url( admin_url( 'widgets.php' ) )
+			)
+		) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#filters', 'elasticpress' );
 	}
 
 	/**
