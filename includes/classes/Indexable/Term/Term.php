@@ -32,24 +32,17 @@ class Term extends Indexable {
 	public $slug = 'term';
 
 	/**
-	 * Create indexable and initialize dependencies
-	 *
-	 * @since 3.1
-	 */
-	public function __construct() {
-		$this->labels = [
-			'plural'   => esc_html__( 'Terms', 'elasticpress' ),
-			'singular' => esc_html__( 'Term', 'elasticpress' ),
-		];
-	}
-
-	/**
 	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
 	 *
 	 * @since 4.5.0
 	 * @return void
 	 */
 	public function setup() {
+		$this->labels = [
+			'plural'   => esc_html__( 'Terms', 'elasticpress' ),
+			'singular' => esc_html__( 'Term', 'elasticpress' ),
+		];
+
 		$this->sync_manager      = new SyncManager( $this->slug );
 		$this->query_integration = new QueryIntegration( $this->slug );
 	}

@@ -73,6 +73,8 @@ class TestSearchOrdering extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new \ElasticPress\Feature\SearchOrdering\SearchOrdering();
+		$instance->set_i18n_strings();
+
 		$this->assertSame( 'searchordering', $instance->slug );
 		$this->assertSame( 'Custom Search Results', $instance->title );
 	}
