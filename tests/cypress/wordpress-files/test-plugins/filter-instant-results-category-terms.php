@@ -10,7 +10,7 @@
  */
 
 /**
- * Limit the Instant Results facet terms to only the "Classic" term.
+ * Limit the Instant Results terms to only the "Classic" term.
  */
 add_action(
 	'wp_footer',
@@ -29,7 +29,7 @@ add_action(
 					return filteredTerms;
 				}
 
-				wp.hooks.addFilter('ep.InstantResults.facet.taxonomy.terms', 'ep-test', filterCategoryTerms);
+				wp.hooks.addFilter('ep.InstantResults.filter.taxonomy.terms', 'ep-test', filterCategoryTerms);
 			});
 		</script>
 		<?php

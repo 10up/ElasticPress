@@ -445,7 +445,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Activate test plugin.
 				 */
 				cy.maybeEnableFeature('instant-results');
-				cy.activatePlugin('filter-instant-results-facet-terms', 'wpCli');
+				cy.activatePlugin('filter-instant-results-category-terms', 'wpCli');
 
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
@@ -469,11 +469,11 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.wait('@apiRequest');
 
 				/**
-				 * The number of terms displayed in the facet should be one.
+				 * The number of terms displayed in the filter should be one.
 				 */
 				cy.get('[id^="ep-search-tax-category-"]').should('have.length', 1);
 
-				cy.deactivatePlugin('filter-instant-results-facet-terms', 'wpCli');
+				cy.deactivatePlugin('filter-instant-results-category-terms', 'wpCli');
 			});
 		});
 

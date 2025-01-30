@@ -84,9 +84,9 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	 */
 	const options = useMemo(() => {
 		/**
-		 * Filter the facet taxonomy terms.
+		 * Filter the taxonomy filter terms.
 		 *
-		 * @filter ep.InstantResults.facet.taxonomy.terms
+		 * @filter ep.InstantResults.filter.taxonomy.terms
 		 * @since 5.2.0
 		 *
 		 * @param {object[]} terms Taxonomy terms.
@@ -95,7 +95,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 		 * @returns {object[]} Filtered taxonomy terms.
 		 */
 		return applyFilters(
-			'ep.InstantResults.facet.taxonomy.terms',
+			'ep.InstantResults.filter.taxonomy.terms',
 			buckets.reduce(reduceOptions, []),
 			name,
 			postTypes,
