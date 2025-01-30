@@ -43,6 +43,7 @@ class TestDidYouMean extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
+		$instance->set_i18n_strings();
 
 		$this->assertEquals( 'did-you-mean', $instance->slug );
 		$this->assertEquals( 'Did You Mean', $instance->title );

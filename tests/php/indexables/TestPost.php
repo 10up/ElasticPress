@@ -6167,6 +6167,7 @@ class TestPost extends BaseTestCase {
 	public function testPostConstructor() {
 
 		$post = new \ElasticPress\Indexable\Post\Post();
+		$post->setup();
 
 		$this->assertSame( 'Posts', $post->labels['plural'] );
 		$this->assertSame( 'Post', $post->labels['singular'] );

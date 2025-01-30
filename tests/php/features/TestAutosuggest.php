@@ -68,6 +68,7 @@ class TestAutosuggest extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
+		$instance->set_i18n_strings();
 
 		$this->assertEquals( 'autosuggest', $instance->slug );
 		$this->assertEquals( 'Autosuggest', $instance->title );
