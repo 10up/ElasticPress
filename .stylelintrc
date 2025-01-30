@@ -6,7 +6,7 @@
 		"scale-unlimited/declaration-strict-value": [
 			"/color/",
 			{
-				"ignoreValues": ["currentColor", "inherit", "initial", "transparent", "unset"],
+				"ignoreValues": ["currentcolor", "inherit", "initial", "transparent", "unset"],
 				"severity": "warning"
 			}
 		],
