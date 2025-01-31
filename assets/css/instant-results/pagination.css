@@ -4,10 +4,10 @@
 	grid-template-columns: 1fr 1fr 1fr;
 	margin-top: auto;
 	text-align: center;
+}
 
-	@nest .rtl & {
-		direction: rtl;
-	}
+.rtl .ep-search-pagination {
+	direction: rtl;
 }
 
 .ep-search-pagination__next {

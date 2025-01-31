@@ -1,7 +1,5 @@
 :root {
-	--ep-combobox-list-background: #fff;
 	--ep-combobox-list-background-selected: #f5f5f5;
-	--ep-combobox-list-border: #8c8f94;
 }
 
 .ep-combobox {
@@ -9,8 +7,8 @@
 }
 
 .ep-combobox__list {
-	background-color: var(--ep-combobox-list-background);
-	border: 1px solid var(--ep-combobox-list-border);
+	background-color: var(--ep-c-white);
+	border: 1px solid var(--ep-c-light-gray);
 	border-radius: 4px;
 	box-shadow: 0 2px 6px rgb(0 0 0 / 5%);
 	box-sizing: border-box;
@@ -23,9 +21,10 @@
 	width: 100%;
 	z-index: 1;
 
-	@nest .ep-combobox__input[aria-expanded="true"] ~ & {
-		display: block;
-	}
+}
+
+.ep-combobox__input[aria-expanded="true"] ~ .ep-combobox__list {
+	display: block;
 }
 
 .ep-combobox__option {
