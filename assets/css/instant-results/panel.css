@@ -2,10 +2,10 @@
 	border: 1px solid var(--ep-search-border-color);
 	margin: 0;
 	padding: 0;
+}
 
-	@nest .ep-search-panel + & {
-		border-top-width: 0;
-	}
+.ep-search-panel + .ep-search-panel {
+	border-top-width: 0;
 }
 
 .ep-search-panel__heading {

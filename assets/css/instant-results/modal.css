@@ -13,19 +13,6 @@
 	top: 0;
 	z-index: 9999;
 
-	@nest .rtl & {
-		direction: rtl;
-		text-align: right;
-	}
-
-	@nest .admin-bar & {
-		top: 32px;
-
-		@media ( max-width: 782px ) {
-			top: 46px;
-		}
-	}
-
 	&[aria-hidden="true"] {
 		display: none;
 	}
@@ -35,8 +22,25 @@
 	}
 }
 
+.rtl .ep-search-modal {
+	direction: rtl;
+	text-align: right;
+}
+
+.admin-bar .ep-search-modal {
+	top: 32px;
+}
+
+@media ( max-width: 782px ) {
+
+	.admin-bar .ep-search-modal {
+		top: 46px;
+	}
+}
+
+
 .ep-search-modal__content {
-	background-color: var(--ep-search-background-color);
+	background-color: var(--ep-c-white);
 	bottom: 0;
 	display: flex;
 	flex-direction: column;

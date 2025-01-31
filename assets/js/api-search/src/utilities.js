@@ -135,9 +135,9 @@ export const getUrlParamsFromArgs = (args, schema, prefix = '') => {
  * @property {any} [default] Default arg value.
  * @property {Array} [allowedValues] Array of allowed values.
  *
- * @param {Object<string, ArgSchema>} argsSchema Schema to build args from.
+ * @param {{[key: string]: ArgSchema}} argsSchema Schema to build args from.
  * @param {string} [paramPrefix] Parameter prefix.
- * @returns {Object<string, any>} Query args.
+ * @returns {{[key: string]: any}} Query args.
  */
 export const getArgsFromUrlParams = (argsSchema, paramPrefix = '') => {
 	const urlParams = new URLSearchParams(window.location.search);
@@ -159,8 +159,8 @@ export const getArgsFromUrlParams = (argsSchema, paramPrefix = '') => {
 /**
  * Build request args from defaults provided in a given schema.
  *
- * @param {Object<string, ArgSchema>} argsSchema Schema to build args from.
- * @returns {Object<string, any>} Query args.
+ * @param {{[key: string]: ArgSchema}} argsSchema Schema to build args from.
+ * @returns {{[key: string]: any}} Query args.
  */
 export const getDefaultArgsFromSchema = (argsSchema) => {
 	return Object.entries(argsSchema).reduce((args, [arg, schema]) => {
