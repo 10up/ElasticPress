@@ -52,13 +52,6 @@ class Search extends Feature {
 	public function __construct() {
 		$this->slug = 'search';
 
-		$this->title = esc_html__( 'Post Search', 'elasticpress' );
-
-		$this->summary = '<p>' . __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ) . '</p>' .
-			'<p>' . __( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#post-search', 'elasticpress' );
-
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [
@@ -75,12 +68,29 @@ class Search extends Feature {
 	}
 
 	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Post Search', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ) . '</p>' .
+		'<p>' . __( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#post-search', 'elasticpress' );
+	}
+
+	/**
 	 * We need to delay search setup up since it will fire after protected content and protected
 	 * content filters into the search setup
 	 *
 	 * @since 2.2
 	 */
 	public function setup() {
+		Indexables::factory()->activate( 'post' );
+
 		add_action( 'init', [ $this, 'search_setup' ] );
 		add_filter( 'ep_sanitize_feature_settings', [ $this, 'sanitize_highlighting_settings' ] );
 

@@ -42,11 +42,12 @@ class Post extends Indexable {
 	public $support_indexing_advanced_pagination = true;
 
 	/**
-	 * Create indexable and initialize dependencies
+	 * Instantiate the indexable SyncManager and QueryIntegration
 	 *
-	 * @since  3.0
+	 * @since 5.2.0
+	 * @return void
 	 */
-	public function __construct() {
+	public function setup() {
 		$this->labels = [
 			'plural'   => esc_html__( 'Posts', 'elasticpress' ),
 			'singular' => esc_html__( 'Post', 'elasticpress' ),

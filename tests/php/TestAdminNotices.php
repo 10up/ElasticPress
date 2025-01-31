@@ -648,7 +648,6 @@ class TestAdminNotices extends BaseTestCase {
 	 * Tests notice is show when number of posts linked with term is greater than number of items per cycle.
 	 */
 	public function testNumberOfPostsBiggerThanItemPerCycle() {
-
 		global $pagenow, $tax;
 
 		// set global variables.
@@ -671,6 +670,98 @@ class TestAdminNotices extends BaseTestCase {
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 
 		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
+	}
+
+	/**
+	 * Tests that the admin notice with the scope 'site' appears only on the sub site when the plugin is network-activated.
+	 *
+	 * @group admin-notices
+	 * @group skip-on-single-site
+	 */
+	public function test_notice_with_scope_site_shows_only_on_site() {
+		global $pagenow, $tax;
+
+		// set global variables.
+		$pagenow = 'edit-tags.php';
+
+		set_current_screen( 'edit-tags' );
+		$tax = get_taxonomy( 'category' );
+
+		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
+				],
+			]
+		);
+
+		add_action(
+			'ep_admin_notices',
+			function ( $notices ) {
+				$notices['test_notice'] = [
+					'type'    => 'error',
+					'dismiss' => true,
+					'html'    => 'Test notice',
+				];
+
+				return $notices;
+			}
+		);
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
+	}
+
+	/**
+	 * Tests that the admin notice with the scope 'site' has no effect when WordPress is not on multisite mode.
+	 *
+	 * @group admin-notices
+	 * @group skip-on-multi-site
+	 */
+	public function test_notice_with_scope_site_has_no_effect_on_non_multisite() {
+		global $pagenow, $tax;
+
+		// set global variables.
+		$pagenow = 'edit-tags.php';
+
+		set_current_screen( 'edit-tags' );
+		$tax = get_taxonomy( 'category' );
+
+		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
+				],
+			]
+		);
+
+		add_action(
+			'ep_admin_notices',
+			function ( $notices ) {
+				$notices['test_notice'] = [
+					'type'    => 'error',
+					'dismiss' => true,
+					'html'    => 'Test notice',
+				];
+
+				return $notices;
+			}
+		);
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
+		$this->assertArrayHasKey( 'test_notice', $notices );
 	}
 
 	/**

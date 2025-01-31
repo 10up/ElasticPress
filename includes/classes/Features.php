@@ -330,6 +330,8 @@ class Features {
 		do_action( 'ep_setup_features' );
 
 		foreach ( $this->registered_features as $feature_slug => $feature ) {
+			$feature->set_i18n_strings();
+
 			if ( $feature->is_active() ) {
 				$feature->setup();
 			}

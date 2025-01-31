@@ -26,15 +26,23 @@ class RelatedPosts extends Feature {
 	public function __construct() {
 		$this->slug = 'related_posts';
 
+		$this->requires_install_reindex = false;
+
+		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Related Posts', 'elasticpress' );
 
 		$this->summary = '<p>' . __( 'Instantly deliver engaging and precise related content with no impact on site performance. Output related content using our block or directly in your theme using our <a href="https://www.elasticpress.io/documentation/article/related-posts-api/">API functions</a>.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#related-posts', 'elasticpress' );
-
-		$this->requires_install_reindex = false;
-
-		parent::__construct();
 	}
 
 	/**
@@ -114,14 +122,14 @@ class RelatedPosts extends Feature {
 	 * Search Elasticsearch for related content
 	 *
 	 * @param  int $post_id Post ID
-	 * @param  int $return Return code
+	 * @param  int $post_return Number of posts to return
 	 * @since  4.1.0
 	 * @return WP_Query
 	 */
-	public function get_related_query( $post_id, $return = 5 ) {
+	public function get_related_query( $post_id, $post_return = 5 ) {
 		$args = array(
 			'more_like'           => $post_id,
-			'posts_per_page'      => $return,
+			'posts_per_page'      => $post_return,
 			'ep_integrate'        => true,
 			'ignore_sticky_posts' => true,
 		);
@@ -141,15 +149,15 @@ class RelatedPosts extends Feature {
 	 * Search Elasticsearch for related content
 	 *
 	 * @param  int $post_id Post ID
-	 * @param  int $return Return code
+	 * @param  int $post_return Number of posts to return
 	 *
 	 * @since  2.1
 	 * @uses get_related_query
 	 *
 	 * @return array|bool
 	 */
-	public function find_related( $post_id, $return = 5 ) {
-		$query = $this->get_related_query( $post_id, $return );
+	public function find_related( $post_id, $post_return = 5 ) {
+		$query = $this->get_related_query( $post_id, $post_return );
 
 		if ( ! $query->have_posts() ) {
 			return false;

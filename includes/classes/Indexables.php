@@ -118,24 +118,24 @@ class Indexables {
 	/**
 	 * Get all indexable instances
 	 *
-	 * @param  boolean $global    If true or false, will only get Indexables with that global property.
+	 * @param  boolean $global_property    If true or false, will only get Indexables with that global property.
 	 * @param  boolean $slug_only True returns an array of only string slugs.
 	 * @param  string  $status    Whether to return active indexables or all registered.
 	 * @since  3.0, 4.5.0 Added $status
 	 * @return array
 	 */
-	public function get_all( $global = null, $slug_only = false, $status = 'active' ) {
+	public function get_all( $global_property = null, $slug_only = false, $status = 'active' ) {
 		$indexables = [];
 		$list       = ( 'active' === $status ) ? $this->active_indexables : $this->registered_indexables;
 
 		foreach ( $list as $slug => $indexable ) {
-			if ( null === $global ) {
+			if ( null === $global_property ) {
 				if ( $slug_only ) {
 					$indexables[] = $slug;
 				} else {
 					$indexables[] = $indexable;
 				}
-			} elseif ( $global === $indexable->global ) {
+			} elseif ( $global_property === $indexable->global ) {
 				if ( $slug_only ) {
 					$indexables[] = $slug;
 				} else {

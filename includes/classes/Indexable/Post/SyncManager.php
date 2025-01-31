@@ -421,6 +421,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 						),
 						'type'    => 'warning',
 						'dismiss' => true,
+						'scope'   => 'site',
 					];
 					break;
 				}
@@ -436,6 +437,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 			),
 			'type'    => 'warning',
 			'dismiss' => true,
+			'scope'   => 'site',
 		];
 
 		return $notices;
@@ -470,6 +472,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 			),
 			'type'    => 'warning',
 			'dismiss' => true,
+			'scope'   => 'site',
 		];
 
 		return $notices;
