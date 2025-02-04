@@ -298,15 +298,8 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
  * @since  3.0
  */
 function maybe_notice( $force = false ) {
-	// Admins only.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_super_admin() || ! is_network_admin() ) {
-			return false;
-		}
-	} else {
-		if ( is_network_admin() || ! current_user_can( Utils\get_capability() ) ) {
-			return false;
-		}
+	if ( ! current_user_can( Utils\get_capability() ) ) {
+		return false;
 	}
 
 	/**
@@ -691,7 +684,7 @@ function action_admin_menu() {
  * @param string $format Format of the return ('locales' or 'elasticsearch' )
  * @return array
  */
-function get_available_languages( string $format = 'elasticsearch' ) : array {
+function get_available_languages( string $format = 'elasticsearch' ): array {
 	/**
 	 * Filter available languages in Elasticsearch.
 	 *
@@ -973,7 +966,7 @@ function block_categories( $block_categories ) {
 	];
 
 	return $block_categories;
-};
+}
 
 /**
  * Enqueue shared block editor assets.

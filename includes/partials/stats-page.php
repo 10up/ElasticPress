@@ -84,7 +84,7 @@ $failed_queries = Stats::factory()->get_failed_queries();
 				<div class="ep-flex-container">
 					<div class="ep-totals-column inside">
 						<p class="ep-totals-title"><?php esc_html_e( 'Total Documents', 'elasticpress' ); ?></p>
-						<p class="ep-totals-data"><?php echo esc_html( $totals['docs'] ); ?></p>
+						<p class="ep-totals-data"><?php echo esc_html( number_format_i18n( $totals['docs'] ) ); ?></p>
 					</div>
 					<div class="ep-totals-column inside">
 						<p class="ep-totals-title"><?php esc_html_e( 'Total Size', 'elasticpress' ); ?></p>

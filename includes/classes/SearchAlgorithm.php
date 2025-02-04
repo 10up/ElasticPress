@@ -23,21 +23,21 @@ abstract class SearchAlgorithm {
 	 *
 	 * @return string
 	 */
-	abstract public function get_slug() : string;
+	abstract public function get_slug(): string;
 
 	/**
 	 * Return the Search Algorithm human readable name.
 	 *
 	 * @return string
 	 */
-	abstract public function get_name() : string;
+	abstract public function get_name(): string;
 
 	/**
 	 * Return the Search Algorithm description.
 	 *
 	 * @return string
 	 */
-	abstract public function get_description() : string;
+	abstract public function get_description(): string;
 
 	/**
 	 * Return the Elasticsearch `query` clause.
@@ -48,7 +48,7 @@ abstract class SearchAlgorithm {
 	 * @param array  $query_vars     Query vars
 	 * @return array ES `query`
 	 */
-	abstract protected function get_raw_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ) : array;
+	abstract protected function get_raw_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ): array;
 
 	/**
 	 * Wrapper for the `get_raw_query`, making sure the `ep_{$indexable_slug}_formatted_args_query` filter is applied.
@@ -59,7 +59,7 @@ abstract class SearchAlgorithm {
 	 * @param array  $query_vars     Query vars
 	 * @return array ES `query`
 	 */
-	public function get_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ) : array {
+	public function get_query( string $indexable_slug, string $search_term, array $search_fields, array $query_vars ): array {
 		$query = $this->get_raw_query( $indexable_slug, $search_term, $search_fields, $query_vars );
 
 		/**

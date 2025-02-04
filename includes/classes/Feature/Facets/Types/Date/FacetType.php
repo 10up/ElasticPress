@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\Facets\Types\Date;
 
-use \ElasticPress\Features;
+use ElasticPress\Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -42,7 +42,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_name() : string {
+	public function get_filter_name(): string {
 		/**
 		 * Filter the facet filter name that's added to the URL
 		 *
@@ -59,7 +59,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_type() : string {
+	public function get_filter_type(): string {
 		/**
 		 * Filter the facet filter type. Used by the Facet feature to organize filters.
 		 *
@@ -139,7 +139,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @param array $filters      Selected filters
 	 * @return array
 	 */
-	public function add_query_params( array $query_params, array $filters ) : array {
+	public function add_query_params( array $query_params, array $filters ): array {
 		$selected = $filters[ $this->get_filter_type() ] ?? [];
 
 		if ( ! empty( $selected['terms'] ) ) {
@@ -238,7 +238,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return array An array of formatted dates.
 	 */
-	public function parse_dates( $dates ) : array {
+	public function parse_dates( $dates ): array {
 		$options = array_column( $this->get_facet_options(), 'value', 'url-param' );
 
 		// Only use the first two dates.
@@ -272,5 +272,4 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$data['dateFilterName'] = $this->get_filter_name();
 		return $data;
 	}
-
 }

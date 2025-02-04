@@ -227,5 +227,4 @@ class SyncManager extends \ElasticPress\SyncManager {
 			}
 		}
 	}
-
 }

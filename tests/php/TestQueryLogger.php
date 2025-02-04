@@ -10,7 +10,7 @@
 
 namespace ElasticPressTest;
 
-use \ElasticPress\QueryLogger;
+use ElasticPress\QueryLogger;
 
 /**
  * Test the Query Logger class
@@ -73,7 +73,7 @@ class TestQueryLogger extends BaseTestCase {
 
 		add_filter(
 			'ep_query_logger_queries_to_keep',
-			function( $keep, $query, $type ) {
+			function ( $keep, $query, $type ) {
 				$this->assertSame( 5, $keep );
 				$this->assertSame( [ 'query' ], $query );
 				$this->assertSame( 'type', $type );
@@ -109,7 +109,7 @@ class TestQueryLogger extends BaseTestCase {
 
 		add_action(
 			'ep_query_logger_logged_query',
-			function( $logs_json_str, $query, $type ) {
+			function ( $logs_json_str, $query, $type ) {
 				$this->assertSame( '{somejson}', $logs_json_str );
 				$this->assertSame( [ 'query' ], $query );
 				$this->assertSame( 'type', $type );
@@ -136,7 +136,7 @@ class TestQueryLogger extends BaseTestCase {
 
 		add_filter(
 			defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'pre_site_transient_ep_query_log' : 'pre_transient_ep_query_log',
-			function() use ( $test_logs ) {
+			function () use ( $test_logs ) {
 				return wp_json_encode( $test_logs );
 			}
 		);
@@ -149,7 +149,7 @@ class TestQueryLogger extends BaseTestCase {
 		/**
 		 * Test the ep_query_logger_time_to_keep filter
 		 */
-		$change_time_limit = function( $limit ) {
+		$change_time_limit = function ( $limit ) {
 			$this->assertSame( $limit, DAY_IN_SECONDS );
 			return 25 * HOUR_IN_SECONDS;
 		};
@@ -161,7 +161,7 @@ class TestQueryLogger extends BaseTestCase {
 		/**
 		 * Test the ep_query_logger_logs filter
 		 */
-		$change_logs = function( $logs ) use ( $test_logs ) {
+		$change_logs = function ( $logs ) use ( $test_logs ) {
 			$this->assertSame( $logs, $test_logs );
 			return [ 'custom-logs' ];
 		};
@@ -223,7 +223,7 @@ class TestQueryLogger extends BaseTestCase {
 
 		$query_logger = new QueryLogger();
 
-		$add_fake_log = function() {
+		$add_fake_log = function () {
 			return [ 'fake-log' ];
 		};
 		add_filter( 'ep_query_logger_logs', $add_fake_log );
@@ -418,7 +418,7 @@ class TestQueryLogger extends BaseTestCase {
 		 */
 		add_filter(
 			'ep_query_logger_should_log_query',
-			function( $should_log, $query, $type ) {
+			function ( $should_log, $query, $type ) {
 				$this->assertSame( [], $query );
 				$this->assertSame( $type, 'type-should-not-log' );
 
@@ -511,7 +511,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @return array
 	 */
-	public function maybeDeleteIndexDataProvider() : array {
+	public function maybeDeleteIndexDataProvider(): array {
 		return [
 			[ true, 199 ],
 			[ false, 200 ],
@@ -526,7 +526,7 @@ class TestQueryLogger extends BaseTestCase {
 	 *
 	 * @return array
 	 */
-	public function isQueryErrorWithStatusCodeDataProvider() : array {
+	public function isQueryErrorWithStatusCodeDataProvider(): array {
 		return [
 			[ true, 199 ],
 			[ false, 200 ],

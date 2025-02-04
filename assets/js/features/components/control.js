@@ -68,7 +68,7 @@ export default ({
 					value: o.value,
 					label: <span dangerouslySetInnerHTML={{ __html: safeHTML(o.label) }} />, // eslint-disable-line react/no-danger
 				};
-		  })
+			})
 		: [];
 
 	/**
@@ -85,9 +85,9 @@ export default ({
 	const requiredFeatureNotice =
 		name === 'active'
 			? /* translators: Feature name */
-			  __('The %s feature must be enabled to use this feature.', 'elasticpress')
+				__('The %s feature must be enabled to use this feature.', 'elasticpress')
 			: /* translators: Feature name */
-			  __('The %s feature must be enabled to use the following setting.', 'elasticpress');
+				__('The %s feature must be enabled to use the following setting.', 'elasticpress');
 
 	/**
 	 * The notice to display if a sync is required.
@@ -159,6 +159,7 @@ export default ({
 									label={label}
 									onChange={onChangeCheckbox}
 									disabled={isDisabled}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -184,6 +185,7 @@ export default ({
 									disabled={isDisabled}
 									suggestions={suggestions}
 									value={values}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -208,6 +210,7 @@ export default ({
 									options={options}
 									disabled={isDisabled}
 									value={value}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -219,6 +222,7 @@ export default ({
 									label={label}
 									onChange={onChange}
 									disabled={isDisabled}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -242,6 +246,7 @@ export default ({
 									disabled={isDisabled}
 									value={value}
 									type={type}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}

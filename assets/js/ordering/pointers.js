@@ -225,7 +225,7 @@ export class Pointers extends Component {
 
 		items.forEach((item, index) => {
 			// Reordering an existing pointer or adding a default post to the pointers array
-			if (item.order || item.ID === result.draggableId) {
+			if (item.order || Number(item.ID) === Number(result.draggableId)) {
 				pointers.push({
 					ID: item.ID,
 					order: index + 1,
@@ -331,7 +331,7 @@ export class Pointers extends Component {
 		const searchResults = searchResultsFromState[searchText]
 			? searchResultsFromState[searchText].filter(
 					(item) => renderedIds.indexOf(item.ID) === -1,
-			  )
+				)
 			: false;
 
 		return (
@@ -370,7 +370,7 @@ export class Pointers extends Component {
 											: __(
 													'Remove custom result from results list',
 													'elasticpress',
-											  );
+												);
 
 									return (
 										<Fragment key={item.ID}>

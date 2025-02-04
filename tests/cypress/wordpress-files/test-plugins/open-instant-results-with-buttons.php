@@ -11,7 +11,7 @@
 
 add_action(
 	'wp_enqueue_scripts',
-	function() {
+	function () {
 		wp_add_inline_script(
 			'elasticpress-instant-results',
 			"document.querySelector('.wp-block-button__link')?.addEventListener('click', (event) => {

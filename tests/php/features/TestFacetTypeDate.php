@@ -50,7 +50,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_date_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_date_filter_name', $change_filter_name );
@@ -71,7 +71,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_date_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_date_filter_type', $change_filter_type );
@@ -254,7 +254,7 @@ class TestFacetTypeDate extends BaseTestCase {
 			],
 		];
 
-		$change_filter_type = function( $options ) use ( $modified_options ) {
+		$change_filter_type = function ( $options ) use ( $modified_options ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 			return $modified_options;
 		};
 
@@ -267,7 +267,7 @@ class TestFacetTypeDate extends BaseTestCase {
 	 *
 	 * @return array
 	 */
-	public function parseDateDataProvider() : array {
+	public function parseDateDataProvider(): array {
 		return [
 			[
 				[ '-1 week', '-1 month', '-1 year' ],

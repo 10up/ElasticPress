@@ -130,6 +130,7 @@ export default ({ children, Colgroup, Head, onDelete, ...props }) => {
 				checked={isAllChecked}
 				indeterminate={checked.length && !isAllChecked}
 				onChange={onCheckAll}
+				__nextHasNoMarginBottom
 			/>
 		),
 		[checked, isAllChecked, onCheckAll],

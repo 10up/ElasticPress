@@ -11,7 +11,7 @@
 
 add_filter(
 	'ep_meta_mode',
-	function() {
+	function () {
 		return 'auto';
 	}
 );

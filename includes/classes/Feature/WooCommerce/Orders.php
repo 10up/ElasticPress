@@ -295,7 +295,7 @@ class Orders {
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
-	public function should_integrate_with_query( \WP_Query $query ) : bool {
+	public function should_integrate_with_query( \WP_Query $query ): bool {
 		/**
 		 * Check the post type
 		 */
@@ -316,7 +316,7 @@ class Orders {
 	 *
 	 * @return array
 	 */
-	public function get_supported_post_types() : array {
+	public function get_supported_post_types(): array {
 		$post_types = [ 'shop_order', 'shop_order_refund' ];
 
 		/**
@@ -360,7 +360,7 @@ class Orders {
 	 * @param array $notices Current EP notices
 	 * @return array
 	 */
-	public function hpos_compatibility_notice( array $notices ) : array {
+	public function hpos_compatibility_notice( array $notices ): array {
 		$current_screen = \get_current_screen();
 		if ( empty( $current_screen->id ) || 'woocommerce_page_wc-orders' !== $current_screen->id ) {
 			return $notices;
@@ -496,7 +496,7 @@ class Orders {
 	 * @since 5.3.0
 	 * @return boolean Whether WooCommerce HPOS is enabled or not
 	 */
-	public function is_hpos_enabled() : bool {
+	public function is_hpos_enabled(): bool {
 		if (
 			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
 			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {

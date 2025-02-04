@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use \WP_Comment_Query;
+use WP_Comment_Query;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Features;
 use ElasticPress\Indexable;
@@ -33,24 +33,17 @@ class Comment extends Indexable {
 	public $slug = 'comment';
 
 	/**
-	 * Create indexable and initialize dependencies
-	 *
-	 * @since 3.6.0
-	 */
-	public function __construct() {
-		$this->labels = [
-			'plural'   => esc_html__( 'Comments', 'elasticpress' ),
-			'singular' => esc_html__( 'Comment', 'elasticpress' ),
-		];
-	}
-
-	/**
 	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
 	 *
 	 * @since 4.5.0
 	 * @return void
 	 */
 	public function setup() {
+		$this->labels = [
+			'plural'   => esc_html__( 'Comments', 'elasticpress' ),
+			'singular' => esc_html__( 'Comment', 'elasticpress' ),
+		];
+
 		$this->sync_manager      = new SyncManager( $this->slug );
 		$this->query_integration = new QueryIntegration();
 	}
@@ -987,11 +980,9 @@ class Comment extends Indexable {
 				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
-			} else {
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
-				}
 			}
 
 			/**
@@ -1082,5 +1073,4 @@ class Comment extends Indexable {
 
 		return $sort;
 	}
-
 }

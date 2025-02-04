@@ -312,7 +312,7 @@ class OrdersAutosuggest {
 
 		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
-		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
+		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 3 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
 		$query = new \WP_Query(
@@ -363,10 +363,9 @@ class OrdersAutosuggest {
 	 * @param object $response Response
 	 * @param array  $query Query
 	 * @param array  $args WP_Query argument array
-	 * @param int    $failures Count of failures in request loop
 	 * @return object $response Response
 	 */
-	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
+	public function intercept_search_request( $response, $query = [], $args = [] ) {
 		$this->search_template = $query['args']['body'];
 
 		return wp_remote_request( $query['url'], $args );
@@ -504,7 +503,7 @@ class OrdersAutosuggest {
 	 * @param \WP_Query $query         Query being executed
 	 * @return array New search fields
 	 */
-	public function set_search_fields( array $search_fields, \WP_Query $query ) : array {
+	public function set_search_fields( array $search_fields, \WP_Query $query ): array {
 		$is_orders_search_template = (bool) $query->get( 'ep_order_search_template' );
 
 		if ( $is_orders_search_template ) {
@@ -574,7 +573,7 @@ class OrdersAutosuggest {
 	 * @since 5.1.0
 	 * @return boolean
 	 */
-	public function is_available() : bool {
+	public function is_available(): bool {
 		/**
 		 * Whether the autosuggest feature is available for non
 		 * ElasticPress.io customers.
@@ -592,7 +591,7 @@ class OrdersAutosuggest {
 	 * @since 5.1.0
 	 * @return boolean
 	 */
-	public function is_enabled() : bool {
+	public function is_enabled(): bool {
 		return $this->is_available() && '1' === $this->woocommerce->get_setting( 'orders' );
 	}
 
@@ -627,7 +626,7 @@ class OrdersAutosuggest {
 	 * @param array $settings_schema Current settings schema
 	 * @return array
 	 */
-	public function add_settings_schema( array $settings_schema ) : array {
+	public function add_settings_schema( array $settings_schema ): array {
 		$available = $this->is_available();
 
 		$settings_schema[] = [
@@ -649,7 +648,7 @@ class OrdersAutosuggest {
 	 * @since 5.1.0
 	 * @return string
 	 */
-	protected function get_setting_help_message() : string {
+	protected function get_setting_help_message(): string {
 		$available = $this->is_available();
 
 		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-io-order-autosuggest/';

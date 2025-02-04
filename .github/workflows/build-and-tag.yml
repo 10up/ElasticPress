@@ -1,4 +1,8 @@
 name: Build and Tag
+
+env:
+  NODE_VERSION: "20"
+
 on:
   push:
     branches:
@@ -22,10 +26,10 @@ jobs:
     - name: composer install
       run: composer install
 
-    - name: install node v18
+    - name: "install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v4
       with:
-        node-version: 18
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Build
       run: |

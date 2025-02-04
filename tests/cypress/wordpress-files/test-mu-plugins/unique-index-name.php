@@ -7,7 +7,7 @@
 
 add_filter(
 	'ep_index_name',
-	function( $index_name ) {
+	function ( $index_name ) {
 		$docker_cid = get_docker_cid();
 
 		if ( $docker_cid ) {
@@ -20,7 +20,7 @@ add_filter(
 
 add_action(
 	'admin_footer',
-	function() {
+	function () {
 		printf(
 			'<div id="docker-cid">%s</div>',
 			get_docker_cid() // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

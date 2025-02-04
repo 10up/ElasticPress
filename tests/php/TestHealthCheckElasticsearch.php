@@ -137,5 +137,4 @@ class TestHealthCheckElasticsearch extends WP_Ajax_UnitTestCase {
 		// refetch the elasticsearch version. This is needed because this test has changed the value.
 		Elasticsearch::factory()->get_elasticsearch_version( true );
 	}
-
 }

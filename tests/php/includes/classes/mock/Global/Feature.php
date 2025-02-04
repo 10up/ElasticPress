@@ -8,7 +8,7 @@
 
 namespace ElasticPressTest\GlobalIndexable;
 
-use \ElasticPress\Indexables;
+use ElasticPress\Indexables;
 
 require_once __DIR__ . '/Indexable.php';
 
@@ -52,4 +52,3 @@ class GlobalFeature extends \ElasticPress\Feature {
 \ElasticPress\Features::factory()->register_feature(
 	new GlobalFeature()
 );
-

@@ -126,5 +126,4 @@ class TestInstaller extends BaseTestCase {
 
 		$this->assertEquals( 3, $install_status );
 	}
-
 }

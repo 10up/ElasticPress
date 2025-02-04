@@ -22,7 +22,7 @@ class Indices extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Elasticsearch Indices', 'elasticpress' );
 	}
 
@@ -31,7 +31,7 @@ class Indices extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$elasticsearch = \ElasticPress\Elasticsearch::factory();
 
 		$should_have_indices   = $elasticsearch->get_index_names();

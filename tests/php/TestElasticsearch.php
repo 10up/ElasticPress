@@ -109,7 +109,7 @@ class TestElasticsearch extends BaseTestCase {
 
 		add_action(
 			'ep_update_index_settings',
-			function( $index_name, $settings ) {
+			function ( $index_name, $settings ) {
 				$this->assertSame( $index_name, 'lorem-ipsum' );
 				$this->assertSame( $settings, [ 'test' ] );
 			},
@@ -177,7 +177,7 @@ class TestElasticsearch extends BaseTestCase {
 		/**
 		 * Test when cached
 		 */
-		$set_cached_value = function() {
+		$set_cached_value = function () {
 			return 'cached';
 		};
 		add_filter( $transient_filter_name, $set_cached_value );
@@ -311,7 +311,7 @@ class TestElasticsearch extends BaseTestCase {
 		/**
 		 * Test the `ep_format_request_headers` filter
 		 */
-		$change_headers = function( $headers ) {
+		$change_headers = function ( $headers ) {
 			$headers['X-Custom'] = 'totally custom';
 			return $headers;
 		};

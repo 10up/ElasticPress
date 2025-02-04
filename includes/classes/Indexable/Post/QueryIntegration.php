@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use \WP_Query;
+use WP_Query;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -64,7 +64,7 @@ class QueryIntegration {
 		add_filter( 'posts_pre_query', array( $this, 'get_es_posts' ), 10, 2 );
 
 		// Properly restore blog if necessary
-		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10, 1 );
+		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10 );
 
 		// Properly switch to blog if necessary
 		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
@@ -189,16 +189,16 @@ class QueryIntegration {
 				$this->switched = false;
 			}
 		}
-
 	}
 
 	/**
 	 * Make sure the correct blog is restored
 	 *
-	 * @param  WP_Query $query WP_Query instance
+	 * @param WP_Query $query WP_Query instance
+	 *
 	 * @since 0.9
 	 */
-	public function maybe_restore_blog( $query ) {
+	public function maybe_restore_blog( $query ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		if ( ! is_multisite() ) {
 			// @codeCoverageIgnoreStart
 			return;
@@ -588,7 +588,7 @@ class QueryIntegration {
 
 		$suggestion['options'] = array_filter(
 			$suggestion['options'],
-			function( $option ) use ( $min_score ) {
+			function ( $option ) use ( $min_score ) {
 				return number_format( $option['score'], 10 ) > $min_score;
 			}
 		);

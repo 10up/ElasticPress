@@ -277,7 +277,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		/**
 		 * Test the `ep_woocommerce_orders_supported_post_types` filter
 		 */
-		$add_post_type = function( $post_types ) {
+		$add_post_type = function ( $post_types ) {
 			$post_types[] = 'shop_order_custom';
 			return $post_types;
 		};
@@ -306,7 +306,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 *
 	 * @return array
 	 */
-	public function ordersAutosuggestMethodsDataProvider() : array {
+	public function ordersAutosuggestMethodsDataProvider(): array {
 		return [
 			[ 'after_update_feature', [ 'test', [], [] ] ],
 			[ 'enqueue_admin_assets', [ '' ] ],
@@ -357,7 +357,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		/**
 		 * Test if the notice is hidden when the user already dismissed it
 		 */
-		$change_hide_option = function() {
+		$change_hide_option = function () {
 			return 1;
 		};
 		add_filter( 'pre_option_ep_hide_wc_orders_incompatible_notice', $change_hide_option );
@@ -389,7 +389,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 */
 	protected function enable_hpos() {
 		$option_name  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_value = function() {
+		$change_value = function () {
 			return 'yes';
 		};
 		add_filter( 'pre_option_' . $option_name, $change_value );

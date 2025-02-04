@@ -22,7 +22,7 @@ class WordPress extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'WordPress', 'elasticpress' );
 	}
 
@@ -31,7 +31,7 @@ class WordPress extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		return [
 			$this->get_wp_basic_group(),
 			$this->get_server_group(),
@@ -43,7 +43,7 @@ class WordPress extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_wp_basic_group() : array {
+	protected function get_wp_basic_group(): array {
 		global $wp_version;
 
 		$fields = [];
@@ -118,7 +118,7 @@ class WordPress extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_server_group() : array {
+	protected function get_server_group(): array {
 		$fields = [];
 
 		$fields['php_version'] = [

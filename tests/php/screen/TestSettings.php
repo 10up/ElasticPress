@@ -8,9 +8,9 @@
 
 namespace ElasticPressTest;
 
-use \ElasticPress\Screen;
-use \ElasticPress\Screen\Settings;
-use \ElasticPress\Utils;
+use ElasticPress\Screen;
+use ElasticPress\Screen\Settings;
+use ElasticPress\Utils;
 
 /**
  * Test the Settings class

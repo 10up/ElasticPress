@@ -4,6 +4,7 @@
 import { useCallback, useMemo, WPElement } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, sprintf } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
@@ -47,7 +48,7 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 					__('%1$s (%2$s)', 'elasticpress'),
 					label,
 					typeLabels.join(typeSeparator),
-			  )
+				)
 			: label;
 	}, [label, postTypes, name]);
 
@@ -81,7 +82,25 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	/**
 	 * Reduce buckets to options.
 	 */
-	const options = useMemo(() => buckets.reduce(reduceOptions, []), [buckets, reduceOptions]);
+	const options = useMemo(() => {
+		/**
+		 * Filter the taxonomy filter terms.
+		 *
+		 * @filter ep.InstantResults.filter.taxonomy.terms
+		 * @since 5.2.0
+		 *
+		 * @param {object[]} terms Taxonomy terms.
+		 * @param {string} name Taxonomy name.
+		 * @param {Array} postTypes Post types label.
+		 * @returns {object[]} Filtered taxonomy terms.
+		 */
+		return applyFilters(
+			'ep.InstantResults.filter.taxonomy.terms',
+			buckets.reduce(reduceOptions, []),
+			name,
+			postTypes,
+		);
+	}, [buckets, reduceOptions, name, postTypes]);
 
 	/**
 	 * Reduce options to labels.

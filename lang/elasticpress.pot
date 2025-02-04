@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.1.3\n"
+"Project-Id-Version: ElasticPress 5.1.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-06-11T18:04:45+00:00\n"
+"POT-Creation-Date: 2024-12-12T13:55:07+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -37,7 +37,7 @@ msgid "https://10up.com"
 msgstr ""
 
 #. translators: %s: Minimum required PHP version
-#: elasticpress.php:50
+#: elasticpress.php:51
 msgid "ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin."
 msgstr ""
 
@@ -123,17 +123,17 @@ msgid "Current mapping: %1$s. Expected mapping: %2$s"
 msgstr ""
 
 #. translators: Index Health URL
-#: includes/classes/AdminNotices.php:733
+#: includes/classes/AdminNotices.php:732
 msgid "It looks like one or more of your indices are running on a single node. While this won't prevent you from using ElasticPress, depending on your site's specific needs this can represent a performance issue. Please check the <a href=\"%s\">Index Health</a> page where you can check the health of all of your indices."
 msgstr ""
 
 #. translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article
-#: includes/classes/AdminNotices.php:789
+#: includes/classes/AdminNotices.php:788
 msgid "Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href=\"%2$s\">Elasticsearch field limitations</a> and <a href=\"%3$s\">how to index just the custom fields you need</a> before trying to sync."
 msgstr ""
 
-#: includes/classes/AdminNotices.php:790
-#: includes/classes/AdminNotices.php:806
+#: includes/classes/AdminNotices.php:789
+#: includes/classes/AdminNotices.php:805
 #: includes/classes/ElasticsearchErrorInterpreter.php:93
 #: includes/classes/StatusReport/ElasticPressIo.php:30
 #: assets/js/sync/index.js:269
@@ -141,8 +141,8 @@ msgstr ""
 msgid "ElasticPress.io"
 msgstr ""
 
-#: includes/classes/AdminNotices.php:790
-#: includes/classes/AdminNotices.php:806
+#: includes/classes/AdminNotices.php:789
+#: includes/classes/AdminNotices.php:805
 #: includes/classes/ElasticsearchErrorInterpreter.php:93
 #: assets/js/sync/index.js:270
 #: dist/js/sync-script.js:1
@@ -150,7 +150,7 @@ msgid "Elasticsearch"
 msgstr ""
 
 #. translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article
-#: includes/classes/AdminNotices.php:805
+#: includes/classes/AdminNotices.php:804
 msgid "Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href=\"%2$s\">Elasticsearch field limitations</a> and <a href=\"%3$s\">how to index just the custom fields you need</a> if you receive any errors while syncing."
 msgstr ""
 
@@ -213,7 +213,7 @@ msgstr ""
 #: includes/classes/Command.php:293
 #: includes/classes/Command.php:333
 #: includes/classes/Command.php:374
-#: includes/classes/IndexHelper.php:1412
+#: includes/classes/IndexHelper.php:1410
 msgid "Mapping failed: %s"
 msgstr ""
 
@@ -266,10 +266,10 @@ msgstr ""
 
 #: includes/classes/Command.php:595
 #: includes/classes/Command.php:621
-#: includes/classes/Command.php:1179
-#: includes/classes/Command.php:1237
-#: includes/classes/Command.php:1517
-#: includes/classes/Command.php:1529
+#: includes/classes/Command.php:1175
+#: includes/classes/Command.php:1233
+#: includes/classes/Command.php:1515
+#: includes/classes/Command.php:1527
 msgid "Done."
 msgstr ""
 
@@ -302,89 +302,89 @@ msgstr ""
 msgid "Done!"
 msgstr ""
 
-#: includes/classes/Command.php:894
+#: includes/classes/Command.php:892
 msgid "Failed to return status."
 msgstr ""
 
-#: includes/classes/Command.php:939
+#: includes/classes/Command.php:935
 msgid "Failed to return stats."
 msgstr ""
 
-#: includes/classes/Command.php:966
+#: includes/classes/Command.php:962
 msgid "Elasticsearch host is not set."
 msgstr ""
 
-#: includes/classes/Command.php:968
+#: includes/classes/Command.php:964
 msgid "Could not connect to Elasticsearch."
 msgstr ""
 
-#: includes/classes/Command.php:979
+#: includes/classes/Command.php:975
 msgid "An index is already occurring. Try again later."
 msgstr ""
 
-#: includes/classes/Command.php:1023
+#: includes/classes/Command.php:1019
 msgid "Sync cleared."
 msgstr ""
 
-#: includes/classes/Command.php:1169
+#: includes/classes/Command.php:1165
 msgid "There is no indexing operation running."
 msgstr ""
 
-#: includes/classes/Command.php:1171
+#: includes/classes/Command.php:1167
 msgid "Stopping indexing…"
 msgstr ""
 
-#: includes/classes/Command.php:1217
+#: includes/classes/Command.php:1213
 msgid "This command expects a version number or the --default flag."
 msgstr ""
 
-#: includes/classes/Command.php:1340
+#: includes/classes/Command.php:1336
 msgid "Time elapsed: "
 msgstr ""
 
-#: includes/classes/Command.php:1344
+#: includes/classes/Command.php:1342
 msgid "Memory Usage: "
 msgstr ""
 
-#: includes/classes/Command.php:1442
+#: includes/classes/Command.php:1440
 msgid "Are you sure you want to delete all ElasticPress settings?"
 msgstr ""
 
-#: includes/classes/Command.php:1447
+#: includes/classes/Command.php:1445
 msgid "Settings deleted."
 msgstr ""
 
 #. translators: list of active indexables slugs
-#: includes/classes/Command.php:1586
+#: includes/classes/Command.php:1584
 msgid "Indexable not found or inactive. Active indexables are: %l"
 msgstr ""
 
-#: includes/classes/Command.php:1596
+#: includes/classes/Command.php:1594
 msgid "Not found"
 msgstr ""
 
 #. translators: URL of the request
-#: includes/classes/Command.php:1621
+#: includes/classes/Command.php:1619
 msgid "URL: %s"
 msgstr ""
 
 #. translators: Request arguments (outputted with print_r())
-#: includes/classes/Command.php:1628
+#: includes/classes/Command.php:1626
 msgid "Request Args: %s"
 msgstr ""
 
 #. translators: HTTP transport used
-#: includes/classes/Command.php:1635
+#: includes/classes/Command.php:1633
 msgid "Transport: %s"
 msgstr ""
 
 #. translators: Context under which the http_api_debug hook is fired
-#: includes/classes/Command.php:1642
+#: includes/classes/Command.php:1640
 msgid "Context: %s"
 msgstr ""
 
 #. translators: HTTP response (outputted with print_r())
-#: includes/classes/Command.php:1649
+#: includes/classes/Command.php:1647
 msgid "Response: %s"
 msgstr ""
 
@@ -415,15 +415,15 @@ msgstr ""
 msgid "Error while getting the index settings."
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1403
+#: includes/classes/Elasticsearch.php:1402
 msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup --network-wide</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1407
+#: includes/classes/Elasticsearch.php:1406
 msgid "Site not indexed. <p>Please run: <code>wp elasticpress index --setup</code> using WP-CLI. Or use the index button on the left of this screen.</p>"
 msgstr ""
 
-#: includes/classes/Elasticsearch.php:1593
+#: includes/classes/Elasticsearch.php:1591
 msgid "Elasticsearch Host is not available."
 msgstr ""
 
@@ -489,7 +489,7 @@ msgstr ""
 
 #: includes/classes/Feature.php:392
 #: includes/classes/StatusReport/ElasticPress.php:79
-#: includes/dashboard.php:650
+#: includes/dashboard.php:648
 #: includes/partials/settings-page.php:34
 #: assets/js/blocks/facets/common/edit.js:87
 #: assets/js/blocks/facets/date/edit.js:23
@@ -570,7 +570,7 @@ msgid "When enabled, a gtag tracking event is fired when an autosuggest result i
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:128
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:911
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:909
 msgid "Endpoint URL"
 msgstr ""
 
@@ -579,46 +579,49 @@ msgid "Your autosuggest endpoint is set in wp-config.php"
 msgstr ""
 
 #: includes/classes/Feature/Autosuggest/Autosuggest.php:136
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:909
 msgid "This address will be exposed to the public."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:600
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:598
 msgid "This is a fake request to build the ElasticPress Autosuggest query. It is not really sent."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:625
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:623
 msgid "This feature modifies the site’s default user experience by presenting a list of suggestions below detected search fields as text is entered into the field."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:629
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:627
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:783
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:781
 msgid "Connection"
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>;
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:792
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:867
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:790
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:865
 msgid "You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:888
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:886
 msgid "Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type=\"text\"]</code>"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:890
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:888
 msgid "Additional selectors"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:896
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:894
 msgid "Enable to fire a gtag tracking event when an autosuggest result is clicked."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:897
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:895
 msgid "Trigger Google Analytics events"
+msgstr ""
+
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:907
+msgid "A valid URL starting with <code>http://</code> or <code>https://</code>. This address will be exposed to the public."
 msgstr ""
 
 #: includes/classes/Feature/Comments/Comments.php:39
@@ -725,8 +728,7 @@ msgid "Documents"
 msgstr ""
 
 #: includes/classes/Feature/Documents/Documents.php:30
-#: includes/classes/Feature/Documents/Documents.php:326
-msgid "Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf."
+msgid "Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf, csv, txt."
 msgstr ""
 
 #: includes/classes/Feature/Documents/Documents.php:32
@@ -739,6 +741,10 @@ msgstr ""
 
 #: includes/classes/Feature/Documents/Documents.php:313
 msgid "This feature modifies the default user experience for your visitors by adding popular document file types to search results. All supported documents (PDFs and Microsoft Office) uploaded to your media library will appear in search results."
+msgstr ""
+
+#: includes/classes/Feature/Documents/Documents.php:326
+msgid "Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf."
 msgstr ""
 
 #: includes/classes/Feature/Documents/Documents.php:458
@@ -798,26 +804,26 @@ msgid "Facets no longer require admin styles."
 msgstr ""
 
 #. translators: Widgets Edit Screen URL
-#: includes/classes/Feature/Facets/Facets.php:534
+#: includes/classes/Feature/Facets/Facets.php:542
 msgid "Adds <a href='%s'>filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms."
 msgstr ""
 
 #. translators: Site Editor URL
-#: includes/classes/Feature/Facets/Facets.php:542
+#: includes/classes/Feature/Facets/Facets.php:550
 msgid "Adds <a href='%s'>filter blocks</a> that administrators can add to the website's templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms."
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:697
+#: includes/classes/Feature/Facets/Facets.php:704
 #: includes/classes/Feature/InstantResults/InstantResults.php:1095
 msgid "Filter matching"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:700
+#: includes/classes/Feature/Facets/Facets.php:707
 #: includes/classes/Feature/InstantResults/InstantResults.php:1098
 msgid "Show results that match <strong>all</strong> selected filters"
 msgstr ""
 
-#: includes/classes/Feature/Facets/Facets.php:704
+#: includes/classes/Feature/Facets/Facets.php:711
 #: includes/classes/Feature/InstantResults/InstantResults.php:1102
 msgid "Show results that match <strong>any</strong> selected filter"
 msgstr ""
@@ -975,7 +981,6 @@ msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:145
 #: includes/classes/Feature/InstantResults/InstantResults.php:1059
-#: includes/classes/Feature/Search/Search.php:901
 msgid "None"
 msgstr ""
 
@@ -1021,12 +1026,12 @@ msgid "Price"
 msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:1054
-#: includes/classes/Feature/Search/Search.php:896
+#: includes/classes/Feature/Search/Search.php:900
 msgid "Select the HTML tag used to highlight search terms."
 msgstr ""
 
 #: includes/classes/Feature/InstantResults/InstantResults.php:1056
-#: includes/classes/Feature/Search/Search.php:898
+#: includes/classes/Feature/Search/Search.php:902
 msgid "Highlight tag"
 msgstr ""
 
@@ -1054,12 +1059,20 @@ msgstr ""
 msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#protected-content"
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:373
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:369
 msgid "Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>"
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:413
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:409
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure."
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:468
+msgid "Enable to use WordPress default sort for searches inside the WP Dashboard."
+msgstr ""
+
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:469
+msgid "Use default WordPress sort on the WP Dashboard"
 msgstr ""
 
 #: includes/classes/Feature/RelatedPosts/RelatedPosts.php:29
@@ -1110,7 +1123,7 @@ msgid "https://www.elasticpress.io/documentation/article/configuring-elasticpres
 msgstr ""
 
 #: includes/classes/Feature/Search/Search.php:630
-#: includes/classes/Feature/Search/Search.php:874
+#: includes/classes/Feature/Search/Search.php:878
 msgid "Weight results by date"
 msgstr ""
 
@@ -1136,39 +1149,39 @@ msgstr ""
 msgid "Add synonyms to your post searches"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:783
-#: assets/js/search/editor/plugins/exclude-from-search.js:23
+#: includes/classes/Feature/Search/Search.php:788
+#: assets/js/search/editor/plugins/exclude-from-search.js:29
 #: dist/js/search-editor-script.js:1
 msgid "Exclude from search results"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:786
+#: includes/classes/Feature/Search/Search.php:791
 msgid "Excludes this media from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:788
-#: assets/js/search/editor/plugins/exclude-from-search.js:24
+#: includes/classes/Feature/Search/Search.php:793
+#: assets/js/search/editor/plugins/exclude-from-search.js:30
 #: dist/js/search-editor-script.js:1
 msgid "Excludes this post from the results of your site's search form while ElasticPress is active."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:867
+#: includes/classes/Feature/Search/Search.php:871
 msgid "Weighting by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:870
+#: includes/classes/Feature/Search/Search.php:874
 msgid "Don't weight results by date"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:884
+#: includes/classes/Feature/Search/Search.php:888
 msgid "Highlight search terms"
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:889
+#: includes/classes/Feature/Search/Search.php:893
 msgid "By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results."
 msgstr ""
 
-#: includes/classes/Feature/Search/Search.php:891
+#: includes/classes/Feature/Search/Search.php:895
 msgid "Highlight search terms in excerpts"
 msgstr ""
 
@@ -1308,7 +1321,7 @@ msgid "Sets must contain at least 2 terms."
 msgstr ""
 
 #: includes/classes/Feature/Search/Synonyms.php:728
-#: assets/js/weighting/components/field.js:80
+#: assets/js/weighting/components/field.js:82
 #: dist/js/weighting-script.js:1
 msgid "Remove"
 msgstr ""
@@ -1451,7 +1464,7 @@ msgid "Parent Custom Search Result:"
 msgstr ""
 
 #: includes/classes/Feature/SearchOrdering/SearchOrdering.php:284
-#: assets/js/ordering/pointers.js:265
+#: assets/js/ordering/pointers.js:257
 #: dist/js/ordering-script.js:1
 msgid "No results found."
 msgstr ""
@@ -1510,15 +1523,15 @@ msgstr ""
 msgid "Manage Results"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:622
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:623
 msgid "Enter Search Query"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:636
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:637
 msgid "Search Query"
 msgstr ""
 
-#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:793
+#: includes/classes/Feature/SearchOrdering/SearchOrdering.php:794
 msgid "ElasticPress Custom Search Results"
 msgstr ""
 
@@ -1582,11 +1595,11 @@ msgstr ""
 msgid "Disabled for any query that includes products"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/Products.php:1079
+#: includes/classes/Feature/WooCommerce/Products.php:1104
 msgid "Weight results by date, except for product-only queries"
 msgstr ""
 
-#: includes/classes/Feature/WooCommerce/Products.php:1083
+#: includes/classes/Feature/WooCommerce/Products.php:1108
 msgid "Weight results by date, except for any query that includes products"
 msgstr ""
 
@@ -1653,7 +1666,7 @@ msgid "Comment"
 msgstr ""
 
 #: includes/classes/Indexable/Comment/QueryIntegration.php:140
-#: includes/classes/Indexable/Post/QueryIntegration.php:295
+#: includes/classes/Indexable/Post/QueryIntegration.php:294
 #: includes/classes/Indexable/Term/QueryIntegration.php:111
 msgid "sites is deprecated. Use site__in instead."
 msgstr ""
@@ -1763,12 +1776,12 @@ msgstr ""
 msgid "Index %s deleted"
 msgstr ""
 
-#: includes/classes/IndexHelper.php:1417
+#: includes/classes/IndexHelper.php:1415
 msgid "Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping."
 msgstr ""
 
 #. translators: Error message
-#: includes/classes/IndexHelper.php:1422
+#: includes/classes/IndexHelper.php:1420
 msgid "Index failed: %s"
 msgstr ""
 
@@ -2209,7 +2222,7 @@ msgstr ""
 msgid "%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to %3$sinstall and configure a PHP proxy%4$s."
 msgstr ""
 
-#: includes/compat.php:96
+#: includes/compat.php:98
 msgid "Feature registration API"
 msgstr ""
 
@@ -2217,22 +2230,22 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
-#: includes/dashboard.php:640
+#: includes/dashboard.php:638
 msgid "ElasticPress Features"
 msgstr ""
 
-#: includes/dashboard.php:641
+#: includes/dashboard.php:639
 #: assets/js/features/index.js:34
 #: dist/js/features-script.js:1
 msgid "Features"
 msgstr ""
 
-#: includes/dashboard.php:649
+#: includes/dashboard.php:647
 msgid "ElasticPress Settings"
 msgstr ""
 
-#: includes/dashboard.php:658
-#: includes/dashboard.php:659
+#: includes/dashboard.php:656
+#: includes/dashboard.php:657
 #: assets/js/features/apps/features.js:83
 #: assets/js/synonyms/apps/synonyms-settings.js:61
 #: dist/js/features-script.js:1
@@ -2240,26 +2253,26 @@ msgstr ""
 msgid "Sync"
 msgstr ""
 
-#: includes/dashboard.php:667
+#: includes/dashboard.php:665
 msgid "ElasticPress Index Health"
 msgstr ""
 
-#: includes/dashboard.php:668
+#: includes/dashboard.php:666
 #: includes/partials/stats-page.php:35
 msgid "Index Health"
 msgstr ""
 
-#: includes/dashboard.php:676
+#: includes/dashboard.php:674
 msgid "ElasticPress Status Report"
 msgstr ""
 
-#: includes/dashboard.php:677
+#: includes/dashboard.php:675
 #: assets/js/status-report/index.js:21
 #: dist/js/status-report-script.js:1
 msgid "Status Report"
 msgstr ""
 
-#: includes/dashboard.php:875
+#: includes/dashboard.php:873
 msgid "ElasticPress Indexing"
 msgstr ""
 
@@ -2572,13 +2585,13 @@ msgstr ""
 msgid "Value prefix"
 msgstr ""
 
-#: assets/js/blocks/facets/meta-range/edit.js:101
+#: assets/js/blocks/facets/meta-range/edit.js:102
 #: dist/js/facets-meta-range-block-script.js:1
 msgid "Value suffix"
 msgstr ""
 
 #. translators: %s: Field name.
-#: assets/js/blocks/facets/meta-range/edit.js:127
+#: assets/js/blocks/facets/meta-range/edit.js:129
 #: dist/js/facets-meta-range-block-script.js:1
 msgid "Preview unavailable. The \"%s\" field does not appear to contain numeric values. Select a new meta field key or populate the field with numeric values to enable filtering by range."
 msgstr ""
@@ -2655,7 +2668,7 @@ msgstr ""
 
 #: assets/js/features/apps/features.js:246
 #: assets/js/synonyms/apps/synonyms-settings.js:174
-#: assets/js/synonyms/components/common/edit-panel.js:95
+#: assets/js/synonyms/components/common/edit-panel.js:98
 #: assets/js/weighting/apps/weighting.js:59
 #: dist/js/features-script.js:1
 #: dist/js/synonyms-script.js:1
@@ -2842,6 +2855,11 @@ msgstr ""
 msgid "Close filters"
 msgstr ""
 
+#: assets/js/instant-results/components/tools/sidebar-toggle.js:24
+#: dist/js/instant-results-script.js:1
+msgid "All filters"
+msgstr ""
+
 #: assets/js/instant-results/components/tools/sort.js:46
 #: dist/js/instant-results-script.js:1
 msgid "Sort by"
@@ -2872,57 +2890,57 @@ msgstr ""
 msgid "Price, lowest to highest"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:184
+#: assets/js/ordering/pointers.js:180
 #: dist/js/ordering-script.js:1
 msgid "You have added the maximum number of custom results."
 msgstr ""
 
-#: assets/js/ordering/pointers.js:285
+#: assets/js/ordering/pointers.js:277
 #: dist/js/ordering-script.js:1
 msgid "Add Post"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:311
+#: assets/js/ordering/pointers.js:304
 #: dist/js/ordering-script.js:1
 msgid "Enter your search query above to preview the results."
 msgstr ""
 
-#: assets/js/ordering/pointers.js:324
+#: assets/js/ordering/pointers.js:317
 #: dist/js/ordering-script.js:1
 msgid "Loading Result Preview…"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:375
+#: assets/js/ordering/pointers.js:369
 #: dist/js/ordering-script.js:1
 msgid "Return to original position"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:376
+#: assets/js/ordering/pointers.js:370
 #: dist/js/ordering-script.js:1
 msgid "Remove custom result from results list"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:399
+#: assets/js/ordering/pointers.js:393
 #: dist/js/ordering-script.js:1
 msgid "The following posts have been displaced to the next page of search results."
 msgstr ""
 
-#: assets/js/ordering/pointers.js:434
+#: assets/js/ordering/pointers.js:447
 #: dist/js/ordering-script.js:1
 msgid "Drag post up or down to reposition"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:476
+#: assets/js/ordering/pointers.js:469
 #: dist/js/ordering-script.js:1
 msgid "Custom Result (manually added to list)"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:482
+#: assets/js/ordering/pointers.js:475
 #: dist/js/ordering-script.js:1
 msgid "Reordered Default (originally in results, but repositioned)"
 msgstr ""
 
-#: assets/js/ordering/pointers.js:491
+#: assets/js/ordering/pointers.js:484
 #: dist/js/ordering-script.js:1
 msgid "Add to results"
 msgstr ""
@@ -3083,12 +3101,12 @@ msgstr ""
 msgid "Lower object ID"
 msgstr ""
 
-#: assets/js/sync-ui/components/limits.js:64
+#: assets/js/sync-ui/components/limits.js:65
 #: dist/js/sync-script.js:1
 msgid "Sync objects with an ID of this number or lower."
 msgstr ""
 
-#: assets/js/sync-ui/components/limits.js:65
+#: assets/js/sync-ui/components/limits.js:66
 #: dist/js/sync-script.js:1
 msgid "Higher object ID"
 msgstr ""
@@ -3396,12 +3414,12 @@ msgstr ""
 msgid "ElasticPress uses the Solr format to define your synonym rules for Elasticsearch. Advanced users can use the field below to edit the synonym rules in this format directly. This can also be used to import a large dictionary of synonyms, or to export your synonyms for use on another site."
 msgstr ""
 
-#: assets/js/synonyms/components/common/edit-panel.js:106
+#: assets/js/synonyms/components/common/edit-panel.js:109
 #: dist/js/synonyms-script.js:1
 msgid "Cancel"
 msgstr ""
 
-#: assets/js/synonyms/components/common/list-table.js:148
+#: assets/js/synonyms/components/common/list-table.js:149
 #: dist/js/synonyms-script.js:1
 msgid "Delete selected"
 msgstr ""
@@ -3596,7 +3614,7 @@ msgstr ""
 msgid "Searchable"
 msgstr ""
 
-#: assets/js/weighting/components/field.js:68
+#: assets/js/weighting/components/field.js:69
 #: dist/js/weighting-script.js:1
 msgid "Weight"
 msgstr ""
@@ -3622,7 +3640,7 @@ msgstr ""
 msgid "Metadata key"
 msgstr ""
 
-#: assets/js/weighting/components/group.js:189
+#: assets/js/weighting/components/group.js:190
 #: dist/js/weighting-script.js:1
 msgid "Add"
 msgstr ""

@@ -300,6 +300,7 @@ export default ({ labels, messages, mode, rules }) => {
 								<CheckboxControl
 									checked={checked.includes(i)}
 									onChange={(isChecked) => check(i, isChecked)}
+									__nextHasNoMarginBottom
 								/>
 							</td>
 							{labels.primary ? (

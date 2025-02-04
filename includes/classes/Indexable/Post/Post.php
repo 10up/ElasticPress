@@ -8,8 +8,8 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use \WP_Query;
-use \WP_User;
+use WP_Query;
+use WP_User;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Indexable;
 
@@ -42,11 +42,12 @@ class Post extends Indexable {
 	public $support_indexing_advanced_pagination = true;
 
 	/**
-	 * Create indexable and initialize dependencies
+	 * Instantiate the indexable SyncManager and QueryIntegration
 	 *
-	 * @since  3.0
+	 * @since 5.2.0
+	 * @return void
 	 */
-	public function __construct() {
+	public function setup() {
 		$this->labels = [
 			'plural'   => esc_html__( 'Posts', 'elasticpress' ),
 			'singular' => esc_html__( 'Post', 'elasticpress' ),
@@ -755,7 +756,7 @@ class Post extends Indexable {
 	 * @param int      $post_id The post ID
 	 * @return array
 	 */
-	private function get_formatted_term( \WP_Term $term, int $post_id ) : array {
+	private function get_formatted_term( \WP_Term $term, int $post_id ): array {
 		$formatted_term = [
 			'term_id'          => $term->term_id,
 			'slug'             => $term->slug,
@@ -810,7 +811,6 @@ class Post extends Indexable {
 		}
 
 		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
-
 	}
 
 	/**
@@ -902,7 +902,6 @@ class Post extends Indexable {
 		 * @return  {array} Prepared meta
 		 */
 		return apply_filters( 'ep_prepared_post_meta', $prepared_meta, $post );
-
 	}
 
 	/**
@@ -1418,7 +1417,7 @@ class Post extends Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		$search_algorithm_version_option = \ElasticPress\Utils\get_option( 'ep_search_algorithm_version', '4.0' );
 
 		/**
@@ -2465,7 +2464,7 @@ class Post extends Indexable {
 	 * @param string $field Field name
 	 * @return string
 	 */
-	protected function parse_tax_query_field( string $field ) : string {
+	protected function parse_tax_query_field( string $field ): string {
 
 		$from_to = [
 			'name'             => 'name.raw',
@@ -2590,11 +2589,9 @@ class Post extends Indexable {
 				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
 					$allow_index = true;
 				}
-			} else {
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 					$allow_index = true;
-				}
 			}
 
 			/**
@@ -2620,7 +2617,7 @@ class Post extends Indexable {
 	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ) : array {
+	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ): array {
 		global $wpdb;
 
 		/**
@@ -2706,7 +2703,7 @@ class Post extends Indexable {
 	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ): array {
 		$allowed_screen = 'status-report' === \ElasticPress\Screen::factory()->get_current_screen();
 
 		/**
@@ -2794,7 +2791,7 @@ class Post extends Indexable {
 	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ) : array {
+	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ): array {
 		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
 		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type, $force_refresh );
 
@@ -2821,7 +2818,7 @@ class Post extends Indexable {
 	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
 	 * @return array
 	 */
-	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ) : array {
+	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ): array {
 		$empty_post = new \WP_Post( (object) [] );
 		$meta_keys  = $this->get_distinct_meta_field_keys_db( $force_refresh );
 
@@ -2833,7 +2830,7 @@ class Post extends Indexable {
 
 		$all_keys = array_filter(
 			array_keys( $filtered_meta ),
-			function( $meta_key ) use ( $empty_post ) {
+			function ( $meta_key ) use ( $empty_post ) {
 				return $this->is_meta_allowed( $meta_key, $empty_post );
 			}
 		);
@@ -2849,7 +2846,7 @@ class Post extends Indexable {
 	 * @since 5.1.0
 	 * @return string
 	 */
-	public function get_test_meta_value() : string {
+	public function get_test_meta_value(): string {
 		/**
 		 * Filter the value used to fill meta fields while predicting indexable content.
 		 *
@@ -2931,7 +2928,7 @@ class Post extends Indexable {
 	 * @param array $post_ids Set of post IDs
 	 * @return array
 	 */
-	protected function get_meta_keys_from_post_ids( array $post_ids ) : array {
+	protected function get_meta_keys_from_post_ids( array $post_ids ): array {
 		global $wpdb;
 
 		if ( empty( $post_ids ) ) {
@@ -2959,7 +2956,7 @@ class Post extends Indexable {
 	 * @param array $mapping The mapping array
 	 * @return array
 	 */
-	public function add_term_suggest_field( array $mapping ) : array {
+	public function add_term_suggest_field( array $mapping ): array {
 		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
@@ -2983,7 +2980,7 @@ class Post extends Indexable {
 	 * @since 5.1.4
 	 * @return array
 	 */
-	public function get_all_allowed_metas_manual() : array {
+	public function get_all_allowed_metas_manual(): array {
 		$post_types     = \ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
 		$search_feature = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
 		$weighting      = $search_feature->weighting->get_weighting_configuration_with_defaults();
