@@ -439,6 +439,42 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.wait('@apiRequest');
 				cy.url().should('include', 'post_type=product');
 			});
+
+			it('Is possible to filter the taxonomy terms', () => {
+				/**
+				 * Activate test plugin.
+				 */
+				cy.maybeEnableFeature('instant-results');
+				cy.activatePlugin('filter-instant-results-category-terms', 'wpCli');
+
+				cy.visitAdminPage('admin.php?page=elasticpress');
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type(
+					'{backspace}{backspace}{backspace}(category){downArrow}{enter}{esc}',
+				);
+				cy.contains('button', 'Save changes').click();
+
+				cy.wait('@apiRequest');
+
+				/**
+				 * Perform a search.
+				 */
+				cy.intercept('*search=block*').as('apiRequest');
+				cy.visit('/');
+				cy.get('.wp-block-search').first().as('searchBlock');
+				cy.get('@searchBlock').find('input[type="search"]').type('block');
+				cy.get('@searchBlock').find('button').click();
+				cy.wait('@apiRequest');
+
+				/**
+				 * The number of terms displayed in the filter should be one.
+				 */
+				cy.get('[id^="ep-search-tax-category-"]').should('have.length', 1);
+
+				cy.deactivatePlugin('filter-instant-results-category-terms', 'wpCli');
+			});
 		});
 
 		it('Is possible to filter the arguments schema', () => {
