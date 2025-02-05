@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\AcfRepeater;
 
 use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -38,6 +39,22 @@ class AcfRepeater extends Feature {
 		$this->summary = '<p>' . __( 'Index your ACF Repeater fields as a single text field.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
+	}
+
+	/**
+	 * Determine WC feature reqs status
+	 *
+	 * @return FeatureRequirementsStatus
+	 */
+	public function requirements_status() {
+		$status = new FeatureRequirementsStatus( 0 );
+
+		if ( ! function_exists( 'acf_get_field_groups' ) ) {
+			$status->code    = 2;
+			$status->message = esc_html__( 'ACF Pro not installed.', 'elasticpress' );
+		}
+
+		return $status;
 	}
 
 	/**
