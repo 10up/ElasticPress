@@ -191,6 +191,10 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
+		new Feature\AcfRepeater\AcfRepeater()
+	);
+
+	Features::factory()->register_feature(
 		new Feature\Comments\Comments()
 	);
 
