@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\AcfRepeater;
 
 use ElasticPress\Feature;
 use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -47,9 +48,9 @@ class AcfRepeater extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'ACF Repeater Field Compatibility', 'elasticpress' );
 
-		$this->short_title = esc_html__( 'ACF Repeater', 'elasticpress' );
+		$this->short_title = esc_html__( 'ACF Repeater Field', 'elasticpress' );
 
-		$this->summary = '<p>' . __( 'Index your ACF Repeater fields as a single text field.', 'elasticpress' ) . '</p>';
+		$this->summary = '<p>' . __( 'Index your ACF Repeater fields as a JSON object and, optionally, make it searchable in the Search Fields & Weighting dashboard.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
 	}
@@ -100,12 +101,21 @@ class AcfRepeater extends Feature {
 			return;
 		}
 
+		$instructions = wp_kses_post(
+			sprintf(
+				/* translators: %s: post type name */
+				__( 'Index this field as a JSON object. If you want to make it searchable, do not forget to enable it under the related post types in the <a href="%1$s">Search Fields & Weighting dashboard</a>. To index existent content you can either manually save posts with this field or <a href="%2$s">run a sync</a>.', 'elasticpress' ),
+				esc_url( admin_url( 'admin.php?page=elasticpress-weighting' ) ),
+				Utils\get_sync_url()
+			)
+		);
+
 		\acf_render_field_setting(
 			$field,
 			[
 				'label'        => esc_html__( 'Index in ElasticPress', 'elasticpress' ),
-				'instructions' => esc_html__( 'Index this field as a single text field', 'elasticpress' ),
-				'name'         => 'ep_index_repeater_field',
+				'instructions' => $instructions,
+				'name'         => 'ep_acf_repeater_index_field',
 				'type'         => 'true_false',
 				'ui'           => 1,
 			]
@@ -136,7 +146,7 @@ class AcfRepeater extends Feature {
 		foreach ( $field_groups as $field_group ) {
 			$fields = acf_get_fields( $field_group );
 			foreach ( $fields as $field ) {
-				if ( empty( $field['ep_index_repeater_field'] ) ) {
+				if ( empty( $field['ep_acf_repeater_index_field'] ) ) {
 					continue;
 				}
 
@@ -161,7 +171,7 @@ class AcfRepeater extends Feature {
 		foreach ( $meta_keys as $key ) {
 			$field = acf_get_field( $key );
 
-			if ( ! $field || empty( $field['ep_index_repeater_field'] ) || 'repeater' !== $field['type'] ) {
+			if ( ! $field || empty( $field['ep_acf_repeater_index_field'] ) || 'repeater' !== $field['type'] ) {
 				continue;
 			}
 
