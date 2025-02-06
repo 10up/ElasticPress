@@ -20,6 +20,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class AcfRepeater extends Feature {
 	/**
+	 * List of ACF functions we use
+	 *
+	 * @var array
+	 */
+	protected $acf_functions = [
+		'acf_get_field_groups',
+		'acf_render_field_setting',
+		'acf_get_fields',
+		'acf_get_field',
+		'get_field',
+	];
+
+	/**
 	 * Initialize feature setting it's config
 	 */
 	public function __construct() {
@@ -49,9 +62,12 @@ class AcfRepeater extends Feature {
 	public function requirements_status() {
 		$status = new FeatureRequirementsStatus( 0 );
 
-		if ( ! function_exists( 'acf_get_field_groups' ) ) {
-			$status->code    = 2;
-			$status->message = esc_html__( 'ACF Pro not installed.', 'elasticpress' );
+		foreach ( $this->acf_functions as $function ) {
+			if ( ! function_exists( $function ) ) {
+				$status->code    = 2;
+				$status->message = esc_html__( 'ACF Pro not installed.', 'elasticpress' );
+				break;
+			}
 		}
 
 		return $status;
@@ -62,7 +78,8 @@ class AcfRepeater extends Feature {
 	 */
 	public function setup() {
 		add_action( 'acf/render_field_settings', [ $this, 'render_field_settings' ] );
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'add_meta_keys' ], 10, 2 );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ], 10, 2 );
+		add_filter( 'ep_prepare_meta_data', [ $this, 'add_meta_keys' ], 10, 2 );
 	}
 
 	/**
@@ -72,10 +89,6 @@ class AcfRepeater extends Feature {
 	 * @return void
 	 */
 	public function render_field_settings( $field ): void {
-		if ( ! function_exists( 'acf_render_field_setting' ) ) {
-			return;
-		}
-
 		// We only want repeaters and fields that are not children of repeaters.
 		if ( 'repeater' !== $field['type'] || ! empty( $field['parent_repeater'] ) ) {
 			return;
@@ -106,7 +119,7 @@ class AcfRepeater extends Feature {
 	 * @param \WP_Post $post The post object.
 	 * @return array
 	 */
-	public function add_meta_keys( $meta, $post ) {
+	public function allow_meta_keys( $meta, $post ) {
 		$field_groups = acf_get_field_groups(
 			array(
 				'post_id'   => $post->ID,
@@ -132,6 +145,28 @@ class AcfRepeater extends Feature {
 		}
 
 		$meta = array_unique( array_merge( $meta, $ep_fields ) );
+
+		return $meta;
+	}
+
+	/**
+	 * Add the ACF Repeater fields to the ES document meta data.
+	 *
+	 * @param array    $meta All post meta data
+	 * @param \WP_Post $post The post object
+	 * @return array
+	 */
+	public function add_meta_keys( $meta, $post ) {
+		$meta_keys = array_keys( $meta );
+		foreach ( $meta_keys as $key ) {
+			$field = acf_get_field( $key );
+
+			if ( ! $field || empty( $field['ep_index_repeater_field'] ) || 'repeater' !== $field['type'] ) {
+				continue;
+			}
+
+			$meta[ $key ] = wp_json_encode( get_field( $key, $post->ID ) );
+		}
 
 		return $meta;
 	}
