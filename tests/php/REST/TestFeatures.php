@@ -24,7 +24,6 @@ class TestFeatures extends \ElasticPressTest\BaseTestCase {
 		$features_rest     = new Features();
 		$features_instance = \ElasticPress\Features::factory();
 
-		$features_instance->registered_features = [];
 		$features_instance->register_feature(
 			new \ElasticPressTest\SettingsSchemaFeature()
 		);
@@ -84,5 +83,7 @@ class TestFeatures extends \ElasticPressTest\BaseTestCase {
 		];
 
 		$this->assertEquals( $test_settings_schema, $args['test_settings_schema'] );
+
+		unset( $features_instance->registered_features['test_settings_schema'] );
 	}
 }
