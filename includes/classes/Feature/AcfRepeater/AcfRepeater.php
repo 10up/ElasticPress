@@ -101,6 +101,19 @@ class AcfRepeater extends Feature {
 			return;
 		}
 
+		/**
+		 * Filter whether EP should or not display the field setting in ACF
+		 *
+		 * @hook ep_acf_repeater_should_display_field_setting
+		 * @since 5.3.0
+		 * @param {bool}  $should_display Whether should or not display the field setting in ACF
+		 * @param {array} $field          The ACF Field array
+		 * @return {bool} New value of $should_display
+		 */
+		if ( ! apply_filters( 'ep_acf_repeater_should_display_field_setting', true, $field ) ) {
+			return;
+		}
+
 		$instructions = wp_kses_post(
 			sprintf(
 				/* translators: %s: post type name */
@@ -175,7 +188,21 @@ class AcfRepeater extends Feature {
 				continue;
 			}
 
-			$meta[ $key ] = wp_json_encode( get_field( $key, $post->ID ) );
+			$value_field   = get_field( $key, $post->ID );
+			$value_encoded = wp_json_encode( $value_field );
+
+			/**
+			 * Filter the ACF Repeater field value before it is indexed
+			 *
+			 * @hook ep_acf_repeater_meta_value
+			 * @since 5.3.0
+			 * @param {string}  $value_encoded Repeater field value encoded
+			 * @param {array}   $value_field   Original field value
+			 * @param {string}  $key           The meta field key
+			 * @param {WP_Post} $post          The Post object
+			 * @return {mixed} New value of $value_encoded
+			 */
+			$meta[ $key ] = apply_filters( 'ep_acf_repeater_meta_value', $value_encoded, $value_field, $key, $post );
 		}
 
 		return $meta;
