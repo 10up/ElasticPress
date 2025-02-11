@@ -52,7 +52,7 @@ class AcfRepeater extends Feature {
 
 		$this->summary = '<p>' . __( 'Index your ACF Repeater fields as a JSON object and, optionally, make it searchable in the Search Fields & Weighting dashboard.', 'elasticpress' ) . '</p>';
 
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/acf-repeater-field-compatibility-feature/', 'elasticpress' );
 	}
 
 	/**
