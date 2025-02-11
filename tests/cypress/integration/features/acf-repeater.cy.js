@@ -33,6 +33,12 @@ describe('ACF Repeater Field Compatibility Feature', () => {
 			});
 		cy.get('button.acf-publish').click();
 
+		// Save the example post, so the repeater field is indexed
+		cy.visitAdminPage('edit.php?s=Post+with+ACF+Repeater+Field');
+		cy.get('span.edit a').click({ force: true });
+		cy.get('.editor-post-publish-button__button').click();
+		cy.wait(2000); // eslint-disable-line
+
 		// Make the field searchable
 		cy.visitAdminPage('admin.php?page=elasticpress-weighting');
 		cy.contains('h2', 'Posts').closest('.ep-weighting-post-type').as('postBox');
