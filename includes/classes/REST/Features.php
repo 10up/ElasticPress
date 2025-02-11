@@ -71,6 +71,9 @@ class Features {
 					case 'toggle':
 						$property['type'] = 'boolean';
 						break;
+					case 'number':
+						$property['type'] = 'number';
+						break;
 					case 'url':
 						$property['type']   = 'string';
 						$property['format'] = 'uri';
