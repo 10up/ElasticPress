@@ -22,7 +22,7 @@
     "cypress-file-upload": "^5.0.8",
     "eslint-plugin-cypress": "^2.12.1",
     "husky": "^9.0.0",
-    "jsdoc": "^3.6.10",
+    "jsdoc": "^4.0.4",
     "lint-staged": "^15.0.1",
     "postcss-preset-env": "^9.2.0",
     "terser-webpack-plugin": "^5.3.0",
