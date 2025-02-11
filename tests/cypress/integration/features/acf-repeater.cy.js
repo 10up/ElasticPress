@@ -36,6 +36,14 @@ describe('ACF Repeater Field Compatibility Feature', () => {
 		// Save the example post, so the repeater field is indexed
 		cy.visitAdminPage('edit.php?s=Post+with+ACF+Repeater+Field');
 		cy.get('span.edit a').click({ force: true });
+		cy.get('body').then(($body) => {
+			const welcomeGuide = $body.find(
+				'.edit-post-welcome-guide .components-modal__header button',
+			);
+			if (welcomeGuide.length) {
+				welcomeGuide.click();
+			}
+		});
 		cy.get('.editor-post-publish-button__button').click();
 		cy.wait(2000); // eslint-disable-line
 
