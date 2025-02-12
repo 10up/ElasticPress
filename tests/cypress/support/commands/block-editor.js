@@ -66,7 +66,7 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 	if (isEdit) {
 		cy.get('.block-editor-block-inspector').as('blockInspector');
 
-		if (wpVersion === '6.0') {
+		if (wpVersion === '6.2') {
 			cy.get(
 				'.color-block-support-panel .components-button[aria-label="View and add options"]',
 			).click();
@@ -95,7 +95,7 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 
 Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
-		if (wpVersion === '6.0') {
+		if (wpVersion === '6.2') {
 			cy.get(
 				'.typography-block-support-panel .components-button[aria-label="View and add options"]',
 			).click();
@@ -141,7 +141,7 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 
 Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
-		if (wpVersion === '6.0') {
+		if (wpVersion === '6.2') {
 			cy.get(
 				'.dimensions-block-support-panel .components-button[aria-label="View and add options"]',
 			).click();
