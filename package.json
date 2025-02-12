@@ -7,7 +7,7 @@
     "@10up/component-tooltip": "^2.0.0",
     "@hello-pangea/dnd": "^16.6.0",
     "@wordpress/icons": "^10.13.0",
-    "chart.js": "^2.9.4",
+    "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
     "react-slider": "^2.0.6",
     "uuid": "^11.0.5"
