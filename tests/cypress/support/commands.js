@@ -150,7 +150,7 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 
 	if (newPostData.password && newPostData.password !== '') {
 		cy.get('@iframe').find('h1.editor-post-title__input').click();
-		if (wpVersion === '6.0') {
+		if (wpVersion === '6.2') {
 			cy.get('body').then(($body) => {
 				const $button = $body.find('.edit-post-post-visibility__toggle');
 				if (!$button.is(':visible')) {
