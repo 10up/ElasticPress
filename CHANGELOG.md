@@ -43,7 +43,7 @@ This version bumps the minimum WordPress version to 6.2+.
 * Remove the setup step from the `build-with-vendor-prefixed.yml` and standardize the use of Node Version. Props [@burhandodhy](https://github.com/burhandodhy) via [#4062](https://github.com/10up/ElasticPress/pull/4062).
 * Fixed E2E tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#4069](https://github.com/10up/ElasticPress/pull/4069).
 * PHP, JS and Style lint fixes. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
-* Several node and composer packages updated. Props [@felipeelia](https://github.com/felipeelia) via [#4079](https://github.com/10up/ElasticPress/pull/4079).
+* Several node and composer packages updated. Props [@felipeelia](https://github.com/felipeelia) via [#4079](https://github.com/10up/ElasticPress/pull/4079) and [#4083](https://github.com/10up/ElasticPress/pull/4083).
 * Updated the chart.js library. Props [@felipeelia](https://github.com/felipeelia) via [#4081](https://github.com/10up/ElasticPress/pull/4081).
 
 ## [5.1.4] - 2024-12-12
