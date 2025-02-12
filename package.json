@@ -16,7 +16,7 @@
     "@4tw/cypress-drag-drop": "^2.3.0",
     "@cypress/grep": "^4.0.1",
     "@wordpress/env": "^10.4.0",
-    "10up-toolkit": "^6.3.0",
+    "10up-toolkit": "^6.4.0",
     "classnames": "^2.5.1",
     "cypress": "^14.0.3",
     "cypress-file-upload": "^5.0.8",
