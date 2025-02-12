@@ -59,7 +59,7 @@ else
 	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --activate --version=${WC_VERSION}"
 fi
 
-# Set twentytwentyone as the active theme here, as 2025 won't work with WP 6.0
+# Set twentytwentyone as the active theme here, as 2025 won't work with WP 6.2
 ./bin/wp-env-cli tests-wordpress "wp --allow-root theme activate twentytwentyone"
 
 # Fix the debug-bar-elasticpress dependency of ElasticPress
