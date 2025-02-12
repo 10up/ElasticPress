@@ -64,30 +64,15 @@ Cypress.Commands.add('insertBlock', (blockName) => {
 
 Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
-		cy.get('.block-editor-block-inspector').as('blockInspector');
+		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+		cy.get('.block-editor-block-inspector button').contains('Background').click();
 
-		if (wpVersion === '6.2') {
-			cy.get(
-				'.color-block-support-panel .components-button[aria-label="View and add options"]',
-			).click();
+		cy.get(
+			`.popover-slot button[aria-label="Color: Black"],
+			.block-editor-color-gradient-control__panel button[aria-label="Color: Black"]`,
+		).click();
 
-			cy.get('.components-button[aria-label="Show Background"]').click();
-			cy.get('.block-editor-panel-color-gradient-settings__dropdown').click();
-
-			cy.get('.components-button[aria-label="Color: Black"]').click();
-
-			cy.get('.color-block-support-panel').click();
-		} else {
-			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
-			cy.get('.block-editor-block-inspector button').contains('Background').click();
-
-			cy.get(
-				`.popover-slot button[aria-label="Color: Black"],
-				.block-editor-color-gradient-control__panel button[aria-label="Color: Black"]`,
-			).click();
-
-			cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
-		}
+		cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
 
 	cy.wrap(subject).should('have.css', 'background-color', 'rgb(0, 0, 0)');
@@ -95,42 +80,37 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 
 Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
+		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+		cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
+
+		cy.get('[aria-label="Typography options"] button, .popover-slot button')
+			.contains(/Font size|Size/)
+			.as('fontSizeButton');
+		cy.get('@fontSizeButton').click();
+		cy.get('@fontSizeButton').click();
+		cy.get('@fontSizeButton').type('{esc}');
+
+		cy.get('.block-editor-block-inspector fieldset.components-font-size-picker')
+			.find('button[role="combobox"], button[aria-label="Font size"]')
+			.click();
+
+		cy.get(
+			'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
+		)
+			.contains('Extra small')
+			.click();
+
 		if (wpVersion === '6.2') {
-			cy.get(
-				'.typography-block-support-panel .components-button[aria-label="View and add options"]',
-			).click();
-
-			cy.get('.components-button[aria-label="Show Font size"]').click();
-			cy.get('.components-custom-select-control__button[aria-label="Font size"]').click();
-			cy.get('.components-custom-select-control__item').contains('Extra small').click();
-
-			cy.get(
-				'.typography-block-support-panel .components-button[aria-label="View options"]',
-			).click();
-			cy.get('.components-button[aria-label="Show Line height"]').click();
-			cy.get('.components-input-control__input[placeholder="1.5"]').clearThenType(2);
-		} else {
-			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
 			cy.get('.block-editor-block-inspector button[aria-label="Typography options"]').click();
-
 			cy.get('[aria-label="Typography options"] button, .popover-slot button')
-				.contains(/Font size|Size/)
+				.contains('Line height')
 				.as('fontSizeButton');
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').click();
 			cy.get('@fontSizeButton').type('{esc}');
-
-			cy.get(
-				'.block-editor-block-inspector fieldset.components-font-size-picker button[role="combobox"]',
-			).click();
-			cy.get(
-				'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
-			)
-				.contains('Extra small')
-				.click();
-
+			cy.get('.components-input-control__input[placeholder="1.5"]').clearThenType(2);
+		} else {
 			cy.get('.block-editor-line-height-control input').clearThenType(2);
-
 			cy.get('.block-editor-block-inspector button[aria-label="Settings"]').click();
 		}
 	}
@@ -141,31 +121,42 @@ Cypress.Commands.add('supportsBlockTypography', { prevSubject: true }, (subject,
 
 Cypress.Commands.add('supportsBlockDimensions', { prevSubject: true }, (subject, isEdit) => {
 	if (isEdit) {
-		if (wpVersion === '6.2') {
-			cy.get(
-				'.dimensions-block-support-panel .components-button[aria-label="View and add options"]',
-			).click();
+		cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
+		cy.get('.block-editor-block-inspector button[aria-label="Dimensions options"]').click();
 
-			cy.get('.components-button[aria-label="Show Padding"]').click();
-			cy.get('.components-button[aria-label="Unlink Sides"]').click();
-			cy.get('.components-input-control__input[aria-label="Top"]').clearThenType(10);
-			cy.get('.components-input-control__input[aria-label="Right"]').clearThenType(15);
-			cy.get('.components-input-control__input[aria-label="Bottom"]').clearThenType(10);
-			cy.get('.components-input-control__input[aria-label="Left"]').clearThenType(15);
+		cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
+
+		cy.get('[aria-label="Dimensions options"] button, .popover-slot button')
+			.contains('Padding')
+			.as('paddingButton');
+		cy.get('@paddingButton').click();
+		cy.get('@paddingButton').click();
+		cy.get('@paddingButton').type('{esc}');
+
+		if (wpVersion === '6.2') {
+			cy.get('.components-button[aria-label="Unlink sides"]').click();
+
+			const inputs = [
+				{ label: 'Top padding', value: 10 },
+				{ label: 'Right padding', value: 15 },
+				{ label: 'Bottom padding', value: 10 },
+				{ label: 'Left padding', value: 15 },
+			];
+
+			inputs.forEach(({ label, value }) => {
+				cy.get('@dimensionsPanel')
+					.find('button[aria-label="Set custom size"]')
+					.first()
+					.click({ force: true });
+				cy.get('@dimensionsPanel')
+					.contains('label', label)
+					.closest('div')
+					.find('input')
+					.clearThenType(value);
+			});
 
 			cy.get('.dimensions-block-support-panel').click();
 		} else {
-			cy.get('.block-editor-block-inspector button[aria-label="Styles"]').click();
-			cy.get('.block-editor-block-inspector button[aria-label="Dimensions options"]').click();
-
-			cy.get('.dimensions-block-support-panel').as('dimensionsPanel');
-
-			cy.get('[aria-label="Dimensions options"] button, .popover-slot button')
-				.contains('Padding')
-				.as('paddingButton');
-			cy.get('@paddingButton').click();
-			cy.get('@paddingButton').type('{esc}');
-
 			cy.get('@dimensionsPanel')
 				.find('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
 				.first()
