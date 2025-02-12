@@ -245,6 +245,8 @@ Thank you to all the people who have already contributed to this repository via 
 [Arturo Monge (@arturomonge)](https://github.com/arturomonge),
 [Majix (@majiix)](https://github.com/majiix),
 [Maarten Hunink (@maartenhunink)](https://github.com/maartenhunink),
+[Alexandr (@yarovikov)](https://github.com/yarovikov),
+[@syedc](https://github.com/syedc),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

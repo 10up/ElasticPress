@@ -14,6 +14,38 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.2.0] - 2024-XX-XX
+
+This version bumps the minimum WordPress version to 6.2+.
+
+### Added
+* New ACF Repeater Field Compatibility feature. Props [@felipeelia](https://github.com/felipeelia) via [#4075](https://github.com/10up/ElasticPress/pull/4075).
+* Add new filter `ep.InstantResults.filter.taxonomy.terms`. Props [@burhandodhy](https://github.com/burhandodhy) and [@syedc](https://github.com/syedc) via [#4067](https://github.com/10up/ElasticPress/pull/4067).
+* Support to "number" fields in the Features Settings API. Props [@felipeelia](https://github.com/felipeelia) via [#4072](https://github.com/10up/ElasticPress/pull/4072).
+
+### Changed
+* Minimum required version of WordPress (from 6.0 to 6.2). Props [@felipeelia](https://github.com/felipeelia) via [#4082](https://github.com/10up/ElasticPress/pull/4082).
+* `ElasticPress\Feature\RelatedPosts::get_related_query()`, `ElasticPress\Feature\RelatedPosts::find_related()` parameter name change to `$post_return`. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
+
+### Deprecated
+### Removed
+### Fixed
+* PHP warning: Attempt to read property "base" on null. Props [@burhandodhy](https://github.com/burhandodhy) and [@yarovikov](https://github.com/yarovikov) via [#4060](https://github.com/10up/ElasticPress/pull/4060).
+* Notice not displayed while updating a term. Props [@burhandodhy](https://github.com/burhandodhy) and [@MARQAS](https://github.com/MARQAS) via [#4070](https://github.com/10up/ElasticPress/pull/4070).
+* PHP Notice: Function _load_textdomain_just_in_time was called incorrectly. Props [@burhandodhy](https://github.com/burhandodhy) via [#4065](https://github.com/10up/ElasticPress/pull/4065).
+
+### Security
+* Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot) via [#4078](https://github.com/10up/ElasticPress/pull/4078).
+
+### Developer
+* Trufflehog GitHub Action to detect secrets leak. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#4052](https://github.com/10up/ElasticPress/pull/4052).
+* Install Unit Tests without relying on SVN. Props [@felipeelia](https://github.com/felipeelia) via [#4058](https://github.com/10up/ElasticPress/pull/4058).
+* Remove the setup step from the `build-with-vendor-prefixed.yml` and standardize the use of Node Version. Props [@burhandodhy](https://github.com/burhandodhy) via [#4062](https://github.com/10up/ElasticPress/pull/4062).
+* Fixed E2E tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#4069](https://github.com/10up/ElasticPress/pull/4069).
+* PHP, JS and Style lint fixes. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
+* Several node and composer packages updated. Props [@felipeelia](https://github.com/felipeelia) via [#4079](https://github.com/10up/ElasticPress/pull/4079).
+* Updated the chart.js library. Props [@felipeelia](https://github.com/felipeelia) via [#4081](https://github.com/10up/ElasticPress/pull/4081).
+
 ## [5.1.4] - 2024-12-12
 
 ### Added
@@ -2177,6 +2209,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.2.0]: https://github.com/10up/ElasticPress/compare/5.1.4...5.2.0
 [5.1.4]: https://github.com/10up/ElasticPress/compare/5.1.3...5.1.4
 [5.1.3]: https://github.com/10up/ElasticPress/compare/5.1.2...5.1.3
 [5.1.2]: https://github.com/10up/ElasticPress/compare/5.1.1...5.1.2
