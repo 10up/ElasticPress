@@ -8,7 +8,7 @@
     "@hello-pangea/dnd": "^16.6.0",
     "@wordpress/icons": "^10.13.0",
     "chart.js": "^2.9.4",
-    "focus-trap-react": "^9.0.2",
+    "focus-trap-react": "^11.0.3",
     "react-slider": "^2.0.6",
     "uuid": "^11.0.5"
   },
