@@ -37,7 +37,7 @@
     "wpackagist-plugin/woocommerce":"*",
     "phpcompatibility/phpcompatibility-wp": "*",
     "brianhenryie/strauss": "^0.14.0",
-    "yoast/phpunit-polyfills": "^1.0 || ^2.0 || ^3.0",
+    "yoast/phpunit-polyfills": "^4.0",
     "phpunit/phpunit": "^9.0.0"
   },
   "scripts": {
