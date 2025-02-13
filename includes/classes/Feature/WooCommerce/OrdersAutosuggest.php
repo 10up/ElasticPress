@@ -49,7 +49,7 @@ class OrdersAutosuggest {
 	 *
 	 * @param WooCommerce|null $woocommerce WooCommerce feature object instance
 	 */
-	public function __construct( $woocommerce = null ) {
+	public function __construct( ?WooCommerce $woocommerce = null ) {
 		$this->index       = Indexables::factory()->get( 'post' )->get_index_name();
 		$this->woocommerce = $woocommerce ?
 			$woocommerce :
