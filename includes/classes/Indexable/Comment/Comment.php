@@ -787,6 +787,7 @@ class Comment extends Indexable {
 			'orderby'                         => 'comment_ID',
 			'order'                           => 'desc',
 			'ep_indexing_advanced_pagination' => true,
+			'no_found_rows'                   => false,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
@@ -832,7 +833,6 @@ class Comment extends Indexable {
 					'order'            => 'DESC',
 					'paged'            => 1,
 					'offset'           => 0,
-					'no_found_rows'    => false,
 				]
 			);
 			add_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
@@ -869,28 +869,28 @@ class Comment extends Indexable {
 		$using_advanced_pagination = $this->get_query_var( $query, 'ep_indexing_advanced_pagination', false );
 
 		if ( $using_advanced_pagination ) {
-			$requested_upper_limit_id      = $this->get_query_var( $query, 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
-			$requested_lower_limit_post_id = $this->get_query_var( $query, 'ep_indexing_lower_limit_object_id', 0 );
-			$last_processed_id             = $this->get_query_var( $query, 'ep_indexing_last_processed_object_id', null );
+			$requested_upper_limit_id        = $this->get_query_var( $query, 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_object_id = $this->get_query_var( $query, 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id               = $this->get_query_var( $query, 'ep_indexing_last_processed_object_id', null );
 
 			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
-			$upper_limit_range_post_id = $requested_upper_limit_id;
+			$upper_limit_range_object_id = $requested_upper_limit_id;
 			if ( is_numeric( $last_processed_id ) ) {
-				$upper_limit_range_post_id = $last_processed_id - 1;
+				$upper_limit_range_object_id = $last_processed_id - 1;
 			}
 
 			// Sanitize. Abort if unexpected data at this point.
-			if ( ! is_numeric( $upper_limit_range_post_id ) || ! is_numeric( $requested_lower_limit_post_id ) ) {
+			if ( ! is_numeric( $upper_limit_range_object_id ) || ! is_numeric( $requested_lower_limit_object_id ) ) {
 				return $clauses;
 			}
 
 			$range = [
-				'upper_limit' => "{$wpdb->comments}.comment_ID <= {$upper_limit_range_post_id}",
-				'lower_limit' => "{$wpdb->comments}.comment_ID >= {$requested_lower_limit_post_id}",
+				'upper_limit' => "{$wpdb->comments}.comment_ID <= {$upper_limit_range_object_id}",
+				'lower_limit' => "{$wpdb->comments}.comment_ID >= {$requested_lower_limit_object_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
-			$skip_ending_range = 0 === $requested_lower_limit_post_id;
+			$skip_ending_range = 0 === $requested_lower_limit_object_id;
 			$where             = $clauses['where'];
 			$where             = $skip_ending_range ? " {$range['upper_limit']} AND {$where}" : " {$range['upper_limit']} AND {$range['lower_limit']} AND {$where}";
 
