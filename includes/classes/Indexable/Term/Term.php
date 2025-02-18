@@ -189,10 +189,19 @@ class Term extends Indexable {
 			'hierarchical'           => false,
 			'update_term_meta_cache' => false,
 			'cache_results'          => false,
+			'ep_indexing_advanced_pagination' => true,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
 			$args['number'] = $args['per_page'];
+		}
+
+		if ( isset( $args['include'] ) ) {
+			$args['include'] = $args['include'];
+		}
+
+		if ( isset( $args['exclude'] ) ) {
+			$args['exclude'] = $args['exclude'];
 		}
 
 		/**
@@ -228,7 +237,31 @@ class Term extends Indexable {
 			}
 		}
 
-		$query = new WP_Term_Query( $args );
+		if ( isset( $args['include'] ) || 0 < $args['offset'] ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
+		}
+
+		// Enforce the following query args during advanced pagination to ensure things work correctly.
+		if ( $args['ep_indexing_advanced_pagination'] ) {
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'ID',
+					'order'            => 'DESC',
+					'paged'            => 1,
+					'offset'           => 0,
+				]
+			);
+			add_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 2 );
+
+			$query = new WP_Term_Query( $args );
+
+			remove_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 2 );
+		} else {
+			$query = new WP_Term_Query( $args );
+		}
 
 		if ( is_array( $query->terms ) ) {
 			array_walk( $query->terms, array( $this, 'remap_terms' ) );
@@ -238,6 +271,44 @@ class Term extends Indexable {
 			'objects'       => $query->terms,
 			'total_objects' => $total_objects,
 		];
+	}
+
+
+	public function bulk_indexing_filter_terms_where( $clauses, $query ) {
+		global $wpdb;
+
+		$using_advanced_pagination = $this->get_query_var( $query, 'ep_indexing_advanced_pagination', false );
+
+		if ( $using_advanced_pagination ) {
+			$requested_upper_limit_id        = $this->get_query_var( $query, 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_object_id = $this->get_query_var( $query, 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id               = $this->get_query_var( $query, 'ep_indexing_last_processed_object_id', null );
+
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_object_id = $requested_upper_limit_id;
+			if ( is_numeric( $last_processed_id ) ) {
+				$upper_limit_range_object_id = $last_processed_id - 1;
+			}
+
+			// Sanitize. Abort if unexpected data at this point.
+			if ( ! is_numeric( $upper_limit_range_object_id ) || ! is_numeric( $requested_lower_limit_object_id ) ) {
+				return $clauses;
+			}
+
+			$range = [
+				'upper_limit' => "{$wpdb->terms}.term_id <= {$upper_limit_range_object_id}",
+				'lower_limit' => "{$wpdb->terms}.term_id >= {$requested_lower_limit_object_id}",
+			];
+
+			// Skip the end range if it's unnecessary.
+			$skip_ending_range = 0 === $requested_lower_limit_object_id;
+			$where             = $clauses['where'];
+			$where             = $skip_ending_range ? " {$range['upper_limit']} AND {$where}" : " {$range['upper_limit']} AND {$range['lower_limit']} AND {$where}";
+
+			$clauses['where'] = $where;
+		}
+
+		return $clauses;
 	}
 
 	/**
