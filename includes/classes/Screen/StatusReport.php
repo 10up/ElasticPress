@@ -32,6 +32,7 @@ class StatusReport {
 	public function setup() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'admin_head', array( $this, 'admin_menu_count' ), 11 );
+		add_action( 'wp_ajax_ep_load_groups', array( $this, 'action_wp_ajax_ep_load_groups' ) );
 	}
 
 	/**
@@ -80,6 +81,26 @@ class StatusReport {
 			[ 'wp-components', 'wp-edit-post' ],
 			Utils\get_asset_info( 'status-report-script', 'version' )
 		);
+	}
+
+	/**
+	 * AJAX action to load an individual report group.
+	 * 
+	 * @return 
+	 */
+	public function action_wp_ajax_ep_load_groups() {
+		$post = wp_unslash( $_POST );
+		if ( empty( $this->formatted_reports ) ) {
+			$this->formatted_reports = $this->get_reports();
+		}
+
+		if ( empty( $this->formatted_reports[ $post['report'] ] ) ) {
+			wp_send_json_error( [ 'message' => 'Report not found' ] );
+		}
+
+		$report = $this->formatted_reports[ $post['report'] ];
+
+		return wp_send_json( $report->get_groups(), 200 );
 	}
 
 	/**
@@ -136,6 +157,7 @@ class StatusReport {
 
 	/**
 	 * Process and format the reports, then store them in the `formatted_reports` attribute.
+	 * Ajax based reports are not included in the initial formatted reports.
 	 *
 	 * @since 4.5.0
 	 * @return array
@@ -147,10 +169,10 @@ class StatusReport {
 			$this->formatted_reports = array_map(
 				function ( $report ) {
 					return [
-						'actions'  => $report->get_actions(),
-						'groups'   => $report->get_groups(),
-						'messages' => $report->get_messages(),
-						'title'    => $report->get_title(),
+						'actions'        => $report->get_actions(),
+						'groups'         => ! $report->is_ajax_report() ? $report->get_groups() : [],
+						'messages'       => $report->get_messages(),
+						'title'          => $report->get_title(),
 						'is_ajax_report' => $report->is_ajax_report(),
 					];
 				},

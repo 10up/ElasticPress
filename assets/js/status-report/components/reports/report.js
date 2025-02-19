@@ -1,15 +1,16 @@
 /**
  * WordPress dependencies.
  */
-import { Button, Notice, Panel, PanelBody, PanelHeader } from '@wordpress/components';
-import { safeHTML } from '@wordpress/dom';
-import { RawHTML, WPElement } from '@wordpress/element';
-import { decodeEntities } from '@wordpress/html-entities';
+import { Button } from '@wordpress/components';
+import { WPElement, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
-import Value from './report/value';
+// import ReportHeader from './report/header';
+import ReportContent from './report/content';
+import ReportContainer from './report/container';
+import { loadGroupAjax } from '../../utilities';
 
 /**
  * Report components.
@@ -25,97 +26,44 @@ import Value from './report/value';
  * @returns {WPElement} Report component.
  */
 export default ({ actions, groups, id, messages, title, is_ajax_report }) => {
-	if (groups.length < 1) {
+	if (groups.length < 1 && !is_ajax_report) {
 		return null;
 	}
 
-	const loadAjax = () => {
-		console.log('test panel opened');
+	const [group, setGroup] = useState(false);
+
+	const loadAjax = async () => {
+		const request = await loadGroupAjax(id);
+		request.json().then((response) => {
+			setGroup(response);
+		});
 	};
 
 	if (is_ajax_report) {
+		if (!group) {
+			return (
+				<ReportContainer id={id} title={title} messages={messages}>
+					<Button variant="primary" onClick={loadAjax}>
+						Load Report
+					</Button>
+				</ReportContainer>
+			);
+		}
+
 		return (
-			<Panel id={title} className="ep-status-report">
-				<PanelHeader>
-					<h2 id={id}>{title}</h2>
-					{actions.map(({ href, label }) => (
-						<Button
-							href={decodeEntities(href)}
-							isDestructive
-							isSecondary
-							isSmall
-							key={href}
-						>
-							{label}
-						</Button>
-					))}
-				</PanelHeader>
-				{messages.map(({ message, type }) => (
-					<Notice status={type} isDismissible={false}>
-						<RawHTML>{safeHTML(message)}</RawHTML>
-					</Notice>
+			<ReportContainer id={id} title={title} actions={actions} messages={messages}>
+				{group.map(({ fields, title }) => (
+					<ReportContent key={title} fields={fields} title={title} />
 				))}
-				{groups.map(({ fields, title }) => (
-					<PanelBody
-						initialOpen={false}
-						onToggle={loadAjax}
-						key={title}
-						title={decodeEntities(title)}
-					/>
-				))}
-			</Panel>
+			</ReportContainer>
 		);
+
 	}
 	return (
-		<Panel id={title} className="ep-status-report">
-			<PanelHeader>
-				<h2 id={id}>{title}</h2>
-				{actions.map(({ href, label }) => (
-					<Button
-						href={decodeEntities(href)}
-						isDestructive
-						isSecondary
-						isSmall
-						key={href}
-					>
-						{label}
-					</Button>
-				))}
-			</PanelHeader>
-			{messages.map(({ message, type }) => (
-				<Notice status={type} isDismissible={false}>
-					<RawHTML>{safeHTML(message)}</RawHTML>
-				</Notice>
-			))}
+		<ReportContainer id={id} title={title} actions={actions} messages={messages}>
 			{groups.map(({ fields, title }) => (
-				<PanelBody key={title} title={decodeEntities(title)} initialOpen={false}>
-					<table
-						cellPadding="0"
-						cellSpacing="0"
-						className="wp-list-table widefat striped"
-					>
-						<colgroup>
-							<col />
-							<col />
-						</colgroup>
-						<tbody>
-							{Object.entries(fields).map(
-								([key, { description = '', label, value }]) => (
-									<tr key={key}>
-										<td>
-											{label}
-											{description ? <small>{description}</small> : null}
-										</td>
-										<td>
-											<Value value={value} />
-										</td>
-									</tr>
-								),
-							)}
-						</tbody>
-					</table>
-				</PanelBody>
+				<ReportContent key={title} fields={fields} title={title} />
 			))}
-		</Panel>
+		</ReportContainer>
 	);
 };

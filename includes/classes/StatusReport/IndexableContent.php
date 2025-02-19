@@ -29,6 +29,15 @@ class IndexableContent extends Report {
 	}
 
 	/**
+	 * Return the report identifier
+	 *
+	 * @return string
+	 */
+	public function get_report_identifier(): string {
+		return 'indexable';
+	}
+
+	/**
 	 * Return the report fields
 	 *
 	 * @return array
