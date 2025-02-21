@@ -3,7 +3,7 @@
  */
 import { Button, Flex, FlexItem } from '@wordpress/components';
 import { useCopyToClipboard } from '@wordpress/compose';
-import { WPElement } from '@wordpress/element';
+import { WPElement, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -11,6 +11,7 @@ import { __ } from '@wordpress/i18n';
  */
 import Report from './reports/report';
 import { useSettingsScreen } from '../../settings-screen';
+import { loadGroupAjax } from '../utilities';
 
 /**
  * Styles.
@@ -28,6 +29,7 @@ import '../style.css';
 export default ({ plainTextReport, reports }) => {
 	const { createNotice } = useSettingsScreen();
 
+	const [reportText, setReportText] = useState(null);
 	const downloadUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(plainTextReport)}`;
 
 	/**
@@ -35,9 +37,38 @@ export default ({ plainTextReport, reports }) => {
 	 *
 	 * @type {object}
 	 */
-	const ref = useCopyToClipboard(plainTextReport, () => {
-		createNotice('info', __('Copied status report to clipboard.', 'elasticpress'));
+	const ref = useCopyToClipboard(reportText, () => {
+		createNotice(
+			'success',
+			__(
+				'The status report has been copied to the clipboard. You can now paste it into a text editor.',
+				'elasticpress',
+			),
+		);
 	});
+
+	/**
+	 * Handle loading and building report plain text.
+	 */
+	const handleReportLoading = async () => {
+		if (reportText) {
+			return;
+		}
+
+		const ajaxReportPromises = Object.entries(reports)
+			.filter(([key, reportData]) => reportData.is_ajax_report) // eslint-disable-line no-unused-vars
+			.map(async ([key]) => {
+				const response = await loadGroupAjax(key);
+				const jsonData = await response.json();
+				return jsonData;
+			});
+
+		const text = await Promise.all(ajaxReportPromises).then((ajaxReportTexts) => {
+			return JSON.stringify(ajaxReportTexts, null, 2);
+		});
+
+		setReportText(text);
+	};
 
 	return (
 		<>
@@ -52,14 +83,15 @@ export default ({ plainTextReport, reports }) => {
 					<FlexItem>
 						<Button
 							download="elasticpress-report.txt"
-							href={downloadUrl}
+							onClick={handleReportLoading}
+							href={reportText ? null : downloadUrl}
 							variant="primary"
 						>
 							{__('Download status report', 'elasticpress')}
 						</Button>
 					</FlexItem>
 					<FlexItem>
-						<Button ref={ref} variant="secondary">
+						<Button ref={ref} onClick={handleReportLoading} variant="secondary">
 							{__('Copy status report to clipboard', 'elasticpress')}
 						</Button>
 					</FlexItem>
