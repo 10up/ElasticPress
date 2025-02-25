@@ -62,7 +62,7 @@ class Utility {
 	 */
 	public static function timer_stop( $precision = 3 ) {
 		$diff = microtime( true ) - self::$time_start;
-		return (float) number_format( (float) $diff, $precision );
+		return (float) number_format( (float) $diff, $precision, '.', '' );
 	}
 
 	/**
