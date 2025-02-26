@@ -3033,14 +3033,23 @@ class Post extends Indexable {
 
 		$admin_bar->add_menu(
 			[
-				'id'    => 'ep-embeddings-status',
+				'id'    => 'ep-doc-status',
 				'title' => $this->format_es_status_indicator( $document_status ),
-				'href'  => '#',
 				'meta'  => [
 					'class' => 'ep-embeddings-status',
 				],
 			]
 		);
+
+		if ( ! empty( $document_status['explanation'] ) ) {
+			$admin_bar->add_menu(
+				[
+					'parent' => 'ep-doc-status',
+					'id'     => 'ep-doc-status-explanation',
+					'title'  => $document_status['explanation'],
+				]
+			);
+		}
 	}
 
 	/**
@@ -3053,22 +3062,25 @@ class Post extends Indexable {
 		$es_doc = $this->get( $post_id );
 		if ( ! $es_doc ) {
 			return [
-				'status'  => 'error',
-				'message' => esc_html__( 'Document not found in Elasticsearch', 'elasticpress' ),
+				'status'      => 'error',
+				'message'     => esc_html__( 'Document not found in Elasticsearch', 'elasticpress' ),
+				'explanation' => esc_html__( 'The document is not in Elasticsearch. It may not have been indexed yet.', 'elasticpress' ),
 			];
 		}
 
 		$wp_post = get_post( $post_id );
 		if ( $wp_post->post_modified_gmt !== $es_doc['post_modified_gmt'] ) {
 			return [
-				'status'  => 'warning',
-				'message' => esc_html__( 'Document out of sync', 'elasticpress' ),
+				'status'      => 'warning',
+				'message'     => esc_html__( 'Document out of sync', 'elasticpress' ),
+				'explanation' => esc_html__( 'The document in Elasticsearch is out of sync with the WordPress post.', 'elasticpress' ),
 			];
 		}
 
 		return [
-			'status'  => 'success',
-			'message' => esc_html__( 'Document synced', 'elasticpress' ),
+			'status'      => 'success',
+			'message'     => esc_html__( 'Document synced', 'elasticpress' ),
+			'explanation' => esc_html__( 'The document in Elasticsearch is in sync with the WordPress post.', 'elasticpress' ),
 		];
 	}
 
