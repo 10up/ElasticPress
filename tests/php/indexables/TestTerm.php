@@ -1465,12 +1465,11 @@ class TestTerm extends BaseTestCase {
 	 * @group term
 	 */
 	public function testQueryDb() {
-
 		$this->createAndIndexTerms();
 
-		$term = new \ElasticPress\Indexable\Term\Term();
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
 
-		$results = $term->query_db(
+		$results = $term_indexable->query_db(
 			[
 				'ep_integrate' => false,
 				'number'       => 10,
@@ -1486,9 +1485,7 @@ class TestTerm extends BaseTestCase {
 		$this->assertCount( 3, $results['objects'] );
 		$this->assertSame( 4, $results['total_objects'] );
 
-		$term = new \ElasticPress\Indexable\Term\Term();
-
-		$results = $term->query_db(
+		$results = $term_indexable->query_db(
 			[
 				'ep_integrate' => false,
 				'number'       => 10,
@@ -1502,6 +1499,55 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertSame( 0, $results['total_objects'] );
+
+		// create new term
+		$term_1_id = $this->ep_factory->term->create();
+
+		// test only one term is returned
+		$results = $term_indexable->query_db( [ 'include' => $term_1_id ] );
+		$this->assertSame( 1, $results['total_objects'] );
+
+		// test query returns all terms except one
+		$results = $term_indexable->query_db(
+			[
+				'exclude'  => $term_1_id,
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$this->assertSame( 4, $results['total_objects'] );
+
+		// create 5 new terms
+		$this->ep_factory->term->create_many( 2 );
+		$term_2_id = $this->ep_factory->term->create();
+		$this->ep_factory->term->create_many( 2 );
+
+		// Test when upper limit is set and it returns only 5 terms.
+		$results = $term_indexable->query_db(
+			[
+				'ep_indexing_upper_limit_object_id' => $term_1_id,
+				'taxonomy'                          => 'post_tag',
+			]
+		);
+		$this->assertSame( 5, $results['total_objects'] );
+
+		// Test when lower limit is set and it returns only 3 terms.
+		$results = $term_indexable->query_db(
+			[
+				'ep_indexing_lower_limit_object_id' => $term_2_id,
+				'taxonomy'                          => 'post_tag',
+			]
+		);
+		$this->assertSame( 3, $results['total_objects'] );
+
+		// Test when both upper and lower limit is set and it returns only 4 terms.
+		$results = $term_indexable->query_db(
+			[
+				'ep_indexing_lower_limit_object_id' => $term_1_id,
+				'ep_indexing_upper_limit_object_id' => $term_2_id,
+				'taxonomy'                          => 'post_tag',
+			]
+		);
+		$this->assertSame( 4, $results['total_objects'] );
 	}
 
 	/**

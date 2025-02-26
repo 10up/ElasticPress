@@ -301,7 +301,8 @@ class Term extends Indexable {
 	}
 
 	/**
-	 * Filters the WHERE clause of the SQL query used for bulk indexing terms by modifying it to include a range of comment IDs based on advanced pagination parameters.
+	 * Filters the WHERE clause of the SQL query used for bulk indexing terms by modifying it to include a range of
+	 * comment IDs based on advanced pagination parameters.
 	 *
 	 * @param array $clauses    Associative array of the clauses for the query.
 	 * @param array $taxonomies An array of taxonomy names.
