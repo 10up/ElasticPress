@@ -1168,21 +1168,21 @@ class IndexHelper {
 	 * We used to have two different filters for this (one for the dashboard, another for CLI),
 	 * this method combines both.
 	 *
-	 * @param {stdClass}  $object Object to be checked
+	 * @param {stdClass}  $indexable_object Object to be checked
 	 * @param {Indexable} $indexable Indexable
 	 * @return boolean
 	 */
-	protected function should_skip_object_index( $object, $indexable ) {
+	protected function should_skip_object_index( $indexable_object, $indexable ) {
 		/**
 		 * Filter whether to not sync specific item in dashboard or not
 		 *
 		 * @since  2.1
 		 * @hook ep_item_sync_kill
 		 * @param  {boolean} $kill False means dont sync
-		 * @param  {array} $object Object to sync
+		 * @param  {array} $indexable_object Object to sync
 		 * @return {Indexable} Indexable that object belongs to
 		 */
-		$ep_item_sync_kill = apply_filters( 'ep_item_sync_kill', false, $object, $indexable );
+		$ep_item_sync_kill = apply_filters( 'ep_item_sync_kill', false, $indexable_object, $indexable );
 
 		/**
 		 * Conditionally kill indexing for a post
@@ -1192,7 +1192,7 @@ class IndexHelper {
 		 * @param  {int} $object_id Object ID
 		 * @return {bool} New value
 		 */
-		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object->ID );
+		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $indexable_object->ID );
 
 		return $ep_item_sync_kill || $ep_indexable_sync_kill;
 	}

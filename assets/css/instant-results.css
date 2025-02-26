@@ -1,3 +1,4 @@
+@import "./global/colors.css";
 @import "instant-results/utilities.css";
 @import "instant-results/checkbox.css";
 @import "instant-results/input.css";
@@ -17,8 +18,6 @@
 @import "instant-results/toolbar.css";
 
 :root {
-	--ep-search-background-color: #fff;
-	--ep-search-alternate-background-color: #efefef;
 	--ep-search-border-color: #dfdfdf;
 	--ep-search-range-thumb-size: 1.625em;
 	--ep-search-range-track-size: 0.75em;

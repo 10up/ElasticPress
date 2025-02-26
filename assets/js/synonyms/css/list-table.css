@@ -46,10 +46,10 @@
 
 .ep-synonyms-list-table__primary-column {
 	width: 25%;
+}
 
-	@nest .ep-synonyms-list-table--replacements & {
-		width: auto;
-	}
+.ep-synonyms-list-table--replacements .ep-synonyms-list-table__primary-column {
+	width: auto;
 }
 
 .ep-synonyms-list-table__actions-column {

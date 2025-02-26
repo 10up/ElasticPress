@@ -831,7 +831,19 @@ class AdminNotices {
 		 * @param  {array} $notices Admin notices
 		 * @return {array} New notices
 		 */
-		return apply_filters( 'ep_admin_notices', $this->notices );
+		$notices = apply_filters( 'ep_admin_notices', $this->notices );
+
+		// If the plugin is network-activated and not in the network admin, return the notices whose scope is site.
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! is_network_admin() ) {
+			$notices = array_filter(
+				$notices,
+				function ( $notice ) {
+					return isset( $notice['scope'] ) && 'site' === $notice['scope'];
+				}
+			);
+		}
+
+		return $notices;
 	}
 
 	/**

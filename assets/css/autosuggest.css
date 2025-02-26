@@ -1,9 +1,11 @@
+@import "./global/colors.css";
+
 .ep-autosuggest-container {
 	position: relative;
 
 	& .ep-autosuggest {
-		background: #fff;
-		border: 1px solid #ccc;
+		background: var(--ep-c-white);
+		border: 1px solid var(--ep-c-white-gray);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 		display: none;
 		position: absolute;
@@ -19,14 +21,14 @@
 				font-family: sans-serif;
 
 				& > a.autosuggest-link {
-					color: #000;
+					color: var(--ep-c-black);
 					cursor: pointer;
 					display: block;
 					padding: 2px 10px;
 
 					&:hover,
 					&:active {
-						background-color: #eee;
+						background-color: var(--ep-c-medium-white);
 						text-decoration: none;
 					}
 				}
@@ -35,7 +37,7 @@
 	}
 
 	& .selected {
-		background-color: #eee;
+		background-color: var(--ep-c-medium-white);
 		text-decoration: none;
 	}
 }
