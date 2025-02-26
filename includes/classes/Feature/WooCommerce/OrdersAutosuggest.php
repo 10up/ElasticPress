@@ -49,7 +49,7 @@ class OrdersAutosuggest {
 	 *
 	 * @param WooCommerce|null $woocommerce WooCommerce feature object instance
 	 */
-	public function __construct( WooCommerce $woocommerce = null ) {
+	public function __construct( ?WooCommerce $woocommerce = null ) {
 		$this->index       = Indexables::factory()->get( 'post' )->get_index_name();
 		$this->woocommerce = $woocommerce ?
 			$woocommerce :
@@ -312,7 +312,7 @@ class OrdersAutosuggest {
 
 		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
-		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
+		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 3 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
 		$query = new \WP_Query(
@@ -363,10 +363,9 @@ class OrdersAutosuggest {
 	 * @param object $response Response
 	 * @param array  $query Query
 	 * @param array  $args WP_Query argument array
-	 * @param int    $failures Count of failures in request loop
 	 * @return object $response Response
 	 */
-	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
+	public function intercept_search_request( $response, $query = [], $args = [] ) {
 		$this->search_template = $query['args']['body'];
 
 		return wp_remote_request( $query['url'], $args );

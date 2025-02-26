@@ -4,7 +4,7 @@
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
  * Version:           5.1.4
- * Requires at least: 6.0
+ * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            10up
  * Author URI:        https://10up.com
@@ -188,6 +188,10 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\Documents\Documents()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\AcfRepeater\AcfRepeater()
 	);
 
 	Features::factory()->register_feature(

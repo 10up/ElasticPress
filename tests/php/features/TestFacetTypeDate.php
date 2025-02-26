@@ -254,7 +254,7 @@ class TestFacetTypeDate extends BaseTestCase {
 			],
 		];
 
-		$change_filter_type = function ( $options ) use ( $modified_options ) {
+		$change_filter_type = function ( $options ) use ( $modified_options ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 			return $modified_options;
 		};
 

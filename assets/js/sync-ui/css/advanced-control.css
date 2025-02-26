@@ -1,10 +1,6 @@
 .ep-sync-advanced-control {
 	margin-bottom: 24px;
 
-	@nest fieldset& {
-		margin-bottom: 16px;
-	}
-
 	&.components-flex .components-flex-item {
 		flex-grow: 2;
 	}
@@ -12,6 +8,10 @@
 	& .components-checkbox-control {
 		margin-bottom: 1em;
 	}
+}
+
+fieldset.ep-sync-advanced-control {
+	margin-bottom: 16px;
 }
 
 .ep-sync-advanced-control__label {

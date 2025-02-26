@@ -76,7 +76,10 @@ abstract class Indexable {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	public $labels = [];
+	public $labels = [
+		'plural'   => '',
+		'singular' => '',
+	];
 
 	/**
 	 * Get number of bulk items to index per page

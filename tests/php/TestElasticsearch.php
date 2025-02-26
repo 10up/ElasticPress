@@ -409,4 +409,37 @@ class TestElasticsearch extends BaseTestCase {
 		$this->assertCount( 1, $queries );
 		$this->assertSame( $example_query, $queries[0] );
 	}
+
+	/**
+	 * Test the `ep_remote_request` action
+	 *
+	 * @since 5.2.0
+	 * @group elasticsearch
+	 */
+	public function test_ep_remote_request_action() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		// Make sure we don't fire any real request
+		add_filter( 'ep_do_intercept_request', '__return_empty_array' );
+
+		$callback = function ( $query, $type ) {
+			$this->assertIsArray( $query );
+			$this->assertSame( 'example_type', $type );
+		};
+		add_action( 'ep_remote_request', $callback, 10, 2 );
+
+		// It starts with 1, likely because of some previous tests.
+		$initial_count = did_action( 'ep_remote_request' );
+
+		$elasticsearch->remote_request( '', [], [], 'example_type' );
+		$this->assertSame( $initial_count + 1, did_action( 'ep_remote_request' ) );
+
+		// Make sure we execute the action even on non-blocking requests
+		$callback = function ( $query ) {
+			$this->assertFalse( $query['args']['blocking'] );
+		};
+		add_action( 'ep_remote_request', $callback, 10, 2 );
+		$elasticsearch->remote_request( '', [ 'blocking' => false ], [], 'example_type' );
+		$this->assertSame( $initial_count + 2, did_action( 'ep_remote_request' ) );
+	}
 }

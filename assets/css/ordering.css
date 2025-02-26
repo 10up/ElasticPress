@@ -1,9 +1,11 @@
+@import "./global/colors.css";
+
 #ep-ordering {
 	border-left-width: 0;
 	border-right-width: 0;
 
 	& .inside {
-		background-color: #f1f1f1;
+		background-color: var(--ep-c-white);
 		margin: 0;
 		padding: 0;
 	}
@@ -11,13 +13,13 @@
 	& .pointers,
 	& .pointer-search,
 	& .loading {
-		background-color: #fff;
-		border-left: 1px solid #eee;
-		border-right: 1px solid #eee;
+		background-color: var(--ep-c-white);
+		border-left: 1px solid var(--ep-c-medium-white);
+		border-right: 1px solid var(--ep-c-medium-white);
 	}
 
 	& .new-post {
-		background: #fff;
+		background: var(--ep-c-white);
 		padding: 0 1em;
 	}
 
@@ -32,9 +34,9 @@
 	}
 
 	& .pointer-type {
-		border: 2px solid #0073aa;
+		border: 2px solid var(--ep-c-medium-dark-blue);
 		border-radius: 2px;
-		color: #0073aa;
+		color: var(--ep-c-medium-dark-blue);
 		display: inline-block;
 		font-size: 0.75em;
 		font-weight: 700;
@@ -49,16 +51,16 @@
 			padding: 1em;
 
 			&:nth-child(odd) {
-				background-color: #f9f9f9;
+				background-color: var(--ep-c-white);
 			}
 		}
 
 		& .title {
-			color: #0073aa;
+			color: var(--ep-c-medium-dark-blue);
 		}
 
 		& .removed .title {
-			color: #999;
+			color: var(--ep-c-light-gray);
 		}
 
 		& .pointer-actions {
@@ -74,15 +76,15 @@
 		}
 
 		& .next-page-notice {
-			background-color: #fdeeca;
+			background-color: var(--ep-c-white-yellow);
 			padding: 1em 0;
 			text-align: center;
 		}
 	}
 
 	& .legend {
-		background: #fff;
-		border-bottom: 1px solid #eee;
+		background: var(--ep-c-white);
+		border-bottom: 1px solid var(--ep-c-medium-white);
 		padding: 1em 0;
 		text-align: center;
 	}
@@ -102,8 +104,8 @@
 		}
 
 		& .section-title {
-			border-bottom: 1px solid #eee;
-			border-top: 1px solid #eee;
+			border-bottom: 1px solid var(--ep-c-medium-white);
+			border-top: 1px solid var(--ep-c-medium-white);
 			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 			font-weight: 700;
 		}
@@ -135,7 +137,7 @@
 			}
 
 			&:hover {
-				background-color: #f9f9f9;
+				background-color: var(--ep-c-white);
 			}
 		}
 	}

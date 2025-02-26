@@ -33,18 +33,17 @@ class Installer {
 	 */
 	public function setup() {
 		add_action( 'admin_init', [ $this, 'calculate_install_status' ], 9 );
-		add_filter( 'admin_title', [ $this, 'filter_admin_title' ], 10, 2 );
+		add_filter( 'admin_title', [ $this, 'filter_admin_title' ], 10 );
 	}
 
 	/**
 	 * Filter admin title for install page
 	 *
 	 * @param  string $admin_title Current title
-	 * @param  string $title       Original title
 	 * @since  3.0
 	 * @return string
 	 */
-	public function filter_admin_title( $admin_title, $title ) {
+	public function filter_admin_title( $admin_title ) {
 		if ( 'install' === Screen::factory()->get_current_screen() ) {
 			// translators: Site Name
 			return sprintf( esc_html__( 'ElasticPress Setup &lsaquo; %s &#8212; WordPress', 'elasticpress' ), esc_html( get_bloginfo( 'name' ) ) );

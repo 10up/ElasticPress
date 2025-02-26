@@ -52,6 +52,9 @@ cy.elasticPress = {
 		protected_content: {
 			active: false,
 		},
+		acf_repeater: {
+			active: true,
+		},
 	},
 };
 

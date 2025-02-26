@@ -3827,11 +3827,11 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @param array|WP_Error $response  HTTP response or WP_Error object.
 	 * @param string         $type Context under which the hook is fired.
-	 * @param string         $class HTTP transport used.
+	 * @param string         $http_class HTTP transport used.
 	 * @param array          $args HTTP request arguments.
 	 * @param string         $url The request URL.
 	 */
-	public function check404( $response, $type, $class, $args, $url ) {
+	public function check404( $response, $type, $http_class, $args, $url ) {
 		$response_code = $response['response']['code'];
 		if ( 404 === $response_code ) {
 			$this->is_404 = true;
@@ -6167,6 +6167,7 @@ class TestPost extends BaseTestCase {
 	public function testPostConstructor() {
 
 		$post = new \ElasticPress\Indexable\Post\Post();
+		$post->setup();
 
 		$this->assertSame( 'Posts', $post->labels['plural'] );
 		$this->assertSame( 'Post', $post->labels['singular'] );
@@ -8319,7 +8320,7 @@ class TestPost extends BaseTestCase {
 
 		add_filter(
 			'ep_highlighting_class',
-			function ( $class ) {
+			function ( $highlight_class ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 				return 'my-custom-class';
 			}
 		);
@@ -8357,7 +8358,7 @@ class TestPost extends BaseTestCase {
 
 		add_filter(
 			'ep_highlighting_fields',
-			function ( $fields ) {
+			function ( $fields ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 				return array( 'post_title' );
 			}
 		);
@@ -8433,14 +8434,14 @@ class TestPost extends BaseTestCase {
 
 		add_action(
 			'pre_http_request',
-			function ( $preempt, $parsed_args, $url ) {
+			function ( $preempt, $parsed_args ) {
 
 				$body = json_decode( $parsed_args['body'], true );
 				$this->assertArrayNotHasKey( 'highlight', $body );
 				return $preempt;
 			},
 			10,
-			3
+			2
 		);
 
 		$args  = array(
