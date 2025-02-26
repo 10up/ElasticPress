@@ -55,6 +55,8 @@ class Post extends Indexable {
 
 		$this->sync_manager      = new SyncManager( $this->slug );
 		$this->query_integration = new QueryIntegration( $this->slug );
+
+		add_action( 'admin_bar_menu', [ $this, 'add_admin_bar_status' ], 500 );
 	}
 
 	/**
@@ -3012,5 +3014,72 @@ class Post extends Indexable {
 		}
 
 		return array_unique( $all_allowed_metas );
+	}
+
+	/**
+	 * Add the document status to the admin bar.
+	 *
+	 * @param \WP_Admin_Bar $admin_bar WP Admin Bar instance
+	 * @return void
+	 */
+	public function add_admin_bar_status( \WP_Admin_Bar $admin_bar ) {
+		global $pagenow;
+
+		if ( ! is_admin() || 'post.php' !== $pagenow ) {
+			return;
+		}
+
+		$document_status = $this->get_es_status( get_the_ID() );
+
+		$admin_bar->add_menu(
+			[
+				'id'    => 'ep-embeddings-status',
+				'title' => $this->format_es_status_indicator( $document_status ),
+				'href'  => '#',
+				'meta'  => [
+					'class' => 'ep-embeddings-status',
+				],
+			]
+		);
+	}
+
+	/**
+	 * Get the document status for a post.
+	 *
+	 * @param int $post_id Post ID
+	 * @return array
+	 */
+	protected function get_es_status( int $post_id ): array {
+		$es_doc = $this->get( $post_id );
+		if ( ! $es_doc ) {
+			return [
+				'status'  => 'error',
+				'message' => esc_html__( 'Document not found in Elasticsearch', 'elasticpress' ),
+			];
+		}
+
+		$wp_post = get_post( $post_id );
+		if ( $wp_post->post_modified_gmt !== $es_doc['post_modified_gmt'] ) {
+			return [
+				'status'  => 'warning',
+				'message' => esc_html__( 'Document out of sync', 'elasticpress' ),
+			];
+		}
+
+		return [
+			'status'  => 'success',
+			'message' => esc_html__( 'Document synced', 'elasticpress' ),
+		];
+	}
+
+	/**
+	 * Format the document status for the admin bar.
+	 *
+	 * @param array $document_status Document status
+	 * @return string
+	 */
+	protected function format_es_status_indicator( array $document_status ): string {
+		$status_indicator = '<span class="ep-status-indicator ep-status-indicator--' . ( $document_status['status'] ?? '' ) . '"></span>';
+		return $status_indicator . $document_status['message'];
 	}
 }
