@@ -22,7 +22,7 @@ import '../style.css';
  *
  * @param {object} props Component props.
  * @param {string} props.plainTextReport Plain text report.
- * @param {object} props.reports Status reports
+ * @param {object} props.reports Status reports.
  *
  * @returns {WPElement} Reports component.
  */
@@ -60,7 +60,7 @@ export default ({ plainTextReport, reports }) => {
 	};
 
 	/**
-	 * Load a group report data via AJAX
+	 * Load a group report data via AJAX.
 	 *
 	 * @param {string} id Group ID.
 	 *

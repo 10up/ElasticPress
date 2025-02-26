@@ -58,12 +58,12 @@ class StatusReport {
 		$plain_text_reports = [];
 
 		foreach ( $reports as $report ) {
-			$title  = $report['title'];
-			$groups = $report['groups'];
-
 			if ( $report['is_ajax_report'] ) {
 				continue;
 			}
+
+			$title  = $report['title'];
+			$groups = $report['groups'];
 
 			$plain_text_reports[] = $this->render_copy_paste_report( $title, $groups );
 		}
@@ -108,7 +108,7 @@ class StatusReport {
 
 		$report = $this->formatted_reports[ $post['report'] ];
 
-		return wp_send_json_success(
+		wp_send_json_success(
 			[
 				'groups'   => $report->get_groups(),
 				'messages' => $report->get_messages(),
@@ -171,7 +171,7 @@ class StatusReport {
 
 	/**
 	 * Process and format the reports, then store them in the `formatted_reports` attribute.
-	 * Ajax based reports are not included in the initial formatted reports.
+	 * Reports that are supposed to be loaded with AJAX should return empty groups.
 	 *
 	 * @since 4.5.0
 	 * @return array
