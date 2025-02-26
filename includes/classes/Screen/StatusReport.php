@@ -76,6 +76,7 @@ class StatusReport {
 			[
 				'plainTextReport' => $plain_text_report,
 				'reports'         => $reports,
+				'nonce'           => wp_create_nonce( 'ep-status-report-nonce' ),
 			]
 		);
 
@@ -91,18 +92,23 @@ class StatusReport {
 	 * AJAX action to load an individual report group.
 	 */
 	public function action_wp_ajax_ep_load_groups() {
+		if ( ! isset( $_POST['ep-status-report-nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ep-status-report-nonce'] ) ), 'ep-status-report-nonce' ) ) {
+			wp_send_json_error( [ 'message' => 'Nonce is not present.' ], 403 );
+		}
+
 		$post = wp_unslash( $_POST );
+
 		if ( empty( $this->formatted_reports ) ) {
 			$this->formatted_reports = $this->get_reports();
 		}
 
 		if ( empty( $this->formatted_reports[ $post['report'] ] ) ) {
-			wp_send_json_error( [ 'message' => 'Report not found' ] );
+			wp_send_json_error( [ 'message' => 'Report not found.' ], 404 );
 		}
 
 		$report = $this->formatted_reports[ $post['report'] ];
 
-		return wp_send_json( $report->get_groups(), 200 );
+		return wp_send_json_success( [ 'groups' => $report->get_groups() ], 200 );
 	}
 
 	/**

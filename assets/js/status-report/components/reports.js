@@ -33,10 +33,7 @@ export default ({ plainTextReport, reports }) => {
 	const [generatedReport, setGeneratedReport] = useState(false);
 
 	const ref = useCopyToClipboard(updatedPlainTextReport, () => {
-		createNotice({
-			status: 'success',
-			content: __('Report copied to clipboard.', 'elasticpress'),
-		});
+		createNotice('info', __('Copied status report to clipboard.', 'elasticpress'));
 	});
 
 	const downloadUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(updatedPlainTextReport)}`;
@@ -75,6 +72,7 @@ export default ({ plainTextReport, reports }) => {
 
 		const data = new FormData();
 		data.append('action', 'ep_load_groups');
+		data.append('ep-status-report-nonce', window.epStatusReport.nonce);
 		data.append('report', id);
 		return fetch(ajaxurl, { method: 'POST', body: data });
 	};
@@ -95,10 +93,17 @@ export default ({ plainTextReport, reports }) => {
 			.filter(([key, reportData]) => reportData.is_ajax_report) // eslint-disable-line no-unused-vars
 			.map(async ([key, reportData]) => {
 				const response = await loadGroupAjax(key);
-				const data = await response.json();
+				const body = await response.json();
+				if (!response.ok) {
+					if (body.data.message) {
+						createNotice('info', body.data.message);
+					}
+					return;
+				}
+
 				newReports[key] = {
 					...reportData,
-					groups: data,
+					groups: body.data.groups,
 				};
 			});
 
@@ -119,6 +124,8 @@ export default ({ plainTextReport, reports }) => {
 		setUpdatedPlainTextReport(combinedReport);
 
 		setGeneratedReport(true);
+
+		createNotice('info', __('Successfully generated status report.', 'elasticpress'));
 	};
 
 	return (
