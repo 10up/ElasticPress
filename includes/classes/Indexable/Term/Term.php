@@ -32,6 +32,15 @@ class Term extends Indexable {
 	public $slug = 'term';
 
 	/**
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
+	 *
+	 * @var boolean
+	 * @since 5.2.0
+	 */
+	public $support_indexing_advanced_pagination = true;
+
+	/**
 	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
 	 *
 	 * @since 4.5.0
@@ -180,15 +189,15 @@ class Term extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'number'                 => $this->get_bulk_items_per_page(),
-			'offset'                 => 0,
-			'orderby'                => 'id',
-			'order'                  => 'desc',
-			'taxonomy'               => $this->get_indexable_taxonomies(),
-			'hide_empty'             => false,
-			'hierarchical'           => false,
-			'update_term_meta_cache' => false,
-			'cache_results'          => false,
+			'number'                          => $this->get_bulk_items_per_page(),
+			'offset'                          => 0,
+			'orderby'                         => 'id',
+			'order'                           => 'desc',
+			'taxonomy'                        => $this->get_indexable_taxonomies(),
+			'hide_empty'                      => false,
+			'hierarchical'                    => false,
+			'update_term_meta_cache'          => false,
+			'cache_results'                   => false,
 			'ep_indexing_advanced_pagination' => true,
 		];
 
@@ -220,23 +229,6 @@ class Term extends Indexable {
 		unset( $all_query_args['offset'] );
 		unset( $all_query_args['fields'] );
 
-		/**
-		 * Filter database arguments for term count query
-		 *
-		 * @hook ep_term_all_query_db_args
-		 * @param  {array} $args Query arguments based to `wp_count_terms()`
-		 * @since  3.4
-		 * @return {array} New arguments
-		 */
-		$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
-		$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
-
-		if ( ! empty( $args['offset'] ) ) {
-			if ( (int) $args['offset'] >= $total_objects ) {
-				$total_objects = 0;
-			}
-		}
-
 		if ( isset( $args['include'] ) || 0 < $args['offset'] ) {
 			// Disable advanced pagination. Not useful if only indexing specific IDs.
 			$args['ep_indexing_advanced_pagination'] = false;
@@ -254,12 +246,47 @@ class Term extends Indexable {
 					'offset'           => 0,
 				]
 			);
-			add_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 2 );
+			add_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 3 );
+
+			/**
+			 * Filter database arguments for term count query
+			 *
+			 * @hook ep_term_all_query_db_args
+			 * @param  {array} $args Query arguments based to `wp_count_terms()`
+			 * @since  3.4
+			 * @return {array} New arguments
+			 */
+			$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
+			$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
+
+			if ( ! empty( $args['offset'] ) ) {
+				if ( (int) $args['offset'] >= $total_objects ) {
+					$total_objects = 0;
+				}
+			}
 
 			$query = new WP_Term_Query( $args );
 
-			remove_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 2 );
+			remove_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 3 );
 		} else {
+
+			/**
+			 * Filter database arguments for term count query
+			 *
+			 * @hook ep_term_all_query_db_args
+			 * @param  {array} $args Query arguments based to `wp_count_terms()`
+			 * @since  3.4
+			 * @return {array} New arguments
+			 */
+			$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
+			$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
+
+			if ( ! empty( $args['offset'] ) ) {
+				if ( (int) $args['offset'] >= $total_objects ) {
+					$total_objects = 0;
+				}
+			}
+
 			$query = new WP_Term_Query( $args );
 		}
 
@@ -273,16 +300,22 @@ class Term extends Indexable {
 		];
 	}
 
-
-	public function bulk_indexing_filter_terms_where( $clauses, $query ) {
-		global $wpdb;
-
-		$using_advanced_pagination = $this->get_query_var( $query, 'ep_indexing_advanced_pagination', false );
+	/**
+	 * Filters the WHERE clause of the SQL query used for bulk indexing terms by modifying it to include a range of comment IDs based on advanced pagination parameters.
+	 *
+	 * @param array $clauses    Associative array of the clauses for the query.
+	 * @param array $taxonomies An array of taxonomy names.
+	 * @param array $args       An array of term query arguments.
+	 *
+	 * @return array The modified SQL WHERE clauses.
+	 */
+	public function bulk_indexing_filter_terms_where( $clauses, $taxonomies, $args ) {
+		$using_advanced_pagination = $args['ep_indexing_advanced_pagination'] ?? false;
 
 		if ( $using_advanced_pagination ) {
-			$requested_upper_limit_id        = $this->get_query_var( $query, 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
-			$requested_lower_limit_object_id = $this->get_query_var( $query, 'ep_indexing_lower_limit_object_id', 0 );
-			$last_processed_id               = $this->get_query_var( $query, 'ep_indexing_last_processed_object_id', null );
+			$requested_upper_limit_id        = $args['ep_indexing_upper_limit_object_id'] ?? PHP_INT_MAX;
+			$requested_lower_limit_object_id = $args['ep_indexing_lower_limit_object_id'] ?? 0;
+			$last_processed_id               = $args['ep_indexing_last_processed_object_id'] ?? null;
 
 			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
 			$upper_limit_range_object_id = $requested_upper_limit_id;
@@ -296,8 +329,8 @@ class Term extends Indexable {
 			}
 
 			$range = [
-				'upper_limit' => "{$wpdb->terms}.term_id <= {$upper_limit_range_object_id}",
-				'lower_limit' => "{$wpdb->terms}.term_id >= {$requested_lower_limit_object_id}",
+				'upper_limit' => "t.term_id <= {$upper_limit_range_object_id}",
+				'lower_limit' => "t.term_id >= {$requested_lower_limit_object_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
@@ -423,7 +456,7 @@ class Term extends Indexable {
 				}
 			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-					$allow_index = true;
+				$allow_index = true;
 			}
 
 			/**

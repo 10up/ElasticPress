@@ -33,6 +33,15 @@ class Comment extends Indexable {
 	public $slug = 'comment';
 
 	/**
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
+	 *
+	 * @var boolean
+	 * @since 5.2.0
+	 */
+	public $support_indexing_advanced_pagination = true;
+
+	/**
 	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
 	 *
 	 * @since 4.5.0
@@ -857,11 +866,12 @@ class Comment extends Indexable {
 	}
 
 	/**
-	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+	 * Filters the WHERE clause of the SQL query used for bulk indexing comments by modifying it to include a range of comment IDs based on advanced pagination parameters.
 	 *
-	 * @param array    $clauses Array of clauses for the query.
-	 * @param WP_Query $query \WP_Comment_Query object.
-	 * @return array Updated array of clauses.
+	 * @param array             $clauses Associative array of the clauses for the query.
+	 * @param \WP_Comment_Query $query   The current WP_Comment_Query instance.
+	 *
+	 * @return array Modified SQL query clauses.
 	 */
 	public function bulk_indexing_filter_comments_where( $clauses, $query ) {
 		global $wpdb;
