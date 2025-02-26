@@ -108,7 +108,13 @@ class StatusReport {
 
 		$report = $this->formatted_reports[ $post['report'] ];
 
-		return wp_send_json_success( [ 'groups' => $report->get_groups() ], 200 );
+		return wp_send_json_success(
+			[
+				'groups'   => $report->get_groups(),
+				'messages' => $report->get_messages(),
+			],
+			200
+		);
 	}
 
 	/**

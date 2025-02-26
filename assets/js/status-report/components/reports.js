@@ -22,7 +22,7 @@ import '../style.css';
  *
  * @param {object} props Component props.
  * @param {string} props.plainTextReport Plain text report.
- * @param {object} props.reports Reports.
+ * @param {object} props.reports Status reports
  *
  * @returns {WPElement} Reports component.
  */
@@ -87,10 +87,12 @@ export default ({ plainTextReport, reports }) => {
 			return;
 		}
 
+		createNotice('info', __('Generating full status report ...', 'elasticpress'));
+
 		const newReports = { ...reports };
 
 		const ajaxTasks = Object.entries(newReports)
-			.filter(([key, reportData]) => reportData.is_ajax_report) // eslint-disable-line no-unused-vars
+			.filter(([, reportData]) => reportData.is_ajax_report)
 			.map(async ([key, reportData]) => {
 				const response = await loadGroupAjax(key);
 				const body = await response.json();
@@ -104,6 +106,7 @@ export default ({ plainTextReport, reports }) => {
 				newReports[key] = {
 					...reportData,
 					groups: body.data.groups,
+					messages: body.data.messages,
 				};
 			});
 
@@ -112,12 +115,8 @@ export default ({ plainTextReport, reports }) => {
 		setUpdatedReports(newReports);
 
 		const additionalText = Object.entries(newReports)
-			.filter(([key, reportData]) => reportData.is_ajax_report) // eslint-disable-line no-unused-vars
-			.map(
-				(
-					[key, reportData], // eslint-disable-line no-unused-vars
-				) => toPlainTextReport(reportData.title, reportData.groups || []),
-			)
+			.filter(([, reportData]) => reportData.is_ajax_report)
+			.map(([, reportData]) => toPlainTextReport(reportData.title, reportData.groups || []))
 			.join('\n');
 
 		const combinedReport = `${plainTextReport}\n\n${additionalText}`;
@@ -132,7 +131,7 @@ export default ({ plainTextReport, reports }) => {
 		<>
 			<p>
 				{__(
-					'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. As the process can be resource-intensive, you must click the "Generate Full Status Report" button to generate a full report list. This list can also be copied and shared as needed.',
+					'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. As the process can be resource-intensive, you must click the "Generate Full Status Report" button to generate a full report list. Once generated, this list can also be copy/pasted and shared as needed.',
 					'elasticpress',
 				)}
 			</p>

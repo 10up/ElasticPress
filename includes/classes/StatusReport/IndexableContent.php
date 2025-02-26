@@ -193,6 +193,28 @@ class IndexableContent extends Report {
 	}
 
 	/**
+	 * Return the report messages.
+	 *
+	 * @return array
+	 */
+	public function get_messages(): array {
+		if ( isset( $_POST['action'] ) && 'ep_load_groups' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return [];
+		}
+
+		$messages = [
+			[
+				'type'    => 'warning',
+				'message' => sprintf(
+					__( 'To see this report, please generate a full report first by clicking the "Generate Full Status Report" button.', 'elasticpress' ),
+				),
+			],
+		];
+
+		return $messages;
+	}
+
+	/**
 	 * Return whether the report is loaded via AJAX.
 	 *
 	 * @return bool

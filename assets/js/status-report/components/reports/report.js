@@ -8,7 +8,6 @@ import { WPElement } from '@wordpress/element';
  */
 // import ReportHeader from './report/header';
 import ReportContent from './report/content';
-import ReportPendingContent from './report/pendingContent';
 import ReportContainer from './report/container';
 
 /**
@@ -29,15 +28,15 @@ export default ({ actions, groups, id, messages, title, is_ajax_report }) => {
 		return null;
 	}
 
+	if (groups.length < 1 && is_ajax_report) {
+		return <ReportContainer id={id} title={title} actions={actions} messages={messages} />;
+	}
+
 	return (
 		<ReportContainer id={id} title={title} actions={actions} messages={messages}>
-			{is_ajax_report && groups.length < 1 ? (
-				<ReportPendingContent />
-			) : (
-				groups.map(({ fields, title }) => (
-					<ReportContent key={title} fields={fields} title={title} />
-				))
-			)}
+			{groups.map(({ fields, title }) => (
+				<ReportContent key={title} fields={fields} title={title} />
+			))}
 		</ReportContainer>
 	);
 };
