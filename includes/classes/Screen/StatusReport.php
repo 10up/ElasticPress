@@ -61,6 +61,10 @@ class StatusReport {
 			$title  = $report['title'];
 			$groups = $report['groups'];
 
+			if ( $report['is_ajax_report'] ) {
+				continue;
+			}
+
 			$plain_text_reports[] = $this->render_copy_paste_report( $title, $groups );
 		}
 
@@ -85,8 +89,6 @@ class StatusReport {
 
 	/**
 	 * AJAX action to load an individual report group.
-	 * 
-	 * @return 
 	 */
 	public function action_wp_ajax_ep_load_groups() {
 		$post = wp_unslash( $_POST );

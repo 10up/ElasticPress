@@ -1,16 +1,15 @@
 /**
  * WordPress dependencies.
  */
-import { Button } from '@wordpress/components';
-import { WPElement, useState } from '@wordpress/element';
+import { WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
 // import ReportHeader from './report/header';
 import ReportContent from './report/content';
+import ReportPendingContent from './report/pendingContent';
 import ReportContainer from './report/container';
-import { loadGroupAjax } from '../../utilities';
 
 /**
  * Report components.
@@ -30,40 +29,15 @@ export default ({ actions, groups, id, messages, title, is_ajax_report }) => {
 		return null;
 	}
 
-	const [group, setGroup] = useState(false);
-
-	const loadAjax = async () => {
-		const request = await loadGroupAjax(id);
-		request.json().then((response) => {
-			setGroup(response);
-		});
-	};
-
-	if (is_ajax_report) {
-		if (!group) {
-			return (
-				<ReportContainer id={id} title={title} messages={messages}>
-					<Button variant="primary" onClick={loadAjax}>
-						Load Report
-					</Button>
-				</ReportContainer>
-			);
-		}
-
-		return (
-			<ReportContainer id={id} title={title} actions={actions} messages={messages}>
-				{group.map(({ fields, title }) => (
-					<ReportContent key={title} fields={fields} title={title} />
-				))}
-			</ReportContainer>
-		);
-
-	}
 	return (
 		<ReportContainer id={id} title={title} actions={actions} messages={messages}>
-			{groups.map(({ fields, title }) => (
-				<ReportContent key={title} fields={fields} title={title} />
-			))}
+			{is_ajax_report && groups.length < 1 ? (
+				<ReportPendingContent />
+			) : (
+				groups.map(({ fields, title }) => (
+					<ReportContent key={title} fields={fields} title={title} />
+				))
+			)}
 		</ReportContainer>
 	);
 };

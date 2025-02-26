@@ -3,7 +3,7 @@
  */
 import { Button, Flex, FlexItem } from '@wordpress/components';
 import { useCopyToClipboard } from '@wordpress/compose';
-import { WPElement, useState } from '@wordpress/element';
+import { useState, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -11,7 +11,6 @@ import { __ } from '@wordpress/i18n';
  */
 import Report from './reports/report';
 import { useSettingsScreen } from '../../settings-screen';
-import { loadGroupAjax } from '../utilities';
 
 /**
  * Styles.
@@ -23,58 +22,110 @@ import '../style.css';
  *
  * @param {object} props Component props.
  * @param {string} props.plainTextReport Plain text report.
- * @param {object} props.reports Status reports.
+ * @param {object} props.reports Reports.
+ *
  * @returns {WPElement} Reports component.
  */
 export default ({ plainTextReport, reports }) => {
 	const { createNotice } = useSettingsScreen();
+	const [updatedReports, setUpdatedReports] = useState(reports);
+	const [updatedPlainTextReport, setUpdatedPlainTextReport] = useState(plainTextReport);
+	const [generatedReport, setGeneratedReport] = useState(false);
 
-	const [reportText, setReportText] = useState(null);
-	const downloadUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(plainTextReport)}`;
-
-	/**
-	 * Copy to clipboard button ref.
-	 *
-	 * @type {object}
-	 */
-	const ref = useCopyToClipboard(reportText, () => {
-		createNotice(
-			'success',
-			__(
-				'The status report has been copied to the clipboard. You can now paste it into a text editor.',
-				'elasticpress',
-			),
-		);
+	const ref = useCopyToClipboard(updatedPlainTextReport, () => {
+		createNotice({
+			status: 'success',
+			content: __('Report copied to clipboard.', 'elasticpress'),
+		});
 	});
 
+	const downloadUrl = `data:text/plain;charset=utf-8,${encodeURIComponent(updatedPlainTextReport)}`;
+
 	/**
-	 * Handle loading and building report plain text.
+	 * Convert report data to plain text.
+	 *
+	 * @param {string} title Report title.
+	 * @param {Array} groups Report groups.
+	 *
+	 * @returns {string} Plain text report.
+	 */
+	const toPlainTextReport = (title, groups) => {
+		let output = `## ${title} ##\n\n`;
+		groups.forEach((group) => {
+			output += `### ${group.title} ###\n`;
+			Object.entries(group.fields).forEach(([slug, field]) => {
+				const value = field.value ?? '';
+				output += `${slug}: ${value}\n`;
+			});
+			output += `\n`;
+		});
+		return output;
+	};
+
+	/**
+	 * Load a group report data via AJAX
+	 *
+	 * @param {string} id Group ID.
+	 *
+	 *
+	 * @returns {Promise} Group data.
+	 */
+	const loadGroupAjax = async (id) => {
+		const { ajaxurl } = window;
+
+		const data = new FormData();
+		data.append('action', 'ep_load_groups');
+		data.append('report', id);
+		return fetch(ajaxurl, { method: 'POST', body: data });
+	};
+
+	/**
+	 * Handle report loading.
+	 *
+	 * @returns {void}
 	 */
 	const handleReportLoading = async () => {
-		if (reportText) {
+		if (generatedReport) {
 			return;
 		}
 
-		const ajaxReportPromises = Object.entries(reports)
+		const newReports = { ...reports };
+
+		const ajaxTasks = Object.entries(newReports)
 			.filter(([key, reportData]) => reportData.is_ajax_report) // eslint-disable-line no-unused-vars
-			.map(async ([key]) => {
+			.map(async ([key, reportData]) => {
 				const response = await loadGroupAjax(key);
-				const jsonData = await response.json();
-				return jsonData;
+				const data = await response.json();
+				newReports[key] = {
+					...reportData,
+					groups: data,
+				};
 			});
 
-		const text = await Promise.all(ajaxReportPromises).then((ajaxReportTexts) => {
-			return JSON.stringify(ajaxReportTexts, null, 2);
-		});
+		await Promise.all(ajaxTasks);
 
-		setReportText(text);
+		setUpdatedReports(newReports);
+
+		const additionalText = Object.entries(newReports)
+			.filter(([key, reportData]) => reportData.is_ajax_report) // eslint-disable-line no-unused-vars
+			.map(
+				(
+					[key, reportData], // eslint-disable-line no-unused-vars
+				) => toPlainTextReport(reportData.title, reportData.groups || []),
+			)
+			.join('\n');
+
+		const combinedReport = `${plainTextReport}\n\n${additionalText}`;
+		setUpdatedPlainTextReport(combinedReport);
+
+		setGeneratedReport(true);
 	};
 
 	return (
 		<>
 			<p>
 				{__(
-					'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.',
+					'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. As the process can be resource-intensive, you must click the "Generate Full Status Report" button to generate a full report list. This list can also be copied and shared as needed.',
 					'elasticpress',
 				)}
 			</p>
@@ -82,31 +133,41 @@ export default ({ plainTextReport, reports }) => {
 				<Flex justify="start">
 					<FlexItem>
 						<Button
-							download="elasticpress-report.txt"
+							disabled={generatedReport}
 							onClick={handleReportLoading}
-							href={reportText ? null : downloadUrl}
+							variant="primary"
+						>
+							{__('Generate Full Status Report', 'elasticpress')}
+						</Button>
+					</FlexItem>
+					<FlexItem>
+						<Button
+							disabled={!generatedReport}
+							download="elasticpress-report.txt"
+							href={downloadUrl}
 							variant="primary"
 						>
 							{__('Download status report', 'elasticpress')}
 						</Button>
 					</FlexItem>
 					<FlexItem>
-						<Button ref={ref} onClick={handleReportLoading} variant="secondary">
+						<Button disabled={!generatedReport} ref={ref} variant="secondary">
 							{__('Copy status report to clipboard', 'elasticpress')}
 						</Button>
 					</FlexItem>
 				</Flex>
 			</p>
-			{Object.entries(reports).map(
+
+			{Object.entries(updatedReports).map(
 				([key, { actions, groups, messages, title, is_ajax_report }]) => (
 					<Report
+						key={key}
+						id={key}
+						title={title}
 						actions={actions}
 						groups={groups}
-						id={key}
-						key={key}
-						is_ajax_report={is_ajax_report}
 						messages={messages}
-						title={title}
+						is_ajax_report={is_ajax_report}
 					/>
 				),
 			)}
