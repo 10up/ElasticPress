@@ -42,7 +42,15 @@ before(() => {
 });
 
 afterEach(() => {
-	if (cy.state('test').state === 'failed') {
+	if (cy.state('test').state !== 'failed') {
+		return;
+	}
+
+	cy.get('body').then(($body) => {
+		if (!$body.find('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-copy-button').length) {
+			return;
+		}
+
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-copy-button')
 			.invoke('attr', 'data-clipboard-text')
 			.then((text) => {
@@ -53,5 +61,5 @@ afterEach(() => {
 				const testTitle = cy.state('test').title;
 				cy.writeFile(`tests/cypress/logs/${parentTitle} - ${testTitle}.log`, text);
 			});
-	}
+	});
 });

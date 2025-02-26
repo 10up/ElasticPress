@@ -1352,6 +1352,15 @@ class Elasticsearch {
 			$query['request']  = $request;
 			$this->add_query_log( $query );
 
+			/**
+			 * Fires after Elasticsearch remote request
+			 *
+			 * @hook ep_remote_request
+			 * @param {array}  $query Remote request arguments
+			 * @param {string} $type  Request type
+			 */
+			do_action( 'ep_remote_request', $query, $type );
+
 			return $request;
 		}
 
@@ -1359,13 +1368,7 @@ class Elasticsearch {
 		$query['request']     = $request;
 		$this->add_query_log( $query );
 
-		/**
-		 * Fires after Elasticsearch remote request
-		 *
-		 * @hook ep_remote_request
-		 * @param  {array} $query Remote request arguments
-		 * @param  {string} $type Request type
-		 */
+		// This action is documented above
 		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
