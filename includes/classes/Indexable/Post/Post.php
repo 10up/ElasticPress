@@ -3029,12 +3029,20 @@ class Post extends Indexable {
 			return;
 		}
 
-		$document_status = $this->get_es_status( get_the_ID() );
+		$post_id = get_the_ID();
+		if ( ! $this->sync_manager->is_post_indexable( $post_id ) ) {
+			return;
+		}
+
+		$document_status = $this->get_doc_status( $post_id );
+		if ( empty( $document_status['status'] ) ) {
+			return;
+		}
 
 		$admin_bar->add_menu(
 			[
 				'id'    => 'ep-doc-status',
-				'title' => $this->format_es_status_indicator( $document_status ),
+				'title' => $this->format_doc_status( $document_status ),
 				'meta'  => [
 					'class' => 'ep-embeddings-status',
 				],
@@ -3058,30 +3066,41 @@ class Post extends Indexable {
 	 * @param int $post_id Post ID
 	 * @return array
 	 */
-	protected function get_es_status( int $post_id ): array {
+	protected function get_doc_status( int $post_id ): array {
+		$status = [
+			'status'      => 'success',
+			'message'     => esc_html__( 'Content in sync', 'elasticpress' ),
+			'explanation' => esc_html__( 'WordPress and Elasticsearch content match.', 'elasticpress' ),
+		];
+
 		$es_doc = $this->get( $post_id );
 		if ( ! $es_doc ) {
-			return [
+			$status = [
 				'status'      => 'error',
-				'message'     => esc_html__( 'Document not found in Elasticsearch', 'elasticpress' ),
-				'explanation' => esc_html__( 'The document is not in Elasticsearch. It may not have been indexed yet.', 'elasticpress' ),
+				'message'     => esc_html__( 'Sync required', 'elasticpress' ),
+				'explanation' => esc_html__( 'Content not found in Elasticsearch.', 'elasticpress' ),
 			];
+		} else {
+			$post = get_post( $post_id );
+			if ( $post->post_modified_gmt !== $es_doc['post_modified_gmt'] ) {
+				$status = [
+					'status'      => 'warning',
+					'message'     => esc_html__( 'Out of sync', 'elasticpress' ),
+					'explanation' => esc_html__( 'WordPress and Elasticsearch content are out of sync.', 'elasticpress' ),
+				];
+			}
 		}
 
-		$wp_post = get_post( $post_id );
-		if ( $wp_post->post_modified_gmt !== $es_doc['post_modified_gmt'] ) {
-			return [
-				'status'      => 'warning',
-				'message'     => esc_html__( 'Document out of sync', 'elasticpress' ),
-				'explanation' => esc_html__( 'The document in Elasticsearch is out of sync with the WordPress post.', 'elasticpress' ),
-			];
-		}
-
-		return [
-			'status'      => 'success',
-			'message'     => esc_html__( 'Document synced', 'elasticpress' ),
-			'explanation' => esc_html__( 'The document in Elasticsearch is in sync with the WordPress post.', 'elasticpress' ),
-		];
+		/**
+		 * Filter the document status array.
+		 *
+		 * @since 5.2.0
+		 * @hook ep_doc_status
+		 * @param array $status  The status array containing status, message and explanation
+		 * @param int   $post_id The post ID being checked
+		 * @param array $es_doc  The Elasticsearch document
+		 */
+		return (array) apply_filters( 'ep_doc_status', $status, $post_id, $es_doc );
 	}
 
 	/**
@@ -3090,8 +3109,26 @@ class Post extends Indexable {
 	 * @param array $document_status Document status
 	 * @return string
 	 */
-	protected function format_es_status_indicator( array $document_status ): string {
+	protected function format_doc_status( array $document_status ): string {
 		$status_indicator = '<span class="ep-status-indicator ep-status-indicator--' . ( $document_status['status'] ?? '' ) . '"></span>';
-		return $status_indicator . $document_status['message'];
+
+		$message = sprintf(
+			// translators: 1: EP prefix 2: Document status message
+			_x( '[%1$s] %2$s', 'Doc status message', 'elasticpress' ),
+			'EP',
+			$document_status['message']
+		);
+
+		/**
+		 * Filter the formatted document status.
+		 *
+		 * @since 5.2.0
+		 * @hook ep_formatted_doc_status
+		 * @param string $formatted_status The formatted status
+		 * @param array  $document_status  The document status
+		 * @param string $status_indicator The status indicator
+		 * @param string $message          The message
+		 */
+		return (string) apply_filters( 'ep_formatted_doc_status', $status_indicator . $message, $document_status, $status_indicator, $message );
 	}
 }

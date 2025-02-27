@@ -792,13 +792,13 @@ class SyncManager extends \ElasticPress\SyncManager {
 	}
 
 	/**
-	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
+	 * Given a post ID, check if it should be indexed or not.
 	 *
-	 * @param int    $post_id  The post ID.
-	 * @param string $taxonomy The taxonomy slug.
+	 * @since 5.2.0
+	 * @param int $post_id Post ID.
 	 * @return boolean
 	 */
-	protected function should_reindex_post( $post_id, $taxonomy ) {
+	public function is_post_indexable( $post_id ) {
 		/**
 		 * Filter to kill post sync
 		 *
@@ -825,16 +825,34 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return false;
 		}
 
+		// Check post type
+		$indexable_post_types = $indexable->get_indexable_post_types();
+		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
+	 *
+	 * @param int    $post_id  The post ID.
+	 * @param string $taxonomy The taxonomy slug.
+	 * @return boolean
+	 */
+	protected function should_reindex_post( $post_id, $taxonomy ) {
+		if ( ! $this->is_post_indexable( $post_id ) ) {
+			return false;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$post      = get_post( $post_id );
+
 		// Only re-index if the taxonomy is indexed for this post
 		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
 		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
 		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
-			return false;
-		}
-
-		// Check post type
-		$indexable_post_types = $indexable->get_indexable_post_types();
-		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
 			return false;
 		}
 
