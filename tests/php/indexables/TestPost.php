@@ -9241,7 +9241,27 @@ class TestPost extends BaseTestCase {
 	 * @group post
 	 */
 	public function test_is_post_indexable() {
-		$this->markTestIncomplete();
+		$sync_manager = new ElasticPress\Indexable\Post\SyncManager( 'post' );
+
+		$this->assertFalse( $sync_manager->is_post_indexable( 1000 ) );
+
+		$post_id = $this->ep_factory->post->create( [ 'post_status' => 'draft' ] );
+		$this->assertFalse( $sync_manager->is_post_indexable( $post_id ) );
+
+		$post_id = $this->ep_factory->post->create( [ 'post_type' => 'attachment' ] );
+		$this->assertFalse( $sync_manager->is_post_indexable( $post_id ) );
+
+		$post_id = $this->ep_factory->post->create();
+		$this->assertTrue( $sync_manager->is_post_indexable( $post_id ) );
+
+		$callback = function ( $skip, $indexable_post_id, $indexable_post_id_2 ) use ( $post_id ) {
+			$this->assertFalse( $skip );
+			$this->assertSame( $post_id, $indexable_post_id );
+			$this->assertSame( $post_id, $indexable_post_id_2 );
+			return true;
+		};
+		add_filter( 'ep_post_sync_kill', $callback, 10, 3 );
+		$this->assertFalse( $sync_manager->is_post_indexable( $post_id ) );
 	}
 
 	/**
