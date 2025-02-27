@@ -134,14 +134,16 @@ class Post extends Indexable {
 		];
 	}
 
-		/**
-		 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
-		 *
-		 * @param string   $where The current $where clause.
-		 * @param WP_Query $query WP_Query object.
-		 * @return string WHERE clause with our pagination added if needed.
-		 */
+	/**
+	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+	 *
+	 * @param string   $where The current $where clause.
+	 * @param WP_Query $query WP_Query object.
+	 * @return string WHERE clause with our pagination added if needed.
+	 */
 	public function bulk_indexing_filter_posts_where( $where, $query ) {
+		global $wpdb;
+
 		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
 
 		if ( $using_advanced_pagination ) {
@@ -161,8 +163,8 @@ class Post extends Indexable {
 			}
 
 			$range = [
-				'upper_limit' => "{$GLOBALS['wpdb']->posts}.ID <= {$upper_limit_range_post_id}",
-				'lower_limit' => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_lower_limit_post_id}",
+				'upper_limit' => "{$wpdb->posts}.ID <= {$upper_limit_range_post_id}",
+				'lower_limit' => "{$wpdb->posts}.ID >= {$requested_lower_limit_post_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
