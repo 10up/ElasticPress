@@ -2179,44 +2179,76 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentIndexableQueryDb() {
-		$post_id = wp_insert_post(
-			[
-				'post_name'   => 'start-here',
-				'post_status' => 'publish',
-			]
-		);
+		ElasticPress\Features::factory()->deactivate_feature( 'woocommerce' );
 
-		wp_insert_comment(
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
 			[
-				'comment_content' => 'Test comment 1',
 				'comment_post_ID' => $post_id,
 			]
 		);
 
-		$product_id = wp_insert_post(
+		$this->ep_factory->comment->create(
 			[
-				'post_content' => 'product 1',
-				'post_type'    => 'product',
-				'post_status'  => 'publish',
+				'comment_post_ID' => $this->ep_factory->product->create(),
+				'comment_type'    => 'review',
 			]
 		);
 
-		wp_insert_comment(
+		$middle_comment_id = $this->ep_factory->comment->create(
 			[
-				'comment_content' => 'Test review',
-				'comment_post_ID' => $product_id,
-				'comment_type'    => 'review',
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$this->ep_factory->comment->create_many(
+			10,
+			[
+				'comment_post_ID' => $post_id,
 			]
 		);
 
 		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
 
+		// Test only comments are returned.
 		$results = $comment_indexable->query_db( [] );
-
 		$this->assertArrayHasKey( 'objects', $results );
 		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 12, $results['total_objects'] );
 
+		// It's important to flush the cache here because WordPress caches results based on the default query arguments and doesn't account for custom arguments. @see \WP_Comment_Query::get_comments()
+		wp_cache_flush_group( 'comment-queries' );
+
+		// Test only 1 comment is returned.
+		$results = $comment_indexable->query_db( [ 'include' => $comment_1_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 1, $results['total_objects'] );
+
+		wp_cache_flush_group( 'comment-queries' );
+
+		// Test all comments are returned except the one with ID.
+		$results = $comment_indexable->query_db( [ 'exclude' => $comment_1_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 11, $results['total_objects'] );
+
+		wp_cache_flush_group( 'comment-queries' );
+
+		// Test when upper limit is set and it returns only 2 comments.
+		$results = $comment_indexable->query_db( [ 'ep_indexing_upper_limit_object_id' => $middle_comment_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		wp_cache_flush_group( 'comment-queries' );
+
+		// Test when lower limit is set and it returns only 11 comments.
+		$results = $comment_indexable->query_db( [ 'ep_indexing_lower_limit_object_id' => $middle_comment_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 11, $results['total_objects'] );
 	}
 
 	/**
