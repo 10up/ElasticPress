@@ -40,6 +40,8 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 			title: 'Test ElasticPress 1',
 		});
 
+		// Exit full screen mode, so the admin bar is displayed.
+		cy.get('body').type('{ctrl+shift+alt}f');
 		cy.get('#wp-admin-bar-ep-doc-status').should('contain.text', 'Content in sync');
 
 		cy.visit('/?s=Test+ElasticPress+1');
