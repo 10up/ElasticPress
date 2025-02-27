@@ -34,27 +34,6 @@ describe('Autosuggest Feature', () => {
 			expect($autosuggestList).to.be.visible;
 			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
 		});
-	});
-
-	it('Can see autosuggest list after typing, focusing out of input and focusing back', () => {
-		cy.visit('/');
-
-		cy.intercept({
-			url: /(_search|autosuggest)$/,
-			headers: {
-				'X-ElasticPress-Request-ID': /[0-9a-f]{32}$/,
-			},
-		}).as('apiRequest');
-
-		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
-
-		cy.wait('@apiRequest');
-
-		cy.get('.ep-autosuggest').should(($autosuggestList) => {
-			// eslint-disable-next-line no-unused-expressions
-			expect($autosuggestList).to.be.visible;
-			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
-		});
 
 		cy.get('.wp-block-search__button').focus();
 		cy.get('.wp-block-search__input').click();
