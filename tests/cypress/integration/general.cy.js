@@ -40,6 +40,8 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 			title: 'Test ElasticPress 1',
 		});
 
+		cy.get('#ep-doc-status').should('contain.text', 'Content in sync');
+
 		cy.visit('/?s=Test+ElasticPress+1');
 		cy.contains('.site-content article h2', 'Test ElasticPress 1').should('exist');
 	});
