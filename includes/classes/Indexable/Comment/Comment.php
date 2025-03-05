@@ -935,7 +935,6 @@ class Comment extends Indexable {
 
 		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
 
-		// this cache domain is used to store the total number of comments for a given query
 		$normalized_query_args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
 
 		return ( new WP_Comment_Query( $normalized_query_args ) )->found_comments;
