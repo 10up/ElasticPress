@@ -6311,6 +6311,37 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that query_db always returns posts ordered by ID in descending order.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function test_query_db_orderby() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+		$post_id_3 = $this->ep_factory->post->create();
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+
+		// change the orderby and make sure it's still ordered by ID.
+		add_filter(
+			'posts_orderby',
+			function () {
+				global $wpdb;
+				return "{$wpdb->posts}.menu_order";
+			}
+		);
+
+		$result = $post_indexable->query_db( [] );
+
+		$post_ids = wp_list_pluck( $result['objects'], 'ID' );
+
+		$this->assertEquals( $post_id_3, $post_ids[0] );
+		$this->assertEquals( $post_id_2, $post_ids[1] );
+		$this->assertEquals( $post_id_1, $post_ids[2] );
+	}
+
+	/**
 	 * Tests fallback code inside prepare_document.
 	 *
 	 * @return void

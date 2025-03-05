@@ -1551,10 +1551,49 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that query_db always returns terms ordered by ID in descending order.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_orderby() {
+		$term_1_id = $this->ep_factory->term->create();
+		$term_2_id = $this->ep_factory->term->create();
+		$term_3_id = $this->ep_factory->term->create();
+		$term_4_id = $this->ep_factory->term->create();
+
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
+
+		// change the orderby and make sure it's still ordered by ID.
+		add_filter(
+			'terms_clauses',
+			function ( $clauses ) {
+
+				$clauses['orderby'] = 'ORDER BY t.term_order';
+				return $clauses;
+			}
+		);
+
+		$results = $term_indexable->query_db(
+			[
+				'taxonomy' => 'post_tag',
+			]
+		);
+
+		$this->assertSame( 4, $results['total_objects'] );
+
+		$term_ids = wp_list_pluck( $result['objects'], 'ID' );
+		$this->assertSame( $term_4_id, $term_ids[0] );
+		$this->assertSame( $term_3_id, $term_ids[1] );
+		$this->assertSame( $term_2_id, $term_ids[2] );
+		$this->assertSame( $term_1_id, $term_ids[3] );
+	}
+
+	/**
 	 * Tests additional logic in put_mapping().
 	 *
 	 * @return void
-	 * @group post
+	 * @group term
 	 */
 	public function testPutMapping() {
 
