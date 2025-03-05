@@ -832,6 +832,7 @@ class Comment extends Indexable {
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
 		add_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
 
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
@@ -1169,7 +1170,7 @@ class Comment extends Indexable {
 	 * Sets the ORDER BY clause for comment queries to order comments by their ID.
 	 *
 	 * @param array $clauses The SQL clauses array to modify.
-	 * @return array The modified SQL clauses array with the ORDERBY clause set.
+	 * @return array The modified SQL clauses array with the ORDER BY clause set.
 	 *
 	 * @since 5.2.0
 	 */
