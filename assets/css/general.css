@@ -23,3 +23,19 @@
 		background-color: var(--ep-status-error);
 	}
 }
+
+#wp-admin-bar-ep-doc-status .ab-item {
+	height: auto !important;
+}
+
+#wp-admin-bar-ep-doc-status-explanation {
+
+	& ul {
+		padding-left: 1.5em;
+
+		&,
+		& li {
+			list-style: disc;
+		}
+	}
+}
