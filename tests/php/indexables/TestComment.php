@@ -2217,16 +2217,11 @@ class TestComment extends BaseTestCase {
 		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 12, $results['total_objects'] );
 
-		// It's important to flush the cache here because WordPress caches results based on the default query arguments and doesn't account for custom arguments. @see \WP_Comment_Query::get_comments()
-		wp_cache_flush_group( 'comment-queries' );
-
 		// Test only 1 comment is returned.
 		$results = $comment_indexable->query_db( [ 'include' => $comment_1_id ] );
 		$this->assertArrayHasKey( 'objects', $results );
 		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 1, $results['total_objects'] );
-
-		wp_cache_flush_group( 'comment-queries' );
 
 		// Test all comments are returned except the one with ID.
 		$results = $comment_indexable->query_db( [ 'exclude' => $comment_1_id ] );
@@ -2234,21 +2229,107 @@ class TestComment extends BaseTestCase {
 		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 11, $results['total_objects'] );
 
-		wp_cache_flush_group( 'comment-queries' );
-
 		// Test when upper limit is set and it returns only 2 comments.
 		$results = $comment_indexable->query_db( [ 'ep_indexing_upper_limit_object_id' => $middle_comment_id ] );
 		$this->assertArrayHasKey( 'objects', $results );
 		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 2, $results['total_objects'] );
 
-		wp_cache_flush_group( 'comment-queries' );
-
 		// Test when lower limit is set and it returns only 11 comments.
 		$results = $comment_indexable->query_db( [ 'ep_indexing_lower_limit_object_id' => $middle_comment_id ] );
 		$this->assertArrayHasKey( 'objects', $results );
 		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 11, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests the pagination of the query_db method.
+	 *
+	 * @since 5.2.0
+	 * @group comment
+	 */
+	public function test_query_db_with_last_processed_object_id() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_3_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db(
+			[
+				'per_page' => 1,
+			]
+		);
+
+		$comment_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $comment_3_id, $comment_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Second loop.
+		$results = $comment_indexable->query_db(
+			[
+				'per_page'                             => 1,
+				'ep_indexing_last_processed_object_id' => $comment_3_id,
+			]
+		);
+
+		$comment_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $comment_2_id, $comment_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests that the query_db method returns results sorted by ID.
+	 *
+	 * @since 5.2.0
+	 * @group comment
+	 */
+	public function test_query_db_sort_by() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_3_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+		$results           = $comment_indexable->query_db( [] );
+
+		$this->assertEquals( 3, $results['total_objects'] );
+		$this->assertEquals( $comment_3_id, $results['objects'][0]->ID );
+		$this->assertEquals( $comment_2_id, $results['objects'][1]->ID );
+		$this->assertEquals( $comment_1_id, $results['objects'][2]->ID );
 	}
 
 	/**
