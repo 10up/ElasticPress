@@ -2252,6 +2252,57 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that query_db always returns terms ordered by ID in descending order.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_orderby() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_3_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		// change the orderby and make sure it's still ordered by ID.
+		add_filter(
+			'comments_clauses',
+			function ( $clauses ) {
+				global $wpdb;
+
+				$clauses['orderby'] = "{$wpdb->comments}.comment_type ASC";
+				return $clauses;
+			}
+		);
+
+		$results = $comment_indexable->query_db( [] );
+
+		$this->assertSame( 3, $results['total_objects'] );
+
+		$comment_ids = wp_list_pluck( $results['objects'], 'ID' );
+
+		$this->assertSame( $comment_3_id, (int) $comment_ids[0] );
+		$this->assertSame( $comment_2_id, (int) $comment_ids[1] );
+		$this->assertSame( $comment_1_id, (int) $comment_ids[2] );
+	}
+
+	/**
 	 * Test Comment Indexable query_db with WooCommerce feature enabled.
 	 *
 	 * @since 3.6.0

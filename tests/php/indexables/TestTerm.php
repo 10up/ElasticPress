@@ -1582,7 +1582,7 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertSame( 4, $results['total_objects'] );
 
-		$term_ids = wp_list_pluck( $result['objects'], 'ID' );
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
 		$this->assertSame( $term_4_id, $term_ids[0] );
 		$this->assertSame( $term_3_id, $term_ids[1] );
 		$this->assertSame( $term_2_id, $term_ids[2] );

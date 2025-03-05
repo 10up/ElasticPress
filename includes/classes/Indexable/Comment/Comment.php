@@ -832,6 +832,8 @@ class Comment extends Indexable {
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
+		add_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
+
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
 			$args = array_merge(
@@ -844,16 +846,18 @@ class Comment extends Indexable {
 					'offset'           => 0,
 				]
 			);
-			add_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
+			add_filter( 'comments_clauses', [ $this, 'bulk_indexing_filter_comments_where' ], 9999, 2 );
 
 			$query         = new WP_Comment_Query( $args );
 			$total_objects = $query->found_comments;
 
-			remove_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
+			remove_filter( 'comments_clauses', [ $this, 'bulk_indexing_filter_comments_where' ], 9999, 2 );
 		} else {
 			$query         = new WP_Comment_Query( $args );
 			$total_objects = $query->found_comments;
 		}
+
+		remove_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
 
 		if ( is_array( $query->comments ) ) {
 			array_walk( $query->comments, [ $this, 'remap_comments' ] );
@@ -1159,5 +1163,20 @@ class Comment extends Indexable {
 	 */
 	public function get_query_var( $query, $query_var, $default_value = '' ) {
 		return $query->query_vars[ $query_var ] ?? $default_value;
+	}
+
+	/**
+	 * Sets the ORDER BY clause for comment queries to order comments by their ID.
+	 *
+	 * @param array $clauses The SQL clauses array to modify.
+	 * @return array The modified SQL clauses array with the ORDERBY clause set.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_orderby( $clauses ) {
+		global $wpdb;
+
+		$clauses['orderby'] = "{$wpdb->comments}.comment_ID DESC";
+		return $clauses;
 	}
 }
