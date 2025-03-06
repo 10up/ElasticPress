@@ -234,6 +234,9 @@ class Term extends Indexable {
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
+		add_filter( 'terms_clauses', [ $this, 'set_orderby' ], 9999, 3 );
+
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
 			$args = array_merge(
@@ -246,12 +249,12 @@ class Term extends Indexable {
 					'offset'           => 0,
 				]
 			);
-			add_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 3 );
+			add_filter( 'terms_clauses', [ $this, 'bulk_indexing_filter_terms_where' ], 9999, 3 );
 
 			$query         = new WP_Term_Query( $args );
 			$total_objects = $this->get_total_objects_for_query( $args );
 
-			remove_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 3 );
+			remove_filter( 'terms_clauses', [ $this, 'bulk_indexing_filter_terms_where' ], 9999, 3 );
 		} else {
 
 			/**
@@ -273,6 +276,8 @@ class Term extends Indexable {
 
 			$query = new WP_Term_Query( $args );
 		}
+
+		remove_filter( 'terms_clauses', [ $this, 'set_orderby' ], 9999, 3 );
 
 		if ( is_array( $query->terms ) ) {
 			array_walk( $query->terms, array( $this, 'remap_terms' ) );
@@ -1248,5 +1253,18 @@ class Term extends Indexable {
 		}
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Sets the ORDER BY clause for term queries to order terms by their term_id.
+	 *
+	 * @param array $clauses The SQL clauses array to modify.
+	 * @return array The modified SQL clauses array with the ORDER BY clause set to term_id.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_orderby( $clauses ): array {
+		$clauses['orderby'] = 'ORDER BY t.term_id';
+		return $clauses;
 	}
 }
