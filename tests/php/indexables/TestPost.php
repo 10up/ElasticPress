@@ -5375,6 +5375,66 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( $query->found_posts, 1 );
 	}
 
+	/**
+	 * Test the date query returns the correct results within the range when inclusive is set to true
+	 *
+	 * @group post
+	 */
+	public function test_date_query_within_range() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'January 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 15th, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 28th, 2025 23:59:59' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'March 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				[
+					'after'     => [
+						'year'  => 2025,
+						'month' => 2,
+					],
+					'before'    => [
+						'year'  => 2025,
+						'month' => 2,
+					],
+					'inclusive' => true,
+				],
+			],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+	}
 
 	/**
 	 * Test a date query with multiple eltries
