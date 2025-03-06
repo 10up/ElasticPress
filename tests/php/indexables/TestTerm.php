@@ -1483,7 +1483,7 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertCount( 3, $results['objects'] );
-		$this->assertSame( 4, $results['total_objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 
 		$results = $term_indexable->query_db(
 			[
@@ -1498,14 +1498,14 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 0, $results['total_objects'] );
+		$this->assertEquals( 0, $results['total_objects'] );
 
 		// create new term
 		$term_1_id = $this->ep_factory->term->create();
 
 		// test only one term is returned
 		$results = $term_indexable->query_db( [ 'include' => $term_1_id ] );
-		$this->assertSame( 1, $results['total_objects'] );
+		$this->assertEquals( 1, $results['total_objects'] );
 
 		// test query returns all terms except one
 		$results = $term_indexable->query_db(
@@ -1514,7 +1514,7 @@ class TestTerm extends BaseTestCase {
 				'taxonomy' => 'post_tag',
 			]
 		);
-		$this->assertSame( 4, $results['total_objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 
 		// create 5 new terms
 		$this->ep_factory->term->create_many( 2 );
@@ -1528,7 +1528,7 @@ class TestTerm extends BaseTestCase {
 				'taxonomy'                          => 'post_tag',
 			]
 		);
-		$this->assertSame( 5, $results['total_objects'] );
+		$this->assertEquals( 5, $results['total_objects'] );
 
 		// Test when lower limit is set and it returns only 3 terms.
 		$results = $term_indexable->query_db(
@@ -1537,7 +1537,7 @@ class TestTerm extends BaseTestCase {
 				'taxonomy'                          => 'post_tag',
 			]
 		);
-		$this->assertSame( 3, $results['total_objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
 
 		// Test when both upper and lower limit is set and it returns only 4 terms.
 		$results = $term_indexable->query_db(
@@ -1547,7 +1547,72 @@ class TestTerm extends BaseTestCase {
 				'taxonomy'                          => 'post_tag',
 			]
 		);
-		$this->assertSame( 4, $results['total_objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests the pagination of the query_db method.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_with_last_processed_object_id() {
+		$term_1_id = $this->ep_factory->term->create();
+		$term_2_id = $this->ep_factory->term->create();
+		$term_3_id = $this->ep_factory->term->create();
+
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
+
+		$results = $term_indexable->query_db(
+			[
+				'per_page' => 1,
+				'taxonomy' => 'post_tag',
+			]
+		);
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $term_3_id, $term_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Second loop.
+		$results = $term_indexable->query_db(
+			[
+				'per_page'                             => 1,
+				'taxonomy'                             => 'post_tag',
+				'ep_indexing_last_processed_object_id' => $term_3_id,
+			]
+		);
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $term_2_id, $term_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests that the query_db method returns results sorted by ID.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_sort_by() {
+		$term_1_id = $this->ep_factory->term->create();
+		$term_2_id = $this->ep_factory->term->create();
+		$term_3_id = $this->ep_factory->term->create();
+
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
+		$results        = $term_indexable->query_db(
+			[
+				'taxonomy' => 'post_tag',
+			]
+		);
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( 3, $results['total_objects'] );
+		$this->assertEquals( $term_3_id, $term_ids[0] );
+		$this->assertEquals( $term_2_id, $term_ids[1] );
+		$this->assertEquals( $term_1_id, $term_ids[2] );
 	}
 
 	/**

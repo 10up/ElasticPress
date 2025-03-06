@@ -248,24 +248,8 @@ class Term extends Indexable {
 			);
 			add_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 3 );
 
-			/**
-			 * Filter database arguments for term count query
-			 *
-			 * @hook ep_term_all_query_db_args
-			 * @param  {array} $args Query arguments based to `wp_count_terms()`
-			 * @since  3.4
-			 * @return {array} New arguments
-			 */
-			$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
-			$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
-
-			if ( ! empty( $args['offset'] ) ) {
-				if ( (int) $args['offset'] >= $total_objects ) {
-					$total_objects = 0;
-				}
-			}
-
-			$query = new WP_Term_Query( $args );
+			$query         = new WP_Term_Query( $args );
+			$total_objects = $this->get_total_objects_for_query( $args );
 
 			remove_filter( 'terms_clauses', array( $this, 'bulk_indexing_filter_terms_where' ), 9999, 3 );
 		} else {
@@ -343,6 +327,35 @@ class Term extends Indexable {
 		}
 
 		return $clauses;
+	}
+
+	/**
+	 * Get the total number of terms for a given query.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The total number of terms.
+	 */
+	protected function get_total_objects_for_query( $query_args ) {
+		static $object_counts = [];
+
+		// Reset the pagination-related args for optimal caching.
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
+
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
+		if ( ! isset( $object_counts[ $cache_key ] ) ) {
+			$object_counts[ $cache_key ] = wp_count_terms( $normalized_query_args );
+		}
+
+		return $object_counts[ $cache_key ];
 	}
 
 	/**
