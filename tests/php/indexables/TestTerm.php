@@ -1641,17 +1641,18 @@ class TestTerm extends BaseTestCase {
 
 		$results = $term_indexable->query_db(
 			[
-				'taxonomy' => 'post_tag',
+				'taxonomy'     => 'post_tag',
+				'cache_buster' => wp_generate_uuid4(), // get_total_objects_for_query returns a cached value because test_query_db_sort_by calls query_db with the same query args.
 			]
 		);
 
-		$this->assertSame( 4, $results['total_objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 
 		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
-		$this->assertSame( $term_4_id, $term_ids[0] );
-		$this->assertSame( $term_3_id, $term_ids[1] );
-		$this->assertSame( $term_2_id, $term_ids[2] );
-		$this->assertSame( $term_1_id, $term_ids[3] );
+		$this->assertEquals( $term_4_id, $term_ids[0] );
+		$this->assertEquals( $term_3_id, $term_ids[1] );
+		$this->assertEquals( $term_2_id, $term_ids[2] );
+		$this->assertEquals( $term_1_id, $term_ids[3] );
 	}
 
 	/**
