@@ -68,6 +68,7 @@ class TestAutosuggest extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
+		$instance->set_i18n_strings();
 
 		$this->assertEquals( 'autosuggest', $instance->slug );
 		$this->assertEquals( 'Autosuggest', $instance->title );
@@ -346,7 +347,7 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function ( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query ) {
 				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
 
 				$this->assertContains( 'term_suggest^1', $fields );
@@ -354,7 +355,7 @@ class TestAutosuggest extends BaseTestCase {
 				return $path;
 			},
 			10,
-			6
+			4
 		);
 
 		$query = new \WP_Query(
@@ -398,7 +399,7 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function ( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query ) {
 				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
 
 				$this->assertNotContains( 'term_suggest^1', $fields );
@@ -406,7 +407,7 @@ class TestAutosuggest extends BaseTestCase {
 				return $path;
 			},
 			10,
-			6
+			4
 		);
 
 		$query = new \WP_Query(
@@ -448,12 +449,12 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function ( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query ) {
 				$this->assertEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
 				return $path;
 			},
 			10,
-			6
+			4
 		);
 
 		$query = new \WP_Query(
@@ -499,12 +500,12 @@ class TestAutosuggest extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_path',
-			function ( $path, $index, $type, $query, $query_args, $query_object ) {
+			function ( $path, $index, $type, $query ) {
 				$this->assertNotEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
 				return $path;
 			},
 			10,
-			6
+			4
 		);
 
 		$query = new \WP_Query(

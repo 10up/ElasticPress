@@ -34,10 +34,9 @@ class WP_CLI {
 	/**
 	 * Display debug message.
 	 *
-	 * @param string  $message Message to display to the end user.
-	 * @param boolean $group   Group
+	 * @param string $message Message to display to the end user.
 	 */
-	public static function debug( $message, $group = false ) {
+	public static function debug( $message ) {
 		print $message;
 	}
 
@@ -54,13 +53,13 @@ class WP_CLI {
 	 * Display error message.
 	 *
 	 * @param string  $message Message to display to the end user.
-	 * @param boolean $exit    Whether exit or not.
+	 * @param boolean $should_exit    Whether exit or not.
 	 * @return void
 	 * @throws Exception Exception
 	 */
-	public static function error( $message, $exit = true ) {
+	public static function error( $message, $should_exit = true ) {
 
-		if ( ! $exit ) {
+		if ( ! $should_exit ) {
 			print $message;
 			return;
 		}

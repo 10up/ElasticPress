@@ -439,7 +439,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		add_filter(
 			'ep_post_filters',
-			function ( $filters, $args, $query ) {
+			function ( $filters ) {
 				$expected_result = array(
 					'terms' => array(
 						'post_type.raw' => array(
@@ -452,7 +452,6 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 				return $filters;
 			},
 			10,
-			3
 		);
 
 		parse_str( 'post_type=product&s=product', $_GET );
@@ -487,7 +486,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		add_filter(
 			'ep_post_formatted_args',
-			function ( $formatted_args, $args, $wp_query ) {
+			function ( $formatted_args, ) {
 				$this->assertEquals( 'findme', $formatted_args['query']['function_score']['query']['bool']['should'][0]['multi_match']['query'] );
 				$this->assertEquals(
 					$args['search_fields'],
@@ -504,8 +503,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 				return $formatted_args;
 			},
-			10,
-			3
+			10
 		);
 
 		parse_str( 'post_type=product&s=findme', $_GET );

@@ -365,9 +365,9 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$expected_result = sanitize_text_field( $test_meta );
 		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
 
-		$sanitize_function = function ( $function ) {
+		$sanitize_function = function ( $callback ) {
 
-			$this->assertSame( 'sanitize_text_field', $function );
+			$this->assertSame( 'sanitize_text_field', $callback );
 
 			return 'sanitize_title';
 		};

@@ -54,12 +54,6 @@ class WooCommerce extends Feature {
 	public function __construct() {
 		$this->slug = 'woocommerce';
 
-		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
-
-		$this->summary = '<p>' . __( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#woocommerce', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->setting_requires_install_reindex = 'orders';
@@ -75,6 +69,20 @@ class WooCommerce extends Feature {
 		$this->orders_autosuggest = new OrdersAutosuggest( $this );
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#woocommerce', 'elasticpress' );
 	}
 
 	/**

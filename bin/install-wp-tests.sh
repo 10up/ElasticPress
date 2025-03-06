@@ -28,10 +28,10 @@ download() {
     fi
 }
 
-# Check if svn is installed
-check_svn_installed() {
-    if ! command -v svn > /dev/null; then
-        echo "Error: svn is not installed. Please install svn and try again."
+# Check if git is installed
+check_git_installed() {
+    if ! command -v git > /dev/null; then
+        echo "Error: git is not installed. Please install git and try again."
         exit 1
     fi
 }
@@ -50,6 +50,7 @@ elif [[ $WP_VERSION =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
 		WP_TESTS_TAG="tags/$WP_VERSION"
 	fi
 elif [[ $WP_VERSION == 'nightly' || $WP_VERSION == 'trunk' ]]; then
+	WP_BRANCH="trunk"
 	WP_TESTS_TAG="trunk"
 else
 	# http serves a single offer, whereas https serves multiple. we only want one
@@ -60,6 +61,7 @@ else
 		echo "Latest WordPress version could not be found"
 		exit 1
 	fi
+	WP_BRANCH=$LATEST_VERSION
 	WP_TESTS_TAG="tags/$LATEST_VERSION"
 fi
 set -ex
@@ -75,8 +77,9 @@ install_wp() {
 	if [[ $WP_VERSION == 'nightly' || $WP_VERSION == 'trunk' ]]; then
 		mkdir -p $TMPDIR/wordpress-trunk
 		rm -rf $TMPDIR/wordpress-trunk/*
-        check_svn_installed
-		svn export --quiet https://core.svn.wordpress.org/trunk $TMPDIR/wordpress-trunk/wordpress
+        check_git_installed
+		git clone --depth 1 --branch master https://github.com/wordpress/wordpress $TMPDIR/wordpress-trunk/wordpress
+		rm -r $TMPDIR/wordpress-trunk/wordpress/.git
 		mv $TMPDIR/wordpress-trunk/wordpress/* $WP_CORE_DIR
 	else
 		if [ $WP_VERSION == 'latest' ]; then
@@ -120,13 +123,16 @@ install_test_suite() {
 		# set up testing suite
 		mkdir -p $WP_TESTS_DIR
 		rm -rf $WP_TESTS_DIR/{includes,data}
-        check_svn_installed
-		svn export --quiet --ignore-externals https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/includes/ $WP_TESTS_DIR/includes
-		svn export --quiet --ignore-externals https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/data/ $WP_TESTS_DIR/data
+        check_git_installed
+		git clone --depth 1 --branch $WP_BRANCH https://github.com/wordpress/wordpress-develop $TMPDIR/wordpress-develop
+		rm -r $TMPDIR/wordpress-develop/.git
+		mv $TMPDIR/wordpress-develop/tests/phpunit/includes/ $WP_TESTS_DIR/includes
+		mv $TMPDIR/wordpress-develop/tests/phpunit/data/ $WP_TESTS_DIR/data
+		rm -r $TMPDIR/wordpress-develop
 	fi
 
 	if [ ! -f wp-tests-config.php ]; then
-		download https://develop.svn.wordpress.org/${WP_TESTS_TAG}/wp-tests-config-sample.php "$WP_TESTS_DIR"/wp-tests-config.php
+		download https://raw.githubusercontent.com/wordpress/wordpress-develop/${WP_BRANCH}/wp-tests-config-sample.php "$WP_TESTS_DIR"/wp-tests-config.php
 		# remove all forward slashes in the end
 		WP_CORE_DIR=$(echo $WP_CORE_DIR | sed "s:/\+$::")
 		sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR/':" "$WP_TESTS_DIR"/wp-tests-config.php
