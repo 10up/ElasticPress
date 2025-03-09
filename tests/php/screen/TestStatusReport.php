@@ -247,7 +247,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 		add_filter( 'ep_prepare_meta_allowed_keys', $allow_metakeys );
 
 		foreach ( $post_types as $post_type ) {
-			$this->ep_factory->post->create_many(
+			$this->factory->post->create_many(
 				10,
 				array(
 					'post_type'  => $post_type,
