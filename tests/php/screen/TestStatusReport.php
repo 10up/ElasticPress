@@ -502,6 +502,8 @@ class TestStatusReport extends BaseTestCase {
 
 	/**
 	 * Test that a single report with valid slug.
+	 *
+	 * @group statusReport
 	 */
 	public function testGetSingleReportValidSlug() {
 		$status_report = new StatusReport();
@@ -512,6 +514,8 @@ class TestStatusReport extends BaseTestCase {
 
 	/**
 	 * Test that a single report with invalid slug.
+	 *
+	 * @group statusReport
 	 */
 	public function testGetSingleReportNonValidSlug() {
 		$status_report = new StatusReport();

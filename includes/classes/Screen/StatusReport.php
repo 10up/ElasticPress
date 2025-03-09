@@ -120,7 +120,7 @@ class StatusReport {
 	 * @return \ElasticPress\StatusReport\Report|false
 	 */
 	public function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|false {
-		if ( $this->formatted_reports[ $report_slug ] ) {
+		if ( isset( $this->formatted_reports[ $report_slug ] ) ) {
 			return $this->formatted_reports[ $report_slug ];
 		}
 
