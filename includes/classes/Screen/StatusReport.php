@@ -98,15 +98,11 @@ class StatusReport {
 
 		$post = wp_unslash( $_POST );
 
-		if ( empty( $this->formatted_reports ) ) {
-			$this->formatted_reports = $this->get_reports();
-		}
+		$report = $this->get_single_report( $post['report'] );
 
-		if ( empty( $this->formatted_reports[ $post['report'] ] ) ) {
+		if ( ! $report ) {
 			wp_send_json_error( [ 'message' => 'Report not found.' ], 404 );
 		}
-
-		$report = $this->formatted_reports[ $post['report'] ];
 
 		wp_send_json_success(
 			[
@@ -115,6 +111,45 @@ class StatusReport {
 			],
 			200
 		);
+	}
+
+	/**
+	 * Get single report by slug.
+	 *
+	 * @param string $report_slug Report slug
+	 * @return \ElasticPress\StatusReport\Report|false
+	 */
+	protected function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|false {
+		if ( $this->formatted_reports[ $report_slug ] ) {
+			return $this->formatted_reports[ $report_slug ];
+		}
+
+		switch ( $report_slug ) {
+			case 'indexable':
+				return new \ElasticPress\StatusReport\IndexableContent();
+				break;
+			case 'failed-queries':
+				$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
+				return new \ElasticPress\StatusReport\FailedQueries( $query_logger );
+				break;
+			case 'autosuggest':
+				return new \ElasticPress\StatusReport\ElasticPressIo();
+				break;
+			case 'wordPress':
+				return new \ElasticPress\StatusReport\WordPress();
+				break;
+			case 'indices':
+				return new \ElasticPress\StatusReport\Indices();
+				break;
+			case 'last-sync':
+				return new \ElasticPress\StatusReport\LastSync();
+				break;
+			case 'features':
+				return new \ElasticPress\StatusReport\Features();
+				break;
+			default:
+				return false;
+		}
 	}
 
 	/**
