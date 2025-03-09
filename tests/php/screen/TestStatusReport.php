@@ -499,4 +499,24 @@ class TestStatusReport extends BaseTestCase {
 		$this->assertSame( $expected_result, $report->get_groups() );
 		$this->assertEquals( 2, count( $groups ) );
 	}
+
+	/**
+	 * Test that a single report with valid slug.
+	 */
+	public function testGetSingleReportValidSlug() {
+		$status_report = new StatusReport();
+		$report        = $status_report->get_single_report( 'indexable' );
+
+		$this->assertInstanceOf( \ElasticPress\StatusReport\IndexableContent::class, $report );
+	}
+
+	/**
+	 * Test that a single report with invalid slug.
+	 */
+	public function testGetSingleReportNonValidSlug() {
+		$status_report = new StatusReport();
+		$report        = $status_report->get_single_report( 'not-valid' );
+
+		$this->assertFalse( $report );
+	}
 }

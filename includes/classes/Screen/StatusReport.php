@@ -119,37 +119,32 @@ class StatusReport {
 	 * @param string $report_slug Report slug
 	 * @return \ElasticPress\StatusReport\Report|false
 	 */
-	protected function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|false {
+	public function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|false {
 		if ( $this->formatted_reports[ $report_slug ] ) {
 			return $this->formatted_reports[ $report_slug ];
 		}
 
-		switch ( $report_slug ) {
-			case 'indexable':
-				return new \ElasticPress\StatusReport\IndexableContent();
-				break;
-			case 'failed-queries':
+		$report_map = [
+			'indexable'      => fn() => new \ElasticPress\StatusReport\IndexableContent(),
+			'failed-queries' => function () {
 				$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
 				return new \ElasticPress\StatusReport\FailedQueries( $query_logger );
-				break;
-			case 'autosuggest':
-				return new \ElasticPress\StatusReport\ElasticPressIo();
-				break;
-			case 'wordPress':
-				return new \ElasticPress\StatusReport\WordPress();
-				break;
-			case 'indices':
-				return new \ElasticPress\StatusReport\Indices();
-				break;
-			case 'last-sync':
-				return new \ElasticPress\StatusReport\LastSync();
-				break;
-			case 'features':
-				return new \ElasticPress\StatusReport\Features();
-				break;
-			default:
-				return false;
+			},
+			'autosuggest'    => fn() => new \ElasticPress\StatusReport\ElasticPressIo(),
+			'wordPress'      => fn() => new \ElasticPress\StatusReport\WordPress(),
+			'indices'        => fn() => new \ElasticPress\StatusReport\Indices(),
+			'last-sync'      => fn() => new \ElasticPress\StatusReport\LastSync(),
+			'features'       => fn() => new \ElasticPress\StatusReport\Features(),
+		];
+
+		if ( ! isset( $report_map[ $report_slug ] ) ) {
+			return false;
 		}
+
+		$report_instance                         = $report_map[ $report_slug ]();
+		$this->formatted_reports[ $report_slug ] = $report_instance;
+
+		return $report_instance;
 	}
 
 	/**
