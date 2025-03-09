@@ -9,12 +9,13 @@
 namespace ElasticPressTest;
 
 use ElasticPress\Screen\StatusReport;
+use WP_Ajax_UnitTestCase;
 use ElasticPress\Utils;
 
 /**
  * Test the Status Report class
  */
-class TestStatusReport extends BaseTestCase {
+class TestStatusReport extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test the default behavior of the get_reports method
