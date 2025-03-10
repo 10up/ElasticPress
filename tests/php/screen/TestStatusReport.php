@@ -524,4 +524,62 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 
 		$this->assertFalse( $report );
 	}
+
+	/**
+	 * Test ajax report handler with nonce not present.
+	 *
+	 * @group statusReport
+	 */
+	public function testNoncenotValidAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertSame( 'Nonce is not present.', $response['data']['message'] );
+			return;
+		}
+	}
+
+	/**
+	 * Test ajax report handler with report not found.
+	 *
+	 * @group statusReport
+	 */
+	public function testReportNotFoundAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
+		$_POST['report']                 = 'not-valid';
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertSame( 'Report not found.', $response['data']['message'] );
+			return;
+		}
+	}
+
+	/**
+	 * Test ajax report handler with valid report.
+	 *
+	 * @group statusReport
+	 */
+	public function testValidReportAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
+		$_POST['report']                 = 'indexable';
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertArrayHasKey( 'groups', $response['data'] );
+			$this->assertArrayHasKey( 'messages', $response['data'] );
+			return;
+		}
+	}
 }
