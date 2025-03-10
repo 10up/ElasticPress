@@ -31,6 +31,14 @@ export default ({ plainTextReport, reports }) => {
 	const [updatedReports, setUpdatedReports] = useState(reports);
 	const [updatedPlainTextReport, setUpdatedPlainTextReport] = useState(plainTextReport);
 	const [generatedReport, setGeneratedReport] = useState(false);
+	const downloadButtontext = __(
+		`Download ${generatedReport ? 'full' : 'partial'} status report`,
+		'elasticpress',
+	);
+	const copyButtontext = __(
+		`Copy ${generatedReport ? 'full' : 'partial'} status report to clipboard`,
+		'elasticpress',
+	);
 
 	const ref = useCopyToClipboard(updatedPlainTextReport, () => {
 		createNotice('info', __('Copied status report to clipboard.', 'elasticpress'));
@@ -148,17 +156,16 @@ export default ({ plainTextReport, reports }) => {
 					</FlexItem>
 					<FlexItem>
 						<Button
-							disabled={!generatedReport}
 							download="elasticpress-report.txt"
 							href={downloadUrl}
 							variant="primary"
 						>
-							{__('Download status report', 'elasticpress')}
+							{downloadButtontext}
 						</Button>
 					</FlexItem>
 					<FlexItem>
-						<Button disabled={!generatedReport} ref={ref} variant="secondary">
-							{__('Copy status report to clipboard', 'elasticpress')}
+						<Button ref={ref} variant="secondary">
+							{copyButtontext}
 						</Button>
 					</FlexItem>
 				</Flex>
