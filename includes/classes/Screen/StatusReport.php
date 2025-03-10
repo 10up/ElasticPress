@@ -209,18 +209,18 @@ class StatusReport {
 		if ( empty( $this->formatted_reports ) ) {
 			$reports = $this->get_reports();
 
-			$this->formatted_reports = [];
-
-			foreach ( $reports as $index => $report ) {
-				$this->formatted_reports[ $index ] = [
-					'reportIndex'  => $index,
-					'actions'      => $report->get_actions(),
-					'groups'       => $report->get_groups(),
-					'messages'     => $report->get_messages(),
-					'title'        => $report->get_title(),
-					'isAjaxReport' => $report instanceof \ElasticPress\StatusReport\AjaxReport,
-				];
-			}
+			$this->formatted_reports = array_map(
+				function ( $report ) {
+					return [
+						'actions'      => $report->get_actions(),
+						'groups'       => $report->get_groups(),
+						'messages'     => $report->get_messages(),
+						'title'        => $report->get_title(),
+						'isAjaxReport' => $report instanceof \ElasticPress\StatusReport\AjaxReport,
+					];
+				},
+				$reports
+			);
 		}
 		return $this->formatted_reports;
 	}
@@ -237,13 +237,18 @@ class StatusReport {
 	protected function render_copy_paste_report( string $title, array $groups, bool $is_ajax_report = false ): string {
 		$output = "## {$title} ##\n\n";
 
+		if ( $is_ajax_report ) {
+			$output .= $this->render_pending_generation();
+			return $output;
+		}
+
 		foreach ( $groups as $group ) {
 			$output .= "### {$group['title']} ###\n";
 			foreach ( $group['fields'] as $slug => $field ) {
 				$value = $field['value'] ?? '';
 
 				$output .= "{$slug}: ";
-				$output .= $is_ajax_report ? $this->render_pending_generation() : $this->render_value( $value );
+				$output .= $this->render_value( $value );
 				$output .= "\n";
 			}
 			$output .= "\n";
@@ -276,7 +281,7 @@ class StatusReport {
 	 * @return string
 	 */
 	protected function render_pending_generation() {
-		return __( 'Please generate a full report to see the content of this group', 'elasticpress' );
+		return __( 'Please generate a full report to see the content of this group.', 'elasticpress' );
 	}
 
 	/**

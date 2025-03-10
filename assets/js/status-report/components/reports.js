@@ -86,6 +86,21 @@ export default ({ plainTextReport, reports }) => {
 	};
 
 	/**
+	 * Meant to replace the placeholder text in a report with the full report generated.
+	 *
+	 * @param {string} input The report text.
+	 * @param {string} title The title to match.
+	 * @param {Array} groups The groups data for the report.
+	 * @returns {string} Updated text for the specific report.
+	 */
+	function replacePlaceholderWithReport(input, title, groups) {
+		const placeholder = `## ${title} ##\n\nPlease generate a full report to see the content of this group.`;
+		const generatedReport = toPlainTextReport(title, groups);
+
+		return input.replace(placeholder, generatedReport);
+	}
+
+	/**
 	 * Handle report loading.
 	 *
 	 * @returns {void}
@@ -122,13 +137,19 @@ export default ({ plainTextReport, reports }) => {
 
 		setUpdatedReports(newReports);
 
-		const additionalText = Object.entries(newReports)
-			.filter(([, reportData]) => reportData.isAjaxReport)
-			.map(([, reportData]) => toPlainTextReport(reportData.title, reportData.groups || []))
-			.join('\n');
+		let fullReport = plainTextReport;
 
-		const combinedReport = `${plainTextReport}\n\n${additionalText}`;
-		setUpdatedPlainTextReport(combinedReport);
+		Object.entries(newReports)
+			.filter(([, reportData]) => reportData.isAjaxReport)
+			.forEach(([, reportData]) => {
+				fullReport = replacePlaceholderWithReport(
+					fullReport,
+					reportData.title,
+					reportData.groups || [],
+				);
+			});
+
+		setUpdatedPlainTextReport(fullReport);
 
 		setGeneratedReport(true);
 
