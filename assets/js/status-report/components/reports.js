@@ -100,7 +100,7 @@ export default ({ plainTextReport, reports }) => {
 		const newReports = { ...reports };
 
 		const ajaxTasks = Object.entries(newReports)
-			.filter(([, reportData]) => reportData.is_ajax_report)
+			.filter(([, reportData]) => reportData.isAjaxReport)
 			.map(async ([key, reportData]) => {
 				const response = await loadGroupAjax(key);
 				const body = await response.json();
@@ -123,7 +123,7 @@ export default ({ plainTextReport, reports }) => {
 		setUpdatedReports(newReports);
 
 		const additionalText = Object.entries(newReports)
-			.filter(([, reportData]) => reportData.is_ajax_report)
+			.filter(([, reportData]) => reportData.isAjaxReport)
 			.map(([, reportData]) => toPlainTextReport(reportData.title, reportData.groups || []))
 			.join('\n');
 
@@ -172,7 +172,7 @@ export default ({ plainTextReport, reports }) => {
 			</p>
 
 			{Object.entries(updatedReports).map(
-				([key, { actions, groups, messages, title, is_ajax_report }]) => (
+				([key, { actions, groups, messages, title, isAjaxReport }]) => (
 					<Report
 						key={key}
 						id={key}
@@ -180,7 +180,7 @@ export default ({ plainTextReport, reports }) => {
 						actions={actions}
 						groups={groups}
 						messages={messages}
-						is_ajax_report={is_ajax_report}
+						isAjaxReport={isAjaxReport}
 					/>
 				),
 			)}

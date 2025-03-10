@@ -19,16 +19,16 @@ import ReportContainer from './report/container';
  * @param {string} props.id Report ID.
  * @param {string} props.messages Report messages.
  * @param {string} props.title Report title.
- * @param {boolean} props.is_ajax_report Whether the report is loaded via AJAX.
+ * @param {boolean} props.isAjaxReport Whether the report is loaded via AJAX.
  *
  * @returns {WPElement} Report component.
  */
-export default ({ actions, groups, id, messages, title, is_ajax_report }) => {
-	if (groups.length < 1 && !is_ajax_report) {
+export default ({ actions, groups, id, messages, title, isAjaxReport }) => {
+	if (groups.length < 1 && !isAjaxReport) {
 		return null;
 	}
 
-	if (groups.length < 1 && is_ajax_report) {
+	if (groups.length < 1 && isAjaxReport) {
 		return <ReportContainer id={id} title={title} actions={actions} messages={messages} />;
 	}
 

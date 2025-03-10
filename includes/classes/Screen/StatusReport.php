@@ -58,14 +58,9 @@ class StatusReport {
 		$plain_text_reports = [];
 
 		foreach ( $reports as $report ) {
-			if ( $report['is_ajax_report'] ) {
-				continue;
-			}
-
-			$title  = $report['title'];
-			$groups = $report['groups'];
-
-			$plain_text_reports[] = $this->render_copy_paste_report( $title, $groups );
+			$title                = $report['title'];
+			$groups               = $report['groups'];
+			$plain_text_reports[] = $this->render_copy_paste_report( $title, $groups, $report['isAjaxReport'] );
 		}
 
 		$plain_text_report = implode( "\n\n", $plain_text_reports );
@@ -104,9 +99,13 @@ class StatusReport {
 			wp_send_json_error( [ 'message' => 'Report not found.' ], 404 );
 		}
 
+		if ( ! $report instanceof \ElasticPress\StatusReport\AjaxReport ) {
+			wp_send_json_error( [ 'message' => 'Report is not an AJAX report.' ], 403 );
+		}
+
 		wp_send_json_success(
 			[
-				'groups'   => $report->get_groups(),
+				'groups'   => $report->get_groups_ajax(),
 				'messages' => $report->get_messages(),
 			],
 			200
@@ -114,10 +113,10 @@ class StatusReport {
 	}
 
 	/**
-	 * Get single report by slug.
+	 * Get single report by slug in AJAX context.
 	 *
 	 * @param string $report_slug Report slug
-	 * @return \ElasticPress\StatusReport\Report|false
+	 * @return \ElasticPress\StatusReport\AjaxReport|false
 	 */
 	public function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|false {
 		if ( isset( $this->formatted_reports[ $report_slug ] ) ) {
@@ -141,7 +140,8 @@ class StatusReport {
 			return false;
 		}
 
-		$report_instance                         = $report_map[ $report_slug ]();
+		$report_instance = $report_map[ $report_slug ]();
+
 		$this->formatted_reports[ $report_slug ] = $report_instance;
 
 		return $report_instance;
@@ -201,7 +201,6 @@ class StatusReport {
 
 	/**
 	 * Process and format the reports, then store them in the `formatted_reports` attribute.
-	 * Reports that are supposed to be loaded with AJAX should return empty groups.
 	 *
 	 * @since 4.5.0
 	 * @return array
@@ -210,18 +209,18 @@ class StatusReport {
 		if ( empty( $this->formatted_reports ) ) {
 			$reports = $this->get_reports();
 
-			$this->formatted_reports = array_map(
-				function ( $report ) {
-					return [
-						'actions'        => $report->get_actions(),
-						'groups'         => ! $report->is_ajax_report() ? $report->get_groups() : [],
-						'messages'       => $report->get_messages(),
-						'title'          => $report->get_title(),
-						'is_ajax_report' => $report->is_ajax_report(),
-					];
-				},
-				$reports
-			);
+			$this->formatted_reports = [];
+
+			foreach ( $reports as $index => $report ) {
+				$this->formatted_reports[ $index ] = [
+					'reportIndex'  => $index,
+					'actions'      => $report->get_actions(),
+					'groups'       => $report->get_groups(),
+					'messages'     => $report->get_messages(),
+					'title'        => $report->get_title(),
+					'isAjaxReport' => $report instanceof \ElasticPress\StatusReport\AjaxReport,
+				];
+			}
 		}
 		return $this->formatted_reports;
 	}
@@ -231,9 +230,11 @@ class StatusReport {
 	 *
 	 * @param string $title  Report title
 	 * @param array  $groups Report groups
+	 * @param bool   $is_ajax_report Whether the report is an AJAX report
+	 *
 	 * @return string
 	 */
-	protected function render_copy_paste_report( string $title, array $groups ): string {
+	protected function render_copy_paste_report( string $title, array $groups, bool $is_ajax_report = false ): string {
 		$output = "## {$title} ##\n\n";
 
 		foreach ( $groups as $group ) {
@@ -242,7 +243,7 @@ class StatusReport {
 				$value = $field['value'] ?? '';
 
 				$output .= "{$slug}: ";
-				$output .= $this->render_value( $value );
+				$output .= $is_ajax_report ? $this->render_pending_generation() : $this->render_value( $value );
 				$output .= "\n";
 			}
 			$output .= "\n";
@@ -267,6 +268,15 @@ class StatusReport {
 		}
 
 		return (string) $value;
+	}
+
+	/**
+	 * Render a message when the report is pending generation
+	 *
+	 * @return string
+	 */
+	protected function render_pending_generation() {
+		return __( 'Please generate a full report to see the content of this group', 'elasticpress' );
 	}
 
 	/**

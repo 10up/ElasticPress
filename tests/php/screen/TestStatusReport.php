@@ -292,7 +292,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 
 		$report = new \ElasticPress\StatusReport\IndexableContent();
 
-		$this->assertSame( $expected_result, $report->get_groups() );
+		$this->assertSame( $expected_result, $report->get_ajax_groups() );
 		$this->assertEquals( 'Indexable Content', $report->get_title() );
 	}
 
@@ -538,6 +538,26 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 		} catch ( \WPAjaxDieContinueException $e ) {
 			$response = json_decode( $this->_last_response, true );
 			$this->assertSame( 'Nonce is not present.', $response['data']['message'] );
+			return;
+		}
+	}
+
+	/**
+	 * Test report not instance of ajax report.
+	 *
+	 * @group statusReport
+	 */
+	public function testNotInstanceOfAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
+		$_POST['report']                 = 'indices';
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertSame( 'Report is not an AJAX report.', $response['data']['message'] );
 			return;
 		}
 	}

@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @package ElasticPress
  */
-class IndexableContent extends Report {
+class IndexableContent extends AjaxReport {
 
 	/**
 	 * Return the report title
@@ -33,7 +33,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups(): array {
+	public function get_groups_ajax(): array {
 		return $this->get_indexable_content_groups();
 	}
 
