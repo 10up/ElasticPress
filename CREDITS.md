@@ -247,6 +247,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Maarten Hunink (@maartenhunink)](https://github.com/maartenhunink),
 [Alexandr (@yarovikov)](https://github.com/yarovikov),
 [@syedc](https://github.com/syedc),
+[Brooke. (@BrookeDot)](https://github.com/BrookeDot),
+[@oscarssanchezz](https://github.com/oscarssanchezz),
+[Erik Brendel (@ErikBrendel)](https://github.com/ErikBrendel),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

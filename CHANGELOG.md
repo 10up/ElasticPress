@@ -22,10 +22,14 @@ This version bumps the minimum WordPress version to 6.2+.
 * New ACF Repeater Field Compatibility feature. Props [@felipeelia](https://github.com/felipeelia) via [#4075](https://github.com/10up/ElasticPress/pull/4075).
 * Add new filter `ep.InstantResults.filter.taxonomy.terms`. Props [@burhandodhy](https://github.com/burhandodhy) and [@syedc](https://github.com/syedc) via [#4067](https://github.com/10up/ElasticPress/pull/4067).
 * Support to "number" fields in the Features Settings API. Props [@felipeelia](https://github.com/felipeelia) via [#4072](https://github.com/10up/ElasticPress/pull/4072).
+* Add `include`, `exclude`, `upper-limit-object-id`, and `lower-limit-object-id` support for the term and comment indexable. Props [@burhandodhy](https://github.com/burhandodhy) via [#4074](https://github.com/10up/ElasticPress/pull/4074), [#4102](https://github.com/10up/ElasticPress/pull/4102), and [#4099](https://github.com/10up/ElasticPress/pull/4099).
+* Ability to display results on focus back + cached autosuggest results on same query. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#4064](https://github.com/10up/ElasticPress/pull/4064).
+* Document status displayed in the admin bar. Props [@felipeelia](https://github.com/felipeelia), [@tott](https://github.com/tott), and [@burhandodhy](https://github.com/burhandodhy) via [#4096](https://github.com/10up/ElasticPress/pull/4096) and [#4100](https://github.com/10up/ElasticPress/pull/4100).
 
 ### Changed
 * Minimum required version of WordPress (from 6.0 to 6.2). Props [@felipeelia](https://github.com/felipeelia) via [#4082](https://github.com/10up/ElasticPress/pull/4082).
 * `ElasticPress\Feature\RelatedPosts::get_related_query()`, `ElasticPress\Feature\RelatedPosts::find_related()` parameter name change to `$post_return`. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
+* The `ep_remote_request` action to also run on non-blocking requests. Props [@felipeelia](https://github.com/felipeelia) via [#4093](https://github.com/10up/ElasticPress/pull/4093).
 
 ### Deprecated
 ### Removed
@@ -33,6 +37,11 @@ This version bumps the minimum WordPress version to 6.2+.
 * PHP warning: Attempt to read property "base" on null. Props [@burhandodhy](https://github.com/burhandodhy) and [@yarovikov](https://github.com/yarovikov) via [#4060](https://github.com/10up/ElasticPress/pull/4060).
 * Notice not displayed while updating a term. Props [@burhandodhy](https://github.com/burhandodhy) and [@MARQAS](https://github.com/MARQAS) via [#4070](https://github.com/10up/ElasticPress/pull/4070).
 * PHP Notice: Function _load_textdomain_just_in_time was called incorrectly. Props [@burhandodhy](https://github.com/burhandodhy) via [#4065](https://github.com/10up/ElasticPress/pull/4065).
+* PHP 8.4: Implicitly marking parameter $woocommerce as nullable is deprecated. Props [@BrookeDot](https://github.com/BrookeDot) via [#4087](https://github.com/10up/ElasticPress/pull/4087).
+* WP-CLI sync timer resetting after 16 minutes. Props [@felipeelia](https://github.com/felipeelia) and [@columbian-chris](https://github.com/columbian-chris) via [#4094](https://github.com/10up/ElasticPress/pull/4094).
+* Cannot get outside of autosuggest list pressing up on first item. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#4064](https://github.com/10up/ElasticPress/pull/4064).
+* Prevent other code from modifying the ORDERBY clause in Post and Term indexable queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#4101](https://github.com/10up/ElasticPress/pull/4101).
+* Date Query returns no result when the before and after range is the same and inclusive is set to true. Props [@burhandodhy](https://github.com/burhandodhy) and [@ErikBrendel](https://github.com/ErikBrendel) via [#4103](https://github.com/10up/ElasticPress/pull/4103).
 
 ### Security
 * Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot) via [#4078](https://github.com/10up/ElasticPress/pull/4078).
