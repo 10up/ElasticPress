@@ -116,9 +116,9 @@ class StatusReport {
 	 * Get single report by slug in AJAX context.
 	 *
 	 * @param string $report_slug Report slug
-	 * @return \ElasticPress\StatusReport\AjaxReport|false
+	 * @return \ElasticPress\StatusReport\AjaxReport|\WP_Error
 	 */
-	public function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|false {
+	public function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|\WP_Error {
 		if ( isset( $this->formatted_reports[ $report_slug ] ) ) {
 			return $this->formatted_reports[ $report_slug ];
 		}
@@ -137,7 +137,7 @@ class StatusReport {
 		];
 
 		if ( ! isset( $report_map[ $report_slug ] ) ) {
-			return new WP_Error( 'ep_status_report_not_found', __( 'Status report not found.', 'elasticpress' ), [ 'status' => 404 ] );
+			return new \WP_Error( 'ep_status_report_not_found', __( 'Status report not found.', 'elasticpress' ), [ 'status' => 404 ] );
 		}
 
 		$report_instance = $report_map[ $report_slug ]();
