@@ -292,7 +292,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 
 		$report = new \ElasticPress\StatusReport\IndexableContent();
 
-		$this->assertSame( $expected_result, $report->get_ajax_groups() );
+		$this->assertSame( $expected_result, $report->get_groups_ajax() );
 		$this->assertEquals( 'Indexable Content', $report->get_title() );
 	}
 

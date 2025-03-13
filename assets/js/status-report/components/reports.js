@@ -168,6 +168,7 @@ export default ({ plainTextReport, reports }) => {
 				<Flex justify="start">
 					<FlexItem>
 						<Button
+							id="generate-full-report"
 							disabled={generatedReport}
 							onClick={handleReportLoading}
 							variant="primary"
@@ -177,6 +178,7 @@ export default ({ plainTextReport, reports }) => {
 					</FlexItem>
 					<FlexItem>
 						<Button
+							id="download-report"
 							download="elasticpress-report.txt"
 							href={downloadUrl}
 							variant="primary"
@@ -185,7 +187,7 @@ export default ({ plainTextReport, reports }) => {
 						</Button>
 					</FlexItem>
 					<FlexItem>
-						<Button ref={ref} variant="secondary">
+						<Button id="copy-report" ref={ref} variant="secondary">
 							{copyButtontext}
 						</Button>
 					</FlexItem>
