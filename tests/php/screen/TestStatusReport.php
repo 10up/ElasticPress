@@ -522,7 +522,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 		$status_report = new StatusReport();
 		$report        = $status_report->get_single_report( 'not-valid' );
 
-		$this->assertFalse( $report );
+		$this->assertInstanceof( \WP_Error, $report );
 	}
 
 	/**
