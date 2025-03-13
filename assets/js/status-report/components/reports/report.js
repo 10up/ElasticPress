@@ -6,7 +6,6 @@ import { WPElement } from '@wordpress/element';
 /**
  * Internal dependencies.
  */
-// import ReportHeader from './report/header';
 import ReportContent from './report/content';
 import ReportContainer from './report/container';
 
