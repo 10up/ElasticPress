@@ -502,33 +502,6 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test that a single report with valid slug.
-	 *
-	 * @group statusReport
-	 *
-	 * @since 5.2.0
-	 */
-	public function testGetSingleReportValidSlug() {
-		$status_report = new StatusReport();
-		$report        = $status_report->get_single_report( 'indexable' );
-
-		$this->assertInstanceOf( \ElasticPress\StatusReport\IndexableContent::class, $report );
-	}
-
-	/**
-	 * Test that a single report with invalid slug.
-	 *
-	 * @group statusReport
-	 * @since 5.2.0
-	 */
-	public function testGetSingleReportNonValidSlug() {
-		$status_report = new StatusReport();
-		$report        = $status_report->get_single_report( 'not-valid' );
-
-		$this->assertInstanceof( \WP_Error::class, $report );
-	}
-
-	/**
 	 * Test ajax report handler with nonce not present.
 	 *
 	 * @group statusReport

@@ -95,13 +95,17 @@ class StatusReport {
 			wp_send_json_error( [ 'message' => __( 'Nonce is not present.', 'elasticpress' ) ], 403 );
 		}
 
+		if ( empty( $this->formatted_reports ) ) {
+			$this->formatted_reports = $this->get_reports();
+		}
+
 		$post = wp_unslash( $_POST );
 
-		$report = $this->get_single_report( $post['report'] );
-
-		if ( is_wp_error( $report ) ) {
-			wp_send_json_error( [ 'message' => $report->get_error_message() ], 404 );
+		if ( empty( $this->formatted_reports[ $post['report'] ] ) ) {
+			wp_send_json_error( [ 'message' => __( 'Status report not found.', 'elasticpress' ) ], 404 );
 		}
+
+		$report = $this->formatted_reports[ $post['report'] ];
 
 		if ( ! $report instanceof \ElasticPress\StatusReport\AjaxReport ) {
 			wp_send_json_error( [ 'message' => __( 'Report is not an AJAX report.', 'elasticpress' ) ], 403 );
@@ -114,41 +118,6 @@ class StatusReport {
 			],
 			200
 		);
-	}
-
-	/**
-	 * Get single report by slug in AJAX context.
-	 *
-	 * @param string $report_slug Report slug
-	 * @return \ElasticPress\StatusReport\AjaxReport|\WP_Error
-	 */
-	public function get_single_report( $report_slug ): \ElasticPress\StatusReport\Report|\WP_Error {
-		if ( isset( $this->formatted_reports[ $report_slug ] ) ) {
-			return $this->formatted_reports[ $report_slug ];
-		}
-
-		$report_map = [
-			'indexable'      => fn() => new \ElasticPress\StatusReport\IndexableContent(),
-			'failed-queries' => function () {
-				$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
-				return new \ElasticPress\StatusReport\FailedQueries( $query_logger );
-			},
-			'autosuggest'    => fn() => new \ElasticPress\StatusReport\ElasticPressIo(),
-			'wordPress'      => fn() => new \ElasticPress\StatusReport\WordPress(),
-			'indices'        => fn() => new \ElasticPress\StatusReport\Indices(),
-			'last-sync'      => fn() => new \ElasticPress\StatusReport\LastSync(),
-			'features'       => fn() => new \ElasticPress\StatusReport\Features(),
-		];
-
-		if ( ! isset( $report_map[ $report_slug ] ) ) {
-			return new \WP_Error( 'ep_status_report_not_found', __( 'Status report not found.', 'elasticpress' ), [ 'status' => 404 ] );
-		}
-
-		$report_instance = $report_map[ $report_slug ]();
-
-		$this->formatted_reports[ $report_slug ] = $report_instance;
-
-		return $report_instance;
 	}
 
 	/**
