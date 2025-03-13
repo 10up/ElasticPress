@@ -577,7 +577,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 			$this->_handleAjax( 'ep_load_groups' );
 		} catch ( \WPAjaxDieContinueException $e ) {
 			$response = json_decode( $this->_last_response, true );
-			$this->assertSame( 'Report not found.', $response['data']['message'] );
+			$this->assertSame( 'Status report not found.', $response['data']['message'] );
 			return;
 		}
 	}

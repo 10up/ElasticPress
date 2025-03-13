@@ -95,8 +95,8 @@ class StatusReport {
 
 		$report = $this->get_single_report( $post['report'] );
 
-		if ( ! $report ) {
-			wp_send_json_error( [ 'message' => 'Report not found.' ], 404 );
+		if ( is_wp_error( $report ) ) {
+			wp_send_json_error( [ 'message' => $report->get_error_message() ], 404 );
 		}
 
 		if ( ! $report instanceof \ElasticPress\StatusReport\AjaxReport ) {
@@ -137,7 +137,7 @@ class StatusReport {
 		];
 
 		if ( ! isset( $report_map[ $report_slug ] ) ) {
-			return false;
+			return new WP_Error( 'ep_status_report_not_found', __( 'Status report not found.', 'elasticpress' ), [ 'status' => 404 ] );
 		}
 
 		$report_instance = $report_map[ $report_slug ]();
