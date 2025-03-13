@@ -841,18 +841,22 @@ class Comment extends Indexable {
 				$args,
 				[
 					'suppress_filters' => false,
-					'orderby'          => 'ID',
-					'order'            => 'DESC',
+					'orderby'          => 'comment_ID',
+					'order'            => 'desc',
 					'paged'            => 1,
 					'offset'           => 0,
 				]
 			);
-			add_filter( 'comments_clauses', [ $this, 'bulk_indexing_filter_comments_where' ], 9999, 2 );
+
+			// It's important to pass a custom cache domain. By default, WordPress caches results based on the default query arguments and doesn't account for custom arguments. @see \WP_Comment_Query::get_comments()
+			$cache_key            = md5( get_current_blog_id() . wp_json_encode( $args ) );
+			$args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
+
+			add_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
 
 			$query         = new WP_Comment_Query( $args );
-			$total_objects = $query->found_comments;
-
-			remove_filter( 'comments_clauses', [ $this, 'bulk_indexing_filter_comments_where' ], 9999, 2 );
+			$total_objects = $this->get_total_objects_for_query( $args );
+			remove_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
 		} else {
 			$query         = new WP_Comment_Query( $args );
 			$total_objects = $query->found_comments;
@@ -914,6 +918,31 @@ class Comment extends Indexable {
 		}
 
 		return $clauses;
+	}
+
+	/**
+	 * Get the total number of comments for a given query.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The query result's found_comments.
+	 */
+	protected function get_total_objects_for_query( $query_args ) {
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
+
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
+
+		$normalized_query_args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
+
+		return ( new WP_Comment_Query( $normalized_query_args ) )->found_comments;
 	}
 
 	/**
