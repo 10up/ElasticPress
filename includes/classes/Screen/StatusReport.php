@@ -85,8 +85,12 @@ class StatusReport {
 
 	/**
 	 * AJAX action to load an individual report group.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return void
 	 */
-	public function action_wp_ajax_ep_load_groups() {
+	public function action_wp_ajax_ep_load_groups(): void {
 		if ( ! isset( $_POST['ep-status-report-nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ep-status-report-nonce'] ) ), 'ep-status-report-nonce' ) ) {
 			wp_send_json_error( [ 'message' => __( 'Nonce is not present.', 'elasticpress' ) ], 403 );
 		}

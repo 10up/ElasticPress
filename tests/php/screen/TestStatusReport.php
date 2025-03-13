@@ -505,6 +505,8 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * Test that a single report with valid slug.
 	 *
 	 * @group statusReport
+	 *
+	 * @since 5.2.0
 	 */
 	public function testGetSingleReportValidSlug() {
 		$status_report = new StatusReport();
@@ -517,6 +519,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * Test that a single report with invalid slug.
 	 *
 	 * @group statusReport
+	 * @since 5.2.0
 	 */
 	public function testGetSingleReportNonValidSlug() {
 		$status_report = new StatusReport();
@@ -529,6 +532,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * Test ajax report handler with nonce not present.
 	 *
 	 * @group statusReport
+	 * @since 5.2.0
 	 */
 	public function testNoncenotValidAjaxReport() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
@@ -546,6 +550,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * Test report not instance of ajax report.
 	 *
 	 * @group statusReport
+	 * @since 5.2.0
 	 */
 	public function testNotInstanceOfAjaxReport() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
@@ -566,6 +571,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * Test ajax report handler with report not found.
 	 *
 	 * @group statusReport
+	 * @since 5.2.0
 	 */
 	public function testReportNotFoundAjaxReport() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
@@ -586,6 +592,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * Test ajax report handler with valid report.
 	 *
 	 * @group statusReport
+	 * @since 5.2.0
 	 */
 	public function testValidReportAjaxReport() {
 		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );

@@ -3,6 +3,8 @@
  * AjaxReport abstract class
  *
  * @package elasticpress
+ *
+ * @since 5.2.0
  */
 
 namespace ElasticPress\StatusReport;
