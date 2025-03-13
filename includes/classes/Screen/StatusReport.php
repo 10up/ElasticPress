@@ -88,7 +88,7 @@ class StatusReport {
 	 */
 	public function action_wp_ajax_ep_load_groups() {
 		if ( ! isset( $_POST['ep-status-report-nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ep-status-report-nonce'] ) ), 'ep-status-report-nonce' ) ) {
-			wp_send_json_error( [ 'message' => 'Nonce is not present.' ], 403 );
+			wp_send_json_error( [ 'message' => __( 'Nonce is not present.', 'elasticpress' ) ], 403 );
 		}
 
 		$post = wp_unslash( $_POST );
@@ -100,7 +100,7 @@ class StatusReport {
 		}
 
 		if ( ! $report instanceof \ElasticPress\StatusReport\AjaxReport ) {
-			wp_send_json_error( [ 'message' => 'Report is not an AJAX report.' ], 403 );
+			wp_send_json_error( [ 'message' => __( 'Report is not an AJAX report.', 'elasticpress' ) ], 403 );
 		}
 
 		wp_send_json_success(
