@@ -239,6 +239,12 @@ Thank you to all the people who have already contributed to this repository via 
 [Dharmesh Patel (@iamdharmesh)](https://github.com/iamdharmesh),
 [Lucas Grzegorczyk (@furai)](https://github.com/furai),
 [Ananda Dhakal (@dhakalananda)](https://github.com/dhakalananda),
+[Eduardo Pittol (@edpittol)](https://github.com/edpittol),
+[David Sword (@davidsword)](https://github.com/davidsword),
+[@realrellek](https://github.com/realrellek),
+[Arturo Monge (@arturomonge)](https://github.com/arturomonge),
+[Majix (@majiix)](https://github.com/majiix),
+[Maarten Hunink (@maartenhunink)](https://github.com/maartenhunink),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

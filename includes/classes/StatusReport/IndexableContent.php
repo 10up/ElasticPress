@@ -24,7 +24,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Indexable Content', 'elasticpress' );
 	}
 
@@ -33,7 +33,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		return $this->get_indexable_content_groups();
 	}
 
@@ -42,7 +42,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_indexable_content_groups() : array {
+	protected function get_indexable_content_groups(): array {
 		$groups = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -66,7 +66,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_indexable_content_group() : array {
+	protected function get_indexable_content_group(): array {
 		$post_counts = $this->get_post_count_group();
 		$meta_counts = $this->get_post_meta_fields();
 
@@ -88,7 +88,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_post_count_group() : array {
+	protected function get_post_count_group(): array {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
@@ -126,7 +126,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_post_meta_fields() : array {
+	protected function get_post_meta_fields(): array {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 

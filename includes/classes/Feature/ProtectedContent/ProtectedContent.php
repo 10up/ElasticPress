@@ -30,18 +30,26 @@ class ProtectedContent extends Feature {
 	public function __construct() {
 		$this->slug = 'protected_content';
 
-		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
-
-		$this->summary = '<p>' . __( 'Syncs unpublished content — including private, draft, and scheduled posts — improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.', 'elasticpress' ) . '</p>' .
-			'<p><em>' . __( 'We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.', 'elasticpress' ) . '</em></p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#protected-content', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Syncs unpublished content — including private, draft, and scheduled posts — improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.', 'elasticpress' ) . '</p>' .
+		'<p><em>' . __( 'We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.', 'elasticpress' ) . '</em></p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#protected-content', 'elasticpress' );
 	}
 
 	/**
@@ -174,10 +182,8 @@ class ProtectedContent extends Feature {
 			}
 
 			$query->set( 'ep_integrate', true );
-		} else {
-			if ( ! empty( $supported_post_types[ $post_type ] ) ) {
+		} elseif ( ! empty( $supported_post_types[ $post_type ] ) ) {
 				$query->set( 'ep_integrate', true );
-			}
 		}
 
 		/**
@@ -356,12 +362,9 @@ class ProtectedContent extends Feature {
 			}
 
 			$comment_query->query_vars['ep_integrate'] = true;
-		} else {
-			if ( in_array( $comment_type, $supported_comment_types, true ) ) {
+		} elseif ( in_array( $comment_type, $supported_comment_types, true ) ) {
 				$comment_query->query_vars['ep_integrate'] = true;
-			}
 		}
-
 	}
 
 	/**
@@ -425,7 +428,7 @@ class ProtectedContent extends Feature {
 	 * @param bool      $skip     Current value of $skip
 	 * @return bool
 	 */
-	public function sync_password_protected( $new_skip, bool $skip ) : bool {
+	public function sync_password_protected( $new_skip, bool $skip ): bool {
 		return $skip;
 	}
 
@@ -446,7 +449,7 @@ class ProtectedContent extends Feature {
 		}
 
 		$screen = get_current_screen();
-		if ( 'edit' !== $screen->base ) {
+		if ( empty( $screen ) || 'edit' !== $screen->base ) {
 			return $default_sort;
 		}
 

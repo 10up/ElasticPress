@@ -221,7 +221,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Use the `ep_index_prefix` filter so `get_index_prefix()` can return something.
 		 */
-		$custom_index_prefix = function() {
+		$custom_index_prefix = function () {
 			return 'custom-prefix';
 		};
 		add_filter( 'ep_index_prefix', $custom_index_prefix );
@@ -230,7 +230,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_request_id_base` filter
 		 */
-		$custom_request_id_base = function( $base ) {
+		$custom_request_id_base = function ( $base ) {
 			return $base . '-plus';
 		};
 		add_filter( 'ep_request_id_base', $custom_request_id_base );
@@ -248,7 +248,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Use the `ep_request_id_base` filter so `get_request_id_base()` can return something.
 		 */
-		$custom_request_id_base = function() {
+		$custom_request_id_base = function () {
 			return 'indexprefix';
 		};
 		add_filter( 'ep_request_id_base', $custom_request_id_base );
@@ -257,7 +257,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_request_id` filter
 		 */
-		$custom_request_id = function( $request_id ) {
+		$custom_request_id = function ( $request_id ) {
 			$this->assertMatchesRegularExpression( '/indexprefix[0-9a-f]{32}/', $request_id );
 			return 'totally-new-request-id';
 		};
@@ -276,7 +276,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_capability` filter.
 		 */
-		$change_cap_name = function( $cap, $context ) {
+		$change_cap_name = function ( $cap, $context ) {
 			$this->assertSame( 'manage_elasticpress', $cap );
 			$this->assertSame( 'context', $context );
 			return 'custom_manage_ep';
@@ -297,7 +297,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_network_capability` filter.
 		 */
-		$change_cap_name = function( $cap, $context ) {
+		$change_cap_name = function ( $cap, $context ) {
 			$this->assertSame( 'manage_network_elasticpress', $cap );
 			$this->assertSame( 'context', $context );
 			return 'custom_manage_network_ep';
@@ -332,7 +332,7 @@ class TestUtils extends BaseTestCase {
 	 * @since 5.1.0
 	 */
 	public function test_get_post_map_capabilities_with_context() {
-		$change_cap_name = function( $cap, $context ) {
+		$change_cap_name = function ( $cap, $context ) {
 			$this->assertSame( 'manage_elasticpress', $cap );
 			$this->assertSame( 'context', $context );
 			return 'custom_manage_ep';
@@ -394,9 +394,6 @@ class TestUtils extends BaseTestCase {
 				],
 				'items'  => [
 					[
-						'index' => [
-							'status' => 201,
-						],
 						'index' => [
 							'error' => [
 								'reason' => 'Error reason',
@@ -478,7 +475,7 @@ class TestUtils extends BaseTestCase {
 	public function test_get_language() {
 		$this->assertSame( 'site-default', Utils\get_language() );
 
-		$set_lang_via_option = function() {
+		$set_lang_via_option = function () {
 			return 'custom_via_option';
 		};
 		if ( is_multisite() ) {
@@ -492,7 +489,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_default_language` filter
 		 */
-		$set_lang_via_filter = function( $ep_language ) {
+		$set_lang_via_filter = function ( $ep_language ) {
 			$this->assertSame( 'custom_via_option', $ep_language );
 			return 'custom_via_filter';
 		};

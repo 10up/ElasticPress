@@ -81,10 +81,9 @@ class Token {
 	/**
 	 * Refresh the temporary token.
 	 *
-	 * @param \WP_REST_Request $request Full details about the request.
 	 * @return string|false
 	 */
-	public function refresh_token( \WP_REST_Request $request ) {
+	public function refresh_token() {
 		$user_id = get_current_user_id();
 
 		$endpoint = $this->get_token_endpoint();

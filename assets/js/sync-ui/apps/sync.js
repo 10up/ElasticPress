@@ -111,7 +111,7 @@ export default () => {
 					? __(
 							'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
 							'elasticpress',
-					  )
+						)
 					: sprintf(
 							/* translators: %s: Index type. ElasticPress.io or Elasticsearch. */
 							__(
@@ -121,7 +121,7 @@ export default () => {
 							isEpio
 								? __('on ElasticPress.io', 'elasticpress')
 								: __('in Elasticsearch', 'elasticpress'),
-					  )}
+						)}
 			</p>
 			<Panel className="ep-sync-panel">
 				<PanelBody className="ep-sync-panel__controls">

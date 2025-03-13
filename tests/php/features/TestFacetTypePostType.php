@@ -45,7 +45,7 @@ class TestFacetTypePostType extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_post_type_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_post_type_filter_name', $change_filter_name );
@@ -66,7 +66,7 @@ class TestFacetTypePostType extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_post_type_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_post_type_filter_type', $change_filter_type );
@@ -142,7 +142,7 @@ class TestFacetTypePostType extends BaseTestCase {
 		/**
 		 * Test the `ep_facetable_post_types` filter
 		 */
-		$change_filter_type = function( $post_types ) {
+		$change_filter_type = function ( $post_types ) {
 			$post_types['test'] = 'test';
 			return $post_types;
 		};

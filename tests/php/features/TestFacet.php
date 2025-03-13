@@ -85,7 +85,7 @@ class TestFacet extends BaseTestCase {
 		$facet_type = $this->getMockForAbstractClass( '\ElasticPress\Feature\Facets\FacetType' );
 		$facet_type->expects( $this->exactly( 1 ) )->method( 'setup' );
 
-		$register_facet_type = function( $types ) use ( $facet_type ) {
+		$register_facet_type = function ( $types ) use ( $facet_type ) {
 			$types['test_custom'] = get_class( $facet_type );
 			return $types;
 		};
@@ -237,7 +237,7 @@ class TestFacet extends BaseTestCase {
 		/**
 		 * (Indirectly) test the `ep_facet_filter_name` filter
 		 */
-		$change_ep_facet_filter_name = function( $original_name ) {
+		$change_ep_facet_filter_name = function ( $original_name ) {
 			$this->assertEquals( 'ep_filter_', $original_name );
 			return 'ep_custom_filter_';
 		};
@@ -330,7 +330,7 @@ class TestFacet extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_query_filters` filter
 		 */
-		$add_filter = function( $filters, $args, $query ) {
+		$add_filter = function ( $filters, $args, $query ) {
 			$filters[] = [
 				'terms' => [
 					'post_type' => [ 'post', 'page' ],
@@ -404,6 +404,7 @@ class TestFacet extends BaseTestCase {
 			'cat',
 			'category_name',
 			'post_format',
+			'product_brand',
 			'product_cat',
 			'product_tag',
 			'tag',
@@ -453,7 +454,7 @@ class TestFacet extends BaseTestCase {
 
 		parse_str( 'ep_filter_taxonomy=dolor,sit', $_GET );
 
-		$add_prefix_with_terms = function( $filters ) {
+		$add_prefix_with_terms = function ( $filters ) {
 			$new_terms = [];
 			foreach ( $filters['taxonomies']['taxonomy']['terms'] as $key => $value ) {
 				$new_terms[ 'cap-' . $key ] = $value;

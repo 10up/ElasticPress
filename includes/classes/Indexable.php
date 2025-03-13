@@ -76,7 +76,10 @@ abstract class Indexable {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	public $labels = [];
+	public $labels = [
+		'plural'   => '',
+		'singular' => '',
+	];
 
 	/**
 	 * Get number of bulk items to index per page
@@ -532,7 +535,7 @@ abstract class Indexable {
 			timer_start();
 			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
 			$request_time = timer_stop();
-			$requests++;
+			++$requests;
 
 			/**
 			 * Perform actions before a new batch of documents is processed.
@@ -678,7 +681,6 @@ abstract class Indexable {
 		}
 
 		return $prepared_meta;
-
 	}
 
 	/**
@@ -1183,7 +1185,7 @@ abstract class Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		/**
 		 * Filter the search algorithm to be used
 		 *
@@ -1288,7 +1290,7 @@ abstract class Indexable {
 	 * @param array $mapping The mapping
 	 * @return array
 	 */
-	public function add_ngram_analyzer( array $mapping ) : array {
+	public function add_ngram_analyzer( array $mapping ): array {
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
 			'type'      => 'custom',
 			'tokenizer' => 'standard',

@@ -59,7 +59,6 @@ class TestCommentMultisite extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'comment' )->create_network_alias( $indexes );
 
 		wp_set_current_user( $admin_id );
-
 	}
 
 	/**

@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use \WP_Date_Query;
+use WP_Date_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -211,7 +211,7 @@ class DateQuery extends WP_Date_Query {
 
 		if ( ! empty( $query['before'] ) ) {
 			$range_filters                   = empty( $range_filters[ $column ] ) ? array( "{$column}" => array( "{$lt}" => [] ) ) : $range_filters;
-			$range_filters[ $column ][ $lt ] = $this->build_mysql_datetime( $query['before'] );
+			$range_filters[ $column ][ $lt ] = $this->build_mysql_datetime( $query['before'], $inclusive );
 		}
 
 		if ( ! empty( $query['after'] ) || ! empty( $query['before'] ) ) {

@@ -184,6 +184,7 @@ export default ({ group, postType }) => {
 						onKeyDown={onKeyDown}
 						placeholder={__('Metadata key', 'elasticpress')}
 						value={toAdd}
+						__nextHasNoMarginBottom
 					/>
 					<Button disabled={!toAdd} isSecondary onClick={onClick} variant="secondary">
 						{__('Add', 'elasticpress')}

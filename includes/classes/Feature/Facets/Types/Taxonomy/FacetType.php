@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\Facets\Types\Taxonomy;
 
-use \ElasticPress\Features;
+use ElasticPress\Features;
 
 /**
  * Taxonomy facet type class
@@ -62,7 +62,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_name() : string {
+	public function get_filter_name(): string {
 		/**
 		 * Filter the facet filter name that's added to the URL
 		 *
@@ -79,7 +79,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_type() : string {
+	public function get_filter_type(): string {
 		/**
 		 * Filter the facet filter type. Used by the Facet feature to organize filters.
 		 *
@@ -96,7 +96,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The function name.
 	 */
-	public function get_sanitize_callback() : string {
+	public function get_sanitize_callback(): string {
 
 		/**
 		 * Filter the facet filter sanitize callback.

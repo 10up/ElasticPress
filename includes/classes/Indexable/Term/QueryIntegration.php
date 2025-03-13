@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use \WP_Term_Query;
+use WP_Term_Query;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -419,5 +419,4 @@ class QueryIntegration {
 		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
 		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
-
 }

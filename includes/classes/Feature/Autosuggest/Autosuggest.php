@@ -40,14 +40,6 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
-
-		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
-
-		$this->summary = '<p>' . __( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
@@ -61,6 +53,22 @@ class Autosuggest extends Feature {
 		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
+
+		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
 	}
 
 	/**
@@ -349,12 +357,10 @@ class Autosuggest extends Feature {
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
-		} else {
-			if ( Utils\is_epio() ) {
+		} elseif ( Utils\is_epio() ) {
 				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
-			} else {
-				$endpoint_url = $settings['endpoint_url'];
-			}
+		} else {
+			$endpoint_url = $settings['endpoint_url'];
 		}
 
 		if ( empty( $endpoint_url ) ) {
@@ -933,7 +939,7 @@ class Autosuggest extends Feature {
 	 * @since 5.1.0
 	 * @return array
 	 */
-	protected function get_contexts() : array {
+	protected function get_contexts(): array {
 		/**
 		 * Filter contexts for autosuggest.
 		 *

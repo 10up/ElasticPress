@@ -22,7 +22,7 @@ class LastSync extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Last Sync', 'elasticpress' );
 	}
 
@@ -31,7 +31,7 @@ class LastSync extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$fields = [];
 
 		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_sync();

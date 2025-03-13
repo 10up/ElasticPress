@@ -25,15 +25,23 @@ class Documents extends Feature {
 	public function __construct() {
 		$this->slug = 'documents';
 
+		$this->requires_install_reindex = false;
+
+		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Documents', 'elasticpress' );
 
 		$this->summary = '<p>' . __( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf, csv, txt.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#documents', 'elasticpress' );
-
-		$this->requires_install_reindex = false;
-
-		parent::__construct();
 	}
 
 	/**

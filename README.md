@@ -24,7 +24,7 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 ElasticPress requires these software with the following versions:
 
 * [Elasticsearch](https://www.elastic.co) 5.2+
-* [WordPress](https://wordpress.org) 6.0+
+* [WordPress](https://wordpress.org) 6.2+
 * [PHP](https://php.net/) 7.4+
 
 ### Compatibility
@@ -37,7 +37,7 @@ Simply downloading the repository files is not enough to have the plugin working
 
 `npm install && npm run build`
 
-[Node.js](https://nodejs.org/en/) (v18) and [npm](https://www.npmjs.com/) (v8) are required.
+[Node.js](https://nodejs.org/en/) (v20) and [npm](https://www.npmjs.com/) (v9) are required.
 
 ## React Components
 

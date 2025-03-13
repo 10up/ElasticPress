@@ -8,7 +8,7 @@
 
 namespace ElasticPressTest;
 
-use \ElasticPress\Feature\Facets\Types\PostType\Renderer;
+use ElasticPress\Feature\Facets\Types\PostType\Renderer;
 /**
  * Facets\Types\PostType\FacetType test class
  */
@@ -65,7 +65,7 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_post_type_value_label` filter
 		 */
-		$change_label = function( $label, $value ) {
+		$change_label = function ( $label, $value ) {
 			return ( 'page' === $value['value'] ) ? 'Different Label' : $label;
 		};
 		add_filter( 'ep_facet_post_type_value_label', $change_label, 10, 2 );
@@ -81,7 +81,7 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_post_type_value_accessible_label` filter
 		 */
-		$change_accessible_label = function( $label, $value ) {
+		$change_accessible_label = function ( $label, $value ) {
 			return ( 'page' === $value['value'] ) ? 'Apply filter!' : $label;
 		};
 		add_filter( 'ep_facet_post_type_value_accessible_label', $change_accessible_label, 10, 2 );
@@ -97,7 +97,7 @@ class TestFacetTypePostTypeRenderer extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_post_type_value_html` filter
 		 */
-		$change_html = function( $html, $value, $url ) {
+		$change_html = function ( $html, $value, $url ) {
 			return ( 'https://example.com' === $url ) ? '<p>Completely custom made element</p>' : $html;
 		};
 		add_filter( 'ep_facet_post_type_value_html', $change_html, 10, 3 );

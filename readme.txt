@@ -1,8 +1,8 @@
 === ElasticPress ===
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
-Tested up to: 6.5
-Stable tag:   5.1.3
+Tested up to: 6.7
+Stable tag:   5.1.4
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,6 +79,60 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 5.1.4 - 2024-12-12 =
+
+__Added:__
+
+* New filter `ep_facet_selected_filters`. Props [@burhandodhy](https://github.com/burhandodhy).
+* New filter `ep_disable_query_logging` to disable query logging. Props [@davidsword](https://github.com/davidsword) and [@rebeccahum](https://github.com/rebeccahum).
+* New setting to Protect Content to use WP default order in admin. Props [@felipeelia](https://github.com/felipeelia) and [@realrellek](https://github.com/realrellek).
+
+__Changed:__
+
+* Apply ElasticPress filters to the requests in status and stats CLI commands. Props [@edpittol](https://github.com/edpittol).
+* Autosuggest Endpoint field explanation. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Alignment of custom search results action icons. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige).
+* Update all of our blocks apiVersion from 2 to 3, to indicate support for working in an iframed editor. Props [@dkotter](https://github.com/dkotter) and [@JakePT](https://github.com/JakePT).
+* If using the new way to index meta, avoid querying distinct meta fields in the sync page. Props [@felipeelia](https://github.com/felipeelia) and [@majiix](https://github.com/majiix).
+* Updated several composer and node packages. Node 20 is now the default version. Props [@felipeelia](https://github.com/felipeelia).
+* Improve readability of sync output (MB/GB) and number formatting on the Health Status page. Props [@columbian-chris](https://github.com/columbian-chris).
+
+__Fixed:__
+
+* Hardcoded `tmp` path replaced with a dynamic value. Props [@burhandodhy](https://github.com/burhandodhy).
+* Variable names and descriptions in the docblocks for `ep_formatted_args` and `ep_post_formatted_args`. Props [@barryceelen](https://github.com/barryceelen).
+* Remove 'None' from Highlight tag list. Props [@burhandodhy](https://github.com/burhandodhy).
+* [Facets] Incorrect link on description when not using a block theme. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Deprecation warning in `strtotime()` call. Props [@felipeelia](https://github.com/felipeelia) and [@barryceelen](https://github.com/barryceelen).
+* Special characters like `\` in search terms for both Autosuggest and Instant Results. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* [WooCommerce] Incompatibility when "Enable table usage" was enabled to filter the product catalog. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Deprecation warning related to PluginPostStatusInfo. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* [Custom Results] Inconsistent Reordering Issue. Props [@felipeelia](https://github.com/felipeelia), [@anjulahettige](https://github.com/anjulahettige), [@burhandodhy](https://github.com/burhandodhy).
+* Update supported document file types in Documents feature summary. Props [@burhandodhy](https://github.com/burhandodhy).
+* "Exclude from search results" to work in AJAX contexts. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Retain CR & RD Labels Upon Saving Custom Search Result Posts. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige).
+* Typo in "All filters" text domain. Props [@felipeelia](https://github.com/felipeelia) and [@arturomonge](https://github.com/arturomonge).
+* Autosuggest GA tracking to work when ad blocks are enabled. The dataLayer.push() call now pushes a custom event called ep_autosuggest_click with ep_autosuggest_search_term and ep_autosuggest_clicked_url as custom parameters. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige).
+* Delay `load_plugin_textdomain` to `init` and set a Domain Path. Props [@felipeelia](https://github.com/felipeelia).
+* Only display the Exclude From Search checkbox if the post type supports `custom-fields`. Props [@felipeelia](https://github.com/felipeelia) and [@maartenhunink](https://github.com/maartenhunink).
+* JS error when submit button is clicked without selecting a date. Props [@burhandodhy](https://github.com/burhandodhy).
+* Deprecated warnings for margin style. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Security:__
+
+* Bumped `composer/composer` from 2.7.0 to 2.7.8. Props [@dependabot](https://github.com/dependabot).
+* Bumped `symfony/process` from 6.4.8 to 6.4.14. Props [@dependabot](https://github.com/dependabot).
+
+__Developer:__
+
+* Tests use ES 8 by default. Props [@felipeelia](https://github.com/felipeelia).
+* Update E2E tests to work properly with the iframed block editor. Props [@dkotter](https://github.com/dkotter).
+* E2e tests for WP 6.6. Props [@felipeelia](https://github.com/felipeelia).
+* E2e tests for WP 6.7. Props [@felipeelia](https://github.com/felipeelia).
+* Unit Tests: Fail faster on requests we know will fail. Props [@felipeelia](https://github.com/felipeelia).
+* E2e tests: Fix the debug-bar-elasticpress dependency of ElasticPress. Props [@felipeelia](https://github.com/felipeelia).
+
+
 = 5.1.3 - 2024-06-11 =
 
 __Fixed:__
@@ -98,11 +152,11 @@ __Security:__
 
 __Changed:__
 
-* Update Support Article URLs. Props [@felipeelia](https://github.com/felipeelia) via [#3919](https://github.com/10up/ElasticPress/pull/3919).
+* Update Support Article URLs. Props [@felipeelia](https://github.com/felipeelia).
 
 __Fixed:__
 
-* Status report page when indexable post types is an empty array. Props [@furai](https://github.com/furai) via [#3910](https://github.com/10up/ElasticPress/pull/3910).
+* Status report page when indexable post types is an empty array. Props [@furai](https://github.com/furai).
 
 = 5.1.0 - 2024-04-29 =
 

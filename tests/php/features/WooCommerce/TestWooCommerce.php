@@ -191,7 +191,7 @@ class TestWooCommerce extends WooCommerceBaseTestCase {
 		/**
 		 * Enable it
 		 */
-		$filter = function() {
+		$filter = function () {
 			return [
 				'woocommerce' => [
 					'orders' => '1',

@@ -59,7 +59,6 @@ class TestTermMultisite extends BaseTestCase {
 		ElasticPress\Indexables::factory()->get( 'term' )->create_network_alias( $indexes );
 
 		wp_set_current_user( $admin_id );
-
 	}
 
 	/**
@@ -149,7 +148,6 @@ class TestTermMultisite extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 8, count( $query->get_terms() ) );
-
 	}
 
 	/**
@@ -276,7 +274,6 @@ class TestTermMultisite extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 8, count( $query->get_terms() ) );
-
 	}
 
 	/**
@@ -372,7 +369,6 @@ class TestTermMultisite extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, count( $query->get_terms() ) );
-
 	}
 
 	/**

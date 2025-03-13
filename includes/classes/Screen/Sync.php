@@ -77,7 +77,7 @@ class Sync {
 			'apiUrl'      => rest_url( 'elasticpress/v1/sync' ),
 			'autoIndex'   => Utils\isset_do_sync_parameter() && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ),
 			'indexMeta'   => Utils\get_indexing_status(),
-			'indexables'  => array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
+			'indexables'  => array_map( fn( $indexable ) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
 			'isEpio'      => Utils\is_epio(),
 			'nonce'       => wp_create_nonce( 'wp_rest' ),
 			'postTypes'   => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),

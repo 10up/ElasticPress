@@ -168,7 +168,6 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'Adding post mapping', $output );
 		$this->assertStringContainsString( 'Mapping sent', $output );
-
 	}
 
 	/**
@@ -227,7 +226,7 @@ class TestCommands extends BaseTestCase {
 
 		add_filter(
 			'ep_config_mapping_request',
-			function() {
+			function () {
 				return new \WP_Error( 'test', 'This was forced to fail' );
 			}
 		);
@@ -244,7 +243,7 @@ class TestCommands extends BaseTestCase {
 
 		add_filter(
 			'ep_config_mapping_request',
-			function() {
+			function () {
 				return new \WP_Error( 'test', 'This was forced to fail' );
 			}
 		);
@@ -623,7 +622,7 @@ class TestCommands extends BaseTestCase {
 		// mock the mapping request to return the error
 		add_filter(
 			'ep_config_mapping_request',
-			function() {
+			function () {
 				return new \WP_Error( 'test', 'This was forced to fail' );
 			}
 		);
@@ -937,7 +936,7 @@ class TestCommands extends BaseTestCase {
 	public function test_sync_stop_on_error() {
 		add_filter(
 			'http_response',
-			function( $request ) {
+			function ( $request ) {
 				$fake_request = json_decode( wp_remote_retrieve_body( $request ) );
 
 				if ( ! empty( $fake_request->items ) ) {
@@ -988,7 +987,7 @@ class TestCommands extends BaseTestCase {
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter(
 			'ep_do_intercept_request',
-			function() {
+			function () {
 				return new \WP_Error( 400, 'Error: Request failed.' );
 			}
 		);
@@ -1027,7 +1026,6 @@ class TestCommands extends BaseTestCase {
 
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( '====== End Stats ======', $output );
-
 	}
 
 	/**
@@ -1283,5 +1281,4 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'This command is deprecated. Please use stop-sync instead.', $output );
 	}
-
 }

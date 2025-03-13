@@ -3,7 +3,7 @@ name: E2E Test
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
@@ -29,7 +29,7 @@ jobs:
         esVersion: ['7.10.1', '8.12.2']
         core:
           - {name: 'WP latest', version: '', wcVersion: ''}
-          - {name: 'WP minimum', version: '6.0', wcVersion: '6.4.0'}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0'}
 
     steps:
     - name: Checkout
@@ -79,7 +79,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+      run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
 
     - name: Test
       run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
@@ -117,7 +117,7 @@ jobs:
         testGroup: ['@slow', '-@slow']
         core:
           - {name: 'WP latest', version: '', wcVersion: ''}
-          - {name: 'WP minimum', version: '6.0', wcVersion: '6.4.0'}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0'}
 
     steps:
     - name: Checkout
@@ -166,7 +166,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
 
     - name: Test
       run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}

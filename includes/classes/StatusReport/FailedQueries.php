@@ -8,8 +8,8 @@
 
 namespace ElasticPress\StatusReport;
 
-use \ElasticPress\QueryLogger;
-use \ElasticPress\Utils;
+use ElasticPress\QueryLogger;
+use ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,7 +41,7 @@ class FailedQueries extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Failed Queries', 'elasticpress' );
 	}
 
@@ -50,7 +50,7 @@ class FailedQueries extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$this->maybe_clear_logs();
 
 		$logs = $this->query_logger->get_logs( false );
@@ -108,7 +108,7 @@ class FailedQueries extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_actions() : array {
+	public function get_actions(): array {
 		global $wp;
 
 		$logs = $this->query_logger->get_logs( false );

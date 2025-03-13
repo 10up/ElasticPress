@@ -131,7 +131,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		/**
 		 * Set a custom Order Number
 		 */
-		$set_custom_order_id = function( $order_id ) {
+		$set_custom_order_id = function ( $order_id ) {
 			return 'custom-' . $order_id;
 		};
 		add_filter( 'woocommerce_order_number', $set_custom_order_id );
@@ -200,7 +200,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 * @group woocommerce-orders-autosuggest
 	 */
 	public function testMappingEs5() {
-		$change_es_version = function() {
+		$change_es_version = function () {
 			return '5.6';
 		};
 		add_filter( 'ep_elasticsearch_version', $change_es_version );
@@ -334,7 +334,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		/**
 		 * Enable it
 		 */
-		$filter = function() {
+		$filter = function () {
 			return [
 				'woocommerce' => [
 					'orders' => '1',
@@ -364,14 +364,14 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 
 		// Turn HPOS on
 		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_custom_orders_table = function() {
+		$change_custom_orders_table = function () {
 			return 'yes';
 		};
 		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
 
 		// Disable legacy mode
 		$legacy_mode        = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
-		$change_legacy_mode = function() {
+		$change_legacy_mode = function () {
 			return 'no';
 		};
 		add_filter( 'pre_option_' . $legacy_mode, $change_legacy_mode );
@@ -418,7 +418,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	public function test_get_setting_help_message_feature_hpos_incompatible() {
 		// Turn HPOS on
 		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_custom_orders_table = function() {
+		$change_custom_orders_table = function () {
 			return 'yes';
 		};
 		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );

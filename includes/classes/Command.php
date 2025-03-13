@@ -10,8 +10,8 @@
 
 namespace ElasticPress;
 
-use \WP_CLI_Command;
-use \WP_CLI;
+use WP_CLI_Command;
+use WP_CLI;
 use ElasticPress\Features;
 use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
@@ -1114,13 +1114,12 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-host'] ) ) {
 			add_filter(
 				'ep_host',
-				function ( $host ) use ( $assoc_args ) {
+				function () use ( $assoc_args ) {
 					return $assoc_args['ep-host'];
 				}
 			);
 		}
 	}
-
 
 	/**
 	 * maybe change index prefix on the fly
@@ -1133,7 +1132,7 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-prefix'] ) ) {
 			add_filter(
 				'ep_index_prefix',
-				function ( $prefix ) use ( $assoc_args ) {
+				function ( $prefix ) use ( $assoc_args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 					return $assoc_args['ep-prefix'];
 				}
 			);
@@ -1329,15 +1328,17 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( 'index_next_batch' === $context ) {
-			$counter++;
+			++$counter;
 			if ( ( $counter % 10 ) === 0 ) {
 				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( Utility::timer_stop() - $time_elapsed ) . ')' : '';
 				$time_elapsed      = Utility::timer_stop( 2 );
 				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . Utility::timer_format( $time_elapsed ) . $time_elapsed_diff ) );
 
-				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
-				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+				$current_memory = memory_get_usage() / 1024 / 1024;
+				$current_memory = ( $current_memory > 1000 ) ? round( $current_memory / 1024, 2 ) . 'gb' : round( $current_memory, 2 ) . 'mb';
+				$peak_memory    = memory_get_peak_usage() / 1024 / 1024;
+				$peak_memory    = ( $peak_memory > 1000 ) ? round( $peak_memory / 1024, 2 ) . 'gb' : round( $peak_memory, 2 ) . 'mb';
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . ' (Peak: ' . $peak_memory . ')' ) );
 			}
 		}
 	}
