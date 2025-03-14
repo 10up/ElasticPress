@@ -91,7 +91,7 @@ describe('Post Indexable', () => {
 		cy.get('#wp-admin-bar-edit a').click();
 		cy.setPostPassword('');
 
-		cy.get('#wp-admin-bar-view a').click();
+		cy.get('#wp-admin-bar-view a').click({ force: true });
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-retrieve-es-document').click({
 			force: true,
 		});
@@ -106,7 +106,7 @@ describe('Post Indexable', () => {
 		cy.get('#wp-admin-bar-edit a').click();
 		cy.setPostPassword('password');
 
-		cy.get('#wp-admin-bar-view a').click();
+		cy.get('#wp-admin-bar-view a').click({ force: true });
 		cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-retrieve-es-document').click({
 			force: true,
 		});
