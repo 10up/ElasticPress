@@ -202,6 +202,60 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	cy.wait(2000);
 });
 
+Cypress.Commands.add('setPostPassword', (password) => {
+	cy.getBlockEditor().as('iframe');
+	cy.get('@iframe').find('h1.editor-post-title__input').click();
+
+	if (wpVersion === '6.2') {
+		cy.get('body').then(($body) => {
+			const $button = $body.find('.edit-post-post-visibility__toggle');
+			if (!$button.is(':visible')) {
+				cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
+			}
+		});
+		cy.get('.edit-post-post-visibility__toggle').click();
+		cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
+			password !== '' ? 'password' : 'public',
+		);
+		if (password !== '') {
+			cy.get(
+				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+			).clearThenType(password);
+		}
+	} else {
+		cy.get('body').then(($body) => {
+			const $button = $body.find('.components-dropdown.editor-post-status');
+			if (!$button.is(':visible')) {
+				cy.get('.editor-header__settings button[aria-label="Settings"]').click();
+			}
+		});
+		cy.get('.components-dropdown.editor-post-status').click();
+		cy.get('.editor-change-status__password-fieldset input[type="checkbox"]').then(($el) => {
+			if (
+				($el.is(':checked') && password === '') ||
+				(!$el.is(':checked') && password !== '')
+			) {
+				cy.wrap($el).click();
+			}
+		});
+		if (password !== '') {
+			cy.get('.editor-change-status__password-input input').type(password);
+		}
+	}
+
+	cy.get('.editor-post-publish-button').click();
+
+	cy.get('.components-snackbar').should('be.visible');
+
+	/**
+	 * Give Elasticsearch some time to process the new post.
+	 *
+	 * @todo instead of waiting for an arbitrary time, we should ensure the post is stored.
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(2000);
+});
+
 Cypress.Commands.add('updateFeatures', (featureName, newValues) => {
 	const escapedNewValues = JSON.stringify(newValues);
 
