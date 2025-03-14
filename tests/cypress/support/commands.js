@@ -215,7 +215,7 @@ Cypress.Commands.add('setPostPassword', (password) => {
 		});
 		cy.get('.edit-post-post-visibility__toggle').click();
 		cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
-			password !== '' ? 'password' : 'publish',
+			password !== '' ? 'password' : 'public',
 		);
 		if (password !== '') {
 			cy.get(
