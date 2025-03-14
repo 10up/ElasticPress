@@ -95,7 +95,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 		add_action( 'admin_bar_menu', [ $this, 'add_admin_bar_status' ], 500 );
 
 		// Delete a post from the index if a password was added
-		add_action( 'post_updated', [ $this, 'delete_password_with_new_password' ], 10, 3 );
+		add_action( 'post_updated', [ $this, 'delete_post_with_new_password' ], 10, 3 );
 	}
 
 	/**
@@ -1097,7 +1097,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 	 * @param \WP_Post $post_before The post object before the update
 	 * @return void
 	 */
-	public function delete_password_with_new_password( $post_id, $post_after, $post_before ) {
+	public function delete_post_with_new_password( $post_id, $post_after, $post_before ) {
 		if ( ! $post_before->post_password && $post_after->post_password ) {
 			Indexables::factory()->get( $this->indexable_slug )->delete( $post_id, false );
 		}
