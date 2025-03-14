@@ -332,7 +332,7 @@ class Features {
 		foreach ( $this->registered_features as $feature_slug => $feature ) {
 			$feature->set_i18n_strings();
 
-			if ( $feature->is_active() ) {
+			if ( $feature->is_active() && 2 !== $feature->requirements_status()->code ) {
 				$feature->setup();
 			}
 		}
