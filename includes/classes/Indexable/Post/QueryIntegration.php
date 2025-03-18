@@ -246,7 +246,7 @@ class QueryIntegration {
 		 * @param  {WP_Query} $query WP Query object
 		 * @return  {string|array} New post types
 		 */
-		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
+		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'] ?? '', $query );
 
 		if ( 'any' === $query_vars['post_type'] ) {
 			unset( $query_vars['post_type'] );

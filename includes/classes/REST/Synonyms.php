@@ -79,8 +79,8 @@ class Synonyms {
 	 * @return string
 	 */
 	public function sanitize_solr( $value ) {
-		$solr = trim( $value );
 		$solr = sanitize_textarea_field( $value );
+		$solr = preg_replace( '/\r\n|\r|\n/', PHP_EOL, $solr );
 
 		return $solr;
 	}

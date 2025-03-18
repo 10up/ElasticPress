@@ -1,15 +1,13 @@
 /**
  * WordPress dependencies.
  */
-import { Button, Notice, Panel, PanelBody, PanelHeader } from '@wordpress/components';
-import { safeHTML } from '@wordpress/dom';
-import { RawHTML, WPElement } from '@wordpress/element';
-import { decodeEntities } from '@wordpress/html-entities';
+import { WPElement } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
-import Value from './report/value';
+import ReportContent from './report/content';
+import ReportContainer from './report/container';
 
 /**
  * Report components.
@@ -20,63 +18,24 @@ import Value from './report/value';
  * @param {string} props.id Report ID.
  * @param {string} props.messages Report messages.
  * @param {string} props.title Report title.
+ * @param {boolean} props.isAjaxReport Whether the report is loaded via AJAX.
+ *
  * @returns {WPElement} Report component.
  */
-export default ({ actions, groups, id, messages, title }) => {
-	if (groups.length < 1) {
+export default ({ actions, groups, id, messages, title, isAjaxReport }) => {
+	if (groups.length < 1 && !isAjaxReport) {
 		return null;
 	}
 
+	if (groups.length < 1 && isAjaxReport) {
+		return <ReportContainer id={id} title={title} actions={actions} messages={messages} />;
+	}
+
 	return (
-		<Panel id={title} className="ep-status-report">
-			<PanelHeader>
-				<h2 id={id}>{title}</h2>
-				{actions.map(({ href, label }) => (
-					<Button
-						href={decodeEntities(href)}
-						isDestructive
-						isSecondary
-						isSmall
-						key={href}
-					>
-						{label}
-					</Button>
-				))}
-			</PanelHeader>
-			{messages.map(({ message, type }) => (
-				<Notice status={type} isDismissible={false}>
-					<RawHTML>{safeHTML(message)}</RawHTML>
-				</Notice>
-			))}
+		<ReportContainer id={id} title={title} actions={actions} messages={messages}>
 			{groups.map(({ fields, title }) => (
-				<PanelBody key={title} title={decodeEntities(title)} initialOpen={false}>
-					<table
-						cellPadding="0"
-						cellSpacing="0"
-						className="wp-list-table widefat striped"
-					>
-						<colgroup>
-							<col />
-							<col />
-						</colgroup>
-						<tbody>
-							{Object.entries(fields).map(
-								([key, { description = '', label, value }]) => (
-									<tr key={key}>
-										<td>
-											{label}
-											{description ? <small>{description}</small> : null}
-										</td>
-										<td>
-											<Value value={value} />
-										</td>
-									</tr>
-								),
-							)}
-						</tbody>
-					</table>
-				</PanelBody>
+				<ReportContent key={title} fields={fields} title={title} />
 			))}
-		</Panel>
+		</ReportContainer>
 	);
 };
