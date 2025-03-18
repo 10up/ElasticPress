@@ -30,9 +30,9 @@ This version bumps the minimum WordPress version to 6.2+.
 * Minimum required version of WordPress (from 6.0 to 6.2). Props [@felipeelia](https://github.com/felipeelia) via [#4082](https://github.com/10up/ElasticPress/pull/4082).
 * `ElasticPress\Feature\RelatedPosts::get_related_query()`, `ElasticPress\Feature\RelatedPosts::find_related()` parameter name change to `$post_return`. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
 * The `ep_remote_request` action to also run on non-blocking requests. Props [@felipeelia](https://github.com/felipeelia) via [#4093](https://github.com/10up/ElasticPress/pull/4093).
+* Potentially resource intensive status reports are loaded on demand with AJAX. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@felipeelia](https://github.com/felipeelia), and [@archon810](https://github.com/archon810) via [#4095](https://github.com/10up/ElasticPress/pull/4095).
+* If a feature doesn't have all its requirements fulfilled, prevent it to run its setup method. Props [@felipeelia](https://github.com/felipeelia) via [#4107](https://github.com/10up/ElasticPress/pull/4107).
 
-### Deprecated
-### Removed
 ### Fixed
 * PHP warning: Attempt to read property "base" on null. Props [@burhandodhy](https://github.com/burhandodhy) and [@yarovikov](https://github.com/yarovikov) via [#4060](https://github.com/10up/ElasticPress/pull/4060).
 * Notice not displayed while updating a term. Props [@burhandodhy](https://github.com/burhandodhy) and [@MARQAS](https://github.com/MARQAS) via [#4070](https://github.com/10up/ElasticPress/pull/4070).
@@ -42,6 +42,9 @@ This version bumps the minimum WordPress version to 6.2+.
 * Cannot get outside of autosuggest list pressing up on first item. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#4064](https://github.com/10up/ElasticPress/pull/4064).
 * Prevent other code from modifying the ORDERBY clause in Post and Term indexable queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#4101](https://github.com/10up/ElasticPress/pull/4101).
 * Date Query returns no result when the before and after range is the same and inclusive is set to true. Props [@burhandodhy](https://github.com/burhandodhy) and [@ErikBrendel](https://github.com/ErikBrendel) via [#4103](https://github.com/10up/ElasticPress/pull/4103).
+* Warning for undefined "post_type" array key. Props [@econscript](https://github.com/econscript) via [#4106](https://github.com/10up/ElasticPress/pull/4106).
+* Delete a post from the index if it had a password added. Props [@felipeelia](https://github.com/felipeelia) and [@dtakken](https://github.com/dtakken) via [#4108](https://github.com/10up/ElasticPress/pull/4108).
+* [Synonyms] Linebreaks being wrongly replaced in Windows Systems. Props [@nymwo](https://github.com/nymwo) via [#4056](https://github.com/10up/ElasticPress/pull/4056).
 
 ### Security
 * Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot) via [#4078](https://github.com/10up/ElasticPress/pull/4078).

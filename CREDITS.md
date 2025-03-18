@@ -250,6 +250,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Brooke. (@BrookeDot)](https://github.com/BrookeDot),
 [@oscarssanchezz](https://github.com/oscarssanchezz),
 [Erik Brendel (@ErikBrendel)](https://github.com/ErikBrendel),
+[Evan Connolly (@econscript)](https://github.com/econscript),
+[Dik Takken (@dtakken)](https://github.com/dtakken),
+[@nymwo](https://github.com/nymwo),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
