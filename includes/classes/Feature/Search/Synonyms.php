@@ -319,7 +319,7 @@ class Synonyms {
 		$synonyms_raw = $this->get_synonyms_raw();
 		$synonyms     = array_values(
 			array_filter(
-				array_map( [ $this, 'validate_synonym' ], explode( PHP_EOL, $synonyms_raw ) )
+				array_map( [ $this, 'validate_synonym' ], preg_split( '/\r\n|\r|\n/', $synonyms_raw ) )
 			)
 		);
 
