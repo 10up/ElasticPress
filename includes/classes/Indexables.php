@@ -111,37 +111,35 @@ class Indexables {
 	 * @param string $slug Indexable slug
 	 * @return boolean
 	 */
-	public function is_active( string $slug ) : bool {
+	public function is_active( string $slug ): bool {
 		return ! empty( $this->active_indexables[ $slug ] );
 	}
 
 	/**
 	 * Get all indexable instances
 	 *
-	 * @param  boolean $global    If true or false, will only get Indexables with that global property.
+	 * @param  boolean $global_property    If true or false, will only get Indexables with that global property.
 	 * @param  boolean $slug_only True returns an array of only string slugs.
 	 * @param  string  $status    Whether to return active indexables or all registered.
 	 * @since  3.0, 4.5.0 Added $status
 	 * @return array
 	 */
-	public function get_all( $global = null, $slug_only = false, $status = 'active' ) {
+	public function get_all( $global_property = null, $slug_only = false, $status = 'active' ) {
 		$indexables = [];
 		$list       = ( 'active' === $status ) ? $this->active_indexables : $this->registered_indexables;
 
 		foreach ( $list as $slug => $indexable ) {
-			if ( null === $global ) {
+			if ( null === $global_property ) {
 				if ( $slug_only ) {
 					$indexables[] = $slug;
 				} else {
 					$indexables[] = $indexable;
 				}
-			} else {
-				if ( $global === $indexable->global ) {
-					if ( $slug_only ) {
-						$indexables[] = $slug;
-					} else {
-						$indexables[] = $indexable;
-					}
+			} elseif ( $global_property === $indexable->global ) {
+				if ( $slug_only ) {
+					$indexables[] = $slug;
+				} else {
+					$indexables[] = $indexable;
 				}
 			}
 		}
@@ -152,7 +150,7 @@ class Indexables {
 	/**
 	 * Return singleton instance of class
 	 *
-	 * @return object
+	 * @return self
 	 */
 	public static function factory() {
 		static $instance = false;

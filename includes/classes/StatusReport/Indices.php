@@ -22,7 +22,7 @@ class Indices extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Elasticsearch Indices', 'elasticpress' );
 	}
 
@@ -31,7 +31,7 @@ class Indices extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$elasticsearch = \ElasticPress\Elasticsearch::factory();
 
 		$should_have_indices   = $elasticsearch->get_index_names();
@@ -77,6 +77,21 @@ class Indices extends Report {
 			$fields['total_fields_limit'] = [
 				'label' => 'total_fields_limit',
 				'value' => $elasticsearch->get_index_total_fields_limit( $index['index'] ),
+			];
+
+			$fields['analyzer_language'] = [
+				'label' => 'analyzer_language',
+				'value' => $elasticsearch->get_index_setting( $index['index'], 'index.analysis.analyzer.default.language' ),
+			];
+
+			$fields['stop_language'] = [
+				'label' => 'stop_language',
+				'value' => $elasticsearch->get_index_setting( $index['index'], 'index.analysis.filter.ep_stop.stopwords' ),
+			];
+
+			$fields['snowball_language'] = [
+				'label' => 'snowball_language',
+				'value' => $elasticsearch->get_index_setting( $index['index'], 'index.analysis.filter.ewp_snowball.language' ),
 			];
 
 			$groups[] = [

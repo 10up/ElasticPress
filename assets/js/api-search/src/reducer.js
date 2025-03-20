@@ -29,8 +29,15 @@ export default (state, action) => {
 			break;
 		}
 		case 'SEARCH': {
-			newState.args = { ...newState.args, ...action.args, offset: 0 };
+			const { updateDefaults, ...args } = action.args;
+
+			newState.args = { ...newState.args, ...args, offset: 0 };
 			newState.isOn = true;
+
+			if (updateDefaults && args.post_type.length) {
+				newState.argsSchema.post_type.default = args.post_type;
+			}
+
 			break;
 		}
 		case 'SEARCH_FOR': {
@@ -56,7 +63,10 @@ export default (state, action) => {
 			const {
 				hits: { hits, total },
 				aggregations,
+				suggest,
 			} = action.response;
+
+			newState.isFirstSearch = false;
 
 			/**
 			 * Total number of items.
@@ -67,6 +77,7 @@ export default (state, action) => {
 			newState.searchResults = hits;
 			newState.searchTerm = newState.args.search;
 			newState.totalResults = totalNumber;
+			newState.suggestedTerms = suggest?.ep_suggestion?.[0]?.options || [];
 
 			break;
 		}

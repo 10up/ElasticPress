@@ -8,6 +8,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use ElasticPress\Utils;
 
 /**
  * Elasticsearch test class
@@ -108,7 +109,7 @@ class TestElasticsearch extends BaseTestCase {
 
 		add_action(
 			'ep_update_index_settings',
-			function( $index_name, $settings ) {
+			function ( $index_name, $settings ) {
 				$this->assertSame( $index_name, 'lorem-ipsum' );
 				$this->assertSame( $settings, [ 'test' ] );
 			},
@@ -124,41 +125,51 @@ class TestElasticsearch extends BaseTestCase {
 	}
 
 	/**
-	 * Test get_index_total_fields_limit
+	 * Test the `get_index_settings` method
 	 *
-	 * @since 4.4.0
+	 * @since 4.7.0
 	 * @group elasticsearch
 	 */
-	public function testGetIndexTotalFieldsLimit() {
-		$index_name = 'test-index';
-		$cache_key  = 'ep_total_fields_limit_' . $index_name;
+	public function test_get_index_settings() {
+		$index_name            = 'test-index';
+		$cache_key             = 'ep_index_settings_' . $index_name;
+		$transient_filter_name = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ?
+			'pre_site_transient_' . $cache_key :
+			'pre_transient_' . $cache_key;
 
-		$transient_filter_name = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? 'pre_site_transient_' . $cache_key : 'pre_transient_' . $cache_key;
+		$wrong_settings = [
+			'response' => [ 'code' => 500 ],
+		];
 
-		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\Elasticsearch::class )
-			->setMethods( [ 'get_index_settings' ] )
-			->getMock();
-
-		$wrong_settings = [ '' ];
-		$right_settings = [
+		$test_settings  = [
 			$index_name => [
 				'settings' => [
 					'index.mapping.total_fields.limit' => 123,
 				],
 			],
 		];
+		$right_settings = [
+			'response' => [ 'code' => 200 ],
+			'body'     => wp_json_encode( $test_settings ),
+		];
+
+		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\Elasticsearch::class )
+			->setMethods( [ 'remote_request' ] )
+			->getMock();
 
 		/**
-		 * We call get_index_total_fields_limit 4 times:
-		 * 1. Fake cache, so get_index_settings is not called
-		 * 2. get_index_settings returns a WP_Error
-		 * 3. get_index_settings returns a settings array that does not match what we expect
-		 * 4. get_index_settings returns what we expect
+		 * We call get_index_settings 4 times:
+		 * 1. Fake cache, so remote_request is not called
+		 * 2. Fake cache but force refresh, so remote_request is called
+		 * 3. remote_request returns a WP_Error
+		 * 4. remote_request returns a settings array that does not match what we expect
+		 * 5. remote_request returns what we expect
 		 */
-		$elasticsearch_mock->expects( $this->exactly( 3 ) )
-			->method( 'get_index_settings' )
+		$elasticsearch_mock->expects( $this->exactly( 4 ) )
+			->method( 'remote_request' )
 			->willReturnOnConsecutiveCalls(
-				[ new \WP_Error() ],
+				new \WP_Error(),
+				new \WP_Error(),
 				$wrong_settings,
 				$right_settings
 			);
@@ -166,37 +177,95 @@ class TestElasticsearch extends BaseTestCase {
 		/**
 		 * Test when cached
 		 */
-		$set_cached_value = function() {
+		$set_cached_value = function () {
 			return 'cached';
 		};
 		add_filter( $transient_filter_name, $set_cached_value );
-		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
-		$this->assertSame( 'cached', $limit );
+		$settings = $elasticsearch_mock->get_index_settings( $index_name );
+		$this->assertSame( 'cached', $settings );
+
+		/**
+		 * Test cached but force-refresh (so cache is not used)
+		 */
+		$settings = $elasticsearch_mock->get_index_settings( $index_name, force_refresh: true );
+		$this->assertInstanceOf( 'WP_Error', $settings );
+		Utils\delete_transient( $cache_key );
 
 		remove_filter( $transient_filter_name, $set_cached_value );
 
 		/**
 		 * Test when the request errors out
 		 */
-		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
-		$this->assertNull( $limit );
+		$settings = $elasticsearch_mock->get_index_settings( $index_name );
+		$this->assertInstanceOf( 'WP_Error', $settings );
+		Utils\delete_transient( $cache_key );
 
 		/**
 		 * Test when the request returns something we do not expect
 		 */
-		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
-		$this->assertNull( $limit );
+		$settings = $elasticsearch_mock->get_index_settings( $index_name );
+		$this->assertInstanceOf( 'WP_Error', $settings );
+		$this->assertSame( 500, $settings->get_error_data()['response']['code'] );
+		Utils\delete_transient( $cache_key );
 
 		/**
 		 * Test when the request returns something we do expect
 		 */
-		$limit = $elasticsearch_mock->get_index_total_fields_limit( $index_name );
-		$this->assertSame( 123, $limit );
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$this->assertSame( 123, get_site_transient( $cache_key ) );
-		} else {
-			$this->assertSame( 123, get_transient( $cache_key ) );
-		}
+		$settings = $elasticsearch_mock->get_index_settings( $index_name );
+		$this->assertSame( $test_settings, $settings );
+		$this->assertSame( $test_settings, Utils\get_transient( $cache_key ) );
+		Utils\delete_transient( $cache_key );
+	}
+
+	/**
+	 * Test the `get_index_setting` method
+	 *
+	 * @since 4.7.0
+	 * @group elasticsearch
+	 */
+	public function test_get_index_setting() {
+		$index_name = 'test-index';
+
+		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\Elasticsearch::class )
+			->setMethods( [ 'get_index_settings' ] )
+			->getMock();
+		$elasticsearch_mock->expects( $this->exactly( 3 ) )
+			->method( 'get_index_settings' )
+			->willReturnOnConsecutiveCalls(
+				new \WP_Error(),
+				[ $index_name => [] ],
+				[
+					$index_name => [
+						'settings' => [ 'test_setting' => 1 ],
+					],
+				]
+			);
+
+		// WP_Error
+		$this->assertNull( $elasticsearch_mock->get_index_setting( $index_name, 'test_setting' ) );
+		// Empty settings array
+		$this->assertNull( $elasticsearch_mock->get_index_setting( $index_name, 'test_setting' ) );
+		// Correct value
+		$this->assertSame( 1, $elasticsearch_mock->get_index_setting( $index_name, 'test_setting' ) );
+	}
+
+	/**
+	 * Test the `get_index_total_fields_limit` method
+	 *
+	 * @since 4.7.0
+	 * @group elasticsearch
+	 */
+	public function test_get_index_total_fields_limit() {
+		$index_name = 'test-index';
+
+		$elasticsearch_mock = $this->getMockBuilder( \ElasticPress\Elasticsearch::class )
+			->setMethods( [ 'get_index_setting' ] )
+			->getMock();
+		$elasticsearch_mock->expects( $this->exactly( 1 ) )
+			->method( 'get_index_setting' )
+			->willReturn( 1 );
+
+		$this->assertSame( 1, $elasticsearch_mock->get_index_total_fields_limit( $index_name ) );
 	}
 
 	/**
@@ -242,7 +311,7 @@ class TestElasticsearch extends BaseTestCase {
 		/**
 		 * Test the `ep_format_request_headers` filter
 		 */
-		$change_headers = function( $headers ) {
+		$change_headers = function ( $headers ) {
 			$headers['X-Custom'] = 'totally custom';
 			return $headers;
 		};
@@ -308,5 +377,69 @@ class TestElasticsearch extends BaseTestCase {
 			'present_indices' => [],
 		];
 		$this->assertEqualsCanonicalizing( $expected, \ElasticPress\Elasticsearch::factory()->get_indices_comparison() );
+	}
+
+	/**
+	 * Test the ep_disable_query_logging filter
+	 *
+	 * @since 5.1.4
+	 * @group elasticsearch
+	 */
+	public function testEpDisableQueryLoggingFilter() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		$reflection = new \ReflectionClass( $elasticsearch );
+		$property   = $reflection->getProperty( 'queries' );
+		$property->setAccessible( true );
+		$method = $reflection->getMethod( 'add_query_log' );
+		$method->setAccessible( true );
+
+		$example_query = [ 'example_query' ];
+
+		add_filter( 'ep_disable_query_logging', '__return_true' );
+
+		$method->invokeArgs( $elasticsearch, [ $example_query ] );
+		$this->assertEmpty( $property->getValue( $elasticsearch ) );
+
+		remove_filter( 'ep_disable_query_logging', '__return_true' );
+
+		$method->invokeArgs( $elasticsearch, [ $example_query ] );
+
+		$queries = $property->getValue( $elasticsearch );
+		$this->assertCount( 1, $queries );
+		$this->assertSame( $example_query, $queries[0] );
+	}
+
+	/**
+	 * Test the `ep_remote_request` action
+	 *
+	 * @since 5.2.0
+	 * @group elasticsearch
+	 */
+	public function test_ep_remote_request_action() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		// Make sure we don't fire any real request
+		add_filter( 'ep_do_intercept_request', '__return_empty_array' );
+
+		$callback = function ( $query, $type ) {
+			$this->assertIsArray( $query );
+			$this->assertSame( 'example_type', $type );
+		};
+		add_action( 'ep_remote_request', $callback, 10, 2 );
+
+		// It starts with 1, likely because of some previous tests.
+		$initial_count = did_action( 'ep_remote_request' );
+
+		$elasticsearch->remote_request( '', [], [], 'example_type' );
+		$this->assertSame( $initial_count + 1, did_action( 'ep_remote_request' ) );
+
+		// Make sure we execute the action even on non-blocking requests
+		$callback = function ( $query ) {
+			$this->assertFalse( $query['args']['blocking'] );
+		};
+		add_action( 'ep_remote_request', $callback, 10, 2 );
+		$elasticsearch->remote_request( '', [ 'blocking' => false ], [], 'example_type' );
+		$this->assertSame( $initial_count + 2, did_action( 'ep_remote_request' ) );
 	}
 }

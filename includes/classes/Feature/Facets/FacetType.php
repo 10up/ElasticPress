@@ -26,21 +26,21 @@ abstract class FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	abstract public function get_filter_name() : string;
+	abstract public function get_filter_name(): string;
 
 	/**
 	 * Get the facet filter type.
 	 *
 	 * @return string The filter name.
 	 */
-	abstract public function get_filter_type() : string;
+	abstract public function get_filter_type(): string;
 
 	/**
 	 * Get the facet sanitize function.
 	 *
 	 * @return string The function name.
 	 */
-	public function get_sanitize_callback() : string {
+	public function get_sanitize_callback(): string {
 
 		/**
 		 * Filter the facet filter sanitize callback.
@@ -78,7 +78,7 @@ abstract class FacetType {
 	 * @param array $filters      Selected filters
 	 * @return array
 	 */
-	public function add_query_params( array $query_params, array $filters ) : array {
+	public function add_query_params( array $query_params, array $filters ): array {
 		$selected = $filters[ $this->get_filter_type() ];
 
 		foreach ( $selected as $facet => $filter ) {
@@ -88,5 +88,38 @@ abstract class FacetType {
 		}
 
 		return $query_params;
+	}
+
+	/**
+	 * Get all facet fields selected across all blocks of the current facet type.
+	 *
+	 * Given a block name, e.g., `elasticpress/facet-meta` this method returns all meta fields
+	 * selected in all blocks.
+	 *
+	 * @param string $block_name The block name
+	 * @return array
+	 */
+	protected function block_template_meta_fields( string $block_name ): array {
+		$block_template_utils = \ElasticPress\get_container()->get( '\ElasticPress\BlockTemplateUtils' );
+		$ep_blocks            = $block_template_utils->get_specific_block_in_all_templates( $block_name );
+
+		return array_filter(
+			array_reduce(
+				$ep_blocks,
+				function ( $acc, $block ) use ( $block_name ) {
+					if ( 0 !== strpos( $block['blockName'], $block_name ) ) {
+						return $acc;
+					}
+
+					if ( empty( $block['attrs']['facet'] ) ) {
+						return $acc;
+					}
+
+					$acc[] = $block['attrs']['facet'];
+					return $acc;
+				},
+				[]
+			)
+		);
 	}
 }

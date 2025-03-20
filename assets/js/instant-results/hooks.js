@@ -4,7 +4,7 @@
 import { useCallback, useRef } from '@wordpress/element';
 
 /**
- * Get debounced version of a function that only runs a given ammount of time
+ * Get debounced version of a function that only runs a given amount of time
  * after the last time it was run.
  *
  * @param {Function} callback Function to debounce.

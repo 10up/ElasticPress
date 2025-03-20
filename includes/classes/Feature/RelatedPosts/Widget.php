@@ -8,8 +8,7 @@
 
 namespace ElasticPress\Feature\RelatedPosts;
 
-use \WP_Widget as WP_Widget;
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -18,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Related posts widget class
  */
-class Widget extends WP_Widget {
+class Widget extends \WP_Widget {
 
 	/**
 	 * Initialize the widget

@@ -8,10 +8,10 @@
 namespace ElasticPress\Feature\SearchOrdering;
 
 use ElasticPress\Feature;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\FeatureRequirementsStatus;
 use ElasticPress\Features;
-use ElasticPress\Indexable\Post\Post;
 use ElasticPress\Indexables;
+use ElasticPress\REST;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -52,15 +52,25 @@ class SearchOrdering extends Feature {
 	public function __construct() {
 		$this->slug = 'searchordering';
 
-		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
-
-		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
-
 		$this->requires_install_reindex = false;
 
+		$this->requires_feature = 'search';
+
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#custom-search-results', 'elasticpress' );
 	}
 
 	/**
@@ -73,7 +83,11 @@ class SearchOrdering extends Feature {
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
-		if ( ! $search->is_active() && $this->is_active() ) {
+		if ( ! Utils\is_site_indexable() ) {
+			return false;
+		}
+
+		if ( ( ! $search->is_active() && $this->is_active() ) ) {
 			$features->deactivate_feature( $this->slug );
 			return false;
 		}
@@ -175,18 +189,8 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return FeatureRequirementsStatus
 	 */
-	public function requirements_status() {
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
-		return parent::requirements_status();
+	public function requirements_status(): FeatureRequirementsStatus {
+		return new FeatureRequirementsStatus( 0 );
 	}
 
 	/**
@@ -219,7 +223,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			Utils\get_capability(),
+			Utils\get_capability( 'search-ordering' ),
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -272,9 +276,6 @@ class SearchOrdering extends Feature {
 	 * Registers the pointer post type for the injected results
 	 */
 	public function register_post_type() {
-		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
-		$menu       = $is_network ? null : false;
-
 		$labels = array(
 			'name'               => esc_html_x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
 			'singular_name'      => esc_html_x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
@@ -298,10 +299,10 @@ class SearchOrdering extends Feature {
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
-			'show_in_menu'         => $menu,
+			'show_in_menu'         => false,
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
-			'capabilities'         => Utils\get_post_map_capabilities(),
+			'capabilities'         => Utils\get_post_map_capabilities( 'search-ordering' ),
 			'has_archive'          => false,
 			'hierarchical'         => false,
 			'menu_position'        => 100,
@@ -334,6 +335,7 @@ class SearchOrdering extends Feature {
 			'show_admin_column' => false,
 			'query_var'         => false,
 			'rewrite'           => false,
+			'public'            => false,
 		);
 
 		/** Features Class @var Features $features */
@@ -462,7 +464,7 @@ class SearchOrdering extends Feature {
 		/** Post Indexable @var Post $post_indexable */
 		$post_indexable = Indexables::factory()->get( 'post' );
 
-		if ( ! isset( $_POST['search-ordering-nonce'] ) || ! wp_verify_nonce( $_POST['search-ordering-nonce'], 'save-search-ordering' ) ) {
+		if ( ! isset( $_POST['search-ordering-nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['search-ordering-nonce'] ), 'save-search-ordering' ) ) {
 			return;
 		}
 
@@ -476,7 +478,8 @@ class SearchOrdering extends Feature {
 		$previous_order_data = get_post_meta( $post_id, 'pointers', true );
 		$previous_post_ids   = ! empty( $previous_order_data ) ? array_flip( wp_list_pluck( $previous_order_data, 'ID' ) ) : [];
 
-		$ordered_posts = json_decode( wp_unslash( $_POST['ordered_posts'] ), true );
+		$ordered_posts = isset( $_POST['ordered_posts'] ) ? wp_unslash( $_POST['ordered_posts'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$ordered_posts = json_decode( $ordered_posts, true );
 
 		$posts_per_page = (int) get_option( 'posts_per_page', 10 );
 
@@ -497,6 +500,7 @@ class SearchOrdering extends Feature {
 				$final_order_data[] = [
 					'ID'    => intval( $order_data['ID'] ),
 					'order' => intval( $order_data['order'] ),
+					'type'  => ! empty( $order_data['type'] ) ? sanitize_text_field( $order_data['type'] ) : 'reordered',
 				];
 			} else {
 				$previous_post_ids[ intval( $order_data['ID'] ) ] = true;
@@ -694,98 +698,8 @@ class SearchOrdering extends Feature {
 	 * Registers the API endpoint for searching from the admin interface
 	 */
 	public function rest_api_init() {
-		register_rest_route(
-			'elasticpress/v1',
-			'pointer_search',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'handle_pointer_search' ],
-				'permission_callback' => function() {
-					return current_user_can( Utils\get_capability() );
-				},
-				'args'                => [
-					's' => [
-						'validate_callback' => function ( $param ) {
-							return ! empty( $param );
-						},
-						'required'          => true,
-					],
-				],
-			]
-		);
-
-		register_rest_route(
-			'elasticpress/v1',
-			'pointer_preview',
-			[
-				'methods'             => 'GET',
-				'callback'            => [ $this, 'handle_pointer_preview' ],
-				'permission_callback' => function() {
-					return current_user_can( Utils\get_capability() );
-				},
-				'args'                => [
-					's' => [
-						'validate_callback' => function ( $param ) {
-							return ! empty( $param );
-						},
-						'required'          => true,
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * Handles the search for posts from the admin interface for the post type
-	 *
-	 * @param \WP_REST_Request $request Rest request
-	 *
-	 * @return array
-	 */
-	public function handle_pointer_search( $request ) {
-		$search = $request->get_param( 's' );
-
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search_feature = $features->get_registered_feature( 'search' );
-
-		$post_types = $search_feature->get_searchable_post_types();
-
-		$query = new \WP_Query(
-			[
-				'post_type'   => $post_types,
-				'post_status' => 'publish',
-				's'           => $search,
-			]
-		);
-
-		return $query->posts;
-	}
-
-	/**
-	 * Handles the search preview on the pointer edit screen
-	 *
-	 * @param \WP_REST_Request $request Rest request
-	 *
-	 * @return array
-	 */
-	public function handle_pointer_preview( $request ) {
-		remove_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
-
-		$search = $request->get_param( 's' );
-
-		$query = new \WP_Query(
-			[
-				's'                => $search,
-				'exclude_pointers' => true,
-			]
-		);
-
-		add_filter( 'ep_searchable_post_types', [ $this, 'searchable_post_types' ] );
-
-		return $query->posts;
+		$controller = new REST\SearchOrdering();
+		$controller->register_routes();
 	}
 
 	/**
@@ -857,7 +771,7 @@ class SearchOrdering extends Feature {
 	protected function assign_term_to_post( $post_id, $term_taxonomy_id, $order ) {
 		global $wpdb;
 
-		$result = $wpdb->query(
+		$result = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			$wpdb->prepare(
 				"INSERT INTO $wpdb->term_relationships (object_id, term_taxonomy_id, term_order) VALUES ( %d, %d, %d ) ON DUPLICATE KEY UPDATE term_order = VALUES(term_order)",
 				$post_id,
@@ -890,5 +804,4 @@ class SearchOrdering extends Feature {
 
 		return $admin_title;
 	}
-
 }

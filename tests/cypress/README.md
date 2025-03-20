@@ -5,7 +5,6 @@ ElasticPress e2e tests use [Cypress](https://www.cypress.io/), [wp-env](https://
 ## Requirements
 
 * docker
-* docker-compose
 * npm (>= 10)
 
 ## Instructions
@@ -18,7 +17,12 @@ ElasticPress e2e tests use [Cypress](https://www.cypress.io/), [wp-env](https://
 * Initial database setup: `npm run cypress:setup`
 * Open Cypress: `npm run cypress:open`
 
-### Reset
+### Soft Reset
+
+* Clean the database and redo initial setup: `npm run env:reset`
+* Open Cypress: `npm run cypress:open`
+
+### Hard Reset
 
 * Destroy the WP env: `npm run env destroy`
 * Restart WP env and redo initial setup: `npm run env:start && npm run cypress:setup`
@@ -45,6 +49,15 @@ Make sure you have `xvfb` installed
 ```
 export LIBGL_ALWAYS_INDIRECT=1
 export DISPLAY=:0
+```
+
+#### `elasticsearch The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested`
+
+This error may appear when running tests on an Apple Silicon device that was restored from a backup of an Intel machine. Run the following in `./bin/es-docker` to ensure the Docker image is for the right platform:
+
+```
+docker compose down
+docker compose up -d --build --force-recreate
 ```
 
 ### Running tests with ElasticPress.io

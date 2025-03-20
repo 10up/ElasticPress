@@ -47,7 +47,10 @@ export const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\
  * @returns {string} replaced string
  */
 export const replaceGlobally = (string, term, replacement) => {
-	return string.replace(new RegExp(escapeRegExp(term), 'g'), replacement);
+	return string.replace(
+		new RegExp(escapeRegExp(term), 'g'),
+		JSON.stringify(replacement).slice(1, -1), // Escapes especial chars and remove quotes added by JSON.stringify
+	);
 };
 
 /**

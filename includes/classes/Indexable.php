@@ -10,9 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManager;
-use ElasticPress\QueryIntegration as QueryIntegration;
+use ElasticPress\Elasticsearch;
+use ElasticPress\SyncManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -49,7 +48,7 @@ abstract class Indexable {
 	 * Instance of QueryIntegration. This should handle integrating with a default
 	 * WP query.
 	 *
-	 * @var QueryIntegration
+	 * @var object
 	 * @since  3.0
 	 */
 	public $query_integration;
@@ -77,7 +76,10 @@ abstract class Indexable {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	public $labels = [];
+	public $labels = [
+		'plural'   => '',
+		'singular' => '',
+	];
 
 	/**
 	 * Get number of bulk items to index per page
@@ -261,7 +263,7 @@ abstract class Indexable {
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
-	 * @return boolean
+	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
 		$document = $this->prepare_document( $object_id );
@@ -300,7 +302,7 @@ abstract class Indexable {
 		 *
 		 * @hook ep_after_index_{indexable_slug}
 		 * @param  {array} $document Document to index
-		 * @param  {array|boolean} $return ES response on success, false on failure
+		 * @param  {object|boolean} $return ES response on success, false on failure
 		 * @since  3.0
 		 */
 		do_action( 'ep_after_index_' . $this->slug, $document, $return );
@@ -387,6 +389,10 @@ abstract class Indexable {
 
 			$document = $this->prepare_document( $object_id );
 
+			if ( empty( $document ) ) {
+				continue;
+			}
+
 			/**
 			 * Conditionally kill indexing on a specific object
 			 *
@@ -401,6 +407,12 @@ abstract class Indexable {
 			$document_str .= "\n\n";
 
 			$documents[] = $document_str;
+		}
+
+		if ( empty( $documents ) ) {
+			return [
+				new \WP_Error( 'ep_bulk_index_no_documents', esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ), $object_ids ),
+			];
 		}
 
 		$results = $this->send_bulk_index_request( $documents );
@@ -523,7 +535,7 @@ abstract class Indexable {
 			timer_start();
 			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
 			$request_time = timer_stop();
-			$requests++;
+			++$requests;
 
 			/**
 			 * Perform actions before a new batch of documents is processed.
@@ -669,7 +681,6 @@ abstract class Indexable {
 		}
 
 		return $prepared_meta;
-
 	}
 
 	/**
@@ -1149,7 +1160,7 @@ abstract class Indexable {
 	 * process across indexables.
 	 *
 	 * @param  array $args Array to query DB against.
-	 * @return boolean
+	 * @return array
 	 */
 	abstract public function query_db( $args );
 
@@ -1174,7 +1185,7 @@ abstract class Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		/**
 		 * Filter the search algorithm to be used
 		 *
@@ -1197,12 +1208,13 @@ abstract class Indexable {
 	 * @since 4.3.0
 	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
 	 * @return array
+	 * @throws \Exception An exception if meta fields are not available.
 	 */
 	public function get_distinct_meta_field_keys( $blog_id = null ) {
 		$mapping = $this->get_mapping();
 
 		try {
-			if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
@@ -1210,7 +1222,7 @@ abstract class Indexable {
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );
 		} catch ( \Throwable $th ) {
-			return new \Exception( 'Meta fields not available.', 0 );
+			throw new \Exception( 'Meta fields not available.', 0 );
 		}
 
 		return $meta_keys;
@@ -1278,7 +1290,7 @@ abstract class Indexable {
 	 * @param array $mapping The mapping
 	 * @return array
 	 */
-	public function add_ngram_analyzer( array $mapping ) : array {
+	public function add_ngram_analyzer( array $mapping ): array {
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
 			'type'      => 'custom',
 			'tokenizer' => 'standard',

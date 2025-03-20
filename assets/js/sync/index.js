@@ -6,31 +6,59 @@ import { v4 as uuid } from 'uuid';
 /**
  * WordPress dependencies.
  */
-import { render, useCallback, useEffect, useRef, useState, WPElement } from '@wordpress/element';
+import { dateI18n } from '@wordpress/date';
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+	useState,
+	WPElement,
+} from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import { autoIndex, lastSyncDateTime, lastSyncFailed, isEpio, indexMeta } from './config';
-import { useIndex } from './hooks';
+import { useIndex } from './src/hooks';
 import {
 	clearSyncParam,
 	getItemsProcessedFromIndexMeta,
 	getItemsTotalFromIndexMeta,
-} from './utilities';
-import SyncPage from './components/sync-page';
+} from './src/utilities';
+
+/**
+ * Sync context.
+ */
+const Context = createContext();
 
 /**
  * App component.
  *
+ * @param {object} props Component props.
+ * @param {string} props.apiUrl API endpoint URL.
+ * @param {Function} props.children Component children
+ * @param {Array} props.defaultSyncHistory Sync history.
+ * @param {Array} props.defaultSyncTrigger Sync trigger.
+ * @param {object|null} props.indexMeta Details of a sync in progress.
+ * @param {boolean} props.isEpio Whether ElasticPress.io is in use.
+ * @param {string} props.nonce WordPress nonce.
  * @returns {WPElement} App component.
  */
-const App = () => {
+export const SyncProvider = ({
+	apiUrl,
+	children,
+	defaultSyncHistory,
+	defaultSyncTrigger,
+	indexMeta,
+	isEpio,
+	nonce,
+}) => {
 	/**
 	 * Indexing methods.
 	 */
-	const { cancelIndex, index, indexStatus } = useIndex();
+	const { cancelIndex, index, indexStatus } = useIndex(apiUrl, nonce);
 
 	/**
 	 * Message log state.
@@ -38,18 +66,25 @@ const App = () => {
 	const [log, setLog] = useState([]);
 
 	/**
+	 * Error types state.
+	 */
+	const [errorCounts, setErrorCounts] = useState([]);
+
+	/**
 	 * Sync state.
 	 */
 	const [state, setState] = useState({
+		isCli: false,
 		isComplete: false,
 		isDeleting: false,
 		isFailed: false,
+		isPaused: false,
 		isSyncing: false,
 		itemsProcessed: 0,
 		itemsTotal: 100,
-		lastSyncDateTime,
-		lastSyncFailed,
 		syncStartDateTime: null,
+		syncHistory: defaultSyncHistory,
+		syncTrigger: defaultSyncTrigger,
 	});
 
 	/**
@@ -68,6 +103,39 @@ const App = () => {
 		setState((state) => ({ ...state, ...newState }));
 	};
 
+	const countErrors = useCallback(
+		/**
+		 * Add up the counts for each error type.
+		 *
+		 * @param {object} errors Errors returned by the sync request.
+		 */
+		(errors) => {
+			setErrorCounts((errorCounts) => {
+				const newErrorCounts = [...errorCounts];
+
+				Object.keys(errors).forEach((e) => {
+					if (!errors[e].solution) {
+						return;
+					}
+
+					const i = newErrorCounts.findIndex((t) => e === t.type);
+
+					if (i !== -1) {
+						newErrorCounts[i].count += errors[e].count;
+					} else {
+						newErrorCounts.push({
+							...errors[e],
+							type: e,
+						});
+					}
+				});
+
+				return newErrorCounts;
+			});
+		},
+		[],
+	);
+
 	const logMessage = useCallback(
 		/**
 		 * Log a message.
@@ -82,23 +150,32 @@ const App = () => {
 			const messages = Array.isArray(message) ? message : [message];
 
 			for (const message of messages) {
-				setLog((log) => [...log, { message, status, isDeleting, id: uuid() }]);
+				setLog((log) => [
+					...log,
+					{
+						message,
+						status,
+						dateTime: dateI18n('Y-m-d H:i:s', new Date()),
+						isDeleting,
+						id: uuid(),
+					},
+				]);
 			}
 		},
 		[],
 	);
 
-	const stopSync = useCallback(
+	const clearLog = useCallback(
 		/**
-		 * Stop syncing.
+		 * Clear the log.
 		 *
 		 * @returns {void}
 		 */
 		() => {
-			updateState({ isPaused: false, isSyncing: false });
-			cancelIndex();
+			setLog([]);
+			setErrorCounts([]);
 		},
-		[cancelIndex],
+		[setLog],
 	);
 
 	const syncCompleted = useCallback(
@@ -114,8 +191,7 @@ const App = () => {
 				isComplete: true,
 				isPaused: false,
 				isSyncing: false,
-				lastSyncDateTime: indexTotals.end_date_time,
-				lastSyncFailed: indexTotals.failed > 0,
+				syncHistory: [indexTotals, ...stateRef.current.syncHistory],
 			});
 
 			/**
@@ -150,6 +226,13 @@ const App = () => {
 			}
 
 			/**
+			 * If the error has totals, add to the sync history.
+			 */
+			const syncHistory = response.totals
+				? [response.totals, ...stateRef.current.syncHistory]
+				: stateRef.current.syncHistory;
+
+			/**
 			 * Log a final message and update the sync state.
 			 */
 			logMessage(__('Sync failed', 'elasticpress'), 'error');
@@ -157,8 +240,7 @@ const App = () => {
 			updateState({
 				isFailed: true,
 				isSyncing: false,
-				lastSyncDateTime: stateRef.current.syncStartDateTime,
-				lastSyncFailed: true,
+				syncHistory,
 			});
 		},
 		[logMessage],
@@ -186,13 +268,13 @@ const App = () => {
 						isEpio
 							? __('ElasticPress.io', 'elasticpress')
 							: __('Elasticsearch', 'elasticpress'),
-				  )
+					)
 				: __('Sync interrupted by WP-CLI command.', 'elasticpress');
 
 			logMessage(message, 'info');
 			updateState({ isSyncing: false });
 		},
-		[logMessage],
+		[isEpio, logMessage],
 	);
 
 	const syncInProgress = useCallback(
@@ -203,21 +285,31 @@ const App = () => {
 		 * @returns {void}
 		 */
 		(indexMeta) => {
-			const isInitialSync = stateRef.current.lastSyncDateTime === null;
-
-			/**
-			 * We should not appear to be deleting if this is the first sync.
-			 */
-			const isDeleting = isInitialSync ? false : indexMeta.put_mapping;
-
 			updateState({
 				isCli: indexMeta.method === 'cli',
-				isDeleting,
 				isSyncing: true,
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
 				syncStartDateTime: indexMeta.start_date_time,
+				syncTrigger: indexMeta.trigger || null,
 			});
+		},
+		[],
+	);
+
+	const syncStopped = useCallback(
+		/**
+		 * Set state for a stopped sync.
+		 *
+		 * @param {object} response Cancel request response.
+		 * @returns {void}
+		 */
+		(response) => {
+			const syncHistory = response.data
+				? [response.data, ...stateRef.current.syncHistory]
+				: stateRef.current.syncHistory;
+
+			updateState({ syncHistory });
 		},
 		[],
 	);
@@ -230,12 +322,12 @@ const App = () => {
 		 * messages. Returns a Promise that resolves if syncing should
 		 * continue.
 		 *
-		 * @param {object} response AJAX response.
+		 * @param {object} response API response.
 		 * @returns {Promise} Promise that resolves if sync is to continue.
 		 */
 		(response) => {
 			const { isPaused, isSyncing } = stateRef.current;
-			const { message, status, totals = [], index_meta: indexMeta } = response.data;
+			const { errors, message, status, totals = [], index_meta: indexMeta } = response.data;
 
 			return new Promise((resolve) => {
 				/**
@@ -243,6 +335,10 @@ const App = () => {
 				 */
 				if (!isSyncing) {
 					return;
+				}
+
+				if (errors) {
+					countErrors(errors);
 				}
 
 				/**
@@ -295,7 +391,25 @@ const App = () => {
 				resolve(indexMeta.method);
 			});
 		},
-		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, logMessage],
+		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, countErrors, logMessage],
+	);
+
+	const doCancelIndex = useCallback(
+		/**
+		 * Cancel a sync.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			cancelIndex()
+				.then(syncStopped)
+				.catch((error) => {
+					if (error?.name !== 'AbortError') {
+						throw error;
+					}
+				});
+		},
+		[cancelIndex, syncStopped],
 	);
 
 	const doIndexStatus = useCallback(
@@ -317,11 +431,11 @@ const App = () => {
 		/**
 		 * Start or continue a sync.
 		 *
-		 * @param {boolean} putMapping Whether to send mapping.
+		 * @param {object} args Sync args.
 		 * @returns {void}
 		 */
-		(putMapping) => {
-			index(putMapping)
+		(args) => {
+			index(args)
 				.then(updateSyncState)
 				.then(
 					/**
@@ -334,7 +448,7 @@ const App = () => {
 						if (method === 'cli') {
 							doIndexStatus();
 						} else {
-							doIndex(putMapping);
+							doIndex(args);
 						}
 					},
 				)
@@ -359,20 +473,12 @@ const App = () => {
 		/**
 		 * Resume syncing.
 		 *
+		 * @param {object} args Sync args.
 		 * @returns {void}
 		 */
-		() => {
-			const { isDeleting, lastSyncDateTime } = stateRef.current;
-			const isInitialSync = lastSyncDateTime === null;
-
-			/**
-			 * Send mapping if we are deleting and syncing or if this is the
-			 * first sync.
-			 */
-			const putMapping = isInitialSync || isDeleting;
-
+		(args) => {
 			updateState({ isPaused: false, isSyncing: true });
-			doIndex(putMapping);
+			doIndex(args);
 		},
 		[doIndex],
 	);
@@ -381,23 +487,17 @@ const App = () => {
 		/**
 		 * Start syncing.
 		 *
-		 * @param {boolean} deleteAndSync Whether to delete and sync.
+		 * @param {object} args Sync args.
 		 * @returns {void}
 		 */
-		(deleteAndSync) => {
-			const { lastSyncDateTime } = stateRef.current;
-			const isInitialSync = lastSyncDateTime === null;
+		(args) => {
+			const { syncHistory } = stateRef.current;
+			const isInitialSync = !syncHistory.length;
 
 			/**
 			 * We should not appear to be deleting if this is the first sync.
 			 */
-			const isDeleting = isInitialSync ? false : deleteAndSync;
-
-			/**
-			 * Send mapping if we are deleting and syncing or if this is the
-			 * first sync.
-			 */
-			const putMapping = isInitialSync || deleteAndSync;
+			const isDeleting = !!(isInitialSync || args.put_mapping);
 
 			updateState({
 				isComplete: false,
@@ -407,61 +507,29 @@ const App = () => {
 				isSyncing: true,
 			});
 
-			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
-			doIndex(putMapping);
+			updateState({
+				itemsProcessed: 0,
+				syncStartDateTime: Date.now(),
+				syncTrigger: args.trigger || null,
+			});
+
+			doIndex(args);
 		},
 		[doIndex],
 	);
 
-	/**
-	 * Handle clicking delete and sync button.
-	 *
-	 * @returns {void}
-	 */
-	const onDelete = async () => {
-		startSync(true);
-		logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking pause button.
-	 *
-	 * @returns {void}
-	 */
-	const onPause = () => {
-		pauseSync();
-		logMessage(__('Pausing sync…', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking play button.
-	 *
-	 * @returns {void}
-	 */
-	const onResume = () => {
-		resumeSync();
-		logMessage(__('Resuming sync…', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking stop button.
-	 *
-	 * @returns {void}
-	 */
-	const onStop = () => {
-		stopSync();
-		logMessage(__('Sync stopped', 'elasticpress'), 'info');
-	};
-
-	/**
-	 * Handle clicking sync button.
-	 *
-	 * @returns {void}
-	 */
-	const onSync = async () => {
-		startSync(false);
-		logMessage(__('Starting sync…', 'elasticpress'), 'info');
-	};
+	const stopSync = useCallback(
+		/**
+		 * Stop syncing.
+		 *
+		 * @returns {void}
+		 */
+		() => {
+			updateState({ isPaused: false, isSyncing: false });
+			doCancelIndex();
+		},
+		[doCancelIndex],
+	);
 
 	/**
 	 * Initialize.
@@ -491,39 +559,62 @@ const App = () => {
 				pauseSync();
 				logMessage(__('Sync paused', 'elasticpress'), 'info');
 			}
-
-			return;
-		}
-
-		/**
-		 * Start an initial index.
-		 */
-		if (autoIndex) {
-			startSync(true);
-			logMessage(__('Starting delete and sync…', 'elasticpress'), 'info');
 		}
 	};
 
 	/**
 	 * Effects.
 	 */
-	useEffect(init, [doIndexStatus, syncInProgress, logMessage, pauseSync, startSync]);
+	useEffect(init, [doIndexStatus, syncInProgress, indexMeta, logMessage, pauseSync, startSync]);
 
 	/**
-	 * Render.
+	 * Provide state to context.
 	 */
-	return (
-		<SyncPage
-			isEpio={isEpio}
-			log={log}
-			onDelete={onDelete}
-			onPause={onPause}
-			onResume={onResume}
-			onStop={onStop}
-			onSync={onSync}
-			{...state}
-		/>
-	);
+	const {
+		isCli,
+		isComplete,
+		isDeleting,
+		isFailed,
+		isPaused,
+		isSyncing,
+		itemsProcessed,
+		itemsTotal,
+		syncHistory,
+		syncStartDateTime,
+		syncTrigger,
+	} = stateRef.current;
+
+	// eslint-disable-next-line react/jsx-no-constructed-context-values
+	const contextValue = {
+		clearLog,
+		errorCounts,
+		isCli,
+		isComplete,
+		isDeleting,
+		isFailed,
+		isPaused,
+		isSyncing,
+		itemsProcessed,
+		itemsTotal,
+		syncHistory,
+		log,
+		logMessage,
+		pauseSync,
+		resumeSync,
+		startSync,
+		stopSync,
+		syncStartDateTime,
+		syncTrigger,
+	};
+
+	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 };
 
-render(<App />, document.getElementById('ep-sync'));
+/**
+ * Use the API Search context.
+ *
+ * @returns {object} API Search Context.
+ */
+export const useSync = () => {
+	return useContext(Context);
+};

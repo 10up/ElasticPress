@@ -51,18 +51,21 @@ describe('Related Posts Feature', () => {
 			content: 'Inceptos tristique class ac eleifend leo.',
 		});
 
+		cy.getBlockEditor().as('iframe');
+
 		/**
 		 * On the last post insert a Related Posts block.
 		 */
 		cy.openBlockInserter();
-		cy.getBlocksList().should('contain.text', 'Related Posts (ElasticPress)');
-		cy.insertBlock('Related Posts (ElasticPress)');
+		cy.getBlocksList().should('contain.text', 'Related Posts');
+		cy.insertBlock('Related Posts');
+		cy.closeBlockInserter();
 
 		/**
 		 * Verify that the block is inserted into the editor, and contains the
 		 * expected content.
 		 */
-		cy.get('.wp-block-elasticpress-related-posts').first().as('block');
+		cy.get('@iframe').find('.wp-block.wp-block-elasticpress-related-posts').first().as('block');
 		cy.get('@block')
 			.find('li')
 			.should('contain', 'Test related posts block #')
@@ -85,15 +88,26 @@ describe('Related Posts Feature', () => {
 			.should('have.length', 2);
 
 		/**
-		 * Clicking a related post link in the editor shouldn't change the URL.
+		 * Test that the block supports changing styles.
 		 */
-		cy.get('@block').find('a').first().click();
+		cy.get('@block').supportsBlockColors(true);
+		cy.get('@block').supportsBlockTypography(true);
+		cy.get('@block').supportsBlockDimensions(true);
+
+		/**
+		 * Clicking a related post link in the editor shouldn't change the URL.
+		 *
+		 * By default, Cypress does not allow a click on an element with `pointer-events: none`,
+		 * hence why `{ force: true }`
+		 */
+		cy.get('@block').find('a').first().click({ force: true });
 		cy.url().should('include', 'wp-admin/post.php');
 
 		/**
 		 * Update the post and visit the front end.
 		 */
 		cy.get('.editor-post-publish-button__button').click();
+		cy.wait(2000); // eslint-disable-line
 		cy.get('.components-snackbar__action').click();
 
 		/**
@@ -105,6 +119,13 @@ describe('Related Posts Feature', () => {
 			.find('li')
 			.should('contain', 'Test related posts block #')
 			.should('have.length', 2);
+
+		/**
+		 * Verify that the block supports changing styles.
+		 */
+		cy.get('@block').supportsBlockColors();
+		cy.get('@block').supportsBlockTypography();
+		cy.get('@block').supportsBlockDimensions();
 	});
 
 	/**
@@ -195,7 +216,11 @@ describe('Related Posts Feature', () => {
 		 * Check that the block's settings match the widget's.
 		 */
 		cy.get('@block').click();
-		cy.get('.edit-widgets-header__actions button[aria-label="Settings"]').click();
+		cy.get('.edit-widgets-header__actions button[aria-label="Settings"]').then(($button) => {
+			if (!$button.attr('aria-expanded')) {
+				$button.trigger('click');
+			}
+		});
 		cy.get('input[type="number"][aria-label="Number of items"]').should('have.value', '2');
 	});
 });

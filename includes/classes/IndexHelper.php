@@ -2,15 +2,18 @@
 /**
  * Index Helper
  *
+ * NOTE: As explained in the doc linked below, the dashboard sync exits after each output()
+ * call, to respond to the AJAX request. That means this script will be called several times
+ * while syncing via dashboard, relying on the index_meta to pick it up where it stopped.
+ *
  * @since 4.0.0
- * @see docs/indexing-process.md
- * @see https://10up.github.io/ElasticPress/tutorial-indexing-process.html
+ * @see https://www.elasticpress.io/documentation/article/sync-process/
  * @package elasticpress
  */
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 /**
  * Index Helper Class.
@@ -82,8 +85,12 @@ class IndexHelper {
 		$this->args = apply_filters( 'ep_sync_args', $args, $this->index_meta );
 
 		if ( false === $this->index_meta ) {
+			$this->maybe_apply_feature_settings();
 			$this->build_index_meta();
 		}
+
+		// For the dashboard, this will be called and exit the script until the queue is empty again.
+		$this->flush_messages_queue();
 
 		while ( $this->has_items_to_be_processed() ) {
 			$this->process_sync_item();
@@ -137,6 +144,8 @@ class IndexHelper {
 			'start_time'        => microtime( true ),
 			'start_date_time'   => $start_date_time ? $start_date_time->format( DATE_ATOM ) : false,
 			'starting_indices'  => $starting_indices,
+			'messages_queue'    => [],
+			'trigger'           => ! empty( $this->args['trigger'] ) ? sanitize_text_field( $this->args['trigger'] ) : null,
 			'totals'            => [
 				'total'      => 0,
 				'synced'     => 0,
@@ -157,13 +166,9 @@ class IndexHelper {
 				$this->args['network_wide'] = 0;
 			}
 
-			$sites = Utils\get_sites( $this->args['network_wide'] );
+			$sites = Utils\get_sites( $this->args['network_wide'], true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				foreach ( $non_global_indexables as $indexable ) {
@@ -245,7 +250,7 @@ class IndexHelper {
 	protected function filter_indexables( $indexables ) {
 		return array_filter(
 			$indexables,
-			function( $indexable ) {
+			function ( $indexable ) {
 				return empty( $this->args['indexables'] ) || in_array( $indexable, $this->args['indexables'], true );
 			}
 		);
@@ -567,7 +572,7 @@ class IndexHelper {
 
 		foreach ( $this->current_query['objects'] as $object ) {
 			if ( $this->should_skip_object_index( $object, $indexable ) ) {
-				$this->index_meta['current_sync_item']['skipped']++;
+				++$this->index_meta['current_sync_item']['skipped'];
 			} else {
 				$queued_items[ $object->ID ] = true;
 			}
@@ -670,7 +675,7 @@ class IndexHelper {
 								$failed_objects,
 								array_filter(
 									$return['items'],
-									function( $item ) {
+									function ( $item ) {
 										return ! empty( $item['index']['error'] );
 									}
 								)
@@ -696,7 +701,7 @@ class IndexHelper {
 					$wp_error_messages
 				);
 
-				$this->output( implode( "\n", $wp_error_messages ), 'warning' );
+				$this->queue_message( $wp_error_messages, 'warning' );
 			} elseif ( count( $failed_objects ) ) {
 				$errors_output = $this->output_index_errors( $failed_objects );
 
@@ -709,8 +714,9 @@ class IndexHelper {
 				);
 
 				$this->index_meta['current_sync_item']['failed'] += count( $failed_objects );
+				$error_type                                       = ! empty( $this->args['stop_on_error'] ) ? 'error' : 'warning';
 
-				$this->output( $errors_output, 'warning' );
+				$this->queue_message( $errors_output, $error_type );
 			} else {
 				$this->index_meta['current_sync_item']['synced'] += count( $queued_items );
 			}
@@ -718,19 +724,18 @@ class IndexHelper {
 
 		$this->index_meta['current_sync_item']['last_processed_object_id'] = end( $this->current_query['objects'] )->ID;
 
-		$this->output(
-			sprintf(
-				/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
-				esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
-				esc_html( strtolower( $indexable->labels['plural'] ) ),
-				$this->index_meta['from'],
-				$this->index_meta['offset'],
-				$this->index_meta['found_items'],
-				$this->index_meta['current_sync_item']['last_processed_object_id']
-			),
-			'info',
-			'index_next_batch'
+		$summary = sprintf(
+			/* translators: 1. Indexable type 2. Offset start, 3. Offset end, 4. Found items 5. Last object ID */
+			esc_html__( 'Processed %1$s %2$d - %3$d of %4$d. Last Object ID: %5$d', 'elasticpress' ),
+			esc_html( strtolower( $indexable->labels['plural'] ) ),
+			$this->index_meta['from'],
+			$this->index_meta['offset'],
+			$this->index_meta['found_items'],
+			$this->index_meta['current_sync_item']['last_processed_object_id']
 		);
+
+		$this->queue_message( $summary, 'info', 'index_next_batch' );
+		$this->flush_messages_queue();
 	}
 
 	/**
@@ -817,6 +822,7 @@ class IndexHelper {
 		$current_sync_item = $this->index_meta['current_sync_item'];
 
 		$this->index_meta['current_sync_item'] = null;
+		$this->index_meta['offset']            = 0;
 
 		if ( $current_sync_item['failed'] ) {
 			if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -838,8 +844,6 @@ class IndexHelper {
 
 			$this->output( $message, 'warning' );
 		}
-
-		$this->index_meta['offset'] = 0;
 
 		if ( ! empty( $current_sync_item['blog_id'] ) && defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 			$message = sprintf(
@@ -865,26 +869,76 @@ class IndexHelper {
 	 * Update last sync info.
 	 *
 	 * @since 4.2.0
+	 * @param string $final_status Optional final status
 	 */
-	protected function update_last_index() {
+	protected function update_last_index( string $final_status = '' ) {
+		$is_full_sync = $this->index_meta['put_mapping'];
+		$method       = $this->index_meta['method'];
 		$start_time   = $this->index_meta['start_time'];
 		$totals       = $this->index_meta['totals'];
-		$method       = $this->index_meta['method'];
-		$is_full_sync = $this->index_meta['put_mapping'];
+		$trigger      = $this->index_meta['trigger'];
 
 		$this->index_meta = null;
 
 		$end_date_time  = date_create( 'now', wp_timezone() );
 		$start_time_sec = (int) $start_time;
 
+		// Time related info
 		$totals['end_date_time']   = $end_date_time ? $end_date_time->format( DATE_ATOM ) : false;
 		$totals['start_date_time'] = $start_time ? wp_date( DATE_ATOM, $start_time_sec ) : false;
 		$totals['end_time_gmt']    = time();
 		$totals['total_time']      = microtime( true ) - $start_time;
-		$totals['method']          = $method;
-		$totals['is_full_sync']    = $is_full_sync;
+
+		// Additional info
+		$totals['is_full_sync'] = $is_full_sync;
+		$totals['method']       = $method;
+		$totals['trigger']      = $trigger;
+
+		// Final status
+		if ( '' !== $final_status ) {
+			$totals['final_status'] = $final_status;
+		} elseif ( ! empty( $totals['failed'] ) ) {
+			$totals['final_status'] = 'with_errors';
+		} else {
+			$totals['final_status'] = 'success';
+		}
+
 		Utils\update_option( 'ep_last_cli_index', $totals, false );
-		Utils\update_option( 'ep_last_index', $totals, false );
+
+		$this->add_last_sync( $totals );
+	}
+
+	/**
+	 * Add a sync to the list of all past syncs
+	 *
+	 * @since 5.0.0
+	 * @param array $last_sync_info The latest sync info to be added to the log
+	 * @return void
+	 */
+	protected function add_last_sync( array $last_sync_info ) {
+		// Remove error messages from previous syncs - we only store msgs for the newest one.
+		$last_syncs = array_map(
+			function ( $sync ) {
+				unset( $sync['errors'] );
+				return $sync;
+			},
+			$this->get_sync_history()
+		);
+
+		/**
+		 * Filter the number of past syncs to keep info
+		 *
+		 * @since  5.0.0
+		 * @hook ep_syncs_to_keep_info
+		 * @param {int} $number Number of past syncs to keep info
+		 * @return {int} New number
+		 */
+		$syncs_to_keep = (int) apply_filters( 'ep_syncs_to_keep_info', 5 );
+
+		$last_syncs = array_slice( $last_syncs, 0, $syncs_to_keep - 1 );
+		array_unshift( $last_syncs, $last_sync_info );
+
+		Utils\update_option( 'ep_sync_history', $last_syncs, false );
 	}
 
 	/**
@@ -934,14 +988,9 @@ class IndexHelper {
 		$indexes   = [];
 		$indexable = Indexables::factory()->get( array_shift( $this->index_meta['network_alias'] ) );
 
-		$sites = Utils\get_sites();
+		$sites = Utils\get_sites( 0, true );
 
 		foreach ( $sites as $site ) {
-
-			if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-				continue;
-			}
-
 			switch_to_blog( $site['blog_id'] );
 			$indexes[] = $indexable->get_index_name();
 			restore_current_blog();
@@ -982,7 +1031,7 @@ class IndexHelper {
 			Utils\update_option( 'ep_index_meta', $this->index_meta );
 		} else {
 			Utils\delete_option( 'ep_index_meta' );
-			$totals = $this->get_last_index();
+			$totals = $this->get_last_sync();
 		}
 
 		$message = [
@@ -991,6 +1040,10 @@ class IndexHelper {
 			'totals'     => $totals ?? [],
 			'status'     => $type,
 		];
+
+		if ( in_array( $type, [ 'warning', 'error' ], true ) ) {
+			$message['errors'] = $this->build_message_errors_data( $message_text );
+		}
 
 		if ( is_callable( $this->args['output_method'] ) ) {
 			call_user_func( $this->args['output_method'], $message, $this->args, $this->index_meta, $context );
@@ -1086,13 +1139,27 @@ class IndexHelper {
 	}
 
 	/**
-	 * Get the last index/sync meta information.
+	 * Get the previous syncs meta information.
 	 *
-	 * @since 4.2.0
+	 * @since 5.0.0
 	 * @return array
 	 */
-	public function get_last_index() {
-		return Utils\get_option( 'ep_last_index', [] );
+	public function get_sync_history(): array {
+		return Utils\get_option( 'ep_sync_history', [] );
+	}
+
+	/**
+	 * Get the last sync meta information.
+	 *
+	 * @since 5.0.0
+	 * @return array
+	 */
+	public function get_last_sync(): array {
+		$syncs = $this->get_sync_history();
+		if ( empty( $syncs ) ) {
+			return [];
+		}
+		return array_shift( $syncs );
 	}
 
 	/**
@@ -1101,21 +1168,21 @@ class IndexHelper {
 	 * We used to have two different filters for this (one for the dashboard, another for CLI),
 	 * this method combines both.
 	 *
-	 * @param {stdClass}  $object Object to be checked
+	 * @param {stdClass}  $indexable_object Object to be checked
 	 * @param {Indexable} $indexable Indexable
 	 * @return boolean
 	 */
-	protected function should_skip_object_index( $object, $indexable ) {
+	protected function should_skip_object_index( $indexable_object, $indexable ) {
 		/**
 		 * Filter whether to not sync specific item in dashboard or not
 		 *
 		 * @since  2.1
 		 * @hook ep_item_sync_kill
 		 * @param  {boolean} $kill False means dont sync
-		 * @param  {array} $object Object to sync
+		 * @param  {array} $indexable_object Object to sync
 		 * @return {Indexable} Indexable that object belongs to
 		 */
-		$ep_item_sync_kill = apply_filters( 'ep_item_sync_kill', false, $object, $indexable );
+		$ep_item_sync_kill = apply_filters( 'ep_item_sync_kill', false, $indexable_object, $indexable );
 
 		/**
 		 * Conditionally kill indexing for a post
@@ -1125,7 +1192,7 @@ class IndexHelper {
 		 * @param  {int} $object_id Object ID
 		 * @return {bool} New value
 		 */
-		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $object->ID );
+		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_index_kill', false, $indexable_object->ID );
 
 		return $ep_item_sync_kill || $ep_indexable_sync_kill;
 	}
@@ -1210,14 +1277,12 @@ class IndexHelper {
 		 */
 		if ( function_exists( 'wp_cache_flush_runtime' ) ) {
 			wp_cache_flush_runtime();
-		} else {
+		} elseif ( ! wp_using_ext_object_cache() ) {
 			/*
 			 * In the case where we're not using an external object cache, we need to call flush on the default
 			 * WordPress object cache class to clear the values from the cache property
 			 */
-			if ( ! wp_using_ext_object_cache() ) {
-				wp_cache_flush();
-			}
+			wp_cache_flush();
 		}
 
 		if ( is_object( $wp_object_cache ) ) {
@@ -1265,6 +1330,9 @@ class IndexHelper {
 	 * @since 4.0.0
 	 */
 	public function clear_index_meta() {
+		if ( ! empty( $this->index_meta ) ) {
+			$this->update_last_index( 'aborted' );
+		}
 		$this->index_meta = false;
 		Utils\delete_option( 'ep_index_meta', false );
 	}
@@ -1324,7 +1392,7 @@ class IndexHelper {
 
 		$this->index_meta['totals']['errors'][] = $error['message'];
 		$this->index_meta['totals']['failed']   = $totals['total'] - ( $totals['synced'] + $totals['skipped'] );
-		$this->update_last_index();
+		$this->update_last_index( 'failed' );
 
 		/**
 		 * Fires after a sync failed due to a PHP fatal error.
@@ -1342,8 +1410,10 @@ class IndexHelper {
 					esc_html__( 'Mapping failed: %s', 'elasticpress' ),
 					Utils\get_elasticsearch_error_reason( $error['message'] )
 				);
-				$message .= "\n";
-				$message .= esc_html__( 'Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping.', 'elasticpress' );
+				if ( $this->should_suggest_retry( $message ) ) {
+					$message .= "\n";
+					$message .= esc_html__( 'Mapping has failed, which will cause ElasticPress search results to be incorrect. Please click `Delete all Data and Start a Fresh Sync` to retry mapping.', 'elasticpress' );
+				}
 				break;
 			default:
 				/* translators: Error message */
@@ -1360,7 +1430,7 @@ class IndexHelper {
 	 * @since 4.4.0
 	 * @return integer
 	 */
-	public function get_index_default_per_page() : int {
+	public function get_index_default_per_page(): int {
 		/**
 		 * Filter number of items to index per cycle in the dashboard
 		 *
@@ -1370,6 +1440,97 @@ class IndexHelper {
 		 * @return  {int} New number of entries
 		 */
 		return (int) apply_filters( 'ep_index_default_per_page', Utils\get_option( 'ep_bulk_setting', 350 ) );
+	}
+
+	/**
+	 * Add a message to the queue
+	 *
+	 * @since 4.7.0
+	 * @param string|array $message_text Message to be outputted
+	 * @param string       $type         Type of message
+	 * @param string       $context      Context of the output
+	 */
+	protected function queue_message( $message_text, string $type, string $context = '' ) {
+		$this->index_meta['messages_queue'][] = [
+			'text'    => $message_text,
+			'type'    => $type,
+			'context' => $context,
+		];
+	}
+
+	/**
+	 * Display messages in the queue.
+	 *
+	 * NOTE: As the dashboard sync exits after every output call (to respond the AJAX request),
+	 * this will just output one message. As the method is called every time the script is called,
+	 * all messages will be displayed but one at a time.
+	 *
+	 * @since 4.7.0
+	 */
+	protected function flush_messages_queue() {
+		if ( ! is_array( $this->index_meta['messages_queue'] ) ) {
+			return;
+		}
+
+		$messages_count = count( $this->index_meta['messages_queue'] );
+		if ( 0 === $messages_count ) {
+			return;
+		}
+
+		for ( $i = 0; $i < $messages_count; $i++ ) {
+			$next_message = array_shift( $this->index_meta['messages_queue'] );
+			$this->output( $next_message['text'], $next_message['type'], $next_message['context'] );
+		}
+	}
+
+	/**
+	 * Get data for a given error message(s)
+	 *
+	 * @since 5.0.0
+	 * @param string|array $messages Messages
+	 * @return array
+	 */
+	protected function build_message_errors_data( $messages ): array {
+		$messages          = (array) $messages;
+		$error_interpreter = new \ElasticPress\ElasticsearchErrorInterpreter();
+
+		$errors_list = [];
+		foreach ( $messages as $message ) {
+			$error = $error_interpreter->maybe_suggest_solution_for_es( $message );
+
+			if ( ! isset( $errors_list[ $error['error'] ] ) ) {
+				$errors_list[ $error['error'] ] = [
+					'solution' => $error['solution'],
+					'count'    => 1,
+				];
+			} else {
+				++$errors_list[ $error['error'] ]['count'];
+			}
+		}
+		return $errors_list;
+	}
+
+	/**
+	 * If this is a full sync, apply the draft feature settings
+	 *
+	 * @since 5.0.0
+	 */
+	protected function maybe_apply_feature_settings() {
+		if ( empty( $this->args['put_mapping'] ) ) {
+			return;
+		}
+
+		Features::factory()->apply_draft_feature_settings();
+	}
+
+	/**
+	 * Whether to suggest retrying the sync or not.
+	 *
+	 * @param string $message The message returned by the hosting server
+	 * @return boolean
+	 */
+	protected function should_suggest_retry( $message ) {
+		return ! preg_match( '/you have reached the limit of indices your plan supports/', $message );
 	}
 
 	/**
@@ -1387,5 +1548,17 @@ class IndexHelper {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * DEPRECATED. Get the last index/sync meta information.
+	 *
+	 * @since 4.2.0
+	 * @deprecated 5.0.0
+	 * @return array
+	 */
+	public function get_last_index() {
+		_deprecated_function( __METHOD__, '5.0.0', '\ElasticPress\IndexHelper::get_last_sync' );
+		return $this->get_last_sync();
 	}
 }

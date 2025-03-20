@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Term_Query as WP_Term_Query;
-use ElasticPress\Utils as Utils;
+use WP_Term_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -53,6 +53,8 @@ class QueryIntegration {
 
 		// Filter term query
 		add_filter( 'terms_pre_query', [ $this, 'maybe_filter_query' ], 10, 2 );
+
+		add_filter( 'rest_post_tag_query', [ $this, 'maybe_set_search_fields' ], 10, 2 );
 	}
 
 	/**
@@ -151,7 +153,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			} elseif ( ! empty( $site__not_in ) ) {
 
-				$sites = get_sites(
+				$sites = \get_sites(
 					array(
 						'fields'       => 'ids',
 						'site__not_in' => $site__not_in,
@@ -239,6 +241,27 @@ class QueryIntegration {
 		}
 
 		return $new_terms;
+	}
+
+	/**
+	 * Conditionally set search fields for term queries in REST API requests.
+	 *
+	 * If in an REST API request that came from WordPress edit screen, do not search for term description.
+	 *
+	 * @param array           $prepared_args Array of arguments for get_terms().
+	 * @param WP_REST_Request $request       The REST API request.
+	 * @return array
+	 */
+	public function maybe_set_search_fields( $prepared_args, $request ) {
+		$referer = $request->get_header( 'referer' );
+
+		if ( empty( $referer ) || ! preg_match( '/post\.php\?post=([0-9]*)&action=edit/', $referer ) ) {
+			return $prepared_args;
+		}
+
+		$prepared_args['search_fields'] = [ 'name', 'slug' ];
+
+		return $prepared_args;
 	}
 
 	/**
@@ -396,5 +419,4 @@ class QueryIntegration {
 		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
 		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
-
 }

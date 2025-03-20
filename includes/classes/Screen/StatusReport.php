@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Screen;
 
-use \ElasticPress\Utils;
+use ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,6 +32,7 @@ class StatusReport {
 	public function setup() {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 		add_action( 'admin_head', array( $this, 'admin_menu_count' ), 11 );
+		add_action( 'wp_ajax_ep_load_groups', array( $this, 'action_wp_ajax_ep_load_groups' ) );
 	}
 
 	/**
@@ -44,29 +45,78 @@ class StatusReport {
 			return;
 		}
 
-		$script_deps = Utils\get_asset_info( 'status-report-script', 'dependencies' );
-
 		wp_enqueue_script(
 			'ep_admin_status_report_scripts',
 			EP_URL . 'dist/js/status-report-script.js',
-			array_merge( $script_deps, [ 'clipboard' ] ),
+			Utils\get_asset_info( 'status-report-script', 'dependencies' ),
 			Utils\get_asset_info( 'status-report-script', 'version' ),
 			true
 		);
 
+		$reports = $this->get_formatted_reports();
+
+		$plain_text_reports = [];
+
+		foreach ( $reports as $report ) {
+			$title                = $report['title'];
+			$groups               = $report['groups'];
+			$plain_text_reports[] = $this->render_copy_paste_report( $title, $groups, $report['isAjaxReport'] );
+		}
+
+		$plain_text_report = implode( "\n\n", $plain_text_reports );
+
 		wp_localize_script(
 			'ep_admin_status_report_scripts',
 			'epStatusReport',
-			$this->get_formatted_reports()
+			[
+				'plainTextReport' => $plain_text_report,
+				'reports'         => $reports,
+				'nonce'           => wp_create_nonce( 'ep-status-report-nonce' ),
+			]
 		);
-
-		$style_deps = Utils\get_asset_info( 'status-report-styles', 'dependencies' );
 
 		wp_enqueue_style(
 			'ep_status_report_styles',
-			EP_URL . 'dist/css/status-report-styles.css',
-			array_merge( $style_deps, [ 'wp-edit-post' ] ),
-			Utils\get_asset_info( 'status-report-styles', 'version' )
+			EP_URL . 'dist/css/status-report-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'status-report-script', 'version' )
+		);
+	}
+
+	/**
+	 * AJAX action to load an individual report group.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @return void
+	 */
+	public function action_wp_ajax_ep_load_groups(): void {
+		if ( ! isset( $_POST['ep-status-report-nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['ep-status-report-nonce'] ) ), 'ep-status-report-nonce' ) ) {
+			wp_send_json_error( [ 'message' => __( 'Nonce is not present.', 'elasticpress' ) ], 403 );
+		}
+
+		if ( empty( $this->formatted_reports ) ) {
+			$this->formatted_reports = $this->get_reports();
+		}
+
+		$post = wp_unslash( $_POST );
+
+		if ( empty( $this->formatted_reports[ $post['report'] ] ) ) {
+			wp_send_json_error( [ 'message' => __( 'Status report not found.', 'elasticpress' ) ], 404 );
+		}
+
+		$report = $this->formatted_reports[ $post['report'] ];
+
+		if ( ! $report instanceof \ElasticPress\StatusReport\AjaxReport ) {
+			wp_send_json_error( [ 'message' => __( 'Report is not an AJAX report.', 'elasticpress' ) ], 403 );
+		}
+
+		wp_send_json_success(
+			[
+				'groups'   => $report->get_groups_ajax(),
+				'messages' => $report->get_messages(),
+			],
+			200
 		);
 	}
 
@@ -75,11 +125,10 @@ class StatusReport {
 	 *
 	 * @return array
 	 */
-	public function get_reports() : array {
+	public function get_reports(): array {
 		$reports = [];
 
-		/* this filter is documented in elasticpress.php */
-		$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+		$query_logger = \ElasticPress\get_container()->get( '\ElasticPress\QueryLogger' );
 
 		if ( $query_logger ) {
 			$reports['failed-queries'] = new \ElasticPress\StatusReport\FailedQueries( $query_logger );
@@ -106,12 +155,15 @@ class StatusReport {
 		 */
 		$filtered_reports = apply_filters( 'ep_status_report_reports', $reports );
 
-		$skipped_reports = ! empty( $_GET['ep-skip-reports'] ) ? (array) $_GET['ep-skip-reports'] : []; // phpcs:ignore WordPress.Security.NonceVerification
-		$skipped_reports = array_map( 'sanitize_text_field', $skipped_reports );
+		// phpcs:disable WordPress.Security.NonceVerification
+		$skipped_reports = isset( $_GET['ep-skip-reports'] ) ?
+			array_map( 'sanitize_text_field', (array) wp_unslash( $_GET['ep-skip-reports'] ) ) :
+			[];
+		// phpcs:enable WordPress.Security.NonceVerification
 
 		$filtered_reports = array_filter(
 			$filtered_reports,
-			function( $report_slug ) use ( $skipped_reports ) {
+			function ( $report_slug ) use ( $skipped_reports ) {
 				return ! in_array( $report_slug, $skipped_reports, true );
 			},
 			ARRAY_FILTER_USE_KEY
@@ -121,53 +173,23 @@ class StatusReport {
 	}
 
 	/**
-	 * Render all reports (HTML and Copy & Paste button)
-	 */
-	public function render_reports() {
-		$reports = $this->get_formatted_reports();
-
-		$copy_paste_output = [];
-
-		foreach ( $reports as $report ) {
-			$title  = $report['title'];
-			$groups = $report['groups'];
-
-			$copy_paste_output[] = $this->render_copy_paste_report( $title, $groups );
-		}
-
-		?>
-		<p><?php esc_html_e( 'This screen provides a list of information related to ElasticPress and synced content that can be helpful during troubleshooting. This list can also be copy/pasted and shared as needed.', 'elasticpress' ); ?></p>
-		<p class="ep-copy-button-wrapper">
-			<a download="elasticpress-report.txt" href="data:text/plain;charset=utf-8,<?php echo rawurlencode( implode( "\n\n", $copy_paste_output ) ); ?>" class="button button-primary" id="ep-download-report">
-				<?php esc_html_e( 'Download report', 'elasticpress' ); ?>
-			</a>
-			<button class="button" data-clipboard-text="<?php echo esc_attr( implode( "\n\n", $copy_paste_output ) ); ?>" id="ep-copy-report" type="button">
-				<?php esc_html_e( 'Copy status report to clipboard', 'elasticpress' ); ?>
-			</button>
-			<span class="ep-copy-button-wrapper__success">
-				<?php esc_html_e( 'Copied!', 'elasticpress' ); ?>
-			</span>
-		</p>
-		<?php
-	}
-
-	/**
 	 * Process and format the reports, then store them in the `formatted_reports` attribute.
 	 *
 	 * @since 4.5.0
 	 * @return array
 	 */
-	protected function get_formatted_reports() : array {
+	protected function get_formatted_reports(): array {
 		if ( empty( $this->formatted_reports ) ) {
 			$reports = $this->get_reports();
 
 			$this->formatted_reports = array_map(
-				function( $report ) {
+				function ( $report ) {
 					return [
-						'actions'  => $report->get_actions(),
-						'groups'   => $report->get_groups(),
-						'messages' => $report->get_messages(),
-						'title'    => $report->get_title(),
+						'actions'      => $report->get_actions(),
+						'groups'       => $report->get_groups(),
+						'messages'     => $report->get_messages(),
+						'title'        => $report->get_title(),
+						'isAjaxReport' => $report instanceof \ElasticPress\StatusReport\AjaxReport,
 					];
 				},
 				$reports
@@ -181,10 +203,17 @@ class StatusReport {
 	 *
 	 * @param string $title  Report title
 	 * @param array  $groups Report groups
+	 * @param bool   $is_ajax_report Whether the report is an AJAX report
+	 *
 	 * @return string
 	 */
-	protected function render_copy_paste_report( string $title, array $groups ) : string {
+	protected function render_copy_paste_report( string $title, array $groups, bool $is_ajax_report = false ): string {
 		$output = "## {$title} ##\n\n";
+
+		if ( $is_ajax_report ) {
+			$output .= $this->render_pending_generation();
+			return $output;
+		}
 
 		foreach ( $groups as $group ) {
 			$output .= "### {$group['title']} ###\n";
@@ -217,6 +246,15 @@ class StatusReport {
 		}
 
 		return (string) $value;
+	}
+
+	/**
+	 * Render a message when the report is pending generation
+	 *
+	 * @return string
+	 */
+	protected function render_pending_generation() {
+		return __( 'Please generate a full report to see the content of this group.', 'elasticpress' );
 	}
 
 	/**

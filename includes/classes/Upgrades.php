@@ -8,6 +8,7 @@
 
 namespace ElasticPress;
 
+use ElasticPress\Features;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,6 +49,8 @@ class Upgrades {
 			'4.2.2' => [ 'upgrade_4_2_2', 'init' ],
 			'4.4.0' => [ 'upgrade_4_4_0', 'init' ],
 			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
+			'4.7.0' => [ 'upgrade_4_7_0', 'init' ],
+			'5.0.0' => [ 'upgrade_5_0_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -148,6 +151,7 @@ class Upgrades {
 			return;
 		}
 
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery
 		$synonyms_example_ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_content = %s LIMIT 100",
@@ -155,6 +159,7 @@ class Upgrades {
 				$synonyms->example_synonym_list()
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery
 
 		if ( ! $synonyms_example_ids ) {
 			return;
@@ -204,6 +209,85 @@ class Upgrades {
 	}
 
 	/**
+	 * Upgrade routine of v4.7.0.
+	 *
+	 * Remove old total_fields_limit transients
+	 * Remove cached autosuggest requests
+	 *
+	 * @see https://github.com/10up/ElasticPress/pull/3552
+	 */
+	public function upgrade_4_7_0() {
+		global $wpdb;
+
+		if ( is_multisite() ) {
+			$sites = \get_sites( [ 'number' => 0 ] );
+			foreach ( $sites as $site ) {
+				$blog_option = get_blog_option( $site->blog_id, 'ep_indexable' );
+				if ( $blog_option ) {
+					update_site_meta( $site->blog_id, 'ep_indexable', $blog_option );
+				}
+			}
+		}
+
+		$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name
+			FROM {$wpdb->prefix}options
+			WHERE option_name LIKE '_transient_ep_total_fields_limit_%'"
+		);
+
+		foreach ( $transients as $transient ) {
+			$transient_name = str_replace( '_transient_', '', $transient );
+			delete_site_transient( $transient_name );
+			delete_transient( $transient_name );
+		}
+
+		if ( function_exists( 'wp_cache_supports' ) && wp_cache_supports( 'flush_group' ) ) {
+			wp_cache_flush_group( 'ep_autosuggest' );
+		}
+		delete_transient( 'ep_autosuggest_query_request_cache' );
+	}
+
+	/**
+	 * Upgrade routine of v5.0.0.
+	 */
+	public function upgrade_5_0_0() {
+		$features_in_settings = Features::factory()->get_feature_settings();
+		if ( ! empty( $features_in_settings ) ) {
+			foreach ( $features_in_settings as $feature_slug => $feature_settings ) {
+				$feature = Features::factory()->get_registered_feature( $feature_slug );
+				if ( ! $feature ) {
+					continue;
+				}
+
+				$settings_schema = $feature->get_settings_schema();
+				foreach ( $settings_schema as $setting_schema ) {
+					if ( ! isset( $feature_settings[ $setting_schema['key'] ] ) ) {
+						continue;
+					}
+
+					$value = $feature_settings[ $setting_schema['key'] ];
+
+					if ( ! in_array( $setting_schema['type'], [ 'checkbox', 'radio' ], true ) || ! is_bool( $value ) ) {
+						continue;
+					}
+
+					$features_in_settings[ $feature_slug ][ $setting_schema['key'] ] = $value ? '1' : '0';
+				}
+			}
+			Utils\update_option( 'ep_feature_settings', $features_in_settings );
+		}
+
+		/**
+		 * Remove the 'ep_last_index' option and store it as an entry of 'ep_sync_history'
+		 */
+		$last_sync = Utils\get_option( 'ep_last_index', [] );
+		if ( ! empty( $last_sync ) ) {
+			Utils\delete_option( 'ep_last_index' );
+			Utils\update_option( 'ep_sync_history', [ $last_sync ] );
+		}
+	}
+
+	/**
 	 * Adjust the upgrade sync notice to warn users about Instant Results.
 	 *
 	 * As 4.0.0 introduces this new feature and it requires a resync, admin users
@@ -234,9 +318,9 @@ class Upgrades {
 
 			$appended_message = wp_kses_post(
 				sprintf(
-					/* translators: 1: <a> tag (Zendesk article); 2. </a>; 3: <a> tag (link to Features screen); 4. </a>; */
+					/* translators: 1: <a> tag (Support article); 2. </a>; 3: <a> tag (link to Features screen); 4. </a>; */
 					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click %3$shere%4$s to activate the feature and start your sync.', 'elasticpress' ),
-					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">',
+					'<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">',
 					'</a>',
 					'<a href="' . $features_url . '">',
 					'</a>'
@@ -245,11 +329,11 @@ class Upgrades {
 		} else {
 			$appended_message = wp_kses_post(
 				sprintf(
-					/* translators: 1: <a> tag (Zendesk article about Instant Results); 2. </a>; 3: <a> tag (Zendesk article about self hosted Elasticsearch setups); 4. </a>; */
+					/* translators: 1: <a> tag (Support article about Instant Results); 2. </a>; 3: <a> tag (Support article about self hosted Elasticsearch setups); 4. </a>; */
 					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to %3$sinstall and configure a PHP proxy%4$s.', 'elasticpress' ),
-					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">',
+					'<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">',
 					'</a>',
-					'<a href="https://elasticpress.zendesk.com/hc/en-us/articles/4413938931853-Considerations-for-self-hosted-Elasticsearch-setups">',
+					'<a href="https://www.elasticpress.io/documentation/article/considerations-for-self-hosted-elasticsearch-setups/">',
 					'</a>'
 				)
 			);

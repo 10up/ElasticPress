@@ -1,51 +1,33 @@
-/* global ClipboardJS */
-
 /**
  * WordPress dependencies.
  */
-import domReady from '@wordpress/dom-ready';
-import { render } from '@wordpress/element';
+import { createRoot, render, WPElement } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import { reports } from './config';
+import { SettingsScreenProvider } from '../settings-screen';
+import { plainTextReport, reports } from './config';
 import Reports from './components/reports';
 
 /**
- * Status report copy button.
+ * App component
  *
- * @returns {void}
+ * @returns {WPElement} App component.
  */
-const init = () => {
-	const report = document.getElementById('ep-status-reports');
-	const clipboard = new ClipboardJS('#ep-copy-report');
-
-	/**
-	 * Handle successful copy.
-	 *
-	 * @param {Event} event Copy event.
-	 * @returns {void}
-	 */
-	const onSuccess = (event) => {
-		event.trigger.nextElementSibling.style.display = 'initial';
-
-		setTimeout(() => {
-			event.trigger.nextElementSibling.style.display = 'none';
-		}, 3000);
-
-		event.clearSelection();
-	};
-
-	/**
-	 * Bind copy button events.
-	 */
-	clipboard.on('success', onSuccess);
-
-	/**
-	 * Render reports.
-	 */
-	render(<Reports reports={reports} />, report);
+const App = () => {
+	return (
+		<SettingsScreenProvider title={__('Status Report', 'elasticpress')}>
+			<Reports plainTextReport={plainTextReport} reports={reports} />
+		</SettingsScreenProvider>
+	);
 };
 
-domReady(init);
+if (typeof createRoot === 'function') {
+	const root = createRoot(document.getElementById('ep-status-reports'));
+
+	root.render(<App />);
+} else {
+	render(<App />, document.getElementById('ep-status-reports'));
+}

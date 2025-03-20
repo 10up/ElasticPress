@@ -31,7 +31,7 @@ class TestSearchOrdering extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -73,6 +73,8 @@ class TestSearchOrdering extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new \ElasticPress\Feature\SearchOrdering\SearchOrdering();
+		$instance->set_i18n_strings();
+
 		$this->assertSame( 'searchordering', $instance->slug );
 		$this->assertSame( 'Custom Search Results', $instance->title );
 	}
@@ -105,7 +107,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Insert specific posts into search results for specific search queries.', $output );
+		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
 	}
 
 	/**
@@ -265,7 +267,6 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$return = $this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
 		$this->assertNull( $return );
-
 	}
 
 	/**
@@ -436,7 +437,7 @@ class TestSearchOrdering extends BaseTestCase {
 	 * Test the `create_or_return_custom_result_term` method
 	 */
 	public function testCreateTermFailed() {
-		$create_term_failed = function() {
+		$create_term_failed = function () {
 			return new \WP_Error( 'test_error' );
 		};
 
@@ -675,30 +676,6 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->assertStringStartsWith( '/', $path, 'REST API URL should have a leading slash.' );
 
 		return $url;
-	}
-
-	/**
-	 * Test the `handle_pointer_search` method
-	 */
-	public function testHandlePointerSearch() {
-		ElasticPress\Features::factory()->activate_feature( 'search' );
-		ElasticPress\Features::factory()->setup_features();
-		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
-
-		$post_id_1 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
-		$post_id_2 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
-
-		ElasticPress\Elasticsearch::factory()->refresh_indices();
-
-		$request = new \WP_REST_Request( 'GET', '/elasticpress/v1/pointer_search' );
-		$request->set_param( 's', 'findme' );
-
-		$response = $this->get_feature()->handle_pointer_search( $request );
-
-		$post_ids = wp_list_pluck( $response, 'ID' );
-
-		$this->assertContains( $post_id_1, $post_ids );
-		$this->assertContains( $post_id_2, $post_ids );
 	}
 
 	/**

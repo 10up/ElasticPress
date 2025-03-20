@@ -6,7 +6,7 @@ The following acknowledges the Maintainers for this repository, those who have C
 
 The following individual is responsible for curating the list of issues, responding to pull requests, and ensuring regular releases happen:
 
-[Vasken Hauri (@brandwaffle)](https://github.com/brandwaffle).
+[Thorsten Ott (@tott)](https://github.com/tott) and [Felipe Elia (@felipeelia)](https://github.com/felipeelia).
 
 ## Contributors
 
@@ -211,6 +211,40 @@ Thank you to all the people who have already contributed to this repository via 
 [Mayank Chugh (@iamchughmayank)](https://github.com/iamchughmayank),
 [Boyan Bratvanov (@bratvanov)](https://github.com/bratvanov),
 [Alexander Z (@TorlockC)](https://github.com/TorlockC),
+[Nabi (@navidabdi)](https://github.com/navidabdi),
+[Dmitry Seleznyov (@selim13)](https://github.com/selim13),
+[Martin Widmann (@mwidmann)](https://github.com/mwidmann),
+[xxx (@wildberrylillet)](https://github.com/wildberrylillet),
+[@tomi10up](https://github.com/tomi10up),
+[Junaid Bhura (@junaidbhura)](https://github.com/junaidbhura),
+[Renato Alves (@renatonascalves)](https://github.com/renatonascalves),
+[Ben Marshall (@bmarshall511)](https://github.com/bmarshall511),
+[@dgnorrod](https://github.com/dgnorrod),
+[Pea Lutz (@misfist)](https://github.com/misfist),
+[@apurvrdx1](https://github.com/apurvrdx1),
+[Scott Buscemi (@scottbuscemi)](https://github.com/scottbuscemi),
+[Viktor Szépe (@szepeviktor)](https://github.com/szepeviktor),
+[Paweł Knap (@pknap)](https://github.com/pknap),
+[@iazema](https://github.com/iazema),
+[Igor Yavych (@Igor-Yavych)](https://github.com/Igor-Yavych),
+[Deanna Steers (@tropicandid)](https://github.com/tropicandid),
+[@pvnanini](https://github.com/pvnanini),
+[Roman (@romanberdnikov)](https://github.com/romanberdnikov),
+[@Serverfox](https://github.com/Serverfox),
+[@jerasokcm](https://github.com/jerasokcm),
+[Randall Hedglin (@randallhedglin)](https://github.com/randallhedglin),
+[@bispldeveloper](https://github.com/bispldeveloper),
+[Michael Gurtzweiler (@mgurtzweiler)](https://github.com/mgurtzweiler),
+[Maarten Bruna (@ictbeheer)](https://github.com/ictbeheer),
+[Dharmesh Patel (@iamdharmesh)](https://github.com/iamdharmesh),
+[Lucas Grzegorczyk (@furai)](https://github.com/furai),
+[Ananda Dhakal (@dhakalananda)](https://github.com/dhakalananda),
+[Eduardo Pittol (@edpittol)](https://github.com/edpittol),
+[David Sword (@davidsword)](https://github.com/davidsword),
+[@realrellek](https://github.com/realrellek),
+[Arturo Monge (@arturomonge)](https://github.com/arturomonge),
+[Majix (@majiix)](https://github.com/majiix),
+[Maarten Hunink (@maartenhunink)](https://github.com/maartenhunink),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

@@ -7,12 +7,74 @@
 
 namespace ElasticPressTest;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 /**
  * Facet test class
  */
 class TestFacet extends BaseTestCase {
+	/**
+	 * Clean up after each test.
+	 *
+	 * @since 5.1.0
+	 */
+	public function tear_down() {
+		parent::tear_down();
+
+		$GLOBALS['pagenow'] = '';
+	}
+
+	/**
+	 * Test the setup method
+	 *
+	 * @since 5.1.0
+	 * @group facets
+	 */
+	public function test_setup() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_feature->setup();
+
+		$this->assertSame( 10, has_action( 'rest_api_init', [ $facet_feature, 'setup_endpoints' ] ) );
+	}
+
+	/**
+	 * Test the feature is not loaded in the editor screen
+	 *
+	 * @since 5.1.0
+	 * @group facets
+	 */
+	public function test_setup_editor_screen() {
+		$GLOBALS['pagenow'] = 'post-new.php';
+		set_current_screen( 'post-new.php' );
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_feature->tear_down();
+		$facet_feature->setup();
+
+		$this->assertFalse( has_action( 'rest_api_init', [ $facet_feature, 'setup_endpoints' ] ) );
+
+		set_current_screen( 'front' );
+	}
+
+	/**
+	 * Test the ep_facet_enabled_in_editor filter
+	 *
+	 * @since 5.1.0
+	 * @group facets
+	 */
+	public function test_setup_ep_facet_enabled_in_editor() {
+		add_filter( 'ep_facet_enabled_in_editor', '__return_true' );
+
+		$GLOBALS['pagenow'] = 'post-new.php';
+		set_current_screen( 'post-new.php' );
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_feature->tear_down();
+		$facet_feature->setup();
+
+		$this->assertSame( 10, has_action( 'rest_api_init', [ $facet_feature, 'setup_endpoints' ] ) );
+	}
+
 	/**
 	 * Test facet type registration
 	 *
@@ -23,7 +85,7 @@ class TestFacet extends BaseTestCase {
 		$facet_type = $this->getMockForAbstractClass( '\ElasticPress\Feature\Facets\FacetType' );
 		$facet_type->expects( $this->exactly( 1 ) )->method( 'setup' );
 
-		$register_facet_type = function( $types ) use ( $facet_type ) {
+		$register_facet_type = function ( $types ) use ( $facet_type ) {
 			$types['test_custom'] = get_class( $facet_type );
 			return $types;
 		};
@@ -105,6 +167,12 @@ class TestFacet extends BaseTestCase {
 		$this->assertSelectedTax( array( $term->slug => true ), 'taxonomy', $selected );
 		$this->assertArrayHasKey( 'post_type', $selected );
 		$this->assertSame( 'posttype', $selected['post_type'] );
+
+		// test when filter value is empty.
+		parse_str( 'ep_filter_category=&ep_filter_othertax=amet&s=', $_GET );
+		$selected = $facet_feature->get_selected();
+		$this->assertArrayNotHasKey( 'category', $selected['taxonomies'] );
+		$this->assertArrayHasKey( 's', $selected );
 	}
 
 	/**
@@ -169,7 +237,7 @@ class TestFacet extends BaseTestCase {
 		/**
 		 * (Indirectly) test the `ep_facet_filter_name` filter
 		 */
-		$change_ep_facet_filter_name = function( $original_name ) {
+		$change_ep_facet_filter_name = function ( $original_name ) {
 			$this->assertEquals( 'ep_filter_', $original_name );
 			return 'ep_custom_filter_';
 		};
@@ -262,7 +330,7 @@ class TestFacet extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_query_filters` filter
 		 */
-		$add_filter = function( $filters, $args, $query ) {
+		$add_filter = function ( $filters, $args, $query ) {
 			$filters[] = [
 				'terms' => [
 					'post_type' => [ 'post', 'page' ],
@@ -336,6 +404,7 @@ class TestFacet extends BaseTestCase {
 			'cat',
 			'category_name',
 			'post_format',
+			'product_brand',
 			'product_cat',
 			'product_tag',
 			'tag',
@@ -355,6 +424,51 @@ class TestFacet extends BaseTestCase {
 		add_filter( 'ep_facet_allowed_query_args', $add_allowed_query_arg );
 
 		$this->assertEqualsCanonicalizing( array_merge( $default_allowed_args, [ 'test' ] ), $facet_feature->get_allowed_query_args() );
+	}
+
+	/**
+	 * Test Facets settings schema
+	 *
+	 * @since 5.0.0
+	 * @group facets
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = Features::factory()->get_registered_feature( 'facets' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'match_type' ],
+			$settings_keys
+		);
+	}
+
+	/**
+	 * Test ep_facet_selected_filters filter.
+	 *
+	 * @since 5.1.4
+	 * @group facets
+	 */
+	public function test_ep_facet_selected_filters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
+		parse_str( 'ep_filter_taxonomy=dolor,sit', $_GET );
+
+		$add_prefix_with_terms = function ( $filters ) {
+			$new_terms = [];
+			foreach ( $filters['taxonomies']['taxonomy']['terms'] as $key => $value ) {
+				$new_terms[ 'cap-' . $key ] = $value;
+			}
+
+			$filters['taxonomies']['taxonomy']['terms'] = $new_terms;
+			return $filters;
+		};
+		add_filter( 'ep_facet_selected_filters', $add_prefix_with_terms );
+
+		$selected = $facet_feature->get_selected();
+		foreach ( $selected['taxonomies']['taxonomy']['terms'] as $key => $value ) {
+			$this->assertStringStartsWith( 'cap-', $key );
+		}
 	}
 
 	/**

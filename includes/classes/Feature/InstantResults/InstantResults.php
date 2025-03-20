@@ -7,12 +7,12 @@
 
 namespace ElasticPress\Feature\InstantResults;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Feature as Feature;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
 use ElasticPress\FeatureRequirementsStatus;
-use ElasticPress\Features as Features;
-use ElasticPress\Indexables as Indexables;
-use ElasticPress\Utils as Utils;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -67,14 +67,6 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = $this->get_title();
-
-		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
-
-		$this->summary = __( 'Search forms display results instantly after submission. A modal opens that populates results by querying ElasticPress directly.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#instant-results', 'elasticpress' );
-
 		$this->host = trailingslashit( Utils\get_host() );
 
 		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
@@ -82,22 +74,40 @@ class InstantResults extends Feature {
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'highlight_tag' => 'mark',
-			'facets'        => 'post_type,category,post_tag',
-			'match_type'    => 'all',
-			'term_count'    => '1',
-			'per_page'      => get_option( 'posts_per_page', 6 ),
+			'highlight_tag'   => 'mark',
+			'facets'          => 'post_type,tax-category,tax-post_tag',
+			'match_type'      => 'all',
+			'term_count'      => '1',
+			'per_page'        => get_option( 'posts_per_page', 6 ),
+			'search_behavior' => '0',
 		];
 
-		$settings = $this->get_settings() ? $this->get_settings() : array();
-
-		$this->settings = wp_parse_args( $settings, $this->default_settings );
+		$this->settings = $this->get_settings();
 
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
 
+		$this->is_powered_by_epio = Utils\is_epio();
+
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
+
+		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.', 'elasticpress' ) . '</p>' .
+		'<p>' . __( 'Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
 	}
 
 	/**
@@ -133,7 +143,7 @@ class InstantResults extends Feature {
 			return;
 		}
 
-		$highlight_tags = array( 'mark', 'span', 'strong', 'em', 'i' );
+		$highlight_tags = [ 'mark', 'span', 'strong', 'em', 'i' ];
 		?>
 
 		<div class="field">
@@ -156,7 +166,7 @@ class InstantResults extends Feature {
 			</div>
 		</div>
 		<div class="field">
-			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Facets', 'elasticpress' ); ?></label>
+			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Filters', 'elasticpress' ); ?></label>
 			<div class="input-wrap">
 				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" name="settings[facets]" id="feature_instant_results_facets">
 			</div>
@@ -172,7 +182,7 @@ class InstantResults extends Feature {
 					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
 					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
 				</label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<div class="field">
@@ -187,8 +197,20 @@ class InstantResults extends Feature {
 				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
-
 		<?php
+		$show_suggestions = \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active();
+
+		if ( $show_suggestions ) :
+			?>
+			<div class="field">
+				<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
+				<div class="input-wrap">
+					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], '0' ); ?> <?php disabled( $show_suggestions, false ); ?> value="0"><?php esc_html_e( 'Display the top suggestion', 'elasticpress' ); ?></label><br>
+					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], 'list' ); ?> <?php disabled( $show_suggestions, false ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
+				</div>
+			</div>
+			<?php
+		endif;
 	}
 
 	/**
@@ -232,7 +254,7 @@ class InstantResults extends Feature {
 						'ElasticPress is network activated. Additional steps are required to ensure Instant Results works for all sites on the network. See our article on <a href="%s" target="_blank">running ElasticPress in network mode</a> for more details.',
 						'elasticpress'
 					),
-					'https://elasticpress.zendesk.com/hc/en-us/articles/10841087797901-Running-ElasticPress-in-a-WordPress-Multisite-Network-Mode-'
+					'https://www.elasticpress.io/documentation/article/running-elasticpress-in-a-wordpress-multisite-network-mode/'
 				)
 			);
 		}
@@ -305,19 +327,21 @@ class InstantResults extends Feature {
 			'elasticpress-instant-results',
 			'epInstantResults',
 			array(
-				'apiEndpoint'    => $api_endpoint,
-				'apiHost'        => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
-				'argsSchema'     => $this->get_args_schema(),
-				'currencyCode'   => $this->is_woocommerce ? get_woocommerce_currency() : false,
-				'facets'         => $this->get_facets_for_frontend(),
-				'highlightTag'   => $this->settings['highlight_tag'],
-				'isWooCommerce'  => $this->is_woocommerce,
-				'locale'         => str_replace( '_', '-', get_locale() ),
-				'matchType'      => $this->settings['match_type'],
-				'paramPrefix'    => 'ep-',
-				'postTypeLabels' => $this->get_post_type_labels(),
-				'termCount'      => $this->settings['term_count'],
-				'requestIdBase'  => Utils\get_request_id_base(),
+				'apiEndpoint'         => $api_endpoint,
+				'apiHost'             => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
+				'argsSchema'          => $this->get_args_schema(),
+				'currencyCode'        => $this->is_woocommerce ? get_woocommerce_currency() : false,
+				'facets'              => $this->get_facets_for_frontend(),
+				'highlightTag'        => $this->settings['highlight_tag'],
+				'isWooCommerce'       => $this->is_woocommerce,
+				'locale'              => str_replace( '_', '-', get_locale() ),
+				'matchType'           => $this->settings['match_type'],
+				'paramPrefix'         => 'ep-',
+				'postTypeLabels'      => $this->get_post_type_labels(),
+				'termCount'           => $this->settings['term_count'],
+				'requestIdBase'       => Utils\get_request_id_base(),
+				'showSuggestions'     => \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active(),
+				'suggestionsBehavior' => $this->settings['search_behavior'],
 			)
 		);
 	}
@@ -693,7 +717,7 @@ class InstantResults extends Feature {
 			'price_html'         => array( 'type' => 'text' ),
 		);
 
-		if ( version_compare( $elasticsearch_version, '7.0', '<' ) ) {
+		if ( version_compare( (string) $elasticsearch_version, '7.0', '<' ) ) {
 			$mapping['mappings']['post']['properties'] = array_merge(
 				$mapping['mappings']['post']['properties'],
 				$properties
@@ -939,6 +963,7 @@ class InstantResults extends Feature {
 		foreach ( $available_facets as $key => $facet ) {
 			$facets[ $key ] = array(
 				'label' => $facet['labels']['admin'],
+				'value' => $key,
 			);
 		}
 
@@ -952,7 +977,7 @@ class InstantResults extends Feature {
 	 */
 	public function get_args_schema() {
 		/**
-		 * The number of resutls per page for Instant Results.
+		 * The number of results per page for Instant Results.
 		 *
 		 * @since 4.5.0
 		 * @hook ep_instant_results_per_page
@@ -1024,17 +1049,99 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Returns the title.
+	 * Set the `settings_schema` attribute
 	 *
-	 * @since 4.4.1
-	 * @return string
+	 * @since 5.0.0
 	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Instant Results', 'elasticpress' );
-		}
+	protected function set_settings_schema() {
+		$facets = $this->get_facets_for_admin();
 
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Instant Results By %s', 'elasticpress' ), $this->get_epio_logo() );
+		$this->settings_schema = [
+			[
+				'default' => 'mark',
+				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
+				'key'     => 'highlight_tag',
+				'label'   => __( 'Highlight tag', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'None', 'elasticpress' ),
+						'value' => '',
+					],
+					[
+						'label' => 'mark',
+						'value' => 'mark',
+					],
+					[
+						'label' => 'span',
+						'value' => 'span',
+					],
+					[
+						'label' => 'strong',
+						'value' => 'strong',
+					],
+					[
+						'label' => 'em',
+						'value' => 'em',
+					],
+					[
+						'label' => 'i',
+						'value' => 'i',
+					],
+				],
+				'type'    => 'select',
+			],
+			[
+				'default' => 'post_type,tax-category,tax-post_tag',
+				'key'     => 'facets',
+				'label'   => __( 'Filters', 'elasticpress' ),
+				'options' => array_values( $facets ),
+				'type'    => 'multiple',
+			],
+			[
+				'default' => 'all',
+				'key'     => 'match_type',
+				'label'   => __( 'Filter matching', 'elasticpress' ),
+				'options' => [
+					[
+						'label' => __( 'Show results that match <strong>all</strong> selected filters', 'elasticpress' ),
+						'value' => 'all',
+					],
+					[
+						'label' => __( 'Show results that match <strong>any</strong> selected filter', 'elasticpress' ),
+						'value' => 'any',
+					],
+				],
+				'type'    => 'radio',
+			],
+			[
+				'default' => '1',
+				'help'    => __( 'Enable to show the number of matching results next to filter options.', 'elasticpress' ),
+				'key'     => 'term_count',
+				'label'   => __( 'Show filter counts', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
+				'default' => get_option( 'posts_per_page', 6 ),
+				'key'     => 'per_page',
+				'type'    => 'hidden',
+			],
+			[
+				'default'          => '0',
+				'key'              => 'search_behavior',
+				'label'            => __( 'Search behavior when no result is found', 'elasticpress' ),
+				'options'          => [
+					[
+						'label' => __( 'Display the top suggestion', 'elasticpress' ),
+						'value' => '0',
+					],
+					[
+						'label' => __( 'Display all the suggestions', 'elasticpress' ),
+						'value' => 'list',
+					],
+				],
+				'requires_feature' => 'did-you-mean',
+				'type'             => 'radio',
+			],
+		];
 	}
 }

@@ -17,14 +17,14 @@ defined( 'ABSPATH' ) || exit;
  *
  * @package ElasticPress
  */
-class IndexableContent extends Report {
+class IndexableContent extends AjaxReport {
 
 	/**
 	 * Return the report title
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Indexable Content', 'elasticpress' );
 	}
 
@@ -33,7 +33,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups_ajax(): array {
 		return $this->get_indexable_content_groups();
 	}
 
@@ -42,16 +42,12 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_indexable_content_groups() : array {
+	protected function get_indexable_content_groups(): array {
 		$groups = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$groups[] = $this->get_indexable_content_group();
@@ -70,7 +66,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_indexable_content_group() : array {
+	protected function get_indexable_content_group(): array {
 		$post_counts = $this->get_post_count_group();
 		$meta_counts = $this->get_post_meta_fields();
 
@@ -92,11 +88,12 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_post_count_group() : array {
+	protected function get_post_count_group(): array {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
 		$post_stati = $post_indexable->get_indexable_post_status();
+		$fields     = [];
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_obj   = get_post_type_object( $post_type );
@@ -129,7 +126,7 @@ class IndexableContent extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_post_meta_fields() : array {
+	protected function get_post_meta_fields(): array {
 		$post_indexable = \ElasticPress\Indexables::factory()->get( 'post' );
 		$post_types     = $post_indexable->get_indexable_post_types();
 
@@ -138,6 +135,7 @@ class IndexableContent extends Report {
 		$fields           = [];
 		$all_keys         = [];
 		$post_count_limit = 88000;
+		$limited          = false;
 
 		foreach ( $post_types as $post_type ) {
 			$post_type_obj = get_post_type_object( $post_type );

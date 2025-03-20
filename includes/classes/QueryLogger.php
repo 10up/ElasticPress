@@ -89,7 +89,7 @@ class QueryLogger {
 	 * @param bool $should_filter_old Whether it should filter out old entries or not. Default to true, only return entries newer than the limit
 	 * @return array
 	 */
-	public function get_logs( bool $should_filter_old = true ) : array {
+	public function get_logs( bool $should_filter_old = true ): array {
 		$logs = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 			get_site_transient( self::CACHE_KEY, [] ) :
 			get_transient( self::CACHE_KEY, [] );
@@ -214,7 +214,7 @@ class QueryLogger {
 	 * @param array $notices Current EP notices
 	 * @return array
 	 */
-	public function maybe_add_notice( array $notices ) : array {
+	public function maybe_add_notice( array $notices ): array {
 		if ( ! current_user_can( Utils\get_capability() ) ) {
 			return $notices;
 		}
@@ -277,7 +277,7 @@ class QueryLogger {
 	 * @param string $type  The query type
 	 * @return array
 	 */
-	protected function format_log_entry( array $query, string $type ) : array {
+	protected function format_log_entry( array $query, string $type ): array {
 		global $wp;
 
 		$query_time = ( ! empty( $query['time_start'] ) && ! empty( $query['time_finish'] ) ) ?
@@ -301,7 +301,16 @@ class QueryLogger {
 			null;
 
 		$status = wp_remote_retrieve_response_code( $query['request'] );
-		$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
+		if ( is_wp_error( $query['request'] ) ) {
+			$result = [
+				'is_wp_error' => true,
+				'code'        => $query['request']->get_error_code(),
+				'message'     => $query['request']->get_error_message(),
+				'data'        => $query['request']->get_error_data(),
+			];
+		} else {
+			$result = json_decode( wp_remote_retrieve_body( $query['request'] ), true );
+		}
 
 		$formatted_log = [
 			'wp_url'      => home_url( add_query_arg( [ $_GET ], $wp->request ) ), // phpcs:ignore WordPress.Security.NonceVerification
@@ -335,7 +344,7 @@ class QueryLogger {
 	 * @param string $type  The query type
 	 * @return boolean
 	 */
-	protected function should_log_query_type( array $query, string $type ) : bool {
+	protected function should_log_query_type( array $query, string $type ): bool {
 		/**
 		 * Filter the array with a map from query types to callables. If the callable returns true,
 		 * the query will be logged.

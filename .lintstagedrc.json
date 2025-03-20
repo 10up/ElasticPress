@@ -6,6 +6,6 @@
 		"10up-toolkit lint-js"
 	],
 	"*.php": [
-		"./vendor/bin/phpcs --extensions=php --runtime-set testVersion 7.0- -s"
+		"./vendor/bin/phpcs --extensions=php --runtime-set testVersion 7.4- -s"
 	]
 }

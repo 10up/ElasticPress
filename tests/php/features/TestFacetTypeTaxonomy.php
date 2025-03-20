@@ -7,7 +7,7 @@
 
 namespace ElasticPressTest;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 /**
  * Facets\Types\Taxonomy\FacetType test class
@@ -32,7 +32,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_filter_name', $change_filter_name );
@@ -57,7 +57,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_filter_type', $change_filter_type );
@@ -94,7 +94,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_include_taxonomies` filter
 		 */
-		$change_facetable_taxonomies = function( $taxonomies ) {
+		$change_facetable_taxonomies = function ( $taxonomies ) {
 			unset( $taxonomies['category'] );
 			return $taxonomies;
 		};
@@ -130,7 +130,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_use_field` filter
 		 */
-		$change_cat_facet_field = function( $field, $taxonomy ) {
+		$change_cat_facet_field = function ( $field, $taxonomy ) {
 			return ( 'category' === $taxonomy->name ) ? 'term_id' : $field;
 		};
 
@@ -145,7 +145,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_taxonomies_size` filter
 		 */
-		$change_tax_bucket_size = function( $size, $taxonomy ) {
+		$change_tax_bucket_size = function ( $size, $taxonomy ) {
 			return ( 'category' === $taxonomy->name ) ? 5 : $size;
 		};
 
@@ -219,9 +219,9 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$expected_result = sanitize_title( $test_taxonomy );
 		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
 
-		$sanitize_function = function( $function ) {
+		$sanitize_function = function ( $callback ) {
 
-			$this->assertSame( 'sanitize_title', $function );
+			$this->assertSame( 'sanitize_title', $callback );
 
 			return 'sanitize_text_field';
 		};
@@ -321,5 +321,37 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		);
 
 		$this->assertSame( $new_query_params, $expected_query_params );
+	}
+
+	/**
+	 * Test the ep_facet_tax_special_slug_taxonomies filter runs.
+	 *
+	 * @since 4.7.0
+	 * @return void
+	 */
+	public function test_ep_facet_special_slug_taxonomies_filter() {
+		add_filter(
+			'ep_facet_tax_special_slug_taxonomies',
+			function ( $special_slug_taxonomies ) {
+				$special_slug_taxonomies['testmyfilter'] = 'testmyfilterchangedfilter';
+				return $special_slug_taxonomies;
+			},
+			99999
+		);
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		parse_str( 'ep_filter_taxonomy=dolor,amet&ep_filter_testmyfilter=dolor,amet', $_GET );
+
+		$query_filters = $facet_type->add_query_filters( [] );
+
+		$sample_test[0]['term']['terms.taxonomy.slug']                  = 'dolor';
+		$sample_test[1]['term']['terms.taxonomy.slug']                  = 'amet';
+		$sample_test[2]['term']['terms.testmyfilterchangedfilter.slug'] = 'dolor';
+		$sample_test[3]['term']['terms.testmyfilterchangedfilter.slug'] = 'amet';
+
+		$this->assertEquals( $sample_test, $query_filters );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_facet_tax_special_slug_taxonomies' ) );
 	}
 }

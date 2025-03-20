@@ -22,7 +22,7 @@ class LastSync extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Last Sync', 'elasticpress' );
 	}
 
@@ -31,10 +31,10 @@ class LastSync extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$fields = [];
 
-		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_index();
+		$sync_info = \ElasticPress\IndexHelper::factory()->get_last_sync();
 
 		if ( empty( $sync_info ) ) {
 			return [];
@@ -111,7 +111,7 @@ class LastSync extends Report {
 				'value' => $value,
 			];
 		}
-		$title = $sync_info['start_date_time'];
+		$title = $sync_info['start_date_time'] ?? '';
 		if ( false !== \ElasticPress\Utils\get_indexing_status() ) {
 			/* translators: last sync title */
 			$title = sprintf( __( '%s (In Progress)', 'elasticpress' ), $title );

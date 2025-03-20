@@ -14,7 +14,7 @@
  */
 add_action(
 	'ep_after_bulk_index',
-	function() {
+	function () {
 		WP_CLI::log( 'Index command with --static-bulk flag completed.' );
 	}
 );

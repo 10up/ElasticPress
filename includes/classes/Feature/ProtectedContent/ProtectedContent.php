@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Feature\ProtectedContent;
 
-use ElasticPress\Utils as Utils;
-use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -30,17 +30,26 @@ class ProtectedContent extends Feature {
 	public function __construct() {
 		$this->slug = 'protected_content';
 
-		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
-
-		$this->summary = __( 'Optionally index all of your content, including private and unpublished content, to speed up searches and queries in places like the administrative dashboard.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#protected-content', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Syncs unpublished content — including private, draft, and scheduled posts — improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.', 'elasticpress' ) . '</p>' .
+		'<p><em>' . __( 'We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.', 'elasticpress' ) . '</em></p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#protected-content', 'elasticpress' );
 	}
 
 	/**
@@ -57,11 +66,13 @@ class ProtectedContent extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'remove_fields_from_password_protected' ], 11, 2 );
 		add_filter( 'ep_search_post_return_args', [ $this, 'return_post_password' ] );
 		add_filter( 'ep_skip_autosave_sync', '__return_false' );
+		add_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected' ], 10, 2 );
 
 		if ( is_admin() ) {
 			add_filter( 'ep_admin_wp_query_integration', '__return_true' );
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 			add_filter( 'ep_post_query_db_args', [ $this, 'query_password_protected_posts' ] );
+			add_filter( 'ep_set_sort', [ $this, 'maybe_change_sort' ] );
 		}
 
 		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
@@ -171,10 +182,8 @@ class ProtectedContent extends Feature {
 			}
 
 			$query->set( 'ep_integrate', true );
-		} else {
-			if ( ! empty( $supported_post_types[ $post_type ] ) ) {
+		} elseif ( ! empty( $supported_post_types[ $post_type ] ) ) {
 				$query->set( 'ep_integrate', true );
-			}
 		}
 
 		/**
@@ -353,12 +362,9 @@ class ProtectedContent extends Feature {
 			}
 
 			$comment_query->query_vars['ep_integrate'] = true;
-		} else {
-			if ( in_array( $comment_type, $supported_comment_types, true ) ) {
+		} elseif ( in_array( $comment_type, $supported_comment_types, true ) ) {
 				$comment_query->query_vars['ep_integrate'] = true;
-			}
 		}
-
 	}
 
 	/**
@@ -412,5 +418,65 @@ class ProtectedContent extends Feature {
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Bypass the default check for password protected posts.
+	 *
+	 * @since 4.6.0
+	 * @param null|bool $new_skip Short-circuit flag
+	 * @param bool      $skip     Current value of $skip
+	 * @return bool
+	 */
+	public function sync_password_protected( $new_skip, bool $skip ): bool {
+		return $skip;
+	}
+
+	/**
+	 * Maybe change the sort order for the WP Dashboard.
+	 *
+	 * If the admin user has enabled the setting to use the default WordPress sort order,
+	 * we will change the sort order to (somewhat) match the default WP behavior.
+	 *
+	 * @since 5.1.4
+	 *
+	 * @param array $default_sort The previous value of the `ep_set_sort` filter
+	 * @return array
+	 */
+	public function maybe_change_sort( $default_sort ) {
+		if ( ! function_exists( '\get_current_screen' ) ) {
+			return $default_sort;
+		}
+
+		$screen = get_current_screen();
+		if ( empty( $screen ) || 'edit' !== $screen->base ) {
+			return $default_sort;
+		}
+
+		if ( ! $this->get_setting( 'use_default_wp_sort' ) ) {
+			return $default_sort;
+		}
+
+		return [
+			[ 'post_date' => [ 'order' => 'desc' ] ],
+			[ 'post_title.sortable' => [ 'order' => 'asc' ] ],
+		];
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.1.4
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '0',
+				'key'     => 'use_default_wp_sort',
+				'help'    => __( 'Enable to use WordPress default sort for searches inside the WP Dashboard.', 'elasticpress' ),
+				'label'   => __( 'Use default WordPress sort on the WP Dashboard', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+		];
 	}
 }

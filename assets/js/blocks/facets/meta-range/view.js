@@ -1,13 +1,20 @@
 /**
  * WordPress dependencies.
  */
-import { render, useLayoutEffect, useMemo, useState, WPElement } from '@wordpress/element';
+import {
+	createRoot,
+	render,
+	useLayoutEffect,
+	useMemo,
+	useState,
+	WPElement,
+} from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 
 /**
  * Internal dependencies.
  */
-import RangeFacet from './components/range-facet';
+import RangeFilter from '../common/components/range-filter';
 
 /**
  * App component.
@@ -76,7 +83,7 @@ const App = ({ max, min }) => {
 	 * Render.
 	 */
 	return (
-		<RangeFacet
+		<RangeFilter
 			clearUrl={clearUrl}
 			max={maxAgg}
 			min={minAgg}
@@ -102,7 +109,12 @@ const init = () => {
 
 		block.insertAdjacentElement('afterbegin', el);
 
-		render(<App min={min} max={max} />, el);
+		if (typeof createRoot === 'function') {
+			const root = createRoot(el);
+			root.render(<App min={min} max={max} />);
+		} else {
+			render(<App min={min} max={max} />, el);
+		}
 	});
 };
 

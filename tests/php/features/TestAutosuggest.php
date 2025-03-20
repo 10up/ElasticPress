@@ -31,7 +31,7 @@ class TestAutosuggest extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -68,6 +68,7 @@ class TestAutosuggest extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\Autosuggest\Autosuggest();
+		$instance->set_i18n_strings();
 
 		$this->assertEquals( 'autosuggest', $instance->slug );
 		$this->assertEquals( 'Autosuggest', $instance->title );
@@ -81,7 +82,7 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Suggest relevant content as text is entered into the search field', $output );
+		$this->assertStringContainsString( 'As text is entered into the search field, suggested content will appear below it', $output );
 	}
 
 	/**
@@ -111,7 +112,7 @@ class TestAutosuggest extends BaseTestCase {
 	 * Test the mapping change in ES 5 method
 	 */
 	public function testMappingES5() {
-		$change_es_version = function() {
+		$change_es_version = function () {
 			return '5.2';
 		};
 
@@ -133,7 +134,7 @@ class TestAutosuggest extends BaseTestCase {
 	 * Test the mapping change in ES 7 method
 	 */
 	public function testMappingES7() {
-		$change_es_version = function() {
+		$change_es_version = function () {
 			return '7.0';
 		};
 
@@ -193,7 +194,7 @@ class TestAutosuggest extends BaseTestCase {
 		$this->get_feature()->enqueue_scripts();
 		$this->assertFalse( wp_script_is( 'elasticpress-autosuggest' ) );
 
-		$filter = function() {
+		$filter = function () {
 			return [
 				'autosuggest' => [
 					'endpoint_url' => 'http://example.com',
@@ -226,7 +227,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
 		 */
-		$test_placeholder_filter = function() {
+		$test_placeholder_filter = function () {
 			return 'lorem-ipsum';
 		};
 
@@ -238,7 +239,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_autosuggest_query_placeholder` filter.
 		 */
-		$test_post_type_filter = function() {
+		$test_post_type_filter = function () {
 			return [ 'my-custom-post-type' ];
 		};
 
@@ -249,7 +250,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_term_suggest_post_status` filter.
 		 */
-		$test_post_status_filter = function() {
+		$test_post_status_filter = function () {
 			return [ 'trash' ];
 		};
 
@@ -261,7 +262,7 @@ class TestAutosuggest extends BaseTestCase {
 		/**
 		 * Test the `ep_term_suggest_post_status` filter.
 		 */
-		$test_args_filter = function( $args ) {
+		$test_args_filter = function ( $args ) {
 			$args['posts_per_page'] = 1234;
 			return $args;
 		};
@@ -283,7 +284,7 @@ class TestAutosuggest extends BaseTestCase {
 	 * Test the filters in the `apply_autosuggest_weighting` method
 	 */
 	public function testApplyAutosuggestWeighting() {
-		$filter = function() {
+		$filter = function () {
 			return [ 'hello' => 'world' ];
 		};
 
@@ -305,4 +306,215 @@ class TestAutosuggest extends BaseTestCase {
 		$this->assertEquals( 2, count( $status->message ) );
 	}
 
+	/**
+	 * Test Autosuggest settings schema
+	 *
+	 * @since 5.0.0
+	 * @group autosuggest
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = $this->get_feature()->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$this->assertSame(
+			[ 'active', 'autosuggest_selector', 'trigger_ga_event', 'endpoint_url' ],
+			$settings_keys
+		);
+	}
+
+	/**
+	 * Test whether autosuggest ngram fields apply to the search query when AJAX integration and weighting is enabled.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_autosuggest_ngram_fields_for_ajax_request() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+		add_filter( 'ep_enable_do_weighting', '__return_true' );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function ( $path, $index, $type, $query ) {
+				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
+
+				$this->assertContains( 'term_suggest^1', $fields );
+				$this->assertContains( 'post_title.suggest^1', $fields );
+				return $path;
+			},
+			10,
+			4
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test whether autosuggest ngram fields do not apply to the search query when `ep_autosuggest_contexts` is only set to public.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_autosuggest_ngram_fields_for_ajax_request_negative() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+		add_filter( 'ep_enable_do_weighting', '__return_true' );
+
+		$autosuggest_context = function () {
+			return [ 'public' ];
+		};
+
+		add_filter( 'ep_autosuggest_contexts', $autosuggest_context );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function ( $path, $index, $type, $query ) {
+				$fields = $query['query']['function_score']['query']['bool']['should'][0]['bool']['must'][0]['bool']['should'][1]['multi_match']['fields'];
+
+				$this->assertNotContains( 'term_suggest^1', $fields );
+				$this->assertNotContains( 'post_title.suggest^1', $fields );
+				return $path;
+			},
+			10,
+			4
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+	}
+
+	/**
+	 * Test whether fuzziness is set to `auto` for AJAX calls.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_fuziness_with_type_auto_set_for_ajax_call() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+
+		$algorithm = function () {
+			return 'default';
+		};
+		add_filter( 'ep_search_algorithm_version', $algorithm );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function ( $path, $index, $type, $query ) {
+				$this->assertEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
+				return $path;
+			},
+			10,
+			4
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test whether fuzziness is not set to `auto` for AJAX calls when `ep_autosuggest_contexts` is only set to public.
+	 *
+	 * @since 5.1.0
+	 * @group autosuggest
+	 */
+	public function test_fuziness_with_type_auto_set_for_ajax_call_negative() {
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'ep_ajax_wp_query_integration', '__return_true' );
+
+		$algorithm = function () {
+			return 'default';
+		};
+		add_filter( 'ep_search_algorithm_version', $algorithm );
+
+		$autosuggest_context = function () {
+			return [ 'public' ];
+		};
+		add_filter( 'ep_autosuggest_contexts', $autosuggest_context );
+
+		$this->get_feature()->setup();
+
+		$this->ep_factory->post->create(
+			array(
+				'post_title' => 'search me',
+				'post_type'  => 'post',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter(
+			'ep_query_request_path',
+			function ( $path, $index, $type, $query ) {
+				$this->assertNotEquals( 'auto', $query['query']['function_score']['query']['bool']['should'][2]['multi_match']['fuzziness'] );
+				return $path;
+			},
+			10,
+			4
+		);
+
+		$query = new \WP_Query(
+			array(
+				's'            => 'search me',
+				'ep_integrate' => true,
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+	}
 }

@@ -26,7 +26,7 @@ class ElasticPressIo extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'ElasticPress.io', 'elasticpress' );
 	}
 
@@ -35,7 +35,7 @@ class ElasticPressIo extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$groups = [
 			$this->get_autosuggest_group(),
 			$this->get_instant_results_group(),
@@ -50,7 +50,7 @@ class ElasticPressIo extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_autosuggest_group() : array {
+	protected function get_autosuggest_group(): array {
 		$autosuggest_feature = \ElasticPress\Features::factory()->get_registered_feature( 'autosuggest' );
 
 		if ( ! $autosuggest_feature->is_active() ) {
@@ -109,7 +109,7 @@ class ElasticPressIo extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_instant_results_group() : array {
+	protected function get_instant_results_group(): array {
 		$instant_results_feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
 
 		if ( ! $instant_results_feature->is_active() ) {
@@ -120,13 +120,9 @@ class ElasticPressIo extends Report {
 		$fields = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$field  = $this->get_instant_results_field();
@@ -150,7 +146,7 @@ class ElasticPressIo extends Report {
 	 * @since 4.5.0
 	 * @return array
 	 */
-	protected function get_orders_search_group() : array {
+	protected function get_orders_search_group(): array {
 		$woocommerce_feature = \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
 
 		if ( ! $woocommerce_feature->is_active() ) {
@@ -165,13 +161,9 @@ class ElasticPressIo extends Report {
 		$fields = [];
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$sites = Utils\get_sites();
+			$sites = Utils\get_sites( 0, true );
 
 			foreach ( $sites as $site ) {
-				if ( ! Utils\is_site_indexable( $site['blog_id'] ) ) {
-					continue;
-				}
-
 				switch_to_blog( $site['blog_id'] );
 
 				$field  = $this->get_orders_search_field();
@@ -194,7 +186,7 @@ class ElasticPressIo extends Report {
 	 *
 	 * @return array
 	 */
-	protected function get_instant_results_field() : array {
+	protected function get_instant_results_field(): array {
 		$index = Indexables::factory()->get( 'post' )->get_index_name();
 
 		if ( ! $index ) {
@@ -227,7 +219,7 @@ class ElasticPressIo extends Report {
 	 * @return array
 	 * @since 4.5.0
 	 */
-	public function get_messages() : array {
+	public function get_messages(): array {
 		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages( true );
 		$messages = array_values( $messages );
 
@@ -240,7 +232,7 @@ class ElasticPressIo extends Report {
 	 * @since 4.5.0
 	 * @return array
 	 */
-	protected function get_orders_search_field() : array {
+	protected function get_orders_search_field(): array {
 		$index = Indexables::factory()->get( 'post' )->get_index_name();
 
 		if ( ! $index ) {
@@ -248,7 +240,7 @@ class ElasticPressIo extends Report {
 		}
 
 		$woocommerce_feature = \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
-		$template            = $woocommerce_feature->orders->get_search_template();
+		$template            = $woocommerce_feature->orders_autosuggest->get_search_template();
 
 		if ( is_wp_error( $template ) ) {
 			return [

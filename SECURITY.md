@@ -6,8 +6,8 @@ The following versions of this project are currently being supported with securi
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 4.5.0   | :white_check_mark: |
-| <4.4.1  | :x:                |
+| 5.1.2   | :white_check_mark: |
+| <5.1.1  | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -38,5 +38,5 @@ Past security advisories, if any, are listed below.
 
 | Advisory Number | Type               | Versions affected | Reported by           | Additional Information      |
 |-----------------|--------------------|:-----------------:|-----------------------|-----------------------------|
+| CVE-2024-35684 | CSRF | n/a - 5.1.1 | Patchstack Team | [CVE link](https://www.cve.org/CVERecord?id=CVE-2024-35684) |
 | EP-2021-02-11 | CSRF Nonce Bypass | 3.5.2 - 3.5.3 | WordPress.org Plugin Review Team | [WPScan link](https://wpscan.com/vulnerability/ce655810-bd08-4042-ac3d-63def5c76994) |
-| -               | -                  | -                 | -                     | -                           |

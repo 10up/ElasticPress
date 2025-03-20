@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Query as WP_Query;
-use ElasticPress\Utils as Utils;
+use WP_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -64,7 +64,7 @@ class QueryIntegration {
 		add_filter( 'posts_pre_query', array( $this, 'get_es_posts' ), 10, 2 );
 
 		// Properly restore blog if necessary
-		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10, 1 );
+		add_action( 'loop_end', array( $this, 'maybe_restore_blog' ), 10 );
 
 		// Properly switch to blog if necessary
 		add_action( 'the_post', array( $this, 'maybe_switch_to_blog' ), 10, 2 );
@@ -189,16 +189,16 @@ class QueryIntegration {
 				$this->switched = false;
 			}
 		}
-
 	}
 
 	/**
 	 * Make sure the correct blog is restored
 	 *
-	 * @param  WP_Query $query WP_Query instance
+	 * @param WP_Query $query WP_Query instance
+	 *
 	 * @since 0.9
 	 */
-	public function maybe_restore_blog( $query ) {
+	public function maybe_restore_blog( $query ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		if ( ! is_multisite() ) {
 			// @codeCoverageIgnoreStart
 			return;
@@ -246,7 +246,7 @@ class QueryIntegration {
 		 * @param  {WP_Query} $query WP Query object
 		 * @return  {string|array} New post types
 		 */
-		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'], $query );
+		$query_vars['post_type'] = apply_filters( 'ep_query_post_type', $query_vars['post_type'] ?? '', $query );
 
 		if ( 'any' === $query_vars['post_type'] ) {
 			unset( $query_vars['post_type'] );
@@ -256,7 +256,7 @@ class QueryIntegration {
 		 * If not search and not set default to post. If not set and is search, use searchable post types
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			if ( $query->is_tax() ) {
+			if ( $query->is_tax() && $query->get_queried_object() ) {
 				$query_vars['post_type'] = get_taxonomy( $query->get_queried_object()->taxonomy )->object_type;
 			} elseif ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';
@@ -341,7 +341,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			} elseif ( ! empty( $site__not_in ) ) {
 
-				$sites = get_sites(
+				$sites = \get_sites(
 					array(
 						'fields'       => 'ids',
 						'site__not_in' => $site__not_in,
@@ -371,6 +371,7 @@ class QueryIntegration {
 			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
 			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
+			$query->suggested_terms       = $this->maybe_sanitize_suggestion( $ep_query );
 			$query->elasticsearch_success = true;
 
 			// Determine how we should format the results from ES based on the fields parameter.
@@ -560,5 +561,38 @@ class QueryIntegration {
 			$new_posts[]         = $post;
 		}
 		return $new_posts;
+	}
+
+	/**
+	 * Remove any suggestion that has a score lower than the minimum score.
+	 *
+	 * @since 4.6.0
+	 * @param array $ep_query The query array.
+	 * @return array
+	 */
+	protected function maybe_sanitize_suggestion( $ep_query ) {
+		if ( ! isset( $ep_query['suggest']['ep_suggestion'], $ep_query['suggest']['ep_suggestion'][0] ) ) {
+			return [];
+		}
+
+		$suggestion = $ep_query['suggest']['ep_suggestion'][0];
+
+		/**
+		 * Filter the score for a suggestion. If the score is lower than this, it will be removed.
+		 *
+		 * @since 4.6.0
+		 * @param float $min_score The minimum score allowed.
+		 * @return float
+		 */
+		$min_score = (float) apply_filters( 'ep_suggestion_minimum_score', 0.0001 );
+
+		$suggestion['options'] = array_filter(
+			$suggestion['options'],
+			function ( $option ) use ( $min_score ) {
+				return number_format( $option['score'], 10 ) > $min_score;
+			}
+		);
+
+		return $suggestion;
 	}
 }

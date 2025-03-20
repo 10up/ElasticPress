@@ -32,7 +32,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 	}
@@ -183,6 +183,8 @@ class TestProtectedContent extends BaseTestCase {
 
 	/**
 	 * Check posts filter by category in dashboard
+	 *
+	 * @group protected-content
 	 */
 	public function testAdminCategories() {
 		set_current_screen( 'edit.php' );
@@ -403,9 +405,9 @@ class TestProtectedContent extends BaseTestCase {
 	 * Check admin comment query are powered by Elasticsearch
 	 *
 	 * @since 4.4.1
+	 * @group protected-content
 	 */
 	public function testAdminCommentQuery() {
-
 		set_current_screen( 'edit-comments.php' );
 		$this->assertTrue( is_admin() );
 
@@ -414,7 +416,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
-		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->reset_sync_queue();
 
 		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'comments' )->search_setup();
@@ -436,5 +438,53 @@ class TestProtectedContent extends BaseTestCase {
 
 		$this->assertTrue( $comments_query->elasticsearch_success );
 		$this->assertEquals( 1, $comments_query->found_comments );
+	}
+
+	/**
+	 * Test the `maybe_change_sort` method.
+	 *
+	 * @since 5.1.4
+	 * @group protected-content
+	 */
+	public function test_maybe_change_sort() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$exact_match_id       = $this->ep_factory->post->create(
+			[
+				'post_title' => 'exact match - beautiful',
+				'post_date'  => '2021-12-31 23:59:59',
+			]
+		);
+		$not_so_good_match_id = $this->ep_factory->post->create(
+			[
+				'post_title' => 'not so good match - beautful',
+				'post_date'  => '2022-12-31 23:59:59',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// By default, display the best match first
+		$query = new \WP_Query( [ 's' => 'beautiful' ] );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $exact_match_id, $query->posts[0]->ID );
+
+		$filter = function ( $value ) {
+			$value['protected_content']['use_default_wp_sort'] = '1';
+			return $value;
+		};
+		add_filter( 'site_option_ep_feature_settings', $filter );
+		add_filter( 'option_ep_feature_settings', $filter );
+
+		// With the option enabled, order by date
+		$query = new \WP_Query( [ 's' => 'beautiful' ] );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $not_so_good_match_id, $query->posts[0]->ID );
 	}
 }

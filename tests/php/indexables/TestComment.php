@@ -40,7 +40,7 @@ class TestComment extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->reset_sync_queue();
 
 		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'comments' )->search_setup();
@@ -133,7 +133,7 @@ class TestComment extends BaseTestCase {
 	public function testCommentSync() {
 		add_action(
 			'ep_sync_comment_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_comment_on_transition'] = true;
 			}
 		);
@@ -147,7 +147,7 @@ class TestComment extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->get_sync_queue() ) );
 
 		ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id );
 
@@ -207,7 +207,7 @@ class TestComment extends BaseTestCase {
 
 		update_comment_meta( $comment_id, 'test_key', true );
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->get_sync_queue() ) );
 		$this->assertnotEmpty( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->add_to_queue( $comment_id ) );
 	}
 
@@ -229,7 +229,7 @@ class TestComment extends BaseTestCase {
 
 		add_filter(
 			'ep_comment_sync_kill',
-			function( $kill, $comment_id ) use ( $created_comment_id ) {
+			function ( $kill, $comment_id ) use ( $created_comment_id ) {
 				if ( $created_comment_id === $comment_id ) {
 					return true;
 				}
@@ -279,7 +279,7 @@ class TestComment extends BaseTestCase {
 		$this->assertEquals( 3, count( $comments ) );
 
 		// Test some of the filters and defaults.
-		$return_2 = function() {
+		$return_2 = function () {
 			return 2;
 		};
 
@@ -606,14 +606,14 @@ class TestComment extends BaseTestCase {
 	public function testCommentDelete() {
 		add_action(
 			'ep_sync_comment_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_comment_on_transition'] = true;
 			}
 		);
 
 		add_action(
 			'deleted_comment',
-			function() {
+			function () {
 				$this->fired_actions['deleted_comment'] = true;
 			}
 		);
@@ -629,7 +629,7 @@ class TestComment extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->get_sync_queue() ) );
 
 		ElasticPress\Indexables::factory()->get( 'comment' )->index( $comment_id );
 
@@ -2179,44 +2179,208 @@ class TestComment extends BaseTestCase {
 	 * @group comment
 	 */
 	public function testCommentIndexableQueryDb() {
-		$post_id = wp_insert_post(
-			[
-				'post_name'   => 'start-here',
-				'post_status' => 'publish',
-			]
-		);
+		ElasticPress\Features::factory()->deactivate_feature( 'woocommerce' );
 
-		wp_insert_comment(
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
 			[
-				'comment_content' => 'Test comment 1',
 				'comment_post_ID' => $post_id,
 			]
 		);
 
-		$product_id = wp_insert_post(
+		$this->ep_factory->comment->create(
 			[
-				'post_content' => 'product 1',
-				'post_type'    => 'product',
-				'post_status'  => 'publish',
+				'comment_post_ID' => $this->ep_factory->product->create(),
+				'comment_type'    => 'review',
 			]
 		);
 
-		wp_insert_comment(
+		$middle_comment_id = $this->ep_factory->comment->create(
 			[
-				'comment_content' => 'Test review',
-				'comment_post_ID' => $product_id,
-				'comment_type'    => 'review',
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$this->ep_factory->comment->create_many(
+			10,
+			[
+				'comment_post_ID' => $post_id,
 			]
 		);
 
 		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
 
+		// Test only comments are returned.
 		$results = $comment_indexable->query_db( [] );
-
 		$this->assertArrayHasKey( 'objects', $results );
 		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 12, $results['total_objects'] );
 
+		// Test only 1 comment is returned.
+		$results = $comment_indexable->query_db( [ 'include' => $comment_1_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
 		$this->assertEquals( 1, $results['total_objects'] );
+
+		// Test all comments are returned except the one with ID.
+		$results = $comment_indexable->query_db( [ 'exclude' => $comment_1_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 11, $results['total_objects'] );
+
+		// Test when upper limit is set and it returns only 2 comments.
+		$results = $comment_indexable->query_db( [ 'ep_indexing_upper_limit_object_id' => $middle_comment_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 2, $results['total_objects'] );
+
+		// Test when lower limit is set and it returns only 11 comments.
+		$results = $comment_indexable->query_db( [ 'ep_indexing_lower_limit_object_id' => $middle_comment_id ] );
+		$this->assertArrayHasKey( 'objects', $results );
+		$this->assertArrayHasKey( 'total_objects', $results );
+		$this->assertEquals( 11, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests the pagination of the query_db method.
+	 *
+	 * @since 5.2.0
+	 * @group comment
+	 */
+	public function test_query_db_with_last_processed_object_id() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_3_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		$results = $comment_indexable->query_db(
+			[
+				'per_page' => 1,
+			]
+		);
+
+		$comment_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $comment_3_id, $comment_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Second loop.
+		$results = $comment_indexable->query_db(
+			[
+				'per_page'                             => 1,
+				'ep_indexing_last_processed_object_id' => $comment_3_id,
+			]
+		);
+
+		$comment_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $comment_2_id, $comment_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests that the query_db method returns results sorted by ID.
+	 *
+	 * @since 5.2.0
+	 * @group comment
+	 */
+	public function test_query_db_sort_by() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_3_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+		$results           = $comment_indexable->query_db( [] );
+
+		$this->assertEquals( 3, $results['total_objects'] );
+		$this->assertEquals( $comment_3_id, $results['objects'][0]->ID );
+		$this->assertEquals( $comment_2_id, $results['objects'][1]->ID );
+		$this->assertEquals( $comment_1_id, $results['objects'][2]->ID );
+	}
+
+	/**
+	 * Tests that query_db always returns terms ordered by ID in descending order.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_orderby() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_3_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+			]
+		);
+
+		$comment_indexable = new \ElasticPress\Indexable\Comment\Comment();
+
+		// change the orderby and make sure it's still ordered by ID.
+		add_filter(
+			'comments_clauses',
+			function ( $clauses ) {
+				global $wpdb;
+
+				$clauses['orderby'] = "{$wpdb->comments}.comment_type ASC";
+				return $clauses;
+			}
+		);
+
+		$results = $comment_indexable->query_db( [] );
+
+		$this->assertSame( 3, $results['total_objects'] );
+
+		$comment_ids = wp_list_pluck( $results['objects'], 'ID' );
+
+		$this->assertSame( $comment_3_id, (int) $comment_ids[0] );
+		$this->assertSame( $comment_2_id, (int) $comment_ids[1] );
+		$this->assertSame( $comment_1_id, (int) $comment_ids[2] );
 	}
 
 	/**
@@ -2366,7 +2530,7 @@ class TestComment extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->get_sync_queue() ) );
 
 		$shop_order_comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $shop_order_id );
 
@@ -2406,7 +2570,7 @@ class TestComment extends BaseTestCase {
 			]
 		);
 
-		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 0, count( ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->get_sync_queue() ) );
 
 		$shop_order_comment = ElasticPress\Indexables::factory()->get( 'comment' )->get( $shop_order_id );
 
@@ -2456,5 +2620,33 @@ class TestComment extends BaseTestCase {
 		$comments = $comments_query->get_comments();
 
 		$this->assertCount( 2, $comments );
+	}
+
+	/**
+	 * Test if the mapping applies the ep_stop filter correctly
+	 *
+	 * @since 4.7.0
+	 * @group comments
+	 */
+	public function test_mapping_ep_stop_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'comment' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+
+		$change_lang = function ( $lang, $context ) {
+			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
+		};
+		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$indexable->put_mapping();
+
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
 }

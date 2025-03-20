@@ -24,7 +24,7 @@ class TestIndexHelper extends BaseTestCase {
 
 		$args = [
 			'method'        => 'custom',
-			'output_method' => function() {},
+			'output_method' => function () {},
 		];
 
 		$change_args = function ( $filter_args, $index_meta ) use ( $args ) {
@@ -55,7 +55,7 @@ class TestIndexHelper extends BaseTestCase {
 		/**
 		 * Test changing the option value (most likely how users will have this changed.)
 		 */
-		$change_via_option_filter = function() {
+		$change_via_option_filter = function () {
 			return 10;
 		};
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -68,7 +68,7 @@ class TestIndexHelper extends BaseTestCase {
 		/**
 		 * Test the `ep_index_default_per_page` filter.
 		 */
-		$change_via_ep_filter = function() {
+		$change_via_ep_filter = function () {
 			return 15;
 		};
 		add_filter( 'ep_index_default_per_page', $change_via_ep_filter );

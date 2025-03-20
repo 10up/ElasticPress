@@ -52,6 +52,22 @@ class Screen {
 	public $status_report;
 
 	/**
+	 * Features instance
+	 *
+	 * @var Screen\Features
+	 * @since  5.0.0
+	 */
+	public $features;
+
+	/**
+	 * Settings instance
+	 *
+	 * @var Screen\Settings
+	 * @since  5.0.0
+	 */
+	public $settings;
+
+	/**
 	 * Initialize class
 	 *
 	 * @since 3.0
@@ -62,10 +78,14 @@ class Screen {
 		$this->sync_screen        = new Screen\Sync();
 		$this->health_info_screen = new Screen\HealthInfo();
 		$this->status_report      = new Screen\StatusReport();
+		$this->features           = new Screen\Features();
+		$this->settings           = new Screen\Settings();
 
 		$this->sync_screen->setup();
 		$this->health_info_screen->setup();
 		$this->status_report->setup();
+		$this->features->setup();
+		$this->settings->setup();
 	}
 
 	/**
@@ -74,49 +94,42 @@ class Screen {
 	 * @since 3.0
 	 */
 	public function determine_screen() {
-		// If in network mode, don't output notice in admin and vice-versa.
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			if ( ! is_network_admin() ) {
-				return false;
-			}
-		} else {
-			if ( is_network_admin() ) {
-				return false;
-			}
-		}
-
 		// phpcs:disable WordPress.Security.NonceVerification
-		if ( ! empty( $_GET['page'] ) && false !== strpos( $_GET['page'], 'elasticpress' ) ) {
+		if ( ! empty( $_GET['page'] ) && false !== strpos( sanitize_key( $_GET['page'] ), 'elasticpress' ) ) {
 			$install_status = Installer::factory()->get_install_status();
 
 			$this->screen = 'install';
 
 			if ( 'elasticpress' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
-					$this->screen = 'dashboard';
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
+					if ( Utils\is_top_level_admin_context() ) {
+						$this->screen = 'dashboard';
+					} else {
+						$this->screen = 'weighting';
+					}
 				}
 			} elseif ( 'elasticpress-settings' === $_GET['page'] ) {
-				if ( true === $install_status || 2 === $install_status || isset( $_GET['do_sync'] ) ) {
+				if ( true === $install_status || 2 === $install_status || Utils\isset_do_sync_parameter() ) {
 					$this->screen = 'settings';
 				}
 			} elseif ( 'elasticpress-health' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
 					$this->screen = 'health';
 				}
 			} elseif ( 'elasticpress-weighting' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
 					$this->screen = 'weighting';
 				}
 			} elseif ( 'elasticpress-synonyms' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
 					$this->screen = 'synonyms';
 				}
 			} elseif ( 'elasticpress-sync' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
 					$this->screen = 'sync';
 				}
 			} elseif ( 'elasticpress-status-report' === $_GET['page'] ) {
-				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || isset( $_GET['do_sync'] ) ) ) {
+				if ( ! isset( $_GET['install_complete'] ) && ( true === $install_status || Utils\isset_do_sync_parameter() ) ) {
 					$this->screen = 'status-report';
 				}
 			}

@@ -107,10 +107,13 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 
 	it('Can see highlighted text', () => {
 		cy.login();
+
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-search .settings-button').click();
-		cy.get('.ep-feature-search [name="settings[highlight_excerpt]"][value="1"]').click();
-		cy.get('.ep-feature-search .button-primary').click();
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+		cy.contains('button', 'Post Search').click();
+		cy.contains('label', 'Weight results by date').click();
+		cy.contains('button', 'Save changes').click();
 
 		cy.publishPost({
 			title: 'test highlight color',
@@ -120,5 +123,19 @@ describe('Post Search Feature', { tags: '@slow' }, () => {
 		cy.visit('/?s=findme');
 
 		cy.get('.ep-highlight').should('be.visible');
+	});
+
+	it('Can not see any password protected post', () => {
+		cy.login();
+
+		cy.publishPost({
+			title: 'Password Protected',
+			password: 'password',
+		});
+
+		cy.visit('/');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
+		cy.visit('/?s=Password+Protected');
+		cy.contains('.site-content article h2', 'Password Protected').should('not.exist');
 	});
 });

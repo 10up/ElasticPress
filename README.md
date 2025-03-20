@@ -4,7 +4,7 @@
 
 [![Support Level](https://img.shields.io/badge/support-active-green.svg)](#support-level) [![Tests Status](https://github.com/10up/ElasticPress/actions/workflows/test.yml/badge.svg?branch=develop)](https://github.com/10up/ElasticPress) [![Release Version](https://img.shields.io/github/release/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/releases/latest) ![WordPress tested up to version](https://img.shields.io/wordpress/plugin/tested/elasticpress?label=WordPress) [![MIT License](https://img.shields.io/github/license/10up/ElasticPress.svg)](https://github.com/10up/ElasticPress/blob/develop/LICENSE.md)
 
-* Check out the [ElasticPress Docs](https://10up.github.io/ElasticPress/)
+* Check out the [ElasticPress Docs](https://www.elasticpress.io/documentation/)
 
 **Please note:** as of ElasticPress 4.0.0 `trunk` is the stable branch, built assets were removed from the `develop` branch, a ZIP with the plugin and its built assets are available on the [GitHub Releases page](https://github.com/10up/ElasticPress/releases), and will include a build script should you want to build assets from a branch.  As such, please ensure you have updated any references you have from `master` to `trunk` or to GitHub releases depending on whether you require built assets or not.
 
@@ -14,8 +14,7 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ## Documentation
 
-* [Docs website ☞](https://10up.github.io/ElasticPress/)
-* [Support site with FAQs and tutorials ☞](https://elasticpress.zendesk.com/hc/en-us)
+* [Support site with FAQs, tutorials, and docs ☞](https://www.elasticpress.io/documentation/)
 * [Security Policy ☞](https://github.com/10up/ElasticPress/blob/develop/SECURITY.md)
 
 ## Requirements and Compatibility
@@ -24,9 +23,9 @@ ElasticPress, a fast and flexible search and query engine for WordPress, enables
 
 ElasticPress requires these software with the following versions:
 
-* [Elasticsearch](https://www.elastic.co) 5.2+ **ElasticSearch max version supported: 7.10**
-* [WordPress](https://wordpress.org) 5.6+
-* [PHP](https://php.net/) 7.0+
+* [Elasticsearch](https://www.elastic.co) 5.2+
+* [WordPress](https://wordpress.org) 6.2+
+* [PHP](https://php.net/) 7.4+
 
 ### Compatibility
 
@@ -38,7 +37,7 @@ Simply downloading the repository files is not enough to have the plugin working
 
 `npm install && npm run build`
 
-[Node.js](https://nodejs.org/en/) (v14) and [npm](https://www.npmjs.com/) (v8) are required.
+[Node.js](https://nodejs.org/en/) (v20) and [npm](https://www.npmjs.com/) (v9) are required.
 
 ## React Components
 
