@@ -30,6 +30,7 @@ export default () => {
 			type="number"
 			value={args.offset}
 			__nextHasNoMarginBottom
+			__next40pxDefaultSize
 		/>
 	);
 };
