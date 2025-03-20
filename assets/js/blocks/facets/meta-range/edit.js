@@ -95,6 +95,7 @@ export default ({ attributes, name, setAttributes }) => {
 								onChange={onChangePrefix}
 								value={prefix}
 								__nextHasNoMarginBottom
+								__next40pxDefaultSize
 							/>
 						</FlexItem>
 						<FlexItem>
@@ -103,6 +104,7 @@ export default ({ attributes, name, setAttributes }) => {
 								onChange={onChangeSuffix}
 								value={suffix}
 								__nextHasNoMarginBottom
+								__next40pxDefaultSize
 							/>
 						</FlexItem>
 					</Flex>

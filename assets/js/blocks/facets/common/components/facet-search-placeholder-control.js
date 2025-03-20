@@ -20,6 +20,7 @@ export default ({ onChange, value }) => {
 			value={value}
 			onChange={onChange}
 			__nextHasNoMarginBottom
+			__next40pxDefaultSize
 		/>
 	);
 };

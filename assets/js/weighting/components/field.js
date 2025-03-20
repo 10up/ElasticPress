@@ -72,6 +72,7 @@ export default ({ label, onChange, onDelete, value, showTooltip }) => {
 						onChange={onChangeWeight}
 						value={weight}
 						__nextHasNoMarginBottom
+						__next40pxDefaultSize
 					/>
 				</div>
 				<div className="ep-weighting-field__actions">
