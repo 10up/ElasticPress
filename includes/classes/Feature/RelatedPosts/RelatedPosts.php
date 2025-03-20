@@ -8,10 +8,11 @@
 
 namespace ElasticPress\Feature\RelatedPosts;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\Post\Post as Post;
-use \WP_Query as WP_Query;
+use WP_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
+use ElasticPress\REST;
+use ElasticPress\Utils;
 
 /**
  * Related posts feature class
@@ -25,11 +26,23 @@ class RelatedPosts extends Feature {
 	public function __construct() {
 		$this->slug = 'related_posts';
 
-		$this->title = esc_html__( 'Related Posts', 'elasticpress' );
-
 		$this->requires_install_reindex = false;
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Related Posts', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Instantly deliver engaging and precise related content with no impact on site performance. Output related content using our block or directly in your theme using our <a href="https://www.elasticpress.io/documentation/article/related-posts-api/">API functions</a>.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#related-posts', 'elasticpress' );
 	}
 
 	/**
@@ -42,7 +55,7 @@ class RelatedPosts extends Feature {
 	public function formatted_args( $formatted_args, $args ) {
 		if ( ! empty( $args['more_like'] ) ) {
 			// lets compare ES version to see if new MLT structure applies
-			$new_mlt = version_compare( Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
+			$new_mlt = version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), 6.0, '>=' );
 
 			if ( $new_mlt && is_array( $args['more_like'] ) ) {
 				foreach ( $args['more_like'] as $id ) {
@@ -59,6 +72,13 @@ class RelatedPosts extends Feature {
 			$formatted_args['query'] = array(
 				'more_like_this' => array(
 					$mlt_key          => $ids,
+					/**
+					 * Filter fields used to determine related posts
+					 *
+					 * @hook ep_related_posts_fields
+					 * @param  {array} $fields Related post fields
+					 * @return  {array} New fields
+					 */
 					'fields'          => apply_filters(
 						'ep_related_posts_fields',
 						array(
@@ -67,8 +87,29 @@ class RelatedPosts extends Feature {
 							'terms.post_tag.name',
 						)
 					),
+					/**
+					 * Filter related posts minimum term frequency
+					 *
+					 * @hook ep_related_posts_min_term_freq
+					 * @param  {int} $minimum Minimum term frequency
+					 * @return  {array} New value
+					 */
 					'min_term_freq'   => apply_filters( 'ep_related_posts_min_term_freq', 1 ),
+					/**
+					 * Filter related posts maximum query terms
+					 *
+					 * @hook ep_related_posts_max_query_terms
+					 * @param  {int} $maximum Maximum query terms
+					 * @return  {array} New value
+					 */
 					'max_query_terms' => apply_filters( 'ep_related_posts_max_query_terms', 12 ),
+					/**
+					 * Filter related posts minimum document frequency
+					 *
+					 * @hook ep_related_posts_min_doc_freq
+					 * @param  {int} $minimum Minimum document frequency
+					 * @return  {array} New value
+					 */
 					'min_doc_freq'    => apply_filters( 'ep_related_posts_min_doc_freq', 1 ),
 				),
 			);
@@ -81,19 +122,42 @@ class RelatedPosts extends Feature {
 	 * Search Elasticsearch for related content
 	 *
 	 * @param  int $post_id Post ID
-	 * @param  int $return Return code
-	 * @since  2.1
-	 * @return array|bool
+	 * @param  int $post_return Number of posts to return
+	 * @since  4.1.0
+	 * @return WP_Query
 	 */
-	public function find_related( $post_id, $return = 5 ) {
+	public function get_related_query( $post_id, $post_return = 5 ) {
 		$args = array(
 			'more_like'           => $post_id,
-			'posts_per_page'      => $return,
+			'posts_per_page'      => $post_return,
 			'ep_integrate'        => true,
 			'ignore_sticky_posts' => true,
 		);
 
-		$query = new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
+		/**
+		 * Filter WP Query related post arguments
+		 *
+		 * @hook ep_find_related_args
+		 * @param  {array} $args WP Query arguments
+		 * @since  2.1
+		 * @return  {array} New arguments
+		 */
+		return new WP_Query( apply_filters( 'ep_find_related_args', $args ) );
+	}
+
+	/**
+	 * Search Elasticsearch for related content
+	 *
+	 * @param  int $post_id Post ID
+	 * @param  int $post_return Number of posts to return
+	 *
+	 * @since  2.1
+	 * @uses get_related_query
+	 *
+	 * @return array|bool
+	 */
+	public function find_related( $post_id, $post_return = 5 ) {
+		$query = $this->get_related_query( $post_id, $post_return );
 
 		if ( ! $query->have_posts() ) {
 			return false;
@@ -108,8 +172,9 @@ class RelatedPosts extends Feature {
 	 */
 	public function setup() {
 		add_action( 'widgets_init', [ $this, 'register_widget' ] );
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'formatted_args' ], 10, 2 );
-		add_action( 'enqueue_block_editor_assets', [ $this, 'register_block' ] );
+		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'rest_api_init', [ $this, 'setup_endpoint' ] );
 	}
 
@@ -119,70 +184,8 @@ class RelatedPosts extends Feature {
 	 * @since  3.2
 	 */
 	public function setup_endpoint() {
-		register_rest_route(
-			'wp/v2',
-			'/posts/(?P<id>[0-9]+)/related',
-			[
-				'methods'  => 'GET',
-				'callback' => [ $this, 'output_endpoint' ],
-				'args'     => [
-					'id'     => [
-						'description' => 'Post ID.',
-						'type'        => 'numeric',
-					],
-					'number' => [
-						'description' => 'Number of posts',
-						'type'        => 'numeric',
-						'default'     => 5,
-					],
-				],
-			]
-		);
-	}
-
-	/**
-	 * Output related posts endpoint
-	 *
-	 * @param  \WP_REST_Request $request REST request
-	 * @since  3.2
-	 * @return \WP_REST_Response
-	 */
-	public function output_endpoint( $request ) {
-		$id = $request['id'];
-
-		$posts          = $this->find_related( $id, (int) $request['number'] );
-		$prepared_posts = [];
-
-		if ( ! empty( $posts ) ) {
-			foreach ( $posts as $post ) {
-				$prepared_post = [];
-
-				$prepared_post['id']           = $post->ID;
-				$prepared_post['link']         = get_permalink( $post->ID );
-				$prepared_post['status']       = $post->post_status;
-				$prepared_post['title']        = [
-					'raw'      => $post->post_title,
-					'rendered' => get_the_title( $post->ID ),
-				];
-				$prepared_post['author']       = (int) $post->post_author;
-				$prepared_post['parent']       = (int) $post->post_parent;
-				$prepared_post['menu_order']   = (int) $post->menu_order;
-				$prepared_post['content']      = [
-					'rendered' => post_password_required( $post ) ? '' : apply_filters( 'the_content', $post->post_content ),
-				];
-				$prepared_post['date']         = $post->post_date;
-				$prepared_post['date_gmt']     = $post->post_date_gmt;
-				$prepared_post['modified']     = $post->post_modified;
-				$prepared_post['modified_gmt'] = $post->post_modified_gmt;
-
-				$prepared_posts[] = $prepared_post;
-			}
-		}
-
-		$response = new \WP_REST_Response();
-		$response->set_data( $prepared_posts );
-
-		return $response;
+		$controller = new REST\RelatedPosts();
+		$controller->register_routes();
 	}
 
 	/**
@@ -191,44 +194,24 @@ class RelatedPosts extends Feature {
 	 * @since  3.2
 	 */
 	public function register_block() {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
 		wp_register_script(
-			'elasticpress-related-posts-block',
-			EP_URL . 'dist/js/related-posts-block-script.min.js',
-			[
-				'wp-blocks',
-				'wp-element',
-				'wp-editor',
-				'wp-api-fetch',
-			],
-			EP_VERSION,
+			'ep-related-posts-block-script',
+			EP_URL . 'dist/js/related-posts-block-script.js',
+			Utils\get_asset_info( 'related-posts-block-script.js', 'dependencies' ),
+			Utils\get_asset_info( 'related-posts-block-script.js', 'version' ),
 			true
 		);
 
-		wp_register_style(
-			'elasticpress-related-posts-block',
-			EP_URL . 'dist/css/related-posts-block-styles.min.css',
-			[
-				'wp-edit-blocks',
-			],
-			EP_VERSION
-		);
+		wp_set_script_translations( 'ep-related-posts-block-script', 'elasticpress' );
 
-		register_block_type(
-			'elasticpress/related-posts',
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/related-posts',
 			[
-				'attributes'      => [
-					'number' => [
-						'type'    => 'number',
-						'default' => 5,
-					],
-					'align'  => [
-						'type' => 'string',
-						'enum' => [ 'left', 'center', 'right', 'wide', 'full' ],
-					],
-				],
-				'editor_script'   => 'elasticpress-related-posts-block',
-				'editor_style'    => 'elasticpress-related-posts-block',
-				'style'           => 'elasticpress-related-posts-block',
 				'render_callback' => [ $this, 'render_block' ],
 			]
 		);
@@ -254,13 +237,11 @@ class RelatedPosts extends Feature {
 			$class .= ' align' . $attributes['align'];
 		}
 
-		if ( ! empty( $attributes['className'] ) ) {
-			$class .= ' ' . $attributes['className'];
-		}
-
 		ob_start();
+
+		$wrapper_attributes = get_block_wrapper_attributes( [ 'class' => $class ] );
 		?>
-		<section class="<?php echo esc_attr( $class ); ?>">
+		<section <?php echo wp_kses_data( $wrapper_attributes ); ?>">
 			<ul>
 				<?php foreach ( $posts as $related_post ) : ?>
 					<li>
@@ -288,14 +269,19 @@ class RelatedPosts extends Feature {
 	}
 
 	/**
-	 * Output feature box summary
+	 * Hide the legacy widget.
 	 *
-	 * @since 2.1
+	 * Hides the legacy widget in favor of the Block when the block editor
+	 * is in use and the legacy widget has not been used.
+	 *
+	 * @since 4.3
+	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @return array array of excluded widget-type IDs to hide.
 	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'ElasticPress understands data in real time, so it can instantly deliver engaging and precise related content with no impact on site performance.', 'elasticpress' ); ?></p>
-		<?php
+	public function hide_legacy_widget( $widgets ) {
+		$widgets[] = 'ep-related-posts';
+
+		return $widgets;
 	}
 
 	/**
@@ -305,7 +291,7 @@ class RelatedPosts extends Feature {
 	 */
 	public function output_feature_box_long() {
 		?>
-		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://github.com/10up/ElasticPress/#related-posts">API functions.</a>', 'elasticpress' ) ); ?></p>
+		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://www.elasticpress.io/documentation/article/related-posts-api/">API functions.</a>', 'elasticpress' ) ); ?></p>
 		<?php
 	}
 }

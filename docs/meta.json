@@ -1,0 +1,38 @@
+{
+    "install": {
+        "title": "Install"
+    },
+    "compatibility": {
+        "title": "Compatibility"
+    },
+    "features": {
+        "title": "Features"
+    },
+    "feature-api": {
+        "title": "Feature API"
+    },
+    "indexables": {
+        "title": "Indexables"
+    },
+    "react": {
+        "title": "React Components"
+    },
+    "security": {
+        "title": "Security"
+    },
+    "wp-cli": {
+        "title": "WP-CLI Commands"
+    },
+    "debugging": {
+        "title": "Debugging"
+    },
+    "development": {
+        "title": "Development"
+    },
+    "theme-integration": {
+        "title": "Theme Integration"
+    },
+    "indexing-process": {
+        "title": "Indexing Process"
+    }
+}

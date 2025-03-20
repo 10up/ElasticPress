@@ -1,0 +1,1 @@
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/](https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/).

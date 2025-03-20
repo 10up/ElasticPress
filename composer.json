@@ -4,6 +4,8 @@
   "type": "wordpress-plugin",
   "keywords": ["wordpress", "plugin", "elasticsearch", "elasticpress", "search"],
   "license": ["GPL-2.0-only"],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "authors": [
     {
       "name": "Taylor Lovett",
@@ -11,12 +13,12 @@
     },
     {
       "name": "10up",
-      "homepage": "http://10up.com"
+      "homepage": "https://10up.com"
     },
     {
       "name": "Aaron Holbrook",
       "email": "aaron@10up.com",
-      "homepage": "http://aaronjholbrook.com"
+      "homepage": "https://aaronjholbrook.com"
     }
   ],
   "repositories": [
@@ -26,22 +28,47 @@
     }
   ],
   "require": {
-    "php": ">=5.6"
+    "php": ">=7.4",
+    "composer/installers": "^1.0 || ^2.0",
+    "psr/container": "1.0.0"
   },
   "require-dev": {
-    "10up/phpcs-composer": "dev-master",
+    "10up/phpcs-composer": "dev-trunk",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^7"
+    "phpcompatibility/phpcompatibility-wp": "*",
+    "brianhenryie/strauss": "^0.21.0",
+    "yoast/phpunit-polyfills": "^4.0",
+    "phpunit/phpunit": "^9.0.0"
   },
   "scripts": {
-    "lint": "phpcs .",
+    "lint": "phpcs . -s --runtime-set testVersion 7.4-",
     "lint-fix": "phpcbf .",
     "test": "phpunit",
-    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password mysql latest true"
+    "test-single-site": "phpunit -c single-site.xml.dist",
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true",
+    "strauss": [ "vendor/bin/strauss" ],
+    "post-install-cmd": [
+      "@strauss"
+    ],
+    "post-update-cmd": [
+      "@strauss"
+    ]
   },
   "extra": {
     "installer-paths": {
-          "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
-      }
+      "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
+    },
+    "strauss": {
+      "target_directory": "vendor-prefixed",
+      "namespace_prefix": "ElasticPress\\Vendor_Prefixed\\",
+      "classmap_prefix": "ElasticPress_Vendor_Prefixed_",
+      "constant_prefix": "EP_VENDOR_"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
   }
 }

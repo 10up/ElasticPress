@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -27,6 +27,14 @@ class Stats {
 	 * @since  3.0
 	 */
 	protected $health = [];
+
+	/**
+	 * Stats retrieved directly from the current cluster
+	 *
+	 * @var array
+	 * @since 3.x
+	 */
+	protected $stats = [];
 
 	/**
 	 * Overall stats of the cluster
@@ -49,13 +57,10 @@ class Stats {
 	 * @since 3.2
 	 */
 	protected $localized = [
-		'index_total'            => 0,
-		'index_time_in_millis'   => 0,
-		'query_total'            => 0,
-		'query_time_in_millis'   => 0,
-		'suggest_time_in_millis' => 0,
-		'suggest_total'          => 0,
-		'indices_data'           => [],
+		'index_total'   => 0,
+		'query_total'   => 0,
+		'suggest_total' => 0,
+		'indices_data'  => [],
 	];
 
 	/**
@@ -69,6 +74,14 @@ class Stats {
 	protected $nodes = 0;
 
 	/**
+	 * Failed queries and their errors.
+	 *
+	 * @since 5.0.1
+	 * @var string
+	 */
+	protected $failed_queries = [];
+
+	/**
 	 * Makes an api call to elasticsearch endpoint
 	 *
 	 * @param  string $path Endpoint path to query
@@ -78,13 +91,29 @@ class Stats {
 	protected function remote_request_helper( $path ) {
 		$request = Elasticsearch::factory()->remote_request( $path );
 
-		if ( is_wp_error( $request ) || empty( $request ) ) {
+		if ( empty( $request ) ) {
 			return false;
 		}
 
-		$body = wp_remote_retrieve_body( $request );
+		if ( is_wp_error( $request ) ) {
+			$this->failed_queries[] = [
+				'path'  => $path,
+				'error' => $request->get_error_message(),
+			];
+			return false;
+		}
 
-		return json_decode( $body, true );
+		$body   = wp_remote_retrieve_body( $request );
+		$return = json_decode( $body, true );
+
+		if ( ! empty( $return['errors'] ) ) {
+			$this->failed_queries[] = [
+				'path'  => $path,
+				'error' => wp_json_encode( $return['errors'] ),
+			];
+		}
+
+		return $return;
 	}
 
 	/**
@@ -102,36 +131,13 @@ class Stats {
 
 		$stats_built = true;
 
-		$stats = $this->remote_request_helper( '_stats?format=json' );
+		$this->stats = $this->remote_request_helper( '_stats?format=json' );
 
-		if ( empty( $stats ) || empty( $stats['_all'] ) || empty( $stats['_all']['total'] ) ) {
+		if ( empty( $this->stats ) || empty( $this->stats['_all'] ) || empty( $this->stats['_all']['total'] ) ) {
 			return;
 		}
 
-		$this->localized['index_total']            = $stats['_all']['total']['indexing']['index_total'];
-		$this->localized['index_time_in_millis']   = $stats['_all']['total']['indexing']['index_time_in_millis'];
-		$this->localized['query_total']            = $stats['_all']['total']['search']['query_total'];
-		$this->localized['query_time_in_millis']   = $stats['_all']['total']['search']['query_time_in_millis'];
-		$this->localized['suggest_time_in_millis'] = $stats['_all']['total']['search']['suggest_time_in_millis'];
-		$this->localized['suggest_total']          = $stats['_all']['total']['search']['suggest_total'];
-
-		foreach ( $stats['indices'] as $index_name => $current_index ) {
-			$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
-			$this->localized['indices_data'][ $index_name ]['docs'] = $stats['indices'][ $index_name ]['total']['docs']['count'];
-		}
-
-		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
-
-		if ( ! empty( $indices ) ) {
-			foreach ( $indices as  $index ) {
-				$this->health[ $index['index'] ]['name']   = $index['index'];
-				$this->health[ $index['index'] ]['health'] = $index['health'];
-			}
-		}
-
-		$this->totals['docs']   = $stats['_all']['total']['docs']['count'];
-		$this->totals['size']   = $stats['_all']['total']['store']['size_in_bytes'];
-		$this->totals['memory'] = $stats['_all']['primaries']['segments']['memory_in_bytes'];
+		$this->populate_indices_stats();
 
 		if ( Utils\is_epio() ) {
 			$node_stats = $this->remote_request_helper( '_nodes/stats/discovery?format=json' );
@@ -145,12 +151,116 @@ class Stats {
 	}
 
 	/**
+	 * Populate the instantiated object with the correct indices, based on context
+	 *
+	 * @since 3.x
+	 */
+	private function populate_indices_stats() {
+		$network_activated = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+		$blog_id           = get_current_blog_id();
+		$site_indices      = $this->get_indices_for_site( $blog_id );
+
+		$indices = $this->remote_request_helper( '_cat/indices?format=json' );
+
+		if ( empty( $indices ) ) {
+			return;
+		}
+
+		// If the plugin is network activated we only want the data from the indexable WP indexes, not any others.
+		if ( $network_activated ) {
+			$indexable_sites = Utils\get_sites();
+			foreach ( $indexable_sites as $site ) {
+				$indexables   = $this->get_indices_for_site( $site['blog_id'] );
+				$site_indices = array_merge( $site_indices, $indexables );
+			}
+		}
+
+		// Filter the general list of indices to contain only the ones we care about.
+		$filtered_indices = array_filter(
+			$indices,
+			function ( $index ) use ( $site_indices ) {
+				return in_array( $index['index'], $site_indices, true );
+			}
+		);
+
+		/**
+		 * Allow sites to select which indices will be displayed in the Index Health page
+		 *
+		 * @param   {array} $filtered_indices Indices filtered to the site(s) being queried.
+		 * @param   {array} $indices          All indices returned from Elasticsearch
+		 *
+		 * @return  {array} List of indices to use
+		 *
+		 * @since   3.x
+		 * @hook    ep_index_health_stats_indices
+		 */
+		$filtered_indices = apply_filters( 'ep_index_health_stats_indices', $filtered_indices, $indices );
+
+		foreach ( $filtered_indices as $index ) {
+			$this->populate_index_stats( $index['index'], $index['health'] );
+		}
+	}
+
+	/**
+	 * Get all registered index names for a given site ID
+	 *
+	 * @param int $site_id the site id
+	 *
+	 * @return array
+	 * @since 3.x
+	 */
+	public function get_indices_for_site( $site_id ) {
+		$indexables = Indexables::factory()->get_all();
+		$indices    = array();
+
+		foreach ( $indexables as $indexable ) {
+			$indices[] = $indexable->get_index_name( $site_id );
+		}
+
+		return $indices;
+	}
+
+	/**
+	 * Populate index storage capacity and metrics
+	 * Note: in the numbers below, those using the total key are counting values across all primary and replica shards
+	 * while those using the primaries key are reading only from the primary shards
+	 *
+	 * @param string $index_name index name
+	 * @param string $health     index health status
+	 *
+	 * @since 3.x
+	 */
+	private function populate_index_stats( $index_name, $health ) {
+
+		if ( empty( $this->stats['indices'][ $index_name ] ) ) {
+			return;
+		}
+
+		// Index-specific data
+		$this->health[ $index_name ]['name']   = $index_name;
+		$this->health[ $index_name ]['health'] = $health;
+
+		$this->localized['indices_data'][ $index_name ]['name'] = $index_name;
+		$this->localized['indices_data'][ $index_name ]['docs'] = $this->stats['indices'][ $index_name ]['primaries']['docs']['count'];
+
+		// General data counts
+		$this->localized['index_total']   += absint( $this->stats['indices'][ $index_name ]['primaries']['indexing']['index_total'] );
+		$this->localized['query_total']   += absint( $this->stats['indices'][ $index_name ]['total']['search']['query_total'] );
+		$this->localized['suggest_total'] += absint( $this->stats['indices'][ $index_name ]['total']['search']['suggest_total'] );
+
+		$this->totals['docs']   += absint( $this->stats['indices'][ $index_name ]['primaries']['docs']['count'] );
+		$this->totals['size']   += absint( $this->stats['indices'][ $index_name ]['total']['store']['size_in_bytes'] );
+		$this->totals['memory'] += absint( $this->stats['indices'][ $index_name ]['total']['segments']['memory_in_bytes'] );
+	}
+
+	/**
 	 * Get index list and health data of an elasticsearch endpoint
 	 *
 	 * @return array
 	 * @since 3.2
 	 */
 	public function get_health() {
+		$this->build_stats();
 		return $this->health;
 	}
 
@@ -161,6 +271,7 @@ class Stats {
 	 * @return int
 	 */
 	public function get_nodes() {
+		$this->build_stats();
 		return $this->nodes;
 	}
 
@@ -171,6 +282,7 @@ class Stats {
 	 * @return array
 	 */
 	public function get_totals() {
+		$this->build_stats();
 		return $this->totals;
 	}
 
@@ -181,6 +293,7 @@ class Stats {
 	 * @return mixed Data used in localization for chart creation.
 	 */
 	public function get_localized() {
+		$this->build_stats();
 		return $this->localized;
 	}
 
@@ -201,6 +314,25 @@ class Stats {
 		$f_base = floor( $base );
 
 		return round( pow( 1024, $base - floor( $base ) ), 1 ) . $suffix[ $f_base ];
+	}
+
+	/**
+	 * Return all failed queries.
+	 *
+	 * @return array
+	 * @since 5.0.1
+	 */
+	public function get_failed_queries() {
+		return $this->failed_queries;
+	}
+
+	/**
+	 * Clear all failed queries registered.
+	 *
+	 * @since 5.0.1
+	 */
+	public function clear_failed_queries() {
+		$this->failed_queries = [];
 	}
 
 	/**

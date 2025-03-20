@@ -1,0 +1,46 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "elasticpress/facet-meta-range",
+	"title": "Filter by Metadata Range - Beta",
+	"category": "elasticpress",
+	"description": "Let visitors filter your content by a range of metadata values.",
+	"keywords": ["custom fields", "facets", "price"],
+	"textdomain": "elasticpress",
+	"attributes": {
+		"facet": {
+			"type": "string",
+			"default": ""
+		},
+		"prefix": {
+			"type": "string",
+			"default": ""
+		},
+		"suffix": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"color": {
+			"background": true,
+			"link": true,
+			"text": true
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"editorScript": "ep-facets-meta-range-block-script",
+	"viewScript": "ep-facets-meta-range-block-view-script",
+	"style": "elasticpress-facets"
+}

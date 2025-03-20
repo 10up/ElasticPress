@@ -1,0 +1,1212 @@
+<?php
+/**
+ * Comment indexable
+ *
+ * @since   3.6.0
+ * @package elasticpress
+ */
+
+namespace ElasticPress\Indexable\Comment;
+
+use WP_Comment_Query;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Features;
+use ElasticPress\Indexable;
+use ElasticPress\Indexable\Post\DateQuery;
+use ElasticPress\Indexables;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Comment indexable class
+ */
+class Comment extends Indexable {
+
+	/**
+	 * Indexable slug
+	 *
+	 * @var   string
+	 * @since 3.6.0
+	 */
+	public $slug = 'comment';
+
+	/**
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
+	 *
+	 * @var boolean
+	 * @since 5.2.0
+	 */
+	public $support_indexing_advanced_pagination = true;
+
+	/**
+	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
+	 *
+	 * @since 4.5.0
+	 * @return void
+	 */
+	public function setup() {
+		$this->labels = [
+			'plural'   => esc_html__( 'Comments', 'elasticpress' ),
+			'singular' => esc_html__( 'Comment', 'elasticpress' ),
+		];
+
+		$this->sync_manager      = new SyncManager( $this->slug );
+		$this->query_integration = new QueryIntegration();
+	}
+
+	/**
+	 * Format query vars into ES query
+	 *
+	 * @param  array $query_vars WP_Comment_Query args.
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function format_args( $query_vars ) {
+		/**
+		 * Support `number` query var
+		 */
+		if ( ! empty( $query_vars['number'] ) ) {
+			$number = (int) $query_vars['number'];
+		} else {
+			/**
+			 * Set the maximum results window size.
+			 *
+			 * The request will return a HTTP 500 Internal Error if the size of the
+			 * request is larger than the [index.max_result_window] parameter in ES.
+			 * See the scroll api for a more efficient way to request large data sets.
+			 *
+			 * @return int The max results window size.
+			 *
+			 * @since 2.3.0
+			 */
+			$number = apply_filters( 'ep_max_results_window', 10000 );
+		}
+
+		$formatted_args = [
+			'from' => 0,
+			'size' => $number,
+		];
+
+		/**
+		 * Support `offset` query var
+		 */
+		if ( isset( $query_vars['offset'] ) ) {
+			$formatted_args['from'] = (int) $query_vars['offset'];
+			if ( empty( $query_vars['number'] ) ) {
+				$formatted_args['size'] -= (int) $formatted_args['from'];
+			}
+		}
+
+		/**
+		 * Support `paged` query var
+		 *
+		 * If `offset` is used, that takes precedence
+		 * over this.
+		 */
+		if ( isset( $query_vars['paged'] ) && empty( $query_vars['offset'] ) && $query_vars['paged'] > 1 ) {
+			$formatted_args['from'] = $number * ( $query_vars['paged'] - 1 );
+		}
+
+		/**
+		 * Support `order` and `orderby` query vars
+		 */
+
+		// Set sort order, default is 'desc'.
+		if ( ! empty( $query_vars['order'] ) ) {
+			$order = $this->parse_order( $query_vars['order'] );
+		} else {
+			$order = 'desc';
+		}
+
+		// Default sort by comment date
+		if ( empty( $query_vars['orderby'] ) ) {
+			$query_vars['orderby'] = 'comment_date_gmt';
+		}
+
+		// Set sort type.
+		$formatted_args['sort'] = $this->parse_orderby( $query_vars['orderby'], $order, $query_vars );
+
+		$filter = [
+			'bool' => [
+				'must' => [],
+			],
+		];
+
+		$use_filters = false;
+
+		/**
+		 * Support `author_email` query var
+		 */
+		if ( ! empty( $query_vars['author_email'] ) ) {
+			$filter['bool']['must'][] = [
+				'term' => [
+					'comment_author_email.raw' => $query_vars['author_email'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `author_url` query var
+		 */
+		if ( ! empty( $query_vars['author_url'] ) ) {
+			$filter['bool']['must'][] = [
+				'term' => [
+					'comment_author_url.raw' => $query_vars['author_url'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `user_id` query var
+		 */
+		if ( ! empty( $query_vars['user_id'] ) ) {
+			$filter['bool']['must'][] = [
+				'term' => [
+					'user_id' => (int) $query_vars['user_id'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `author__in` query var
+		 */
+		if ( ! empty( $query_vars['author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'user_id' => array_values( (array) $query_vars['author__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `author__not_in` query var
+		 */
+		if ( ! empty( $query_vars['author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'user_id' => array_values( (array) $query_vars['author__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `comment__in` query var
+		 */
+		if ( ! empty( $query_vars['comment__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_ID' => array_values( (array) $query_vars['comment__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `comment__not_in` query var
+		 */
+		if ( ! empty( $query_vars['comment__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_ID' => array_values( (array) $query_vars['comment__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `date_query` query var
+		 */
+		if ( ! empty( $query_vars['date_query'] ) ) {
+			$date_query  = new DateQuery( $query_vars['date_query'] );
+			$date_filter = $date_query->get_es_filter();
+
+			if ( array_key_exists( 'and', $date_filter ) ) {
+				$filter['bool']['must'][] = $date_filter['and'];
+				$use_filters              = true;
+			}
+		}
+
+		/**
+		 * Support `fields` query var.
+		 */
+		if ( isset( $query_vars['fields'] ) ) {
+			switch ( $query_vars['fields'] ) {
+				case 'ids':
+					$formatted_args['_source'] = [
+						'includes' => [
+							'comment_ID',
+						],
+					];
+					break;
+			}
+		}
+
+		/**
+		 * Support `karma` query var.
+		 */
+		if ( ! empty( $query_vars['karma'] ) || 0 === $query_vars['karma'] ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_karma' => $query_vars['karma'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		$meta_queries = [];
+
+		/**
+		 * Support `meta_key` and `meta_value` query args
+		 */
+		if ( ! empty( $query_vars['meta_key'] ) ) {
+			$meta_query_array = [
+				'key' => $query_vars['meta_key'],
+			];
+
+			if ( isset( $query_vars['meta_value'] ) ) {
+				$meta_query_array['value'] = $query_vars['meta_value'];
+			}
+
+			$meta_queries[] = $meta_query_array;
+		}
+
+		/**
+		 * Support 'meta_query' query var.
+		 */
+		if ( ! empty( $query_vars['meta_query'] ) ) {
+			$meta_queries = array_merge( $meta_queries, $query_vars['meta_query'] );
+		}
+
+		if ( ! empty( $meta_queries ) ) {
+			$built_meta_queries = $this->build_meta_query( $meta_queries );
+
+			if ( $built_meta_queries ) {
+				$filter['bool']['must'][] = $built_meta_queries;
+				$use_filters              = true;
+			}
+		}
+
+		/**
+		 * Support `hierarchical` query var
+		 */
+		if ( ! empty( $query_vars['hierarchical'] ) && empty( $query_vars['parent'] ) ) {
+			$query_vars['parent'] = 0;
+		}
+
+		/**
+		 * Support `parent` query var.
+		 */
+		if ( ! empty( $query_vars['parent'] ) || 0 === $query_vars['parent'] ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_parent' => (int) $query_vars['parent'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `parent__in` query var
+		 */
+		if ( ! empty( $query_vars['parent__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_parent' => array_values( (array) $query_vars['parent__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `parent__not_in` query var
+		 */
+		if ( ! empty( $query_vars['parent__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_parent' => array_values( (array) $query_vars['parent__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_author` query var.
+		 */
+		if ( ! empty( $query_vars['post_author'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_author_ID' => (int) $query_vars['post_author'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_author__in` query var
+		 */
+		if ( ! empty( $query_vars['post_author__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_post_author_ID' => array_values( (array) $query_vars['post_author__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_author__not_in` query var
+		 */
+		if ( ! empty( $query_vars['post_author__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_post_author_ID' => array_values( (array) $query_vars['post_author__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_id` query var.
+		 */
+		if ( ! empty( $query_vars['post_id'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_ID' => (int) $query_vars['post_id'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post__in` query var
+		 */
+		if ( ! empty( $query_vars['post__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_post_ID' => array_values( (array) $query_vars['post__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post__not_in` query var
+		 */
+		if ( ! empty( $query_vars['post__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_post_ID' => array_values( (array) $query_vars['post__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_status` query var
+		 */
+		if ( ! empty( $query_vars['post_status'] ) && 'any' !== $query_vars['post_status'] ) {
+			$post_status    = (array) ( is_string( $query_vars['post_status'] ) ? explode( ',', $query_vars['post_status'] ) : $query_vars['post_status'] );
+			$post_status    = array_map( 'trim', $post_status );
+			$terms_map_name = 'terms';
+
+			if ( count( $post_status ) < 2 ) {
+				$terms_map_name = 'term';
+				$post_status    = $post_status[0];
+			}
+
+			$filter['bool']['must'][] = array(
+				$terms_map_name => array(
+					'comment_post_status' => $post_status,
+				),
+			);
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_type` query var.
+		 */
+		if ( ! empty( $query_vars['post_type'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_post_type.raw' => array_values( (array) $query_vars['post_type'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_name` query var.
+		 */
+		if ( ! empty( $query_vars['post_name'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_name.raw' => $query_vars['post_name'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `post_parent` query var.
+		 */
+		if ( ! empty( $query_vars['post_parent'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'term' => [
+					'comment_post_parent' => (int) $query_vars['post_parent'],
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `search` query_var
+		 */
+		if ( ! empty( $query_vars['search'] ) ) {
+
+			$search        = ! empty( $query_vars['search'] ) ? $query_vars['search'] : '';
+			$search_fields = [];
+
+			/**
+			 * Allow for search field specification
+			 */
+			if ( ! empty( $query_vars['search_fields'] ) ) {
+				$search_fields = $query_vars['search_fields'];
+			}
+
+			if ( ! empty( $search_fields ) ) {
+				$prepared_search_fields = [];
+
+				if ( ! empty( $search_fields['meta'] ) ) {
+					$metas = (array) $search_fields['meta'];
+
+					foreach ( $metas as $meta ) {
+						$prepared_search_fields[] = 'meta.' . $meta . '.value';
+					}
+
+					unset( $search_fields['meta'] );
+				}
+
+				$prepared_search_fields = array_merge( $search_fields, $prepared_search_fields );
+			} else {
+				$prepared_search_fields = [
+					'comment_author',
+					'comment_author_email',
+					'comment_author_url',
+					'comment_content',
+				];
+			}
+
+			/**
+			 * Filter default comment search fields
+			 *
+			 * If you are using the weighting engine, this filter should not be used.
+			 * Instead, you should use the ep_weighting_configuration_for_search filter.
+			 *
+			 * @hook ep_comment_search_fields
+			 * @since 3.6.0
+			 * @param  {array} $search_fields Default search fields
+			 * @param  {array} $query_vars WP_Comment_Query args
+			 * @return {array} New defaults
+			 */
+			$prepared_search_fields = apply_filters( 'ep_comment_search_fields', $prepared_search_fields, $query_vars );
+
+			$search_algorithm        = $this->get_search_algorithm( $search, $prepared_search_fields, $query_vars );
+			$formatted_args['query'] = $search_algorithm->get_query( 'comment', $search, $prepared_search_fields, $query_vars );
+		} else {
+			$formatted_args['query']['match_all'] = [
+				'boost' => 1,
+			];
+		}
+
+		/**
+		 * Support `status` query var
+		 */
+		if ( ! empty( $query_vars['status'] ) && 'all' !== $query_vars['status'] ) {
+			$comment_stati = (array) ( is_string( $query_vars['status'] ) ? explode( ',', $query_vars['status'] ) : $query_vars['status'] );
+			$comment_stati = array_map( 'trim', $comment_stati );
+
+			foreach ( $comment_stati as $key => $status ) {
+				if ( 'hold' === $status ) {
+					$comment_stati[ $key ] = 0;
+				}
+
+				if ( 'approve' === $status ) {
+					$comment_stati[ $key ] = 1;
+				}
+			}
+
+			$terms_map_name = 'terms';
+
+			if ( count( $comment_stati ) < 2 ) {
+				$terms_map_name = 'term';
+				$comment_stati  = $comment_stati[0];
+			}
+
+			/**
+			 * Support `include_unapproved` query var
+			 */
+			if ( ! empty( $query_vars['include_unapproved'] ) ) {
+				$include_unapproved = wp_parse_list( $query_vars['include_unapproved'] );
+				$unapproved_ids     = [];
+				$unapproved_emails  = [];
+
+				foreach ( $include_unapproved as $unapproved_identifier ) {
+					// Numeric values are assumed to be user ids.
+					if ( is_numeric( $unapproved_identifier ) ) {
+						$unapproved_ids[] = $unapproved_identifier;
+
+						// Otherwise we assume it's an email address.
+					} else {
+						$unapproved_emails[] = $unapproved_identifier;
+					}
+				}
+
+				$filter['bool']['must'][]['bool']['should'] = [
+					[
+						$terms_map_name => [
+							'comment_approved' => $comment_stati,
+						],
+					],
+					[
+						'terms' => [
+							'user_id' => array_values( array_map( 'absint', $unapproved_ids ) ),
+						],
+					],
+					[
+						'terms' => [
+							'comment_author_email.raw' => array_values( $unapproved_emails ),
+						],
+					],
+				];
+			} else {
+				$filter['bool']['must'][] = [
+					$terms_map_name => [
+						'comment_approved' => $comment_stati,
+					],
+				];
+			}
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `type` query var
+		 */
+		if ( ! empty( $query_vars['type'] ) ) {
+			$types = (array) ( is_string( $query_vars['type'] ) ? explode( ',', $query_vars['type'] ) : $query_vars['type'] );
+			$types = array_map( 'trim', $types );
+
+			$terms_map_name = 'terms';
+
+			if ( count( $types ) < 2 ) {
+				$terms_map_name = 'term';
+				$types          = $types[0];
+			}
+
+			$filter['bool']['must'][] = [
+				$terms_map_name => [
+					'comment_type.raw' => $types,
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `type__in` query var
+		 */
+		if ( ! empty( $query_vars['type__in'] ) ) {
+			$filter['bool']['must'][]['bool']['must'] = [
+				'terms' => [
+					'comment_type.raw' => array_values( (array) $query_vars['type__in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		/**
+		 * Support `type__not_in` query var
+		 */
+		if ( ! empty( $query_vars['type__not_in'] ) ) {
+			$filter['bool']['must'][]['bool']['must_not'] = [
+				'terms' => [
+					'comment_type.raw' => array_values( (array) $query_vars['type__not_in'] ),
+				],
+			];
+
+			$use_filters = true;
+		}
+
+		if ( $use_filters ) {
+			$formatted_args['post_filter'] = $filter;
+		}
+
+		/**
+		 * Filter formatted Elasticsearch query (entire query)
+		 *
+		 * @hook ep_comment_formatted_args
+		 * @since 3.6.0
+		 * @param {array} $formatted_args Formatted Elasticsearch query
+		 * @param {array} $query_vars WP_Comment_Query args
+		 * @return  {array} New query
+		 */
+		return apply_filters( 'ep_comment_formatted_args', $formatted_args, $query_vars );
+	}
+
+	/**
+	 * Generate the mapping array
+	 *
+	 * @since 4.1.0
+	 * @return array
+	 */
+	public function generate_mapping() {
+		$es_version = Elasticsearch::factory()->get_elasticsearch_version();
+
+		if ( empty( $es_version ) ) {
+			/**
+			 * Filter fallback Elasticsearch version
+			 *
+			 * @hook ep_fallback_elasticsearch_version
+			 * @param {string} $version Fall back Elasticsearch version
+			 * @return  {string} New version
+			 */
+			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
+		}
+
+		$es_version = (string) $es_version;
+
+		$mapping_file = '7-0.php';
+
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
+			$mapping_file = 'initial.php';
+		}
+
+		/**
+		 * Filter comment indexable mapping file
+		 *
+		 * @hook ep_comment_mapping_file
+		 * @since 3.6.0
+		 * @param {string} $file Path to file
+		 * @return  {string} New file path
+		 */
+		$mapping = require apply_filters( 'ep_comment_mapping_file', __DIR__ . '/../../../mappings/comment/' . $mapping_file );
+
+		/**
+		 * Filter comment indexable mapping
+		 *
+		 * @hook ep_comment_mapping
+		 * @since 3.6.0
+		 * @param {array} $mapping Mapping
+		 * @return  {array} New mapping
+		 */
+		$mapping = apply_filters( 'ep_comment_mapping', $mapping );
+
+		return $mapping;
+	}
+
+	/**
+	 * Returns indexable comment types
+	 *
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function get_indexable_comment_types() {
+		$comment_types = [ 'comment' ];
+
+		if ( Features::factory()->registered_features['woocommerce']->is_active() ) {
+			$comment_types[] = 'review';
+		}
+
+		/**
+		 * Filter indexable comment types
+		 *
+		 * @hook ep_indexable_comment_types
+		 * @since 3.6.0
+		 * @param  {array} $comment_types Indexable comment types
+		 * @return  {array} comment types
+		 */
+		return apply_filters( 'ep_indexable_comment_types', $comment_types );
+	}
+
+	/**
+	 * Returns indexable comment status
+	 *
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function get_indexable_comment_status() {
+		$comment_status = [ '1' ];
+
+		/**
+		 * Filter indexable comment status
+		 *
+		 * @hook ep_indexable_comment_status
+		 * @since 3.6.0
+		 * @param  {array} $comment_status Indexable comment status
+		 * @return  {array} comment status
+		 */
+		return apply_filters( 'ep_indexable_comment_status', $comment_status );
+	}
+
+	/**
+	 * Query DB for comments
+	 *
+	 * @param  array $args Query arguments
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function query_db( $args ) {
+		$defaults = [
+			'type'                            => $this->get_indexable_comment_types(),
+			'status'                          => $this->get_indexable_comment_status(),
+			'post_type'                       => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
+			'post_status'                     => Indexables::factory()->get( 'post' )->get_indexable_post_status(),
+			'number'                          => $this->get_bulk_items_per_page(),
+			'offset'                          => 0,
+			'orderby'                         => 'comment_ID',
+			'order'                           => 'desc',
+			'ep_indexing_advanced_pagination' => true,
+			'no_found_rows'                   => false,
+		];
+
+		if ( isset( $args['per_page'] ) ) {
+			$args['number'] = $args['per_page'];
+		}
+
+		if ( isset( $args['include'] ) ) {
+			$args['comment__in'] = $args['include'];
+		}
+
+		if ( isset( $args['exclude'] ) ) {
+			$args['comment__not_in'] = $args['exclude'];
+		}
+
+		/**
+		 * Filter database arguments for comment query
+		 *
+		 * @hook ep_comment_query_db_args
+		 * @param  {array} $args Query arguments based to WP_Comment_Query
+		 * @since  3.6.0
+		 * @return {array} New arguments
+		 */
+		$args = apply_filters( 'ep_comment_query_db_args', wp_parse_args( $args, $defaults ) );
+
+		$all_query_args = $args;
+
+		unset( $all_query_args['number'] );
+		unset( $all_query_args['offset'] );
+		$all_query_args['count'] = true;
+
+		if ( isset( $args['comment__in'] ) || 0 < $args['offset'] ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
+		}
+
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
+		add_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
+
+		// Enforce the following query args during advanced pagination to ensure things work correctly.
+		if ( $args['ep_indexing_advanced_pagination'] ) {
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'comment_ID',
+					'order'            => 'desc',
+					'paged'            => 1,
+					'offset'           => 0,
+				]
+			);
+
+			// It's important to pass a custom cache domain. By default, WordPress caches results based on the default query arguments and doesn't account for custom arguments. @see \WP_Comment_Query::get_comments()
+			$cache_key            = md5( get_current_blog_id() . wp_json_encode( $args ) );
+			$args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
+
+			add_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
+
+			$query         = new WP_Comment_Query( $args );
+			$total_objects = $this->get_total_objects_for_query( $args );
+			remove_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
+		} else {
+			$query         = new WP_Comment_Query( $args );
+			$total_objects = $query->found_comments;
+		}
+
+		remove_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
+
+		if ( is_array( $query->comments ) ) {
+			array_walk( $query->comments, [ $this, 'remap_comments' ] );
+		}
+
+		return [
+			'objects'       => $query->comments,
+			'total_objects' => $total_objects,
+		];
+	}
+
+	/**
+	 * Filters the WHERE clause of the SQL query used for bulk indexing comments by modifying it to include a range
+	 * of comment IDs based on advanced pagination parameters.
+	 *
+	 * @param array             $clauses Associative array of the clauses for the query.
+	 * @param \WP_Comment_Query $query   The current WP_Comment_Query instance.
+	 *
+	 * @return array Modified SQL query clauses.
+	 */
+	public function bulk_indexing_filter_comments_where( $clauses, $query ) {
+		global $wpdb;
+
+		$using_advanced_pagination = $this->get_query_var( $query, 'ep_indexing_advanced_pagination', false );
+
+		if ( $using_advanced_pagination ) {
+			$requested_upper_limit_id        = $this->get_query_var( $query, 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_object_id = $this->get_query_var( $query, 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id               = $this->get_query_var( $query, 'ep_indexing_last_processed_object_id', null );
+
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_object_id = $requested_upper_limit_id;
+			if ( is_numeric( $last_processed_id ) ) {
+				$upper_limit_range_object_id = $last_processed_id - 1;
+			}
+
+			// Sanitize. Abort if unexpected data at this point.
+			if ( ! is_numeric( $upper_limit_range_object_id ) || ! is_numeric( $requested_lower_limit_object_id ) ) {
+				return $clauses;
+			}
+
+			$range = [
+				'upper_limit' => "{$wpdb->comments}.comment_ID <= {$upper_limit_range_object_id}",
+				'lower_limit' => "{$wpdb->comments}.comment_ID >= {$requested_lower_limit_object_id}",
+			];
+
+			// Skip the end range if it's unnecessary.
+			$skip_ending_range = 0 === $requested_lower_limit_object_id;
+			$where             = $clauses['where'];
+			$where             = $skip_ending_range ? " {$range['upper_limit']} AND {$where}" : " {$range['upper_limit']} AND {$range['lower_limit']} AND {$where}";
+
+			$clauses['where'] = $where;
+		}
+
+		return $clauses;
+	}
+
+	/**
+	 * Get the total number of comments for a given query.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The query result's found_comments.
+	 */
+	protected function get_total_objects_for_query( $query_args ) {
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
+
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
+
+		$normalized_query_args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
+
+		return ( new WP_Comment_Query( $normalized_query_args ) )->found_comments;
+	}
+
+	/**
+	 * Prepare a comment document for indexing
+	 *
+	 * @param  int $comment_id Comment ID
+	 * @since  3.6.0
+	 * @return bool|array
+	 */
+	public function prepare_document( $comment_id ) {
+		$comment = get_comment( $comment_id );
+
+		if ( ! $comment || ! is_a( $comment, 'WP_Comment' ) ) {
+			return false;
+		}
+
+		$comment_post = get_post( $comment->comment_post_ID );
+
+		$comment_args = [
+			'comment_ID'             => $comment->comment_ID,
+			'ID'                     => $comment->comment_ID,
+			'comment_post_ID'        => $comment->comment_post_ID,
+			'comment_post_author_ID' => $comment_post->post_author,
+			'comment_post_status'    => $comment_post->post_status,
+			'comment_post_type'      => $comment_post->post_type,
+			'comment_post_name'      => $comment_post->post_name,
+			'comment_post_parent'    => $comment_post->post_parent,
+			'comment_author'         => $comment->comment_author,
+			'comment_author_email'   => $comment->comment_author_email,
+			'comment_author_url'     => $comment->comment_author_url,
+			'comment_author_IP'      => $comment->comment_author_IP,
+			'comment_date'           => $comment->comment_date,
+			'comment_date_gmt'       => $comment->comment_date_gmt,
+			'comment_content'        => $comment->comment_content,
+			'comment_karma'          => $comment->comment_karma,
+			'comment_approved'       => $comment->comment_approved,
+			'comment_agent'          => $comment->comment_agent,
+			'comment_type'           => $comment->comment_type ? $comment->comment_type : 'comment',
+			'comment_parent'         => $comment->comment_parent,
+			'user_id'                => $comment->user_id,
+			'meta'                   => $this->prepare_meta_types( $this->prepare_meta( $comment->comment_ID ) ),
+		];
+
+		/**
+		 * Filter sync arguments for a comment.
+		 *
+		 * @hook ep_comment_sync_args
+		 * @param  {array} $comment_args Comment arguments
+		 * @param  {int}   $comment_id   Comment ID
+		 * @return {array} New arguments
+		 */
+		$comment_args = apply_filters( 'ep_comment_sync_args', $comment_args, $comment_id );
+
+		return $comment_args;
+	}
+
+	/**
+	 * Rebuild our comment objects to match the fields we need.
+	 *
+	 * In particular, result of WP_Comment_Query does not
+	 * include an "id" field, which our index command
+	 * expects.
+	 *
+	 * @param  object $value Comment object
+	 * @since  3.6.0
+	 * @return void Returns by reference
+	 */
+	public function remap_comments( &$value ) {
+		$value = (object) [
+			'ID'                   => $value->comment_ID,
+			'comment_ID'           => $value->comment_ID,
+			'comment_post_ID'      => $value->comment_post_ID,
+			'comment_author'       => $value->comment_author,
+			'comment_author_email' => $value->comment_author_email,
+			'comment_author_url'   => $value->comment_author_url,
+			'comment_author_IP'    => $value->comment_author_IP,
+			'comment_date'         => $value->comment_date,
+			'comment_date_gmt'     => $value->comment_date_gmt,
+			'comment_content'      => $value->comment_content,
+			'comment_karma'        => $value->comment_karma,
+			'comment_approved'     => $value->comment_approved,
+			'comment_agent'        => $value->comment_agent,
+			'comment_type'         => $value->comment_type,
+			'comment_parent'       => $value->comment_parent,
+			'user_id'              => $value->user_id,
+		];
+	}
+
+	/**
+	 * Prepare meta to send to ES
+	 *
+	 * @param  int $comment_id Comment ID
+	 * @since  3.6.0
+	 * @return array
+	 */
+	public function prepare_meta( $comment_id ) {
+		$meta = (array) get_comment_meta( $comment_id );
+
+		if ( empty( $meta ) ) {
+			return [];
+		}
+
+		$prepared_meta = [];
+
+		/**
+		 * Filter index-able private meta
+		 *
+		 * Allows for specifying private meta keys that may be indexed in the same manner as public meta keys.
+		 *
+		 * @since 3.6.0
+		 *
+		 * @param array           Array of index-able private meta keys.
+		 * @param int $comment_id Comment ID.
+		 */
+		$allowed_protected_keys = apply_filters(
+			'ep_prepare_comment_meta_allowed_protected_keys',
+			[],
+			$comment_id
+		);
+
+		/**
+		 * Filter non-indexed public meta
+		 *
+		 * Allows for specifying public meta keys that should be excluded from the ElasticPress index.
+		 *
+		 * @since 3.6.0
+		 *
+		 * @param array           Array of public meta keys to exclude from index.
+		 * @param int $comment_id Comment ID.
+		 */
+		$excluded_public_keys = apply_filters(
+			'ep_prepare_comment_meta_excluded_public_keys',
+			[],
+			$comment_id
+		);
+
+		foreach ( $meta as $key => $value ) {
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
+					$allow_index = true;
+				}
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
+
+					$allow_index = true;
+			}
+
+			/**
+			 * Filter force allow a meta key
+			 *
+			 * @hook ep_prepare_comment_meta_allowed_key
+			 * @since 3.6.0
+			 * @param  {bool}   $allowed    True to allow the key
+			 * @param  {string} $key        Meta key
+			 * @param  {int}    $comment_id Comment ID
+			 * @return {bool}   New allowed value
+			 */
+			if ( true === $allow_index || apply_filters( 'ep_prepare_comment_meta_allowed_key', false, $key, $comment_id ) ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
+			}
+		}
+
+		return $prepared_meta;
+	}
+
+	/**
+	 * Parse an 'order' query variable and cast it to asc or desc as necessary.
+	 *
+	 * @access protected
+	 *
+	 * @param  string $order The 'order' query variable.
+	 * @since  3.6.0
+	 * @return string The sanitized 'order' query variable.
+	 */
+	protected function parse_order( $order ) {
+		if ( ! is_string( $order ) || empty( $order ) ) {
+			return 'desc';
+		}
+
+		if ( 'ASC' === strtoupper( $order ) ) {
+			return 'asc';
+		} else {
+			return 'desc';
+		}
+	}
+
+	/**
+	 * Convert the alias to a properly-prefixed sort value.
+	 *
+	 * @access protected
+	 *
+	 * @param  string $orderby Alias or path for the field to order by.
+	 * @param  string $order Order direction
+	 * @param  array  $args Query args
+	 * @since  3.6.0
+	 * @return array
+	 */
+	protected function parse_orderby( $orderby, $order, $args ) {
+		$sort = [];
+
+		if ( empty( $orderby ) ) {
+			return $sort;
+		}
+
+		$from_to = [
+			'comment_agent'        => 'comment_agent.raw',
+			'comment_approved'     => 'comment_approved.raw',
+			'comment_author'       => 'comment_author.raw',
+			'comment_author_email' => 'comment_author_email.raw',
+			'comment_author_IP'    => 'comment_author_IP.raw',
+			'comment_author_url'   => 'comment_author_url.raw',
+			'comment_content'      => 'comment_content.raw',
+			'comment_type'         => 'comment_type.raw',
+			'comment_post_type'    => 'comment_post_type.raw',
+		];
+
+		if ( in_array( $orderby, [ 'meta_value', 'meta_value_num' ], true ) ) {
+			if ( empty( $args['meta_key'] ) ) {
+				return $sort;
+			} else {
+				$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
+				$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
+			}
+		}
+
+		$orderby = $from_to[ $orderby ] ?? $orderby;
+
+		$sort[] = array(
+			$orderby => array(
+				'order' => $order,
+			),
+		);
+
+		return $sort;
+	}
+
+	/**
+	 * Retrieve a specific query variable from the query object.
+	 *
+	 * @param \WP_Comment_Query $query The query object.
+	 * @param string            $query_var The name of the query variable to retrieve.
+	 * @param string            $default_value The default value to return if the query variable is not set. Default is an empty string.
+	 *
+	 * @return mixed The value of the query variable if set, otherwise the default value.
+	 */
+	public function get_query_var( $query, $query_var, $default_value = '' ) {
+		return $query->query_vars[ $query_var ] ?? $default_value;
+	}
+
+	/**
+	 * Sets the ORDER BY clause for comment queries to order comments by their ID.
+	 *
+	 * @param array $clauses The SQL clauses array to modify.
+	 * @return array The modified SQL clauses array with the ORDER BY clause set.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_orderby( $clauses ) {
+		global $wpdb;
+
+		$clauses['orderby'] = "{$wpdb->comments}.comment_ID DESC";
+		return $clauses;
+	}
+}

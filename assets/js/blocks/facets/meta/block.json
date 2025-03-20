@@ -1,0 +1,63 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "elasticpress/facet-meta",
+	"title": "Filter by Metadata",
+	"category": "elasticpress",
+	"description": "Let visitors filter your content by metadata values.",
+	"keywords": ["custom fields", "facets"],
+	"textdomain": "elasticpress",
+	"attributes": {
+		"displayCount": {
+			"type": "boolean",
+			"default": false
+		},
+		"facet": {
+			"type": "string",
+			"default": ""
+		},
+		"isPreview": {
+			"type": "boolean",
+			"default": false
+		},
+		"order":  {
+			"type":  "string",
+			"default": "desc",
+			"enum":  [ "desc", "asc" ]
+		},
+		"orderby": {
+			"type": "string",
+			"default": "count",
+			"enum": [ "count", "name" ]
+		},
+		"searchPlaceholder": {
+			"type": "string",
+			"default": "Search"
+		},
+		"type": {
+			"type": "string",
+			"default": "meta"
+		}
+	},
+	"supports": {
+		"color": {
+			"background": true,
+			"link": true,
+			"text": false
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"editorScript": "ep-facets-meta-block-script",
+	"style": "elasticpress-facets"
+}
