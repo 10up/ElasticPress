@@ -57,6 +57,7 @@ export default () => {
 					type="number"
 					value={args.lower_limit_object_id}
 					__nextHasNoMarginBottom
+					__next40pxDefaultSize
 				/>
 			</FlexItem>
 			<FlexItem grow="2">
@@ -69,6 +70,7 @@ export default () => {
 					type="number"
 					value={args.upper_limit_object_id}
 					__nextHasNoMarginBottom
+					__next40pxDefaultSize
 				/>
 			</FlexItem>
 		</Flex>

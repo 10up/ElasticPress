@@ -186,6 +186,7 @@ export default ({
 									suggestions={suggestions}
 									value={values}
 									__nextHasNoMarginBottom
+									__next40pxDefaultSize
 								/>
 							);
 						}
@@ -211,6 +212,7 @@ export default ({
 									disabled={isDisabled}
 									value={value}
 									__nextHasNoMarginBottom
+									__next40pxDefaultSize
 								/>
 							);
 						}
@@ -234,6 +236,7 @@ export default ({
 									onChange={onChange}
 									disabled={isDisabled}
 									value={value}
+									__nextHasNoMarginBottom
 								/>
 							);
 						}
@@ -247,6 +250,7 @@ export default ({
 									value={value}
 									type={type}
 									__nextHasNoMarginBottom
+									__next40pxDefaultSize
 								/>
 							);
 						}
