@@ -53,6 +53,7 @@ export default ({ onChange, orderby, order }) => {
 			options={options}
 			value={`${orderby}/${order}`}
 			__nextHasNoMarginBottom
+			__next40pxDefaultSize
 		/>
 	);
 };

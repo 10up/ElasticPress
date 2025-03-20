@@ -104,6 +104,9 @@ class Post extends Indexable {
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
+		add_filter( 'posts_orderby', [ $this, 'set_posts_orderby' ], 9999, 2 );
+
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
 			$args = array_merge(
@@ -117,16 +120,18 @@ class Post extends Indexable {
 					'no_found_rows'    => true,
 				]
 			);
-			add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+			add_filter( 'posts_where', [ $this, 'bulk_indexing_filter_posts_where' ], 9999, 2 );
 
 			$query         = new WP_Query( $args );
 			$total_objects = $this->get_total_objects_for_query( $args );
 
-			remove_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+			remove_filter( 'posts_where', [ $this, 'bulk_indexing_filter_posts_where' ], 9999, 2 );
 		} else {
 			$query         = new WP_Query( $args );
 			$total_objects = $query->found_posts;
 		}
+
+		remove_filter( 'posts_orderby', [ $this, 'set_posts_orderby' ], 9999, 2 );
 
 		return [
 			'objects'       => $query->posts,
@@ -134,14 +139,16 @@ class Post extends Indexable {
 		];
 	}
 
-		/**
-		 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
-		 *
-		 * @param string   $where The current $where clause.
-		 * @param WP_Query $query WP_Query object.
-		 * @return string WHERE clause with our pagination added if needed.
-		 */
+	/**
+	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+	 *
+	 * @param string   $where The current $where clause.
+	 * @param WP_Query $query WP_Query object.
+	 * @return string WHERE clause with our pagination added if needed.
+	 */
 	public function bulk_indexing_filter_posts_where( $where, $query ) {
+		global $wpdb;
+
 		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
 
 		if ( $using_advanced_pagination ) {
@@ -161,8 +168,8 @@ class Post extends Indexable {
 			}
 
 			$range = [
-				'upper_limit' => "{$GLOBALS['wpdb']->posts}.ID <= {$upper_limit_range_post_id}",
-				'lower_limit' => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_lower_limit_post_id}",
+				'upper_limit' => "{$wpdb->posts}.ID <= {$upper_limit_range_post_id}",
+				'lower_limit' => "{$wpdb->posts}.ID >= {$requested_lower_limit_post_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
@@ -3012,5 +3019,17 @@ class Post extends Indexable {
 		}
 
 		return array_unique( $all_allowed_metas );
+	}
+
+	/**
+	 * Sets the ORDER BY clause to sort posts by post ID in descending order.
+	 *
+	 * @return string The modified order by clause.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_posts_orderby(): string {
+		global $wpdb;
+		return "{$wpdb->posts}.ID DESC";
 	}
 }

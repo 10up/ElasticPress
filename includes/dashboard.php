@@ -584,6 +584,13 @@ function action_admin_enqueue_dashboard_scripts() {
 			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
 		)
 	);
+
+	wp_enqueue_style(
+		'ep_general_styles',
+		EP_URL . 'dist/css/general-styles.css',
+		Utils\get_asset_info( 'general-styles', 'dependencies' ),
+		Utils\get_asset_info( 'general-styles', 'version' )
+	);
 }
 
 /**

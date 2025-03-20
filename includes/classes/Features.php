@@ -332,7 +332,12 @@ class Features {
 		foreach ( $this->registered_features as $feature_slug => $feature ) {
 			$feature->set_i18n_strings();
 
-			if ( $feature->is_active() ) {
+			/**
+			 * 2 is the code for "not usable".
+			 *
+			 * @see FeatureRequirementsStatus
+			 */
+			if ( $feature->is_active() && 2 !== $feature->requirements_status()->code ) {
 				$feature->setup();
 			}
 		}

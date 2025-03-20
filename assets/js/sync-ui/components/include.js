@@ -54,6 +54,7 @@ export default () => {
 				saveTransform={saveTransform}
 				value={args.include}
 				__nextHasNoMarginBottom
+				__next40pxDefaultSize
 			/>
 		</div>
 	);

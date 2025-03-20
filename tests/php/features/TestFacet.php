@@ -404,6 +404,7 @@ class TestFacet extends BaseTestCase {
 			'cat',
 			'category_name',
 			'post_format',
+			'product_brand',
 			'product_cat',
 			'product_tag',
 			'tag',
