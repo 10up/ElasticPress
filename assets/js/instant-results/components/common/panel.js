@@ -7,10 +7,10 @@ import { chevronDown, chevronUp, Icon } from '@wordpress/icons';
 /**
  * Facet wrapper component.
  *
- * @param {object}    props               Component props.
- * @param {WPElement} props.children      Component children.
- * @param {boolean}   props.defaultIsOpen Whether the panel is open by default.
- * @param {string}    props.label         Facet label.
+ * @param {object} props Component props.
+ * @param {WPElement} props.children Component children.
+ * @param {boolean} props.defaultIsOpen Whether the panel is open by default.
+ * @param {string} props.label Facet label.
  * @returns {WPElement} Component element.
  */
 export default ({ children, defaultIsOpen, label }) => {

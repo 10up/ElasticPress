@@ -52,6 +52,81 @@ function get_epio_credentials() {
 }
 
 /**
+ * Get WP capability needed for a user to interact with ElasticPress in the admin
+ *
+ * @since 4.5.0, 5.1.0 added $context
+ * @param string $context Context for the capability. Defaults to empty string.
+ * @return string
+ */
+function get_capability( string $context = '' ): string {
+	/**
+	 * Filter the WP capability needed to interact with ElasticPress in the admin
+	 *
+	 * Example:
+	 * ```
+	 * add_filter(
+	 *     'ep_capability',
+	 *     function ( $cacapability, $context ) {
+	 *         return ( 'synonyms' === $context ) ?
+	 *            'manage_elasticpress_synonyms' :
+	 *            $cacapability;
+	 *     },
+	 *     10,
+	 *     2
+	 * );
+	 * ```
+	 *
+	 * @since 4.5.0, 5.1.0 added $context
+	 * @hook ep_capability
+	 * @param  {string} $capability Capability name. Defaults to `'manage_elasticpress'`
+	 * @param  {string} $context    Additional context
+	 * @return {string} New capability value
+	 */
+	return apply_filters( 'ep_capability', 'manage_elasticpress', $context );
+}
+
+/**
+ * Get WP capability needed for a user to interact with ElasticPress in the network admin
+ *
+ * @since 4.5.0, 5.1.0 added $context
+ * @param string $context Context for the capability. Defaults to empty string.
+ * @return string
+ */
+function get_network_capability( string $context = '' ): string {
+	/**
+	 * Filter the WP capability needed to interact with ElasticPress in the network admin
+	 *
+	 * @since 4.5.0, 5.1.0 added $context
+	 * @hook ep_network_capability
+	 * @param  {string} $capability Capability name. Defaults to `'manage_network_elasticpress'`
+	 * @param  {string} $context    Additional context
+	 * @return {string} New capability value
+	 */
+	return apply_filters( 'ep_network_capability', 'manage_network_elasticpress', $context );
+}
+
+/**
+ * Get mapped capabilities for post types
+ *
+ * @since 4.5.0, 5.1.0 added $context
+ * @param string $context Context for the capability. Defaults to empty string.
+ * @return array
+ */
+function get_post_map_capabilities( string $context = '' ): array {
+	$capability = get_capability( $context );
+
+	return [
+		'edit_post'          => $capability,
+		'edit_posts'         => $capability,
+		'edit_others_posts'  => $capability,
+		'publish_posts'      => $capability,
+		'read_post'          => $capability,
+		'read_private_posts' => $capability,
+		'delete_post'        => $capability,
+	];
+}
+
+/**
  * Get shield credentials
  *
  * @since  3.0
@@ -77,14 +152,15 @@ function get_shield_credentials() {
  * @return string|bool
  */
 function get_index_prefix() {
-	if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) {
-		$prefix = EP_INDEX_PREFIX;
-	} elseif ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && is_epio() ) {
-		$prefix = get_site_option( 'ep_prefix', false );
+	if ( defined( 'EP_INDEX_PREFIX' ) && \EP_INDEX_PREFIX ) {
+		$prefix = \EP_INDEX_PREFIX;
 	} elseif ( is_epio() ) {
-		$prefix = get_option( 'ep_prefix', false );
-
-		if ( '-' !== substr( $prefix, - 1 ) ) {
+		$credentials = get_epio_credentials();
+		$prefix      = $credentials['username'];
+		if (
+			( ! defined( 'EP_IS_NETWORK' ) || ! EP_IS_NETWORK ) &&
+			( '-' !== substr( $prefix, - 1 ) )
+		) {
 			$prefix .= '-';
 		}
 	} else {
@@ -120,17 +196,15 @@ function is_epio() {
  * @return boolean
  */
 function is_site_indexable( $blog_id = null ) {
-	if ( is_multisite() ) {
-		$site = get_site( $blog_id );
-
-		$is_indexable = get_blog_option( (int) $blog_id, 'ep_indexable', 'yes' );
-
-		if ( 'no' === $is_indexable || $site['deleted'] || $site['archived'] || $site['spam'] ) {
-			return false;
-		}
+	if ( ! is_multisite() ) {
+		return true;
 	}
 
-	return true;
+	$site = get_site( $blog_id );
+
+	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
+
+	return 'no' !== $is_indexable && ! $site['deleted'] && ! $site['archived'] && ! $site['spam'];
 }
 
 /**
@@ -241,14 +315,42 @@ function get_site( $site_id ) {
 /**
  * Wrapper function for get_sites - allows us to have one central place for the `ep_indexable_sites` filter
  *
- * @param int $limit The maximum amount of sites retrieved, Use 0 to return all sites.
- * @since  3.0
+ * @param int  $limit          The maximum amount of sites retrieved, Use 0 to return all sites.
+ * @param bool $only_indexable Whether should be returned only indexable sites or not.
+ * @since 3.0, 4.7.0 added `$only_indexable`
  * @return array
  */
-function get_sites( $limit = 0 ) {
-
+function get_sites( $limit = 0, $only_indexable = false ) {
 	if ( ! is_multisite() ) {
 		return [];
+	}
+
+	$args = [
+		'limit'  => $limit,
+		'number' => $limit,
+	];
+
+	if ( $only_indexable ) {
+		$args = array_merge(
+			$args,
+			[
+				'spam'       => 0,
+				'deleted'    => 0,
+				'archived'   => 0,
+				'meta_query' => [
+					'relation' => 'OR',
+					[
+						'key'     => 'ep_indexable',
+						'value'   => 'no',
+						'compare' => '!=',
+					],
+					[
+						'key'     => 'ep_indexable',
+						'compare' => 'NOT EXISTS',
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -259,13 +361,7 @@ function get_sites( $limit = 0 ) {
 	 * @param  {array} $args Array of args to query sites with. See WP_Site_Query
 	 * @return {array} New arguments
 	 */
-	$args = apply_filters(
-		'ep_indexable_sites_args',
-		array(
-			'limit'  => $limit,
-			'number' => $limit,
-		)
-	);
+	$args = apply_filters( 'ep_indexable_sites_args', $args );
 
 	$site_objects = \get_sites( $args );
 	$sites        = [];
@@ -341,7 +437,7 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 		}
 
 		foreach ( $all_terms as $key => $term ) {
-			$iteration_id++;
+			++$iteration_id;
 
 			if ( ! isset( $term->children ) ) {
 				$term->children = [];
@@ -368,16 +464,15 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 				}
 
 				unset( $all_terms[ $key ] );
-			} else {
-				if ( ! empty( $terms_map[ $term->parent ] ) && isset( $terms_map[ $term->parent ]->level ) ) {
+			} elseif ( ! empty( $terms_map[ $term->parent ] ) && isset( $terms_map[ $term->parent ]->level ) ) {
 
-					if ( empty( $orderby ) ) {
-						$terms_map[ $term->parent ]->children[] = $term;
-					} elseif ( 'count' === $orderby ) {
-						$terms_map[ $term->parent ]->children[ ( ( $term->count * 10000000 ) + $iteration_id ) ] = $term;
-					} elseif ( 'name' === $orderby ) {
-						$terms_map[ $term->parent ]->children[ $term->name ] = $term;
-					}
+				if ( empty( $orderby ) ) {
+					$terms_map[ $term->parent ]->children[] = $term;
+				} elseif ( 'count' === $orderby ) {
+					$terms_map[ $term->parent ]->children[ ( ( $term->count * 10000000 ) + $iteration_id ) ] = $term;
+				} elseif ( 'name' === $orderby ) {
+					$terms_map[ $term->parent ]->children[ $term->name ] = $term;
+				}
 
 					$parent_level = ( $terms_map[ $term->parent ]->level ) ? $terms_map[ $term->parent ]->level : 0;
 
@@ -385,7 +480,6 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 					$term->parent_term = $terms_map[ $term->parent ];
 
 					unset( $all_terms[ $key ] );
-				}
 			}
 		}
 	}
@@ -433,18 +527,13 @@ function get_term_tree( $all_terms, $orderby = 'count', $order = 'desc', $flat =
 }
 
 /**
- * Returns the defaiult language for ES mapping.
+ * Returns the default language for ES mapping.
  *
  * @return string Default EP language.
  */
 function get_language() {
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$ep_language = get_site_option( 'ep_language' );
-	} else {
-		$ep_language = get_option( 'ep_language' );
-	}
-
-	$ep_language = ! empty( $ep_language ) ? $ep_language : get_locale();
+	$ep_language = get_option( 'ep_language' );
+	$ep_language = ! empty( $ep_language ) ? $ep_language : 'site-default';
 
 	/**
 	 * Filter the default language to use at index time
@@ -505,7 +594,6 @@ function get_indexing_status() {
 	}
 
 	return $index_status;
-
 }
 
 /**
@@ -530,7 +618,7 @@ function update_option( $option, $value, $autoload = null ) {
  * @since 3.6.0
  * @param string $option        Name of the option to get.
  * @param mixed  $default_value Default value.
- * @return bool
+ * @return mixed
  */
 function get_option( $option, $default_value = false ) {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
@@ -584,7 +672,7 @@ function is_integrated_request( $context, $types = [] ) {
 	}
 
 	$is_admin_request             = is_admin();
-	$is_ajax_request              = defined( 'DOING_AJAX' ) && DOING_AJAX;
+	$is_ajax_request              = wp_doing_ajax();
 	$is_rest_request              = defined( 'REST_REQUEST' ) && REST_REQUEST;
 	$is_integrated_admin_request  = false;
 	$is_integrated_ajax_request   = false;
@@ -676,15 +764,169 @@ function get_asset_info( $slug, $attribute = null ) {
  * Return the Sync Page URL.
  *
  * @since 4.4.0
- * @param boolean $do_sync Whether the link should or should not start a resync.
+ * @param boolean|string $do_sync Whether the link should or should not start a resync. Pass a string to store the reason of the resync.
  * @return string
  */
-function get_sync_url( bool $do_sync = false ) : string {
+function get_sync_url( $do_sync = false ): string {
 	$page = 'admin.php?page=elasticpress-sync';
 	if ( $do_sync ) {
 		$page .= '&do_sync';
+		if ( is_string( $do_sync ) ) {
+			$page .= '=' . rawurlencode( $do_sync );
+		}
+		$page .= '&ep_sync_nonce=' . wp_create_nonce( 'ep_sync_nonce' );
 	}
 	return ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 		network_admin_url( $page ) :
 		admin_url( $page );
+}
+
+/**
+ * Check if the `do_sync` parameter is set and the nonce is valid.
+ *
+ * @since 5.1.2
+ * @return boolean
+ */
+function isset_do_sync_parameter(): bool {
+	return isset( $_GET['do_sync'] ) && ! empty( $_GET['ep_sync_nonce'] ) && wp_verify_nonce( sanitize_key( $_GET['ep_sync_nonce'] ), 'ep_sync_nonce' );
+}
+
+/**
+ * Generate a common prefix to be used while generating a request ID.
+ *
+ * Uses the return of `get_index_prefix()` by default.
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function get_request_id_base() {
+	/**
+	 * Filter the base of requests IDs. Uses the return of `get_index_prefix()` by default.
+	 *
+	 * @hook ep_request_id_base
+	 * @since 4.5.0
+	 * @param {string} $request_id_base Request ID base
+	 * @return {string} New Request ID base
+	 */
+	return apply_filters( 'ep_request_id_base', str_replace( '-', '', get_index_prefix() ) );
+}
+
+/**
+ * Generate a Request ID.
+ *
+ * The function concatenates the indices prefix to a random UUID4.
+ *
+ * @since 4.5.0
+ * @return string
+ */
+function generate_request_id(): string {
+	$uuid = str_replace( '-', '', wp_generate_uuid4() );
+
+	/**
+	 * Filter the ID generated to identify a request.
+	 *
+	 * @hook ep_request_id
+	 * @since 4.5.0
+	 * @param {string} $request_id Request ID. By default formed by the indices prefix and a random UUID4.
+	 * @return {string} New Request ID
+	 */
+	return apply_filters( 'ep_request_id', get_request_id_base() . $uuid );
+}
+
+/**
+ * Given an Elasticsearch response, try to find an error message.
+ *
+ * @since 4.6.0
+ * @param mixed $response The Elasticsearch response
+ * @return string
+ */
+function get_elasticsearch_error_reason( $response ): string {
+	if ( is_string( $response ) ) {
+		return $response;
+	}
+
+	if ( ! is_array( $response ) ) {
+		return var_export( $response, true ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions
+	}
+
+	if ( ! empty( $response['reason'] ) ) {
+		return (string) $response['reason'];
+	}
+
+	if ( ! empty( $response['result']['error'] ) && ! empty( $response['result']['error']['root_cause'][0]['reason'] ) ) {
+		return (string) $response['result']['error']['root_cause'][0]['reason'];
+	}
+
+	if ( ! empty( $response['result']['errors'] ) && ! empty( $response['result']['items'] ) ) {
+		$error = '';
+		foreach ( $response['result']['items'] as $item ) {
+			if ( ! empty( $item['index']['error']['reason'] ) ) {
+				$error = $item['index']['error']['reason'];
+				break;
+			}
+		}
+		return $error;
+	}
+
+	return '';
+}
+
+/**
+ * Use the correct set_transient option function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient  Transient name. Expected to not be SQL-escaped.
+ *                           Must be 172 characters or fewer in length.
+ * @param mixed  $value      Transient value. Must be serializable if non-scalar.
+ *                           Expected to not be SQL-escaped.
+ * @param int    $expiration Optional. Time until expiration in seconds. Default 0 (no expiration).
+ * @return bool True if the value was set, false otherwise.
+ */
+function set_transient( $transient, $value, $expiration = 0 ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \set_site_transient( $transient, $value, $expiration );
+	}
+	return \set_transient( $transient, $value, $expiration );
+}
+
+/**
+ * Use the correct get_transient function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return mixed Value of transient.
+ */
+function get_transient( $transient ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \get_site_transient( $transient );
+	}
+	return \get_transient( $transient );
+}
+
+/**
+ * Use the correct delete_transient function depending on the context (multisite or not)
+ *
+ * @since 4.7.0
+ * @param string $transient Transient name. Expected to not be SQL-escaped.
+ * @return bool True if the transient was deleted, false otherwise.
+ */
+function delete_transient( $transient ) {
+	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+		return \delete_site_transient( $transient );
+	}
+	return \delete_transient( $transient );
+}
+
+/**
+ * Whether we are in the top level admin context or not.
+ *
+ * In a single site, the top level admin context would be `is_admin()`,
+ * in a multisite, it would be `is_network_admin()`.
+ *
+ * @since 5.0.0
+ * @return boolean
+ */
+function is_top_level_admin_context() {
+	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+	return $is_network ? is_network_admin() : is_admin();
 }

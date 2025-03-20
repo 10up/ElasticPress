@@ -7,12 +7,12 @@ import { WPElement } from '@wordpress/element';
 /**
  * Search results component.
  *
- * @param {object}   props            Props.
- * @param {number}   props.offset     Current items offset.
- * @param {Function} props.onNext     Next button handler.
+ * @param {object} props Props.
+ * @param {number} props.offset Current items offset.
+ * @param {Function} props.onNext Next button handler.
  * @param {Function} props.onPrevious Previous button handler.
- * @param {number}   props.perPage    Items per page.
- * @param {number}   props.total      Total number of items.
+ * @param {number} props.perPage Items per page.
+ * @param {number} props.total Total number of items.
  * @returns {WPElement} Element.
  */
 export default ({ offset, onNext, onPrevious, perPage, total }) => {
@@ -39,15 +39,14 @@ export default ({ offset, onNext, onPrevious, perPage, total }) => {
 	return (
 		<nav className="ep-search-pagination">
 			<div className="ep-search-pagination__previous">
-				{previousIsAvailable && (
-					<button
-						className="ep-search-pagination-button ep-search-pagination-button--previous"
-						onClick={onPrevious}
-						type="button"
-					>
-						{__('Previous', 'elasticpress')}
-					</button>
-				)}
+				<button
+					className="ep-search-pagination-button ep-search-pagination-button--previous"
+					disabled={!previousIsAvailable}
+					onClick={onPrevious}
+					type="button"
+				>
+					{__('Previous', 'elasticpress')}
+				</button>
 			</div>
 
 			<div className="ep-search-pagination__count" role="status">
@@ -61,15 +60,14 @@ export default ({ offset, onNext, onPrevious, perPage, total }) => {
 			</div>
 
 			<div className="ep-search-pagination__next">
-				{nextIsAvailable && (
-					<button
-						className="ep-search-pagination-button ep-search-pagination-button--next"
-						onClick={onNext}
-						type="button"
-					>
-						{__('Next', 'elasticpress')}
-					</button>
-				)}
+				<button
+					className="ep-search-pagination-button ep-search-pagination-button--next"
+					disabled={!nextIsAvailable}
+					onClick={onNext}
+					type="button"
+				>
+					{__('Next', 'elasticpress')}
+				</button>
 			</div>
 		</nav>
 	);

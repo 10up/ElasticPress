@@ -1,0 +1,6 @@
+.ep-weighting-action {
+
+	&[disabled] {
+		visibility: hidden;
+	}
+}

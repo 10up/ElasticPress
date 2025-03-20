@@ -7,7 +7,6 @@
   convertErrorsToExceptions="true"
   convertNoticesToExceptions="true"
   convertWarningsToExceptions="true"
-  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
   >
   <coverage>
     <include>
@@ -27,4 +26,9 @@
       <directory prefix="Test" suffix=".php">./tests/php/</directory>
     </testsuite>
   </testsuites>
+  <groups>
+    <exclude>
+      <group>skip-on-multi-site</group>
+    </exclude>
+  </groups>
 </phpunit>

@@ -1,4 +1,6 @@
-describe('WooCommerce Feature', () => {
+/* global isEpIo */
+// eslint-disable-next-line jest/valid-describe-callback
+describe('WooCommerce Feature', { tags: '@slow' }, () => {
 	const userData = {
 		username: 'testuser',
 		email: 'testuser@example.com',
@@ -24,7 +26,8 @@ describe('WooCommerce Feature', () => {
 		cy.activatePlugin('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce').should('have.class', 'feature-active');
+		cy.get('#tab-panel-0-woocommerce').click();
+		cy.get('.components-form-toggle__input').should('be.checked');
 	});
 
 	it('Can automatically start a sync if activate the feature', () => {
@@ -33,17 +36,18 @@ describe('WooCommerce Feature', () => {
 		cy.maybeDisableFeature('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-woocommerce .settings-button').click();
-		cy.get('.ep-feature-woocommerce [name="settings[active]"][value="1"]').click();
-		cy.get('.ep-feature-woocommerce .button-primary').click();
-		cy.on('window:confirm', () => {
-			return true;
-		});
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('.ep-sync-panel').last().as('syncPanel');
-		cy.get('@syncPanel').find('.components-form-toggle').click();
-		cy.get('@syncPanel')
-			.find('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+		cy.contains('button', 'WooCommerce').click();
+		cy.contains('label', 'Enable').click();
+		cy.contains('button', 'Save and sync now').click();
+
+		cy.wait('@apiRequest');
+
+		cy.on('window:confirm', () => true);
+
+		cy.contains('.components-button', 'Log').click();
+		cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
 			.should('contain.text', 'Mapping sent')
 			.should('contain.text', 'Sync complete');
 
@@ -73,26 +77,35 @@ describe('WooCommerce Feature', () => {
 		cy.activatePlugin('woocommerce', 'wpCli');
 		cy.maybeEnableFeature('woocommerce');
 
-		cy.updateWeighting({
-			product: {
-				'meta._variations_skus.value': {
-					weight: 1,
-					enabled: true,
-				},
-			},
+		cy.updateFeatures('search', {
+			active: 1,
+			highlight_enabled: '1',
+			highlight_excerpt: '1',
+			highlight_tag: 'mark',
+			highlight_color: '#157d84',
+			decaying_enabled: 'disabled_includes_products',
 		}).then(() => {
-			cy.wpCli('elasticpress sync --setup --yes').then(() => {
-				/**
-				 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
-				 *
-				 */
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(2000);
-				cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
-				cy.contains(
-					'.site-content article:nth-of-type(1) h2',
-					'Awesome Aluminum Shoes',
-				).should('exist');
+			cy.updateWeighting({
+				product: {
+					'meta._variations_skus.value': {
+						weight: 1,
+						enabled: true,
+					},
+				},
+			}).then(() => {
+				cy.wpCli('elasticpress sync --setup --yes').then(() => {
+					/**
+					 * Give Elasticsearch some time. Apparently, if the visit happens right after the index, it won't find anything.
+					 *
+					 */
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(2000);
+					cy.visit('/?s=awesome-aluminum-shoes-variation-sku');
+					cy.contains(
+						'.site-content article:nth-of-type(1) h2',
+						'Awesome Aluminum Shoes',
+					).should('exist');
+				});
 			});
 		});
 	});
@@ -100,9 +113,9 @@ describe('WooCommerce Feature', () => {
 	context('Dashboard', () => {
 		before(() => {
 			cy.login();
+			cy.activatePlugin('woocommerce', 'wpCli');
 			cy.maybeEnableFeature('protected_content');
 			cy.maybeEnableFeature('woocommerce');
-			cy.activatePlugin('woocommerce', 'wpCli');
 		});
 
 		it('Can fetch orders and products from Elasticsearch', () => {
@@ -133,8 +146,16 @@ describe('WooCommerce Feature', () => {
 
 			// enable payment gateway.
 			cy.visitAdminPage('admin.php?page=wc-settings&tab=checkout&section=cod');
+			// if the checkbox is already checked, uncheck it first to enable the save button.
+			cy.get('#woocommerce_cod_enabled').uncheck();
 			cy.get('#woocommerce_cod_enabled').check();
-			cy.get('.button-primary.woocommerce-save-button').click();
+			cy.get(
+				`.button-primary.woocommerce-save-button,
+				.components-button.is-primary.woocommerce-save-button`,
+			).click();
+
+			// disable coming soon option.
+			cy.wpCli('option update woocommerce_coming_soon off');
 
 			cy.logout();
 
@@ -151,13 +172,27 @@ describe('WooCommerce Feature', () => {
 
 			// checkout and place order.
 			cy.visit('checkout');
-			cy.get('#billing_first_name').type(userData.firstName);
-			cy.get('#billing_last_name').type(userData.lastName);
-			cy.get('#billing_address_1').type(userData.address);
-			cy.get('#billing_city').type(userData.city);
-			cy.get('#billing_postcode').type(userData.postCode);
-			cy.get('#billing_phone').type(userData.phoneNumber);
-			cy.get('#place_order').click();
+			cy.get('#billing-first_name, #billing_first_name').type(userData.firstName);
+			cy.get('#billing-last_name, #billing_last_name').type(userData.lastName);
+			cy.get('#billing-address_1, #billing_address_1').type(userData.address);
+			cy.get('#billing-city, #billing_city').type(userData.city);
+			cy.get('#billing-postcode, #billing_postcode').type(userData.postCode);
+			cy.get('#billing-phone, #billing_phone').type(userData.phoneNumber, { force: true }); // Label covers it
+			cy.get('#email, #billing_email').clearThenType(userData.email);
+
+			/**
+			 * It is unclear why this work if wrapped in a WP-CLI command and not directly.
+			 */
+			cy.wpCli('plugin get woocommerce --field=version').then((wpCliResponse) => {
+				const wcVersion = wpCliResponse.stdout;
+				if (wcVersion === '6.4.0') {
+					cy.get('#place_order').click();
+				} else {
+					// eslint-disable-next-line cypress/no-unnecessary-waiting
+					cy.wait(1000);
+					cy.get('.wc-block-components-checkout-place-order-button').click();
+				}
+			});
 
 			// ensure order is placed.
 			cy.url().should('include', '/checkout/order-received');
@@ -199,9 +234,8 @@ describe('WooCommerce Feature', () => {
 			cy.visitAdminPage('edit.php?post_type=shop_order');
 
 			// search order by user's name.
-			cy.get('#post-search-input')
-				.clear()
-				.type(`${userData.firstName} ${userData.lastName}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.firstName} ${userData.lastName}{enter}`);
 
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
@@ -214,7 +248,8 @@ describe('WooCommerce Feature', () => {
 			);
 
 			// search order by user's address.
-			cy.get('#post-search-input').clear().type(`${userData.address}{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`${userData.address}{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -226,7 +261,8 @@ describe('WooCommerce Feature', () => {
 			);
 
 			// search order by product.
-			cy.get('#post-search-input').clear().type(`fantastic-silk-knife{enter}`);
+			cy.get('#post-search-input').clear();
+			cy.get('#post-search-input').type(`fantastic-silk-knife{enter}`);
 			cy.get('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug').should(
 				'contain.text',
 				'Query Response Code: HTTP 200',
@@ -252,9 +288,11 @@ describe('WooCommerce Feature', () => {
 					thirdProductId = id;
 				});
 
+			cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 			cy.get('@thirdProduct')
 				.drag('#the-list tr:eq(0)', { force: true })
 				.then(() => {
+					cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {
@@ -278,9 +316,11 @@ describe('WooCommerce Feature', () => {
 					thirdProductId = id;
 				});
 
+			cy.intercept('POST', '/wp-admin/admin-ajax.php*').as('ajaxRequest');
 			cy.get('@thirdProduct')
-				.drag('#the-list tr:eq(0)', { force: true })
+				.drag('#the-list tr:eq(0)', { target: { position: 'top' }, force: true })
 				.then(() => {
+					cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 					cy.get('#the-list tr:eq(0)').should('have.id', thirdProductId);
 
 					cy.refreshIndex('post').then(() => {
@@ -293,6 +333,148 @@ describe('WooCommerce Feature', () => {
 				});
 
 			cy.setPerIndexCycle();
+		});
+	});
+
+	/**
+	 * Test the Orders Autosuggest feature.
+	 */
+	context('Orders Autosuggest', () => {
+		before(() => {
+			cy.activatePlugin('woocommerce', 'wpCli');
+			cy.login();
+			cy.maybeEnableFeature('woocommerce');
+			cy.maybeDisableFeature('protected_content');
+		});
+
+		it('Will require a sync when enabling Orders Autosuggest', () => {
+			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+			cy.contains('button', 'WooCommerce').click();
+
+			/**
+			 * Enable the feature.
+			 */
+			cy.contains('button', 'WooCommerce').click();
+
+			cy.contains('label', 'Show suggestions')
+				.closest('.components-base-control')
+				.find('input')
+				.as('showSuggestionsCheck');
+
+			if (!isEpIo) {
+				cy.get('@showSuggestionsCheck').should('be.disabled');
+				return;
+			}
+
+			cy.get('@showSuggestionsCheck').check();
+
+			cy.contains('button', 'Save and sync now').click();
+
+			cy.wait('@apiRequest');
+
+			cy.on('window:confirm', () => true);
+
+			/**
+			 * Syncing should complete.
+			 */
+			cy.contains('.components-button', 'Log').click();
+			cy.get('.ep-sync-messages', { timeout: Cypress.config('elasticPressIndexTimeout') })
+				.should('contain.text', 'Mapping sent')
+				.should('contain.text', 'Sync complete');
+		});
+
+		it('Will show a navigable list of suggested results when searching orders', () => {
+			cy.visitAdminPage('edit.php?post_type=shop_order');
+
+			/**
+			 * The combobox will not render if not using ElasticPress.io.
+			 */
+			if (!isEpIo) {
+				cy.get('#posts-filter .ep-combobox__input').should('not.exist');
+				return;
+			}
+
+			/**
+			 * Prepare aliases.
+			 */
+			cy.intercept('**/api/v1/search/orders/*').as('apiRequest');
+			cy.get('#posts-filter .ep-combobox__input').as('input');
+			cy.get('#posts-filter .ep-combobox > .screen-reader-text').as('description');
+			cy.get('#posts-filter .ep-combobox__list').as('listbox');
+			cy.get('#posts-filter .search-box .button').as('submit');
+
+			/**
+			 * Search for "Antwon". 3 suggestions should appear.
+			 */
+			cy.get('@input').type('Antwon');
+			cy.wait('@apiRequest');
+			cy.get('@input').should('have.attr', 'aria-expanded', 'true');
+			cy.get('@description').should('contain.text', '4 suggestions available');
+			cy.get('@listbox').should('be.visible');
+			cy.get('@listbox').children().should('have.length', 4);
+
+			/**
+			 * It should be possible to navigate suggestions with the arrow
+			 * keys. Navigating past the beginning or end of the list should
+			 * loop around to the opposite side of the list.
+			 */
+			cy.get('@input').type('{downArrow}');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{downArrow}{downArrow}{downArrow}');
+			cy.get('@listbox').children().eq(3).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{downArrow}');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{upArrow}');
+			cy.get('@listbox').children().eq(3).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(0).should('not.have.attr', 'aria-selected', 'true');
+			cy.get('@input').type('{upArrow}');
+			cy.get('@listbox').children().eq(2).should('have.attr', 'aria-selected', 'true');
+			cy.get('@listbox').children().eq(3).should('not.have.attr', 'aria-selected', 'true');
+
+			/**
+			 * Pressing escape should hide the listbox and pressing an arrow
+			 * key should bring it back.
+			 */
+			cy.get('@input').type('{esc}');
+			cy.get('@listbox').should('not.be.visible');
+			cy.get('@input').type('{downArrow}');
+			cy.get('@listbox').should('be.visible');
+			cy.get('@listbox').children().eq(0).should('have.attr', 'aria-selected', 'true');
+
+			/**
+			 * Moving focus away from the input should hide the listbox.
+			 * Returning focus should bring it back.
+			 */
+			cy.get('@submit').focus();
+			cy.get('@listbox').should('not.be.visible');
+			cy.get('@input').focus();
+			cy.get('@listbox').should('be.visible');
+
+			/**
+			 * Partial name searches should still match.
+			 */
+			cy.get('@input').type('{backspace}{backspace}');
+			cy.wait('@apiRequest');
+			cy.get('@listbox').children().should('have.length', 4);
+
+			/**
+			 * Pressing enter on a selected item should navigate to that order.
+			 */
+			cy.get('@input').type('{downArrow}{downArrow}{enter}');
+			cy.url().should('include', 'post.php?post=');
+
+			/**
+			 * Clicking a suggestion should also navigate to that order.
+			 */
+			cy.visitAdminPage('edit.php?post_type=shop_order');
+			cy.get('@input').type('Antwon');
+			cy.wait('@apiRequest');
+			cy.get('@listbox').children().eq(1).click();
+			cy.url().should('include', 'post.php?post=');
 		});
 	});
 });

@@ -33,7 +33,7 @@ class TestAdminNotices extends BaseTestCase {
 
 		add_filter(
 			'ep_elasticsearch_version',
-			function() {
+			function () {
 				return (int) EP_ES_VERSION_MAX - 1;
 			}
 		);
@@ -41,7 +41,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -218,6 +218,15 @@ class TestAdminNotices extends BaseTestCase {
 
 		remove_all_filters( 'ep_elasticsearch_version' );
 
+		// As we know the call will fail, let's fail faster.
+		add_filter(
+			'ep_pre_request_args',
+			function ( $args ) {
+				$args['timeout'] = 1;
+				return $args;
+			}
+		);
+
 		ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
 
 		ElasticPress\Screen::factory()->set_current_screen( null );
@@ -251,6 +260,15 @@ class TestAdminNotices extends BaseTestCase {
 		update_site_option( 'ep_last_sync', time() );
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
+
+		// As we know the call will fail, let's fail faster.
+		add_filter(
+			'ep_pre_request_args',
+			function ( $args ) {
+				$args['timeout'] = 1;
+				return $args;
+			}
+		);
 
 		ElasticPress\Elasticsearch::factory()->get_elasticsearch_version( true );
 
@@ -287,7 +305,7 @@ class TestAdminNotices extends BaseTestCase {
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
-		$es_version = function() {
+		$es_version = function () {
 			return '100';
 		};
 
@@ -298,8 +316,6 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-
-		remove_filter( 'ep_elasticsearch_version', $es_version );
 
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['es_above_compat'] ) );
@@ -326,7 +342,7 @@ class TestAdminNotices extends BaseTestCase {
 		delete_site_option( 'ep_need_upgrade_sync', true );
 		delete_site_option( 'ep_feature_auto_activated_sync' );
 
-		$es_version = function() {
+		$es_version = function () {
 			return '1';
 		};
 
@@ -337,8 +353,6 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\AdminNotices::factory()->process_notices();
 
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
-
-		remove_filter( 'ep_elasticsearch_version', $es_version );
 
 		$this->assertEquals( 1, count( $notices ) );
 		$this->assertTrue( ! empty( $notices['es_below_compat'] ) );
@@ -398,7 +412,7 @@ class TestAdminNotices extends BaseTestCase {
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
 		// Instant Results not available.
-		$not_available_full_text = '<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to <a href="https://elasticpress.zendesk.com/hc/en-us/articles/4413938931853-Considerations-for-self-hosted-Elasticsearch-setups">install and configure a PHP proxy</a>.';
+		$not_available_full_text = '<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to <a href="https://www.elasticpress.io/documentation/article/considerations-for-self-hosted-elasticsearch-setups/">install and configure a PHP proxy</a>.';
 		ElasticPress\AdminNotices::factory()->process_notices();
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertTrue( ! empty( $notices['upgrade_sync'] ) );
@@ -410,7 +424,7 @@ class TestAdminNotices extends BaseTestCase {
 		} else {
 			$features_url = admin_url( 'admin.php?page=elasticpress' );
 		}
-		$available_full_text = '<a href="https://elasticpress.zendesk.com/hc/en-us/articles/360050447492#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click <a href="' . $features_url . '">here</a> to activate the feature and start your sync.';
+		$available_full_text = '<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">Instant Results</a> is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click <a href="' . $features_url . '">here</a> to activate the feature and start your sync.';
 
 		// Instant Results available via custom proxy.
 		add_filter( 'ep_instant_results_available', '__return_true' );
@@ -487,14 +501,14 @@ class TestAdminNotices extends BaseTestCase {
 		$es_version = $this->real_es_version;
 		add_filter(
 			'ep_elasticsearch_version',
-			function() use ( $es_version ) {
+			function () use ( $es_version ) {
 				return $es_version;
 			}
 		);
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		ElasticPress\Screen::factory()->set_current_screen( null );
 
@@ -531,16 +545,16 @@ class TestAdminNotices extends BaseTestCase {
 		$es_version = $this->real_es_version;
 		add_filter(
 			'ep_elasticsearch_version',
-			function() use ( $es_version ) {
+			function () use ( $es_version ) {
 				return $es_version;
 			}
 		);
 
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
-		$mapping = function() {
+		$mapping = function () {
 			return 'idonotmatch';
 		};
 		add_filter( 'ep_post_mapping_version_determined', $mapping );
@@ -552,6 +566,202 @@ class TestAdminNotices extends BaseTestCase {
 		$notices = ElasticPress\AdminNotices::factory()->get_notices();
 		$this->assertCount( 1, $notices );
 		$this->assertTrue( ! empty( $notices['maybe_wrong_mapping'] ) );
+	}
+
+	/**
+	 * Conditions:
+	 *
+	 * - Depending on the number of meta fields display a warning or an error
+	 *
+	 * Do: Show too many fields notice
+	 *
+	 * @group admin-notices
+	 * @since 4.4.0
+	 */
+	public function testTooManyFieldsNoticeInAdmin() {
+		add_filter(
+			'ep_meta_mode',
+			function () {
+				return 'auto';
+			}
+		);
+
+		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function ( $allowed_metakeys ) {
+				return array_merge( $allowed_metakeys, [ 'meta_key_1', 'meta_key_2', 'meta_key_3', 'meta_key_4' ] );
+			}
+		);
+
+		add_filter(
+			'ep_total_field_limit',
+			function () {
+				return 24;
+			}
+		);
+		ElasticPress\Screen::factory()->set_current_screen( 'install' );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function () {
+				return [ 'meta_key_1', 'meta_key_2' ];
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 0, $notices );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function ( $values ) {
+				$values[] = 'meta_key_3';
+				return $values;
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_fields', $notices );
+		$this->assertSame( 'warning', $notices['too_many_fields']['type'] );
+
+		add_filter(
+			'ep_post_pre_meta_keys_db',
+			function ( $values ) {
+				$values[] = 'meta_key_4';
+				return $values;
+			}
+		);
+
+		ElasticPress\AdminNotices::factory()->process_notices();
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_fields', $notices );
+		$this->assertSame( 'error', $notices['too_many_fields']['type'] );
+	}
+
+	/**
+	 * Tests notice is show when number of posts linked with term is greater than number of items per cycle.
+	 */
+	public function testNumberOfPostsBiggerThanItemPerCycle() {
+		global $pagenow, $tax;
+
+		// set global variables.
+		$pagenow = 'edit-tags.php';
+		$tax     = get_taxonomy( 'category' );
+
+		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
+				],
+			]
+		);
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+
+		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
+	}
+
+	/**
+	 * Tests that the admin notice with the scope 'site' appears only on the sub site when the plugin is network-activated.
+	 *
+	 * @group admin-notices
+	 * @group skip-on-single-site
+	 */
+	public function test_notice_with_scope_site_shows_only_on_site() {
+		global $pagenow, $tax;
+
+		// set global variables.
+		$pagenow = 'edit-tags.php';
+
+		set_current_screen( 'edit-tags' );
+		$tax = get_taxonomy( 'category' );
+
+		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
+				],
+			]
+		);
+
+		add_action(
+			'ep_admin_notices',
+			function ( $notices ) {
+				$notices['test_notice'] = [
+					'type'    => 'error',
+					'dismiss' => true,
+					'html'    => 'Test notice',
+				];
+
+				return $notices;
+			}
+		);
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertCount( 1, $notices );
+		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
+	}
+
+	/**
+	 * Tests that the admin notice with the scope 'site' has no effect when WordPress is not on multisite mode.
+	 *
+	 * @group admin-notices
+	 * @group skip-on-multi-site
+	 */
+	public function test_notice_with_scope_site_has_no_effect_on_non_multisite() {
+		global $pagenow, $tax;
+
+		// set global variables.
+		$pagenow = 'edit-tags.php';
+
+		set_current_screen( 'edit-tags' );
+		$tax = get_taxonomy( 'category' );
+
+		$number_of_posts = ElasticPress\IndexHelper::factory()->get_index_default_per_page() + 10;
+		$term            = $this->factory->term->create_and_get( array( 'taxonomy' => 'category' ) );
+		$this->posts     = $this->factory->post->create_many(
+			$number_of_posts,
+			[
+				'tax_input' => [
+					'category' => [
+						$term->term_id,
+					],
+				],
+			]
+		);
+
+		add_action(
+			'ep_admin_notices',
+			function ( $notices ) {
+				$notices['test_notice'] = [
+					'type'    => 'error',
+					'dismiss' => true,
+					'html'    => 'Test notice',
+				];
+
+				return $notices;
+			}
+		);
+
+		$notices = ElasticPress\AdminNotices::factory()->get_notices();
+		$this->assertArrayHasKey( 'too_many_posts_on_term', $notices );
+		$this->assertArrayHasKey( 'test_notice', $notices );
 	}
 
 	/**

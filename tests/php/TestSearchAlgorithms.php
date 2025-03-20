@@ -8,8 +8,8 @@
 
 namespace ElasticPressTest;
 
-use \ElasticPress\SearchAlgorithms;
-use \ElasticPress\SearchAlgorithm;
+use ElasticPress\SearchAlgorithms;
+use ElasticPress\SearchAlgorithm;
 
 /**
  * SearchAlgorithms test class

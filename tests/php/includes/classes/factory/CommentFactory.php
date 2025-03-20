@@ -1,6 +1,8 @@
 <?php
 /**
  * Class for comment factory.
+ *
+ * @package elasticpress
  */
 
 namespace ElasticPressTest;
@@ -28,5 +30,4 @@ class CommentFactory extends \WP_UnitTest_Factory_For_Comment {
 
 		return $id;
 	}
-
 }

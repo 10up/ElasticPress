@@ -1,8 +1,7 @@
 .ep-search-results {
-	display: grid;
-	grid-gap: 2em;
-	grid-template-columns: 100%;
-	grid-template-rows: max-content;
+	display: flex;
+	flex-direction: column;
+	gap: 2em;
 	padding: 0 0 1em 0;
 	width: 100%;
 

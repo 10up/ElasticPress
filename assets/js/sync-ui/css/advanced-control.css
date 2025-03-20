@@ -1,0 +1,25 @@
+.ep-sync-advanced-control {
+	margin-bottom: 24px;
+
+	&.components-flex .components-flex-item {
+		flex-grow: 2;
+	}
+
+	& .components-checkbox-control {
+		margin-bottom: 1em;
+	}
+}
+
+fieldset.ep-sync-advanced-control {
+	margin-bottom: 16px;
+}
+
+.ep-sync-advanced-control__label {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.4;
+	margin-bottom: 8px;
+	padding: 0;
+	text-transform: uppercase;
+}

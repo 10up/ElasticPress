@@ -1,6 +1,6 @@
 <?php
 /**
- * User indexable
+ * Post indexable
  *
  * @since  3.0
  * @package  elasticpress
@@ -8,10 +8,10 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use ElasticPress\Indexable as Indexable;
-use ElasticPress\Elasticsearch as Elasticsearch;
-use \WP_Query as WP_Query;
-use \WP_User as WP_User;
+use WP_Query;
+use WP_User;
+use ElasticPress\Elasticsearch;
+use ElasticPress\Indexable;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -42,11 +42,12 @@ class Post extends Indexable {
 	public $support_indexing_advanced_pagination = true;
 
 	/**
-	 * Create indexable and initialize dependencies
+	 * Instantiate the indexable SyncManager and QueryIntegration
 	 *
-	 * @since  3.0
+	 * @since 5.2.0
+	 * @return void
 	 */
-	public function __construct() {
+	public function setup() {
 		$this->labels = [
 			'plural'   => esc_html__( 'Posts', 'elasticpress' ),
 			'singular' => esc_html__( 'Post', 'elasticpress' ),
@@ -103,6 +104,9 @@ class Post extends Indexable {
 			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
+		add_filter( 'posts_orderby', [ $this, 'set_posts_orderby' ], 9999, 2 );
+
 		// Enforce the following query args during advanced pagination to ensure things work correctly.
 		if ( $args['ep_indexing_advanced_pagination'] ) {
 			$args = array_merge(
@@ -116,16 +120,18 @@ class Post extends Indexable {
 					'no_found_rows'    => true,
 				]
 			);
-			add_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+			add_filter( 'posts_where', [ $this, 'bulk_indexing_filter_posts_where' ], 9999, 2 );
 
 			$query         = new WP_Query( $args );
 			$total_objects = $this->get_total_objects_for_query( $args );
 
-			remove_filter( 'posts_where', array( $this, 'bulk_indexing_filter_posts_where' ), 9999, 2 );
+			remove_filter( 'posts_where', [ $this, 'bulk_indexing_filter_posts_where' ], 9999, 2 );
 		} else {
 			$query         = new WP_Query( $args );
 			$total_objects = $query->found_posts;
 		}
+
+		remove_filter( 'posts_orderby', [ $this, 'set_posts_orderby' ], 9999, 2 );
 
 		return [
 			'objects'       => $query->posts,
@@ -133,14 +139,16 @@ class Post extends Indexable {
 		];
 	}
 
-		/**
-		 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
-		 *
-		 * @param string   $where The current $where clause.
-		 * @param WP_Query $query WP_Query object.
-		 * @return string WHERE clause with our pagination added if needed.
-		 */
+	/**
+	 * Manipulate the WHERE clause of the bulk indexing query to paginate by ID in order to avoid performance issues with SQL offset.
+	 *
+	 * @param string   $where The current $where clause.
+	 * @param WP_Query $query WP_Query object.
+	 * @return string WHERE clause with our pagination added if needed.
+	 */
 	public function bulk_indexing_filter_posts_where( $where, $query ) {
+		global $wpdb;
+
 		$using_advanced_pagination = $query->get( 'ep_indexing_advanced_pagination', false );
 
 		if ( $using_advanced_pagination ) {
@@ -160,8 +168,8 @@ class Post extends Indexable {
 			}
 
 			$range = [
-				'upper_limit' => "{$GLOBALS['wpdb']->posts}.ID <= {$upper_limit_range_post_id}",
-				'lower_limit' => "{$GLOBALS['wpdb']->posts}.ID >= {$requested_lower_limit_post_id}",
+				'upper_limit' => "{$wpdb->posts}.ID <= {$upper_limit_range_post_id}",
+				'lower_limit' => "{$wpdb->posts}.ID >= {$requested_lower_limit_post_id}",
 			];
 
 			// Skip the end range if it's unnecessary.
@@ -245,7 +253,7 @@ class Post extends Indexable {
 		 * The if below will pass if `has_password` is false but not null.
 		 */
 		if ( isset( $query_args['has_password'] ) && ! $query_args['has_password'] ) {
-			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" );
+			$posts_with_password = (int) $wpdb->get_var( "SELECT COUNT(1) AS posts_with_password FROM {$wpdb->posts} WHERE post_password != ''" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
 			$post_count -= $posts_with_password;
 		}
@@ -315,17 +323,12 @@ class Post extends Indexable {
 			 */
 			$es_version = apply_filters( 'ep_fallback_elasticsearch_version', '2.0' );
 		}
+		$es_version = (string) $es_version;
 
-		$mapping_file = '5-2.php';
+		$mapping_file = '7-0.php';
 
-		if ( ! $es_version || version_compare( $es_version, '5.0' ) < 0 ) {
-			$mapping_file = 'pre-5-0.php';
-		} elseif ( version_compare( $es_version, '5.0', '>=' ) && version_compare( $es_version, '5.2', '<' ) ) {
-			$mapping_file = '5-0.php';
-		} elseif ( version_compare( $es_version, '5.2', '>=' ) && version_compare( $es_version, '7.0', '<' ) ) {
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
 			$mapping_file = '5-2.php';
-		} elseif ( version_compare( $es_version, '7.0', '>=' ) ) {
-			$mapping_file = '7-0.php';
 		}
 
 		return apply_filters( 'ep_post_mapping_version', $mapping_file );
@@ -420,7 +423,9 @@ class Post extends Indexable {
 	 * @return bool|array
 	 */
 	public function prepare_document( $post_id ) {
+		global $post;
 		$post = get_post( $post_id );
+		setup_postdata( $post );
 
 		if ( empty( $post ) ) {
 			return false;
@@ -451,7 +456,7 @@ class Post extends Indexable {
 		$comment_count     = absint( $post->comment_count );
 		$comment_status    = $post->comment_status;
 		$ping_status       = $post->ping_status;
-		$menu_order        = absint( $post->menu_order );
+		$menu_order        = (int) $post->menu_order;
 
 		/**
 		 * Filter to ignore invalid dates
@@ -600,7 +605,7 @@ class Post extends Indexable {
 	/**
 	 * Prepare date terms to send to ES.
 	 *
-	 * @param string $date_to_prepare Post date
+	 * @param null|string $date_to_prepare Post date
 	 * @since 0.1.4
 	 * @return array
 	 */
@@ -621,7 +626,7 @@ class Post extends Indexable {
 
 		// Combine all the date term formats and perform one single call to date_i18n() for performance.
 		$date_format    = implode( '||', array_values( $terms_to_prepare ) );
-		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( $date_to_prepare ) ) );
+		$combined_dates = explode( '||', date_i18n( $date_format, strtotime( (string) $date_to_prepare ) ) );
 
 		// Then split up the results for individual indexing.
 		$date_terms = [];
@@ -715,16 +720,7 @@ class Post extends Indexable {
 
 			foreach ( $object_terms as $term ) {
 				if ( ! isset( $terms_dic[ $term->term_id ] ) ) {
-					$terms_dic[ $term->term_id ] = array(
-						'term_id'          => $term->term_id,
-						'slug'             => $term->slug,
-						'name'             => $term->name,
-						'parent'           => $term->parent,
-						'term_taxonomy_id' => $term->term_taxonomy_id,
-						'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post->ID ),
-					);
-
-					$terms_dic[ $term->term_id ]['facet'] = wp_json_encode( $terms_dic[ $term->term_id ] );
+					$terms_dic[ $term->term_id ] = $this->get_formatted_term( $term, $post->ID );
 
 					if ( $allow_hierarchy ) {
 						$terms_dic = $this->get_parent_terms( $terms_dic, $term, $taxonomy->name, $post->ID );
@@ -753,23 +749,44 @@ class Post extends Indexable {
 			return $terms;
 		}
 		if ( ! isset( $terms[ $parent_term->term_id ] ) ) {
-			$terms[ $parent_term->term_id ] = array(
-				'term_id'          => $parent_term->term_id,
-				'slug'             => $parent_term->slug,
-				'name'             => $parent_term->name,
-				'parent'           => $parent_term->parent,
-				'term_taxonomy_id' => $parent_term->term_taxonomy_id,
-				'term_order'       => $this->get_term_order( $parent_term->term_taxonomy_id, $object_id ),
-			);
-
-			$terms[ $parent_term->term_id ]['facet'] = wp_json_encode( $terms[ $parent_term->term_id ] );
+			$terms[ $parent_term->term_id ] = $this->get_formatted_term( $parent_term, $object_id );
 
 		}
 		return $this->get_parent_terms( $terms, $parent_term, $tax_name, $object_id );
 	}
 
 	/**
-	 * Retreives term order for the object/term_taxonomy_id combination
+	 * Given a term, format it to be appended to the post ES document.
+	 *
+	 * @since 4.5.0
+	 * @param \WP_Term $term    Term to be formatted
+	 * @param int      $post_id The post ID
+	 * @return array
+	 */
+	private function get_formatted_term( \WP_Term $term, int $post_id ): array {
+		$formatted_term = [
+			'term_id'          => $term->term_id,
+			'slug'             => $term->slug,
+			'name'             => $term->name,
+			'parent'           => $term->parent,
+			'term_taxonomy_id' => $term->term_taxonomy_id,
+			'term_order'       => (int) $this->get_term_order( $term->term_taxonomy_id, $post_id ),
+		];
+
+		/**
+		 * As the name implies, the facet attribute is used to list all terms in facets.
+		 * As in facets, the term_order associated with a post does not matter, we set it as 0 here.
+		 * Note that this is set as 0 instead of simply removed to keep backward compatibility.
+		 */
+		$term_facet               = $formatted_term;
+		$term_facet['term_order'] = 0;
+		$formatted_term['facet']  = wp_json_encode( $term_facet );
+
+		return $formatted_term;
+	}
+
+	/**
+	 * Retrieves term order for the object/term_taxonomy_id combination
 	 *
 	 * @param int $term_taxonomy_id Term Taxonomy ID
 	 * @param int $object_id        Post ID
@@ -783,7 +800,7 @@ class Post extends Indexable {
 		$term_orders = wp_cache_get( $cache_key );
 
 		if ( false === $term_orders ) {
-			$results = $wpdb->get_results(
+			$results = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prepare(
 					"SELECT term_taxonomy_id, term_order from $wpdb->term_relationships where object_id=%d;",
 					$object_id
@@ -801,7 +818,6 @@ class Post extends Indexable {
 		}
 
 		return isset( $term_orders[ $term_taxonomy_id ] ) ? (int) $term_orders[ $term_taxonomy_id ] : 0;
-
 	}
 
 	/**
@@ -833,57 +849,13 @@ class Post extends Indexable {
 	public function filter_allowed_metas( $metas, $post ) {
 		$filtered_metas = [];
 
-		/**
-		 * Filter indexable protected meta keys for posts
-		 *
-		 * @hook ep_prepare_meta_allowed_protected_keys
-		 * @param  {array} $keys Allowed protected keys
-		 * @param  {WP_Post} $post Post object
-		 * @since  1.7
-		 * @return  {array} New keys
-		 */
-		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
-
-		/**
-		 * Filter public keys to exclude from indexed post
-		 *
-		 * @hook ep_prepare_meta_excluded_public_keys
-		 * @param  {array} $keys Excluded protected keys
-		 * @param  {WP_Post} $post Post object
-		 * @since  1.7
-		 * @return  {array} New keys
-		 */
-		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
-
-		foreach ( $metas as $key => $value ) {
-
-			$allow_index = false;
-
-			if ( is_protected_meta( $key ) ) {
-
-				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
-					$allow_index = true;
-				}
-			} else {
-
-				if ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
-					$allow_index = true;
-				}
-			}
-
-			/**
-			 * Filter force whitelisting a meta key
-			 *
-			 * @hook ep_prepare_meta_whitelist_key
-			 * @param  {bool} $whitelist True to whitelist key
-			 * @param  {string} $key Meta key
-			 * @param  {WP_Post} $post Post object
-			 * @return  {bool} New whitelist value
-			 */
-			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
-				$filtered_metas[ $key ] = $value;
-			}
+		$search = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		if ( $search && ! empty( $search->weighting ) && 'manual' === $search->weighting->get_meta_mode() ) {
+			$filtered_metas = $this->filter_allowed_metas_manual( $metas, $post );
+		} else {
+			$filtered_metas = $this->filter_allowed_metas_auto( $metas, $post );
 		}
+
 		return $filtered_metas;
 	}
 
@@ -922,7 +894,9 @@ class Post extends Indexable {
 		$prepared_meta  = [];
 
 		foreach ( $filtered_metas as $key => $value ) {
-			$prepared_meta[ $key ] = maybe_unserialize( $value );
+			if ( ! empty( $key ) ) {
+				$prepared_meta[ $key ] = maybe_unserialize( $value );
+			}
 		}
 
 		/**
@@ -935,7 +909,6 @@ class Post extends Indexable {
 		 * @return  {array} Prepared meta
 		 */
 		return apply_filters( 'ep_prepared_post_meta', $prepared_meta, $post );
-
 	}
 
 	/**
@@ -967,24 +940,24 @@ class Post extends Indexable {
 		$formatted_args = $this->maybe_set_aggs( $formatted_args, $args, $filters );
 
 		/**
-		 * Filter formatted Elasticsearch [ost ]query (entire query)
+		 * Filter formatted Elasticsearch query (entire query)
 		 *
 		 * @hook ep_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
-		 * @param {array} $query_vars Query variables
-		 * @param {array} $query Query part
-		 * @return  {array} New query
+		 * @param {array} $args WP_Query variables
+		 * @param {object} $wp_query WP_Query object
+		 * @return {array} New query
 		 */
 		$formatted_args = apply_filters( 'ep_formatted_args', $formatted_args, $args, $wp_query );
 
 		/**
-		 * Filter formatted Elasticsearch [ost ]query (entire query)
+		 * Filter formatted Elasticsearch post query (entire query)
 		 *
 		 * @hook ep_post_formatted_args
 		 * @param {array} $formatted_args Formatted Elasticsearch query
-		 * @param {array} $query_vars Query variables
-		 * @param {array} $query Query part
-		 * @return  {array} New query
+		 * @param {array} $args WP_Query variables
+		 * @param {object} $wp_query WP_Query object
+		 * @return {array} New query
 		 */
 		$formatted_args = apply_filters( 'ep_post_formatted_args', $formatted_args, $args, $wp_query );
 
@@ -1227,16 +1200,20 @@ class Post extends Indexable {
 				continue;
 			}
 
-			if ( in_array( $orderby_clause, [ 'meta_value', 'meta_value_num' ], true ) ) {
-				if ( empty( $args['meta_key'] ) ) {
-					continue;
-				} else {
-					$from_to['meta_value']     = 'meta.' . $args['meta_key'] . '.raw';
-					$from_to['meta_value_num'] = 'meta.' . $args['meta_key'] . '.long';
-				}
+			/**
+			 * If `orderby` is 'none', WordPress will let the database decide on what should be used to order.
+			 * It will use the primary key ASC.
+			 */
+			if ( 'none' === $orderby_clause ) {
+				$orderby_clause = 'ID';
+				$order          = 'asc';
 			}
 
-			$orderby_clause = $from_to[ $orderby_clause ] ?? $orderby_clause;
+			if ( ! empty( $from_to[ $orderby_clause ] ) ) {
+				$orderby_clause = $from_to[ $orderby_clause ];
+			} else {
+				$orderby_clause = $this->parse_orderby_meta_fields( $orderby_clause, $args );
+			}
 
 			$sort[] = array(
 				$orderby_clause => array(
@@ -1246,6 +1223,95 @@ class Post extends Indexable {
 		}
 
 		return $sort;
+	}
+
+	/**
+	 * Try to parse orderby meta fields
+	 *
+	 * @since 4.6.0
+	 * @param string $orderby_clause Current orderby value
+	 * @param array  $args           Query args
+	 * @return string New orderby value
+	 */
+	protected function parse_orderby_meta_fields( $orderby_clause, $args ) {
+		global $wpdb;
+
+		$from_to_metatypes = [
+			'num'      => 'long',
+			'numeric'  => 'long',
+			'binary'   => 'value.sortable',
+			'char'     => 'value.sortable',
+			'date'     => 'date',
+			'datetime' => 'datetime',
+			'decimal'  => 'double',
+			'signed'   => 'long',
+			'time'     => 'time',
+			'unsigned' => 'long',
+		];
+
+		// Code is targeting Elasticsearch directly
+		if ( preg_match( '/^meta\.(.*?)\.(.*)/', $orderby_clause, $match_meta ) ) {
+			return $orderby_clause;
+		}
+
+		// WordPress meta_value_* compatibility
+		if ( preg_match( '/^meta_value_?(.*)/', $orderby_clause, $match_type ) ) {
+			$meta_type = $from_to_metatypes[ strtolower( $match_type[1] ) ] ?? 'value.sortable';
+		}
+
+		if ( ! empty( $args['meta_key'] ) ) {
+			$meta_field = $args['meta_key'];
+		}
+
+		// Already have everything needed
+		if ( isset( $meta_type ) && isset( $meta_field ) ) {
+			return "meta.{$meta_field}.{$meta_type}";
+		}
+
+		// Don't have any other ways to guess
+		if ( empty( $args['meta_query'] ) ) {
+			return $orderby_clause;
+		}
+
+		$meta_query = new \WP_Meta_Query( $args['meta_query'] );
+		// Calling get_sql() to populate the WP_Meta_Query->clauses attribute
+		$meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
+
+		$clauses = $meta_query->get_clauses();
+
+		// If it refers to a named meta_query clause
+		if ( ! empty( $clauses[ $orderby_clause ] ) ) {
+			$meta_field       = $clauses[ $orderby_clause ]['key'];
+			$clause_meta_type = strtolower( $clauses[ $orderby_clause ]['type'] ?? $clauses[ $orderby_clause ]['cast'] );
+		} else {
+			/**
+			 * At this point we:
+			 * 1. Try to find the meta key in any meta_query clause and use the type WP found
+			 * 2. If ordering by `meta_value*`, use the first meta_query clause
+			 * 3. Give up and use the orderby clause as is (code could be capturing it later on)
+			 */
+			$meta_keys_and_types = wp_list_pluck( $clauses, 'cast', 'key' );
+			if ( isset( $meta_keys_and_types[ $orderby_clause ] ) ) {
+				$meta_field       = $orderby_clause;
+				$clause_meta_type = strtolower( $meta_keys_and_types[ $orderby_clause ] ?? $meta_keys_and_types[ $orderby_clause ] );
+			} elseif ( isset( $meta_type ) ) {
+				$primary_clause = reset( $clauses );
+				$meta_field     = $primary_clause['key'];
+			} else {
+				unset( $meta_type );
+				unset( $meta_field );
+			}
+		}
+
+		if ( ! isset( $meta_type ) && isset( $clause_meta_type ) ) {
+			$meta_type = $from_to_metatypes[ $clause_meta_type ] ?? 'value.sortable';
+		}
+
+		if ( isset( $meta_type ) && isset( $meta_field ) ) {
+			$orderby_clause = "meta.{$meta_field}.{$meta_type}";
+		}
+
+		return $orderby_clause;
 	}
 
 	/**
@@ -1315,26 +1381,6 @@ class Post extends Indexable {
 			return '5-2.php';
 		}
 
-		/**
-		 * Check for 5-0 mapping.
-		 * `keyword` fields were only made available in ES 5.0
-		 *
-		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/5.0/release-notes-5.0.0.html
-		 */
-		if ( 'keyword' === $post_title_sortable['type'] ) {
-			return '5-0.php';
-		}
-
-		/**
-		 * Check for pre-5-0 mapping.
-		 * `string` fields were deprecated in ES 5.0 in favor of text/keyword
-		 *
-		 * @see https://www.elastic.co/guide/en/elasticsearch/reference/5.0/release-notes-5.0.0.html
-		 */
-		if ( 'string' === $post_title_sortable['type'] ) {
-			return 'pre-5-0.php';
-		}
-
 		return 'unknown';
 	}
 
@@ -1378,7 +1424,7 @@ class Post extends Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		$search_algorithm_version_option = \ElasticPress\Utils\get_option( 'ep_search_algorithm_version', '4.0' );
 
 		/**
@@ -1422,19 +1468,21 @@ class Post extends Indexable {
 		 * these filters by its usual numeric indices (see the array_values() call below.)
 		 */
 		$filters = [
-			'tax_query'        => $this->parse_tax_queries( $args, $query ),
-			'post_parent'      => $this->parse_post_parent( $args ),
-			'post__in'         => $this->parse_post__in( $args ),
-			'post_name__in'    => $this->parse_post_name__in( $args ),
-			'post__not_in'     => $this->parse_post__not_in( $args ),
-			'category__not_in' => $this->parse_category__not_in( $args ),
-			'tag__not_in'      => $this->parse_tag__not_in( $args ),
-			'author'           => $this->parse_author( $args ),
-			'post_mime_type'   => $this->parse_post_mime_type( $args ),
-			'date'             => $this->parse_date( $args ),
-			'meta_query'       => $this->parse_meta_queries( $args ),
-			'post_type'        => $this->parse_post_type( $args ),
-			'post_status'      => $this->parse_post_status( $args ),
+			'tax_query'           => $this->parse_tax_queries( $args, $query ),
+			'post_parent'         => $this->parse_post_parent( $args ),
+			'post_parent__in'     => $this->parse_post_parent__in( $args ),
+			'post_parent__not_in' => $this->parse_post_parent__not_in( $args ),
+			'post__in'            => $this->parse_post__in( $args ),
+			'post_name__in'       => $this->parse_post_name__in( $args ),
+			'post__not_in'        => $this->parse_post__not_in( $args ),
+			'category__not_in'    => $this->parse_category__not_in( $args ),
+			'tag__not_in'         => $this->parse_tag__not_in( $args ),
+			'author'              => $this->parse_author( $args ),
+			'post_mime_type'      => $this->parse_post_mime_type( $args ),
+			'date'                => $this->parse_date( $args ),
+			'meta_query'          => $this->parse_meta_queries( $args ),
+			'post_type'           => $this->parse_post_type( $args ),
+			'post_status'         => $this->parse_post_status( $args ),
 		];
 
 		/**
@@ -1720,7 +1768,8 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function parse_post_parent( $args ) {
-		if ( empty( $args['post_parent'] ) || 'any' === strtolower( $args['post_parent'] ) ) {
+		$has_post_parent = isset( $args['post_parent'] ) && ( in_array( $args['post_parent'], [ 0, '0' ], true ) || ! empty( $args['post_parent'] ) );
+		if ( ! $has_post_parent || 'any' === strtolower( $args['post_parent'] ) ) {
 			return [];
 		}
 
@@ -1728,7 +1777,53 @@ class Post extends Indexable {
 			'bool' => [
 				'must' => [
 					'term' => [
-						'post_parent' => $args['post_parent'],
+						'post_parent' => (int) $args['post_parent'],
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post_parent__in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.5.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent__in( $args ) {
+		if ( empty( $args['post_parent__in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must' => [
+					'terms' => [
+						'post_parent' => array_values( (array) $args['post_parent__in'] ),
+					],
+				],
+			],
+		];
+	}
+
+	/**
+	 * Parse the `post_parent__not_in` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 4.5.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function parse_post_parent__not_in( $args ) {
+		if ( empty( $args['post_parent__not_in'] ) ) {
+			return [];
+		}
+
+		return [
+			'bool' => [
+				'must_not' => [
+					'terms' => [
+						'post_parent' => array_values( (array) $args['post_parent__not_in'] ),
 					],
 				],
 			],
@@ -1797,7 +1892,7 @@ class Post extends Indexable {
 			'bool' => [
 				'must_not' => [
 					'terms' => [
-						'post_id' => (array) $args['post__not_in'],
+						'post_id' => array_values( (array) $args['post__not_in'] ),
 					],
 				],
 			],
@@ -2001,6 +2096,7 @@ class Post extends Indexable {
 		 * @since 1.3
 		 */
 		$meta_queries = ( ! empty( $args['meta_query'] ) ) ? $args['meta_query'] : [];
+		$meta_queries = ( new \WP_Meta_Query() )->sanitize_query( $meta_queries );
 
 		/**
 		 * Todo: Support meta_type
@@ -2108,7 +2204,7 @@ class Post extends Indexable {
 
 				return [
 					$terms_map_name => [
-						'post_status' => $post_status,
+						'post_status' => is_array( $post_status ) ? array_values( $post_status ) : $post_status,
 					],
 				];
 			}
@@ -2375,7 +2471,7 @@ class Post extends Indexable {
 	 * @param string $field Field name
 	 * @return string
 	 */
-	protected function parse_tax_query_field( string $field ) : string {
+	protected function parse_tax_query_field( string $field ): string {
 
 		$from_to = [
 			'name'             => 'name.raw',
@@ -2384,5 +2480,556 @@ class Post extends Indexable {
 		];
 
 		return $from_to[ $field ] ?? 'term_id';
+	}
+
+	/**
+	 * Filter a list of meta keys down to those chosen by the user or
+	 * allowed via a hook.
+	 *
+	 * This function is used when manual management of metadata fields is
+	 * enabled. This is the default behaviour as of 5.0.0 and controlled by the
+	 * `ep_meta_mode` filter.
+	 *
+	 * @param array   $metas Key => value pairs of post meta
+	 * @param WP_Post $post Post object
+	 * @since 5.0.0
+	 * @return array
+	 */
+	protected function filter_allowed_metas_manual( $metas, $post ) {
+		$filtered_metas = [];
+		$search_feature = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+
+		if ( empty( $post->post_type ) ) {
+			return $filtered_metas;
+		}
+
+		$weighting     = $search_feature->weighting->get_weighting_configuration_with_defaults();
+		$is_searchable = in_array( $search_feature, $search_feature->get_searchable_post_types(), true );
+		if ( empty( $weighting[ $post->post_type ] ) && $is_searchable ) {
+			return $filtered_metas;
+		}
+
+		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+
+		$selected_keys = [];
+		if ( ! empty( $weighting[ $post->post_type ] ) ) {
+			$selected_keys = array_map(
+				function ( $field ) {
+					if ( false === strpos( $field, 'meta.' ) ) {
+						return null;
+					}
+					$field_name_parts = explode( '.', $field );
+					return $field_name_parts[1];
+				},
+				array_keys( $weighting[ $post->post_type ] )
+			);
+			$selected_keys = array_filter( $selected_keys );
+		}
+
+		/**
+		 * Filter indexable meta keys for posts
+		 *
+		 * @hook ep_prepare_meta_allowed_keys
+		 * @param {array} $keys Allowed keys
+		 * @param {WP_Post} $post Post object
+		 * @since 5.0.0
+		 * @return {array} New keys
+		 */
+		$allowed_keys = apply_filters( 'ep_prepare_meta_allowed_keys', array_merge( $allowed_protected_keys, $selected_keys ), $post );
+
+		foreach ( $metas as $key => $value ) {
+			if ( ! in_array( $key, $allowed_keys, true ) ) {
+				continue;
+			}
+
+			$filtered_metas[ $key ] = $value;
+		}
+
+		return $filtered_metas;
+	}
+
+	/**
+	 * Filter a list of meta keys down to public keys or protected keys
+	 * allowed via a hook.
+	 *
+	 * This function is used to filter meta keys when ElasticPress is in
+	 * network mode or when the meta mode is set to `auto` via the
+	 * `ep_meta_mode` hook. This was the default behaviour prior to 5.0.0.
+	 *
+	 * @param array   $metas Key => value pairs of post meta
+	 * @param WP_Post $post Post object
+	 * @since 5.0.0
+	 * @return array
+	 */
+	protected function filter_allowed_metas_auto( $metas, $post ) {
+		$filtered_metas = [];
+
+		/**
+		 * Filter indexable protected meta keys for posts
+		 *
+		 * @hook ep_prepare_meta_allowed_protected_keys
+		 * @param  {array} $keys Allowed protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
+		 */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $post );
+
+		/**
+		 * Filter public keys to exclude from indexed post
+		 *
+		 * @hook ep_prepare_meta_excluded_public_keys
+		 * @param  {array} $keys Excluded protected keys
+		 * @param  {WP_Post} $post Post object
+		 * @since  1.7
+		 * @return  {array} New keys
+		 */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $post );
+
+		foreach ( $metas as $key => $value ) {
+
+			$allow_index = false;
+
+			if ( is_protected_meta( $key ) ) {
+
+				if ( true === $allowed_protected_keys || in_array( $key, $allowed_protected_keys, true ) ) {
+					$allow_index = true;
+				}
+			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
+
+					$allow_index = true;
+			}
+
+			/**
+			 * Filter force whitelisting a meta key
+			 *
+			 * @hook ep_prepare_meta_whitelist_key
+			 * @param  {bool} $whitelist True to whitelist key
+			 * @param  {string} $key Meta key
+			 * @param  {WP_Post} $post Post object
+			 * @return  {bool} New whitelist value
+			 */
+			if ( true === $allow_index || apply_filters( 'ep_prepare_meta_whitelist_key', false, $key, $post ) ) {
+				$filtered_metas[ $key ] = $value;
+			}
+		}
+		return $filtered_metas;
+	}
+
+	/**
+	 * Return all distinct meta fields in the database.
+	 *
+	 * @since 4.4.0
+	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys_db( bool $force_refresh = false ): array {
+		global $wpdb;
+
+		/**
+		 * Short-circuits the process of getting distinct meta keys from the database.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_pre_meta_keys_db
+		 * @param {null} $meta_keys Distinct meta keys array
+		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
+		 */
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db', null );
+		if ( null !== $pre_meta_keys ) {
+			return $pre_meta_keys;
+		}
+
+		$cache_key = 'ep_meta_field_keys';
+
+		if ( ! $force_refresh ) {
+			$cached = get_transient( $cache_key );
+			if ( false !== $cached ) {
+				$cached = (array) json_decode( (string) $cached );
+				/* this filter is documented below */
+				return (array) apply_filters( 'ep_post_meta_keys_db', $cached );
+			}
+		}
+
+		/**
+		 * To avoid running a too expensive SQL query, we run a query getting all public keys
+		 * and only the private keys allowed by the `ep_prepare_meta_allowed_protected_keys` filter.
+		 * This query does not order by on purpose, as that also brings a performance penalty.
+		 */
+		$allowed_protected_keys     = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], new \WP_Post( (object) [] ) );
+		$allowed_protected_keys_sql = '';
+		if ( ! empty( $allowed_protected_keys ) ) {
+			$placeholders               = implode( ',', array_fill( 0, count( $allowed_protected_keys ), '%s' ) );
+			$allowed_protected_keys_sql = " OR meta_key IN ( {$placeholders} ) ";
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$meta_keys = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT meta_key
+					FROM {$wpdb->postmeta}
+					WHERE meta_key NOT LIKE %s {$allowed_protected_keys_sql}
+					LIMIT 800",
+				'\_%',
+				...$allowed_protected_keys
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
+		sort( $meta_keys );
+
+		// Make sure the size of the transient will not be bigger than 1MB
+		do {
+			$transient_size = strlen( wp_json_encode( $meta_keys ) );
+			if ( $transient_size >= MB_IN_BYTES ) {
+				array_pop( $meta_keys );
+			} else {
+				break;
+			}
+		} while ( true );
+		set_transient( $cache_key, wp_json_encode( $meta_keys ), DAY_IN_SECONDS );
+
+		/**
+		 * Filter the distinct meta keys fetched from the database.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db
+		 * @param {array} $meta_keys Distinct meta keys array
+		 * @return {array} New distinct meta keys array
+		 */
+		return (array) apply_filters( 'ep_post_meta_keys_db', $meta_keys );
+	}
+
+	/**
+	 * Return all distinct meta fields in the database per post type.
+	 *
+	 * @since 4.4.0
+	 * @param string $post_type     Post type slug
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_distinct_meta_field_keys_db_per_post_type( string $post_type, bool $force_refresh = false ): array {
+		$allowed_screen = 'status-report' === \ElasticPress\Screen::factory()->get_current_screen();
+
+		/**
+		 * Filter if the current screen is allowed or not to use the function.
+		 *
+		 * This method can be too resource intensive, use it with caution.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db_per_post_type_allowed_screen
+		 * @param {bool} $allowed_screen Whether this is an allowed screen or not.
+		 * @return {bool} New value of $allowed_screen
+		 */
+		if ( ! apply_filters( 'ep_post_meta_keys_db_per_post_type_allowed_screen', $allowed_screen ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'This method should not be called outside specific pages. Use the `ep_post_meta_keys_db_per_post_type_allowed_screen` filter if you need to use it in your custom screen.' ),
+				'ElasticPress 4.4.0'
+			);
+			return [];
+		}
+
+		/**
+		 * Short-circuits the process of getting distinct meta keys from the database per post type.
+		 *
+		 * Returning a non-null value will effectively short-circuit the function.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_pre_meta_keys_db_per_post_type
+		 * @param {null}   $meta_keys Distinct meta keys array
+		 * @param {string} $post_type Post type slug
+		 * @return {null|array} Distinct meta keys array or `null` to keep default behavior
+		 */
+		$pre_meta_keys = apply_filters( 'ep_post_pre_meta_keys_db_per_post_type', null, $post_type );
+		if ( null !== $pre_meta_keys ) {
+			return $pre_meta_keys;
+		}
+
+		$cache_key = 'ep_meta_field_keys_' . $post_type;
+
+		if ( ! $force_refresh ) {
+			$cached = get_transient( $cache_key );
+			if ( false !== $cached ) {
+				$cached = (array) json_decode( (string) $cached );
+				/* this filter is documented below */
+				return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $cached, $post_type );
+			}
+		}
+
+		$meta_keys        = [];
+		$post_ids_batches = $this->get_lazy_post_type_ids( $post_type );
+		foreach ( $post_ids_batches as $post_ids ) {
+			$new_meta_keys = $this->get_meta_keys_from_post_ids( $post_ids );
+
+			$meta_keys = array_unique( array_merge( $meta_keys, $new_meta_keys ) );
+		}
+
+		// Make sure the size of the transient will not be bigger than 1MB
+		do {
+			$transient_size = strlen( wp_json_encode( $meta_keys ) );
+			if ( $transient_size >= MB_IN_BYTES ) {
+				array_pop( $meta_keys );
+			} else {
+				break;
+			}
+		} while ( true );
+		set_transient( $cache_key, wp_json_encode( $meta_keys ), DAY_IN_SECONDS );
+
+		/**
+		 * Filter the distinct meta keys fetched from the database per post type.
+		 *
+		 * @since 4.4.0
+		 * @hook ep_post_meta_keys_db_per_post_type
+		 * @param {array}  $meta_keys Distinct meta keys array
+		 * @param {string} $post_type Post type slug
+		 * @return {array} New distinct meta keys array
+		 */
+		return (array) apply_filters( 'ep_post_meta_keys_db_per_post_type', $meta_keys, $post_type );
+	}
+
+	/**
+	 * Return all distinct meta fields in the database per post type.
+	 *
+	 * @since 4.4.0
+	 * @param string $post_type Post type slug
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_indexable_meta_keys_per_post_type( string $post_type, bool $force_refresh = false ): array {
+		$mock_post = new \WP_Post( (object) [ 'post_type' => $post_type ] );
+		$meta_keys = $this->get_distinct_meta_field_keys_db_per_post_type( $post_type, $force_refresh );
+
+		$fake_meta_values = array_combine( $meta_keys, array_fill( 0, count( $meta_keys ), 'test-value' ) );
+		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $mock_post );
+
+		return array_filter(
+			array_keys( $filtered_meta ),
+			function ( $meta_key ) use ( $mock_post ) {
+				return $this->is_meta_allowed( $meta_key, $mock_post );
+			}
+		);
+	}
+
+	/**
+	 * Return the meta keys that will (possibly) be indexed.
+	 *
+	 * This function gets all the meta keys in the database, creates a fake post without a type and with all the meta fields,
+	 * runs the `ep_prepare_meta_data` filter against it and checks if meta keys are allowed or not.
+	 * Although it provides a good indicator, it is not 100% correct as developers could create code using the
+	 * `ep_prepare_meta_data` filter that would depend on "real" data.
+	 *
+	 * @since 4.4.0
+	 * @param bool $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return array
+	 */
+	public function get_predicted_indexable_meta_keys( bool $force_refresh = false ): array {
+		$empty_post = new \WP_Post( (object) [] );
+		$meta_keys  = $this->get_distinct_meta_field_keys_db( $force_refresh );
+
+		$fake_meta_values = array_combine(
+			$meta_keys,
+			array_fill( 0, count( $meta_keys ), $this->get_test_meta_value() )
+		);
+		$filtered_meta    = apply_filters( 'ep_prepare_meta_data', $fake_meta_values, $empty_post );
+
+		$all_keys = array_filter(
+			array_keys( $filtered_meta ),
+			function ( $meta_key ) use ( $empty_post ) {
+				return $this->is_meta_allowed( $meta_key, $empty_post );
+			}
+		);
+
+		sort( $all_keys );
+
+		return $all_keys;
+	}
+
+	/**
+	 * Return the value used to fill meta fields while predicting indexable content.
+	 *
+	 * @since 5.1.0
+	 * @return string
+	 */
+	public function get_test_meta_value(): string {
+		/**
+		 * Filter the value used to fill meta fields while predicting indexable content.
+		 *
+		 * @hook ep_post_test_meta_value
+		 * @since 5.1.0
+		 * @param {string} $test_meta_value The test meta value. Default: test-value
+		 * @return {string} New test meta value
+		 */
+		return (string) apply_filters( 'ep_post_test_meta_value', 'test-value' );
+	}
+
+	/**
+	 * Given a post type, *yields* their Post IDs.
+	 *
+	 * If post IDs are found, this function will return a PHP Generator. To avoid timeout, it will yield 8 groups or 11,000 IDs.
+	 *
+	 * @since 4.4.0
+	 * @see https://www.php.net/manual/en/language.generators.overview.php
+	 * @param string $post_type The post type slug
+	 * @return iterator
+	 */
+	protected function get_lazy_post_type_ids( string $post_type ) {
+		global $wpdb;
+
+		$total = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				"SELECT count(*) FROM {$wpdb->posts} WHERE post_type = %s",
+				$post_type
+			)
+		);
+
+		if ( ! $total ) {
+			return [];
+		}
+
+		/**
+		 * Filter the number of IDs to be fetched per page to discover distinct meta fields per post type.
+		 *
+		 * @hook ep_post_meta_by_type_ids_per_page
+		 * @since 4.4.0
+		 * @param {int}    $per_page  Number of IDs
+		 * @param {string} $post_type The post type slug
+		 * @return  {string} New number of IDs
+		 */
+		$per_page = apply_filters( 'ep_post_meta_by_type_ids_per_page', 11000, $post_type );
+
+		$pages = min( ceil( $total / $per_page ), 8 );
+
+		/**
+		 * Filter the number of times EP will fetch IDs from the database
+		 *
+		 * @hook ep_post_meta_by_type_number_of_pages
+		 * @since 4.4.0
+		 * @param {int}    $pages     Number of "pages" (not WP post type)
+		 * @param {int}    $per_page  Number of IDs per page
+		 * @param {string} $post_type The post type slug
+		 * @return  {string} New number of pages
+		 */
+		$pages = apply_filters( 'ep_post_meta_by_type_number_of_pages', $pages, $per_page, $post_type );
+
+		for ( $page = 0; $page < $pages; $page++ ) {
+			$start = $per_page * $page;
+			$ids   = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts} WHERE post_type = %s LIMIT %d, %d",
+					$post_type,
+					$start,
+					$per_page
+				)
+			);
+			yield $ids;
+		}
+	}
+
+	/**
+	 * Given a set of post IDs, return distinct meta keys associated with them.
+	 *
+	 * @since 4.4.0
+	 * @param array $post_ids Set of post IDs
+	 * @return array
+	 */
+	protected function get_meta_keys_from_post_ids( array $post_ids ): array {
+		global $wpdb;
+
+		if ( empty( $post_ids ) ) {
+			return [];
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $post_ids ), '%d' ) );
+		$meta_keys    = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				"SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id IN ( {$placeholders} )",
+				$post_ids
+			)
+		);
+
+		return $meta_keys;
+	}
+
+	/**
+	 * Add a `term_suggest` field to the mapping.
+	 *
+	 * This method assumes the `edge_ngram_analyzer` analyzer was already added to the mapping.
+	 *
+	 * @since 4.5.0
+	 * @param array $mapping The mapping array
+	 * @return array
+	 */
+	public function add_term_suggest_field( array $mapping ): array {
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping_properties = &$mapping['mappings']['post']['properties'];
+		} else {
+			$mapping_properties = &$mapping['mappings']['properties'];
+		}
+
+		$text_type = $mapping_properties['post_content']['type'];
+
+		$mapping_properties['term_suggest'] = array(
+			'type'            => $text_type,
+			'analyzer'        => 'edge_ngram_analyzer',
+			'search_analyzer' => 'standard',
+		);
+
+		return $mapping;
+	}
+
+	/**
+	 * Return all meta data added to the Weighting Dashboard plus all allowed keys via code.
+	 *
+	 * @since 5.1.4
+	 * @return array
+	 */
+	public function get_all_allowed_metas_manual(): array {
+		$post_types     = \ElasticPress\Indexables::factory()->get( 'post' )->get_indexable_post_types();
+		$search_feature = \ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$weighting      = $search_feature->weighting->get_weighting_configuration_with_defaults();
+		$fake_post      = new \WP_Post( new \stdClass() );
+
+		$all_allowed_metas = [];
+		foreach ( $post_types as $post_type ) {
+			$fake_post->post_type   = $post_type;
+			$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $fake_post );
+
+			$selected_keys = [];
+			if ( ! empty( $weighting[ $post_type ] ) ) {
+				$selected_keys = array_map(
+					function ( $field ) {
+						if ( false === strpos( $field, 'meta.' ) ) {
+							return null;
+						}
+						$field_name_parts = explode( '.', $field );
+						return $field_name_parts[1];
+					},
+					array_keys( $weighting[ $post_type ] )
+				);
+				$selected_keys = array_filter( $selected_keys );
+			}
+
+			$allowed_keys = apply_filters( 'ep_prepare_meta_allowed_keys', array_merge( $allowed_protected_keys, $selected_keys ), $fake_post );
+
+			$all_allowed_metas = array_merge( $all_allowed_metas, $allowed_keys );
+		}
+
+		return array_unique( $all_allowed_metas );
+	}
+
+	/**
+	 * Sets the ORDER BY clause to sort posts by post ID in descending order.
+	 *
+	 * @return string The modified order by clause.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_posts_orderby(): string {
+		global $wpdb;
+		return "{$wpdb->posts}.ID DESC";
 	}
 }

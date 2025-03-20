@@ -1,11 +1,18 @@
 /**
  * WordPress dependencies.
  */
-import { render } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
 import { Pointers } from './pointers';
 
-render(<Pointers />, document.getElementById('ordering-app'));
+const el = document.getElementById('ordering-app');
+
+if (typeof createRoot === 'function') {
+	const root = createRoot(el);
+	root.render(<Pointers />);
+} else {
+	render(<Pointers />, el);
+}

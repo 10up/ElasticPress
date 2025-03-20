@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Term;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Term_Query as WP_Term_Query;
-use ElasticPress\Utils as Utils;
+use WP_Term_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -30,9 +30,21 @@ class QueryIntegration {
 	 * @since 3.6.0 Added $indexable_slug
 	 */
 	public function __construct( $indexable_slug = 'term' ) {
+		/**
+		 * Filter whether to enable query integration during indexing
+		 *
+		 * @since 4.5.2
+		 * @hook ep_enable_query_integration_during_indexing
+		 *
+		 * @param {bool} $enable To allow query integration during indexing
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, $indexable_slug );
+
 		// Ensure that we are currently allowing ElasticPress to override the normal WP_Query
 		// Indexable->is_full_reindexing() is not available at this point yet, so using the IndexHelper version of it.
-		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) ) {
+		if ( \ElasticPress\IndexHelper::factory()->is_full_reindexing( $indexable_slug, get_current_blog_id() ) && ! $allow_query_integration_during_indexing ) {
 			return;
 		}
 
@@ -41,6 +53,8 @@ class QueryIntegration {
 
 		// Filter term query
 		add_filter( 'terms_pre_query', [ $this, 'maybe_filter_query' ], 10, 2 );
+
+		add_filter( 'rest_post_tag_query', [ $this, 'maybe_set_search_fields' ], 10, 2 );
 	}
 
 	/**
@@ -94,15 +108,17 @@ class QueryIntegration {
 			$site__not_in = [];
 
 			if ( ! empty( $query->query_vars['sites'] ) ) {
-
 				_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
-				$site__in = (array) $query->query_vars['sites'];
-				$scope    = 'all' === $query->query_vars['sites'] ? 'all' : $site__in;
 			}
 
-			if ( ! empty( $query->query_vars['site__in'] ) ) {
-				$site__in = (array) $query->query_vars['site__in'];
-				$scope    = 'all' === $query->query_vars['site__in'] ? 'all' : $site__in;
+			if ( ! empty( $query->query_vars['site__in'] ) || ! empty( $query->query_vars['sites'] ) ) {
+				$site__in = ! empty( $query->query_vars['site__in'] ) ? (array) $query->query_vars['site__in'] : (array) $query->query_vars['sites'];
+
+				if ( in_array( 'all', $site__in, true ) ) {
+					$scope = 'all';
+				} elseif ( in_array( 'current', $site__in, true ) ) {
+					$site__in = (array) get_current_blog_id();
+				}
 			}
 
 			if ( ! empty( $query->query_vars['site__not_in'] ) ) {
@@ -137,7 +153,7 @@ class QueryIntegration {
 				$index = implode( ',', $index );
 			} elseif ( ! empty( $site__not_in ) ) {
 
-				$sites = get_sites(
+				$sites = \get_sites(
 					array(
 						'fields'       => 'ids',
 						'site__not_in' => $site__not_in,
@@ -225,6 +241,27 @@ class QueryIntegration {
 		}
 
 		return $new_terms;
+	}
+
+	/**
+	 * Conditionally set search fields for term queries in REST API requests.
+	 *
+	 * If in an REST API request that came from WordPress edit screen, do not search for term description.
+	 *
+	 * @param array           $prepared_args Array of arguments for get_terms().
+	 * @param WP_REST_Request $request       The REST API request.
+	 * @return array
+	 */
+	public function maybe_set_search_fields( $prepared_args, $request ) {
+		$referer = $request->get_header( 'referer' );
+
+		if ( empty( $referer ) || ! preg_match( '/post\.php\?post=([0-9]*)&action=edit/', $referer ) ) {
+			return $prepared_args;
+		}
+
+		$prepared_args['search_fields'] = [ 'name', 'slug' ];
+
+		return $prepared_args;
 	}
 
 	/**
@@ -382,5 +419,4 @@ class QueryIntegration {
 		$indexable_taxonomies = Indexables::factory()->get( 'term' )->get_indexable_taxonomies();
 		return empty( array_diff( $taxonomies, $indexable_taxonomies ) );
 	}
-
 }

@@ -40,7 +40,7 @@ class TestTerm extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'term' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
 
 		// Need to call this since it's hooked to init.
 		ElasticPress\Features::factory()->get_registered_feature( 'terms' )->search_setup();
@@ -62,29 +62,37 @@ class TestTerm extends BaseTestCase {
 	 */
 	public function createAndIndexTerms() {
 
-		$this->ep_factory->term->create( array(
-			'slug' => 'apple',
-			'name' => 'Big Apple',
-			'description' => 'The apple fruit term',
-		) );
+		$this->ep_factory->term->create(
+			array(
+				'slug'        => 'apple',
+				'name'        => 'Big Apple',
+				'description' => 'The apple fruit term',
+			)
+		);
 
-		$this->ep_factory->term->create( array(
-			'slug' => 'banana',
-			'name' => 'Yellow Banana',
-			'description' => 'The banana fruit term',
-		) );
+		$this->ep_factory->term->create(
+			array(
+				'slug'        => 'banana',
+				'name'        => 'Yellow Banana',
+				'description' => 'The banana fruit term',
+			)
+		);
 
-		$this->ep_factory->term->create( array(
-			'slug' => 'mango',
-			'name' => 'Green Mango',
-			'description' => 'The mango fruit term',
-		) );
+		$this->ep_factory->term->create(
+			array(
+				'slug'        => 'mango',
+				'name'        => 'Green Mango',
+				'description' => 'The mango fruit term',
+			)
+		);
 
-		$this->ep_factory->term->create( array(
-			'slug' => 'orange',
-			'name' => 'Orange',
-			'description' => 'The orange fruit term',
-		) );
+		$this->ep_factory->term->create(
+			array(
+				'slug'        => 'orange',
+				'name'        => 'Orange',
+				'description' => 'The orange fruit term',
+			)
+		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 	}
@@ -99,8 +107,6 @@ class TestTerm extends BaseTestCase {
 
 		$this->deleteAllTerms();
 
-		// Make sure no one attached to this.
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -133,16 +139,16 @@ class TestTerm extends BaseTestCase {
 	public function testTermSync() {
 		add_action(
 			'ep_sync_term_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_term_on_transition'] = true;
 			}
 		);
 
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
 
 		$term = wp_insert_term( 'term name', 'category' );
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->get_sync_queue() ) );
 
 		ElasticPress\Indexables::factory()->get( 'term' )->index( $term['term_id'] );
 
@@ -184,11 +190,11 @@ class TestTerm extends BaseTestCase {
 	public function testTermSyncOnMetaUpdate() {
 		$term = wp_insert_term( 'term name', 'category' );
 
-		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->reset_sync_queue();
 
 		update_term_meta( $term['term_id'], 'test_key', true );
 
-		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->sync_queue ) );
+		$this->assertEquals( 1, count( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->get_sync_queue() ) );
 		$this->assertTrue( ! empty( ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->add_to_queue( $term['term_id'] ) ) );
 	}
 
@@ -205,14 +211,14 @@ class TestTerm extends BaseTestCase {
 
 		add_action(
 			'ep_sync_term_on_transition',
-			function() {
+			function () {
 				$this->fired_actions['ep_sync_term_on_transition'] = true;
 			}
 		);
 
 		add_filter(
 			'ep_term_sync_kill',
-			function( $kill, $term_id ) use ( $created_term_id ) {
+			function ( $kill, $term_id ) use ( $created_term_id ) {
 				if ( $created_term_id === $term_id ) {
 					return true;
 				}
@@ -246,7 +252,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+		$properties = get_object_vars( $term_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
@@ -266,7 +273,7 @@ class TestTerm extends BaseTestCase {
 		$this->assertEquals( 4, count( $term_query->terms ) );
 
 		// Test some of the filters and defaults.
-		$return_2 = function() {
+		$return_2 = function () {
 			return 2;
 		};
 
@@ -310,7 +317,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test a term query get paramater.
+	 * Test a term query get parameter.
 	 *
 	 * @since 3.3
 	 * @group term
@@ -331,8 +338,8 @@ class TestTerm extends BaseTestCase {
 		// First, verify this with default functionality.
 		$term_query = new \WP_Term_Query(
 			[
-				'taxonomy'     => 'post_tag',
-				'get'          => 'all',
+				'taxonomy' => 'post_tag',
+				'get'      => 'all',
 			]
 		);
 
@@ -361,7 +368,7 @@ class TestTerm extends BaseTestCase {
 	}
 
 	/**
-	 * Test a term query object ids paramater
+	 * Test a term query object ids parameter
 	 *
 	 * @since 3.3
 	 * @group term
@@ -647,7 +654,7 @@ class TestTerm extends BaseTestCase {
 	public function testTermQueryOrderParent() {
 		$this->createAndIndexTerms();
 
-		$apple = get_term_by( 'slug', 'apple', 'post_tag' );
+		$apple  = get_term_by( 'slug', 'apple', 'post_tag' );
 		$orange = get_term_by( 'slug', 'orange', 'post_tag' );
 
 		$this->assertTrue( is_a( $apple, '\WP_Term' ) );
@@ -655,7 +662,7 @@ class TestTerm extends BaseTestCase {
 
 		$this->assertGreaterThan( $apple->term_id, $orange->term_id );
 
-		$term = wp_insert_term( 'ff', 'post_tag', [ 'parent' => $apple->term_id ] );
+		$term   = wp_insert_term( 'ff', 'post_tag', [ 'parent' => $apple->term_id ] );
 		$term_2 = wp_insert_term( 'yff', 'post_tag', [ 'parent' => $orange->term_id ] );
 
 		ElasticPress\Indexables::factory()->get( 'term' )->sync_manager->index_sync_queue();
@@ -837,8 +844,8 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not']['terms']['term_id'][0] );
-		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must_not']['terms']['parent'][0] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not'][0]['terms']['term_id'][0] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][0]['bool']['must_not'][1]['terms']['parent'][0] );
 	}
 
 	/**
@@ -920,29 +927,36 @@ class TestTerm extends BaseTestCase {
 		// formatting of the hierarchical args. Now we will validate
 		// we're only getting terms that have non-empty children.
 		// This term is childless and assigned to the post.
-		$childless_term_id = $this->ep_factory->category->create( [
-			'name' =>  'Childless Category',
-			'description' => 'The parent category without children'
-		] );
+		$childless_term_id = $this->ep_factory->category->create(
+			[
+				'name'        => 'Childless Category',
+				'description' => 'The parent category without children',
+			]
+		);
 
 		// This parent term is not assigned, but the child term is.
-		$parent_term_id = $this->ep_factory->category->create( [
-			'name' =>  'Parent Category',
-			'description' => 'Parent/Child Terms'
-		] );
+		$parent_term_id = $this->ep_factory->category->create(
+			[
+				'name'        => 'Parent Category',
+				'description' => 'Parent/Child Terms',
+			]
+		);
 
-		$child_term_id  = $this->ep_factory->category->create( [
-			'parent' => $parent_term_id,
-			'name' =>  'Child Category',
-			'description' => 'Parent/Child Terms'
-		] );
-
+		$child_term_id = $this->ep_factory->category->create(
+			[
+				'parent'      => $parent_term_id,
+				'name'        => 'Child Category',
+				'description' => 'Parent/Child Terms',
+			]
+		);
 
 		// These two parent/child terms are created, but not assigned to the post.
 		$parent_term_id_2 = $this->ep_factory->category->create();
-		$child_term_id_2  = $this->ep_factory->category->create( [
-			'parent' => $parent_term_id_2
-		] );
+		$child_term_id_2  = $this->ep_factory->category->create(
+			[
+				'parent' => $parent_term_id_2,
+			]
+		);
 
 		// Assign the parent term, and the standalone childless term.
 		$post_args = [
@@ -987,48 +1001,48 @@ class TestTerm extends BaseTestCase {
 				]
 			);
 
-			$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+			$properties = get_object_vars( $term_query );
+			$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 
 			$wp_slugs[ $query_type ] = array_values( $term_query->terms );
 
 			// Remove uncategorized, not synced to ES.
 			$wp_slugs[ $query_type ] = array_filter(
 				$wp_slugs[ $query_type ],
-				function( $slug ) {
+				function ( $slug ) {
 					return 'uncategorized' !== $slug;
 				}
 			);
 		}
 
-		// We should have a list list this.
-		// phpcs:disable
-		//{
-		//"hierarchical_false_empty_false": [
-		//		"child-term-post",
-		//		"child-term-2-no-post",
-		//		"childless-term-post",
-		//		"parent-term-no-post",
-		//		"parent-term-2-no-post",
-		//	],
-		//	"hierarchical_false_empty_true": [
-		//		"child-term-post",
-		//		"childless-term-post"
-		//	],
-		//		"hierarchical_true_empty_true": [
-		//		"child-term-post",
-		//		"childless-term-post",
-		//		"parent-term-no-post"
-		//	],
-		//	"hierarchical_true_empty_false": [
-		//		"child-term-post",
-		//		"child-term-2-no-post",
-		//		"childless-term-post",
-		//		"parent-term-no-post",
-		//		"parent-term-2-no-post",
-		//	]
-		//}
-		//// phpcs:enable
-
+		/**
+		 * We should have a list list this.
+		 *
+		 *"hierarchical_false_empty_false": [
+		 *     "child-term-post",
+		 *     "child-term-2-no-post",
+		 *     "childless-term-post",
+		 *     "parent-term-no-post",
+		 *     "parent-term-2-no-post",
+		 * ],
+		 * "hierarchical_false_empty_true": [
+		 *     "child-term-post",
+		 *     "childless-term-post"
+		 * ],
+		 * "hierarchical_true_empty_true": [
+		 *     "child-term-post",
+		 *     "childless-term-post",
+		 *     "parent-term-no-post"
+		 * ],
+		 * "hierarchical_true_empty_false": [
+		 *     "child-term-post",
+		 *     "child-term-2-no-post",
+		 *     "childless-term-post",
+		 *     "parent-term-no-post",
+		 *     "parent-term-2-no-post",
+		 *  ]
+		 * }
+		 */
 		// Now run the same queries against ES.
 		$es_slugs = [
 			'hierarchical_false_empty_false' => [],
@@ -1101,7 +1115,7 @@ class TestTerm extends BaseTestCase {
 		// Custom search fields.
 		$args = $term->format_args(
 			[
-				'search' => 'Bacon Ipsum',
+				'search'        => 'Bacon Ipsum',
 				'search_fields' => [
 					'name',
 					'description',
@@ -1159,7 +1173,7 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertSame( 'category', $args['post_filter']['bool']['must'][0]['term']['taxonomy.raw'] );
-		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must'][0]['match_phrase']['hierarchy.ancestors.terms'] );
+		$this->assertSame( 123, $args['post_filter']['bool']['must'][1]['bool']['must']['match_phrase']['hierarchy.ancestors.terms'] );
 
 		$args = $term->format_args(
 			[
@@ -1301,7 +1315,7 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$es_version = \ElasticPress\Elasticsearch::factory()->get_elasticsearch_version();
-		$field_name = ( version_compare( $es_version, '7.0', '>=' ) ) ? 'name.sortable' : 'name.raw';
+		$field_name = ( version_compare( (string) $es_version, '7.0', '>=' ) ) ? 'name.sortable' : 'name.raw';
 
 		$this->assertSame( 'desc', $args['sort'][0][ $field_name ]['order'] );
 
@@ -1365,7 +1379,7 @@ class TestTerm extends BaseTestCase {
 
 		$args = $term->format_args(
 			[
-				'orderby'  => 'custom',
+				'orderby' => 'custom',
 			]
 		);
 
@@ -1382,7 +1396,7 @@ class TestTerm extends BaseTestCase {
 
 		$term = new \ElasticPress\Indexable\Term\Term();
 
-		$callback = function( $keys ) {
+		$callback = function ( $keys ) {
 			$keys[] = '_custom_protected_key';
 			return $keys;
 		};
@@ -1395,8 +1409,6 @@ class TestTerm extends BaseTestCase {
 		add_filter( 'ep_prepare_term_meta_allowed_protected_keys', $callback );
 
 		$prepared_meta = $term->prepare_meta( $term_id );
-
-		remove_filter( 'ep_prepare_term_meta_allowed_protected_keys', $callback );
 
 		$this->assertSame( '123', $prepared_meta['_custom_protected_key'][0] );
 	}
@@ -1430,16 +1442,17 @@ class TestTerm extends BaseTestCase {
 
 		$term->remap_terms( $new_term );
 
-		$this->assertObjectHasAttribute( 'ID', $new_term );
-		$this->assertObjectHasAttribute( 'term_id', $new_term );
-		$this->assertObjectHasAttribute( 'name', $new_term );
-		$this->assertObjectHasAttribute( 'slug', $new_term );
-		$this->assertObjectHasAttribute( 'term_group', $new_term );
-		$this->assertObjectHasAttribute( 'term_taxonomy_id', $new_term );
-		$this->assertObjectHasAttribute( 'taxonomy', $new_term );
-		$this->assertObjectHasAttribute( 'description', $new_term );
-		$this->assertObjectHasAttribute( 'parent', $new_term );
-		$this->assertObjectHasAttribute( 'count', $new_term );
+		$properties = get_object_vars( $new_term );
+		$this->assertArrayHasKey( 'ID', $properties );
+		$this->assertArrayHasKey( 'term_id', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'term_group', $properties );
+		$this->assertArrayHasKey( 'term_taxonomy_id', $properties );
+		$this->assertArrayHasKey( 'taxonomy', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
+		$this->assertArrayHasKey( 'count', $properties );
 
 		$this->assertSame( $new_term->ID, $current_term->term_id );
 		$this->assertSame( $new_term->term_id, $current_term->term_id );
@@ -1452,12 +1465,11 @@ class TestTerm extends BaseTestCase {
 	 * @group term
 	 */
 	public function testQueryDb() {
-
 		$this->createAndIndexTerms();
 
-		$term = new \ElasticPress\Indexable\Term\Term();
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
 
-		$results = $term->query_db(
+		$results = $term_indexable->query_db(
 			[
 				'ep_integrate' => false,
 				'number'       => 10,
@@ -1471,11 +1483,9 @@ class TestTerm extends BaseTestCase {
 		);
 
 		$this->assertCount( 3, $results['objects'] );
-		$this->assertSame( 4, $results['total_objects'] );
+		$this->assertEquals( 4, $results['total_objects'] );
 
-		$term = new \ElasticPress\Indexable\Term\Term();
-
-		$results = $term->query_db(
+		$results = $term_indexable->query_db(
 			[
 				'ep_integrate' => false,
 				'number'       => 10,
@@ -1488,14 +1498,168 @@ class TestTerm extends BaseTestCase {
 			]
 		);
 
-		$this->assertSame( 0, $results['total_objects'] );
+		$this->assertEquals( 0, $results['total_objects'] );
+
+		// create new term
+		$term_1_id = $this->ep_factory->term->create();
+
+		// test only one term is returned
+		$results = $term_indexable->query_db( [ 'include' => $term_1_id ] );
+		$this->assertEquals( 1, $results['total_objects'] );
+
+		// test query returns all terms except one
+		$results = $term_indexable->query_db(
+			[
+				'exclude'  => $term_1_id,
+				'taxonomy' => 'post_tag',
+			]
+		);
+		$this->assertEquals( 4, $results['total_objects'] );
+
+		// create 5 new terms
+		$this->ep_factory->term->create_many( 2 );
+		$term_2_id = $this->ep_factory->term->create();
+		$this->ep_factory->term->create_many( 2 );
+
+		// Test when upper limit is set and it returns only 5 terms.
+		$results = $term_indexable->query_db(
+			[
+				'ep_indexing_upper_limit_object_id' => $term_1_id,
+				'taxonomy'                          => 'post_tag',
+			]
+		);
+		$this->assertEquals( 5, $results['total_objects'] );
+
+		// Test when lower limit is set and it returns only 3 terms.
+		$results = $term_indexable->query_db(
+			[
+				'ep_indexing_lower_limit_object_id' => $term_2_id,
+				'taxonomy'                          => 'post_tag',
+			]
+		);
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Test when both upper and lower limit is set and it returns only 4 terms.
+		$results = $term_indexable->query_db(
+			[
+				'ep_indexing_lower_limit_object_id' => $term_1_id,
+				'ep_indexing_upper_limit_object_id' => $term_2_id,
+				'taxonomy'                          => 'post_tag',
+			]
+		);
+		$this->assertEquals( 4, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests the pagination of the query_db method.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_with_last_processed_object_id() {
+		$term_1_id = $this->ep_factory->term->create();
+		$term_2_id = $this->ep_factory->term->create();
+		$term_3_id = $this->ep_factory->term->create();
+
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
+
+		$results = $term_indexable->query_db(
+			[
+				'per_page' => 1,
+				'taxonomy' => 'post_tag',
+			]
+		);
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $term_3_id, $term_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+
+		// Second loop.
+		$results = $term_indexable->query_db(
+			[
+				'per_page'                             => 1,
+				'taxonomy'                             => 'post_tag',
+				'ep_indexing_last_processed_object_id' => $term_3_id,
+			]
+		);
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $term_2_id, $term_ids[0] );
+		$this->assertCount( 1, $results['objects'] );
+		$this->assertEquals( 3, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests that the query_db method returns results sorted by ID.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_sort_by() {
+		$term_1_id = $this->ep_factory->term->create();
+		$term_2_id = $this->ep_factory->term->create();
+		$term_3_id = $this->ep_factory->term->create();
+
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
+		$results        = $term_indexable->query_db(
+			[
+				'taxonomy' => 'post_tag',
+			]
+		);
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( 3, $results['total_objects'] );
+		$this->assertEquals( $term_3_id, $term_ids[0] );
+		$this->assertEquals( $term_2_id, $term_ids[1] );
+		$this->assertEquals( $term_1_id, $term_ids[2] );
+	}
+
+	/**
+	 * Tests that query_db always returns terms ordered by ID in descending order.
+	 *
+	 * @since 5.2.0
+	 * @group term
+	 */
+	public function test_query_db_orderby() {
+		$term_1_id = $this->ep_factory->term->create();
+		$term_2_id = $this->ep_factory->term->create();
+		$term_3_id = $this->ep_factory->term->create();
+		$term_4_id = $this->ep_factory->term->create();
+
+		$term_indexable = new \ElasticPress\Indexable\Term\Term();
+
+		// change the orderby and make sure it's still ordered by ID.
+		add_filter(
+			'terms_clauses',
+			function ( $clauses ) {
+
+				$clauses['orderby'] = 'ORDER BY t.term_order';
+				return $clauses;
+			}
+		);
+
+		$results = $term_indexable->query_db(
+			[
+				'taxonomy'     => 'post_tag',
+				'cache_buster' => wp_generate_uuid4(), // get_total_objects_for_query returns a cached value because test_query_db_sort_by calls query_db with the same query args.
+			]
+		);
+
+		$this->assertEquals( 4, $results['total_objects'] );
+
+		$term_ids = wp_list_pluck( $results['objects'], 'ID' );
+		$this->assertEquals( $term_4_id, $term_ids[0] );
+		$this->assertEquals( $term_3_id, $term_ids[1] );
+		$this->assertEquals( $term_2_id, $term_ids[2] );
+		$this->assertEquals( $term_1_id, $term_ids[3] );
 	}
 
 	/**
 	 * Tests additional logic in put_mapping().
 	 *
 	 * @return void
-	 * @group post
+	 * @group term
 	 */
 	public function testPutMapping() {
 
@@ -1506,19 +1670,18 @@ class TestTerm extends BaseTestCase {
 
 		// Test the mapping files for different ES versions.
 		$version_and_file = [
-			'4.0' => 'pre-5-0.php',
-			'5.1' => 'initial.php',
+			'5.3' => 'initial.php',
 			'7.0' => '7-0.php',
 		];
 
 		foreach ( $version_and_file as $version => $file ) {
 
-			$version_callback = function() use ( $version ) {
+			$version_callback = function () use ( $version ) {
 				return $version;
 			};
 
 			// Callback to test the mapping file that was selected.
-			$assert_callback = function( $mapping_file ) use ( $file ) {
+			$assert_callback = function ( $mapping_file ) use ( $file ) {
 				$this->assertSame( $file, basename( $mapping_file ) );
 				return $mapping_file;
 			};
@@ -1536,8 +1699,6 @@ class TestTerm extends BaseTestCase {
 			remove_filter( 'ep_fallback_elasticsearch_version', $version_callback );
 			remove_filter( 'ep_term_mapping_file', $assert_callback );
 		}
-
-		remove_filter( 'ep_elasticsearch_version', '__return_false' );
 	}
 
 	/**
@@ -1586,27 +1747,35 @@ class TestTerm extends BaseTestCase {
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( true, null ) );
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( false, null ) );
 
-		$query = new \WP_Term_Query( [
-			'ep_integrate' => false
-		] );
+		$query = new \WP_Term_Query(
+			[
+				'ep_integrate' => false,
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_Term_Query( [
-			'ep_integrate' => 0
-		] );
+		$query = new \WP_Term_Query(
+			[
+				'ep_integrate' => 0,
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_Term_Query( [
-			'ep_integrate' => 'false'
-		] );
+		$query = new \WP_Term_Query(
+			[
+				'ep_integrate' => 'false',
+			]
+		);
 
 		$this->assertFalse( $this->get_feature()->integrate_search_queries( true, $query ) );
 
-		$query = new \WP_Term_Query( [
-			'search' => 'term'
-		] );
+		$query = new \WP_Term_Query(
+			[
+				'search' => 'term',
+			]
+		);
 
 		$this->assertTrue( $this->get_feature()->integrate_search_queries( false, $query ) );
 	}
@@ -1682,7 +1851,9 @@ class TestTerm extends BaseTestCase {
 				'hide_empty'   => false,
 			]
 		);
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+
+		$properties = get_object_vars( $term_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 		$this->assertEquals( 2, count( $term_query->terms ) );
 
 		$this->ep_factory->term->create_many( '2', array( 'taxonomy' => 'post_tag' ) );
@@ -1695,7 +1866,37 @@ class TestTerm extends BaseTestCase {
 				'hide_empty'   => false,
 			]
 		);
-		$this->assertObjectNotHasAttribute( 'elasticsearch_success', $term_query );
+
+		$properties = get_object_vars( $term_query );
+		$this->assertArrayNotHasKey( 'elasticsearch_success', $properties );
 		$this->assertEquals( 4, count( $term_query->terms ) );
+	}
+
+	/**
+	 * Test if the mapping applies the ep_stop filter correctly
+	 *
+	 * @since 4.7.0
+	 * @group term
+	 */
+	public function test_mapping_ep_stop_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'term' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_stop', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertSame( '_english_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+
+		$change_lang = function ( $lang, $context ) {
+			return 'filter_ep_stop' === $context ? '_arabic_' : $lang;
+		};
+		add_filter( 'ep_analyzer_language', $change_lang, 11, 2 );
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		$indexable->put_mapping();
+
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
 }

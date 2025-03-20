@@ -1,0 +1,34 @@
+.ep-previous-sync {
+	align-items: center;
+	display: grid;
+	grid-column-gap: 8px;
+	grid-template-areas:
+		"icon title"
+		". help";
+	grid-template-columns: max-content auto;
+	justify-content: start;
+
+	& svg {
+		display: block;
+		grid-area: icon;
+	}
+
+	&.is-success svg {
+		fill: var(--ep-sync-color-success);
+	}
+
+	&.is-error svg {
+		fill: var(--ep-sync-color-error);
+	}
+}
+
+.ep-previous-sync__title {
+	grid-area: title;
+}
+
+.ep-previous-sync__help {
+	color: rgb(117, 117, 117);
+	font-size: 12px;
+	font-style: normal;
+	grid-area: help;
+}

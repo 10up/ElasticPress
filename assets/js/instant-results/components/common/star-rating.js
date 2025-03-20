@@ -7,9 +7,8 @@ import { WPElement } from '@wordpress/element';
 /**
  * Star rating component.
  *
- * @param {Option} props        Component props.
+ * @param {Option} props Component props.
  * @param {string} props.rating Rating.
- *
  * @returns {WPElement} Component element.
  */
 export default ({ rating }) => {

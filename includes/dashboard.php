@@ -8,14 +8,13 @@
 
 namespace ElasticPress\Dashboard;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\AdminNotices;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Features;
-use ElasticPress\Indexables;
 use ElasticPress\Installer;
-use ElasticPress\AdminNotices;
 use ElasticPress\Screen;
 use ElasticPress\Stats;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -30,13 +29,11 @@ function setup() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 		add_action( 'network_admin_menu', __NAMESPACE__ . '\action_admin_menu' );
 		add_action( 'admin_bar_menu', __NAMESPACE__ . '\action_network_admin_bar_menu', 50 );
-	} else {
-		add_action( 'admin_menu', __NAMESPACE__ . '\action_admin_menu' );
 	}
 
+	add_action( 'admin_menu', __NAMESPACE__ . '\action_admin_menu' );
 	add_action( 'wp_ajax_ep_save_feature', __NAMESPACE__ . '\action_wp_ajax_ep_save_feature' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
-	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
@@ -47,8 +44,13 @@ function setup() {
 	add_action( 'ep_add_query_log', __NAMESPACE__ . '\log_version_query_error' );
 	add_filter( 'ep_analyzer_language', __NAMESPACE__ . '\use_language_in_setting', 10, 2 );
 	add_filter( 'wp_kses_allowed_html', __NAMESPACE__ . '\filter_allowed_html', 10, 2 );
-	add_action( 'manage_blogs_custom_column', __NAMESPACE__ . '\add_blogs_column', 10, 2 );
-	add_action( 'rest_api_init', __NAMESPACE__ . '\setup_endpoint' );
+	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\block_assets' );
+
+	if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+		add_action( 'block_categories_all', __NAMESPACE__ . '\block_categories' );
+	} else {
+		add_action( 'block_categories', __NAMESPACE__ . '\block_categories' );
+	}
 
 	/**
 	 * Filter whether to show 'ElasticPress Indexing' option on Multisite in admin UI or not.
@@ -58,7 +60,7 @@ function setup() {
 	 * @param  {bool}  $show True to show.
 	 * @return {bool}  New value
 	 */
-	$show_indexing_option_on_multisite = apply_filters( 'ep_show_indexing_option_on_multisite', true );
+	$show_indexing_option_on_multisite = apply_filters( 'ep_show_indexing_option_on_multisite', defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK );
 
 	if ( $show_indexing_option_on_multisite ) {
 		add_filter( 'wpmu_blogs_columns', __NAMESPACE__ . '\filter_blogs_columns', 10, 1 );
@@ -115,7 +117,10 @@ function filter_allowed_html( $allowedtags, $context ) {
 			'target'         => true,
 		];
 
-		$ep_tags['a'] = $atts;
+		$ep_tags['a'] = array_merge(
+			$atts,
+			[ 'target' => true ]
+		);
 
 		return $ep_tags;
 	}
@@ -130,15 +135,14 @@ function filter_allowed_html( $allowedtags, $context ) {
  * @since  3.0
  */
 function log_version_query_error( $query ) {
-	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
+	// Ignore fake requests like the autosuggest template generation
+	if ( ! empty( $query['request'] ) && is_array( $query['request'] ) && ! empty( $query['request']['is_ep_fake_request'] ) ) {
+		return;
+	}
 
 	$logging_key = 'logging_ep_es_info';
 
-	if ( $is_network ) {
-		$logging = get_site_transient( $logging_key );
-	} else {
-		$logging = get_transient( $logging_key );
-	}
+	$logging = Utils\get_transient( $logging_key );
 
 	// Are we logging the version query results?
 	if ( '1' === $logging ) {
@@ -167,15 +171,9 @@ function log_version_query_error( $query ) {
 		// Store the response code, and remove the flag that says
 		// we're logging the response code so we don't log additional
 		// queries.
-		if ( $is_network ) {
-			set_site_transient( $response_code_key, $response_code, $cache_time );
-			set_site_transient( $response_error_key, $response_error, $cache_time );
-			delete_site_transient( $logging_key );
-		} else {
-			set_transient( $response_code_key, $response_code, $cache_time );
-			set_transient( $response_error_key, $response_error, $cache_time );
-			delete_transient( $logging_key );
-		}
+		Utils\set_transient( $response_code_key, $response_code, $cache_time );
+		Utils\set_transient( $response_error_key, $response_error, $cache_time );
+		Utils\delete_transient( $logging_key );
 	}
 }
 
@@ -189,7 +187,7 @@ function maybe_skip_install() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( $_GET['nonce'], 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['nonce'] ), 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) {
 		return;
 	}
 
@@ -223,7 +221,11 @@ function maybe_clear_es_info_cache() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	$isset_retry = ! empty( $_GET['ep-retry'] ) &&
+		! empty( $_GET['ep_retry_nonce'] ) &&
+		wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['ep_retry_nonce'] ) ), 'ep_retry_nonce' );
+
+	if ( ! $isset_retry && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) {
 		return;
 	}
 
@@ -233,8 +235,9 @@ function maybe_clear_es_info_cache() {
 		delete_transient( 'ep_es_info' );
 	}
 
-	if ( ! empty( $_GET['ep-retry'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
+	if ( $isset_retry ) {
+		wp_safe_redirect( remove_query_arg( [ 'ep-retry', 'ep_retry_nonce' ] ) );
+		exit();
 	}
 }
 
@@ -295,26 +298,8 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
  * @since  3.0
  */
 function maybe_notice( $force = false ) {
-	// Admins only.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_super_admin() ) {
-			return false;
-		}
-	} else {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-	}
-
-	// If in network mode, don't output notice in admin and vice-versa.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_network_admin() ) {
-			return false;
-		}
-	} else {
-		if ( is_network_admin() ) {
-			return false;
-		}
+	if ( ! current_user_can( Utils\get_capability() ) ) {
+		return false;
 	}
 
 	/**
@@ -327,19 +312,11 @@ function maybe_notice( $force = false ) {
 	 */
 	$cache_time = apply_filters( 'ep_es_info_cache_expiration', ( 5 * MINUTE_IN_SECONDS ) );
 
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		set_site_transient(
-			'logging_ep_es_info',
-			'1',
-			$cache_time
-		);
-	} else {
-		$a = set_transient(
-			'logging_ep_es_info',
-			'1',
-			$cache_time
-		);
-	}
+	Utils\set_transient(
+		'logging_ep_es_info',
+		'1',
+		$cache_time
+	);
 
 	// Fetch ES version
 	Elasticsearch::factory()->get_elasticsearch_version( $force );
@@ -377,12 +354,12 @@ function action_wp_ajax_ep_notice_dismiss() {
 		exit;
 	}
 
-	if ( ! current_user_can( 'manage_options' ) ) {
+	if ( ! current_user_can( Utils\get_capability() ) ) {
 		wp_send_json_error();
 		exit;
 	}
 
-	AdminNotices::factory()->dismiss_notice( $_POST['notice'] );
+	AdminNotices::factory()->dismiss_notice( sanitize_key( $_POST['notice'] ) );
 
 	wp_send_json_success();
 }
@@ -420,9 +397,9 @@ function action_wp_ajax_ep_cancel_index() {
  * @since  2.2
  */
 function action_wp_ajax_ep_save_feature() {
-	$_POST = wp_unslash( $_POST );
+	$post = wp_unslash( $_POST );
 
-	if ( empty( $_POST['feature'] ) || empty( $_POST['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
+	if ( empty( $post['feature'] ) || empty( $post['settings'] ) || ! check_ajax_referer( 'ep_dashboard_nonce', 'nonce', false ) ) {
 		wp_send_json_error();
 		exit;
 	}
@@ -434,10 +411,10 @@ function action_wp_ajax_ep_save_feature() {
 		exit;
 	}
 
-	$data = Features::factory()->update_feature( $_POST['feature'], $_POST['settings'] );
+	$data = Features::factory()->update_feature( $post['feature'], $post['settings'] );
 
 	// Since we deactivated, delete auto activate notice.
-	if ( empty( $_POST['settings']['active'] ) ) {
+	if ( empty( $post['settings']['active'] ) ) {
 		Utils\delete_option( 'ep_feature_auto_activated_sync' );
 	}
 
@@ -471,7 +448,7 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync' ], true ) ) {
+	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ], true ) ) {
 		wp_enqueue_style(
 			'ep_admin_styles',
 			EP_URL . 'dist/css/dashboard-styles.css',
@@ -489,13 +466,52 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
+	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
+
+		wp_enqueue_style(
+			'ep_weighting_styles',
+			EP_URL . 'dist/css/weighting-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'weighting-script', 'version' )
+		);
+
 		wp_enqueue_script(
 			'ep_weighting_script',
 			EP_URL . 'dist/js/weighting-script.js',
 			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
+		);
+
+		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
+
+		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
+		$meta_mode               = $weighting->get_meta_mode();
+		$weightable_fields       = $weighting->get_weightable_fields();
+		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
+
+		/**
+		 * Filter weighting dashboard options.
+		 *
+		 * @hook ep_weighting_options
+		 * @param  {array} $data Weighting dashboard options
+		 * @return  {array} New options array
+		 * @since 5.1.0
+		 */
+		$data = apply_filters(
+			'ep_weighting_options',
+			[
+				'apiUrl'                 => $api_url,
+				'metaMode'               => $meta_mode,
+				'weightableFields'       => $weightable_fields,
+				'weightingConfiguration' => $weighting_configuration,
+			]
+		);
+
+		wp_localize_script(
+			'ep_weighting_script',
+			'epWeighting',
+			$data
 		);
 
 		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
@@ -512,9 +528,7 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_set_script_translations( 'ep_dashboard_scripts', 'elasticpress' );
 
-		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
-				admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
+		$sync_url = Utils\get_sync_url( true );
 
 		$skip_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 				network_admin_url( 'admin.php?page=elasticpress' ) :
@@ -533,18 +547,6 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
-	}
-
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'settings' ], true ) ) {
-		wp_enqueue_script(
-			'ep_settings_scripts',
-			EP_URL . 'dist/js/settings-script.js',
-			Utils\get_asset_info( 'settings-script', 'dependencies' ),
-			Utils\get_asset_info( 'settings-script', 'version' ),
-			true
-		);
-
-		wp_set_script_translations( 'ep_settings_scripts', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
@@ -582,73 +584,13 @@ function action_admin_enqueue_dashboard_scripts() {
 			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
 		)
 	);
-}
 
-/**
- * Admin-init actions
- *
- * Sets up Settings API.
- *
- * @since 1.9
- * @return void
- */
-function action_admin_init() {
-
-	// Save options for multisite.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $_POST['ep_language'] ) ) {
-		check_admin_referer( 'elasticpress-options' );
-
-		$language = sanitize_text_field( $_POST['ep_language'] );
-		Utils\update_option( 'ep_language', $language );
-
-		if ( isset( $_POST['ep_host'] ) ) {
-			$host = esc_url_raw( trim( $_POST['ep_host'] ) );
-			Utils\update_option( 'ep_host', $host );
-		}
-
-		if ( isset( $_POST['ep_prefix'] ) ) {
-			$prefix = ( isset( $_POST['ep_prefix'] ) ) ? sanitize_text_field( wp_unslash( $_POST['ep_prefix'] ) ) : '';
-			Utils\update_option( 'ep_prefix', $prefix );
-		}
-
-		if ( isset( $_POST['ep_credentials'] ) ) {
-			$credentials = ( isset( $_POST['ep_credentials'] ) ) ? Utils\sanitize_credentials( $_POST['ep_credentials'] ) : [
-				'username' => '',
-				'token'    => '',
-			];
-
-			Utils\update_option( 'ep_credentials', $credentials );
-		}
-
-		if ( isset( $_POST['ep_bulk_setting'] ) ) {
-			Utils\update_option( 'ep_bulk_setting', intval( $_POST['ep_bulk_setting'] ) );
-		}
-	} else {
-		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
-		register_setting( 'elasticpress', 'ep_prefix', 'sanitize_text_field' );
-		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
-		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
-		register_setting(
-			'elasticpress',
-			'ep_bulk_setting',
-			[
-				'type'              => 'integer',
-				'sanitize_callback' => __NAMESPACE__ . '\sanitize_bulk_settings',
-			]
-		);
-	}
-}
-
-/**
- * Sanitize bulk settings.
- *
- * @param int $bulk_settings Number of bulk content items
- * @return int
- */
-function sanitize_bulk_settings( $bulk_settings = 350 ) {
-	$bulk_settings = absint( $bulk_settings );
-
-	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
+	wp_enqueue_style(
+		'ep_general_styles',
+		EP_URL . 'dist/css/general-styles.css',
+		Utils\get_asset_info( 'general-styles', 'dependencies' ),
+		Utils\get_asset_info( 'general-styles', 'version' )
+	);
 }
 
 /**
@@ -669,11 +611,16 @@ function resolve_screen() {
  * @return void
  */
 function action_admin_menu() {
-	$capability = 'manage_options';
-
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		$capability = 'manage_network';
+	Installer::factory()->calculate_install_status();
+	if ( true !== Installer::factory()->get_install_status() && ! Utils\is_top_level_admin_context() ) {
+		return;
 	}
+
+	if ( ! Utils\is_site_indexable() && ! is_network_admin() ) {
+		return;
+	}
+
+	$capability = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_network_capability() : Utils\get_capability();
 
 	add_menu_page(
 		'ElasticPress',
@@ -683,6 +630,10 @@ function action_admin_menu() {
 		__NAMESPACE__ . '\resolve_screen',
 		'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4='
 	);
+
+	if ( ! Utils\is_top_level_admin_context() ) {
+		return;
+	}
 
 	add_submenu_page(
 		'elasticpress',
@@ -719,6 +670,99 @@ function action_admin_menu() {
 		'elasticpress-health',
 		__NAMESPACE__ . '\resolve_screen'
 	);
+
+	add_submenu_page(
+		'elasticpress',
+		esc_html__( 'ElasticPress Status Report', 'elasticpress' ),
+		esc_html__( 'Status Report', 'elasticpress' ),
+		$capability,
+		'elasticpress-status-report',
+		__NAMESPACE__ . '\resolve_screen'
+	);
+}
+
+/**
+ * Languages supported in Elasticsearch mappings.
+ *
+ * If $format is 'elasticsearch', the array format is `Elasticsearch analyzer name => [ WordPress language package names ]`.
+ *
+ * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
+ * @since 4.7.0
+ * @param string $format Format of the return ('locales' or 'elasticsearch' )
+ * @return array
+ */
+function get_available_languages( string $format = 'elasticsearch' ): array {
+	/**
+	 * Filter available languages in Elasticsearch.
+	 *
+	 * The returned array should follow the format `Elasticsearch analyzer name => [ WordPress language package names ]`.
+	 *
+	 * @since 4.7.0
+	 * @hook ep_available_languages
+	 * @param  {bool} $available_languages List of available languages
+	 * @return {bool} New list
+	 */
+	$es_languages = apply_filters(
+		'ep_available_languages',
+		[
+			'arabic'     => [ 'ar', 'ary' ],
+			'armenian'   => [ 'hy' ],
+			'basque'     => [ 'eu' ],
+			'bengali'    => [ 'bn', 'bn_BD' ],
+			'brazilian'  => [ 'pt_BR' ],
+			'bulgarian'  => [ 'bg', 'bg_BG' ],
+			'catalan'    => [ 'ca' ],
+			'cjk'        => [], // CJK characters (not a language)
+			'czech'      => [ 'cs', 'cs_CZ' ],
+			'danish'     => [ 'da', 'da_DK' ],
+			'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
+			'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_US', 'en_ZA' ],
+			'estonian'   => [ 'et' ],
+			'finnish'    => [ 'fi' ],
+			'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
+			'galician'   => [ 'gl_ES' ],
+			'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
+			'greek'      => [ 'el' ],
+			'hindi'      => [ 'hi_IN' ],
+			'hungarian'  => [ 'hu_HU' ],
+			'indonesian' => [ 'id_ID' ],
+			'irish'      => [], // WordPress doesn't support Irish as an active locale currently
+			'italian'    => [ 'it_IT' ],
+			'latvian'    => [ 'lv' ],
+			'lithuanian' => [ 'lt_LT' ],
+			'norwegian'  => [ 'nb_NO' ],
+			'persian'    => [ 'fa_IR' ],
+			'portuguese' => [ 'pt', 'pt_AO', 'pt_PT', 'pt_PT_ao90' ],
+			'romanian'   => [ 'ro_RO' ],
+			'russian'    => [ 'ru_RU' ],
+			'sorani'     => [ 'ckb' ],
+			'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
+			'swedish'    => [ 'sv_SE' ],
+			'turkish'    => [ 'tr_TR' ],
+			'thai'       => [ 'th' ],
+		]
+	);
+
+	if ( 'locales' === $format ) {
+		$arr = array_reduce(
+			$es_languages,
+			function ( $acc, $lang ) {
+				$lang = array_filter(
+					$lang,
+					function ( $locale ) {
+						// English is always added. This removes the duplicates
+						return ! in_array( $locale, [ 'en', 'en_US' ], true );
+					}
+				);
+				$acc  = array_merge( $acc, $lang );
+				return $acc;
+			},
+			[]
+		);
+		return $arr;
+	}
+
+	return $es_languages;
 }
 
 /**
@@ -729,6 +773,8 @@ function action_admin_menu() {
  * @return string          The updated language.
  */
 function use_language_in_setting( $language = 'english', $context = '' ) {
+	global $locale, $wp_local_package;
+
 	// Get the currently set language.
 	$ep_language = Utils\get_language();
 
@@ -737,59 +783,28 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		return $language;
 	}
 
+	/**
+	 * WordPress does not reset the language when switch_blog() is called.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/49263
+	 */
+	if ( 'site-default' === $ep_language ) {
+		$locale           = null;
+		$wp_local_package = null;
+		$ep_language      = get_locale();
+	}
+
 	require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 	$translations = wp_get_available_translations();
 
-	// Bail early if not in the array of available translations.
-	if ( empty( $translations[ $ep_language ]['english_name'] ) ) {
-		return $language;
+	// Default to en_US if not in the array of available translations.
+	if ( ! empty( $translations[ $ep_language ]['english_name'] ) ) {
+		$wp_language = $translations[ $ep_language ]['language'];
+	} else {
+		$wp_language = 'en_US';
 	}
 
-	$wp_language = $translations[ $ep_language ]['language'];
-
-	/**
-	 * Languages supported in Elasticsearch mappings.
-	 * Array format: Elasticsearch analyzer name => WordPress language package name
-	 *
-	 * @link https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-lang-analyzer.html
-	 */
-	$es_languages = [
-		'arabic'     => [ 'ar', 'ary' ],
-		'armenian'   => [ 'hy' ],
-		'basque'     => [ 'eu' ],
-		'bengali'    => [ 'bn', 'bn_BD' ],
-		'brazilian'  => [ 'pt_BR' ],
-		'bulgarian'  => [ 'bg' ],
-		'catalan'    => [ 'ca' ],
-		'cjk'        => [], // CJK characters (not a language)
-		'czech'      => [ 'cs' ],
-		'danish'     => [ 'da' ],
-		'dutch'      => [ 'nl_NL_formal', 'nl_NL', 'nl_BE' ],
-		'english'    => [ 'en', 'en_AU', 'en_GB', 'en_NZ', 'en_CA', 'en_ZA' ],
-		'estonian'   => [ 'et' ],
-		'finnish'    => [ 'fi' ],
-		'french'     => [ 'fr', 'fr_CA', 'fr_FR', 'fr_BE' ],
-		'galician'   => [ 'gl_ES' ],
-		'german'     => [ 'de', 'de_DE', 'de_DE_formal', 'de_CH', 'de_CH_informal', 'de_AT' ],
-		'greek'      => [ 'el' ],
-		'hindi'      => [ 'hi_IN' ],
-		'hungarian'  => [ 'hu_HU' ],
-		'indonesian' => [ 'id_ID' ],
-		'irish'      => [], // WordPress doesn't support Irish as an active locale currently
-		'italian'    => [ 'it_IT' ],
-		'latvian'    => [ 'lv' ],
-		'lithuanian' => [ 'lt_LT' ],
-		'norwegian'  => [ 'nb_NO' ],
-		'persian'    => [ 'fa_IR' ],
-		'portuguese' => [ 'pt', 'pt_AO', 'pt_PT', 'pt_PT_ao90' ],
-		'romanian'   => [ 'ro_RO' ],
-		'russian'    => [ 'ru_RU' ],
-		'sorani'     => [ 'ckb' ],
-		'spanish'    => [ 'es_CR', 'es_MX', 'es_VE', 'es_AR', 'es_CL', 'es_GT', 'es_PE', 'es_ES', 'es_UY', 'es_CO' ],
-		'swedish'    => [ 'sv_SE' ],
-		'turkish'    => [ 'tr_TR' ],
-		'thai'       => [ 'th' ],
-	];
+	$es_languages = get_available_languages();
 
 	/**
 	 * Languages supported in Elasticsearch snowball token filters.
@@ -822,6 +837,10 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 		'Turkish',
 	];
 
+	$es_snowball_similar = [
+		'Brazilian' => 'Portuguese',
+	];
+
 	foreach ( $es_languages as $analyzer_name => $analyzer_language_codes ) {
 		if ( in_array( $wp_language, $analyzer_language_codes, true ) ) {
 			$language = $analyzer_name;
@@ -830,11 +849,16 @@ function use_language_in_setting( $language = 'english', $context = '' ) {
 	}
 
 	if ( 'filter_ewp_snowball' === $context ) {
-		if ( in_array( ucfirst( $language ), $es_snowball_languages, true ) ) {
-			return ucfirst( $language );
+		$uc_first_language = ucfirst( $language );
+		if ( in_array( $uc_first_language, $es_snowball_languages, true ) ) {
+			return $uc_first_language;
 		}
 
-		return 'English';
+		return $es_snowball_similar[ $uc_first_language ] ?? 'English';
+	}
+
+	if ( 'filter_ep_stop' === $context ) {
+		return "_{$language}_";
 	}
 
 	return $language;
@@ -862,21 +886,23 @@ function filter_blogs_columns( $columns ) {
  * @return void | string
  */
 function add_blogs_column( $column_name, $blog_id ) {
+	if ( 'elasticpress' !== $column_name ) {
+		return;
+	}
+
 	$site = get_site( $blog_id );
 	if ( $site->deleted || $site->archived || $site->spam ) {
 		return;
 	}
-	if ( 'elasticpress' === $column_name ) {
-		$is_indexable = get_blog_option( $blog_id, 'ep_indexable', 'yes' );
 
-		printf(
-			'<input %1$s class="index-toggle" data-blog-id="%2$s" disabled type="checkbox">',
-			checked( $is_indexable, 'yes', false ),
-			esc_attr( $blog_id )
-		);
-	}
+	$is_indexable = get_site_meta( $blog_id, 'ep_indexable', true );
+	$is_indexable = '' !== $is_indexable ? $is_indexable : 'yes';
 
-	return $column_name;
+	printf(
+		'<input %1$s class="index-toggle" data-blog-id="%2$s" disabled type="checkbox">',
+		checked( $is_indexable, 'yes', false ),
+		esc_attr( $blog_id )
+	);
 }
 
 /**
@@ -889,29 +915,19 @@ function action_wp_ajax_ep_site_admin() {
 	if ( - 1 === $blog_id || ! check_ajax_referer( 'epsa', 'nonce', false ) ) {
 		return wp_send_json_error();
 	}
-	$old    = get_blog_option( $blog_id, 'ep_indexable' );
+
+	/**
+	 * NOTE: This will be removed in ElasticPress 5.0.0. Implementations should rely on site_meta since 4.7.0.
+	 */
 	$result = update_blog_option( $blog_id, 'ep_indexable', $checked );
+
+	$result = update_site_meta( $blog_id, 'ep_indexable', $checked );
 	$data   = [
 		'blog_id' => $blog_id,
 		'result'  => $result,
 	];
 
 	return wp_send_json_success( $data );
-}
-
-/**
- * Registers the API endpoint
- */
-function setup_endpoint() {
-	register_rest_route(
-		'elasticpress/v1',
-		'indexing_status',
-		[
-			'methods'             => 'GET',
-			'callback'            => __NAMESPACE__ . '\handle_indexing_status',
-			'permission_callback' => '__return_true',
-		]
-	);
 }
 
 /**
@@ -942,4 +958,42 @@ function handle_indexing_status() {
 	}
 
 	return $status;
+}
+
+/**
+ * Add an ElasticPress block category.
+ *
+ * @param array $block_categories Array of categories for block types.
+ * @return array Array of categories for block types.
+ */
+function block_categories( $block_categories ) {
+	$block_categories[] = [
+		'slug'  => 'elasticpress',
+		'title' => 'ElasticPress',
+	];
+
+	return $block_categories;
+}
+
+/**
+ * Enqueue shared block editor assets.
+ *
+ * @return void
+ */
+function block_assets() {
+	wp_enqueue_script(
+		'elasticpress-blocks',
+		EP_URL . 'dist/js/blocks-script.js',
+		Utils\get_asset_info( 'blocks-script', 'dependencies' ),
+		Utils\get_asset_info( 'blocks-script', 'version' ),
+		true
+	);
+
+	wp_localize_script(
+		'elasticpress-blocks',
+		'epBlocks',
+		[
+			'syncUrl' => Utils\get_sync_url(),
+		]
+	);
 }

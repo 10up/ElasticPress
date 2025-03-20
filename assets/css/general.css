@@ -1,0 +1,41 @@
+@import "./global/colors.css";
+
+#wpadminbar {
+
+	& .ep-status-indicator {
+		background-color: var(--ep-c-white-gray);
+		border-radius: 100%;
+		display: inline-block;
+		height: 8px;
+		margin-right: 6px;
+		width: 8px;
+	}
+	
+	& .ep-status-indicator--success {
+		background-color: var(--ep-status-ok);
+	}
+	
+	& .ep-status-indicator--warning {
+		background-color: var(--ep-status-warning);
+	}
+	
+	& .ep-status-indicator--error {
+		background-color: var(--ep-status-error);
+	}
+}
+
+#wp-admin-bar-ep-doc-status .ab-item {
+	height: auto !important;
+}
+
+#wp-admin-bar-ep-doc-status-explanation {
+
+	& ul {
+		padding-left: 1.5em;
+
+		&,
+		& li {
+			list-style: disc;
+		}
+	}
+}

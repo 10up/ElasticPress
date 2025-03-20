@@ -9,12 +9,12 @@
 
 namespace ElasticPress\Feature\Autosuggest;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Features as Features;
-use ElasticPress\Utils as Utils;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Indexables as Indexables;
 use ElasticPress\Elasticsearch;
+use ElasticPress\Feature;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -40,12 +40,6 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
-
-		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
@@ -56,7 +50,25 @@ class Autosuggest extends Feature {
 
 		$this->available_during_installation = true;
 
+		$this->is_powered_by_epio = Utils\is_epio();
+
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
+
+		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
 	}
 
 	/**
@@ -83,14 +95,7 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_weighted_query_for_post_type', [ $this, 'adjust_fuzzy_fields' ], 10, 3 );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
-		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_send_autosuggest_public_request' ] );
-		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_autosuggest_public_request' ] );
-
-		add_action( 'ep_cli_after_set_search_algorithm_version', [ $this, 'delete_cached_query' ] );
-		add_action( 'ep_wp_cli_after_index', [ $this, 'delete_cached_query' ] );
-		add_action( 'ep_after_dashboard_index', [ $this, 'delete_cached_query' ] );
-		add_action( 'ep_after_update_feature', [ $this, 'delete_cached_query' ] );
-		add_action( 'ep_cli_after_clear_index', [ $this, 'delete_cached_query' ] );
+		add_filter( 'ep_pre_sync_index', [ $this, 'epio_send_autosuggest_public_request' ] );
 	}
 
 	/**
@@ -100,13 +105,6 @@ class Autosuggest extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
-
 		?>
 		<div class="field">
 			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
@@ -158,44 +156,25 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function mapping( $mapping ) {
-		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
-			'type'      => 'custom',
-			'tokenizer' => 'standard',
-			'filter'    => array(
-				'lowercase',
-				'edge_ngram',
-			),
-		);
+		$post_indexable = Indexables::factory()->get( 'post' );
 
-		if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-			$text_type = $mapping['mappings']['post']['properties']['post_content']['type'];
+		$mapping = $post_indexable->add_ngram_analyzer( $mapping );
+		$mapping = $post_indexable->add_term_suggest_field( $mapping );
 
-			$mapping['mappings']['post']['properties']['post_title']['fields']['suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
-
-			$mapping['mappings']['post']['properties']['term_suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
+		// Note the assignment by reference below.
+		if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			$mapping_properties = &$mapping['mappings']['post']['properties'];
 		} else {
-			$text_type = $mapping['mappings']['properties']['post_content']['type'];
-
-			$mapping['mappings']['properties']['post_title']['fields']['suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
-
-			$mapping['mappings']['properties']['term_suggest'] = array(
-				'type'            => $text_type,
-				'analyzer'        => 'edge_ngram_analyzer',
-				'search_analyzer' => 'standard',
-			);
+			$mapping_properties = &$mapping['mappings']['properties'];
 		}
+
+		$text_type = $mapping_properties['post_content']['type'];
+
+		$mapping_properties['post_title']['fields']['suggest'] = array(
+			'type'            => $text_type,
+			'analyzer'        => 'edge_ngram_analyzer',
+			'search_analyzer' => 'standard',
+		);
 
 		return $mapping;
 	}
@@ -209,7 +188,7 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function set_fuzziness( $fuzziness, $search_fields, $args ) {
-		if ( Utils\is_integrated_request( $this->slug, [ 'public' ] ) && ! empty( $args['s'] ) ) {
+		if ( Utils\is_integrated_request( $this->slug, $this->get_contexts() ) && ! empty( $args['s'] ) ) {
 			return 'auto';
 		}
 		return $fuzziness;
@@ -224,7 +203,7 @@ class Autosuggest extends Feature {
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
-		if ( ! Utils\is_integrated_request( $this->slug, [ 'public' ] ) || empty( $args['s'] ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, $this->get_contexts() ) || empty( $args['s'] ) ) {
 			return $query;
 		}
 
@@ -373,28 +352,19 @@ class Autosuggest extends Feature {
 			return;
 		}
 
-		$host         = Utils\get_host();
-		$endpoint_url = false;
-		$settings     = $this->get_settings();
+		$host     = Utils\get_host();
+		$settings = $this->get_settings();
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
-		} else {
-			if ( Utils\is_epio() ) {
+		} elseif ( Utils\is_epio() ) {
 				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
-			} else {
-				if ( ! $settings ) {
-					$settings = [];
-				}
+		} else {
+			$endpoint_url = $settings['endpoint_url'];
+		}
 
-				$settings = wp_parse_args( $settings, $this->default_settings );
-
-				if ( empty( $settings['endpoint_url'] ) ) {
-					return;
-				}
-
-				$endpoint_url = $settings['endpoint_url'];
-			}
+		if ( empty( $endpoint_url ) ) {
+			return;
 		}
 
 		wp_enqueue_script(
@@ -419,14 +389,6 @@ class Autosuggest extends Feature {
 
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
-
-		$post_types  = $search->get_searchable_post_types();
-		$post_status = get_post_stati(
-			[
-				'public'              => true,
-				'exclude_from_search' => false,
-			]
-		);
 
 		$query = $this->generate_search_query();
 
@@ -456,6 +418,7 @@ class Autosuggest extends Feature {
 			'http_headers'        => apply_filters( 'ep_autosuggest_http_headers', [] ),
 			'triggerAnalytics'    => ! empty( $settings['trigger_ga_event'] ),
 			'addSearchTermHeader' => false,
+			'requestIdBase'       => Utils\get_request_id_base(),
 		];
 
 		if ( Utils\is_epio() ) {
@@ -547,10 +510,10 @@ class Autosuggest extends Feature {
 		 */
 		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
 
-		add_filter( 'ep_intercept_remote_request', '__return_true' );
-		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ], 10, 1 );
+		add_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
+		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
-		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 4 );
+		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 2 );
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
@@ -592,7 +555,7 @@ class Autosuggest extends Feature {
 
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
-		remove_filter( 'ep_intercept_remote_request', '__return_true' );
+		remove_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 
 		return [
 			'body'        => $this->autosuggest_query,
@@ -629,63 +592,29 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Store intercepted request value and return (cached) request result
+	 * Store intercepted request value and return a fake successful request result
 	 *
-	 * @param object $response Response
-	 * @param array  $query Query
-	 * @param array  $args WP_Query Argument array
-	 * @param int    $failures Count of failures in request loop
-	 * @return object $response Response
+	 * @param array $response Response
+	 * @param array $query    ES Query
+	 * @return array $response Response
 	 */
-	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
+	public function intercept_search_request( $response, $query = [] ) {
 		$this->autosuggest_query = $query['args']['body'];
 
-		// Let's make sure we also fire off the dummy request if settings have changed.
-		// But only fire this if we have object caching as otherwise this comes with a performance penalty.
-		// If we do not have object caching we cache only one value for 5 minutes in a transient.
-		if ( wp_using_ext_object_cache() ) {
-			$cache_key = md5( wp_json_encode( $query['url'] ) . wp_json_encode( $args ) );
-			$request   = wp_cache_get( $cache_key, 'ep_autosuggest' );
-			if ( false === $request ) {
-				$request = wp_remote_request( $query['url'], $args );
-				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
-					$request->http_response->body = '';
-				}
-				wp_cache_set( $cache_key, $request, 'ep_autosuggest' );
-			}
-		} else {
-			$cache_key = 'ep_autosuggest_query_request_cache';
-			$request   = get_transient( $cache_key );
-			if ( false === $request ) {
-				$request = wp_remote_request( $query['url'], $args );
-				if ( isset( $request->http_response ) && isset( $request->http_response->body ) ) {
-					$request->http_response->body = '';
-				}
-				set_transient( $cache_key, $request, 5 * MINUTE_IN_SECONDS );
-			}
-		}
+		$message = wp_json_encode(
+			[
+				esc_html__( 'This is a fake request to build the ElasticPress Autosuggest query. It is not really sent.', 'elasticpress' ),
+			]
+		);
 
-		return $request;
-	}
-
-	/**
-	 * Delete the cached query for autosuggest.
-	 *
-	 * @since 3.5.5
-	 */
-	public function delete_cached_query() {
-		global $wp_object_cache;
-		if ( wp_using_ext_object_cache() ) {
-			if ( function_exists( 'wp_cache_supports_group_flush' ) && wp_cache_supports_group_flush() ) {
-				wp_cache_flush_group( 'ep_autosuggest' );
-			} else {
-				// Try to delete the entire group.
-				// This may fail because the `$cache` property is not standardized.
-				unset( $wp_object_cache->cache['ep_autosuggest'] );
-			}
-		} else {
-			delete_transient( 'ep_autosuggest_query_request_cache' );
-		}
+		return [
+			'is_ep_fake_request' => true,
+			'body'               => $message,
+			'response'           => [
+				'code'    => 200,
+				'message' => $message,
+			],
+		];
 	}
 
 	/**
@@ -735,6 +664,10 @@ class Autosuggest extends Feature {
 		// Pass the same cookies, so the same authenticated user is used (and we can check the nonce).
 		$cookies = [];
 		foreach ( $_COOKIE as $name => $value ) {
+			if ( ! is_string( $name ) || ! is_string( $value ) ) {
+				continue;
+			}
+
 			$cookies[] = new \WP_Http_Cookie(
 				[
 					'name'  => $name,
@@ -756,9 +689,10 @@ class Autosuggest extends Feature {
 	 * Send the allowed parameters for autosuggest to ElasticPress.io.
 	 */
 	public function epio_send_autosuggest_allowed() {
-		if ( empty( $_REQUEST['ep_epio_nonce'] ) || ! wp_verify_nonce( $_REQUEST['ep_epio_nonce'], 'ep-epio-set-autosuggest' ) ) {
+		if ( empty( $_REQUEST['ep_epio_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_REQUEST['ep_epio_nonce'] ), 'ep-epio-set-autosuggest' ) ) {
 			return;
 		}
+
 		if ( empty( $_GET['ep_epio_set_autosuggest'] ) ) {
 			return;
 		}
@@ -854,61 +788,22 @@ class Autosuggest extends Feature {
 		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
 			<div class="field-name status"><?php esc_html_e( 'Connection', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<?php
-				$epio_link                = '';
-				$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+			<?php
+			$epio_link                = 'https://elasticpress.io';
+			$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/elasticpress-io-autosuggest/';
+			$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
 
-				// If WordPress 5.2+, show debug in Health Check. Otherwise, show it if WP_DEBUG is enabled.
-				if ( version_compare( $wp_version, '5.2', '>=' ) || 0 === stripos( $wp_version, '5.2-' ) ) {
-					printf(
-						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
-						esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
-						'<a href="' . esc_url( $epio_link ) . '">',
-						'</a>',
-						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
-						'</a>',
-						'<a href="' . esc_url( admin_url( 'site-health.php?tab=debug' ) ) . '">',
-						'</a>'
-					);
-				} else {
-					printf(
-						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
-						esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %1$sLearn more about what this means%2$s.', 'elasticpress' ),
-						'<a href="' . esc_url( $epio_link ) . '">',
-						'</a>',
-						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
-						'</a>'
-					);
-
-					if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
-						?>
-						<p><?php esc_html_e( 'These are the allowed parameters stored in ElasticPress.io', 'elasticpress' ); ?></p>
-						<?php
-						$allowed_params = wp_parse_args(
-							$allowed_params,
-							[
-								'postTypes'    => [],
-								'postStatus'   => [],
-								'searchFields' => [],
-								'returnFields' => '',
-							]
-						);
-
-						$fields = [
-							wp_sprintf( esc_html__( 'Post Types: %l', 'elasticpress' ), $allowed_params['postTypes'] ),
-							wp_sprintf( esc_html__( 'Post Status: %l', 'elasticpress' ), $allowed_params['postStatus'] ),
-							wp_sprintf( esc_html__( 'Search Fields: %l', 'elasticpress' ), $allowed_params['searchFields'] ),
-							/* translators: List of files allowed to be returned wrapped by var_export() */
-							wp_sprintf( esc_html__( 'Returned Fields: %s', 'elasticpress' ), var_export( $allowed_params['returnFields'], true ) ), // phpcs:ignore
-						];
-
-						echo implode( '<br>', $fields ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					}
-				}
-				?>
-				<p>
-					<img width="150" src="<?php echo esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ); ?>">
-				</p>
+			printf(
+				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
+				esc_html__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
+				'<a href="' . esc_url( $epio_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $status_report_link ) . '">',
+				'</a>'
+			);
+			?>
 			</div>
 		</div>
 		<?php
@@ -931,12 +826,128 @@ class Autosuggest extends Feature {
 				break;
 			}
 
-			if ( empty( $allowed_params ) ) {
-				$this->epio_send_autosuggest_public_request( true );
+			// We have what we need, no need to retry.
+			if ( ! empty( $allowed_params ) ) {
+				break;
 			}
+
+			// Send to EP.io what should be autosuggest's allowed values and try to get them again.
+			$this->epio_send_autosuggest_public_request( true );
 		}
 
 		return $allowed_params;
 	}
 
+	/**
+	 * Return true, so EP knows we want to intercept the remote request
+	 *
+	 * As we add and remove this function from `ep_intercept_remote_request`,
+	 * using `__return_true` could remove a *real* `__return_true` added by someone else.
+	 *
+	 * @since 4.7.0
+	 * @see https://github.com/10up/ElasticPress/issues/2887
+	 * @return true
+	 */
+	public function intercept_remote_request() {
+		return true;
+	}
+
+	/**
+	 * Conditionally add EP.io information to the settings schema
+	 *
+	 * @since 5.0.0
+	 */
+	protected function maybe_add_epio_settings_schema() {
+		if ( ! Utils\is_epio() ) {
+			return;
+		}
+
+		$epio_link                = 'https://elasticpress.io';
+		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/elasticpress-io-autosuggest/';
+		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
+
+		$this->settings_schema[] = [
+			'key'   => 'epio',
+			'label' => sprintf(
+				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
+				__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
+				'<a href="' . esc_url( $epio_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '">',
+				'</a>',
+				'<a href="' . esc_url( $status_report_link ) . '">',
+				'</a>'
+			),
+			'type'  => 'markup',
+		];
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '.ep-autosuggest',
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>', 'elasticpress' ),
+				'key'     => 'autosuggest_selector',
+				'label'   => __( 'Additional selectors', 'elasticpress' ),
+				'type'    => 'text',
+			],
+			[
+				'default' => '0',
+				'key'     => 'trigger_ga_event',
+				'help'    => __( 'Enable to fire a gtag tracking event when an autosuggest result is clicked.', 'elasticpress' ),
+				'label'   => __( 'Trigger Google Analytics events', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+		];
+
+		$this->maybe_add_epio_settings_schema();
+
+		if ( ! Utils\is_epio() ) {
+			$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
+
+			$this->settings_schema[] = [
+				'disabled' => $set_in_wp_config,
+				'help'     => ! $set_in_wp_config ? __( 'A valid URL starting with <code>http://</code> or <code>https://</code>. This address will be exposed to the public.', 'elasticpress' ) : '',
+				'key'      => 'endpoint_url',
+				'label'    => __( 'Endpoint URL', 'elasticpress' ),
+				'type'     => 'url',
+			];
+		}
+	}
+
+	/**
+	 * DEPRECATED. Delete the cached query for autosuggest.
+	 *
+	 * @since 3.5.5
+	 */
+	public function delete_cached_query() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.' ),
+			'ElasticPress 4.7.0'
+		);
+	}
+
+	/**
+	 * Get the contexts for autosuggest.
+	 *
+	 * @since 5.1.0
+	 * @return array
+	 */
+	protected function get_contexts(): array {
+		/**
+		 * Filter contexts for autosuggest.
+		 *
+		 * @hook ep_autosuggest_contexts
+		 * @since 5.1.0
+		 * @param {array} $contexts Contexts for autosuggest
+		 * @return {array} New contexts
+		 */
+		return apply_filters( 'ep_autosuggest_contexts', [ 'public', 'ajax' ] );
+	}
 }

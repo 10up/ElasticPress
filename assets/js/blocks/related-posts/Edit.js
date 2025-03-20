@@ -2,25 +2,36 @@
  * WordPress dependencies.
  */
 import apiFetch from '@wordpress/api-fetch';
-import { AlignmentToolbar, BlockControls, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
+import {
+	AlignmentToolbar,
+	BlockControls,
+	InspectorControls,
+	useBlockProps,
+} from '@wordpress/block-editor';
+import { Disabled, PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
 import { Fragment, RawHTML, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { addQueryArgs } from '@wordpress/url';
+
+/**
+ * Internal dependencies.
+ */
+import icon from './icon';
 
 /**
  * Related Posts block edit component.
  *
  * @param {object} props Component props.
  * @param {object} props.attributes Block attributes.
- * @param {string} props.className Additional CSS class(es).
  * @param {object} props.context Block context,
  * @param {Function} props.setAttributes Attribute setter.
  * @returns {Function} Component element.
  */
-const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => {
+const RelatedPostsEdit = ({ attributes, context, setAttributes }) => {
 	const { alignment, number } = attributes;
 	const [posts, setPosts] = useState(false);
+
+	const blockProps = useBlockProps();
 
 	/**
 	 * Related posts, limited by the selected number.
@@ -38,7 +49,7 @@ const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => 
 		const { postId = 0 } = context;
 
 		apiFetch({
-			path: addQueryArgs(`/wp/v2/posts/${postId}/related`, urlArgs),
+			path: addQueryArgs(`/elasticpress/v1/related-posts/${postId}`, urlArgs),
 		})
 			.then((posts) => {
 				setPosts(posts);
@@ -62,7 +73,7 @@ const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => 
 				/>
 			</BlockControls>
 			<InspectorControls>
-				<PanelBody title={__('Related Post Settings', 'elasticpress')}>
+				<PanelBody title={__('Settings', 'elasticpress')}>
 					<QueryControls
 						numberOfItems={number}
 						onNumberOfItemsChange={(value) => setAttributes({ number: value })}
@@ -70,9 +81,9 @@ const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => 
 				</PanelBody>
 			</InspectorControls>
 
-			<div className={className}>
+			<div {...blockProps}>
 				{displayPosts === false || displayPosts.length === 0 ? (
-					<Placeholder icon="admin-post" label={__('Related Posts', 'elasticpress')}>
+					<Placeholder icon={icon} label={__('Related Posts', 'elasticpress')}>
 						{posts === false ? (
 							<Spinner />
 						) : (
@@ -80,22 +91,24 @@ const RelatedPostsEdit = ({ attributes, className, context, setAttributes }) => 
 						)}
 					</Placeholder>
 				) : (
-					<ul style={{ textAlign: alignment }}>
-						{displayPosts.map((post) => {
-							const titleTrimmed = post.title.rendered.trim();
-							return (
-								<li key={post.id}>
-									<a href={post.link} onClick={(e) => e.preventDefault()}>
-										{titleTrimmed ? (
-											<RawHTML>{titleTrimmed}</RawHTML>
-										) : (
-											__('(Untitled)', 'elasticpress')
-										)}
-									</a>
-								</li>
-							);
-						})}
-					</ul>
+					<Disabled>
+						<ul style={{ textAlign: alignment }}>
+							{displayPosts.map((post) => {
+								const titleTrimmed = post.title.rendered.trim();
+								return (
+									<li key={post.id}>
+										<a href={post.link} onClick={(e) => e.preventDefault()}>
+											{titleTrimmed ? (
+												<RawHTML>{titleTrimmed}</RawHTML>
+											) : (
+												__('(Untitled)', 'elasticpress')
+											)}
+										</a>
+									</li>
+								);
+							})}
+						</ul>
+					</Disabled>
 				)}
 			</div>
 		</Fragment>

@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI depreceated commands for ElasticPress
+ * WP-CLI deprecated commands for ElasticPress
  *
  * @since  4.4.0
  * @package elasticpress
@@ -8,10 +8,12 @@
 
 namespace ElasticPress;
 
-use \WP_CLI as WP_CLI;
+use WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -272,5 +274,4 @@ trait DeprecatedCommand {
 		);
 		$this->stop_sync( $args, $assoc_args );
 	}
-
 }

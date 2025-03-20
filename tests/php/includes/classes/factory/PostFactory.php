@@ -34,5 +34,4 @@ class PostFactory extends \WP_UnitTest_Factory_For_Post {
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id );
 		return $post_id;
 	}
-
 }

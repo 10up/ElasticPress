@@ -31,7 +31,7 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 	}
@@ -44,8 +44,6 @@ class TestSearch extends BaseTestCase {
 	public function tear_down() {
 		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -153,19 +151,15 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue(
-			isset(
-				$this->fired_actions['ep_formatted_args']['query'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
+		$this->assertDecayEnabled( $this->fired_actions['ep_formatted_args']['query'] );
+
+		/**
+		 * Test the `ep_is_decaying_enabled` filter
+		 */
+		add_filter( 'ep_is_decaying_enabled', '__return_true' );
+		$this->assertTrue( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
+		add_filter( 'ep_is_decaying_enabled', '__return_false' );
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'search' )->is_decaying_enabled() );
 	}
 
 	/**
@@ -209,35 +203,13 @@ class TestSearch extends BaseTestCase {
 		);
 
 		$this->assertTrue( isset( $this->fired_actions['ep_formatted_args'] ) );
-		$this->assertTrue(
-			! isset(
-				$this->fired_actions['ep_formatted_args']['query']['function_score'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
-				$this->fired_actions['ep_formatted_args']['query']['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
-			)
-		);
+		$this->assertDecayDisabled( $this->fired_actions['ep_formatted_args']['query'] );
 		$this->assertTrue(
 			isset(
 				$this->fired_actions['ep_formatted_args']['query']['bool'],
 				$this->fired_actions['ep_formatted_args']['query']['bool']['should']
 			)
 		);
-	}
-
-	/**
-	 * Catch ES query args.
-	 *
-	 * @group search
-	 * @param array $args ES query args.
-	 */
-	public function catch_ep_formatted_args( $args ) {
-		$this->fired_actions['ep_formatted_args'] = $args;
-		return $args;
 	}
 
 	/**
@@ -253,7 +225,7 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
 		// a tag that is in the array of allowed tags
-		$allowed_tag  = 'span';
+		$allowed_tag    = 'span';
 		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
 		$this->assertTrue( 'span' === $search_feature->get_highlighting_tag( $allowed_tag ) );
@@ -273,7 +245,7 @@ class TestSearch extends BaseTestCase {
 
 		// a tag that is not in the array of allowed tags
 		$not_allowed_tag = 'div';
-		$search_feature = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$search_feature  = ElasticPress\Features::factory()->get_registered_feature( 'search' );
 
 		$this->assertTrue( 'mark' === $search_feature->get_highlighting_tag( $not_allowed_tag ) );
 	}
@@ -294,9 +266,9 @@ class TestSearch extends BaseTestCase {
 		ElasticPress\Features::factory()->update_feature(
 			'search',
 			array(
-				'active' 			=> true,
-				'highlight_enabled' => true,
-				'highlight_tag' 	=> 'span',
+				'active'            => true,
+				'highlight_enabled' => '1',
+				'highlight_tag'     => 'span',
 			)
 		);
 
@@ -325,8 +297,8 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
-				'highlight_tag'     => 'div'
+				'highlight_enabled' => '1',
+				'highlight_tag'     => 'div',
 			)
 		);
 
@@ -353,13 +325,32 @@ class TestSearch extends BaseTestCase {
 			'search',
 			array(
 				'active'            => true,
-				'highlight_enabled' => true,
-				'highlight_excerpt' => true
+				'highlight_enabled' => '1',
+				'highlight_excerpt' => '1',
 			)
 		);
 
 		$settings = ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings();
 
-		$this->assertTrue( $settings['highlight_excerpt'] );
+		$this->assertSame( $settings['highlight_excerpt'], '1' );
+	}
+
+	/**
+	 * Test Search settings schema
+	 *
+	 * @since 5.0.0
+	 * @group search
+	 */
+	public function test_get_settings_schema() {
+		$settings_schema = \ElasticPress\Features::factory()->get_registered_feature( 'search' )->get_settings_schema();
+
+		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
+
+		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_excerpt', 'highlight_tag', 'synonyms_editor_mode' ];
+		if ( ! is_multisite() ) {
+			$expected[] = 'additional_links';
+		}
+
+		$this->assertSame( $expected, $settings_keys );
 	}
 }

@@ -8,12 +8,14 @@
 
 namespace ElasticPress\HealthCheck;
 
-use ElasticPress\HealthCheck as HealthCheck;
-use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Elasticsearch;
+use ElasticPress\HealthCheck;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**

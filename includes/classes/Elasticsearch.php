@@ -8,8 +8,9 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
-use \WP_Error as WP_Error;
+use WP_Error;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -77,7 +78,7 @@ class Elasticsearch {
 	 * @param  array   $document Formatted Elasticsearch document.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
-	 * @return boolean|array
+	 * @return boolean|object
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
 		/**
@@ -91,7 +92,7 @@ class Elasticsearch {
 		 * @return  {string} New path
 		 * @since  3.0
 		 */
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/' . $document['ID'], $document, $type );
 		} else {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_doc/' . $document['ID'], $document, $type );
@@ -283,7 +284,7 @@ class Elasticsearch {
 	 * @return bool|array
 	 */
 	public function query( $index, $type, $query, $query_args, $query_object = null ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/_search';
 		} else {
 			$path = $index . '/_search';
@@ -403,6 +404,14 @@ class Elasticsearch {
 				 * @param  {array} $query_args Current WP Query arguments
 				 */
 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, '', $query_args );
+
+				if ( is_object( $query_object ) ) {
+					if ( method_exists( $query_object, 'set' ) ) {
+						$query_object->set( 'ep_aggregations', $response['aggregations'] );
+					} else {
+						$query_object->query_vars['ep_aggregations'] = $response['aggregations'];
+					}
+				}
 			}
 
 			/**
@@ -455,11 +464,15 @@ class Elasticsearch {
 			 *
 			 * @hook ep_es_query_results
 			 * @param {array} $results Results from Elasticsearch
-			 * @param  {response} $response Raw response from Elasticsearch
-			 * @param  {array} $query Raw Elasticsearch query
-			 * @param  {array} $query_args Query arguments
-			 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
-			 * @return  {array} New results
+			 *      @param {int}   $results.found_documents Total number of documents.
+			 *      @param {array} $results.documents       Array of documents.
+			 *      @param {array} $results.aggregations    Array of aggregations.
+			 *      @param {array} $results.suggest         Array of suggestions.
+			 * @param {response} $response Raw response from Elasticsearch
+			 * @param {array} $query Raw Elasticsearch query
+			 * @param {array} $query_args Query arguments
+			 * @param {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
+			 * @return {array} New results
 			 */
 			return apply_filters(
 				'ep_es_query_results',
@@ -467,6 +480,7 @@ class Elasticsearch {
 					'found_documents' => $total_hits,
 					'documents'       => $documents,
 					'aggregations'    => $response['aggregations'] ?? [],
+					'suggest'         => $response['suggest'] ?? [],
 				],
 				$response,
 				$query,
@@ -570,7 +584,7 @@ class Elasticsearch {
 	 * @return boolean
 	 */
 	public function delete_document( $index, $type, $document_id, $blocking = true ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
 			$path = $index . '/_doc/' . $document_id;
@@ -626,6 +640,11 @@ class Elasticsearch {
 			// phpcs:enable
 		}
 
+		$request_id = Utils\generate_request_id();
+		if ( ! empty( $request_id ) ) {
+			$headers['X-ElasticPress-Request-ID'] = $request_id;
+		}
+
 		/**
 		 * Filter Elasticsearch request headers
 		 *
@@ -648,7 +667,7 @@ class Elasticsearch {
 	 * @return boolean|array
 	 */
 	public function get_document( $index, $type, $document_id ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = $index . '/' . $type . '/' . $document_id;
 		} else {
 			$path = $index . '/_doc/' . $document_id;
@@ -706,7 +725,7 @@ class Elasticsearch {
 	 * @return boolean|array
 	 */
 	public function get_documents( $index, $type, $document_ids ) {
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/' . $type . '/_mget', $document_ids, $type );
 		} else {
 			$path = apply_filters( 'ep_index_' . $type . '_request_path', $index . '/_mget', $document_ids, $type );
@@ -808,10 +827,11 @@ class Elasticsearch {
 	 *
 	 * @param  string $index Index name.
 	 * @param  array  $mapping Mapping array.
+	 * @param  string $return_type Desired return type. Can be either 'bool' or 'raw'
 	 * @since  3.0
-	 * @return boolean
+	 * @return boolean|WP_Error
 	 */
-	public function put_mapping( $index, $mapping ) {
+	public function put_mapping( $index, $mapping, $return_type = 'bool' ) {
 		/**
 		 * Filter Elasticsearch mapping before put mapping
 		 *
@@ -841,15 +861,41 @@ class Elasticsearch {
 		 */
 		$request = apply_filters( 'ep_config_mapping_request', $request, $index, $mapping );
 
-		$response_body = wp_remote_retrieve_body( $request );
+		$response_code = wp_remote_retrieve_response_code( $request );
 
-		if ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) ) {
-			$response_body = wp_remote_retrieve_body( $request );
+		/**
+		 * Fires after sending a put mapping request
+		 *
+		 * @hook ep_after_put_mapping
+		 * @since 4.7.0
+		 * @param {string}         $index   Index name
+		 * @param {WP_Error|array} $request The response or WP_Error on failure.
+		 */
+		do_action( 'ep_after_put_mapping', $index, $request );
 
-			return true;
+		// If WP_Error or not 200, return false or error message depends on attribute.
+		if ( is_wp_error( $request ) || 200 !== $response_code ) {
+			if ( 'bool' === $return_type ) {
+				return false;
+			}
+
+			if ( is_wp_error( $request ) ) {
+				return $request;
+			}
+
+			$response_body   = wp_remote_retrieve_body( $request );
+			$parsed_response = json_decode( $response_body, true );
+			if ( is_array( $parsed_response ) ) {
+				$status = $parsed_response['status'] ?? 'status-not-set';
+				$error  = $parsed_response['error'] ?? 'error-not-set';
+			} else {
+				$status = $response_code;
+				$error  = $response_body;
+			}
+			return new \WP_Error( $status, $error );
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -921,6 +967,79 @@ class Elasticsearch {
 	}
 
 	/**
+	 * Get index settings
+	 *
+	 * @param string $index         Index name
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @since  4.4.0, 4.7.0 added the $force_refresh parameter
+	 * @return array|WP_Error Raw ES response from the $index/_settings?flat_settings=true endpoint
+	 */
+	public function get_index_settings( string $index, bool $force_refresh = false ) {
+		$transient_key = "ep_index_settings_{$index}";
+
+		if ( ! $force_refresh ) {
+			$cache = Utils\get_transient( $transient_key );
+			if ( false !== $cache ) {
+				return $cache;
+			}
+		}
+
+		$endpoint = trailingslashit( $index ) . '_settings?flat_settings=true';
+		$request  = $this->remote_request( $endpoint, [], [], 'get_index_settings' );
+
+		if ( is_wp_error( $request ) ) {
+			Utils\set_transient( $transient_key, $request, MINUTE_IN_SECONDS );
+			return $request;
+		}
+
+		if ( wp_remote_retrieve_response_code( $request ) !== 200 ) {
+			Utils\set_transient( $transient_key, $request, MINUTE_IN_SECONDS );
+			return new \WP_Error(
+				'ep_get_index_settings_failed',
+				esc_html__( 'Error while getting the index settings.', 'elasticpress' ),
+				$request
+			);
+		}
+
+		$response_body = wp_remote_retrieve_body( $request );
+
+		$settings = json_decode( $response_body, true );
+
+		Utils\set_transient( $transient_key, $settings, DAY_IN_SECONDS );
+
+		return $settings;
+	}
+
+	/**
+	 * Get a particular index setting
+	 *
+	 * @param string $index         Index name
+	 * @param string $setting       Setting name
+	 * @param bool   $force_refresh Whether to use or not a cached value. Default false, use cached.
+	 * @return mixed
+	 */
+	public function get_index_setting( string $index, string $setting, bool $force_refresh = false ) {
+		$settings = $this->get_index_settings( $index, $force_refresh );
+
+		if ( is_wp_error( $settings ) || empty( $settings[ $index ]['settings'][ $setting ] ) ) {
+			return null;
+		}
+
+		return $settings[ $index ]['settings'][ $setting ];
+	}
+
+	/**
+	 * Given an index return its total fields limit
+	 *
+	 * @since 4.4.0, 4.7.0 wrapper of get_index_setting()
+	 * @param string $index_name The index name
+	 * @return int|null
+	 */
+	public function get_index_total_fields_limit( $index_name ) {
+		return $this->get_index_setting( $index_name, 'index.mapping.total_fields.limit' );
+	}
+
+	/**
 	 * Update index settings.
 	 *
 	 * @param  string  $index       Index name.
@@ -942,10 +1061,20 @@ class Elasticsearch {
 			$this->close_index( $index );
 		}
 
-		$settings = trailingslashit( $index ) . '_settings';
-		$request  = $this->remote_request( $settings, $request_args, [], 'update_index_settings' );
+		$settings_url = trailingslashit( $index ) . '_settings';
+		$request      = $this->remote_request( $settings_url, $request_args, [], 'update_index_settings' );
 
 		$updated = ( ! is_wp_error( $request ) && 200 === wp_remote_retrieve_response_code( $request ) );
+
+		/**
+		 * Fires after updating an index settings
+		 *
+		 * @hook ep_update_index_settings
+		 * @since 4.4.0
+		 * @param {string} $index    Index name
+		 * @param {array}  $settings Setting update array
+		 */
+		do_action( 'ep_update_index_settings', $index, $settings );
 
 		if ( $close_first ) {
 			$opened = $this->open_index( $index );
@@ -1042,7 +1171,7 @@ class Elasticsearch {
 		 * @param  {string} $type Index type
 		 * @return  {string} New path
 		 */
-		if ( version_compare( $this->get_elasticsearch_version(), '7.0', '<' ) ) {
+		if ( version_compare( (string) $this->get_elasticsearch_version(), '7.0', '<' ) ) {
 			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/' . $type . '/_bulk', $body, $type );
 		} else {
 			$path = apply_filters( 'ep_bulk_index_request_path', $index . '/_bulk', $body, $type );
@@ -1093,7 +1222,7 @@ class Elasticsearch {
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
-	public function remote_request( $path, $args = [], $query_args = [], $type = null ) {
+	public function remote_request( $path, $args = [], $query_args = [], $type = '' ) {
 
 		if ( empty( $args['method'] ) ) {
 			$args['method'] = 'GET';
@@ -1196,7 +1325,7 @@ class Elasticsearch {
 			$is_non_blocking_request = ( 0 === $request_response_code );
 
 			if ( false === $request || is_wp_error( $request ) || ( ! $is_valid_res && ! $is_non_blocking_request ) ) {
-				$failures++;
+				++$failures;
 
 				/**
 				 * Filter max number of times to attempt remote requests
@@ -1223,6 +1352,15 @@ class Elasticsearch {
 			$query['request']  = $request;
 			$this->add_query_log( $query );
 
+			/**
+			 * Fires after Elasticsearch remote request
+			 *
+			 * @hook ep_remote_request
+			 * @param {array}  $query Remote request arguments
+			 * @param {string} $type  Request type
+			 */
+			do_action( 'ep_remote_request', $query, $type );
+
 			return $request;
 		}
 
@@ -1230,17 +1368,10 @@ class Elasticsearch {
 		$query['request']     = $request;
 		$this->add_query_log( $query );
 
-		/**
-		 * Fires after Elasticsearch remote request
-		 *
-		 * @hook ep_remote_request
-		 * @param  {array} $query Remote request arguments
-		 * @param  {string} $type Request type
-		 */
+		// This action is documented above
 		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
-
 	}
 
 	/**
@@ -1290,7 +1421,6 @@ class Elasticsearch {
 			'status' => true,
 			'data'   => $response->_all->primaries->indexing,
 		);
-
 	}
 
 	/**
@@ -1366,17 +1496,21 @@ class Elasticsearch {
 			// Save version of last node. We assume all nodes are same version.
 			$this->elasticsearch_version = $node['version'];
 
+			// Elasticsearch calls "modules" all default plugins that can't be uninstalled
+			if ( isset( $node['modules'] ) && is_array( $node['modules'] ) ) {
+				foreach ( $node['modules'] as $plugin ) {
+					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+				}
+
+				if ( ! empty( $node['modules'] ) && ! empty( $node['modules'][0]['opensearch_version'] ) ) {
+					$this->server_type = 'opensearch';
+				}
+			}
+
 			if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 				foreach ( $node['plugins'] as $plugin ) {
 					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
 				}
-			}
-			if ( isset( $node['modules'] )
-				&& is_array( $node['modules'] )
-				&& ! empty( $node['modules'] )
-				&& ! empty( $node['modules'][0]['opensearch_version'] )
-			) {
-				$this->server_type = 'opensearch';
 			}
 		}
 
@@ -1578,7 +1712,7 @@ class Elasticsearch {
 		 * Filter the User Agent header when submitting requests to Elasticsearch.
 		 *
 		 * @hook ep_remote_request_add_ep_user_agent
-		 * @param  {bool} $should_add_ep_verion Whether the ElasticPress version should be added to the User Agent string.
+		 * @param  {bool} $should_add_ep_version Whether the ElasticPress version should be added to the User Agent string.
 		 * @return {bool} New value
 		 * @since  3.6.1
 		 */
@@ -1597,12 +1731,25 @@ class Elasticsearch {
 	 * Query logging. Don't log anything to the queries property when
 	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
 	 * want to access the query outside of the ElasticPress plugin. This
-	 * runs regardless of debufg settings.
+	 * runs regardless of debug settings.
 	 *
 	 * @param array $query Query to log.
 	 */
 	protected function add_query_log( $query ) {
-		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
+		$wp_debug    = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$wp_ep_debug = defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG;
+
+		/**
+		 * Filter query logging. Don't log anything to the queries property when true.
+		 *
+		 * @hook ep_disable_query_logging
+		 * @param  {bool} Whether to log to the queries property. Defaults to false.
+		 * @return {bool} New value
+		 * @since  5.1.4
+		 */
+		$disable_query_logging = apply_filters( 'ep_disable_query_logging', false );
+
+		if ( ! $disable_query_logging && ( $wp_debug || $wp_ep_debug ) ) {
 			$this->queries[] = $query;
 		}
 
@@ -1615,4 +1762,65 @@ class Elasticsearch {
 		do_action( 'ep_add_query_log', $query );
 	}
 
+	/**
+	 * Get all index names.
+	 *
+	 * @param string $status Whether to return active indexables or all registered.
+	 * @since 4.4.0, 4.5.0 Added $status
+	 * @return array
+	 */
+	public function get_index_names( $status = 'active' ) {
+		$sites = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
+			Utils\get_sites( 0, true ) :
+			array( array( 'blog_id' => get_current_blog_id() ) );
+
+		$all_indexables = Indexables::factory()->get_all( null, false, $status );
+
+		$global_indexes     = [];
+		$non_global_indexes = [];
+		foreach ( $all_indexables as $indexable ) {
+			if ( $indexable->global ) {
+				$global_indexes[] = $indexable->get_index_name();
+				continue;
+			}
+
+			foreach ( $sites as $site ) {
+				$non_global_indexes[] = $indexable->get_index_name( $site['blog_id'] );
+			}
+		}
+
+		return array_merge( $non_global_indexes, $global_indexes );
+	}
+
+	/**
+	 * Return all indices from the cluster.
+	 *
+	 * @since 4.4.0
+	 * @return array Array of indices in Elasticsearch
+	 */
+	public function get_cluster_indices(): array {
+		$path = '_cat/indices?format=json';
+
+		$response = $this->remote_request( $path );
+
+		return (array) json_decode( wp_remote_retrieve_body( $response ), true );
+	}
+
+	/**
+	 * Return a comparison between which indices should be and are present in the ES server.
+	 *
+	 * @since 4.6.0
+	 * @return array Array with `missing_indices` and `present_indices` keys.
+	 */
+	public function get_indices_comparison() {
+		$all_index_names = $this->get_index_names();
+		$cluster_indices = $this->get_cluster_indices();
+
+		$cluster_index_names = wp_list_pluck( $cluster_indices, 'index' );
+
+		return [
+			'missing_indices' => array_diff( $all_index_names, $cluster_index_names ),
+			'present_indices' => array_intersect( $all_index_names, $cluster_index_names ),
+		];
+	}
 }

@@ -1,100 +1,47 @@
 /**
- * Sanitize an argument value based on its type.
+ * Format a date.
  *
- * @param {*}                                     value                 The value.
- * @param {object}                                options               Sanitization options.
- * @param {'number'|'numbers'|'string'|'strings'} options.type          (optional) Value type.
- * @param {Array}                                 options.allowedValues (optional) Allowed values.
- * @param {*}                                     options.default       (optional) Default value.
- * @param {boolean}                               [useDefaults]         Whether to return default values.
- * @returns {*} Sanitized value.
+ * @param {string} date Date string.
+ * @param {string} locale BCP 47 language tag.
+ * @returns {string} Formatted number.
  */
-export const sanitizeArg = (value, options, useDefaults = true) => {
-	let sanitizedValue = null;
-
-	switch (value && options.type) {
-		case 'number':
-			sanitizedValue = parseFloat(value, 10) || null;
-			break;
-		case 'numbers':
-			sanitizedValue = decodeURIComponent(value)
-				.split(',')
-				.map((v) => parseFloat(v, 10))
-				.filter(Boolean);
-			break;
-		case 'string':
-			sanitizedValue = value.toString();
-			break;
-		case 'strings':
-			sanitizedValue = decodeURIComponent(value)
-				.split(',')
-				.map((v) => v.toString().trim());
-			break;
-		default:
-			break;
-	}
-
-	/**
-	 * If there is a list of allowed values, make sure the value is
-	 * allowed.
-	 */
-	if (options.allowedValues) {
-		sanitizedValue = options.allowedValues.includes(sanitizedValue) ? sanitizedValue : null;
-	}
-
-	/**
-	 * Populate a default value if one is available and we still don't
-	 * have a value.
-	 */
-	if (useDefaults && sanitizedValue === null && typeof options.default !== 'undefined') {
-		sanitizedValue = options.default;
-	}
-
-	return sanitizedValue;
+export const formatDate = (date, locale) => {
+	return new Date(date).toLocaleString(locale, { dateStyle: 'long' });
 };
 
 /**
- * Sanitize a parameter value based on its type.
+ * Format a number as a price.
  *
- * @param {*}                                     value                 The value.
- * @param {object}                                options               Sanitization options.
- * @param {'number'|'numbers'|'string'|'strings'} options.type          (optional) Value type.
- * @param {Array}                                 options.allowedValues (optional) Allowed values.
- * @param {*}                                     options.default       (optional) Default value.
- * @param {boolean}                               [useDefaults]         Whether to return default values.
- * @returns {*} Sanitized value.
+ * @param {number} number  Number to format.
+ * @param {object} options Formatter options.
+ * @returns {string} Formatted number.
  */
-export const sanitizeParam = (value, options, useDefaults = true) => {
-	let sanitizedValue = null;
+export const formatPrice = (number, options) => {
+	const format = new Intl.NumberFormat(navigator.language, {
+		style: 'currency',
+		currencyDisplay: 'narrowSymbol',
+		...options,
+	});
 
-	switch (value && options.type) {
-		case 'number':
-		case 'string':
-			sanitizedValue = value;
-			break;
-		case 'numbers':
-		case 'strings':
-			sanitizedValue = value.join(',');
-			break;
-		default:
-			break;
+	return format.format(number);
+};
+
+/**
+ * Get the post types from a search form.
+ *
+ * @param {HTMLFormElement} form Form element.
+ * @returns {Array} Post types.
+ */
+export const getPostTypesFromForm = (form) => {
+	const data = new FormData(form);
+
+	if (data.has('post_type')) {
+		return data.getAll('post_type').slice(-1);
 	}
 
-	/**
-	 * If there is a list of allowed values, make sure the value is
-	 * allowed.
-	 */
-	if (options.allowedValues) {
-		sanitizedValue = options.allowedValues.includes(sanitizedValue) ? sanitizedValue : null;
+	if (data.has('post_type[]')) {
+		return data.getAll('post_type[]');
 	}
 
-	/**
-	 * Populate a default value if one is available and we still don't
-	 * have a value.
-	 */
-	if (useDefaults && sanitizedValue === null && typeof options.default !== 'undefined') {
-		sanitizedValue = options.default;
-	}
-
-	return sanitizedValue;
+	return [];
 };

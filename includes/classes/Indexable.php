@@ -10,9 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Elasticsearch as Elasticsearch;
-use ElasticPress\SyncManager as SyncManager;
-use ElasticPress\QueryIntegration as QueryIntegration;
+use ElasticPress\Elasticsearch;
+use ElasticPress\SyncManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -49,7 +48,7 @@ abstract class Indexable {
 	 * Instance of QueryIntegration. This should handle integrating with a default
 	 * WP query.
 	 *
-	 * @var QueryIntegration
+	 * @var object
 	 * @since  3.0
 	 */
 	public $query_integration;
@@ -62,6 +61,25 @@ abstract class Indexable {
 	 * @since 4.1.0
 	 */
 	public $support_indexing_advanced_pagination = false;
+
+	/**
+	 * Indexable slug
+	 *
+	 * @since 4.5.0
+	 * @var string
+	 */
+	public $slug = '';
+
+	/**
+	 * Indexable labels
+	 *
+	 * @since 4.5.0
+	 * @var array
+	 */
+	public $labels = [
+		'plural'   => '',
+		'singular' => '',
+	];
 
 	/**
 	 * Get number of bulk items to index per page
@@ -245,7 +263,7 @@ abstract class Indexable {
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
-	 * @return boolean
+	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
 		$document = $this->prepare_document( $object_id );
@@ -284,7 +302,7 @@ abstract class Indexable {
 		 *
 		 * @hook ep_after_index_{indexable_slug}
 		 * @param  {array} $document Document to index
-		 * @param  {array|boolean} $return ES response on success, false on failure
+		 * @param  {object|boolean} $return ES response on success, false on failure
 		 * @since  3.0
 		 */
 		do_action( 'ep_after_index_' . $this->slug, $document, $return );
@@ -371,6 +389,10 @@ abstract class Indexable {
 
 			$document = $this->prepare_document( $object_id );
 
+			if ( empty( $document ) ) {
+				continue;
+			}
+
 			/**
 			 * Conditionally kill indexing on a specific object
 			 *
@@ -385,6 +407,12 @@ abstract class Indexable {
 			$document_str .= "\n\n";
 
 			$documents[] = $document_str;
+		}
+
+		if ( empty( $documents ) ) {
+			return [
+				new \WP_Error( 'ep_bulk_index_no_documents', esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ), $object_ids ),
+			];
 		}
 
 		$results = $this->send_bulk_index_request( $documents );
@@ -507,7 +535,7 @@ abstract class Indexable {
 			timer_start();
 			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
 			$request_time = timer_stop();
-			$requests++;
+			++$requests;
 
 			/**
 			 * Perform actions before a new batch of documents is processed.
@@ -653,7 +681,6 @@ abstract class Indexable {
 		}
 
 		return $prepared_meta;
-
 	}
 
 	/**
@@ -778,31 +805,6 @@ abstract class Indexable {
 		];
 
 		foreach ( $meta_queries as $single_meta_query ) {
-
-			/**
-			 * There is a strange case where meta_query looks like this:
-			 * array(
-			 *  "something" => array(
-			 *   array(
-			 *      'key' => ...
-			 *      ...
-			 *   )
-			 *  )
-			 * )
-			 *
-			 * Somehow WordPress (WooCommerce) handles that case so we need to as well.
-			 *
-			 * @since  2.1
-			 */
-			if ( is_array( $single_meta_query ) && empty( $single_meta_query['key'] ) ) {
-				reset( $single_meta_query );
-				$first_key = key( $single_meta_query );
-
-				if ( is_array( $single_meta_query[ $first_key ] ) ) {
-					$single_meta_query = $single_meta_query[ $first_key ];
-				}
-			}
-
 			if ( ! empty( $single_meta_query['key'] ) ) {
 
 				$terms_obj = false;
@@ -1134,12 +1136,13 @@ abstract class Indexable {
 	/**
 	 * Send mapping to Elasticsearch
 	 *
-	 * @return boolean
+	 * @param string $return_type Desired return type. Can be either 'bool' or 'raw'
+	 * @return bool|WP_Error
 	 */
-	public function put_mapping() {
+	public function put_mapping( $return_type = 'bool' ) {
 		$mapping = $this->generate_mapping();
 
-		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping );
+		return Elasticsearch::factory()->put_mapping( $this->get_index_name(), $mapping, $return_type );
 	}
 
 	/**
@@ -1157,7 +1160,7 @@ abstract class Indexable {
 	 * process across indexables.
 	 *
 	 * @param  array $args Array to query DB against.
-	 * @return boolean
+	 * @return array
 	 */
 	abstract public function query_db( $args );
 
@@ -1182,7 +1185,7 @@ abstract class Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		/**
 		 * Filter the search algorithm to be used
 		 *
@@ -1205,12 +1208,13 @@ abstract class Indexable {
 	 * @since 4.3.0
 	 * @param null|int $blog_id (Optional) The blog ID. Sending `null` will use the current blog ID.
 	 * @return array
+	 * @throws \Exception An exception if meta fields are not available.
 	 */
 	public function get_distinct_meta_field_keys( $blog_id = null ) {
 		$mapping = $this->get_mapping();
 
 		try {
-			if ( version_compare( Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
+			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
 				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
@@ -1218,7 +1222,7 @@ abstract class Indexable {
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );
 		} catch ( \Throwable $th ) {
-			return new \Exception( 'Meta fields not available.', 0 );
+			throw new \Exception( 'Meta fields not available.', 0 );
 		}
 
 		return $meta_keys;
@@ -1270,5 +1274,32 @@ abstract class Indexable {
 		}
 
 		return $values;
+	}
+
+	/**
+	 * Should instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
+	 *
+	 * @since 4.5.0
+	 */
+	public function setup() {}
+
+	/**
+	 * Given a mapping, add the ngram analyzer to it
+	 *
+	 * @since 4.5.0
+	 * @param array $mapping The mapping
+	 * @return array
+	 */
+	public function add_ngram_analyzer( array $mapping ): array {
+		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
+			'type'      => 'custom',
+			'tokenizer' => 'standard',
+			'filter'    => array(
+				'lowercase',
+				'edge_ngram',
+			),
+		);
+
+		return $mapping;
 	}
 }

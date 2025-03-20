@@ -47,6 +47,9 @@ class BaseTestCase extends WP_UnitTestCase {
 	public function set_up() {
 
 		$this->setup_factory();
+
+		\ElasticPress\setup_roles();
+
 		parent::set_up();
 	}
 
@@ -101,6 +104,7 @@ class BaseTestCase extends WP_UnitTestCase {
 		);
 
 		register_post_type( 'ep_test', $args );
+		register_post_type( 'ep_test_2', $args );
 
 		// Post type that is excluded from search.
 		$args = array(
@@ -110,7 +114,7 @@ class BaseTestCase extends WP_UnitTestCase {
 
 		register_post_type( 'ep_test_excluded', $args );
 
-				// Post type that is excluded from search.
+		// Post type that is excluded from search.
 		$args = array(
 			'taxonomies' => array( 'post_tag', 'category' ),
 			'public'     => false,
@@ -119,6 +123,11 @@ class BaseTestCase extends WP_UnitTestCase {
 		register_post_type( 'ep_test_not_public', $args );
 	}
 
+	/**
+	 * Utilitary function to check if EP is network activated or not.
+	 *
+	 * @return boolean
+	 */
 	public function is_network_activate() {
 		return defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 	}
@@ -145,5 +154,77 @@ class BaseTestCase extends WP_UnitTestCase {
 		$this->ep_factory->term     = new TermFactory();
 		$this->ep_factory->comment  = new CommentFactory();
 		$this->ep_factory->category = new TermFactory( $this, 'category' );
+		$this->ep_factory->product  = new ProductFactory();
+	}
+
+	/**
+	 * Catch ES query args.
+	 *
+	 * @param array $args ES query args.
+	 */
+	public function catch_ep_formatted_args( $args ) {
+		$this->fired_actions['ep_formatted_args'] = $args;
+		return $args;
+	}
+
+	/**
+	 * Assert function to check if Decay is enabled
+	 *
+	 * @param array $query ES query
+	 */
+	public function assertDecayEnabled( $query ) {
+		$this->assertTrue(
+			isset(
+				$query['function_score'],
+				$query['function_score']['functions'],
+				$query['function_score']['functions'][0],
+				$query['function_score']['functions'][0]['exp'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertFalse(
+			isset(
+				$query['bool'],
+				$query['bool']['should']
+			)
+		);
+	}
+	/**
+	 * Assert function to check if Decay is disabled
+	 *
+	 * @param array $query ES query
+	 */
+	public function assertDecayDisabled( $query ) {
+		$this->assertFalse(
+			isset(
+				$query,
+				$query['function_score'],
+				$query['function_score']['functions'],
+				$query['function_score']['functions'][0],
+				$query['function_score']['functions'][0]['exp'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt']['scale'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt']['decay'],
+				$query['function_score']['functions'][0]['exp']['post_date_gmt']['offset']
+			)
+		);
+		$this->assertTrue(
+			isset(
+				$query['bool'],
+				$query['bool']['should']
+			)
+		);
+	}
+
+	/**
+	 * Forces tests to use EP.io
+	 *
+	 * @since 5.1.0
+	 */
+	protected function force_epio() {
+		update_site_option( 'ep_host', 'https://prefix.elasticpress.io/' );
 	}
 }

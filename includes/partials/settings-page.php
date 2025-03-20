@@ -6,20 +6,16 @@
  * @package elasticpress
  */
 
-use ElasticPress\Utils as Utils;
-use ElasticPress\Elasticsearch as Elasticsearch;
+use ElasticPress\Dashboard;
+use ElasticPress\Elasticsearch;
+use ElasticPress\IndexHelper;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-$action = 'options.php';
-
-$index_meta = Utils\get_option( 'ep_index_meta', [] );
-
-if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-	$action = '';
-}
+$index_meta = IndexHelper::factory()->get_index_meta();
 
 $version = Elasticsearch::factory()->get_elasticsearch_version();
 
@@ -37,9 +33,8 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 <div class="wrap">
 	<h1><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h1>
 
-	<form action="<?php echo esc_attr( $action ); ?>" method="post" class="ep-settings">
-		<?php settings_fields( 'elasticpress' ); ?>
-		<?php settings_errors(); ?>
+	<form action="" method="post" class="ep-settings">
+		<?php wp_nonce_field( 'elasticpress_settings', 'ep_settings_nonce' ); ?>
 
 		<div class="ep-credentials">
 			<?php if ( ! $wpconfig ) : ?>
@@ -90,42 +85,18 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 									<?php if ( $wpconfig ) : ?>
 										<p class="description ep-host-legend"><?php esc_html_e( 'Host already defined in wp-config.php.', 'elasticpress' ); ?></p>
 									<?php elseif ( $is_epio ) : ?>
-										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your ElasticPress.io server here!', 'elasticpress' ); ?></p>
+										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your ElasticPress.io server here.', 'elasticpress' ); ?></p>
 									<?php else : ?>
-										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your Elasticsearch server here!', 'elasticpress' ); ?></p>
+										<p class="description ep-host-legend"><?php esc_html_e( 'Plug in your Elasticsearch server here.', 'elasticpress' ); ?></p>
 									<?php endif; ?>
 								<?php endif; ?>
 							</td>
 						</tr>
 						<?php if ( $is_epio || ! $wpconfig ) : ?>
-							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>">
-								<th scope="row">
-									<label for="ep_prefix"><?php esc_html_e( 'Subscription ID', 'elasticpress' ); ?></label>
-								</th>
-								<td>
-									<?php
-									/**
-									 * Filter whether to show index prefix field in admin UI or not
-									 *
-									 * @hook ep_admin_index_prefix
-									 * @param  {boolean} $show True to show
-									 * @return {boolean} New value
-									 */
-									if ( apply_filters( 'ep_admin_show_index_prefix', true ) ) :
-										?>
-										<input <?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( rtrim( Utils\get_index_prefix(), '-' ) ); ?>" name="ep_prefix" id="ep_prefix">
-									<?php endif ?>
-									<?php if ( defined( 'EP_INDEX_PREFIX' ) && EP_INDEX_PREFIX ) : ?>
-										<p class="description"><?php esc_html_e( 'Your Subscription ID is set in wp-config.php', 'elasticpress' ); ?></p>
-									<?php else : ?>
-										<p class="description"><?php esc_html_e( 'Plug in your Subscription ID here.', 'elasticpress' ); ?></p>
-									<?php endif; ?>
-								</td>
-							</tr>
 
 							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
 								<th scope="row">
-									<label for="ep_username"><?php esc_html_e( 'Subscription Username', 'elasticpress' ); ?></label>
+									<label for="ep_username"><?php esc_html_e( 'Subscription ID', 'elasticpress' ); ?></label>
 								</th>
 								<td>
 									<?php
@@ -141,16 +112,17 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( $credentials['username'] ); ?>" name="ep_credentials[username]" id="ep_username">
 									<?php endif ?>
 									<?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>
-										<p class="description"><?php esc_html_e( 'Your Subscription Username is set in wp-config.php', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Your Subscription ID is set in wp-config.php', 'elasticpress' ); ?></p>
 									<?php else : ?>
-										<p class="description"><?php esc_html_e( 'Plug in your subscription username here.', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Plug in your subscription ID (or subscription name) here.', 'elasticpress' ); ?></p>
 									<?php endif; ?>
 								</td>
 							</tr>
 
 							<tr class="ep-additional-fields <?php if ( $host && ! $is_epio ) { ?>hidden<?php } ?>" aria-hidden="<?php if ( $host && ! $is_epio ) { ?>true<?php } else { ?>false<?php } ?>">
 								<th scope="row">
-									<label for="ep_token"><?php esc_html_e( 'Subscription Token', 'elasticpress' ); ?></label></th>
+									<label for="ep_token"><?php esc_html_e( 'Subscription Token', 'elasticpress' ); ?></label>
+								</th>
 								<td>
 									<?php
 									/**
@@ -190,9 +162,13 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 
 						wp_dropdown_languages(
 							[
-								'id'       => 'ep_language',
-								'name'     => 'ep_language',
-								'selected' => $ep_language,
+								'id'                       => 'ep_language',
+								'name'                     => 'ep_language',
+								'selected'                 => $ep_language,
+								'languages'                => Dashboard\get_available_languages( 'locales' ),
+								'show_option_site_default' => true,
+								'explicit_option_en_us'    => true,
+								'show_available_translations' => false,
 							]
 						);
 						?>
@@ -237,6 +213,6 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 		do_action( 'ep_settings_custom' );
 		?>
 
-		<input type="submit" <?php if ( ! empty( $index_meta ) ) : ?>disabled<?php endif; ?> name="submit" id="submit" class="button button-primary" value="<?php esc_html_e( 'Save Changes', 'elasticpress' ); ?>">
+		<input type="submit" <?php if ( ! empty( $index_meta ) ) : ?>disabled<?php endif; ?> name="submit" id="submit" class="button button-primary" value="<?php esc_attr_e( 'Save Changes', 'elasticpress' ); ?>">
 	</form>
 </div>
