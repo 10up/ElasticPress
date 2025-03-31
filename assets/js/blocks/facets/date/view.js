@@ -31,7 +31,7 @@ const initFacet = () => {
 					`[name="${filterName}_to"]`,
 				) || '';
 
-			const currentURL = window.location.href;
+			const currentURL = form.action;
 			const newUrl = new URL(currentURL);
 
 			if (value !== 'custom') {
