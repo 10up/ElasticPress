@@ -42,16 +42,18 @@ class OrdersHPOS {
 		add_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
+		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
 	}
 
 	/**
 	 * Unsetup order HPOS related hooks
 	 */
 	public function tear_down() {
-		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ], 10, 2 );
-		remove_action( 'woocommerce_refund_created', [ $this, 'sync_order' ], 10, 2 );
-		remove_action( 'woocommerce_update_order', [ $this, 'sync_order' ], 10, 2 );
-		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
+		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
+		remove_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
+		remove_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ] );
+		remove_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ] );
 	}
 
 	/**
@@ -203,5 +205,17 @@ class OrdersHPOS {
 		}
 
 		return $meta_data;
+	}
+
+	/**
+	 * Intercept WooCommerce orders query
+	 *
+	 * @param array $order_data Order data.
+	 * @param array $query      Query arguments.
+	 * @return array
+	 */
+	public function maybe_intercept_wc_orders_query( $order_data, $query ) {
+		$orders_query = new OrdersHPOSQuery( $query );
+		return $orders_query->get_orders();
 	}
 }
