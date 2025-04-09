@@ -113,10 +113,16 @@ __Fixed:__
 * Warning for undefined "post_type" array key. Props [@econscript](https://github.com/econscript).
 * Delete a post from the index if it had a password added. Props [@felipeelia](https://github.com/felipeelia) and [@dtakken](https://github.com/dtakken).
 * [Synonyms] Linebreaks being wrongly replaced in Windows Systems. Props [@nymwo](https://github.com/nymwo).
+* Deprecated `36px default size is deprecated` warnings. Props [@burhandodhy](https://github.com/burhandodhy).
+* The Sync Complete message being displayed when the log is cleared. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Selecting a value in the date filter not redirecting users back to page 1. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Discard Changes button coming back when saving the feature twice. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* WooCommerce Orders Incompatibility not appearing when plugin is activated network wide. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Security:__
 
 * Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot).
+* Bumped `tar-fs` from from 3.0.6 to 3.0.8. Props [@dependabot](https://github.com/dependabot).
 
 __Developer:__
 

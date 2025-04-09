@@ -45,9 +45,15 @@ This version bumps the minimum WordPress version to 6.2+.
 * Warning for undefined "post_type" array key. Props [@econscript](https://github.com/econscript) via [#4106](https://github.com/10up/ElasticPress/pull/4106).
 * Delete a post from the index if it had a password added. Props [@felipeelia](https://github.com/felipeelia) and [@dtakken](https://github.com/dtakken) via [#4108](https://github.com/10up/ElasticPress/pull/4108).
 * [Synonyms] Linebreaks being wrongly replaced in Windows Systems. Props [@nymwo](https://github.com/nymwo) via [#4056](https://github.com/10up/ElasticPress/pull/4056).
+* Deprecated `36px default size is deprecated` warnings. Props [@burhandodhy](https://github.com/burhandodhy) via [#4109](https://github.com/10up/ElasticPress/pull/4109).
+* The Sync Complete message being displayed when the log is cleared. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#4114](https://github.com/10up/ElasticPress/pull/4114).
+* Selecting a value in the date filter not redirecting users back to page 1. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#4119](https://github.com/10up/ElasticPress/pull/4119).
+* Discard Changes button coming back when saving the feature twice. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#4120](https://github.com/10up/ElasticPress/pull/4120).
+* WooCommerce Orders Incompatibility not appearing when plugin is activated network wide. Props [@burhandodhy](https://github.com/burhandodhy) via [#4121](https://github.com/10up/ElasticPress/pull/4121).
 
 ### Security
 * Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot) via [#4078](https://github.com/10up/ElasticPress/pull/4078).
+* Bumped `tar-fs` from from 3.0.6 to 3.0.8. Props [@dependabot](https://github.com/dependabot) via [#4117](https://github.com/10up/ElasticPress/pull/4117).
 
 ### Developer
 * Trufflehog GitHub Action to detect secrets leak. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#4052](https://github.com/10up/ElasticPress/pull/4052).
