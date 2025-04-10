@@ -79,7 +79,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 5.2.0 - 2025-XX-XX =
+= 5.2.0 - 2025-04-10 =
 
 This version bumps the minimum WordPress version to 6.2+.
 

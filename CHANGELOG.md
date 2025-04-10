@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.2.0] - 2024-XX-XX
+## [5.2.0] - 2025-04-10
 
 This version bumps the minimum WordPress version to 6.2+.
 
