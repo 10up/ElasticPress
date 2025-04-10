@@ -90,6 +90,12 @@ class SyncManager extends \ElasticPress\SyncManager {
 
 		// Prevents password protected posts from being indexed
 		add_filter( 'ep_post_sync_kill', [ $this, 'kill_sync_for_password_protected' ], 10, 2 );
+
+		// Display the status of the document in ES in the admin bar
+		add_action( 'admin_bar_menu', [ $this, 'add_admin_bar_status' ], 500 );
+
+		// Delete a post from the index if a password was added
+		add_action( 'post_updated', [ $this, 'delete_post_with_new_password' ], 10, 3 );
 	}
 
 	/**
@@ -116,6 +122,8 @@ class SyncManager extends \ElasticPress\SyncManager {
 		remove_action( 'ep_update_index_settings', [ $this, 'clear_index_settings_cache' ] );
 		remove_action( 'ep_after_put_mapping', [ $this, 'clear_index_settings_cache' ] );
 		remove_action( 'ep_saved_weighting_configuration', [ $this, 'clear_index_settings_cache' ] );
+
+		remove_action( 'admin_bar_menu', [ $this, 'add_admin_bar_status' ] );
 	}
 
 	/**
@@ -379,6 +387,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 				 * @return {boolean} New value
 				 */
 				if ( apply_filters( 'ep_post_sync_kill', false, $post_id, $post_id ) ) {
+					$this->remove_from_queue( $post_id );
 					return;
 				}
 
@@ -421,6 +430,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 						),
 						'type'    => 'warning',
 						'dismiss' => true,
+						'scope'   => 'site',
 					];
 					break;
 				}
@@ -436,6 +446,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 			),
 			'type'    => 'warning',
 			'dismiss' => true,
+			'scope'   => 'site',
 		];
 
 		return $notices;
@@ -470,6 +481,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 			),
 			'type'    => 'warning',
 			'dismiss' => true,
+			'scope'   => 'site',
 		];
 
 		return $notices;
@@ -789,13 +801,13 @@ class SyncManager extends \ElasticPress\SyncManager {
 	}
 
 	/**
-	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
+	 * Given a post ID, check if it should be indexed or not.
 	 *
-	 * @param int    $post_id  The post ID.
-	 * @param string $taxonomy The taxonomy slug.
+	 * @since 5.2.0
+	 * @param int $post_id Post ID.
 	 * @return boolean
 	 */
-	protected function should_reindex_post( $post_id, $taxonomy ) {
+	public function is_post_indexable( $post_id ) {
 		/**
 		 * Filter to kill post sync
 		 *
@@ -822,16 +834,34 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return false;
 		}
 
+		// Check post type
+		$indexable_post_types = $indexable->get_indexable_post_types();
+		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if post attributes (post status, taxonomy, and type) match what is needed to reindex or not.
+	 *
+	 * @param int    $post_id  The post ID.
+	 * @param string $taxonomy The taxonomy slug.
+	 * @return boolean
+	 */
+	protected function should_reindex_post( $post_id, $taxonomy ) {
+		if ( ! $this->is_post_indexable( $post_id ) ) {
+			return false;
+		}
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$post      = get_post( $post_id );
+
 		// Only re-index if the taxonomy is indexed for this post
 		$indexable_taxonomies     = $indexable->get_indexable_post_taxonomies( $post );
 		$indexable_taxonomy_names = wp_list_pluck( $indexable_taxonomies, 'name' );
 		if ( ! in_array( $taxonomy, $indexable_taxonomy_names, true ) ) {
-			return false;
-		}
-
-		// Check post type
-		$indexable_post_types = $indexable->get_indexable_post_types();
-		if ( ! in_array( $post->post_type, $indexable_post_types, true ) ) {
 			return false;
 		}
 
@@ -936,5 +966,140 @@ class SyncManager extends \ElasticPress\SyncManager {
 			return;
 		}
 		$this->action_sync_on_update( $attachment_id );
+	}
+
+	/**
+	 * Add the document status to the admin bar.
+	 *
+	 * @since 5.2.0
+	 * @param \WP_Admin_Bar $admin_bar WP Admin Bar instance
+	 * @return void
+	 */
+	public function add_admin_bar_status( \WP_Admin_Bar $admin_bar ) {
+		global $pagenow;
+
+		if ( ! is_admin() || 'post.php' !== $pagenow ) {
+			return;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $this->is_post_indexable( $post_id ) ) {
+			return;
+		}
+
+		$document_status = $this->get_doc_status( $post_id );
+		if ( empty( $document_status['status'] ) ) {
+			return;
+		}
+
+		$admin_bar->add_menu(
+			[
+				'id'    => 'ep-doc-status',
+				'title' => $this->format_doc_status( $document_status ),
+				'meta'  => [
+					'class' => 'ep-embeddings-status',
+				],
+			]
+		);
+
+		if ( ! empty( $document_status['explanation'] ) ) {
+			$admin_bar->add_menu(
+				[
+					'parent' => 'ep-doc-status',
+					'id'     => 'ep-doc-status-explanation',
+					'title'  => $document_status['explanation'],
+				]
+			);
+		}
+	}
+
+	/**
+	 * Get the document status for a post.
+	 *
+	 * @since 5.2.0
+	 * @param int $post_id Post ID
+	 * @return array
+	 */
+	protected function get_doc_status( int $post_id ): array {
+		$status = [
+			'status'      => 'success',
+			'message'     => esc_html__( 'Content in sync', 'elasticpress' ),
+			'explanation' => esc_html__( 'WordPress and Elasticsearch content match.', 'elasticpress' ),
+		];
+
+		$indexable = Indexables::factory()->get( $this->indexable_slug );
+		$es_doc    = $indexable->get( $post_id );
+		if ( ! $es_doc ) {
+			$status = [
+				'status'      => 'error',
+				'message'     => esc_html__( 'Sync required', 'elasticpress' ),
+				'explanation' => esc_html__( 'Content not found in Elasticsearch.', 'elasticpress' ),
+			];
+		} else {
+			$post = get_post( $post_id );
+			if ( $post->post_modified_gmt !== $es_doc['post_modified_gmt'] ) {
+				$status = [
+					'status'      => 'warning',
+					'message'     => esc_html__( 'Out of sync', 'elasticpress' ),
+					'explanation' => esc_html__( 'WordPress and Elasticsearch content are out of sync.', 'elasticpress' ),
+				];
+			}
+		}
+
+		/**
+		 * Filter the document status array.
+		 *
+		 * @since 5.2.0
+		 * @hook ep_doc_status
+		 * @param array $status  The status array containing status, message and explanation
+		 * @param int   $post_id The post ID being checked
+		 * @param array $es_doc  The Elasticsearch document
+		 */
+		return (array) apply_filters( 'ep_doc_status', $status, $post_id, $es_doc );
+	}
+
+	/**
+	 * Format the document status for the admin bar.
+	 *
+	 * @since 5.2.0
+	 * @param array $document_status Document status
+	 * @return string
+	 */
+	protected function format_doc_status( array $document_status ): string {
+		$status_indicator = '<span class="ep-status-indicator ep-status-indicator--' . ( $document_status['status'] ?? '' ) . '"></span>';
+
+		$message = sprintf(
+			// translators: 1: EP prefix 2: Document status message
+			_x( '[%1$s] %2$s', 'Doc status message', 'elasticpress' ),
+			'EP',
+			$document_status['message']
+		);
+
+		/**
+		 * Filter the formatted document status.
+		 *
+		 * @since 5.2.0
+		 * @hook ep_formatted_doc_status
+		 * @param string $formatted_status The formatted status
+		 * @param array  $document_status  The document status
+		 * @param string $status_indicator The status indicator
+		 * @param string $message          The message
+		 */
+		return (string) apply_filters( 'ep_formatted_doc_status', $status_indicator . $message, $document_status, $status_indicator, $message );
+	}
+
+	/**
+	 * If a password is added to an existent post, delete it from the index.
+	 *
+	 * @since 5.2.0
+	 * @param int      $post_id     The post ID
+	 * @param \WP_Post $post_after  The post object after the update
+	 * @param \WP_Post $post_before The post object before the update
+	 * @return void
+	 */
+	public function delete_post_with_new_password( $post_id, $post_after, $post_before ) {
+		if ( ! $post_before->post_password && $post_after->post_password ) {
+			Indexables::factory()->get( $this->indexable_slug )->delete( $post_id, false );
+		}
 	}
 }

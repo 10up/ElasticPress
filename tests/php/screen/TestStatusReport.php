@@ -9,12 +9,13 @@
 namespace ElasticPressTest;
 
 use ElasticPress\Screen\StatusReport;
+use WP_Ajax_UnitTestCase;
 use ElasticPress\Utils;
 
 /**
  * Test the Status Report class
  */
-class TestStatusReport extends BaseTestCase {
+class TestStatusReport extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Test the default behavior of the get_reports method
@@ -60,7 +61,7 @@ class TestStatusReport extends BaseTestCase {
 	public function testGetReportsSkipped() {
 		$status_report = new StatusReport();
 
-		parse_str( 'ep-skip-reports[]=wordpress&ep-skip-reports[]=indexable', $_GET ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
+		parse_str( 'ep-skip-reports[]=wordpress&ep-skip-reports[]=indexable', $_GET ); // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
 
 		$reports = $status_report->get_reports();
 		$this->assertSame(
@@ -246,7 +247,7 @@ class TestStatusReport extends BaseTestCase {
 		add_filter( 'ep_prepare_meta_allowed_keys', $allow_metakeys );
 
 		foreach ( $post_types as $post_type ) {
-			$this->ep_factory->post->create_many(
+			$this->factory->post->create_many(
 				10,
 				array(
 					'post_type'  => $post_type,
@@ -291,7 +292,7 @@ class TestStatusReport extends BaseTestCase {
 
 		$report = new \ElasticPress\StatusReport\IndexableContent();
 
-		$this->assertSame( $expected_result, $report->get_groups() );
+		$this->assertSame( $expected_result, $report->get_groups_ajax() );
 		$this->assertEquals( 'Indexable Content', $report->get_title() );
 	}
 
@@ -498,5 +499,87 @@ class TestStatusReport extends BaseTestCase {
 
 		$this->assertSame( $expected_result, $report->get_groups() );
 		$this->assertEquals( 2, count( $groups ) );
+	}
+
+	/**
+	 * Test ajax report handler with nonce not present.
+	 *
+	 * @group statusReport
+	 * @since 5.2.0
+	 */
+	public function testNoncenotValidAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertSame( 'Nonce is not present.', $response['data']['message'] );
+			return;
+		}
+	}
+
+	/**
+	 * Test report not instance of ajax report.
+	 *
+	 * @group statusReport
+	 * @since 5.2.0
+	 */
+	public function testNotInstanceOfAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
+		$_POST['report']                 = 'indices';
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertSame( 'Report is not an AJAX report.', $response['data']['message'] );
+			return;
+		}
+	}
+
+	/**
+	 * Test ajax report handler with report not found.
+	 *
+	 * @group statusReport
+	 * @since 5.2.0
+	 */
+	public function testReportNotFoundAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
+		$_POST['report']                 = 'not-valid';
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertSame( 'Status report not found.', $response['data']['message'] );
+			return;
+		}
+	}
+
+	/**
+	 * Test ajax report handler with valid report.
+	 *
+	 * @group statusReport
+	 * @since 5.2.0
+	 */
+	public function testValidReportAjaxReport() {
+		add_action( 'wp_ajax_ep_load_groups', [ new StatusReport(), 'action_wp_ajax_ep_load_groups' ] );
+
+		$_POST['ep-status-report-nonce'] = wp_create_nonce( 'ep-status-report-nonce' );
+		$_POST['report']                 = 'indexable';
+
+		try {
+			$this->_handleAjax( 'ep_load_groups' );
+		} catch ( \WPAjaxDieContinueException $e ) {
+			$response = json_decode( $this->_last_response, true );
+			$this->assertArrayHasKey( 'groups', $response['data'] );
+			$this->assertArrayHasKey( 'messages', $response['data'] );
+			return;
+		}
 	}
 }

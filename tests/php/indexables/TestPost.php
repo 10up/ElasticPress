@@ -3827,11 +3827,11 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @param array|WP_Error $response  HTTP response or WP_Error object.
 	 * @param string         $type Context under which the hook is fired.
-	 * @param string         $class HTTP transport used.
+	 * @param string         $http_class HTTP transport used.
 	 * @param array          $args HTTP request arguments.
 	 * @param string         $url The request URL.
 	 */
-	public function check404( $response, $type, $class, $args, $url ) {
+	public function check404( $response, $type, $http_class, $args, $url ) {
 		$response_code = $response['response']['code'];
 		if ( 404 === $response_code ) {
 			$this->is_404 = true;
@@ -5375,6 +5375,66 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( $query->found_posts, 1 );
 	}
 
+	/**
+	 * Test the date query returns the correct results within the range when inclusive is set to true
+	 *
+	 * @group post
+	 */
+	public function test_date_query_within_range() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'January 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 15th, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 28th, 2025 23:59:59' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'March 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				[
+					'after'     => [
+						'year'  => 2025,
+						'month' => 2,
+					],
+					'before'    => [
+						'year'  => 2025,
+						'month' => 2,
+					],
+					'inclusive' => true,
+				],
+			],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+	}
 
 	/**
 	 * Test a date query with multiple eltries
@@ -6167,6 +6227,7 @@ class TestPost extends BaseTestCase {
 	public function testPostConstructor() {
 
 		$post = new \ElasticPress\Indexable\Post\Post();
+		$post->setup();
 
 		$this->assertSame( 'Posts', $post->labels['plural'] );
 		$this->assertSame( 'Post', $post->labels['singular'] );
@@ -6307,6 +6368,37 @@ class TestPost extends BaseTestCase {
 			]
 		);
 		$this->assertEquals( 4, $results['total_objects'] );
+	}
+
+	/**
+	 * Tests that query_db always returns posts ordered by ID in descending order.
+	 *
+	 * @return void
+	 * @group post
+	 */
+	public function test_query_db_orderby() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+		$post_id_3 = $this->ep_factory->post->create();
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+
+		// change the orderby and make sure it's still ordered by ID.
+		add_filter(
+			'posts_orderby',
+			function () {
+				global $wpdb;
+				return "{$wpdb->posts}.menu_order";
+			}
+		);
+
+		$result = $post_indexable->query_db( [] );
+
+		$post_ids = wp_list_pluck( $result['objects'], 'ID' );
+
+		$this->assertEquals( $post_id_3, $post_ids[0] );
+		$this->assertEquals( $post_id_2, $post_ids[1] );
+		$this->assertEquals( $post_id_1, $post_ids[2] );
 	}
 
 	/**
@@ -8319,7 +8411,7 @@ class TestPost extends BaseTestCase {
 
 		add_filter(
 			'ep_highlighting_class',
-			function ( $class ) {
+			function ( $highlight_class ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 				return 'my-custom-class';
 			}
 		);
@@ -8357,7 +8449,7 @@ class TestPost extends BaseTestCase {
 
 		add_filter(
 			'ep_highlighting_fields',
-			function ( $fields ) {
+			function ( $fields ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 				return array( 'post_title' );
 			}
 		);
@@ -8433,14 +8525,14 @@ class TestPost extends BaseTestCase {
 
 		add_action(
 			'pre_http_request',
-			function ( $preempt, $parsed_args, $url ) {
+			function ( $preempt, $parsed_args ) {
 
 				$body = json_decode( $parsed_args['body'], true );
 				$this->assertArrayNotHasKey( 'highlight', $body );
 				return $preempt;
 			},
 			10,
-			3
+			2
 		);
 
 		$args  = array(
@@ -9231,5 +9323,180 @@ class TestPost extends BaseTestCase {
 		$this->assertContains( 'allowed_weighting_dashboard', $allowed_metas_manual );
 		// Added using the `ep_prepare_meta_allowed_keys` in the test set_up method.
 		$this->assertContains( 'test_key6', $allowed_metas_manual );
+	}
+
+	/**
+	 * Test the `SyncManager::is_post_indexable` method
+	 *
+	 * @since 5.2.0
+	 * @group post
+	 */
+	public function test_is_post_indexable() {
+		$sync_manager = new ElasticPress\Indexable\Post\SyncManager( 'post' );
+
+		$this->assertFalse( $sync_manager->is_post_indexable( 1000 ) );
+
+		$post_id = $this->ep_factory->post->create( [ 'post_status' => 'draft' ] );
+		$this->assertFalse( $sync_manager->is_post_indexable( $post_id ) );
+
+		$post_id = $this->ep_factory->post->create( [ 'post_type' => 'attachment' ] );
+		$this->assertFalse( $sync_manager->is_post_indexable( $post_id ) );
+
+		$post_id = $this->ep_factory->post->create();
+		$this->assertTrue( $sync_manager->is_post_indexable( $post_id ) );
+
+		$callback = function ( $skip, $indexable_post_id, $indexable_post_id_2 ) use ( $post_id ) {
+			$this->assertFalse( $skip );
+			$this->assertSame( $post_id, $indexable_post_id );
+			$this->assertSame( $post_id, $indexable_post_id_2 );
+			return true;
+		};
+		add_filter( 'ep_post_sync_kill', $callback, 10, 3 );
+		$this->assertFalse( $sync_manager->is_post_indexable( $post_id ) );
+	}
+
+	/**
+	 * Test the `SyncManager::add_admin_bar_status` method
+	 *
+	 * @since 5.2.0
+	 * @group post
+	 */
+	public function test_add_admin_bar_status() {
+		global $pagenow;
+
+		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
+
+		$admin_bar    = new \WP_Admin_Bar();
+		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
+		$sync_manager = $indexable->sync_manager;
+
+		// Not displaying. Wrong screen.
+		$sync_manager->add_admin_bar_status( $admin_bar );
+		$this->assertNull( $admin_bar->get_nodes() );
+
+		// Not displaying. Right screen, no post.
+		$pagenow = 'post.php';
+		set_current_screen( 'post.php' );
+		$sync_manager->add_admin_bar_status( $admin_bar );
+		$this->assertNull( $admin_bar->get_nodes() );
+
+		// Not displaying. Right screen, but post type not indexable.
+		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
+		$GLOBALS['post'] = $post;
+		$sync_manager->add_admin_bar_status( $admin_bar );
+		$this->assertNull( $admin_bar->get_nodes() );
+
+		// Displaying.
+		$post            = $this->ep_factory->post->create_and_get();
+		$GLOBALS['post'] = $post;
+		$sync_manager->add_admin_bar_status( $admin_bar );
+		$this->assertArrayHasKey( 'ep-doc-status', $admin_bar->get_nodes() );
+
+		// Not displaying. No status.
+		add_filter( 'ep_doc_status', '__return_empty_array' );
+		$admin_bar = new \WP_Admin_Bar();
+		$sync_manager->add_admin_bar_status( $admin_bar );
+		$this->assertNull( $admin_bar->get_nodes() );
+	}
+
+	/**
+	 * Test the `SyncManager::get_doc_status` method
+	 *
+	 * @since 5.2.0
+	 * @group post
+	 */
+	public function test_get_doc_status() {
+		global $wpdb;
+
+		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
+		$sync_manager = $indexable->sync_manager;
+
+		$reflection = new \ReflectionClass( $sync_manager );
+		$method     = $reflection->getMethod( 'get_doc_status' );
+		$method->setAccessible( true );
+
+		$post_id = $this->ep_factory->post->create( [ 'post_title' => 'Doc status example' ] );
+
+		// Post in sync, everything is okay.
+		$status = $method->invokeArgs( $sync_manager, [ $post_id ] );
+		$this->assertSame( $status['status'], 'success' );
+		$this->assertSame( $status['message'], 'Content in sync' );
+		$this->assertSame( $status['explanation'], 'WordPress and Elasticsearch content match.' );
+
+		// Post with a different date in the database. Out of sync.
+		$wpdb->update(
+			$wpdb->posts,
+			[ 'post_modified_gmt' => gmdate( 'Y-m-d H:i:s', strtotime( '-10 minutes' ) ) ],
+			[ 'ID' => $post_id ]
+		);
+		clean_post_cache( $post_id );
+
+		$status = $method->invokeArgs( $sync_manager, [ $post_id ] );
+		$this->assertSame( $status['status'], 'warning' );
+		$this->assertSame( $status['message'], 'Out of sync' );
+		$this->assertSame( $status['explanation'], 'WordPress and Elasticsearch content are out of sync.' );
+
+		// Post not in Elasticsearch
+		$indexable->delete( $post_id );
+
+		$status = $method->invokeArgs( $sync_manager, [ $post_id ] );
+		$this->assertSame( $status['status'], 'error' );
+		$this->assertSame( $status['message'], 'Sync required' );
+		$this->assertSame( $status['explanation'], 'Content not found in Elasticsearch.' );
+
+		// Custom status using the ep_doc_status filter
+		$custom_status = [
+			'status'      => 'custom',
+			'message'     => 'Custom message',
+			'explanation' => 'Custom explanation',
+		];
+		$callback      = function ( $status, $filter_post_id, $es_doc ) use ( $post_id, $custom_status ) {
+			$this->assertIsArray( $status );
+			$this->assertSame( $filter_post_id, $post_id );
+			$this->assertFalse( $es_doc ); // false as the doc was deleted before
+
+			return $custom_status;
+		};
+		add_filter( 'ep_doc_status', $callback, 10, 3 );
+		$status = $method->invokeArgs( $sync_manager, [ $post_id ] );
+		$this->assertSame( $status, $custom_status );
+	}
+
+	/**
+	 * Test the `SyncManager::format_doc_status` method
+	 *
+	 * @since 5.2.0
+	 * @group post
+	 */
+	public function test_format_doc_status() {
+		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
+		$sync_manager = $indexable->sync_manager;
+
+		$reflection = new \ReflectionClass( $sync_manager );
+		$method     = $reflection->getMethod( 'format_doc_status' );
+		$method->setAccessible( true );
+
+		$custom_status = [
+			'status'      => 'okay',
+			'message'     => 'Message',
+			'explanation' => '',
+		];
+
+		$formatted_doc_status = $method->invokeArgs( $sync_manager, [ $custom_status ] );
+
+		$expected = '<span class="ep-status-indicator ep-status-indicator--okay"></span>[EP] Message';
+		$this->assertSame( $formatted_doc_status, $expected );
+
+		$callback = function ( $full_message, $document_status, $status_indicator, $message ) use ( $custom_status, $expected ) {
+			$this->assertSame( $full_message, $expected );
+			$this->assertSame( $document_status, $custom_status );
+			$this->assertSame( $status_indicator, '<span class="ep-status-indicator ep-status-indicator--okay"></span>' );
+			$this->assertSame( $message, '[EP] Message' );
+
+			return 'Custom message';
+		};
+		add_filter( 'ep_formatted_doc_status', $callback, 10, 4 );
+		$formatted_doc_status = $method->invokeArgs( $sync_manager, [ $custom_status ] );
+		$this->assertSame( $formatted_doc_status, 'Custom message' );
 	}
 }

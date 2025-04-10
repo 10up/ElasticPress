@@ -1003,6 +1003,16 @@ describe('Facets Feature', { tags: '@slow' }, () => {
 				.last()
 				.find('input')
 				.should('be.checked');
+
+			/**
+			 * It should go back to page 1 when selecting a filter in page 2.
+			 */
+			cy.visit('/page/2');
+			cy.get('@block').find('.ep-facet-date-option label').first().click();
+			cy.get('@block').find('.wp-element-button').click();
+
+			cy.url().should('include', 'ep_date_filter=last-3-months');
+			cy.url().should('not.include', 'page/2');
 		});
 	});
 });

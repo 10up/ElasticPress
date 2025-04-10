@@ -73,6 +73,7 @@ class TestComments extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\Comments\Comments();
+		$instance->set_i18n_strings();
 
 		$this->assertEquals( 'comments', $instance->slug );
 		$this->assertEquals( 'Comments', $instance->title );

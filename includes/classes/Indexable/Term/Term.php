@@ -32,16 +32,13 @@ class Term extends Indexable {
 	public $slug = 'term';
 
 	/**
-	 * Create indexable and initialize dependencies
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
 	 *
-	 * @since 3.1
+	 * @var boolean
+	 * @since 5.2.0
 	 */
-	public function __construct() {
-		$this->labels = [
-			'plural'   => esc_html__( 'Terms', 'elasticpress' ),
-			'singular' => esc_html__( 'Term', 'elasticpress' ),
-		];
-	}
+	public $support_indexing_advanced_pagination = true;
 
 	/**
 	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
@@ -50,6 +47,11 @@ class Term extends Indexable {
 	 * @return void
 	 */
 	public function setup() {
+		$this->labels = [
+			'plural'   => esc_html__( 'Terms', 'elasticpress' ),
+			'singular' => esc_html__( 'Term', 'elasticpress' ),
+		];
+
 		$this->sync_manager      = new SyncManager( $this->slug );
 		$this->query_integration = new QueryIntegration( $this->slug );
 	}
@@ -187,19 +189,28 @@ class Term extends Indexable {
 	 */
 	public function query_db( $args ) {
 		$defaults = [
-			'number'                 => $this->get_bulk_items_per_page(),
-			'offset'                 => 0,
-			'orderby'                => 'id',
-			'order'                  => 'desc',
-			'taxonomy'               => $this->get_indexable_taxonomies(),
-			'hide_empty'             => false,
-			'hierarchical'           => false,
-			'update_term_meta_cache' => false,
-			'cache_results'          => false,
+			'number'                          => $this->get_bulk_items_per_page(),
+			'offset'                          => 0,
+			'orderby'                         => 'id',
+			'order'                           => 'desc',
+			'taxonomy'                        => $this->get_indexable_taxonomies(),
+			'hide_empty'                      => false,
+			'hierarchical'                    => false,
+			'update_term_meta_cache'          => false,
+			'cache_results'                   => false,
+			'ep_indexing_advanced_pagination' => true,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
 			$args['number'] = $args['per_page'];
+		}
+
+		if ( isset( $args['include'] ) ) {
+			$args['include'] = $args['include'];
+		}
+
+		if ( isset( $args['exclude'] ) ) {
+			$args['exclude'] = $args['exclude'];
 		}
 
 		/**
@@ -218,24 +229,55 @@ class Term extends Indexable {
 		unset( $all_query_args['offset'] );
 		unset( $all_query_args['fields'] );
 
-		/**
-		 * Filter database arguments for term count query
-		 *
-		 * @hook ep_term_all_query_db_args
-		 * @param  {array} $args Query arguments based to `wp_count_terms()`
-		 * @since  3.4
-		 * @return {array} New arguments
-		 */
-		$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
-		$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
-
-		if ( ! empty( $args['offset'] ) ) {
-			if ( (int) $args['offset'] >= $total_objects ) {
-				$total_objects = 0;
-			}
+		if ( isset( $args['include'] ) || 0 < $args['offset'] ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
-		$query = new WP_Term_Query( $args );
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
+		add_filter( 'terms_clauses', [ $this, 'set_orderby' ], 9999, 3 );
+
+		// Enforce the following query args during advanced pagination to ensure things work correctly.
+		if ( $args['ep_indexing_advanced_pagination'] ) {
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'ID',
+					'order'            => 'DESC',
+					'paged'            => 1,
+					'offset'           => 0,
+				]
+			);
+			add_filter( 'terms_clauses', [ $this, 'bulk_indexing_filter_terms_where' ], 9999, 3 );
+
+			$query         = new WP_Term_Query( $args );
+			$total_objects = $this->get_total_objects_for_query( $args );
+
+			remove_filter( 'terms_clauses', [ $this, 'bulk_indexing_filter_terms_where' ], 9999, 3 );
+		} else {
+
+			/**
+			 * Filter database arguments for term count query
+			 *
+			 * @hook ep_term_all_query_db_args
+			 * @param  {array} $args Query arguments based to `wp_count_terms()`
+			 * @since  3.4
+			 * @return {array} New arguments
+			 */
+			$total_objects = wp_count_terms( apply_filters( 'ep_term_all_query_db_args', $all_query_args, $args ) );
+			$total_objects = ! is_wp_error( $total_objects ) ? (int) $total_objects : 0;
+
+			if ( ! empty( $args['offset'] ) ) {
+				if ( (int) $args['offset'] >= $total_objects ) {
+					$total_objects = 0;
+				}
+			}
+
+			$query = new WP_Term_Query( $args );
+		}
+
+		remove_filter( 'terms_clauses', [ $this, 'set_orderby' ], 9999, 3 );
 
 		if ( is_array( $query->terms ) ) {
 			array_walk( $query->terms, array( $this, 'remap_terms' ) );
@@ -245,6 +287,80 @@ class Term extends Indexable {
 			'objects'       => $query->terms,
 			'total_objects' => $total_objects,
 		];
+	}
+
+	/**
+	 * Filters the WHERE clause of the SQL query used for bulk indexing terms by modifying it to include a range of
+	 * comment IDs based on advanced pagination parameters.
+	 *
+	 * @param array $clauses    Associative array of the clauses for the query.
+	 * @param array $taxonomies An array of taxonomy names.
+	 * @param array $args       An array of term query arguments.
+	 *
+	 * @return array The modified SQL WHERE clauses.
+	 */
+	public function bulk_indexing_filter_terms_where( $clauses, $taxonomies, $args ) {
+		$using_advanced_pagination = $args['ep_indexing_advanced_pagination'] ?? false;
+
+		if ( $using_advanced_pagination ) {
+			$requested_upper_limit_id        = $args['ep_indexing_upper_limit_object_id'] ?? PHP_INT_MAX;
+			$requested_lower_limit_object_id = $args['ep_indexing_lower_limit_object_id'] ?? 0;
+			$last_processed_id               = $args['ep_indexing_last_processed_object_id'] ?? null;
+
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_object_id = $requested_upper_limit_id;
+			if ( is_numeric( $last_processed_id ) ) {
+				$upper_limit_range_object_id = $last_processed_id - 1;
+			}
+
+			// Sanitize. Abort if unexpected data at this point.
+			if ( ! is_numeric( $upper_limit_range_object_id ) || ! is_numeric( $requested_lower_limit_object_id ) ) {
+				return $clauses;
+			}
+
+			$range = [
+				'upper_limit' => "t.term_id <= {$upper_limit_range_object_id}",
+				'lower_limit' => "t.term_id >= {$requested_lower_limit_object_id}",
+			];
+
+			// Skip the end range if it's unnecessary.
+			$skip_ending_range = 0 === $requested_lower_limit_object_id;
+			$where             = $clauses['where'];
+			$where             = $skip_ending_range ? " {$range['upper_limit']} AND {$where}" : " {$range['upper_limit']} AND {$range['lower_limit']} AND {$where}";
+
+			$clauses['where'] = $where;
+		}
+
+		return $clauses;
+	}
+
+	/**
+	 * Get the total number of terms for a given query.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The total number of terms.
+	 */
+	protected function get_total_objects_for_query( $query_args ) {
+		static $object_counts = [];
+
+		// Reset the pagination-related args for optimal caching.
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
+
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
+		if ( ! isset( $object_counts[ $cache_key ] ) ) {
+			$object_counts[ $cache_key ] = wp_count_terms( $normalized_query_args );
+		}
+
+		return $object_counts[ $cache_key ];
 	}
 
 	/**
@@ -359,7 +475,7 @@ class Term extends Indexable {
 				}
 			} elseif ( true !== $excluded_public_keys && ! in_array( $key, $excluded_public_keys, true ) ) {
 
-					$allow_index = true;
+				$allow_index = true;
 			}
 
 			/**
@@ -1137,5 +1253,18 @@ class Term extends Indexable {
 		}
 
 		return $formatted_args;
+	}
+
+	/**
+	 * Sets the ORDER BY clause for term queries to order terms by their term_id.
+	 *
+	 * @param array $clauses The SQL clauses array to modify.
+	 * @return array The modified SQL clauses array with the ORDER BY clause set to term_id.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_orderby( $clauses ): array {
+		$clauses['orderby'] = 'ORDER BY t.term_id';
+		return $clauses;
 	}
 }

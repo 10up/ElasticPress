@@ -33,16 +33,13 @@ class Comment extends Indexable {
 	public $slug = 'comment';
 
 	/**
-	 * Create indexable and initialize dependencies
+	 * Flag to indicate if the indexable has support for
+	 * `id_range` pagination method during a sync.
 	 *
-	 * @since 3.6.0
+	 * @var boolean
+	 * @since 5.2.0
 	 */
-	public function __construct() {
-		$this->labels = [
-			'plural'   => esc_html__( 'Comments', 'elasticpress' ),
-			'singular' => esc_html__( 'Comment', 'elasticpress' ),
-		];
-	}
+	public $support_indexing_advanced_pagination = true;
 
 	/**
 	 * Instantiate the indexable SyncManager and QueryIntegration, the main responsibles for the WP integration.
@@ -51,6 +48,11 @@ class Comment extends Indexable {
 	 * @return void
 	 */
 	public function setup() {
+		$this->labels = [
+			'plural'   => esc_html__( 'Comments', 'elasticpress' ),
+			'singular' => esc_html__( 'Comment', 'elasticpress' ),
+		];
+
 		$this->sync_manager      = new SyncManager( $this->slug );
 		$this->query_integration = new QueryIntegration();
 	}
@@ -784,20 +786,29 @@ class Comment extends Indexable {
 	 * @return array
 	 */
 	public function query_db( $args ) {
-
 		$defaults = [
-			'type'        => $this->get_indexable_comment_types(),
-			'status'      => $this->get_indexable_comment_status(),
-			'post_type'   => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
-			'post_status' => Indexables::factory()->get( 'post' )->get_indexable_post_status(),
-			'number'      => $this->get_bulk_items_per_page(),
-			'offset'      => 0,
-			'orderby'     => 'comment_ID',
-			'order'       => 'desc',
+			'type'                            => $this->get_indexable_comment_types(),
+			'status'                          => $this->get_indexable_comment_status(),
+			'post_type'                       => Indexables::factory()->get( 'post' )->get_indexable_post_types(),
+			'post_status'                     => Indexables::factory()->get( 'post' )->get_indexable_post_status(),
+			'number'                          => $this->get_bulk_items_per_page(),
+			'offset'                          => 0,
+			'orderby'                         => 'comment_ID',
+			'order'                           => 'desc',
+			'ep_indexing_advanced_pagination' => true,
+			'no_found_rows'                   => false,
 		];
 
 		if ( isset( $args['per_page'] ) ) {
 			$args['number'] = $args['per_page'];
+		}
+
+		if ( isset( $args['include'] ) ) {
+			$args['comment__in'] = $args['include'];
+		}
+
+		if ( isset( $args['exclude'] ) ) {
+			$args['comment__not_in'] = $args['exclude'];
 		}
 
 		/**
@@ -816,23 +827,42 @@ class Comment extends Indexable {
 		unset( $all_query_args['offset'] );
 		$all_query_args['count'] = true;
 
-		/**
-		 * Filter database arguments for comment count query
-		 *
-		 * @hook ep_comment_all_query_db_args
-		 * @param  {array} $args Query arguments based to WP_Comment_Query
-		 * @since  3.6.0
-		 * @return {array} New arguments
-		 */
-		$total_objects = get_comments( apply_filters( 'ep_comment_all_query_db_args', $all_query_args, $args ) );
-
-		if ( ! empty( $args['offset'] ) ) {
-			if ( (int) $args['offset'] >= $total_objects ) {
-				$total_objects = 0;
-			}
+		if ( isset( $args['comment__in'] ) || 0 < $args['offset'] ) {
+			// Disable advanced pagination. Not useful if only indexing specific IDs.
+			$args['ep_indexing_advanced_pagination'] = false;
 		}
 
-		$query = new WP_Comment_Query( $args );
+		// Explicitly set the orderby to ID to prevent accidental modifications by other code.
+		add_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
+
+		// Enforce the following query args during advanced pagination to ensure things work correctly.
+		if ( $args['ep_indexing_advanced_pagination'] ) {
+			$args = array_merge(
+				$args,
+				[
+					'suppress_filters' => false,
+					'orderby'          => 'comment_ID',
+					'order'            => 'desc',
+					'paged'            => 1,
+					'offset'           => 0,
+				]
+			);
+
+			// It's important to pass a custom cache domain. By default, WordPress caches results based on the default query arguments and doesn't account for custom arguments. @see \WP_Comment_Query::get_comments()
+			$cache_key            = md5( get_current_blog_id() . wp_json_encode( $args ) );
+			$args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
+
+			add_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
+
+			$query         = new WP_Comment_Query( $args );
+			$total_objects = $this->get_total_objects_for_query( $args );
+			remove_filter( 'comments_clauses', array( $this, 'bulk_indexing_filter_comments_where' ), 9999, 2 );
+		} else {
+			$query         = new WP_Comment_Query( $args );
+			$total_objects = $query->found_comments;
+		}
+
+		remove_filter( 'comments_clauses', [ $this, 'set_orderby' ], 9999, 2 );
 
 		if ( is_array( $query->comments ) ) {
 			array_walk( $query->comments, [ $this, 'remap_comments' ] );
@@ -842,6 +872,77 @@ class Comment extends Indexable {
 			'objects'       => $query->comments,
 			'total_objects' => $total_objects,
 		];
+	}
+
+	/**
+	 * Filters the WHERE clause of the SQL query used for bulk indexing comments by modifying it to include a range
+	 * of comment IDs based on advanced pagination parameters.
+	 *
+	 * @param array             $clauses Associative array of the clauses for the query.
+	 * @param \WP_Comment_Query $query   The current WP_Comment_Query instance.
+	 *
+	 * @return array Modified SQL query clauses.
+	 */
+	public function bulk_indexing_filter_comments_where( $clauses, $query ) {
+		global $wpdb;
+
+		$using_advanced_pagination = $this->get_query_var( $query, 'ep_indexing_advanced_pagination', false );
+
+		if ( $using_advanced_pagination ) {
+			$requested_upper_limit_id        = $this->get_query_var( $query, 'ep_indexing_upper_limit_object_id', PHP_INT_MAX );
+			$requested_lower_limit_object_id = $this->get_query_var( $query, 'ep_indexing_lower_limit_object_id', 0 );
+			$last_processed_id               = $this->get_query_var( $query, 'ep_indexing_last_processed_object_id', null );
+
+			// On the first loopthrough we begin with the requested upper limit ID. Afterwards, use the last processed ID to paginate.
+			$upper_limit_range_object_id = $requested_upper_limit_id;
+			if ( is_numeric( $last_processed_id ) ) {
+				$upper_limit_range_object_id = $last_processed_id - 1;
+			}
+
+			// Sanitize. Abort if unexpected data at this point.
+			if ( ! is_numeric( $upper_limit_range_object_id ) || ! is_numeric( $requested_lower_limit_object_id ) ) {
+				return $clauses;
+			}
+
+			$range = [
+				'upper_limit' => "{$wpdb->comments}.comment_ID <= {$upper_limit_range_object_id}",
+				'lower_limit' => "{$wpdb->comments}.comment_ID >= {$requested_lower_limit_object_id}",
+			];
+
+			// Skip the end range if it's unnecessary.
+			$skip_ending_range = 0 === $requested_lower_limit_object_id;
+			$where             = $clauses['where'];
+			$where             = $skip_ending_range ? " {$range['upper_limit']} AND {$where}" : " {$range['upper_limit']} AND {$range['lower_limit']} AND {$where}";
+
+			$clauses['where'] = $where;
+		}
+
+		return $clauses;
+	}
+
+	/**
+	 * Get the total number of comments for a given query.
+	 *
+	 * @param array $query_args The query args.
+	 * @return int The query result's found_comments.
+	 */
+	protected function get_total_objects_for_query( $query_args ) {
+		$normalized_query_args = array_merge(
+			$query_args,
+			[
+				'offset'                               => 0,
+				'paged'                                => 1,
+				'posts_per_page'                       => 1,
+				'no_found_rows'                        => false,
+				'ep_indexing_last_processed_object_id' => null,
+			]
+		);
+
+		$cache_key = md5( get_current_blog_id() . wp_json_encode( $normalized_query_args ) );
+
+		$normalized_query_args['cache_domain'] = 'elasticpress-comment-indexable-' . $cache_key;
+
+		return ( new WP_Comment_Query( $normalized_query_args ) )->found_comments;
 	}
 
 	/**
@@ -1079,5 +1180,33 @@ class Comment extends Indexable {
 		);
 
 		return $sort;
+	}
+
+	/**
+	 * Retrieve a specific query variable from the query object.
+	 *
+	 * @param \WP_Comment_Query $query The query object.
+	 * @param string            $query_var The name of the query variable to retrieve.
+	 * @param string            $default_value The default value to return if the query variable is not set. Default is an empty string.
+	 *
+	 * @return mixed The value of the query variable if set, otherwise the default value.
+	 */
+	public function get_query_var( $query, $query_var, $default_value = '' ) {
+		return $query->query_vars[ $query_var ] ?? $default_value;
+	}
+
+	/**
+	 * Sets the ORDER BY clause for comment queries to order comments by their ID.
+	 *
+	 * @param array $clauses The SQL clauses array to modify.
+	 * @return array The modified SQL clauses array with the ORDER BY clause set.
+	 *
+	 * @since 5.2.0
+	 */
+	public function set_orderby( $clauses ) {
+		global $wpdb;
+
+		$clauses['orderby'] = "{$wpdb->comments}.comment_ID DESC";
+		return $clauses;
 	}
 }

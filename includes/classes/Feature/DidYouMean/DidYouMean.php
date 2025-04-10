@@ -21,12 +21,6 @@ class DidYouMean extends Feature {
 	public function __construct() {
 		$this->slug = 'did-you-mean';
 
-		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
-
-		$this->summary = '<p>' . __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://www.elasticpress.io/documentation/article/did-you-mean/">this tutorial</a>.', 'elasticpress' ) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/did-you-mean/', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
@@ -38,6 +32,20 @@ class DidYouMean extends Feature {
 		$this->requires_feature = 'search';
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
+
+		$this->summary = '<p>' . __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://www.elasticpress.io/documentation/article/did-you-mean/">this tutorial</a>.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/did-you-mean/', 'elasticpress' );
 	}
 
 	/**

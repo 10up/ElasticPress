@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 6.7
-Stable tag:   5.1.4
+Stable tag:   5.2.0
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,61 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.2.0 - 2025-04-10 =
+
+This version bumps the minimum WordPress version to 6.2+.
+
+__Added:__
+
+* New ACF Repeater Field Compatibility feature. Props [@felipeelia](https://github.com/felipeelia).
+* Add new filter `ep.InstantResults.filter.taxonomy.terms`. Props [@burhandodhy](https://github.com/burhandodhy) and [@syedc](https://github.com/syedc).
+* Support to "number" fields in the Features Settings API. Props [@felipeelia](https://github.com/felipeelia).
+* Add `include`, `exclude`, `upper-limit-object-id`, and `lower-limit-object-id` support for the term and comment indexable. Props [@burhandodhy](https://github.com/burhandodhy).
+* Ability to display results on focus back + cached autosuggest results on same query. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia).
+* Document status displayed in the admin bar. Props [@felipeelia](https://github.com/felipeelia), [@tott](https://github.com/tott), and [@burhandodhy](https://github.com/burhandodhy).
+
+__Changed:__
+
+* Minimum required version of WordPress (from 6.0 to 6.2). Props [@felipeelia](https://github.com/felipeelia).
+* `ElasticPress\Feature\RelatedPosts::get_related_query()`, `ElasticPress\Feature\RelatedPosts::find_related()` parameter name change to `$post_return`. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia).
+* The `ep_remote_request` action to also run on non-blocking requests. Props [@felipeelia](https://github.com/felipeelia).
+* Potentially resource intensive status reports are loaded on demand with AJAX. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@felipeelia](https://github.com/felipeelia), and [@archon810](https://github.com/archon810).
+* If a feature doesn't have all its requirements fulfilled, prevent it to run its setup method. Props [@felipeelia](https://github.com/felipeelia).
+
+__Fixed:__
+
+* PHP warning: Attempt to read property "base" on null. Props [@burhandodhy](https://github.com/burhandodhy) and [@yarovikov](https://github.com/yarovikov).
+* Notice not displayed while updating a term. Props [@burhandodhy](https://github.com/burhandodhy) and [@MARQAS](https://github.com/MARQAS).
+* PHP Notice: Function _load_textdomain_just_in_time was called incorrectly. Props [@burhandodhy](https://github.com/burhandodhy).
+* PHP 8.4: Implicitly marking parameter $woocommerce as nullable is deprecated. Props [@BrookeDot](https://github.com/BrookeDot).
+* WP-CLI sync timer resetting after 16 minutes. Props [@felipeelia](https://github.com/felipeelia) and [@columbian-chris](https://github.com/columbian-chris).
+* Cannot get outside of autosuggest list pressing up on first item. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia).
+* Prevent other code from modifying the ORDERBY clause in Post and Term indexable queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia).
+* Date Query returns no result when the before and after range is the same and inclusive is set to true. Props [@burhandodhy](https://github.com/burhandodhy) and [@ErikBrendel](https://github.com/ErikBrendel).
+* Warning for undefined "post_type" array key. Props [@econscript](https://github.com/econscript).
+* Delete a post from the index if it had a password added. Props [@felipeelia](https://github.com/felipeelia) and [@dtakken](https://github.com/dtakken).
+* [Synonyms] Linebreaks being wrongly replaced in Windows Systems. Props [@nymwo](https://github.com/nymwo).
+* Deprecated `36px default size is deprecated` warnings. Props [@burhandodhy](https://github.com/burhandodhy).
+* The Sync Complete message being displayed when the log is cleared. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Selecting a value in the date filter not redirecting users back to page 1. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* Discard Changes button coming back when saving the feature twice. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy).
+* WooCommerce Orders Incompatibility not appearing when plugin is activated network wide. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Security:__
+
+* Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot).
+* Bumped `tar-fs` from from 3.0.6 to 3.0.8. Props [@dependabot](https://github.com/dependabot).
+
+__Developer:__
+
+* Trufflehog GitHub Action to detect secrets leak. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott).
+* Install Unit Tests without relying on SVN. Props [@felipeelia](https://github.com/felipeelia).
+* Remove the setup step from the `build-with-vendor-prefixed.yml` and standardize the use of Node Version. Props [@burhandodhy](https://github.com/burhandodhy).
+* Fixed E2E tests. Props [@burhandodhy](https://github.com/burhandodhy).
+* PHP, JS and Style lint fixes. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia).
+* Several node and composer packages updated. Props [@felipeelia](https://github.com/felipeelia).
+* Updated the chart.js library. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.1.4 - 2024-12-12 =
 

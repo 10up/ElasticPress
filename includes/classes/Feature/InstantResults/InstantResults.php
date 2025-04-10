@@ -67,15 +67,6 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
-		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
-
-		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
-
-		$this->summary = '<p>' . __( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.', 'elasticpress' ) . '</p>' .
-			'<p>' . __( 'Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.', 'elasticpress' ) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
-
 		$this->host = trailingslashit( Utils\get_host() );
 
 		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
@@ -100,6 +91,23 @@ class InstantResults extends Feature {
 		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
+
+		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed.', 'elasticpress' ) . '</p>' .
+		'<p>' . __( 'Requires an <a href="https://www.elasticpress.io/" target="_blank">ElasticPress.io plan</a> or a custom proxy to function.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results', 'elasticpress' );
 	}
 
 	/**

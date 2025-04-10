@@ -40,9 +40,11 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$selected_filters = $feature->get_selected();
 		$is_custom_date   = $this->is_custom_date();
 		$applied_dates    = isset( $selected_filters[ $facet_type->get_filter_type() ]['terms'] ) ? array_keys( $selected_filters[ $facet_type->get_filter_type() ]['terms'] ) : [];
+
+		$action = $feature->build_query_url( $selected_filters );
 		?>
 
-		<form class="ep-facet-date-form">
+		<form class="ep-facet-date-form" action="<?php echo esc_url( $action ); ?>" method="GET">
 			<?php
 			foreach ( $facet_type->get_facet_options() as $date ) :
 				$is_selected   = false;

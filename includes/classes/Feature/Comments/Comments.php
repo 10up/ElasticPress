@@ -36,17 +36,25 @@ class Comments extends Feature {
 	public function __construct() {
 		$this->slug = 'comments';
 
-		$this->title = esc_html__( 'Comments', 'elasticpress' );
-
-		$this->summary = '<p>' . __( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale. This feature is only needed if you are using <code>WP_Comment_Query</code> directly.', 'elasticpress' ) . '</p>';
-
-		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#comments', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		Indexables::factory()->register( new Indexable\Comment\Comment(), false );
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Comments', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale. This feature is only needed if you are using <code>WP_Comment_Query</code> directly.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#comments', 'elasticpress' );
 	}
 
 	/**

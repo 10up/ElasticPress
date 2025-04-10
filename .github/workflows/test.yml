@@ -1,4 +1,4 @@
-name: Unit Test
+name: Unit Tests
 
 env:
   COMPOSER_VERSION: "2"

@@ -1114,13 +1114,12 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-host'] ) ) {
 			add_filter(
 				'ep_host',
-				function ( $host ) use ( $assoc_args ) {
+				function () use ( $assoc_args ) {
 					return $assoc_args['ep-host'];
 				}
 			);
 		}
 	}
-
 
 	/**
 	 * maybe change index prefix on the fly
@@ -1133,7 +1132,7 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-prefix'] ) ) {
 			add_filter(
 				'ep_index_prefix',
-				function ( $prefix ) use ( $assoc_args ) {
+				function ( $prefix ) use ( $assoc_args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 					return $assoc_args['ep-prefix'];
 				}
 			);
