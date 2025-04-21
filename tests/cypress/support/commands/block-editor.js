@@ -68,7 +68,7 @@ Cypress.Commands.add('supportsBlockColors', { prevSubject: true }, (subject, isE
 		cy.get('.block-editor-block-inspector button').contains('Background').click();
 
 		cy.get(
-			`.popover-slot button[aria-label="Color: Black"],
+			`.block-editor-color-gradient-control button[aria-label="Black"],
 			.block-editor-color-gradient-control__panel button[aria-label="Color: Black"]`,
 		).click();
 
