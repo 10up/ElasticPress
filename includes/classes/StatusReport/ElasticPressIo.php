@@ -220,7 +220,7 @@ class ElasticPressIo extends Report {
 	 * @since 4.5.0
 	 */
 	public function get_messages(): array {
-		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages( true );
+		$messages = \ElasticPress\get_container()->get( '\ElasticPress\ElasticPressIo' )->get_endpoint_messages( true );
 		$messages = array_values( $messages );
 
 		return $messages;
