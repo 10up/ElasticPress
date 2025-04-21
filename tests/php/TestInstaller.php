@@ -13,14 +13,15 @@ use ElasticPress;
  * Installer test class
  */
 class TestInstaller extends BaseTestCase {
+
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -31,7 +32,7 @@ class TestInstaller extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -48,8 +49,8 @@ class TestInstaller extends BaseTestCase {
 	 *
 	 * @since 3.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		update_site_option( 'ep_host', $this->current_host );
 
@@ -106,8 +107,6 @@ class TestInstaller extends BaseTestCase {
 		$install_status = ElasticPress\Installer::factory()->get_install_status();
 
 		$this->assertEquals( 2, $install_status );
-
-		remove_all_filters( 'ep_host' );
 	}
 
 	/**
@@ -127,5 +126,4 @@ class TestInstaller extends BaseTestCase {
 
 		$this->assertEquals( 3, $install_status );
 	}
-
 }

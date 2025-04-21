@@ -51,4 +51,39 @@ class FeatureTest extends ElasticPress\Feature {
 	 * Do nothing
 	 */
 	public function setup() { }
+
+	/**
+	 * Set settings schema
+	 */
+	public function set_settings_schema() {
+		$this->settings_schema = [
+			[
+				'default' => '0',
+				'key'     => 'field_1',
+				'label'   => 'Field 1',
+				'type'    => 'text',
+			],
+			[
+				'default'       => '0',
+				'key'           => 'field_2',
+				'label'         => 'Field 2',
+				'type'          => 'text',
+				'requires_sync' => true,
+			],
+			[
+				'default'          => '0',
+				'key'              => 'field_3',
+				'label'            => 'Field 3',
+				'type'             => 'text',
+				'requires_feature' => 'did-you-mean',
+			],
+			[
+				'default'          => '0',
+				'key'              => 'field_4',
+				'label'            => 'Field 4',
+				'type'             => 'text',
+				'requires_feature' => 'search',
+			],
+		];
+	}
 }

@@ -8,10 +8,11 @@
 
 namespace ElasticPress\Feature\Facets;
 
-use ElasticPress\Feature as Feature;
-use ElasticPress\Utils as Utils;
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
-use ElasticPress\Indexables as Indexables;
+use ElasticPress\Feature;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\REST;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -21,6 +22,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Facets feature class
  */
 class Facets extends Feature {
+	/**
+	 * Facet types (taxonomy, meta fields, etc.)
+	 *
+	 * @since 4.3.0
+	 * @var array
+	 */
+	public $types = [];
 
 	/**
 	 * Initialize feature setting it's config
@@ -30,14 +38,77 @@ class Facets extends Feature {
 	public function __construct() {
 		$this->slug = 'facets';
 
-		$this->title = esc_html__( 'Facets', 'elasticpress' );
-
 		$this->requires_install_reindex = false;
-		$this->default_settings         = [
+
+		$this->default_settings = [
 			'match_type' => 'all',
 		];
 
+		$types = [
+			'taxonomy' => __NAMESPACE__ . '\Types\Taxonomy\FacetType',
+		];
+
+		if ( version_compare( get_bloginfo( 'version' ), '5.8', '>=' ) ) {
+			$types['meta']       = __NAMESPACE__ . '\Types\Meta\FacetType';
+			$types['meta-range'] = __NAMESPACE__ . '\Types\MetaRange\FacetType';
+			$types['post-type']  = __NAMESPACE__ . '\Types\PostType\FacetType';
+			$types['date']       = __NAMESPACE__ . '\Types\Date\FacetType';
+
+		}
+
+		/**
+		 * Filter the Facet types available.
+		 *
+		 * ```
+		 * add_filter(
+		 *     'ep_facet_types',
+		 *     function ( $types ) {
+		 *         $types['post_type'] = '\MyPlugin\PostType';
+		 *         return $types;
+		 *     }
+		 * );
+		 * ```
+		 *
+		 * @since 4.3.0
+		 * @hook ep_facet_types
+		 * @param {array} $types Array of types available. Keys are slugs, values are class names.
+		 * @return {array} New array of types available
+		 */
+		$types = apply_filters( 'ep_facet_types', $types );
+
+		foreach ( $types as $type => $class ) {
+			if ( is_a( $class, __NAMESPACE__ . '\FacetType', true ) ) {
+				$this->types[ $type ] = new $class();
+			}
+		}
+
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Filters', 'elasticpress' );
+
+		$this->summary = '<p>' .
+		( wp_is_block_theme()
+			? sprintf(
+				/* translators: Site Editor URL */
+				__( 'Adds <a href="%s">filter blocks</a> that administrators can add to the website’s templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
+				esc_url( admin_url( 'site-editor.php' ) )
+			)
+			: sprintf(
+				/* translators: Widgets Edit Screen URL */
+				__( 'Adds <a href="%s">filter widgets</a> that administrators can add to the website’s sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms, metafields, and date ranges.', 'elasticpress' ),
+				esc_url( admin_url( 'widgets.php' ) )
+			)
+		) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#filters', 'elasticpress' );
 	}
 
 	/**
@@ -46,13 +117,52 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function setup() {
-		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
+		global $pagenow;
+
+		$in_editor = in_array( $pagenow, [ 'post-new.php', 'post.php' ], true );
+
+		/**
+		 * Filter if facet should be enabled in the editor. Default: false
+		 *
+		 * @hook  ep_facet_enabled_in_editor
+		 * @since 5.1.0
+		 * @param {bool}  $enabled
+		 * @return {bool} If enabled or not
+		 */
+		if ( $in_editor && ! apply_filters( 'ep_facet_enabled_in_editor', false ) ) {
+			return;
+		}
+
+		foreach ( $this->types as $type => $class ) {
+			$this->types[ $type ]->setup();
+		}
+
+		add_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
 		add_action( 'ep_valid_response', [ $this, 'get_aggs' ], 10, 4 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'front_scripts' ] );
+		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
 		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
 		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
-		add_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ], 10, 1 );
+		add_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ], 10, 3 );
+		add_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
+	}
+
+	/**
+	 * Unsetup Facets related hooks
+	 *
+	 * @since 5.1.0
+	 */
+	public function tear_down() {
+		remove_filter( 'widget_types_to_hide_from_legacy_widget_block', [ $this, 'hide_legacy_widget' ] );
+		remove_action( 'ep_valid_response', [ $this, 'get_aggs' ] );
+		remove_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
+		remove_action( 'enqueue_block_editor_assets', [ $this, 'front_scripts' ] );
+		remove_action( 'ep_feature_box_settings_facets', [ $this, 'settings' ] );
+		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ] );
+		remove_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		remove_filter( 'ep_post_filters', [ $this, 'apply_facets_filters' ] );
+		remove_action( 'rest_api_init', [ $this, 'setup_endpoints' ] );
 	}
 
 	/**
@@ -62,26 +172,23 @@ class Facets extends Feature {
 	 */
 	public function output_feature_box_settings() {
 		$settings = $this->get_settings();
-
-		if ( ! $settings ) {
-			$settings = [];
-		}
-
-		$settings = wp_parse_args( $settings, $this->default_settings );
 		?>
-		<div class="field js-toggle-feature" data-feature="<?php echo esc_attr( $this->slug ); ?>">
+		<div class="field">
 			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
 			<div class="input-wrap">
-				<label for="match_type_all"><input name="match_type" id="match_type_all" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'all' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label for="match_type_any"><input name="match_type" id="match_type_any" data-field-name="match_type" class="setting-field" type="radio" <?php if ( 'any' === $settings['match_type'] ) : ?>checked<?php endif; ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all facets. "Any" will show content that matches any facet.', 'elasticpress' ); ?></p>
+				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
+				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
+				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
 			</div>
 		</div>
 		<?php
 	}
 
 	/**
-	 * If we are doing or matches, we need to remove filters from aggs
+	 * If we are doing `or` matches, we need to remove filters from aggs.
+	 *
+	 * By default, the same filters applied to the main query are applied to aggregations.
+	 * If doing `or` matches, those should be removed so we get a broader set of results.
 	 *
 	 * @param  array    $args ES arguments
 	 * @param  array    $query_args Query arguments
@@ -90,46 +197,42 @@ class Facets extends Feature {
 	 * @return array
 	 */
 	public function set_agg_filters( $args, $query_args, $query ) {
+		// Not a facetable query
 		if ( empty( $query_args['ep_facet'] ) ) {
 			return $args;
 		}
 
-		// @todo For some reason these are appearing in the query args, need to investigate
-		unset( $query_args['category_name'] );
-		unset( $query_args['cat'] );
-		unset( $query_args['tag'] );
-		unset( $query_args['tag_id'] );
-		unset( $query_args['taxonomy'] );
-		unset( $query_args['term'] );
-
-		$facet_query_args = $query_args;
-
-		$settings = $this->get_settings();
-
-		$settings = wp_parse_args(
-			$settings,
-			array(
-				'match_type' => 'all',
-			)
-		);
-
-		if ( ! empty( $facet_query_args['tax_query'] ) ) {
-			remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
-
-			foreach ( $facet_query_args['tax_query'] as $key => $taxonomy ) {
-				if ( is_array( $taxonomy ) ) {
-					if ( 'any' === $settings['match_type'] ) {
-						unset( $facet_query_args['tax_query'][ $key ] );
-					}
-				}
-			}
-
-			$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $facet_query_args, $query );
-
-			$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
-
-			add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		if ( 'any' === $this->get_match_type() ) {
+			add_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
 		}
+
+		/**
+		 * This flag is used to differentiate filters being applied to the query and to its aggregations.
+		 */
+		$query_args['ep_facet_adding_agg_filters'] = true;
+
+		/**
+		 * Filter WP query arguments that will be used to build the aggregations filter.
+		 *
+		 * The returned `$query_args` will be used to build the aggregations filter passing
+		 * it through `Indexable\Post\Post::format_args()`.
+		 *
+		 * @hook ep_facet_agg_filters
+		 * @since 4.3.0
+		 * @param {array} $query_args Query arguments
+		 * @param {array} $args       ES arguments
+		 * @param {array} $query      WP Query instance
+		 * @return {array} New facets aggregations
+		 */
+		$query_args = apply_filters( 'ep_facet_agg_filters', $query_args, $args, $query );
+
+		remove_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+		$facet_formatted_args = Indexables::factory()->get( 'post' )->format_args( $query_args, $query );
+		add_filter( 'ep_post_formatted_args', [ $this, 'set_agg_filters' ], 10, 3 );
+
+		remove_filter( 'ep_post_filters', [ $this, 'remove_facets_filter' ], 11 );
+
+		$args['aggs']['terms']['filter'] = $facet_formatted_args['post_filter'];
 
 		return $args;
 	}
@@ -141,15 +244,10 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function admin_scripts( $hook ) {
-		if ( 'widgets.php' !== $hook ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			'elasticpress-facets-admin',
-			EP_URL . 'dist/css/facets-admin-styles.min.css',
-			[],
-			EP_VERSION
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Facets no longer require admin styles.', 'elasticpress' ),
+			'4.7.0'
 		);
 	}
 
@@ -159,19 +257,21 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function front_scripts() {
-		wp_enqueue_script(
+		wp_register_script(
 			'elasticpress-facets',
-			EP_URL . 'dist/js/facets-script.min.js',
-			[ 'jquery', 'underscore' ],
-			EP_VERSION,
+			EP_URL . 'dist/js/facets-script.js',
+			Utils\get_asset_info( 'facets-script', 'dependencies' ),
+			Utils\get_asset_info( 'facets-script', 'version' ),
 			true
 		);
 
-		wp_enqueue_style(
+		wp_set_script_translations( 'elasticpress-facets', 'elasticpress' );
+
+		wp_register_style(
 			'elasticpress-facets',
-			EP_URL . 'dist/css/facets-styles.min.css',
-			[],
-			EP_VERSION
+			EP_URL . 'dist/css/facets-styles.css',
+			Utils\get_asset_info( 'facets-styles', 'dependencies' ),
+			Utils\get_asset_info( 'facets-styles', 'version' )
 		);
 	}
 
@@ -183,7 +283,20 @@ class Facets extends Feature {
 	 * @return bool
 	 */
 	public function is_facetable( $query ) {
-		if ( is_admin() ) {
+
+		/**
+		 * Bypass the standard checks and set a query to be facetable
+		 *
+		 * @hook ep_is_facetable
+		 * @param  {bool}     $bypass Defaults to false.
+		 * @param  {WP_Query} $query  The current WP_Query.
+		 * @return {bool}     true to bypass, false to ignore
+		 */
+		if ( \apply_filters( 'ep_is_facetable', false, $query ) ) {
+			return true;
+		}
+
+		if ( is_admin() || is_feed() ) {
 			return false;
 		}
 
@@ -201,11 +314,13 @@ class Facets extends Feature {
 			return false;
 		}
 
-		if ( ! ( ( function_exists( 'is_product_category' ) && is_product_category() )
-			|| $query->is_post_type_archive()
-			|| $query->is_search()
-			|| ( is_home() && empty( $query->get( 'page_id' ) ) ) )
-		) {
+		$woocommerce = Features::factory()->get_registered_feature( 'woocommerce' );
+
+		if ( ! $woocommerce->is_active() && ( function_exists( 'is_product_category' ) && is_product_category() ) ) {
+			return false;
+		}
+
+		if ( ! $this->is_facetable_page( $query ) ) {
 			return false;
 		}
 
@@ -225,34 +340,31 @@ class Facets extends Feature {
 			return;
 		}
 
-		$taxonomies = get_taxonomies( array( 'public' => true ), 'object' );
+		// If any filter was selected, there is no reason to prepend the list with sticky posts.
+		$selected_filters = $this->get_selected();
+		if ( ! empty( array_filter( $selected_filters ) ) ) {
+			$query->set( 'ignore_sticky_posts', true );
+		}
 
 		/**
-		 * Filter taxonomies made available for faceting
+		 * Filter facet aggregations.
 		 *
-		 * @hook ep_facet_include_taxonomies
-		 * @param  {array} $taxonomies Taxonomies
-		 * @return  {array} New taxonomies
+		 * This is used by facet types to add their own aggregations to the
+		 * general facet.
+		 *
+		 * @hook ep_facet_wp_query_aggs_facet
+		 * @since 4.3.0
+		 * @param {array} $facets Facets aggregations
+		 * @return {array} New facets aggregations
 		 */
-		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
+		$facets = apply_filters( 'ep_facet_wp_query_aggs_facet', [] );
 
-		if ( empty( $taxonomies ) ) {
+		if ( empty( $facets ) ) {
 			return;
 		}
 
 		$query->set( 'ep_integrate', true );
 		$query->set( 'ep_facet', true );
-
-		$facets = [];
-
-		foreach ( $taxonomies as $slug => $taxonomy ) {
-			$facets[ $slug ] = array(
-				'terms' => array(
-					'size'  => 10000,
-					'field' => 'terms.' . $slug . '.slug',
-				),
-			);
-		}
 
 		$aggs = array(
 			'name'       => 'terms',
@@ -261,44 +373,6 @@ class Facets extends Feature {
 		);
 
 		$query->set( 'aggs', $aggs );
-
-		$selected_filters = $this->get_selected();
-
-		$settings = $this->get_settings();
-
-		$settings = wp_parse_args(
-			$settings,
-			array(
-				'match_type' => 'all',
-			)
-		);
-
-		$tax_query = $query->get( 'tax_query', [] );
-
-		// Account for taxonomies that should be woocommerce attributes, if WC is enabled
-		$attribute_taxonomies = [];
-		if ( function_exists( 'wc_attribute_taxonomy_name' ) ) {
-			$all_attr_taxonomies = wc_get_attribute_taxonomies();
-
-			foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
-				$attribute_taxonomies[ $attr_taxonomy->attribute_name ] = wc_attribute_taxonomy_name( $attr_taxonomy->attribute_name );
-			}
-		}
-
-		foreach ( $selected_filters['taxonomies'] as $taxonomy => $filter ) {
-			$tax_query[] = [
-				'taxonomy' => isset( $attribute_taxonomies[ $taxonomy ] ) ? $attribute_taxonomies[ $taxonomy ] : $taxonomy,
-				'field'    => 'slug',
-				'terms'    => array_keys( $filter['terms'] ),
-				'operator' => ( 'any' === $settings['match_type'] ) ? 'or' : 'and',
-			];
-		}
-
-		if ( ! empty( $selected_filters['taxonomies'] ) && 'any' === $settings['match_type'] ) {
-			$tax_query['relation'] = 'or';
-		}
-
-		$query->set( 'tax_query', $tax_query );
 	}
 
 	/**
@@ -311,7 +385,7 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function get_aggs( $response, $query, $query_args, $query_object ) {
-		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $query_object->is_main_query() ) {
+		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $this->is_facetable( $query_object ) ) {
 			return;
 		}
 
@@ -326,7 +400,16 @@ class Facets extends Feature {
 						continue;
 					}
 
+					if ( ! is_array( $agg ) || ( empty( $agg['buckets'] ) && empty( $agg['value'] ) ) ) {
+						continue;
+					}
+
 					$GLOBALS['ep_facet_aggs'][ $key ] = [];
+
+					if ( ! empty( $agg['value'] ) ) {
+						$GLOBALS['ep_facet_aggs'][ $key ] = $agg['value'];
+						continue;
+					}
 
 					foreach ( $agg['buckets'] as $bucket ) {
 						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
@@ -343,21 +426,42 @@ class Facets extends Feature {
 	 * @return array
 	 */
 	public function get_selected() {
-		$filters = array(
-			'taxonomies' => [],
-		);
+		$allowed_args = $this->get_allowed_query_args();
+
+		$filters      = [];
+		$filter_names = [];
+		foreach ( $this->types as $type_obj ) {
+			$filter_names[ $type_obj->get_filter_name() ] = $type_obj;
+		}
 
 		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security.NonceVerification
-			if ( 0 === strpos( $key, 'filter' ) ) {
-				$taxonomy = str_replace( 'filter_', '', $key );
+			$key = sanitize_key( $key );
 
-				$filters['taxonomies'][ $taxonomy ] = array(
-					'terms' => array_fill_keys( array_map( 'trim', explode( ',', trim( $value, ',' ) ) ), true ),
-				);
+			foreach ( $filter_names as $filter_name => $type_obj ) {
+				if ( 0 === strpos( $key, $filter_name ) ) {
+					if ( empty( $value ) ) {
+						continue;
+					}
+					$facet = str_replace( $filter_name, '', $key );
+
+					$filters = $type_obj->format_selected( $facet, $value, $filters );
+				}
+			}
+
+			if ( in_array( $key, $allowed_args, true ) ) {
+				$filters[ $key ] = $value;
 			}
 		}
 
-		return $filters;
+		/**
+		 * Filter selected filters.
+		 *
+		 * @hook ep_facet_selected_filters
+		 * @since 5.1.4
+		 * @param  {array} $filters Current filters
+		 * @return {array} New filters
+		 */
+		return apply_filters( 'ep_facet_selected_filters', $filters );
 	}
 
 	/**
@@ -368,67 +472,70 @@ class Facets extends Feature {
 	 * @return string
 	 */
 	public function build_query_url( $filters ) {
-		$query_string = '';
+		$query_params = array();
 
-		$s = get_search_query();
-
-		if ( ! empty( $s ) ) {
-			$query_string .= 's=' . $s;
+		foreach ( $this->types as $type_obj ) {
+			if ( empty( $filters[ $type_obj->get_filter_type() ] ) ) {
+				continue;
+			}
+			$query_params = $type_obj->add_query_params( $query_params, $filters );
 		}
 
-		if ( ! empty( $filters['taxonomies'] ) ) {
-			$tax_filters = $filters['taxonomies'];
+		$feature      = Features::factory()->get_registered_feature( 'facets' );
+		$allowed_args = $feature->get_allowed_query_args();
 
-			foreach ( $tax_filters as $taxonomy => $filter ) {
-				if ( ! empty( $filter['terms'] ) ) {
-					if ( ! empty( $query_string ) ) {
-						$query_string .= '&';
-					}
-
-					$query_string .= 'filter_' . $taxonomy . '=' . implode( ',', array_keys( $filter['terms'] ) );
+		if ( ! empty( $filters ) ) {
+			foreach ( $filters as $filter => $value ) {
+				if ( in_array( $filter, $allowed_args, true ) ) {
+					$query_params[ $filter ] = $value;
 				}
 			}
 		}
+
+		$query_string = build_query( $query_params );
 
 		/**
 		 * Filter facet query string
 		 *
 		 * @hook ep_facet_query_string
 		 * @param  {string} $query_string Current query string
+		 * @param  {array}  $query_params Query parameters
 		 * @return  {string} New query string
 		 */
-		$query_string = apply_filters( 'ep_facet_query_string', $query_string );
+		$query_string = apply_filters( 'ep_facet_query_string', $query_string, $query_params );
 
-		if ( is_post_type_archive() ) {
-			$pagination = strpos( $_SERVER['REQUEST_URI'], '/page' );
-
-			if ( false !== $pagination ) {
-				$url = substr( $_SERVER['REQUEST_URI'], 0, $pagination );
-				return strtok( $url, '?' ) . ( ( ! empty( $query_string ) ) ? '/?' . $query_string : '' );
-			}
+		$url        = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+		$pagination = strpos( $url, '/page' );
+		if ( false !== $pagination ) {
+			$url = substr( $url, 0, $pagination );
 		}
 
-		return strtok( $_SERVER['REQUEST_URI'], '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
+		return strtok( trailingslashit( $url ), '?' ) . ( ( ! empty( $query_string ) ) ? '?' . $query_string : '' );
 	}
 
 	/**
 	 * Register facet widget(s)
 	 *
-	 * @since 2.5
+	 * @since 2.5, deprecated in 4.3.0
 	 */
 	public function register_widgets() {
-		register_widget( __NAMESPACE__ . '\Widget' );
+		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types[ \$type ]->register_widgets()" );
 	}
 
 	/**
-	 * Output feature box summary
+	 * Hide the legacy widget.
 	 *
-	 * @since 2.5
+	 * Hides the legacy widget in favor of the Block when the block editor
+	 * is in use and the legacy widget has not been used.
+	 *
+	 * @since 4.3
+	 * @param array $widgets An array of excluded widget-type IDs.
+	 * @return array array of excluded widget-type IDs to hide.
 	 */
-	public function output_feature_box_summary() {
-		?>
-		<p><?php esc_html_e( 'Add controls to your website to filter content by one or more taxonomies.', 'elasticpress' ); ?></p>
-		<?php
+	public function hide_legacy_widget( $widgets ) {
+		$widgets[] = 'ep-facet';
+
+		return $widgets;
 	}
 
 	/**
@@ -437,13 +544,210 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function output_feature_box_long() {
+		if ( current_theme_supports( 'widgets' ) ) {
+			$message = sprintf(
+				/* translators: Widgets Edit Screen URL */
+				__( "Adds <a href='%s'>filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ),
+				esc_url( admin_url( 'widgets.php' ) )
+			);
+		}
+
+		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			$message = sprintf(
+				/* translators: Site Editor URL */
+				__( "Adds <a href='%s'>filter blocks</a> that administrators can add to the website's templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ),
+				esc_url( admin_url( 'site-editor.php' ) )
+			);
+		}
+
+		if ( ! isset( $message ) ) {
+			return;
+		}
 		?>
-		<p>
-			<?php
-			// translators: URL
-			echo wp_kses_post( sprintf( __( "Adds a <a href='%s'>Facet widget</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ), esc_url( admin_url( 'widgets.php' ) ) ) );
-			?>
-		</p>
+		<p><?php echo wp_kses_post( $message ); ?></p>
 		<?php
+	}
+
+	/**
+	 * Returns allowed query args for facets
+	 *
+	 * @return mixed|void
+	 * @since 3.6.0
+	 */
+	public function get_allowed_query_args() {
+		$args = array( 's', 'post_type', 'orderby' );
+
+		// Retrieve all registered query variables for public taxonomies
+		$taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+		foreach ( $taxonomies as $taxonomy ) {
+			if ( $taxonomy->query_var ) {
+				$args[] = $taxonomy->query_var;
+			}
+		}
+		/**
+		 * To keep backward compatibility, WordPress uses  `'cat'` for default categories.
+		 * It also allows access using the `?taxonomy=<tax>&term=<term>` format.
+		 *
+		 * @see get_term_link()
+		 */
+		$args = array_merge( $args, [ 'cat', 'taxonomy', 'term' ] );
+
+		/**
+		 * Filter allowed query args
+		 *
+		 * @hook    ep_facet_allowed_query_args
+		 * @since 3.6.0
+		 * @param   {array} $args Post types
+		 * @return  {array} New post types
+		 */
+		return apply_filters( 'ep_facet_allowed_query_args', $args );
+	}
+
+	/**
+	 * Get the facet filter name.
+	 *
+	 * @return string The filter name.
+	 */
+	protected function get_filter_name() {
+		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_filter_name()" );
+
+		return $this->types['taxonomy']->get_filter_name();
+	}
+
+	/**
+	 * Get all taxonomies that could be selected for a facet.
+	 *
+	 * @since 4.2.0, deprecated in 4.3.0
+	 * @return array
+	 */
+	public function get_facetable_taxonomies() {
+		_deprecated_function( __METHOD__, '4.3.0', "\ElasticPress\Features::factory()->get_registered_feature( 'facets' )->types['taxonomy']->get_facetable_taxonomies()" );
+
+		return $this->types['taxonomy']->get_filter_name();
+	}
+
+	/**
+	 * Add a new filter to the ES query with selected facets
+	 *
+	 * @since 4.4.0
+	 * @param array    $filters  Current filters
+	 * @param array    $args     WP Query args
+	 * @param WP_Query $query    WP Query object
+	 * @return array
+	 */
+	public function apply_facets_filters( $filters, $args, $query ) {
+		if ( ! $this->is_facetable( $query ) ) {
+			return $filters;
+		}
+
+		/**
+		 * Filter facet selection filters to be applied to the ES query
+		 *
+		 * @hook  ep_facet_query_filters
+		 * @since 4.4.0
+		 * @param  {array}    $filters Current filters
+		 * @param  {array}    $args    WP Query args
+		 * @param  {WP_Query} $query   WP Query object
+		 * @return {array} New filters
+		 */
+		$facets_filters = apply_filters( 'ep_facet_query_filters', [], $args, $query );
+
+		if ( empty( $facets_filters ) ) {
+			return $filters;
+		}
+
+		$es_operator = ( 'any' === $this->get_match_type() ) ? 'should' : 'must';
+
+		$filters['facets'] = [
+			'bool' => [
+				$es_operator => $facets_filters,
+			],
+		];
+
+		return $filters;
+	}
+
+	/**
+	 * Utilitary function to retrieve the match type selected by the user.
+	 *
+	 * @since 4.4.0
+	 * @return string
+	 */
+	public function get_match_type() {
+		$settings = $this->get_settings();
+
+		/**
+		 * Filter the match type of all facets. Can be 'all' or 'any'.
+		 *
+		 * @hook  ep_facet_match_type
+		 * @since 4.4.0
+		 * @param  {string} $match_type Current selection
+		 * @return {string} New selection
+		 */
+		return apply_filters( 'ep_facet_match_type', $settings['match_type'] );
+	}
+
+	/**
+	 * Given an array of filters, remove the facets filter.
+	 *
+	 * This is used when the user wants posts matching ANY criteria, so aggregations should not restrict their results.
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Filters to be applied to the ES query
+	 * @return array
+	 */
+	public function remove_facets_filter( $filters ) {
+		unset( $filters['facets'] );
+		return $filters;
+	}
+
+	/**
+	 * Set the `settings_schema` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		$this->settings_schema[] = [
+			'key'     => 'match_type',
+			'label'   => __( 'Filter matching', 'elasticpress' ),
+			'options' => [
+				[
+					'label' => __( 'Show results that match <strong>all</strong> selected filters', 'elasticpress' ),
+					'value' => 'all',
+				],
+				[
+					'label' => __( 'Show results that match <strong>any</strong> selected filter', 'elasticpress' ),
+					'value' => 'any',
+				],
+			],
+			'type'    => 'radio',
+		];
+	}
+
+	/**
+	 * Figure out if Facet widget can display on page.
+	 *
+	 * @param  WP_Query $query WP Query
+	 * @since  4.2.1
+	 * @return bool
+	 */
+	protected function is_facetable_page( $query ) {
+		return $query->is_home() || $query->is_search() || $query->is_tax() || $query->is_tag() || $query->is_category() || $query->is_post_type_archive();
+	}
+
+	/**
+	 * Setup REST endpoints
+	 *
+	 * @since 5.0.0
+	 */
+	public function setup_endpoints() {
+		$meta_keys = new REST\MetaKeys();
+		$meta_keys->register_routes();
+
+		$meta_range = new REST\MetaRange();
+		$meta_range->register_routes();
+
+		$taxonomies = new REST\Taxonomies();
+		$taxonomies->register_routes();
 	}
 }

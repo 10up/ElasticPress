@@ -1,0 +1,47 @@
+.ep-search-reset-button {
+	font: inherit !important;
+	height: auto !important;
+	letter-spacing: inherit !important;
+	line-height: 1 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	text-align: inherit !important;
+	text-transform: inherit !important;
+	width: auto !important;
+
+	&,
+	&:focus,
+	&:hover {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+		color: inherit !important;
+		cursor: default !important;
+	}
+
+	&:focus {
+		outline: medium auto Highlight !important;
+		outline: medium auto -webkit-focus-ring-color !important;
+		outline-offset: 0 !important;
+	}
+}
+
+.ep-search-small-button {
+	font-size: 0.875em !important;
+	height: auto !important;
+	line-height: 1 !important;
+	padding: 0.5em !important;
+}
+
+.ep-search-icon-button {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+
+	& svg {
+		fill: currentcolor;
+		flex-shrink: 0;
+		height: 1em;
+		width: 1em;
+	}
+}

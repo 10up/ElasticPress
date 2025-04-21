@@ -2,6 +2,9 @@
     "install": {
         "title": "Install"
     },
+    "compatibility": {
+        "title": "Compatibility"
+    },
     "features": {
         "title": "Features"
     },
@@ -10,6 +13,9 @@
     },
     "indexables": {
         "title": "Indexables"
+    },
+    "react": {
+        "title": "React Components"
     },
     "security": {
         "title": "Security"
@@ -22,5 +28,11 @@
     },
     "development": {
         "title": "Development"
+    },
+    "theme-integration": {
+        "title": "Theme Integration"
+    },
+    "indexing-process": {
+        "title": "Indexing Process"
     }
 }

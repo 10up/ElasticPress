@@ -64,8 +64,24 @@ return array(
 			'analyzer'   => array(
 				'default'          => array(
 					'tokenizer'   => 'standard',
-					'filter'      => array( 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-					'char_filter' => array( 'html_strip' ),
+					/**
+					 * Filter Elasticsearch default analyzer's filters
+					 *
+					 * @since 3.6.2
+					 * @hook ep_default_analyzer_filters
+					 * @param  {array<string>} $filters Default filters
+					 * @return {array<string>} New filters
+					 */
+					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					/**
+					 * Filter Elasticsearch default analyzer's char_filter
+					 *
+					 * @since 4.2.2
+					 * @hook ep_default_analyzer_char_filters
+					 * @param  {array<string>} $char_filters Default filter
+					 * @return {array<string>} New filters
+					 */
+					'char_filter' => apply_filters( 'ep_default_analyzer_char_filters', array( 'html_strip' ) ),
 					/**
 					 * Filter Elasticsearch default language in mapping
 					 *
@@ -74,6 +90,29 @@ return array(
 					 * @param {string} $lang_context Language context
 					 * @return {string} New language
 					 */
+					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+				),
+				'default_search'   => array(
+					'tokenizer'   => 'standard',
+					/**
+					 * Filter Elasticsearch default analyzer's filters
+					 *
+					 * @since 5.0.0
+					 * @hook ep_default_search_analyzer_filters
+					 * @param  {array<string>} $filters Default filters
+					 * @return {array<string>} New filters
+					 */
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					/**
+					 * Filter Elasticsearch default analyzer's char_filter
+					 *
+					 * @since 5.0.0
+					 * @hook ep_default_search_analyzer_char_filters
+					 * @param  {array<string>} $char_filters Default filter
+					 * @return {array<string>} New filters
+					 */
+					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', array( 'html_strip' ) ),
+					/* This filter is documented above */
 					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
 				'shingle_analyzer' => array(
@@ -88,33 +127,28 @@ return array(
 				),
 			),
 			'filter'     => array(
-				'shingle_filter'     => array(
+				'shingle_filter' => array(
 					'type'             => 'shingle',
 					'min_shingle_size' => 2,
 					'max_shingle_size' => 5,
 				),
-				'ewp_word_delimiter' => array(
-					'type'              => 'word_delimiter',
-					'preserve_original' => true,
-				),
-				'ewp_snowball'       => array(
+				'ewp_snowball'   => array(
 					'type'     => 'snowball',
-					/**
-					 * Filter Elasticsearch default language in mapping
-					 *
-					 * @hook ep_analyzer_language
-					 * @param  {string} $lang Default language
-					 * @param {string} $lang_context Language context
-					 * @return {string} New language
-					 */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
-				'edge_ngram'         => array(
+				'edge_ngram'     => array(
 					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
-					'type'     => 'edgeNGram',
+					'type'     => 'edge_ngram',
 				),
+				'ep_stop'        => [
+					'type'        => 'stop',
+					'ignore_case' => true,
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
+				],
 			),
 			'normalizer' => array(
 				'lowerasciinormalizer' => array(
@@ -125,6 +159,9 @@ return array(
 		),
 	),
 	'mappings' => array(
+		'_meta'             => array(
+			'mapping_version' => '7-0.php',
+		),
 		'date_detection'    => false,
 		'dynamic_templates' => array(
 			array(
@@ -132,7 +169,6 @@ return array(
 					'path_match' => 'post_meta.*',
 					'mapping'    => array(
 						'type'   => 'text',
-						'path'   => 'full',
 						'fields' => array(
 							'{name}' => array(
 								'type' => 'text',
@@ -150,7 +186,6 @@ return array(
 					'path_match' => 'meta.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'value'    => array(
 								'type'   => 'text',
@@ -200,7 +235,6 @@ return array(
 					'path_match' => 'terms.*',
 					'mapping'    => array(
 						'type'       => 'object',
-						'path'       => 'full',
 						'properties' => array(
 							'name'             => array(
 								'type'   => 'text',
@@ -224,6 +258,9 @@ return array(
 								'type' => 'long',
 							),
 							'slug'             => array(
+								'type' => 'keyword',
+							),
+							'facet'            => array(
 								'type' => 'keyword',
 							),
 							'term_order'       => array(
@@ -312,6 +349,9 @@ return array(
 				),
 			),
 			'post_excerpt'          => array(
+				'type' => 'text',
+			),
+			'post_password'         => array(
 				'type' => 'text',
 			),
 			'post_content'          => array(
@@ -410,6 +450,26 @@ return array(
 					),
 					'second'        => array( // Second (0 to 59).
 						'type' => 'integer',
+					),
+				),
+			),
+			'thumbnail'             => array(
+				'type'       => 'object',
+				'properties' => array(
+					'ID'     => array(
+						'type' => 'long',
+					),
+					'src'    => array(
+						'type' => 'text',
+					),
+					'width'  => array(
+						'type' => 'integer',
+					),
+					'height' => array(
+						'type' => 'integer',
+					),
+					'alt'    => array(
+						'type' => 'text',
 					),
 				),
 			),

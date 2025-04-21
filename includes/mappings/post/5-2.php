@@ -48,16 +48,20 @@ return array(
 			'analyzer'   => array(
 				'default'          => array(
 					'tokenizer'   => 'standard',
-					'filter'      => array( 'standard', 'ewp_word_delimiter', 'lowercase', 'stop', 'ewp_snowball' ),
-					'char_filter' => array( 'html_strip' ),
-					/**
-					 * Filter Elasticsearch default language in mapping
-					 *
-					 * @hook ep_analyzer_language
-					 * @param  {string} $lang Default language
-					 * @param {string} $lang_context Language context
-					 * @return {string} New language
-					 */
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'char_filter' => apply_filters( 'ep_default_analyzer_char_filters', array( 'html_strip' ) ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
+				),
+				'default_search'   => array(
+					'tokenizer'   => 'standard',
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'standard', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', array( 'html_strip' ) ),
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language'    => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				),
 				'shingle_analyzer' => array(
@@ -83,14 +87,7 @@ return array(
 				),
 				'ewp_snowball'       => array(
 					'type'     => 'snowball',
-					/**
-					 * Filter Elasticsearch default language in mapping
-					 *
-					 * @hook ep_analyzer_language
-					 * @param  {string} $lang Default language
-					 * @param {string} $lang_context Language context
-					 * @return {string} New language
-					 */
+					/* This filter is documented in includes/mappings/post/7-0.php */
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
 				'edge_ngram'         => array(
@@ -99,6 +96,12 @@ return array(
 					'min_gram' => 3,
 					'type'     => 'edgeNGram',
 				),
+				'ep_stop'            => [
+					'type'        => 'stop',
+					'ignore_case' => true,
+					/* This filter is documented in includes/mappings/post/7-0.php */
+					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
+				],
 			),
 			'normalizer' => array(
 				'lowerasciinormalizer' => array(
@@ -110,6 +113,9 @@ return array(
 	),
 	'mappings' => array(
 		'post' => array(
+			'_meta'             => array(
+				'mapping_version' => '5-2.php',
+			),
 			'date_detection'    => false,
 			'dynamic_templates' => array(
 				array(
@@ -211,6 +217,9 @@ return array(
 								'slug'             => array(
 									'type' => 'keyword',
 								),
+								'facet'            => array(
+									'type' => 'keyword',
+								),
 								'term_order'       => array(
 									'type' => 'long',
 								),
@@ -300,6 +309,9 @@ return array(
 					),
 				),
 				'post_excerpt'          => array(
+					'type' => 'text',
+				),
+				'post_password'         => array(
 					'type' => 'text',
 				),
 				'post_content'          => array(
@@ -398,6 +410,26 @@ return array(
 						),
 						'second'        => array( // Second (0 to 59).
 							'type' => 'integer',
+						),
+					),
+				),
+				'thumbnail'             => array(
+					'type'       => 'object',
+					'properties' => array(
+						'ID'     => array(
+							'type' => 'long',
+						),
+						'src'    => array(
+							'type' => 'text',
+						),
+						'width'  => array(
+							'type' => 'integer',
+						),
+						'height' => array(
+							'type' => 'integer',
+						),
+						'alt'    => array(
+							'type' => 'text',
 						),
 					),
 				),

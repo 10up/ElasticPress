@@ -1,0 +1,49 @@
+name: Build with vendor-prefixed
+
+env:
+  NODE_VERSION: "20"
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+
+jobs:
+  wordpress:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: :php-psr
+        coverage: none
+
+    - name: composer install
+      run: composer install
+
+    - name: "install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Zip
+      run: npm run build:zip
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v4
+      with:
+        name: Plugin Zip
+        retention-days: 2
+        path: |
+          ${{ github.workspace }}/elasticpress.zip
