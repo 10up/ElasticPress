@@ -1,3 +1,5 @@
+/* global wpVersion */
+
 // eslint-disable-next-line jest/valid-describe-callback
 describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' }, () => {
 	it('Can see the settings page link in WordPress Dashboard', () => {
@@ -117,15 +119,25 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 		cy.visitAdminPage('site-health.php?tab=debug');
 		cy.get('[aria-controls="health-check-accordion-block-ep-last-sync"]').click();
 		cy.get('#health-check-accordion-block-ep-last-sync .health-check-table').as('syncTable');
-		cy.get('@syncTable').find('tr:nth-child(1) th').should('contain.text', 'Method');
-		cy.get('@syncTable').find('tr:nth-child(2) th').should('contain.text', 'Full Sync');
-		cy.get('@syncTable').find('tr:nth-child(3) th').should('contain.text', 'Start Date Time');
-		cy.get('@syncTable').find('tr:nth-child(4) th').should('contain.text', 'End Date Time');
-		cy.get('@syncTable').find('tr:nth-child(5) th').should('contain.text', 'Total Time');
-		cy.get('@syncTable').find('tr:nth-child(6) th').should('contain.text', 'Total');
-		cy.get('@syncTable').find('tr:nth-child(7) th').should('contain.text', 'Synced');
-		cy.get('@syncTable').find('tr:nth-child(8) th').should('contain.text', 'Skipped');
-		cy.get('@syncTable').find('tr:nth-child(9) th').should('contain.text', 'Failed');
-		cy.get('@syncTable').find('tr:nth-child(10) th').should('contain.text', 'Errors');
+
+		const selector = wpVersion === '6.2' ? 'td' : 'th';
+		cy.get('@syncTable').find(`tr:nth-child(1) ${selector}`).should('contain.text', 'Method');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(2) ${selector}`)
+			.should('contain.text', 'Full Sync');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(3) ${selector}`)
+			.should('contain.text', 'Start Date Time');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(4) ${selector}`)
+			.should('contain.text', 'End Date Time');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(5) ${selector}`)
+			.should('contain.text', 'Total Time');
+		cy.get('@syncTable').find(`tr:nth-child(6) ${selector}`).should('contain.text', 'Total');
+		cy.get('@syncTable').find(`tr:nth-child(7) ${selector}`).should('contain.text', 'Synced');
+		cy.get('@syncTable').find(`tr:nth-child(8) ${selector}`).should('contain.text', 'Skipped');
+		cy.get('@syncTable').find(`tr:nth-child(9) ${selector}`).should('contain.text', 'Failed');
+		cy.get('@syncTable').find(`tr:nth-child(10) ${selector}`).should('contain.text', 'Errors');
 	});
 });
