@@ -20,9 +20,9 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @since 2.1
 	 * @group related_posts
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -32,11 +32,9 @@ class TestRelatedPosts extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
-
-		delete_option( 'ep_active_features' );
 	}
 
 	/**
@@ -44,11 +42,9 @@ class TestRelatedPosts extends BaseTestCase {
 	 *
 	 * @since 2.1
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 	}
 
@@ -67,9 +63,9 @@ class TestRelatedPosts extends BaseTestCase {
 	 * @group related_posts
 	 */
 	public function testFindRelatedPostFilter() {
-		$post_id = Functions\create_and_sync_post( array( 'post_content' => 'findme test 1' ) );
-		Functions\create_and_sync_post( array( 'post_content' => 'findme test 2' ) );
-		Functions\create_and_sync_post(
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+		$this->ep_factory->post->create( array( 'post_content' => 'findme test 2' ) );
+		$this->ep_factory->post->create(
 			array(
 				'post_content' => 'findme test 3',
 				'post_type'    => 'page',
@@ -90,7 +86,39 @@ class TestRelatedPosts extends BaseTestCase {
 		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id );
 		$this->assertEquals( 2, count( $related ) );
 		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
-		remove_filter( 'ep_find_related_args', array( $this, 'find_related_posts_filter' ), 10, 1 );
+
+		// Make sure it will use the number of posts to be returned.
+		$related = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->find_related( $post_id, 1 );
+		$this->assertEquals( 1, count( $related ) );
+		$this->assertTrue( isset( $related[0] ) && isset( $related[0]->elasticsearch ) );
+	}
+
+	/**
+	 * Test for related posts query
+	 *
+	 * @group related_posts
+	 */
+	public function testGetRelatedQuery() {
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme test 1' ) );
+
+		$related_post_title = 'related post test';
+		$this->ep_factory->post->create(
+			array(
+				'post_title'   => $related_post_title,
+				'post_content' => 'findme test 2',
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+		ElasticPress\Features::factory()->activate_feature( 'related_posts' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$query = ElasticPress\Features::factory()->get_registered_feature( 'related_posts' )->get_related_query( $post_id, 1 );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNotEmpty( $query->posts );
+		$this->assertEquals( '1', $query->post_count );
+		$this->assertEquals( $related_post_title, $query->posts[0]->post_title );
 	}
 
 	/**

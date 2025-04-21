@@ -8,7 +8,7 @@
 namespace ElasticPress\Feature\Search;
 
 use ElasticPress\Features;
-use ElasticPress\Indexable\Post\Post;
+use ElasticPress\Utils;
 
 /**
  * Controls search weighting and search fields dashboard
@@ -21,9 +21,22 @@ class Weighting {
 	 * Sets up the weighting module
 	 */
 	public function setup() {
+		/**
+		 * Filter to disable loading of Search weighting engine.
+		 *
+		 * @hook ep_disable_search_weighting
+		 * @since 4.0
+		 * @param bool Whether to disable search weighting engine. Defaults to false.
+		 * @return bool Whether to disable search weighting engine.
+		 */
+		if ( apply_filters( 'ep_disable_search_weighting', false ) ) {
+			return;
+		}
+
 		add_action( 'admin_menu', [ $this, 'add_weighting_submenu_page' ], 15 );
-		add_action( 'admin_post_ep-weighting', [ $this, 'handle_save' ] );
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
+		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
+		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 	}
 
 	/**
@@ -68,7 +81,7 @@ class Weighting {
 
 		$taxonomies = array_intersect( $public_taxonomies, $post_type_taxonomies );
 
-		if ( $taxonomies ) {
+		if ( ! empty( $taxonomies ) ) {
 			$fields['taxonomies'] = [
 				'label'    => __( 'Taxonomies', 'elasticpress' ),
 				'children' => [],
@@ -85,6 +98,39 @@ class Weighting {
 			}
 		}
 
+		$fields['ep_metadata'] = [
+			'label'    => 'Metadata',
+			'children' => [],
+		];
+
+		$empty_post = new \WP_Post( new \stdClass() );
+
+		$empty_post->post_type = $post_type;
+
+		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
+		$allowed_protected_keys = apply_filters( 'ep_prepare_meta_allowed_protected_keys', [], $empty_post );
+
+		sort( $allowed_protected_keys, SORT_STRING );
+
+		/** This filter is documented in includes/classes/Indexable/Post/Post.php */
+		$excluded_public_keys = apply_filters( 'ep_prepare_meta_excluded_public_keys', [], $empty_post );
+
+		foreach ( $allowed_protected_keys as $meta_key ) {
+			$key = "meta.$meta_key.value";
+
+			if ( in_array( $key, $excluded_public_keys, true ) ) {
+				continue;
+			}
+
+			$required = in_array( $meta_key, $allowed_protected_keys, true );
+
+			$fields['ep_metadata']['children'][ $key ] = [
+				'key'      => $key,
+				'label'    => $meta_key,
+				'required' => $required,
+			];
+		}
+
 		/**
 		 * Filter weighting fields for a post type
 		 *
@@ -94,6 +140,52 @@ class Weighting {
 		 * @return  {array} New fields
 		 */
 		return apply_filters( 'ep_weighting_fields_for_post_type', $fields, $post_type );
+	}
+
+	/**
+	 * Get weightable fields for all searchable post types.
+	 *
+	 * @since 5.0.0
+	 * @return array
+	 */
+	public function get_weightable_fields() {
+		$weightable = array();
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+
+		foreach ( $post_types as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+			$post_type_labels = get_post_type_labels( $post_type_object );
+
+			$weightable_fields = $this->get_weightable_fields_for_post_type( $post_type );
+
+			$groups = [];
+			$fields = [];
+
+			foreach ( $weightable_fields as $group => $weightable_field ) {
+				$groups[] = [
+					'key'   => $group,
+					'label' => $weightable_field['label'],
+				];
+
+				foreach ( $weightable_field['children'] as $field ) {
+					$fields[] = [
+						'group'    => $group,
+						'key'      => $field['key'],
+						'label'    => $field['label'],
+						'required' => isset( $field['required'] ) ? $field['required'] : false,
+					];
+				}
+			}
+
+			$weightable[] = [
+				'key'    => $post_type,
+				'label'  => $post_type_labels->menu_name,
+				'groups' => $groups,
+				'fields' => $fields,
+			];
+		}
+
+		return $weightable;
 	}
 
 	/**
@@ -125,12 +217,21 @@ class Weighting {
 			],
 		];
 
-		/*
+		$post_type_taxonomies = get_object_taxonomies( $post_type );
+
+		/**
+		 * Filter install status
+		 *
 		 * Previous behavior had post_tag and category enabled by default, so if this is supported on the post type
 		 * we add them as enabled by default
+		 *
+		 * @hook ep_weighting_default_enabled_taxonomies
+		 * @param  {array}  $enabled_taxonomies Taxonomies that should be enabled by default
+		 * @param  {string} $post_type          Post type slug
+		 * @return {array}  New taxonomies
+		 * @since  3.6.5
 		 */
-		$post_type_taxonomies = get_object_taxonomies( $post_type );
-		$enabled_by_default   = [ 'post_tag', 'category' ];
+		$enabled_by_default = apply_filters( 'ep_weighting_default_enabled_taxonomies', [ 'post_tag', 'category' ], $post_type );
 
 		foreach ( $enabled_by_default as $default_tax ) {
 			if ( in_array( $default_tax, $post_type_taxonomies, true ) ) {
@@ -169,10 +270,68 @@ class Weighting {
 	}
 
 	/**
+	 * Returns the current weighting configuration with defaults for any
+	 * missing fields.
+	 *
+	 * @return array Current weighting configuration with defaults.
+	 * @since 5.0.0
+	 */
+	public function get_weighting_configuration_with_defaults() {
+		$search = Features::factory()->get_registered_feature( 'search' );
+
+		$post_types = $search->get_searchable_post_types();
+		$weighting  = $this->get_weighting_configuration();
+
+		foreach ( $post_types as $post_type ) {
+			$current  = isset( $weighting[ $post_type ] ) ? $weighting[ $post_type ] : [];
+			$defaults = $this->get_post_type_default_settings( $post_type );
+
+			$weighting[ $post_type ] = wp_parse_args( $current, $defaults );
+		}
+
+		return $weighting;
+	}
+
+	/**
+	 * Returns the current meta mode.
+	 *
+	 * @return array
+	 * @since 5.0.0
+	 */
+	public function get_meta_mode() {
+		/**
+		 * Filter meta management mode.
+		 *
+		 * Setting the meta mode to 'auto' will restore the pre-5.0.0 behavior
+		 * of syncing all public meta fields, but without the ability to
+		 * add fields to make them searchable through the UI. Weighting settings
+		 * will need to be changed, and a sync performed, any time this value
+		 * is changed.
+		 *
+		 * @hook ep_meta_mode
+		 * @since 5.0.0
+		 * @param string $ep_meta_mode Meta mode.
+		 * @return string New meta mode.
+		 */
+		return apply_filters( 'ep_meta_mode', 'manual' );
+	}
+
+	/**
 	 * Adds the submenu page for controlling weighting
 	 */
 	public function add_weighting_submenu_page() {
-		add_submenu_page( 'elasticpress', __( 'Search Fields & Weighting', 'elasticpress' ), __( 'Search Fields & Weighting', 'elasticpress' ), 'manage_options', 'elasticpress-weighting', [ $this, 'render_settings_page' ] );
+		$menu_slug = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! Utils\is_top_level_admin_context() ) ?
+			'elasticpress' :
+			'elasticpress-weighting';
+
+		add_submenu_page(
+			'elasticpress',
+			esc_html__( 'ElasticPress Search Fields & Weighting', 'elasticpress' ),
+			esc_html__( 'Search Fields & Weighting', 'elasticpress' ),
+			Utils\get_capability(),
+			$menu_slug,
+			[ $this, 'render_settings_page' ]
+		);
 	}
 
 	/**
@@ -181,193 +340,158 @@ class Weighting {
 	public function render_settings_page() {
 		include EP_PATH . '/includes/partials/header.php'; ?>
 		<div class="wrap">
-
-			<h1><?php esc_html_e( 'Manage Search Fields & Weighting', 'elasticpress' ); ?></h1>
-			<p><?php esc_html_e( 'Adding more weight to an item will mean it will have more presence during searches. Add more weight to the items that are more important and need more prominence during searches.', 'elasticpress' ); ?></p>
-			<p><?php esc_html_e( 'For example, adding more weight to the title attribute will cause search matches on the post title to appear more prominently.', 'elasticpress' ); ?></p>
-
-			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="weighting-settings metabox-holder">
-				<input type="hidden" name="action" value="ep-weighting">
-				<?php wp_nonce_field( 'save-weighting', 'ep-weighting-nonce' ); ?>
-				<?php
-				if ( isset( $_GET['settings-updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification
-					if ( $_GET['settings-updated'] ) : // phpcs:ignore WordPress.Security.NonceVerification
-						?>
-						<div class="notice notice-success is-dismissible">
-							<p><?php esc_html_e( 'Changes Saved!', 'elasticpress' ); ?></p>
-						</div>
-					<?php else : ?>
-						<div class="notice notice-error is-dismissible">
-							<p><?php esc_html_e( 'An error occurred when saving!', 'elasticpress' ); ?></p>
-						</div>
-						<?php
-					endif;
-				endif;
-
-				/** Features Class @var Features $features */
-				$features = Features::factory();
-
-				/** Search Feature @var Feature\Search\Search $search */
-				$search = $features->get_registered_feature( 'search' );
-
-				$post_types = $search->get_searchable_post_types();
-
-				$current_values = $this->get_weighting_configuration();
-
-				foreach ( $post_types as $post_type ) :
-					$fields           = $this->get_weightable_fields_for_post_type( $post_type );
-					$post_type_object = get_post_type_object( $post_type );
-					?>
-					<div class="postbox">
-						<h2 class="hndle"><?php echo esc_html( $post_type_object->labels->menu_name ); ?></h2>
-
-						<?php
-						foreach ( $fields as $field_group ) :
-							$this->render_settings_section( $post_type, $field_group, $current_values );
-						endforeach;
-						?>
-					</div>
-					<?php
-				endforeach;
-
-				submit_button();
-				?>
-			</form>
+			<div id="ep-weighting-screen"></div>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Recursively renders each settings section and its children
+	 * Recursively renders each settings section and its children.
 	 *
 	 * @param string $post_type      Current post type we're rendering
 	 * @param array  $field          Current field to render
 	 * @param array  $current_values Current stored weighting values
+	 *
+	 * @deprecated
 	 */
-	public function render_settings_section( $post_type, $field, $current_values ) {
-		if ( isset( $field['children'] ) && ! empty( $field['children'] ) ) :
-			?>
-			<div class="field-group">
-				<h3><?php echo esc_html( $field['label'] ); ?></h3>
-				<div class="fields">
-					<?php
-					foreach ( $field['children'] as $child ) {
-						$this->render_settings_section( $post_type, $child, $current_values );
-					}
-					?>
-				</div>
-			</div>
-			<?php
-		elseif ( isset( $field['key'] ) ) :
-			$key = $field['key'];
-
-			$post_type_settings = isset( $current_values[ $post_type ] ) ? $current_values[ $post_type ] : $this->get_post_type_default_settings( $post_type );
-
-			$weight = isset( $post_type_settings[ $key ] ) && isset( $post_type_settings[ $key ]['weight'] ) ? (int) $post_type_settings[ $key ]['weight'] : 0;
-
-			$range_disabled = '';
-
-			$enabled = (
-				isset( $post_type_settings ) &&
-				isset( $post_type_settings[ $key ] ) &&
-				isset( $post_type_settings[ $key ]['enabled'] )
-			)
-				? boolval( $post_type_settings[ $key ]['enabled'] ) : false;
-
-			if ( ! $enabled ) {
-				$range_disabled = 'disabled="disabled" ';
-				$weight         = 0;
-			}
-			?>
-			<fieldset>
-				<legend><?php echo esc_html( $field['label'] ); ?></legend>
-
-				<p class="searchable">
-					<input type="checkbox" value="on" <?php checked( $enabled ); ?> id="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][enabled]">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}-enabled" ); ?>"><?php esc_html_e( 'Searchable', 'elasticpress' ); ?></label>
-				</p>
-
-				<p class="weighting">
-					<label for="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>">
-						<?php esc_html_e( 'Weight: ', 'elasticpress' ); ?>
-						<span class="weighting-value">
-							<?php echo esc_html( $weight ); ?>
-						</span>
-					</label>
-					<input type="range" min="1" max="100" step="1" value="<?php echo esc_attr( $weight ); ?>" id="<?php echo esc_attr( "{$post_type}-{$key}-weight" ); ?>" name="weighting[<?php echo esc_attr( $post_type ); ?>][<?php echo esc_attr( $key ); ?>][weight]" <?php echo $range_disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
-				</p>
-			</fieldset>
-			<?php
-		endif;
+	public function render_settings_section( $post_type, $field, $current_values ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting sections display are now handled via React components.' ),
+			'ElasticPress 5.0.0'
+		);
 	}
 
 	/**
-	 * Handles processing the new weighting values and saving them to the elasticpress.io service
+	 * Handles processing the new weighting values and saving them
+	 * to the elasticpress.io service.
+	 *
+	 * @deprecated
 	 */
 	public function handle_save() {
-		if ( ! isset( $_POST['ep-weighting-nonce'] ) || ! wp_verify_nonce( $_POST['ep-weighting-nonce'], 'save-weighting' ) ) {
-			return;
-		}
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting settings are now updated using the REST API.' ),
+			'ElasticPress 5.0.0'
+		);
+	}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
+	/**
+	 * We need this method to test handle_save properly.
+	 *
+	 * @param string $redirect_url Redirect URL.
+	 * @deprecated
+	 */
+	protected function redirect( $redirect_url ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed,Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting settings are now updated using the REST API, and do not redirect server-side.' ),
+			'ElasticPress 5.0.0'
+		);
+	}
 
-		$new_config                = array();
-		$previous_config_formatted = array();
-		$current_config            = $this->get_weighting_configuration();
+	/**
+	 * Save weighting configuration for each searchable post_type.
+	 *
+	 * @param array $settings weighting settings
+	 * @return void
+	 * @since 3.4.1
+	 * @deprecated
+	 */
+	public function save_weighting_configuration( $settings ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed,Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Weighting sections display are now handled via React components.' ),
+			'ElasticPress 5.0.0'
+		);
+	}
 
-		foreach ( $current_config as $post_type => $post_type_weighting ) {
-			// This also ensures the string is safe, since this would return false otherwise
-			if ( ! post_type_exists( $post_type ) ) {
-				continue;
-			}
-
-			// We need a way to know if fields have been explicitly set before, let's compare a previous state against $_POST['weighting']
-			foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-				$previous_config_formatted[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-					'weight'  => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) ? intval( $_POST['weighting'][ $post_type ][ $weighting_field ]['weight'] ) : 0,
-					'enabled' => isset( $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ) && 'on' === $_POST['weighting'][ $post_type ][ $weighting_field ]['enabled'] ? true : false,
-				];
-			}
-		}
-
-		if ( ! empty( $_POST['weighting'] ) ) {
-			foreach ( $_POST['weighting'] as $post_type => $post_type_weighting ) {
-				// This also ensures the string is safe, since this would return false otherwise
-				if ( ! post_type_exists( $post_type ) ) {
-					continue;
-				}
-
-				$new_config[ $post_type ] = array();
-
-				foreach ( $post_type_weighting as $weighting_field => $weighting_values ) {
-					$new_config[ $post_type ][ sanitize_text_field( $weighting_field ) ] = [
-						'weight'  => isset( $weighting_values['weight'] ) ? intval( $weighting_values['weight'] ) : 0,
-						'enabled' => isset( $weighting_values['enabled'] ) && 'on' === $weighting_values['enabled'] ? true : false,
-					];
-				}
-			}
-		}
-
-		$final_config = array_replace_recursive( $previous_config_formatted, $new_config );
-
-		update_option( 'elasticpress_weighting', $final_config );
-
-		$redirect_url = admin_url( 'admin.php?page=elasticpress-weighting' );
-		$redirect_url = add_query_arg( 'settings-updated', true, $redirect_url );
-
-		// Do a non-blocking search query to force the autosuggest hash to update
-		$url = add_query_arg( [ 's' => 'search test' ], home_url( '/' ) );
-		wp_remote_get(
-			$url,
+	/**
+	 * Register REST routes.
+	 *
+	 * @return void
+	 * @since 5.0.0
+	 */
+	public function register_rest_routes() {
+		register_rest_route(
+			'elasticpress/v1',
+			'weighting',
 			[
-				'blocking' => false,
+				'callback'            => [ $this, 'update_weighting' ],
+				'methods'             => 'POST',
+				'permission_callback' => function () {
+					return current_user_can( Utils\get_capability() );
+				},
 			]
 		);
+	}
 
-		wp_safe_redirect( $redirect_url );
-		exit();
+	/**
+	 * Handles processing the new weighting values and saving them.
+	 *
+	 * @param \WP_Rest_Request $request REST API request.
+	 * @return array
+	 * @since 5.0.0
+	 */
+	public function update_weighting( $request = null ) {
+		$meta_mode = $this->get_meta_mode();
+		$weighting = $request->get_json_params();
+
+		$post_types = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+
+		// Add default fields for post types not sent.
+		foreach ( $post_types as $post_type ) {
+			if ( ! isset( $weighting[ $post_type ] ) ) {
+				$weighting[ $post_type ] = [];
+			}
+		}
+
+		/**
+		 * If metadata is not being managed manually, remove any custom
+		 * fields that have not been registered as weightable fields.
+		 */
+		if ( 'manual' !== $meta_mode ) {
+			foreach ( $weighting as $post_type => $fields ) {
+				$weightable_fields = $this->get_weightable_fields_for_post_type( $post_type );
+
+				foreach ( $fields as $key => $value ) {
+					$is_weightable = false;
+
+					foreach ( $weightable_fields as $group ) {
+						if ( isset( $group['children'][ $key ] ) ) {
+							$is_weightable = true;
+							continue;
+						}
+					}
+
+					if ( ! $is_weightable ) {
+						unset( $weighting[ $post_type ][ $key ] );
+					}
+				}
+			}
+		}
+
+		// Cleanup any post type sent (or added via filters) that does not exist.
+		foreach ( $weighting as $post_type => $fields ) {
+			if ( ! post_type_exists( $post_type ) ) {
+				unset( $weighting[ $post_type ] );
+			}
+		}
+
+		update_option( 'elasticpress_weighting', $weighting );
+
+		/**
+		 * Fires right after the weighting configuration is saved.
+		 *
+		 * @since  3.5.x
+		 * @hook ep_saved_weighting_configuration
+		 */
+		do_action( 'ep_saved_weighting_configuration' );
+
+		return [
+			'data'    => $weighting,
+			'success' => true,
+		];
 	}
 
 	/**
@@ -394,7 +518,31 @@ class Weighting {
 					$weight = (int) $weights[ $field ]['weight'];
 
 					if ( 0 !== $weight ) {
-						$fieldset['fields'][ $key ] = "{$field}^{$weight}";
+						if ( 'author_name' === $field ) {
+							$field = 'post_author.display_name';
+						}
+
+						/**
+						 * Filter fields and their weitghting as used in the Elasticsearch query.
+						 *
+						 * @hook ep_query_weighting_fields
+						 * @param  {string} $weighted_field The field and its weight as used in the ES query.
+						 * @param  {string} $field          Field name
+						 * @param  {string} $weight         Weight value
+						 * @param  {array}  $fieldset       Current subset of formatted ES args
+						 * @param  {array}  $weights        Weight configuration
+						 * @return  {array} New weighted field string
+						 *
+						 * @since  3.5.5
+						 */
+						$fieldset['fields'][ $key ] = apply_filters(
+							'ep_query_weighting_fields',
+							"{$field}^{$weight}",
+							$field,
+							$weight,
+							$fieldset,
+							$weights
+						);
 					}
 				} else {
 					// this handles removing post_author.login field added in Post::format_args() if author search field has being disabled
@@ -436,16 +584,6 @@ class Weighting {
 	 * @return boolean true/false depending on any fields enabled == true
 	 */
 	public function post_type_has_fields( $post_type, $args = [] ) {
-		// define keys which are irrelevant for this consideration
-
-		/**
-		 * Filter fields considered in weighting
-		 *
-		 * @hook ep_weighting_ignore_fields_in_consideration
-		 * @param  {array} $fields Current fields
-		 * @return  {array} New fields
-		 */
-		$ignore_keys   = apply_filters( 'ep_weighting_ignore_fields_in_consideration', [ 'terms.ep_custom_result.name' => true ] );
 		$weight_config = $this->get_weighting_configuration();
 
 		/**
@@ -454,7 +592,7 @@ class Weighting {
 		 * @hook ep_weighting_configuration_for_search
 		 * @param  {array} $weight_config Current weight config
 		 * @param  {array} $args WP Query arguments
-		 * @return  {array} New configutation
+		 * @return  {array} New configuration
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
@@ -464,15 +602,27 @@ class Weighting {
 			$weights = $weight_config[ $post_type ];
 		}
 
-		$weights = array_diff_key( $weights, $ignore_keys );
+		/**
+		 * Filter fields considered in weighting
+		 *
+		 * Define keys which are irrelevant for this consideration, like `terms.ep_custom_result.name`.
+		 *
+		 * @hook ep_weighting_ignore_fields_in_consideration
+		 * @param  {array} $fields Current fields
+		 * @return  {array} New fields
+		 */
+		$ignore_keys = apply_filters( 'ep_weighting_ignore_fields_in_consideration', [ 'terms.ep_custom_result.name' => true ] );
+		$fields      = array_diff_key( $weights, $ignore_keys );
 
-		$found_enabled = array_search( true, array_column( $weights, 'enabled' ), true );
-
-		if ( false !== $found_enabled ) {
-			return true;
+		$found_enabled = false;
+		foreach ( $fields as $field ) {
+			if ( filter_var( $field['enabled'], FILTER_VALIDATE_BOOLEAN ) ) {
+				$found_enabled = true;
+				break;
+			}
 		}
 
-		return false;
+		return $found_enabled;
 	}
 
 	/**
@@ -484,7 +634,8 @@ class Weighting {
 	 * @return array Formatted ES args
 	 */
 	public function do_weighting( $formatted_args, $args ) {
-		/*
+
+		/**
 		 * If search fields is set on the query, we should use those instead of the weighting, since the query was
 		 * overridden by some custom code
 		 */
@@ -500,98 +651,145 @@ class Weighting {
 		 * @hook ep_weighting_configuration_for_search
 		 * @param  {array} $weight_config Current weight config
 		 * @param  {array} $args WP Query arguments
-		 * @return  {array} New configutation
+		 * @return  {array} New configuration
 		 */
 		$weight_config = apply_filters( 'ep_weighting_configuration_for_search', $weight_config, $args );
 
-		if ( ! is_admin() && ! empty( $args['s'] ) ) {
-			/*
-			 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
-			 * which then get combined into one result set. By having separate clauses for each post type, we can then
-			 * weight fields such as post_title per post type so that we can have fine grained control over weights by post
-			 * type, rather than globally on the query
-			 */
-			$new_query = [
-				'bool' => [
-					'should' => [],
-				],
-			];
+		$should_do_weighting = Utils\is_integrated_request( 'weighting', [ 'public', 'rest' ] ) && ! empty( $args['s'] );
 
-			// grab the query and keep track of whether or not it is nested in a function score
-			$function_score = isset( $formatted_args['query']['function_score'] );
-			$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
+		/**
+		 * Filter whether to enable weighting configuration
+		 *
+		 * @hook ep_enable_do_weighting
+		 * @since 4.2.2
+		 * @param  {bool}  Whether to enable weight config, defaults to true for search requests that are public or REST
+		 * @param  {array} $weight_config Current weight config
+		 * @param  {array} $args WP Query arguments
+		 * @param  {array} $formatted_args Formatted ES arguments
+		 * @return  {bool} Whether to use weighting configuration
+		 */
+		if ( apply_filters( 'ep_enable_do_weighting', $should_do_weighting, $weight_config, $args, $formatted_args ) ) {
+			$formatted_args = $this->apply_weighting( $formatted_args, $args, $weight_config );
+		}
 
-			foreach ( (array) $args['post_type'] as $post_type ) {
-				if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
-					continue;
-				}
-				// Copy the query, so we can set specific weight values
-				$current_query = $query;
+		return $formatted_args;
+	}
 
-				if ( isset( $weight_config[ $post_type ] ) ) {
-					// Find all "fields" values and inject weights for the current post type
-					$this->recursively_inject_weights_to_fields( $current_query, $weight_config[ $post_type ] );
-				} else {
-					// Use the default values for the post type
-					$this->recursively_inject_weights_to_fields( $current_query, $this->get_post_type_default_settings( $post_type ) );
-				}
+	/**
+	 * Applies weighting based on ES args
+	 *
+	 * @since 4.2.2
+	 * @param array $formatted_args Formatted ES args
+	 * @param array $args WP_Query args
+	 * @param array $weight_config Weight configuration to apply
+	 *
+	 * @return array $formatted_args Formatted ES args with weightings applied
+	 */
+	protected function apply_weighting( $formatted_args, $args, $weight_config ) {
+		/*
+		 * This section splits up the single query clause for all post types into separate nested clauses (one for each post type)
+		 * which then get combined into one result set. By having separate clauses for each post type, we can then
+		 * weight fields such as post_title per post type so that we can have fine grained control over weights by post
+		 * type, rather than globally on the query
+		*/
+		$new_query = [
+			'bool' => [
+				'should' => [],
+			],
+		];
 
-				// Check for any segments with null fields from recursively_inject function and remove them
-				if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
-					foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
-						if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
-							unset( $current_query['bool']['should'][ $index ] );
-						}
+		// grab the query and keep track of whether or not it is nested in a function score
+		$function_score = isset( $formatted_args['query']['function_score'] );
+		$query          = $function_score ? $formatted_args['query']['function_score']['query'] : $formatted_args['query'];
+
+		foreach ( (array) $args['post_type'] as $post_type ) {
+			if ( false === $this->post_type_has_fields( $post_type, $args ) ) {
+				continue;
+			}
+			// Copy the query, so we can set specific weight values
+			$current_query = $query;
+
+			if ( isset( $weight_config[ $post_type ] ) ) {
+				// Find all "fields" values and inject weights for the current post type
+				$this->recursively_inject_weights_to_fields( $current_query, $weight_config[ $post_type ] );
+			} else {
+				// Use the default values for the post type
+				$this->recursively_inject_weights_to_fields( $current_query, $this->get_post_type_default_settings( $post_type ) );
+			}
+
+			// Check for any segments with null fields from recursively_inject function and remove them
+			if ( isset( $current_query['bool'] ) && isset( $current_query['bool']['should'] ) ) {
+				foreach ( $current_query['bool']['should'] as $index => $current_bool_should ) {
+					if ( isset( $current_bool_should['multi_match'] ) && null === $current_bool_should['multi_match'] ) {
+						unset( $current_query['bool']['should'][ $index ] );
 					}
 				}
+			}
 
-				/**
-				 * Filter weighting query for a post type
-				 *
-				 * @hook ep_weighted_query_for_post_type
-				 * @param  {array} $query Weighting query
-				 * @param  {string} $post_type Post type
-				 * @param  {array} $args WP Query arguments
-				 * @return  {array} New query
-				 */
-				$new_query['bool']['should'][] = apply_filters(
-					'ep_weighted_query_for_post_type',
-					[
-						'bool' => [
-							'must'   => [
-								$current_query,
-							],
-							'filter' => [
-								[
-									'match' => [
-										'post_type.raw' => $post_type,
-									],
+			/**
+			 * Filter weighting query for a post type
+			 *
+			 * @hook ep_weighted_query_for_post_type
+			 * @param  {array} $query Weighting query
+			 * @param  {string} $post_type Post type
+			 * @param  {array} $args WP Query arguments
+			 * @return  {array} New query
+			 */
+			$new_query['bool']['should'][] = apply_filters(
+				'ep_weighted_query_for_post_type',
+				[
+					'bool' => [
+						'must'   => [
+							$current_query,
+						],
+						'filter' => [
+							[
+								'match' => [
+									'post_type.raw' => $post_type,
 								],
 							],
 						],
 					],
-					$post_type,
-					$args
-				);
-			}
-
-			// put the new query back in the correct location
-			if ( $function_score ) {
-				$formatted_args['query']['function_score']['query'] = $new_query;
-			} else {
-				$formatted_args['query'] = $new_query;
-			}
-
-			/**
-			 * Hook after weighting is added to Elasticsearch query
-			 *
-			 * @hook ep_weighting_added
-			 * @param  {array} $formatted_args Elasticsearch query
-			 * @param  {array} $args WP Query arguments
-			 */
-			do_action( 'ep_weighting_added', $formatted_args, $args );
+				],
+				$post_type,
+				$args
+			);
 		}
 
+		// put the new query back in the correct location
+		if ( $function_score ) {
+			$formatted_args['query']['function_score']['query'] = $new_query;
+		} else {
+			$formatted_args['query'] = $new_query;
+		}
+
+		/**
+		 * Hook after weighting is added to Elasticsearch query
+		 *
+		 * @hook ep_weighting_added
+		 * @param  {array} $formatted_args Elasticsearch query
+		 * @param  {array} $args WP Query arguments
+		 */
+		do_action( 'ep_weighting_added', $formatted_args, $args );
+
 		return $formatted_args;
+	}
+
+	/**
+	 * Adjust weighting when the type is cross_fields, as it just works with weight = 1.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param string $weighted_field The field and its weight as used in the ES query.
+	 * @param string $field          Field name
+	 * @param string $weight         Weight value
+	 * @param array  $fieldset       Current subset of formatted ES args
+	 * @return array New weighted field string
+	 */
+	public function adjust_weight_for_cross_fields( $weighted_field, $field, $weight, $fieldset ) {
+		if ( ! empty( $fieldset['type'] ) && 'cross_fields' === $fieldset['type'] ) {
+			$weighted_field = "{$field}^1";
+		}
+		return $weighted_field;
 	}
 }

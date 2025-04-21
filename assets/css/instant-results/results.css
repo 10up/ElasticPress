@@ -1,0 +1,29 @@
+.ep-search-results {
+	display: flex;
+	flex-direction: column;
+	gap: 2em;
+	padding: 0 0 1em 0;
+	width: 100%;
+
+	@media ( min-width: 768px ) {
+		height: 100%;
+		overflow-y: auto;
+		padding: 0 1em 1em 1em;
+	}
+}
+
+.ep-search-results__header {
+	align-items: center;
+	display: flex;
+	gap: 1em;
+	justify-content: space-between;
+}
+
+.ep-search-results__title {
+	font-size: 1.25em;
+	margin: 0 !important;
+
+	@media ( min-width: 768px ) {
+		font-size: 1.5em;
+	}
+}

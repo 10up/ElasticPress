@@ -1,131 +1,118 @@
-/* global wp */
-
-const {
-	__
-} = wp.i18n;
-
-const {
+/**
+ * WordPress dependencies.
+ */
+import apiFetch from '@wordpress/api-fetch';
+import {
 	AlignmentToolbar,
 	BlockControls,
-	InspectorControls
-} = wp.editor;
-
-const {
-	PanelBody,
-	Placeholder,
-	Spinner,
-	QueryControls
-} = wp.components;
-
-const {
-	Fragment,
-	Component,
-	RawHTML
-} = wp.element;
-
-const { addQueryArgs } = wp.url;
+	InspectorControls,
+	useBlockProps,
+} from '@wordpress/block-editor';
+import { Disabled, PanelBody, Placeholder, Spinner, QueryControls } from '@wordpress/components';
+import { Fragment, RawHTML, useEffect, useState } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import { addQueryArgs } from '@wordpress/url';
 
 /**
- * Edit component
+ * Internal dependencies.
  */
-class Edit extends Component {
+import icon from './icon';
+
+/**
+ * Related Posts block edit component.
+ *
+ * @param {object} props Component props.
+ * @param {object} props.attributes Block attributes.
+ * @param {object} props.context Block context,
+ * @param {Function} props.setAttributes Attribute setter.
+ * @returns {Function} Component element.
+ */
+const RelatedPostsEdit = ({ attributes, context, setAttributes }) => {
+	const { alignment, number } = attributes;
+	const [posts, setPosts] = useState(false);
+
+	const blockProps = useBlockProps();
+
 	/**
-	 * Setup class
+	 * Related posts, limited by the selected number.
 	 */
-	constructor( props ) {
-		super( props );
-
-		const { attributes: { number } } = props;
-
-		this.state = {
-			posts: false,
-			number: number
-		};
-	}
+	const displayPosts = posts.length > number ? posts.slice(0, number) : posts;
 
 	/**
-	 * Load preview data
+	 * Initialize block.
 	 */
-	componentDidMount() {
+	const handleInit = () => {
 		const urlArgs = {
-			number: 100
+			number: 100,
 		};
 
-		this.fetchRequest = wp.apiFetch( {
-			path: addQueryArgs( `/wp/v2/posts/${  wp.data.select( 'core/editor' ).getCurrentPostId()  }/related`, urlArgs ),
-		} ).then(
-			( posts ) => {
-				this.setState( { posts: posts } );
-			}
-		).catch(
-			() => {
-				this.setState( { posts: false } );
-			}
-		);
-	}
+		const { postId = 0 } = context;
+
+		apiFetch({
+			path: addQueryArgs(`/elasticpress/v1/related-posts/${postId}`, urlArgs),
+		})
+			.then((posts) => {
+				setPosts(posts);
+			})
+			.catch(() => {
+				setPosts(false);
+			});
+	};
 
 	/**
-	 * Render block
+	 * Effects.
 	 */
-	render() {
-		const { attributes: { alignment, number }, setAttributes, className } = this.props;
-		const { posts } = this.state;
+	useEffect(handleInit, [context]);
 
-		const displayPosts = posts.length > number ? posts.slice( 0, number ) : posts;
-
-		return (
-			<Fragment>
-				<BlockControls>
-					<AlignmentToolbar
-						value={ alignment }
-						onChange={ newValue => setAttributes( { alignment: newValue } ) }
+	return (
+		<Fragment>
+			<BlockControls>
+				<AlignmentToolbar
+					value={alignment}
+					onChange={(newValue) => setAttributes({ alignment: newValue })}
+				/>
+			</BlockControls>
+			<InspectorControls>
+				<PanelBody title={__('Settings', 'elasticpress')}>
+					<QueryControls
+						numberOfItems={number}
+						onNumberOfItemsChange={(value) => setAttributes({ number: value })}
 					/>
-				</BlockControls>
-				<InspectorControls>
-					<PanelBody title={ __( 'Related Post Settings' ) }>
-						<QueryControls
-							numberOfItems={ number }
-							onNumberOfItemsChange={ ( value ) => setAttributes( { number: value } ) }
-						/>
-					</PanelBody>
-				</InspectorControls>
+				</PanelBody>
+			</InspectorControls>
 
-				<div className={ className }>
-					{ false === displayPosts || 0 === displayPosts.length ?
-						<Placeholder
-							icon="admin-post"
-							label={ __( 'Related Posts' ) }
-						>
-							{ false === posts ?
-								<Spinner />
-								:
-								__( 'No related posts yet.' )
-							}
-						</Placeholder>
-						:
-						<ul style={ { textAlign: alignment } }>
-							{ displayPosts.map( ( post, i ) => {
+			<div {...blockProps}>
+				{displayPosts === false || displayPosts.length === 0 ? (
+					<Placeholder icon={icon} label={__('Related Posts', 'elasticpress')}>
+						{posts === false ? (
+							<Spinner />
+						) : (
+							__('No related posts yet.', 'elasticpress')
+						)}
+					</Placeholder>
+				) : (
+					<Disabled>
+						<ul style={{ textAlign: alignment }}>
+							{displayPosts.map((post) => {
 								const titleTrimmed = post.title.rendered.trim();
 								return (
-									<li key={i}>
-										<a href={ post.link }>
-											{ titleTrimmed ? (
-												<RawHTML>
-													{ titleTrimmed }
-												</RawHTML>
-											) :
-												__( '(Untitled)', 'elasticpress' )
-											}
+									<li key={post.id}>
+										<a href={post.link} onClick={(e) => e.preventDefault()}>
+											{titleTrimmed ? (
+												<RawHTML>{titleTrimmed}</RawHTML>
+											) : (
+												__('(Untitled)', 'elasticpress')
+											)}
 										</a>
 									</li>
 								);
-							} ) }
+							})}
 						</ul>
-					}
-				</div>
-			</Fragment>
-		);
-	}
-}
+					</Disabled>
+				)}
+			</div>
+		</Fragment>
+	);
+};
 
-export default Edit;
+export default RelatedPostsEdit;

@@ -1,0 +1,41 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "elasticpress/comments",
+	"title": "Search Comments",
+	"category": "elasticpress",
+	"description": "Let visitors search your site's comments.",
+	"textdomain": "elasticpress",
+	"attributes": {
+		"label": {
+			"default": "Search comments",
+			"type": "string"
+		},
+		"postTypes": {
+			"default": [],
+			"type": "array"
+		}
+	},
+	"supports": {
+		"color": {
+			"background": true,
+			"link": true,
+			"text": true
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"editorScript": "elasticpress-comments-editor-script",
+	"script": "elasticpress-comments",
+	"style": "elasticpress-comments"
+}

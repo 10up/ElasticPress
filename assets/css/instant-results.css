@@ -1,0 +1,29 @@
+@import "./global/colors.css";
+@import "instant-results/utilities.css";
+@import "instant-results/checkbox.css";
+@import "instant-results/input.css";
+@import "instant-results/modal.css";
+@import "instant-results/options-list.css";
+@import "instant-results/page.css";
+@import "instant-results/panel.css";
+@import "instant-results/pagination.css";
+@import "instant-results/pagination-button.css";
+@import "instant-results/range-slider.css";
+@import "instant-results/result.css";
+@import "instant-results/results.css";
+@import "instant-results/sidebar.css";
+@import "instant-results/sidebar-toggle.css";
+@import "instant-results/sort.css";
+@import "instant-results/tokens.css";
+@import "instant-results/toolbar.css";
+
+:root {
+	--ep-search-border-color: #dfdfdf;
+	--ep-search-range-thumb-size: 1.625em;
+	--ep-search-range-track-size: 0.75em;
+
+	@media ( min-width: 768px ) {
+		--ep-search-range-thumb-size: 1.25em;
+		--ep-search-range-track-size: 0.5em;
+	}
+}

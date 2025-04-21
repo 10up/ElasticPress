@@ -1,0 +1,53 @@
+name: Build and Tag
+
+env:
+  NODE_VERSION: "20"
+
+on:
+  push:
+    branches:
+      - 'trunk'
+
+jobs:
+  wordpress:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: :php-psr
+        coverage: none
+
+    - name: composer install
+      run: composer install
+
+    - name: "install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Setup
+      run: 'echo "VERSION=$(grep -Po ''\"version\": \"[0-9\\.]+\"'' package.json | grep -Po ''[0-9\\.]+'')" >> $GITHUB_ENV'
+
+    - name: Tag
+      run: |
+        echo "Releasing version $VERSION ..."
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout -b "release-$VERSION"
+        git add -f dist/* vendor-prefixed/*
+        git commit --no-verify -m "Release $VERSION"
+        git tag "$VERSION"
+        git push --tags
+      env:
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}

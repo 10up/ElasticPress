@@ -1,0 +1,39 @@
+.ep-search-page {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 2;
+	margin: 0;
+	overflow-y: auto;
+	transition: opacity 300ms ease-out;
+	width: 100%;
+
+	@media ( min-width: 768px ) {
+		overflow: hidden;
+	}
+
+	& *,
+	& *::before,
+	& *::after {
+		box-sizing: border-box;
+	}
+
+	&.is-loading {
+		opacity: 0.5;
+	}
+}
+
+.ep-search-page__header,
+.ep-search-page__tools,
+.ep-search-page__body {
+	padding: 0 1em;
+}
+
+.ep-search-page__body {
+
+	@media ( min-width: 768px ) {
+		align-items: flex-start;
+		display: flex;
+		flex-grow: 2;
+		overflow: hidden;
+	}
+}

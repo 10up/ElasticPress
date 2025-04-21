@@ -1,0 +1,7 @@
+.ep-search-checkbox__count::before {
+	content: "(";
+}
+
+.ep-search-checkbox__count::after {
+	content: ")";
+}

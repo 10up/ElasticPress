@@ -1,0 +1,44 @@
+name: "\U0001F680 Enhancement"
+description: "Suggest an idea for this project."
+labels: [ "enhancement" ]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thank you for suggesting an idea to make things better.  Please fill in as much of the template below as you can.
+    - type: textarea
+      attributes:
+          label: Is your enhancement related to a problem? Please describe.
+          description: Please describe the problem you are trying to solve.
+          placeholder: |
+              I use this project as a `...` and I would like `...` so that `...describe benefit...`.
+      validations:
+          required: true
+
+    - type: textarea
+      attributes:
+          label: Designs
+          description: |
+              If applicable, add mockups/screenshots/etc. to help explain your idea.
+              Tip: You can attach images or videos by clicking this area to highlight it and then dragging files in.
+      validations:
+          required: false
+
+    - type: textarea
+      attributes:
+          label: Describe alternatives you've considered
+          description: |
+              Please describe alternative solutions or features you have considered.
+          placeholder: |
+             I have also considered `...describe alternative...`, however I feel that my solution described above is better because of `...reason...`.
+      validations:
+          required: false
+
+    - type: checkboxes
+      id: terms
+      attributes:
+        label: Code of Conduct
+        description: By submitting this issue, you agree to follow our `Code of Conduct` (see the `CODE_OF_CONDUCT.md` file in the repo).
+        options:
+          - label: I agree to follow this project's Code of Conduct
+            required: true

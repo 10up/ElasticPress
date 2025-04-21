@@ -8,10 +8,12 @@
 
 namespace ElasticPress\Indexable\Post;
 
-use \WP_Date_Query as WP_Date_Query;
+use WP_Date_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
+	// @codeCoverageIgnoreStart
 	exit; // Exit if accessed directly.
+	// @codeCoverageIgnoreEnd
 }
 
 /**
@@ -70,9 +72,7 @@ class DateQuery extends WP_Date_Query {
 					$clause_filter = $this->get_es_filter_for_clause( $clause, $query );
 
 					$filter_count = count( $clause_filter );
-					if ( ! $filter_count ) {
-						$filter_chunks['filters'][] = '';
-					} else {
+					if ( $filter_count ) {
 						$filter_chunks['filters'][] = $clause_filter;
 					}
 
@@ -211,7 +211,7 @@ class DateQuery extends WP_Date_Query {
 
 		if ( ! empty( $query['before'] ) ) {
 			$range_filters                   = empty( $range_filters[ $column ] ) ? array( "{$column}" => array( "{$lt}" => [] ) ) : $range_filters;
-			$range_filters[ $column ][ $lt ] = $this->build_mysql_datetime( $query['before'] );
+			$range_filters[ $column ][ $lt ] = $this->build_mysql_datetime( $query['before'], $inclusive );
 		}
 
 		if ( ! empty( $query['after'] ) || ! empty( $query['before'] ) ) {
@@ -411,7 +411,7 @@ class DateQuery extends WP_Date_Query {
 				$_year = $date_query['year'];
 			}
 
-			$max_days_of_year = date( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
+			$max_days_of_year = date_i18n( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
 		} else {
 			// otherwise we use the max of 366 (leap-year).
 			$max_days_of_year = 366;
