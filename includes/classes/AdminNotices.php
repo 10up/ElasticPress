@@ -519,7 +519,7 @@ class AdminNotices {
 			return false;
 		}
 
-		$doc_url = 'https://www.elasticpress.io/documentation/article/compatibility/';
+		$doc_url = 'https://www.elasticpress.io/resources/articles/compatibility/';
 		$html    = sprintf(
 			/* translators: Document page URL */
 			__( 'Your server software is not supported. To learn more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
