@@ -127,6 +127,7 @@ fi
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root option set posts_per_page 5"
 ./bin/wp-env-cli tests-wordpress "wp --allow-root user meta update admin edit_post_per_page 5"
+./bin/wp-env-cli tests-wordpress "wp --allow-root user update admin --user_pass=password"
 
 # Generate a SQL file that can be imported later to make things faster
 # SQL_FILENAME=./bin/$(date +'%F-%H-%M').sql

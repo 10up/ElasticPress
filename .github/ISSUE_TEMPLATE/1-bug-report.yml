@@ -55,8 +55,9 @@ body:
           label: WordPress and ElasticPress information
           placeholder: |
              <details><summary>Status Report info:</summary>
-             <!-- Go to ElasticPress > Status Report, click "Copy status report to clipboard", and paste those details here. -->
-             <!-- If your ElasticPress version is below 4.4.0, then please go to Tools > Site Health > Info tab, click "Copy site info to clipboard", and paste here those details instead. -->
+             <!-- Go to ElasticPress > Status Report and click on "Generate Full Status Report" -->
+             <!-- Click "Copy status report to clipboard" and paste those details here. -->
+             <!-- If your ElasticPress version is below 4.4.0, then please go to Tools > Site Health > Info tab, click "Copy site info to clipboard", and paste those details here instead. -->
              </details>
       validations:
           required: false

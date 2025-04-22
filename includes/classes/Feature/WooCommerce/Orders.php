@@ -373,6 +373,7 @@ class Orders {
 			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled.", 'elasticpress' ),
 			'type'    => 'warning',
 			'dismiss' => true,
+			'scope'   => 'site',
 		];
 
 		return $notices;

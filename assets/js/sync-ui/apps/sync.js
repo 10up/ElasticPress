@@ -55,13 +55,20 @@ export default () => {
 	};
 
 	/**
-	 * Handle a completed sync.
+	 * Display a notice when a sync is complete.
+	 */
+	const onCompleteDisplayNotice = () => {
+		if (isComplete) {
+			createNotice('success', __('Sync completed.', 'elasticpress'));
+		}
+	};
+
+	/**
+	 * Handle logs and errors count when a sync is complete.
 	 */
 	const onComplete = () => {
 		if (isComplete) {
 			const newErrorCount = errorCounts.reduce((c, e) => c + e.count, 0);
-
-			createNotice('success', __('Sync completed.', 'elasticpress'));
 
 			if (newErrorCount > errorCount) {
 				setIsLogOpen(true);
@@ -101,6 +108,7 @@ export default () => {
 		logMessage(__('Starting sync…', 'elasticpress'), 'info');
 	};
 
+	useEffect(onCompleteDisplayNotice, [createNotice, isComplete]);
 	useEffect(onComplete, [createNotice, errorCount, errorCounts, isComplete]);
 	useEffect(onInit, [autoIndex, logMessage, startSync, syncTrigger]);
 
