@@ -57,7 +57,7 @@ You can report any security bugs found in the source code of ElasticPress throug
 
 = Is ElasticPress compatible with OpenSearch or Elasticsearch X.Y? =
 
-ElasticPress requirements can be found in the [Requirements section](https://github.com/10up/ElasticPress#requirements) of our GitHub repository. If your solution relies on a different server or version, you may find additional information on our [Compatibility documentation page](https://10up.github.io/ElasticPress/tutorial-compatibility.html).
+ElasticPress requirements can be found in the [Requirements section](https://github.com/10up/ElasticPress#requirements) of our GitHub repository. If your solution relies on a different server or version, you may find additional information on our [Compatibility documentation page](https://www.elasticpress.io/documentation/article/compatibility/).
 
 = I really like ElasticPress! Can I contribute? =
 
