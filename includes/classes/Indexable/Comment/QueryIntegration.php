@@ -8,9 +8,9 @@
 
 namespace ElasticPress\Indexable\Comment;
 
-use ElasticPress\Indexables as Indexables;
-use \WP_Comment_Query as WP_Comment_Query;
-use ElasticPress\Utils as Utils;
+use WP_Comment_Query;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -38,11 +38,25 @@ class QueryIntegration {
 	/**
 	 * Sets up the appropriate actions and filters.
 	 *
+	 * @param string $indexable_slug Indexable slug. Optional.
+	 *
 	 * @since 3.6.0
 	 */
-	public function __construct() {
+	public function __construct( $indexable_slug = 'comment' ) {
+		/**
+		 * Filter whether to enable query integration during indexing
+		 *
+		 * @since 4.5.2
+		 * @hook ep_enable_query_integration_during_indexing
+		 *
+		 * @param {bool} $enable To allow query integration during indexing
+		 * @param {string} $indexable_slug Indexable slug
+		 * @return {bool} New value
+		 */
+		$allow_query_integration_during_indexing = apply_filters( 'ep_enable_query_integration_during_indexing', false, $indexable_slug );
+
 		// Check if we are currently indexing
-		if ( Utils\is_indexing() ) {
+		if ( Utils\is_indexing() && ! $allow_query_integration_during_indexing ) {
 			return;
 		}
 
@@ -113,11 +127,31 @@ class QueryIntegration {
 			return $new_comments;
 		}
 
+		$new_comments = [];
+
 		$formatted_args = $this->indexable->format_args( $query->query_vars );
 
 		$scope = 'current';
+
+		$site__in     = [];
+		$site__not_in = [];
+
 		if ( ! empty( $query->query_vars['sites'] ) ) {
-			$scope = $query->query_vars['sites'];
+			_deprecated_argument( __FUNCTION__, '4.4.0', esc_html__( 'sites is deprecated. Use site__in instead.', 'elasticpress' ) );
+		}
+
+		if ( ! empty( $query->query_vars['site__in'] ) || ! empty( $query->query_vars['sites'] ) ) {
+			$site__in = ! empty( $query->query_vars['site__in'] ) ? (array) $query->query_vars['site__in'] : (array) $query->query_vars['sites'];
+
+			if ( in_array( 'all', $site__in, true ) ) {
+				$scope = 'all';
+			} elseif ( in_array( 'current', $site__in, true ) ) {
+				$site__in = (array) get_current_blog_id();
+			}
+		}
+
+		if ( ! empty( $query->query_vars['site__not_in'] ) ) {
+			$site__not_in = (array) $query->query_vars['site__not_in'];
 		}
 
 		/**
@@ -138,16 +172,31 @@ class QueryIntegration {
 
 		if ( 'all' === $scope ) {
 			$this->index = $this->indexable->get_network_alias();
-		} elseif ( is_numeric( $scope ) ) {
-			$this->index = $this->indexable->get_index_name( (int) $scope );
-		} elseif ( is_array( $scope ) ) {
+		} elseif ( ! empty( $site__in ) ) {
 			$this->index = [];
 
-			foreach ( $scope as $site_id ) {
+			foreach ( $site__in as $site_id ) {
 				$this->index[] = $this->indexable->get_index_name( $site_id );
 			}
 
 			$this->index = implode( ',', $this->index );
+		} elseif ( ! empty( $site__not_in ) ) {
+
+			$sites = \get_sites(
+				array(
+					'fields'       => 'ids',
+					'site__not_in' => $site__not_in,
+				)
+			);
+			foreach ( $sites as $site_id ) {
+				if ( ! Utils\is_site_indexable( $site_id ) ) {
+					continue;
+				}
+				$index[] = Indexables::factory()->get( 'comment' )->get_index_name( $site_id );
+			}
+
+			$this->index = implode( ',', $index );
+
 		}
 
 		$ep_query = $this->indexable->query_es( $formatted_args, $query->query_vars, $this->index, $query );
@@ -282,7 +331,7 @@ class QueryIntegration {
 				}
 			}
 
-			$level ++;
+			++$level;
 			$levels[ $level ] = $child_comments;
 		} while ( $child_comments );
 
@@ -323,5 +372,4 @@ class QueryIntegration {
 
 		return $comments;
 	}
-
 }

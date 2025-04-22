@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 /**
  * WordPress dependencies.
@@ -63,6 +63,7 @@ export class Pointers extends Component {
 			defaultResults: {},
 			searchText: '',
 			searchResults: {},
+			removedPointers: [],
 		};
 	}
 
@@ -101,9 +102,11 @@ export class Pointers extends Component {
 
 	removePointer = (pointer) => {
 		let { pointers } = this.state;
+		const { removedPointers } = this.state;
 
 		delete pointers[pointers.indexOf(pointer)];
 		pointers = pointers.filter((item) => item !== null);
+		removedPointers.push(pointer.ID);
 
 		this.setState({ pointers });
 	};
@@ -113,23 +116,16 @@ export class Pointers extends Component {
 		const { title, defaultResults } = this.state;
 		let merged = defaultResults[title].slice();
 
-		const setIds = {};
-		merged.forEach((item) => {
-			setIds[item.ID] = item;
-		});
-
 		pointers = pointers.sort((a, b) => {
 			return a.order > b.order ? 1 : -1;
 		});
+		const pointersIds = pluck(pointers, 'ID');
 
+		// Remove all custom pointers from the default results
+		merged = merged.filter((item) => pointersIds.indexOf(item.ID) === -1);
+
+		// Insert pointers into their proper location
 		pointers.forEach((pointer) => {
-			// Remove the original if a duplicate
-			if (setIds[pointer.ID]) {
-				delete merged[merged.indexOf(setIds[pointer.ID])];
-				merged = merged.filter((item) => item);
-			}
-
-			// Insert into proper location
 			merged.splice(parseInt(pointer.order, 10) - 1, 0, pointer);
 		});
 
@@ -190,6 +186,7 @@ export class Pointers extends Component {
 		pointers.push({
 			ID: id,
 			order: position,
+			type: 'custom-result',
 		});
 
 		this.setState({ pointers });
@@ -227,17 +224,12 @@ export class Pointers extends Component {
 		const pointers = [];
 
 		items.forEach((item, index) => {
-			if (item.order) {
-				// Reordering an existing pointer
+			// Reordering an existing pointer or adding a default post to the pointers array
+			if (item.order || Number(item.ID) === Number(result.draggableId)) {
 				pointers.push({
 					ID: item.ID,
 					order: index + 1,
-				});
-			} else if (item.ID === result.draggableId) {
-				// Adding a default post to the pointers array
-				pointers.push({
-					ID: item.ID,
-					order: index + 1,
+					type: item?.type || 'reordered',
 				});
 			}
 		});
@@ -300,6 +292,7 @@ export class Pointers extends Component {
 			defaultResults,
 			title,
 			pointers,
+			removedPointers,
 			searchText,
 			searchResults: searchResultsFromState,
 		} = this.state;
@@ -338,7 +331,7 @@ export class Pointers extends Component {
 		const searchResults = searchResultsFromState[searchText]
 			? searchResultsFromState[searchText].filter(
 					(item) => renderedIds.indexOf(item.ID) === -1,
-			  )
+				)
 			: false;
 
 		return (
@@ -359,6 +352,8 @@ export class Pointers extends Component {
 											? index + 1
 											: index;
 
+									const isRemoved = removedPointers.includes(item.ID);
+
 									let { title } = item;
 									if (undefined === title) {
 										title =
@@ -368,15 +363,14 @@ export class Pointers extends Component {
 									}
 
 									// Determine if this result is part of default search results or not
-									const isDefaultResult =
-										undefined !== defaultResultsById[item.ID];
+									const itemType = item?.type || 'reordered';
 									const tooltipText =
-										isDefaultResult === true
+										itemType === 'reordered'
 											? __('Return to original position', 'elasticpress')
 											: __(
 													'Remove custom result from results list',
 													'elasticpress',
-											  );
+												);
 
 									return (
 										<Fragment key={item.ID}>
@@ -408,34 +402,25 @@ export class Pointers extends Component {
 
 											<Draggable
 												key={item.ID}
-												draggableId={item.ID}
+												draggableId={String(item.ID)}
 												index={draggableIndex}
 											>
 												{(provided2) => (
 													<div
-														className={`pointer ${draggableIndex}`}
+														className={`pointer ${draggableIndex} ${
+															isRemoved ? 'removed' : ''
+														}`}
 														ref={provided2.innerRef}
 														{...provided2.draggableProps}
 													>
-														{item.order && isDefaultResult === true && (
+														{item.order && itemType === 'reordered' && (
 															<span className="pointer-type">RD</span>
 														)}
-														{item.order &&
-															isDefaultResult === false && (
-																<span className="pointer-type">
-																	CR
-																</span>
-															)}
+														{item.order && itemType !== 'reordered' && (
+															<span className="pointer-type">CR</span>
+														)}
 														<strong className="title">{title}</strong>
 														<div className="pointer-actions">
-															<span
-																className="dashicons dashicons-menu handle"
-																{...provided2.dragHandleProps}
-																title={__(
-																	'Drag post up or down to reposition',
-																	'elasticpress',
-																)}
-															/>
 															{item.order && (
 																<span
 																	role="button"
@@ -456,6 +441,14 @@ export class Pointers extends Component {
 																	</span>
 																</span>
 															)}
+															<span
+																className="dashicons dashicons-menu handle"
+																{...provided2.dragHandleProps}
+																title={__(
+																	'Drag post up or down to reposition',
+																	'elasticpress',
+																)}
+															/>
 														</div>
 													</div>
 												)}

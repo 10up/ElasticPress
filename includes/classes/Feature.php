@@ -10,7 +10,8 @@
 
 namespace ElasticPress;
 
-use ElasticPress\FeatureRequirementsStatus as FeatureRequirementsStatus;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -35,6 +36,14 @@ abstract class Feature {
 	 * @since  2.1
 	 */
 	public $title;
+
+	/**
+	 * Short title
+	 *
+	 * @var string
+	 * @since 4.4.1
+	 */
+	public $short_title;
 
 	/**
 	 * Feature summary
@@ -64,9 +73,17 @@ abstract class Feature {
 	 * True if the feature requires content reindexing after activating
 	 *
 	 * @since 2.1
-	 * @var [type]
+	 * @var bool
 	 */
-	public $requires_install_reindex;
+	public $requires_install_reindex = false;
+
+	/**
+	 * The slug of a setting that requires content reindexing after activating.
+	 *
+	 * @since 4.5.0
+	 * @var string
+	 */
+	public $setting_requires_install_reindex = '';
 
 	/**
 	 * The order in the features screen
@@ -94,6 +111,38 @@ abstract class Feature {
 	public $available_during_installation = false;
 
 	/**
+	 * Whether the feature should be always visible in the dashboard
+	 *
+	 * @since 4.5.0
+	 * @var boolean
+	 */
+	protected $is_visible = true;
+
+	/**
+	 * Settings description
+	 *
+	 * @since 5.0.0
+	 * @var array
+	 */
+	protected $settings_schema = [];
+
+	/**
+	 * The slug of a feature that is required to be active.
+	 *
+	 * @since 5.0.0
+	 * @var false|string
+	 */
+	protected $requires_feature = false;
+
+	/**
+	 * Whether the feature is using ElasticPress.io.
+	 *
+	 * @since 5.0.0
+	 * @var boolean
+	 */
+	protected $is_powered_by_epio = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -107,7 +156,7 @@ abstract class Feature {
 	 */
 	public function output_feature_box_summary() {
 		if ( $this->summary ) {
-			echo '<p>' . esc_html( $this->summary ) . '</p>';
+			echo wp_kses_post( $this->summary );
 		}
 	}
 
@@ -116,7 +165,7 @@ abstract class Feature {
 	 *
 	 * @since  3.0
 	 */
-	abstract public function output_feature_box_long();
+	public function output_feature_box_long() {}
 
 	/**
 	 * Create feature
@@ -158,17 +207,30 @@ abstract class Feature {
 	/**
 	 * Return feature settings
 	 *
-	 * @since  2.2.1
-	 * @return array|bool
+	 * @since  2.2.1, 4.5.0 started using default settings
+	 * @return array
 	 */
 	public function get_settings() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
-		}
+		$all_settings = Utils\get_option( 'ep_feature_settings', [] );
 
-		return ( ! empty( $feature_settings[ $this->slug ] ) ) ? $feature_settings[ $this->slug ] : false;
+		$feature_settings = ( ! empty( $all_settings[ $this->slug ] ) ) ? (array) $all_settings[ $this->slug ] : [];
+
+		$feature_settings = wp_parse_args( $feature_settings, $this->default_settings );
+
+		return $feature_settings;
+	}
+
+	/**
+	 * Return a specific setting of the feature
+	 *
+	 * @since 4.5.0
+	 * @param string $setting_name The setting name
+	 * @return mixed
+	 */
+	public function get_setting( string $setting_name ) {
+		$settings = $this->get_settings();
+
+		return isset( $settings[ $setting_name ] ) ? $settings[ $setting_name ] : null;
 	}
 
 	/**
@@ -178,11 +240,7 @@ abstract class Feature {
 	 * @return boolean
 	 */
 	public function is_active() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$feature_settings = get_site_option( 'ep_feature_settings', [] );
-		} else {
-			$feature_settings = get_option( 'ep_feature_settings', [] );
-		}
+		$feature_settings = Utils\get_option( 'ep_feature_settings', [] );
 
 		$active = false;
 
@@ -201,6 +259,21 @@ abstract class Feature {
 		 * @return {bool}  New active value
 		 */
 		return apply_filters( 'ep_feature_active', $active, $feature_settings, $this );
+	}
+
+	/**
+	 * Get the value of the setting that requires a reindex, if it exists.
+	 *
+	 * @since 4.5.0
+	 * @return mixed
+	 */
+	public function get_reindex_setting() {
+		$settings = $this->get_settings();
+		$setting  = $this->setting_requires_install_reindex;
+
+		return $settings && $setting && ! empty( $settings[ $setting ] )
+			? $settings[ $setting ]
+			: '';
 	}
 
 	/**
@@ -299,9 +372,9 @@ abstract class Feature {
 				<?php endforeach; ?>
 			<?php endif; ?>
 
-			<?php if ( $this->requires_install_reindex ) : ?>
+			<?php if ( $this->requires_install_reindex || $this->setting_requires_install_reindex ) : ?>
 				<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
-					<?php esc_html_e( 'Enabling this feature will require re-indexing your content.', 'elasticpress' ); ?>
+					<?php esc_html_e( 'Enabling this feature will require re-syncing your content.', 'elasticpress' ); ?>
 				</div>
 			<?php endif; ?>
 
@@ -341,6 +414,8 @@ abstract class Feature {
 				<input type="hidden" name="feature" value="<?php echo esc_attr( $this->slug ); ?>">
 				<input type="hidden" name="requires_reindex" value="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>">
 				<input type="hidden" name="was_active" value="<?php echo $this->is_active() ? '1' : '0'; ?>">
+				<input type="hidden" name="setting_requires_reindex" value="<?php echo esc_attr( $this->setting_requires_install_reindex ); ?>">
+				<input type="hidden" name="setting_requires_reindex_was" value="<?php echo esc_attr( $this->get_reindex_setting() ); ?>">
 				<?php wp_nonce_field( 'ep_dashboard_nonce', 'nonce' ); ?>
 
 				<button name="submit" <?php disabled( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ); ?> class="button button-primary" type="submit">
@@ -350,5 +425,210 @@ abstract class Feature {
 		</form>
 
 		<?php
+	}
+
+	/**
+	 * Returns the ElasticPress.io logo.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_epio_logo(): string {
+		return sprintf( '<img class="feature-epio-logo" alt="ElasticPress.io logo" src="%s" width="110" height="20">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
+	}
+
+	/**
+	 * Returns the feature title.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_title(): string {
+		return $this->title;
+	}
+
+	/**
+	 * Returns the feature short title.
+	 *
+	 * @since 4.4.1
+	 * @return string
+	 */
+	public function get_short_title(): string {
+		if ( ! empty( $this->short_title ) ) {
+			return $this->short_title;
+		}
+
+		return $this->get_title();
+	}
+
+	/**
+	 * Returns whether the feature is visible in the dashboard or not.
+	 *
+	 * By default, all active features are visible.
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_visible() {
+		/**
+		 * Filter whether a feature is visible or not in the dashboard.
+		 *
+		 * Example:
+		 * ```
+		 * add_filter(
+		 *     'ep_feature_is_visible',
+		 *     function ( $is_visible, $feature_slug ) {
+		 *         return 'terms' === $feature_slug ? true : $is_visible;
+		 *     },
+		 *     10,
+		 *     2
+		 * );
+		 * ```
+		 *
+		 * @hook ep_feature_is_visible
+		 * @param {bool}    $is_visible   True to display the feature
+		 * @param {string}  $feature_slug Feature slug
+		 * @param {Feature} $feature      Feature object
+		 * @since 4.5.0
+		 * @return {bool} New $is_visible value
+		 */
+		return apply_filters( 'ep_feature_is_visible', $this->is_visible || $this->is_active(), $this->slug, $this );
+	}
+
+	/**
+	 * Returns whether the feature is available or not.
+	 *
+	 * @since 4.5.0
+	 * @return boolean
+	 */
+	public function is_available(): bool {
+		$requirements_status = $this->requirements_status();
+		/**
+		 * Filter whether a feature is available or not.
+		 *
+		 * Example:
+		 * ```
+		 * add_filter(
+		 *     'ep_feature_is_available',
+		 *     function ( $is_available, $feature_slug ) {
+		 *         return 'terms' === $feature_slug ? true : $is_available;
+		 *     },
+		 *     10,
+		 *     2
+		 * );
+		 * ```
+		 *
+		 * @hook ep_feature_is_available
+		 * @param {bool}    $is_available True if the feature is available
+		 * @param {string}  $feature_slug Feature slug
+		 * @param {Feature} $feature      Feature object
+		 * @since 4.5.0
+		 * @return {bool} New $is_available value
+		 */
+		return apply_filters( 'ep_feature_is_available', $this->is_visible() && 2 !== $requirements_status->code, $this->slug, $this );
+	}
+
+	/**
+	 * Get a JSON representation of the feature
+	 *
+	 * @since 5.0.0
+	 * @return string
+	 */
+	public function get_json() {
+		$requirements_status = $this->requirements_status();
+
+		$feature_desc = [
+			'slug'              => $this->slug,
+			'title'             => $this->get_title(),
+			'shortTitle'        => $this->get_short_title(),
+			'summary'           => $this->summary,
+			'docsUrl'           => $this->docs_url,
+			'defaultSettings'   => $this->default_settings,
+			'order'             => $this->order,
+			'isAvailable'       => $this->is_available(),
+			'isPoweredByEpio'   => $this->is_powered_by_epio,
+			'isVisible'         => $this->is_visible(),
+			'reqStatusCode'     => $requirements_status->code,
+			'reqStatusMessages' => (array) $requirements_status->message,
+			'settingsSchema'    => $this->get_settings_schema(),
+		];
+
+		return $feature_desc;
+	}
+
+	/**
+	 * Return the feature settings schema
+	 *
+	 * @since 5.0.0
+	 * @return array
+	 */
+	public function get_settings_schema() {
+		// Settings were not set yet.
+		if ( [] === $this->settings_schema ) {
+			$this->set_settings_schema();
+		}
+
+		$active = [
+			'default'          => false,
+			'key'              => 'active',
+			'label'            => __( 'Enable', 'elasticpress' ),
+			'requires_feature' => $this->requires_feature,
+			'requires_sync'    => $this->requires_install_reindex,
+			'type'             => 'toggle',
+		];
+
+		$settings_schema = [
+			$active,
+			...$this->settings_schema,
+		];
+
+		/**
+		 * Filter the settings schema of a feature
+		 *
+		 * @hook ep_feature_is_available
+		 * @since 5.0.0
+		 * @param {array}   $settings_schema True if the feature is available
+		 * @param {string}  $feature_slug    Feature slug
+		 * @param {Feature} $feature         Feature object
+		 * @return {array} New $settings_schema value
+		 */
+		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
+	}
+
+	/**
+	 * Default implementation of `set_settings_schema` based on the `default_settings` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		if ( [] === $this->default_settings ) {
+			return;
+		}
+
+		foreach ( $this->default_settings as $key => $default_value ) {
+			$type = 'text';
+			if ( in_array( $default_value, [ '0', '1' ], true ) ) {
+				$type = 'checkbox';
+			}
+			if ( is_bool( $default_value ) ) {
+				$type = 'toggle';
+			}
+
+			$this->settings_schema[] = [
+				'default' => $default_value,
+				'key'     => $key,
+				'label'   => $key,
+				'type'    => $type,
+			];
+		}
+	}
+
+	/**
+	 * Sets the i18n strings for the feature.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
 	}
 }

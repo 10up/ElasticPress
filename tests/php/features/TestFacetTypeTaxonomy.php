@@ -7,12 +7,13 @@
 
 namespace ElasticPressTest;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 /**
  * Facets\Types\Taxonomy\FacetType test class
  */
 class TestFacetTypeTaxonomy extends BaseTestCase {
+
 	/**
 	 * Test get_filter_name
 	 *
@@ -31,12 +32,11 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_filter_name', $change_filter_name );
 		$this->assertEquals( 'ep_filter__', $facet_type->get_filter_name() );
-		remove_filter( 'ep_facet_filter_name', $change_filter_name );
 	}
 
 	/**
@@ -57,12 +57,11 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_filter_type', $change_filter_type );
 		$this->assertEquals( 'taxonomies_', $facet_type->get_filter_type() );
-		remove_filter( 'ep_facet_filter_type', $change_filter_type );
 	}
 
 	/**
@@ -75,7 +74,15 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$public_taxonomies    = array_keys( get_taxonomies( array( 'public' => true ), 'names' ) );
+		$public_taxonomies    = array_keys(
+			get_taxonomies(
+				array(
+					'public'  => true,
+					'show_ui' => true,
+				),
+				'names'
+			)
+		);
 		$facetable_taxonomies = array_keys( $facet_type->get_facetable_taxonomies() );
 
 		/**
@@ -87,7 +94,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_include_taxonomies` filter
 		 */
-		$change_facetable_taxonomies = function( $taxonomies ) {
+		$change_facetable_taxonomies = function ( $taxonomies ) {
 			unset( $taxonomies['category'] );
 			return $taxonomies;
 		};
@@ -95,8 +102,6 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 
 		$facetable_taxonomies = array_keys( $facet_type->get_facetable_taxonomies() );
 		$this->assertNotContains( 'category', $facetable_taxonomies );
-
-		remove_filter( 'ep_facet_include_taxonomies', $change_facetable_taxonomies );
 	}
 
 	/**
@@ -115,7 +120,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		 * Test default behavior
 		 */
 		$default_cat_agg = [
-			'terms' => [					
+			'terms' => [
 				'size'  => 10000,
 				'field' => 'terms.category.slug',
 			],
@@ -125,7 +130,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_use_field` filter
 		 */
-		$change_cat_facet_field = function( $field, $taxonomy ) {
+		$change_cat_facet_field = function ( $field, $taxonomy ) {
 			return ( 'category' === $taxonomy->name ) ? 'term_id' : $field;
 		};
 
@@ -140,7 +145,7 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_taxonomies_size` filter
 		 */
-		$change_tax_bucket_size = function( $size, $taxonomy ) {
+		$change_tax_bucket_size = function ( $size, $taxonomy ) {
 			return ( 'category' === $taxonomy->name ) ? 5 : $size;
 		};
 
@@ -149,86 +154,204 @@ class TestFacetTypeTaxonomy extends BaseTestCase {
 		$with_aggs = $facet_type->set_wp_query_aggs( [] );
 		$this->assertSame( 5, $with_aggs['category']['terms']['size'] );
 		$this->assertSame( 10000, $with_aggs['post_tag']['terms']['size'] );
-
-		remove_filter( 'ep_facet_taxonomies_size', $change_tax_bucket_size );
 	}
 
 	/**
-	 * Test agg_filters
+	 * Test add_query_filters
 	 *
-	 * @since 4.3.0
+	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testAggFilters() {
+	public function testAddQueryFilters() {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$query_args = [];
-		$this->assertSame( $query_args, $facet_type->agg_filters( $query_args ) );
+		parse_str( 'ep_filter_taxonomy=dolor,amet', $_GET );
 
-		$query_args = [
-			'tax_query' => [
-				[
-					'taxonomy' => 'category',
-					'terms'    => [ 1, 2, 3 ],
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'terms.taxonomy.slug' => 'dolor',
 				],
-				[
-					'taxonomy' => 'post_tag',
-					'terms'    => [ 4, 5, 6 ],
+			],
+			[
+				'term' => [
+					'terms.taxonomy.slug' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		/**
+		 * Changing the match type should change from `term` to `terms`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'terms' => [
+					'terms.taxonomy.slug' => [ 'dolor', 'amet' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+	}
+
+	/**
+	 * Test get_sanitize_callback method.
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testGetSanitizeCallback() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$test_taxonomy = 'This is a test taxonomy';
+
+		parse_str( "ep_filter_taxonomy={$test_taxonomy}", $_GET );
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_title runs by default on taxonomy facets
+		$expected_result = sanitize_title( $test_taxonomy );
+		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
+
+		$sanitize_function = function ( $callback ) {
+
+			$this->assertSame( 'sanitize_title', $callback );
+
+			return 'sanitize_text_field';
+		};
+
+		// modify the sanitize callback.
+		add_filter( 'ep_facet_sanitize_callback', $sanitize_function );
+
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs when filter is applied.
+		$expected_result = sanitize_text_field( $test_taxonomy );
+		$this->assertArrayHasKey( $expected_result, $selected['taxonomies']['taxonomy']['terms'] );
+	}
+
+	/**
+	 * Test the format_selected method.
+	 *
+	 * @todo Move this to a mock, as it is just inherited now
+	 * @since 4.5.0
+	 */
+	public function testFormatSelected() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		$original_filters = [ 'custom_type' => [ 'facet' => [ 1, 2, 3 ] ] ];
+		$new_filters      = $facet_type->format_selected( 'category', 'slug1,slug2', $original_filters );
+		$expected_filters = array_merge(
+			$original_filters,
+			[
+				$facet_type->get_filter_type() => [
+					'category' => [
+						'terms' => [
+							'slug1' => true,
+							'slug2' => true,
+						],
+					],
+				],
+			]
+		);
+
+		$this->assertSame( $new_filters, $expected_filters );
+
+		/**
+		 * Analyzing tags=slug3,slug4 should ADD tags, keeping the category index.
+		 */
+		$original_filters = $expected_filters;
+		$new_filters      = $facet_type->format_selected( 'tags', 'slug3,slug4', $original_filters );
+
+		$expected_filters[ $facet_type->get_filter_type() ]['tags'] = [
+			'terms' => [
+				'slug3' => true,
+				'slug4' => true,
+			],
+		];
+
+		$this->assertSame( $new_filters, $expected_filters );
+	}
+
+	/**
+	 * Test the add_query_params method.
+	 *
+	 * @todo Move this to a mock, as it is just inherited now
+	 * @since 4.5.0
+	 */
+	public function testAddQueryParams() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
+
+		$original_query_params = [ 'custom_name' => 'custom_value' ];
+		$selected_filters      = [
+			[
+				'custom_type' => [ 'facet' => [ 1, 2, 3 ] ],
+			],
+			$facet_type->get_filter_type() => [
+				'category' => [
+					'terms' => [
+						'slug1' => true,
+						'slug2' => true,
+					],
+				],
+				'tags'     => [
+					'terms' => [
+						'slug3' => true,
+						'slug4' => true,
+					],
 				],
 			],
 		];
 
-		/**
-		 * Test when `match_type` is `all`. In this case, all the filters applied to the
-		 * main query should be applied to aggregations as well.
-		 */
-		$set_facet_match_type_all = function() {
-			return [
-				'facets' => [
-					'match_type' => 'all',
-				],
-			];
-		};
-		add_filter( 'pre_site_option_ep_feature_settings', $set_facet_match_type_all );
-		add_filter( 'pre_option_ep_feature_settings', $set_facet_match_type_all );
+		$new_query_params      = $facet_type->add_query_params( $original_query_params, $selected_filters );
+		$expected_query_params = array_merge(
+			$original_query_params,
+			[
+				$facet_type->get_filter_name() . 'category' => 'slug1,slug2',
+				$facet_type->get_filter_name() . 'tags' => 'slug3,slug4',
+			]
+		);
 
-		$this->assertSame( $query_args, $facet_type->agg_filters( $query_args ) );
+		$this->assertSame( $new_query_params, $expected_query_params );
+	}
 
-		remove_filter( 'pre_site_option_ep_feature_settings', $set_facet_match_type_all );
-		remove_filter( 'pre_option_ep_feature_settings', $set_facet_match_type_all );
+	/**
+	 * Test the ep_facet_tax_special_slug_taxonomies filter runs.
+	 *
+	 * @since 4.7.0
+	 * @return void
+	 */
+	public function test_ep_facet_special_slug_taxonomies_filter() {
+		add_filter(
+			'ep_facet_tax_special_slug_taxonomies',
+			function ( $special_slug_taxonomies ) {
+				$special_slug_taxonomies['testmyfilter'] = 'testmyfilterchangedfilter';
+				return $special_slug_taxonomies;
+			},
+			99999
+		);
 
-		/**
-		 * Test when `match_type` is `any`. In this case, the code should remove
-		 * from the aggregations filter the taxonomy filters applied to the main query.
-		 */
-		$set_facet_match_type_any = function() {
-			return [
-				'facets' => [
-					'match_type' => 'any',
-				],
-			];
-		};
-		add_filter( 'pre_site_option_ep_feature_settings', $set_facet_match_type_any );
-		add_filter( 'pre_option_ep_feature_settings', $set_facet_match_type_any );
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['taxonomy'];
 
-		$this->assertSame( [ 'tax_query' => [] ], $facet_type->agg_filters( $query_args ) );
+		parse_str( 'ep_filter_taxonomy=dolor,amet&ep_filter_testmyfilter=dolor,amet', $_GET );
 
-		remove_filter( 'pre_site_option_ep_feature_settings', $set_facet_match_type_any );
-		remove_filter( 'pre_option_ep_feature_settings', $set_facet_match_type_any );
+		$query_filters = $facet_type->add_query_filters( [] );
 
-		/**
-		 * Test the removal of unwanted parameters.
-		 */
-		$query_args = [
-			'category_name' => 'lorem',
-			'cat'           => 'lorem',
-			'tag'           => 'lorem',
-			'tag_id'        => 'lorem',
-			'taxonomy'      => 'lorem',
-			'term'          => 'lorem',
-			'tax_query'     => [ [] ],
-		];
-		$this->assertSame( [ 'tax_query' => [ [] ] ], $facet_type->agg_filters( $query_args ) );
+		$sample_test[0]['term']['terms.taxonomy.slug']                  = 'dolor';
+		$sample_test[1]['term']['terms.taxonomy.slug']                  = 'amet';
+		$sample_test[2]['term']['terms.testmyfilterchangedfilter.slug'] = 'dolor';
+		$sample_test[3]['term']['terms.testmyfilterchangedfilter.slug'] = 'amet';
+
+		$this->assertEquals( $sample_test, $query_filters );
+		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_facet_tax_special_slug_taxonomies' ) );
 	}
 }

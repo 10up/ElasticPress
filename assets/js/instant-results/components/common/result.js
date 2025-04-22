@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { React, WPElement } from '@wordpress/element';
+import { Component, FunctionComponent, WPElement } from '@wordpress/element';
 import { applyFilters } from '@wordpress/hooks';
 
 /**
@@ -80,7 +80,7 @@ const Result = ({ averageRating = 0, date, excerpt, priceHtml, thumbnail, title,
  * @filter ep.InstantResults.Result
  * @since 4.4.0
  *
- * @param {React.Component|React.FunctionComponent} Result Result component.
- * @returns {React.Component|React.FunctionComponent} Result component.
+ * @param {Component|FunctionComponent} Result Result component.
+ * @returns {Component|FunctionComponent} Result component.
  */
 export default applyFilters('ep.InstantResults.Result', Result);

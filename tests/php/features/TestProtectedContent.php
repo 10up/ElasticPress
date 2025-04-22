@@ -20,9 +20,9 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 2.1
 	 * @group protected-content
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -32,11 +32,9 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
-
-		delete_option( 'ep_active_features' );
 	}
 
 	/**
@@ -45,11 +43,9 @@ class TestProtectedContent extends BaseTestCase {
 	 * @since 2.1
 	 * @group protected-content
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
-		// make sure no one attached to this
-		remove_filter( 'ep_sync_terms_allow_hierarchy', array( $this, 'ep_allow_multiple_level_terms_sync' ), 100 );
 		$this->fired_actions = array();
 
 		set_current_screen( 'front' );
@@ -66,7 +62,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -93,7 +89,7 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -120,8 +116,8 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
-		Functions\create_and_sync_post( array( 'post_status' => 'draft' ) );
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_status' => 'draft' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -154,8 +150,8 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		Functions\create_and_sync_post();
-		$post_id = Functions\create_and_sync_post();
+		$this->ep_factory->post->create();
+		$post_id = $this->ep_factory->post->create();
 
 		wp_update_post(
 			array(
@@ -187,6 +183,8 @@ class TestProtectedContent extends BaseTestCase {
 
 	/**
 	 * Check posts filter by category in dashboard
+	 *
+	 * @group protected-content
 	 */
 	public function testAdminCategories() {
 		set_current_screen( 'edit.php' );
@@ -194,12 +192,12 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$cat1 = wp_create_category( 'category one' );
-		$cat2 = wp_create_category( 'category two' );
+		$cat1 = $this->factory->category->create( array( 'name' => 'category one' ) );
+		$cat2 = $this->factory->category->create( array( 'name' => 'category two' ) );
 
-		Functions\create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
-		Functions\create_and_sync_post( array( 'post_category' => array( $cat2 ) ) );
-		Functions\create_and_sync_post( array( 'post_category' => array( $cat1 ) ) );
+		$this->ep_factory->post->create( array( 'post_category' => array( $cat1 ) ) );
+		$this->ep_factory->post->create( array( 'post_category' => array( $cat2 ) ) );
+		$this->ep_factory->post->create( array( 'post_category' => array( $cat1 ) ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -234,7 +232,7 @@ class TestProtectedContent extends BaseTestCase {
 	public function testNoSyncPasswordedPost() {
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
-		$post_id = Functions\create_and_sync_post( array( 'post_password' => 'test' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_password' => 'test' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -259,7 +257,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
-		$post_id = Functions\create_and_sync_post( array( 'post_password' => 'test' ) );
+		$post_id = $this->ep_factory->post->create( array( 'post_password' => 'test' ) );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -275,7 +273,8 @@ class TestProtectedContent extends BaseTestCase {
 			array(
 				'ID'            => $post_id,
 				'post_password' => '',
-		) );
+			)
+		);
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -290,7 +289,8 @@ class TestProtectedContent extends BaseTestCase {
 			array(
 				'ID'            => $post_id,
 				'post_password' => 'test',
-		) );
+			)
+		);
 
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -314,11 +314,11 @@ class TestProtectedContent extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		// Post title is indexed but content is not.
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'findmetitle 123',
 				'post_content'  => 'findmecontent 123',
-				'post_password' => 'test'
+				'post_password' => 'test',
 			)
 		);
 
@@ -367,7 +367,7 @@ class TestProtectedContent extends BaseTestCase {
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
 
-		Functions\create_and_sync_post(
+		$this->ep_factory->post->create(
 			array(
 				'post_title'    => 'findmetitle 123',
 				'post_password' => 'test',
@@ -386,5 +386,105 @@ class TestProtectedContent extends BaseTestCase {
 		// Password post is expected to return as we are logged in.
 		$this->assertEquals( 1, $query->post_count );
 		$this->assertEquals( 1, $query->found_posts );
+
+		// Log out and try again.
+		wp_set_current_user( 0 );
+
+		$query = new \WP_Query(
+			array(
+				's' => 'findmetitle',
+			)
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
+		$this->assertEquals( 0, $query->found_posts );
+	}
+
+	/**
+	 * Check admin comment query are powered by Elasticsearch
+	 *
+	 * @since 4.4.1
+	 * @group protected-content
+	 */
+	public function testAdminCommentQuery() {
+		set_current_screen( 'edit-comments.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'comments' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		ElasticPress\Indexables::factory()->get( 'comment' )->put_mapping();
+		ElasticPress\Indexables::factory()->get( 'comment' )->sync_manager->reset_sync_queue();
+
+		// Need to call this since it's hooked to init.
+		ElasticPress\Features::factory()->get_registered_feature( 'comments' )->search_setup();
+
+		$this->ep_factory->comment->create(
+			[
+				'comment_content' => 'findme',
+				'comment_post_ID' => $this->ep_factory->post->create(),
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query(
+			[
+				'type' => 'comment',
+			]
+		);
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+		$this->assertEquals( 1, $comments_query->found_comments );
+	}
+
+	/**
+	 * Test the `maybe_change_sort` method.
+	 *
+	 * @since 5.1.4
+	 * @group protected-content
+	 */
+	public function test_maybe_change_sort() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$exact_match_id       = $this->ep_factory->post->create(
+			[
+				'post_title' => 'exact match - beautiful',
+				'post_date'  => '2021-12-31 23:59:59',
+			]
+		);
+		$not_so_good_match_id = $this->ep_factory->post->create(
+			[
+				'post_title' => 'not so good match - beautful',
+				'post_date'  => '2022-12-31 23:59:59',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// By default, display the best match first
+		$query = new \WP_Query( [ 's' => 'beautiful' ] );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $exact_match_id, $query->posts[0]->ID );
+
+		$filter = function ( $value ) {
+			$value['protected_content']['use_default_wp_sort'] = '1';
+			return $value;
+		};
+		add_filter( 'site_option_ep_feature_settings', $filter );
+		add_filter( 'option_ep_feature_settings', $filter );
+
+		// With the option enabled, order by date
+		$query = new \WP_Query( [ 's' => 'beautiful' ] );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $not_so_good_match_id, $query->posts[0]->ID );
 	}
 }

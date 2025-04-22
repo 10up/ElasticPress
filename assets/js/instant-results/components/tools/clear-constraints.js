@@ -1,14 +1,14 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, useMemo, WPElement } from '@wordpress/element';
+import { useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { useApiSearch } from '../../../api-search';
 import { facets } from '../../config';
-import Context from '../../context';
 import SmallButton from '../common/small-button';
 
 /**
@@ -17,10 +17,7 @@ import SmallButton from '../common/small-button';
  * @returns {WPElement} Element.
  */
 export default () => {
-	const {
-		state: { args },
-		dispatch,
-	} = useContext(Context);
+	const { args, clearConstraints } = useApiSearch();
 
 	/**
 	 * Return whether there are active filters.
@@ -51,7 +48,7 @@ export default () => {
 	 * @returns {void}
 	 */
 	const onClick = () => {
-		dispatch({ type: 'CLEAR_FACETS' });
+		clearConstraints();
 	};
 
 	return (

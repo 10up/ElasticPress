@@ -1,17 +1,18 @@
 /**
  * WordPress dependencies.
  */
-import { useContext, useLayoutEffect, useState, WPElement } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { useLayoutEffect, useState, WPElement } from '@wordpress/element';
+import { _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
-import Context from '../../context';
-import { formatPrice } from '../../functions';
+import { useApiSearch } from '../../../api-search';
+import { currencyCode } from '../../config';
+import { formatPrice } from '../../utilities';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
-import { ActiveContraint } from '../tools/active-constraints';
+import { ActiveConstraint } from '../tools/active-constraints';
 
 /**
  * Price range facet.
@@ -23,18 +24,16 @@ import { ActiveContraint } from '../tools/active-constraints';
  */
 export default ({ defaultIsOpen, label }) => {
 	const {
-		state: {
-			aggregations: {
-				price_range: {
-					max_price: { value: maxAgg = null } = {},
-					min_price: { value: minAgg = null } = {},
-				} = {},
-			},
-			args: { max_price: maxArg = null, min_price: minArg = null },
-			isLoading,
+		aggregations: {
+			price_range: {
+				max_price: { value: maxAgg = null } = {},
+				min_price: { value: minAgg = null } = {},
+			} = {},
 		},
-		dispatch,
-	} = useContext(Context);
+		args: { max_price: maxArg = null, min_price: minArg = null },
+		isLoading,
+		search,
+	} = useApiSearch();
 
 	/**
 	 * Minimum and maximum possible values.
@@ -51,8 +50,15 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Current minimum and maximum prices, formatted.
 	 */
-	const currentMaxPrice = formatPrice(currentMaxValue, { maximumFractionDigits: 0 });
-	const currentMinPrice = formatPrice(currentMinValue, { maximumFractionDigits: 0 });
+	const currentMaxPrice = formatPrice(currentMaxValue, {
+		maximumFractionDigits: 0,
+		currency: currencyCode,
+	});
+
+	const currentMinPrice = formatPrice(currentMinValue, {
+		maximumFractionDigits: 0,
+		currency: currencyCode,
+	});
 
 	/**
 	 * Applied minimum and maximum values.
@@ -63,8 +69,8 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Applied minimum and maximum prices, formatted.
 	 */
-	const maxPrice = formatPrice(maxValue, { maximumFractionDigits: 0 });
-	const minPrice = formatPrice(minValue, { maximumFractionDigits: 0 });
+	const maxPrice = formatPrice(maxValue, { maximumFractionDigits: 0, currency: currencyCode });
+	const minPrice = formatPrice(minValue, { maximumFractionDigits: 0, currency: currencyCode });
 
 	/**
 	 * Handle completed slider change.
@@ -74,7 +80,7 @@ export default ({ defaultIsOpen, label }) => {
 	const onAfterChange = (values) => {
 		const [min_price, max_price] = values;
 
-		dispatch({ type: 'APPLY_ARGS', payload: { min_price, max_price } });
+		search({ min_price, max_price });
 	};
 
 	/**
@@ -91,7 +97,7 @@ export default ({ defaultIsOpen, label }) => {
 	 * Handle clearing the filter.
 	 */
 	const onClear = () => {
-		dispatch({ type: 'APPLY_ARGS', payload: { max_price: null, min_price: null } });
+		search({ max_price: null, min_price: null });
 	};
 
 	/**
@@ -131,10 +137,10 @@ export default ({ defaultIsOpen, label }) => {
 						</div>
 
 						{maxArg !== null && minArg !== null && (
-							<ActiveContraint
+							<ActiveConstraint
 								label={sprintf(
 									/* translators: %1$s: Minimum price. %2$s: Maximum price. */
-									__('%1$s — %2$s', 'elasticpress'),
+									_x('%1$s — %2$s', 'Price range', 'elasticpress'),
 									minPrice,
 									maxPrice,
 								)}

@@ -8,6 +8,12 @@
  * @since   1.7
  */
 
+use ElasticPress\Utils;
+
+defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/includes/utils.php';
+
 /**
  * Class EP_Uninstaller
  */
@@ -22,6 +28,7 @@ class EP_Uninstaller {
 		'ep_host',
 		'ep_index_meta',
 		'ep_feature_settings',
+		'ep_feature_settings_draft',
 		'ep_version',
 		'ep_intro_shown',
 		'ep_last_sync',
@@ -35,7 +42,9 @@ class EP_Uninstaller {
 		'ep_prefix',
 		'ep_language',
 		'ep_bulk_setting',
-		'ep_last_index',
+		'ep_sync_history',
+
+		'elasticpress_weighting',
 
 		// Admin notices options
 		'ep_hide_host_error_notice',
@@ -55,13 +64,15 @@ class EP_Uninstaller {
 	 * @var array
 	 */
 	protected $transients = [
+		'ep_autosuggest_query_request_cache',
+		'ep_elasticpress_io_messages',
+		'ep_es_info',
 		'ep_es_info_response_code',
 		'ep_es_info_response_error',
-		'logging_ep_es_info',
-		'ep_wpcli_sync_interrupted',
+		'ep_meta_field_keys',
 		'ep_wpcli_sync',
-		'ep_es_info',
-		'ep_autosuggest_query_request_cache',
+		'ep_wpcli_sync_interrupted',
+		'logging_ep_es_info',
 	];
 
 	/**
@@ -70,13 +81,16 @@ class EP_Uninstaller {
 	 * Perform some checks to make sure plugin can/should be uninstalled
 	 *
 	 * @since 1.7
-	 * @return EP_Uninstaller
 	 */
 	public function __construct() {
-
 		// Exit if accessed directly.
 		if ( ! defined( 'ABSPATH' ) ) {
 			$this->exit_uninstaller();
+		}
+
+		// If testing, do not do anything automatically
+		if ( defined( 'EP_UNIT_TESTS' ) && EP_UNIT_TESTS ) {
+			return;
 		}
 
 		// EP_MANUAL_SETTINGS_RESET is used by the `settings-reset` WP-CLI command.
@@ -94,6 +108,8 @@ class EP_Uninstaller {
 
 		// Uninstall ElasticPress.
 		$this->clean_options_and_transients();
+		$this->clean_site_meta();
+		$this->remove_elasticpress_capability();
 	}
 
 	/**
@@ -115,18 +131,41 @@ class EP_Uninstaller {
 	}
 
 	/**
-	 * Delete all transients of the Related Posts feature.
+	 * Delete remaining transients by their option names.
+	 *
+	 * @since 4.7.0
 	 */
-	protected function delete_related_posts_transients() {
+	protected function delete_transients_by_option_name() {
 		global $wpdb;
 
-		$related_posts_transients = $wpdb->get_col( "SELECT option_name FROM {$wpdb->prefix}options WHERE option_name LIKE '_transient_ep_related_posts_%'" );
+		$transients = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			"SELECT option_name
+			FROM {$wpdb->prefix}options
+			WHERE
+				option_name LIKE '_transient_ep_index_settings_%'
+				OR option_name LIKE '_transient_ep_related_posts_%'
+			"
+		);
 
-		foreach ( $related_posts_transients as $related_posts_transient ) {
-			$related_posts_transient = str_replace( '_transient_', '', $related_posts_transient );
-			delete_site_transient( $related_posts_transient );
-			delete_transient( $related_posts_transient );
+		foreach ( $transients as $transient ) {
+			$transient_name = str_replace( '_transient_', '', $transient );
+			delete_site_transient( $transient_name );
+			delete_transient( $transient_name );
 		}
+	}
+
+	/**
+	 * DEPRECATED. Delete all transients of the Related Posts feature.
+	 */
+	protected function delete_related_posts_transients() {
+		_deprecated_function( __METHOD__, '4.7.0', '\EP_Uninstaller::delete_transients_by_name()' );
+	}
+
+	/**
+	 * DEPRECATED. Delete all transients of the total fields limit.
+	 */
+	protected function delete_total_fields_limit_transients() {
+		_deprecated_function( __METHOD__, '4.7.0', '\EP_Uninstaller::delete_transients_by_name()' );
 	}
 
 	/**
@@ -145,22 +184,48 @@ class EP_Uninstaller {
 				delete_site_transient( $transient );
 			}
 
-			$sites = get_sites();
+			$sites = \get_sites();
 
 			foreach ( $sites as $site ) {
 				switch_to_blog( $site->blog_id );
 
 				$this->delete_options();
 				$this->delete_transients();
-				$this->delete_related_posts_transients();
+				$this->delete_transients_by_option_name();
 
 				restore_current_blog();
 			}
 		} else {
 			$this->delete_options();
 			$this->delete_transients();
-			$this->delete_related_posts_transients();
+			$this->delete_transients_by_option_name();
 		}
+	}
+
+	/**
+	 * Delete all site meta
+	 *
+	 * @since 4.7.0
+	 */
+	protected function clean_site_meta() {
+		if ( ! is_multisite() ) {
+			return;
+		}
+
+		$sites = Utils\get_sites();
+		foreach ( $sites as $site ) {
+			delete_site_meta( $site['blog_id'], 'ep_indexable' );
+		}
+	}
+
+	/**
+	 * Remove the ElasticPress' capability
+	 *
+	 * @since 4.5.0
+	 */
+	protected function remove_elasticpress_capability() {
+		$role = get_role( 'administrator' );
+		$role->remove_cap( Utils\get_capability() );
 	}
 
 	/**

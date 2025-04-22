@@ -7,7 +7,7 @@
 
 namespace ElasticPressTest;
 
-use ElasticPress\Features as Features;
+use ElasticPress\Features;
 
 /**
  * Facets\Types\Taxonomy\FacetType test class
@@ -17,7 +17,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 	/**
 	 * Setup each test.
 	 */
-	public function setUp() {
+	public function set_up() {
 		/**
 		 * It is too late to use the `ep_facet_types` filter.
 		 *
@@ -29,7 +29,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 			$facet_feature->types['meta']->setup();
 		}
 
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**
@@ -50,12 +50,11 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_filter_name` filter
 		 */
-		$change_filter_name = function( $filter_name ) {
+		$change_filter_name = function ( $filter_name ) {
 			return $filter_name . '_';
 		};
 		add_filter( 'ep_facet_meta_filter_name', $change_filter_name );
 		$this->assertEquals( 'ep_meta_filter__', $facet_type->get_filter_name() );
-		remove_filter( 'ep_facet_meta_filter_name', $change_filter_name );
 	}
 
 	/**
@@ -76,12 +75,11 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_filter_type` filter
 		 */
-		$change_filter_type = function( $filter_type ) {
+		$change_filter_type = function ( $filter_type ) {
 			return $filter_type . '_';
 		};
 		add_filter( 'ep_facet_meta_filter_type', $change_filter_type );
 		$this->assertEquals( 'meta_', $facet_type->get_filter_type() );
-		remove_filter( 'ep_facet_meta_filter_type', $change_filter_type );
 	}
 
 	/**
@@ -94,7 +92,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
-		$set_facet_meta_field = function() {
+		$set_facet_meta_field = function () {
 			return [ 'new_meta_key_1', 'new_meta_key_2' ];
 		};
 		add_filter( 'ep_facet_meta_fields', $set_facet_meta_field );
@@ -115,7 +113,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_use_field` filter
 		 */
-		$change_meta_facet_field = function( $es_field, $meta_field ) {
+		$change_meta_facet_field = function ( $es_field, $meta_field ) {
 			return ( 'new_meta_key_1' === $meta_field ) ? 'boolean' : $es_field;
 		};
 
@@ -130,7 +128,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_size` filter
 		 */
-		$change_meta_bucket_size = function( $size, $meta_field ) {
+		$change_meta_bucket_size = function ( $size, $meta_field ) {
 			return ( 'new_meta_key_1' === $meta_field ) ? 5 : $size;
 		};
 
@@ -139,10 +137,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$with_aggs = $facet_type->set_wp_query_aggs( [] );
 		$this->assertSame( 5, $with_aggs['ep_meta_filter_new_meta_key_1']['terms']['size'] );
 		$this->assertSame( 10000, $with_aggs['ep_meta_filter_new_meta_key_2']['terms']['size'] );
-
-		remove_filter( 'ep_facet_meta_size', $change_meta_bucket_size );
-
-		remove_filter( 'ep_facet_meta_fields', $set_facet_meta_field );
 	}
 
 	/**
@@ -152,15 +146,22 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testGetMetaValues() {
+		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function ( $allowed_metakeys ) {
+				return array_merge( $allowed_metakeys, [ 'new_meta_key_1', 'new_meta_key_2' ] );
+			}
+		);
+
 		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
 		$facet_type    = $facet_feature->types['meta'];
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foo' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'bar' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_1' => 'foobar' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foo' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'bar' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_1' => 'foobar' ) ) );
 
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'lorem' ) );
-		Functions\create_and_sync_post( array(), array( 'new_meta_key_2' => 'ipsum' ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'lorem' ) ) );
+		$this->ep_factory->post->create( array( 'meta_input' => array( 'new_meta_key_2' => 'ipsum' ) ) );
 
 		\ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -179,7 +180,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_custom_meta_values` filter
 		 */
-		$change_meta_values = function( $meta_values, $meta_key ) {
+		$change_meta_values = function ( $meta_values, $meta_key ) {
 			return ( 'new_meta_key_1' === $meta_key ) ? [ '123' ] : $meta_values;
 		};
 		add_filter( 'ep_facet_meta_custom_meta_values', $change_meta_values, 10, 2 );
@@ -197,7 +198,7 @@ class TestFacetTypeMeta extends BaseTestCase {
 		/**
 		 * Test the `ep_facet_meta_value_max_strlen` filter
 		 */
-		$change_max_str_len = function( $length, $meta_key ) {
+		$change_max_str_len = function ( $length, $meta_key ) {
 			return ( 'new_meta_key_2' === $meta_key ) ? 4 : $length;
 		};
 		add_filter( 'ep_facet_meta_value_max_strlen', $change_max_str_len, 10, 2 );
@@ -206,18 +207,114 @@ class TestFacetTypeMeta extends BaseTestCase {
 
 		$this->assertEqualsCanonicalizing( [ 'foo', 'bar', 'foobar' ], $meta_values_1 );
 		$this->assertEqualsCanonicalizing( [ 'lore', 'ipsu' ], $meta_values_2 );
-
-		remove_filter( 'ep_facet_meta_custom_meta_values', $change_meta_values );
 	}
 
 	/**
-	 * Test agg_filters
+	 * Test add_query_filters
 	 *
-	 * @since 4.3.0
+	 * @since 4.4.0
 	 * @group facets
 	 */
-	public function testAggFilters() {
-		$this->markTestIncomplete();
+	public function testAddQueryFilters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['meta'];
+
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_fields', $allow_field );
+
+		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		/**
+		 * Changing the match type should change from `term` to `terms`
+		 */
+		$change_match_type = function () {
+			return 'any';
+		};
+		add_filter( 'ep_facet_match_type', $change_match_type );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'terms' => [
+					'meta.my_custom_field.raw' => [ 'dolor', 'amet' ],
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+	}
+
+	/**
+	 * Test add_query_filters with not allowed parameters
+	 *
+	 * @since 4.5.1
+	 * @group facets
+	 */
+	public function testAddQueryFiltersWithNotAllowedParameters() {
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_type    = $facet_feature->types['meta'];
+
+		$allow_field = function ( $fields ) {
+			$fields[] = 'my_custom_field';
+			return $fields;
+		};
+		add_filter( 'ep_facet_meta_fields', $allow_field );
+
+		parse_str( 'ep_meta_filter_my_custom_field=dolor,amet&ep_meta_filter_not_allowed=1', $_GET );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
+
+		add_filter( 'ep_facet_should_check_if_allowed', '__return_false' );
+
+		$new_filters = $facet_type->add_query_filters( [] );
+		$expected    = [
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'dolor',
+				],
+			],
+			[
+				'term' => [
+					'meta.my_custom_field.raw' => 'amet',
+				],
+			],
+			[
+				'term' => [
+					'meta.not_allowed.raw' => 1,
+				],
+			],
+		];
+		$this->assertSame( $expected, $new_filters );
 	}
 
 	/**
@@ -227,16 +324,6 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 * @group facets
 	 */
 	public function testGetFacetsMetaFields() {
-		$this->markTestIncomplete();
-	}
-
-	/**
-	 * Test facet_query
-	 *
-	 * @since 4.3.0
-	 * @group facets
-	 */
-	public function testFacetQuery() {
 		$this->markTestIncomplete();
 	}
 
@@ -258,5 +345,40 @@ class TestFacetTypeMeta extends BaseTestCase {
 	 */
 	public function testInvalidateMetaValuesCacheAfterBulk() {
 		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test get_sanitize_callback method.
+	 *
+	 * @since 4.4.0
+	 * @group facets
+	 */
+	public function testGetSanitizeCallback() {
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$test_meta     = 'This is a test meta';
+
+		parse_str( "ep_meta_filter_new_meta_key_1={$test_meta}", $_GET );
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs by default on taxonomy facets
+		$expected_result = sanitize_text_field( $test_meta );
+		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
+
+		$sanitize_function = function ( $callback ) {
+
+			$this->assertSame( 'sanitize_text_field', $callback );
+
+			return 'sanitize_title';
+		};
+
+		// modify the sanitize callback.
+		add_filter( 'ep_facet_default_sanitize_callback', $sanitize_function );
+
+		$selected = $facet_feature->get_selected();
+
+		// test sanitize_text_field runs when filter is applied.
+		$expected_result = sanitize_title( $test_meta );
+		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
 	}
 }

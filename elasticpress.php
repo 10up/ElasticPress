@@ -3,14 +3,15 @@
  * Plugin Name:       ElasticPress
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
- * Version:           4.3.1
- * Requires at least: 5.6
- * Requires PHP:      7.0
+ * Version:           5.2.0
+ * Requires at least: 6.2
+ * Requires PHP:      7.4
  * Author:            10up
- * Author URI:        http://10up.com
+ * Author URI:        https://10up.com
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       elasticpress
+ * Domain Path:       /lang
  *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
@@ -23,7 +24,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI as WP_CLI;
+use WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -32,7 +33,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '4.3.1' );
+define( 'EP_VERSION', '5.2.0' );
+
+define( 'EP_PHP_VERSION_MIN', '7.4' );
+
+if ( ! version_compare( phpversion(), EP_PHP_VERSION_MIN, '>=' ) ) {
+	add_action(
+		'admin_notices',
+		function () {
+			?>
+			<div class="notice notice-error">
+				<p>
+					<?php
+					echo wp_kses_post(
+						sprintf(
+							/* translators: %s: Minimum required PHP version */
+							__( 'ElasticPress requires PHP version %s or later. Please upgrade PHP or disable the plugin.', 'elasticpress' ),
+							EP_PHP_VERSION_MIN
+						)
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		}
+	);
+	return;
+}
+
+// Require Composer autoloader if it exists.
+if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor-prefixed/autoload.php';
+}
 
 /**
  * PSR-4-ish autoloading
@@ -40,7 +72,7 @@ define( 'EP_VERSION', '4.3.1' );
  * @since 2.6
  */
 spl_autoload_register(
-	function( $class ) {
+	function ( $class_name ) {
 			// project-specific namespace prefix.
 			$prefix = 'ElasticPress\\';
 
@@ -50,11 +82,11 @@ spl_autoload_register(
 			// does the class use the namespace prefix?
 			$len = strlen( $prefix );
 
-		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		if ( strncmp( $prefix, $class_name, $len ) !== 0 ) {
 			return;
 		}
 
-			$relative_class = substr( $class, $len );
+			$relative_class = substr( $class_name, $len );
 
 			$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
@@ -74,7 +106,7 @@ spl_autoload_register(
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '7.10' );
+define( 'EP_ES_VERSION_MAX', '8.99' );
 define( 'EP_ES_VERSION_MIN', '5.2' );
 
 require_once __DIR__ . '/includes/compat.php';
@@ -89,13 +121,27 @@ if ( $network_activated ) {
 }
 
 /**
+ * Return the ElasticPress container
+ *
+ * @since 4.7.0
+ * @return Container
+ */
+function get_container() {
+	static $container = null;
+
+	if ( ! $container ) {
+		$container = new Container();
+	}
+
+	return $container;
+}
+
+/**
  * Sets up the indexables and features.
  *
  * @return void
  */
 function register_indexable_posts() {
-	global $wp_version;
-
 	/**
 	 * Handle indexables
 	 */
@@ -114,6 +160,10 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\Autosuggest\Autosuggest()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\DidYouMean\DidYouMean()
 	);
 
 	Features::factory()->register_feature(
@@ -140,23 +190,17 @@ function register_indexable_posts() {
 		new Feature\Documents\Documents()
 	);
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Comments\Comments()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\AcfRepeater\AcfRepeater()
+	);
 
-	if ( version_compare( $wp_version, '5.1', '>=' ) || 0 === stripos( $wp_version, '5.1-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Users\Users()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\Comments\Comments()
+	);
 
-	if ( version_compare( $wp_version, '5.3', '>=' ) || 0 === stripos( $wp_version, '5.3-' ) ) {
-		Features::factory()->register_feature(
-			new Feature\Terms\Terms()
-		);
-	}
+	Features::factory()->register_feature(
+		new Feature\Terms\Terms()
+	);
 
 	/**
 	 * Register search algorithms
@@ -164,6 +208,19 @@ function register_indexable_posts() {
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\DefaultAlgorithm() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_350() );
 	SearchAlgorithms::factory()->register( new SearchAlgorithm\Version_400() );
+
+	/**
+	 * Filter the query logger object
+	 *
+	 * @since 4.4.0
+	 * @hook ep_query_logger
+	 * @param {QueryLogger} $query_logger Default query logger
+	 * @return {QueryLogger} New query logger
+	 */
+	$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
+	get_container()->set( '\ElasticPress\QueryLogger', $query_logger, true );
+
+	get_container()->set( '\ElasticPress\BlockTemplateUtils', new \ElasticPress\BlockTemplateUtils(), true );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 
@@ -223,14 +280,33 @@ function handle_upgrades() {
  * @since  2.2
  */
 function setup_misc() {
-	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' ); // Load any available translations first.
-
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
+
+/**
+ * Load text domain
+ *
+ * @since 5.1.4
+ */
+function i18n() {
+	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' );
+}
+add_action( 'init', __NAMESPACE__ . '\i18n' );
+
+/**
+ * Set up role(s) with EP capability
+ */
+function setup_roles() {
+	// add custom capabilities to admin role
+	$role = get_role( 'administrator' );
+
+	$role->add_cap( Utils\get_capability() );
+}
+register_activation_hook( __FILE__, __NAMESPACE__ . '\setup_roles' );
 
 /**
  * Fires after Elasticpress plugin is loaded

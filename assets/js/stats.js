@@ -1,6 +1,6 @@
 /* eslint-disable no-new */
 
-import Chart from 'chart.js';
+import Chart from 'chart.js/auto';
 
 const { epChartData } = window;
 
@@ -25,8 +25,6 @@ const barLabels = [];
 const barDocs = [];
 const barColors = [];
 
-Chart.defaults.global.legend.labels.usePointStyle = true;
-
 barData.forEach(function (data) {
 	barLabels.push(data[1].name);
 	barDocs.push(data[1].docs);
@@ -36,7 +34,7 @@ barData.forEach(function (data) {
 const documentChart = document.getElementById('documentChart');
 if (documentChart) {
 	new Chart(documentChart, {
-		type: 'horizontalBar',
+		type: 'bar',
 		data: {
 			labels: barLabels,
 			datasets: [
@@ -48,8 +46,11 @@ if (documentChart) {
 			],
 		},
 		options: {
-			legend: {
-				display: false,
+			indexAxis: 'y',
+			plugins: {
+				legend: {
+					display: false,
+				},
 			},
 			title: {
 				display: true,
@@ -77,8 +78,13 @@ if (queriesTotalChart) {
 			title: {
 				display: true,
 			},
-			legend: {
-				position: 'right',
+			plugins: {
+				legend: {
+					position: 'right',
+					labels: {
+						usePointStyle: true,
+					},
+				},
 			},
 			tooltips: {
 				callbacks: {
@@ -94,49 +100,6 @@ if (queriesTotalChart) {
 						const currentValue = dataset.data[item.index];
 
 						return `Operations: ${currentValue}`;
-					},
-				},
-			},
-		},
-	});
-}
-
-const queriesTimeChart = document.getElementById('queriesTimeChart');
-if (queriesTimeChart) {
-	new Chart(queriesTimeChart, {
-		type: 'pie',
-		data: {
-			labels: ['Avg indexing time in ms', 'Avg query time in ms'],
-			datasets: [
-				{
-					label: '',
-					backgroundColor: ['#9ea6c7', '#93b3d5'],
-					data: [epChartData.index_time_in_millis, epChartData.query_time_in_millis],
-				},
-			],
-		},
-		options: {
-			responsive: false,
-			title: {
-				display: true,
-			},
-			legend: {
-				position: 'right',
-			},
-			tooltips: {
-				callbacks: {
-					/**
-					 * Appends the string milliseconds after tooltip value
-					 *
-					 * @param {object} item Tooltip item
-					 * @param {object} data Tooltip data
-					 * @returns {string} current value in milliseconds
-					 */
-					label(item, data) {
-						const dataset = data.datasets[item.datasetIndex];
-						const currentValue = dataset.data[item.index];
-
-						return `${+currentValue} milliseconds`;
 					},
 				},
 			},

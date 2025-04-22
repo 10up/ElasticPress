@@ -18,6 +18,10 @@ const {
 	paramPrefix,
 	postTypeLabels,
 	taxonomyLabels,
+	termCount,
+	requestIdBase,
+	showSuggestions,
+	suggestionsBehavior,
 } = window.epInstantResults;
 
 /**
@@ -72,4 +76,8 @@ export {
 	postTypeLabels,
 	sortOptions,
 	taxonomyLabels,
+	termCount,
+	requestIdBase,
+	showSuggestions,
+	suggestionsBehavior,
 };

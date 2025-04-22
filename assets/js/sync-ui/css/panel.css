@@ -1,0 +1,30 @@
+.ep-sync-panel {
+
+	& .components-notice {
+		margin-bottom: 12px;
+		margin-left: 0;
+		margin-right: 0;
+	}
+
+	& .components-checkbox-control:has([disabled]) {
+
+		& input[disabled],
+		& .components-checkbox-control__label {
+			opacity: 0.5;
+		}
+	}
+}
+
+.ep-sync-panel__controls {
+
+	&.is-opened {
+		padding-bottom: 4px;
+	}
+}
+
+.ep-sync-panel__advanced {
+
+	&.is-opened {
+		padding-bottom: 0;
+	}
+}

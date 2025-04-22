@@ -70,10 +70,12 @@ export default ({ defaultValue, ...props }) => {
 			<FormTokenField
 				__experimentalExpandOnFocus
 				__experimentalShowHowTo={false}
-				label={__('Select facets', 'elasticpress')}
+				label={__('Select filters', 'elasticpress')}
 				onChange={onChange}
 				suggestions={suggestions}
 				value={value}
+				__nextHasNoMarginBottom
+				__next40pxDefaultSize
 			/>
 			<input type="hidden" value={selectedFacets.join(',')} {...props} />
 		</>

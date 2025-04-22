@@ -13,12 +13,12 @@
     },
     {
       "name": "10up",
-      "homepage": "http://10up.com"
+      "homepage": "https://10up.com"
     },
     {
       "name": "Aaron Holbrook",
       "email": "aaron@10up.com",
-      "homepage": "http://aaronjholbrook.com"
+      "homepage": "https://aaronjholbrook.com"
     }
   ],
   "repositories": [
@@ -28,26 +28,42 @@
     }
   ],
   "require": {
-    "php": ">=7.0"
+    "php": ">=7.4",
+    "composer/installers": "^1.0 || ^2.0",
+    "psr/container": "1.0.0"
   },
   "require-dev": {
-    "10up/phpcs-composer": "dev-master",
+    "10up/phpcs-composer": "dev-trunk",
     "wpackagist-plugin/woocommerce":"*",
-    "phpunit/phpunit": "^7",
     "phpcompatibility/phpcompatibility-wp": "*",
-    "yoast/phpunit-polyfills": "1.x-dev"
+    "brianhenryie/strauss": "^0.21.0",
+    "yoast/phpunit-polyfills": "^4.0",
+    "phpunit/phpunit": "^9.0.0"
   },
   "scripts": {
-    "lint": "phpcs elasticpress.php includes --runtime-set testVersion 7.0-",
-    "lint-fix": "phpcbf elasticpress.php includes",
+    "lint": "phpcs . -s --runtime-set testVersion 7.4-",
+    "lint-fix": "phpcbf .",
     "test": "phpunit",
     "test-single-site": "phpunit -c single-site.xml.dist",
-    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true"
+    "setup-local-tests": "bash bin/install-wp-tests.sh ep_wp_test root password 127.0.0.1 latest true",
+    "strauss": [ "vendor/bin/strauss" ],
+    "post-install-cmd": [
+      "@strauss"
+    ],
+    "post-update-cmd": [
+      "@strauss"
+    ]
   },
   "extra": {
     "installer-paths": {
-          "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
-      }
+      "vendor/{$name}/": ["type:wordpress-plugin", "type:wordpress-theme"]
+    },
+    "strauss": {
+      "target_directory": "vendor-prefixed",
+      "namespace_prefix": "ElasticPress\\Vendor_Prefixed\\",
+      "classmap_prefix": "ElasticPress_Vendor_Prefixed_",
+      "constant_prefix": "EP_VENDOR_"
+    }
   },
   "config": {
     "allow-plugins": {

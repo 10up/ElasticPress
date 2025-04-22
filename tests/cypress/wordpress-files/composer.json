@@ -1,0 +1,33 @@
+{
+	"name": "10up/elasticpress-test-env",
+	"authors": [
+		{
+			"name": "10up"
+		}
+	],
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://connect.advancedcustomfields.com"
+		}
+	],
+	"extra": {
+		"installer-paths": {
+			"mu-plugins/{$name}": [
+				"type:wordpress-muplugin"
+			],
+			"plugins/{$name}": [
+				"type:wordpress-plugin"
+			]
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"require": {
+		"wpengine/advanced-custom-fields-pro": "*"
+	}
+}

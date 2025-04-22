@@ -13,7 +13,7 @@ use ElasticPress\SearchAlgorithm;
 /**
  * Test abstract SearchAlgorithm class
  */
-class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
+class TestSearchAlgorithm extends BaseTestCase {
 	/**
 	 * "Concrete" stub for the abstract class
 	 *
@@ -24,13 +24,13 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	/**
 	 * Setup each test.
 	 */
-	public function setUp() {
+	public function set_up() {
 		$this->stub = $this->getMockForAbstractClass( SearchAlgorithm::class );
 		$this->stub->expects( $this->any() )
 			->method( 'get_raw_query' )
 			->will( $this->returnValue( [] ) );
 
-		parent::setUp();
+		parent::set_up();
 	}
 
 	/**
@@ -39,7 +39,7 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testFilters() {
-		$test_filter = function() {
+		$test_filter = function () {
 			return [ 'changed' ];
 		};
 
@@ -50,8 +50,6 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $this->stub->get_query( 'indexable', '', [], [] );
 		$this->assertEquals( [ 'changed' ], $query );
-
-		remove_filter( 'ep_indexable_formatted_args_query', $test_filter );
 	}
 
 	/**
@@ -61,7 +59,7 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testLegacyFilters() {
-		$test_filter = function() {
+		$test_filter = function () {
 			return [ 'changed' ];
 		};
 
@@ -72,7 +70,5 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 
 		$query = $this->stub->get_query( 'post', '', [], [] );
 		$this->assertEquals( [ 'changed' ], $query );
-
-		remove_filter( 'ep_formatted_args_query', $test_filter );
 	}
 }

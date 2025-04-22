@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use ElasticPress\Utils as Utils;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -57,13 +57,10 @@ class Stats {
 	 * @since 3.2
 	 */
 	protected $localized = [
-		'index_total'            => 0,
-		'index_time_in_millis'   => 0,
-		'query_total'            => 0,
-		'query_time_in_millis'   => 0,
-		'suggest_time_in_millis' => 0,
-		'suggest_total'          => 0,
-		'indices_data'           => [],
+		'index_total'   => 0,
+		'query_total'   => 0,
+		'suggest_total' => 0,
+		'indices_data'  => [],
 	];
 
 	/**
@@ -77,6 +74,14 @@ class Stats {
 	protected $nodes = 0;
 
 	/**
+	 * Failed queries and their errors.
+	 *
+	 * @since 5.0.1
+	 * @var string
+	 */
+	protected $failed_queries = [];
+
+	/**
 	 * Makes an api call to elasticsearch endpoint
 	 *
 	 * @param  string $path Endpoint path to query
@@ -86,13 +91,29 @@ class Stats {
 	protected function remote_request_helper( $path ) {
 		$request = Elasticsearch::factory()->remote_request( $path );
 
-		if ( is_wp_error( $request ) || empty( $request ) ) {
+		if ( empty( $request ) ) {
 			return false;
 		}
 
-		$body = wp_remote_retrieve_body( $request );
+		if ( is_wp_error( $request ) ) {
+			$this->failed_queries[] = [
+				'path'  => $path,
+				'error' => $request->get_error_message(),
+			];
+			return false;
+		}
 
-		return json_decode( $body, true );
+		$body   = wp_remote_retrieve_body( $request );
+		$return = json_decode( $body, true );
+
+		if ( ! empty( $return['errors'] ) ) {
+			$this->failed_queries[] = [
+				'path'  => $path,
+				'error' => wp_json_encode( $return['errors'] ),
+			];
+		}
+
+		return $return;
 	}
 
 	/**
@@ -117,7 +138,6 @@ class Stats {
 		}
 
 		$this->populate_indices_stats();
-		$this->populate_indices_averages();
 
 		if ( Utils\is_epio() ) {
 			$node_stats = $this->remote_request_helper( '_nodes/stats/discovery?format=json' );
@@ -198,23 +218,6 @@ class Stats {
 		}
 
 		return $indices;
-	}
-
-	/**
-	 * Populate cluster performance data. These use the total key so averages include both primary and replica shards
-	 *
-	 * @since 3.x
-	 */
-	private function populate_indices_averages() {
-
-		if ( empty( $this->stats['_all']['total'] ) ) {
-			return;
-		}
-
-		// General cluster performance stats
-		$this->localized['index_time_in_millis']   = $this->stats['_all']['total']['indexing']['index_time_in_millis'];
-		$this->localized['query_time_in_millis']   = $this->stats['_all']['total']['search']['query_time_in_millis'];
-		$this->localized['suggest_time_in_millis'] = $this->stats['_all']['total']['search']['suggest_time_in_millis'];
 	}
 
 	/**
@@ -311,6 +314,25 @@ class Stats {
 		$f_base = floor( $base );
 
 		return round( pow( 1024, $base - floor( $base ) ), 1 ) . $suffix[ $f_base ];
+	}
+
+	/**
+	 * Return all failed queries.
+	 *
+	 * @return array
+	 * @since 5.0.1
+	 */
+	public function get_failed_queries() {
+		return $this->failed_queries;
+	}
+
+	/**
+	 * Clear all failed queries registered.
+	 *
+	 * @since 5.0.1
+	 */
+	public function clear_failed_queries() {
+		$this->failed_queries = [];
 	}
 
 	/**

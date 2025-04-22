@@ -6,20 +6,12 @@ The following versions of this project are currently being supported with securi
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 3.6.0   | :white_check_mark: |
-| 3.5.6   | :white_check_mark: |
-| <3.5.5  | :x:                |
+| 5.1.2   | :white_check_mark: |
+| <5.1.1  | :x:                |
 
 ## Reporting a Vulnerability
 
-To report a security issue please email details to opensourcesecurity@10up.com with a descriptive subject line.  This account is monitored by a small team within 10up.  In addition, please include the following information along with your report:
-
-- Your name and affiliation (if any).
-- A description of the technical details of the vulnerability.  It is very important to let us know how we can reproduce your findings.
-- An explanation who can exploit this vulnerability, and what they gain when doing so -- write an attack scenario.  This will help us evaluate your report quickly, especially if the issue is complex.
-- Whether this vulnerability is public or known to third parties.  If it is, please provide details.
-
-If you believe that an existing (public) issue is security-related, please send an email to opensourcesecurity@10up.com.  The email should include the issue ID and a short description of why it should be handled according to this security policy.
+You can report any security bugs found in the source code of ElasticPress through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/elasticpress). The Patchstack team will assist you with verification, CVE assignment and take care of notifying the developers of this plugin.
 
 ## Responding to Vulnerability Reports
 
@@ -46,5 +38,5 @@ Past security advisories, if any, are listed below.
 
 | Advisory Number | Type               | Versions affected | Reported by           | Additional Information      |
 |-----------------|--------------------|:-----------------:|-----------------------|-----------------------------|
+| CVE-2024-35684 | CSRF | n/a - 5.1.1 | Patchstack Team | [CVE link](https://www.cve.org/CVERecord?id=CVE-2024-35684) |
 | EP-2021-02-11 | CSRF Nonce Bypass | 3.5.2 - 3.5.3 | WordPress.org Plugin Review Team | [WPScan link](https://wpscan.com/vulnerability/ce655810-bd08-4042-ac3d-63def5c76994) |
-| -               | -                  | -                 | -                     | -                           |

@@ -18,6 +18,11 @@ import './assertions';
 import './commands';
 import './global-hooks';
 
+// Import cypress grep
+import registerCypressGrep from '@cypress/grep';
+
+registerCypressGrep();
+
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
@@ -25,31 +30,43 @@ cy.elasticPress = {
 	defaultFeatures: {
 		search: {
 			active: 1,
-			highlight_enabled: true,
-			highlight_excerpt: true,
+			highlight_enabled: '1',
+			highlight_excerpt: '1',
 			highlight_tag: 'mark',
-			highlight_color: '#157d84',
 		},
 		related_posts: {
-			active: 1,
+			active: true,
 		},
 		facets: {
-			active: 1,
+			active: true,
 		},
 		searchordering: {
-			active: 1,
+			active: true,
 		},
 		autosuggest: {
-			active: 1,
+			active: true,
 		},
 		woocommerce: {
-			active: 0,
+			active: false,
 		},
 		protected_content: {
-			active: 0,
+			active: false,
 		},
-		users: {
-			active: 0,
+		acf_repeater: {
+			active: true,
 		},
 	},
 };
+
+/**
+ * Ignore ResizeObserver error.
+ *
+ * @see {@link https://stackoverflow.com/questions/49384120/resizeobserver-loop-limit-exceeded}
+ */
+Cypress.on('uncaught:exception', (err) => {
+	if (err.message?.includes('ResizeObserver loop limit exceeded')) {
+		return false;
+	}
+
+	return err;
+});

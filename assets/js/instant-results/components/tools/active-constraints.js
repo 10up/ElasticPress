@@ -18,12 +18,12 @@ const ref = createRef();
 /**
  * Active filter component.
  *
- * @param {object}   props         Props.
- * @param {string}   props.label   Constraint label.
+ * @param {object} props Props.
+ * @param {string} props.label Constraint label.
  * @param {Function} props.onClick Click handler.
  * @returns {WPElement} Element.
  */
-export const ActiveContraint = ({ label, onClick }) => {
+export const ActiveConstraint = ({ label, onClick }) => {
 	if (!ref.current) {
 		return null;
 	}
@@ -31,7 +31,7 @@ export const ActiveContraint = ({ label, onClick }) => {
 	return createPortal(
 		<SmallButton
 			aria-label={sprintf(
-				/* translators: %s: Constraint label. */
+				/* translators: %s: Filter term name. */
 				__('Remove filter: %s', 'elasticpress'),
 				label,
 			)}

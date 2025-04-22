@@ -1,7 +1,9 @@
 name: E2E Test
 
 env:
-  NODE_VERSION: "16"
+  COMPOSER_VERSION: "2"
+  COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  NODE_VERSION: "20"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
@@ -18,23 +20,49 @@ on:
 
 jobs:
   cypress_local:
-    name: Cypress - Local
+    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testGroup: ['@slow', '-@slow']
+        esVersion: ['7.10.1', '8.12.2']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0'}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Prepare npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
+    - name: Prepare composer cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: :php-psr
+        tools: cs2pr
+        coverage: none
+
+    - name: composer install
+      run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -42,22 +70,25 @@ jobs:
       run: npm ci --include=dev
 
     - name: Set up WP environment with Elasticsearch
-      run: npm run env:start
+      run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
+
+    - name: Check ES response
+      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
 
     - name: Build asset
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup
+      run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
 
     - name: Test
-      run: npm run cypress:run
+      run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
 
     - name: Make artifacts available
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: cypress-artifact
+        name: cypress-artifact-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
@@ -66,26 +97,60 @@ jobs:
 
     - name: Stop Elasticsearch
       if: always()
-      run: cd bin/es-docker/ && docker-compose down
+      run: cd bin/es-docker/ && docker compose down
+
+    - name: Test plugin uninstall
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
+        ./bin/wp-env-cli tests-wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"
 
   cypress_epio:
-    name: Cypress - EP.io
+    name: EP.io - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testGroup: ['@slow', '-@slow']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0'}
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Prepare npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
+    - name: Prepare composer cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: :php-psr
+        tools: cs2pr
+        coverage: none
+
+    - name: composer install
+      run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -101,16 +166,16 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }}
+      run: npm run cypress:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
 
     - name: Test
-      run: npm run cypress:run
+      run: npm run cypress:run -- --env grepTags=${{ matrix.testGroup }}
 
     - name: Make artifacts available
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: cypress-artifact-epio
+        name: cypress-artifact-epio-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
         path: |
           ${{ github.workspace }}/tests/cypress/screenshots/
@@ -123,3 +188,12 @@ jobs:
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
         ./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress-tests delete-all-indices"
+
+    - name: Test plugin uninstall
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
+        ./bin/wp-env-cli tests-wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"

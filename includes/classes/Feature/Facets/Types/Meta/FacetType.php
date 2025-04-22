@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\Facets\Types\Meta;
 
-use \ElasticPress\Features;
+use ElasticPress\Features;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -32,8 +32,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * Setup hooks and filters for feature
 	 */
 	public function setup() {
-		add_filter( 'ep_facet_agg_filters', [ $this, 'agg_filters' ], 10, 3 );
-		add_action( 'pre_get_posts', [ $this, 'facet_query' ] );
+		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
 
 		add_action( 'ep_delete_post', [ $this, 'invalidate_meta_values_cache' ] );
@@ -53,48 +52,11 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	public function agg_filters( $query_args ) {
-		// Not a facetable query
-		if ( empty( $query_args['ep_facet'] ) ) {
-			return $query_args;
-		}
-
-		if ( ! class_exists( '\WP_Widget_Block' ) ) {
-			return $query_args;
-		}
-
-		// Without a meta_query, there is nothing to do here.
-		if ( empty( $query_args['meta_query'] ) || ! is_array( $query_args['meta_query'] ) ) {
-			return $query_args;
-		}
-
-		/**
-		 * If the aggregations need to match ALL the criteria applied to the main query,
-		 * all the filters applied to the main query should be applied to aggregations as well.
-		 */
-		$feature  = Features::factory()->get_registered_feature( 'facets' );
-		$settings = wp_parse_args(
-			$feature->get_settings(),
-			array(
-				'match_type' => 'all',
-			)
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Aggregation filters related to facet types are now managed by the main Facets class.' ),
+			'ElasticPress 4.4.0'
 		);
-		if ( 'all' === $settings['match_type'] ) {
-			return $query_args;
-		}
-
-		/**
-		 * If we got to this point, let's remove from the aggregation filters all
-		 * meta fields used in facets.
-		 */
-		$facets_meta_fields = $this->get_facets_meta_fields();
-
-		foreach ( $query_args['meta_query'] as $i => $meta_query_clause ) {
-			if ( is_array( $meta_query_clause )
-				&& ! empty( $meta_query_clause['key'] )
-				&& in_array( $meta_query_clause['key'], $facets_meta_fields, true ) ) {
-				unset( $query_args['meta_query'][ $i ] );
-			}
-		}
 
 		return $query_args;
 	}
@@ -104,7 +66,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_name() : string {
+	public function get_filter_name(): string {
 		/**
 		 * Filter the facet filter name that's added to the URL
 		 *
@@ -121,7 +83,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 *
 	 * @return string The filter name.
 	 */
-	public function get_filter_type() : string {
+	public function get_filter_type(): string {
 		/**
 		 * Filter the facet filter type. Used by the Facet feature to organize filters.
 		 *
@@ -186,11 +148,17 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * Apply the facet selection to the main query.
+	 * DEPRECATED. Apply the facet selection to the main query.
 	 *
 	 * @param WP_Query $query WP Query
 	 */
 	public function facet_query( $query ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html( 'Facet selections are now applied directly to the ES Query.' ),
+			'ElasticPress 4.4.0'
+		);
+
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		if ( ! $feature->is_facetable( $query ) ) {
@@ -231,6 +199,68 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
+	 * Add selected filters to the Facet filter in the ES query
+	 *
+	 * @since 4.4.0
+	 * @param array $filters Current Facet filters
+	 * @return array
+	 */
+	public function add_query_filters( $filters ) {
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$selected_filters = $feature->get_selected();
+
+		if ( empty( $selected_filters ) || empty( $selected_filters[ $this->get_filter_type() ] ) ) {
+			return $filters;
+		}
+
+		/**
+		 * Filter if EP should only filter by fields selected in facets. Defaults to true.
+		 *
+		 * @since 4.5.1
+		 * @hook ep_facet_should_check_if_allowed
+		 * @param {bool} $should_check Whether it should or not check fields
+		 * @return {string} New value
+		 */
+		$should_check_if_allowed = apply_filters( 'ep_facet_should_check_if_allowed', true );
+		if ( $should_check_if_allowed ) {
+			$allowed_meta_fields = $this->get_facets_meta_fields();
+
+			$meta_fields = array_filter(
+				$selected_filters[ $this->get_filter_type() ],
+				function ( $meta_field ) use ( $allowed_meta_fields ) {
+					return in_array( $meta_field, $allowed_meta_fields, true );
+				},
+				ARRAY_FILTER_USE_KEY
+			);
+		} else {
+			$meta_fields = $selected_filters[ $this->get_filter_type() ];
+		}
+
+		$match_type = $feature->get_match_type();
+
+		foreach ( $meta_fields as $meta_field => $values ) {
+			if ( 'any' === $match_type ) {
+				$filters[] = [
+					'terms' => [
+						'meta.' . $meta_field . '.raw' => array_keys( $values['terms'] ),
+					],
+				];
+			} else {
+				foreach ( $values['terms'] as $meta_key => $bool ) {
+					$filters[] = [
+						'term' => [
+							'meta.' . $meta_field . '.raw' => $meta_key,
+						],
+					];
+				}
+			}
+		}
+
+		return $filters;
+	}
+
+	/**
 	 * Get all fields selected in all Facet blocks
 	 *
 	 * @return array
@@ -244,7 +274,10 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 				continue;
 			}
 
-			if ( false === strpos( $instance['content'], 'elasticpress/facet-meta' ) ) {
+			if (
+				false !== strpos( $instance['content'], 'elasticpress/facet-meta-range' )
+				|| false === strpos( $instance['content'], 'elasticpress/facet-meta' )
+			) {
 				continue;
 			}
 
@@ -253,6 +286,13 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			}
 
 			$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
+		}
+
+		if ( current_theme_supports( 'block-templates' ) ) {
+			$facets_meta_fields = array_merge(
+				$facets_meta_fields,
+				$this->block_template_meta_fields( 'elasticpress/facet-meta' )
+			);
 		}
 
 		/**
@@ -272,7 +312,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @param string $meta_key The meta field.
 	 * @return array
 	 */
-	public function get_meta_values( string $meta_key ) : array {
+	public function get_meta_values( string $meta_key ): array {
 		/**
 		 * Short-circuits the process of getting distinct meta values.
 		 *

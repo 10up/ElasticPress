@@ -33,18 +33,17 @@ class Installer {
 	 */
 	public function setup() {
 		add_action( 'admin_init', [ $this, 'calculate_install_status' ], 9 );
-		add_filter( 'admin_title', [ $this, 'filter_admin_title' ], 10, 2 );
+		add_filter( 'admin_title', [ $this, 'filter_admin_title' ], 10 );
 	}
 
 	/**
 	 * Filter admin title for install page
 	 *
 	 * @param  string $admin_title Current title
-	 * @param  string $title       Original title
 	 * @since  3.0
 	 * @return string
 	 */
-	public function filter_admin_title( $admin_title, $title ) {
+	public function filter_admin_title( $admin_title ) {
 		if ( 'install' === Screen::factory()->get_current_screen() ) {
 			// translators: Site Name
 			return sprintf( esc_html__( 'ElasticPress Setup &lsaquo; %s &#8212; WordPress', 'elasticpress' ), esc_html( get_bloginfo( 'name' ) ) );
@@ -59,11 +58,7 @@ class Installer {
 	 * @since 3.0
 	 */
 	public function calculate_install_status() {
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$skip_install = get_site_option( 'ep_skip_install', false );
-		} else {
-			$skip_install = get_option( 'ep_skip_install', false );
-		}
+		$skip_install = Utils\get_option( 'ep_skip_install', false );
 
 		if ( $skip_install ) {
 			$this->install_status = true;
@@ -71,7 +66,7 @@ class Installer {
 			return;
 		}
 
-		$last_sync = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? get_site_option( 'ep_last_sync', false ) : get_option( 'ep_last_sync', false );
+		$last_sync = Utils\get_option( 'ep_last_sync', false );
 		if ( ! empty( $last_sync ) ) {
 			$this->install_status = true;
 
@@ -80,7 +75,7 @@ class Installer {
 
 		$host = Utils\get_host();
 
-		if ( empty( $host ) && empty( $_POST['ep_host'] ) ) { // phpcs:ignore
+		if ( empty( $host ) && empty( $_POST['ep_host'] ) ) {
 			$this->install_status = 2;
 
 			return;
@@ -117,7 +112,7 @@ class Installer {
 	 * Check if it should use the features selected during the install to update the settings.
 	 */
 	public function maybe_set_features() {
-		if ( empty( $_POST['ep_install_page_nonce'] ) || ! wp_verify_nonce( $_POST['ep_install_page_nonce'], 'ep_install_page' ) ) {
+		if ( empty( $_POST['ep_install_page_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['ep_install_page_nonce'] ), 'ep_install_page' ) ) {
 			return;
 		}
 
