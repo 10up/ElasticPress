@@ -1196,7 +1196,7 @@ class Post extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( empty( $orderby_clause ) || 'rand' === $orderby_clause || preg_match( '/RAND\(([0-9]+)\)/i', $orderby_clause ) ) {
+			if ( empty( $orderby_clause ) || 'rand' === $orderby_clause || preg_match( '/^rand\((\d+)\)$/i', $orderby_clause ) ) {
 				continue;
 			}
 
@@ -1693,21 +1693,25 @@ class Post extends Indexable {
 		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
 		 */
 		if ( ! empty( $args['orderby'] ) ) {
-			$orderbys  = $this->get_orderby_array( $args['orderby'] );
-			$is_random = preg_grep( '/rand/i', $orderbys );
+			$orderbys        = $this->get_orderby_array( $args['orderby'] );
+			$random_orderbys = preg_grep( '/^rand(?:\((\d+)\))?$/i', $orderbys );
 
-			if ( ! empty( $is_random ) ) {
+			if ( ! empty( $random_orderbys ) ) {
 				$formatted_args_query                               = $formatted_args['query'];
 				$formatted_args['query']                            = [];
 				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
 
-				if ( in_array( 'rand', $orderbys, true ) ) {
-					$formatted_args['query']['function_score']['random_score'] = (object) [];
-				} elseif ( preg_match( '/RAND\(([0-9]+)\)/i', $is_random[0], $matches ) ) {
+				// Get the first random orderby found.
+				$random_orderby = reset( $random_orderbys );
+
+				// check if rand with seed.
+				if ( preg_match( '/^rand\((\d+)\)$/i', $random_orderby, $matches ) ) {
 					$formatted_args['query']['function_score']['random_score'] = (object) [
-						'seed'  => $matches[1],
+						'seed'  => (int) $matches[1],
 						'field' => '_seq_no',
 					];
+				} else {
+					$formatted_args['query']['function_score']['random_score'] = (object) [];
 				}
 			}
 		}
