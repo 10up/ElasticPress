@@ -65,7 +65,8 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function __construct() {
-		$this->slug = 'instant-results';
+		$this->slug  = 'instant-results';
+		$this->group = 'Live Search';
 
 		$this->host = trailingslashit( Utils\get_host() );
 

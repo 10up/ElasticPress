@@ -38,7 +38,8 @@ class Autosuggest extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug = 'autosuggest';
+		$this->slug  = 'autosuggest';
+		$this->group = 'Live Search';
 
 		$this->requires_install_reindex = true;
 
