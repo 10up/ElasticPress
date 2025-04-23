@@ -3,7 +3,7 @@ name: Linting
 env:
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
@@ -22,14 +22,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set standard 10up cache directories
       run: |
         sudo npm config set cache "${{ env.NODE_CACHE }}" --global
 
     - name: Prepare npm cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -37,7 +37,7 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -56,14 +56,14 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set standard 10up cache directories
       run: |
         composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
     - name: Prepare composer cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -74,6 +74,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
+        extensions: :php-psr
         tools: cs2pr
         coverage: none
 

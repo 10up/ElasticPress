@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16672275120013-React-Components](https://elasticpress.zendesk.com/hc/en-us/articles/16672275120013-React-Components).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/react-components/](https://www.elasticpress.io/documentation/article/react-components/).

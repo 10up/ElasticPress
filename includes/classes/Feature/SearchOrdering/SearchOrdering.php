@@ -52,15 +52,25 @@ class SearchOrdering extends Feature {
 	public function __construct() {
 		$this->slug = 'searchordering';
 
-		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
-
-		$this->summary = __( 'Insert specific posts into search results for specific search queries.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#custom-search-results', 'elasticpress' );
-
 		$this->requires_install_reindex = false;
 
+		$this->requires_feature = 'search';
+
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#custom-search-results', 'elasticpress' );
 	}
 
 	/**
@@ -73,7 +83,11 @@ class SearchOrdering extends Feature {
 		/** Search Feature @var Feature\Search\Search $search */
 		$search = $features->get_registered_feature( 'search' );
 
-		if ( ! $search->is_active() && $this->is_active() ) {
+		if ( ! Utils\is_site_indexable() ) {
+			return false;
+		}
+
+		if ( ( ! $search->is_active() && $this->is_active() ) ) {
 			$features->deactivate_feature( $this->slug );
 			return false;
 		}
@@ -175,18 +189,8 @@ class SearchOrdering extends Feature {
 	 *
 	 * @return FeatureRequirementsStatus
 	 */
-	public function requirements_status() {
-		/** Features Class @var Features $features */
-		$features = Features::factory();
-
-		/** Search Feature @var Feature\Search\Search $search */
-		$search = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
-		return parent::requirements_status();
+	public function requirements_status(): FeatureRequirementsStatus {
+		return new FeatureRequirementsStatus( 0 );
 	}
 
 	/**
@@ -219,7 +223,7 @@ class SearchOrdering extends Feature {
 			'elasticpress',
 			esc_html__( 'Custom Results', 'elasticpress' ),
 			esc_html__( 'Custom Results', 'elasticpress' ),
-			Utils\get_capability(),
+			Utils\get_capability( 'search-ordering' ),
 			'edit.php?post_type=' . self::POST_TYPE_NAME
 		);
 	}
@@ -272,9 +276,6 @@ class SearchOrdering extends Feature {
 	 * Registers the pointer post type for the injected results
 	 */
 	public function register_post_type() {
-		$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
-		$menu       = $is_network ? null : false;
-
 		$labels = array(
 			'name'               => esc_html_x( 'Custom Search Results', 'post type general name', 'elasticpress' ),
 			'singular_name'      => esc_html_x( 'Custom Search Result', 'post type singular name', 'elasticpress' ),
@@ -298,10 +299,10 @@ class SearchOrdering extends Feature {
 			'public'               => false,
 			'publicly_queryable'   => false,
 			'show_ui'              => true,
-			'show_in_menu'         => $menu,
+			'show_in_menu'         => false,
 			'query_var'            => true,
 			'rewrite'              => array( 'slug' => 'ep-pointer' ),
-			'capabilities'         => Utils\get_post_map_capabilities(),
+			'capabilities'         => Utils\get_post_map_capabilities( 'search-ordering' ),
 			'has_archive'          => false,
 			'hierarchical'         => false,
 			'menu_position'        => 100,
@@ -334,6 +335,7 @@ class SearchOrdering extends Feature {
 			'show_admin_column' => false,
 			'query_var'         => false,
 			'rewrite'           => false,
+			'public'            => false,
 		);
 
 		/** Features Class @var Features $features */
@@ -498,6 +500,7 @@ class SearchOrdering extends Feature {
 				$final_order_data[] = [
 					'ID'    => intval( $order_data['ID'] ),
 					'order' => intval( $order_data['order'] ),
+					'type'  => ! empty( $order_data['type'] ) ? sanitize_text_field( $order_data['type'] ) : 'reordered',
 				];
 			} else {
 				$previous_post_ids[ intval( $order_data['ID'] ) ] = true;
@@ -801,5 +804,4 @@ class SearchOrdering extends Feature {
 
 		return $admin_title;
 	}
-
 }

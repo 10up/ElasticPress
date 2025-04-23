@@ -8,7 +8,7 @@
 
 namespace ElasticPress;
 
-use \WP_Error;
+use WP_Error;
 use ElasticPress\Indexables;
 use ElasticPress\Utils;
 
@@ -78,7 +78,7 @@ class Elasticsearch {
 	 * @param  array   $document Formatted Elasticsearch document.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
-	 * @return boolean|array
+	 * @return boolean|object
 	 */
 	public function index_document( $index, $type, $document, $blocking = true ) {
 		/**
@@ -404,6 +404,14 @@ class Elasticsearch {
 				 * @param  {array} $query_args Current WP Query arguments
 				 */
 				do_action( 'ep_retrieve_aggregations', $response['aggregations'], $query, '', $query_args );
+
+				if ( is_object( $query_object ) ) {
+					if ( method_exists( $query_object, 'set' ) ) {
+						$query_object->set( 'ep_aggregations', $response['aggregations'] );
+					} else {
+						$query_object->query_vars['ep_aggregations'] = $response['aggregations'];
+					}
+				}
 			}
 
 			/**
@@ -456,11 +464,15 @@ class Elasticsearch {
 			 *
 			 * @hook ep_es_query_results
 			 * @param {array} $results Results from Elasticsearch
-			 * @param  {response} $response Raw response from Elasticsearch
-			 * @param  {array} $query Raw Elasticsearch query
-			 * @param  {array} $query_args Query arguments
-			 * @param  {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
-			 * @return  {array} New results
+			 *      @param {int}   $results.found_documents Total number of documents.
+			 *      @param {array} $results.documents       Array of documents.
+			 *      @param {array} $results.aggregations    Array of aggregations.
+			 *      @param {array} $results.suggest         Array of suggestions.
+			 * @param {response} $response Raw response from Elasticsearch
+			 * @param {array} $query Raw Elasticsearch query
+			 * @param {array} $query_args Query arguments
+			 * @param {mixed} $query_object Could be WP_Query, WP_User_Query, etc.
+			 * @return {array} New results
 			 */
 			return apply_filters(
 				'ep_es_query_results',
@@ -1210,7 +1222,7 @@ class Elasticsearch {
 	 *
 	 * @return WP_Error|array The response or WP_Error on failure.
 	 */
-	public function remote_request( $path, $args = [], $query_args = [], $type = null ) {
+	public function remote_request( $path, $args = [], $query_args = [], $type = '' ) {
 
 		if ( empty( $args['method'] ) ) {
 			$args['method'] = 'GET';
@@ -1313,7 +1325,7 @@ class Elasticsearch {
 			$is_non_blocking_request = ( 0 === $request_response_code );
 
 			if ( false === $request || is_wp_error( $request ) || ( ! $is_valid_res && ! $is_non_blocking_request ) ) {
-				$failures++;
+				++$failures;
 
 				/**
 				 * Filter max number of times to attempt remote requests
@@ -1340,6 +1352,15 @@ class Elasticsearch {
 			$query['request']  = $request;
 			$this->add_query_log( $query );
 
+			/**
+			 * Fires after Elasticsearch remote request
+			 *
+			 * @hook ep_remote_request
+			 * @param {array}  $query Remote request arguments
+			 * @param {string} $type  Request type
+			 */
+			do_action( 'ep_remote_request', $query, $type );
+
 			return $request;
 		}
 
@@ -1347,17 +1368,10 @@ class Elasticsearch {
 		$query['request']     = $request;
 		$this->add_query_log( $query );
 
-		/**
-		 * Fires after Elasticsearch remote request
-		 *
-		 * @hook ep_remote_request
-		 * @param  {array} $query Remote request arguments
-		 * @param  {string} $type Request type
-		 */
+		// This action is documented above
 		do_action( 'ep_remote_request', $query, $type );
 
 		return $request;
-
 	}
 
 	/**
@@ -1407,7 +1421,6 @@ class Elasticsearch {
 			'status' => true,
 			'data'   => $response->_all->primaries->indexing,
 		);
-
 	}
 
 	/**
@@ -1483,17 +1496,21 @@ class Elasticsearch {
 			// Save version of last node. We assume all nodes are same version.
 			$this->elasticsearch_version = $node['version'];
 
+			// Elasticsearch calls "modules" all default plugins that can't be uninstalled
+			if ( isset( $node['modules'] ) && is_array( $node['modules'] ) ) {
+				foreach ( $node['modules'] as $plugin ) {
+					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
+				}
+
+				if ( ! empty( $node['modules'] ) && ! empty( $node['modules'][0]['opensearch_version'] ) ) {
+					$this->server_type = 'opensearch';
+				}
+			}
+
 			if ( isset( $node['plugins'] ) && is_array( $node['plugins'] ) ) {
 				foreach ( $node['plugins'] as $plugin ) {
 					$this->elasticsearch_plugins[ $plugin['name'] ] = $plugin['version'];
 				}
-			}
-			if ( isset( $node['modules'] )
-				&& is_array( $node['modules'] )
-				&& ! empty( $node['modules'] )
-				&& ! empty( $node['modules'][0]['opensearch_version'] )
-			) {
-				$this->server_type = 'opensearch';
 			}
 		}
 
@@ -1695,7 +1712,7 @@ class Elasticsearch {
 		 * Filter the User Agent header when submitting requests to Elasticsearch.
 		 *
 		 * @hook ep_remote_request_add_ep_user_agent
-		 * @param  {bool} $should_add_ep_verion Whether the ElasticPress version should be added to the User Agent string.
+		 * @param  {bool} $should_add_ep_version Whether the ElasticPress version should be added to the User Agent string.
 		 * @return {bool} New value
 		 * @since  3.6.1
 		 */
@@ -1714,12 +1731,25 @@ class Elasticsearch {
 	 * Query logging. Don't log anything to the queries property when
 	 * WP_DEBUG is not enabled. Calls action 'ep_add_query_log' if you
 	 * want to access the query outside of the ElasticPress plugin. This
-	 * runs regardless of debufg settings.
+	 * runs regardless of debug settings.
 	 *
 	 * @param array $query Query to log.
 	 */
 	protected function add_query_log( $query ) {
-		if ( ( defined( 'WP_DEBUG' ) && WP_DEBUG ) || ( defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG ) ) {
+		$wp_debug    = defined( 'WP_DEBUG' ) && WP_DEBUG;
+		$wp_ep_debug = defined( 'WP_EP_DEBUG' ) && WP_EP_DEBUG;
+
+		/**
+		 * Filter query logging. Don't log anything to the queries property when true.
+		 *
+		 * @hook ep_disable_query_logging
+		 * @param  {bool} Whether to log to the queries property. Defaults to false.
+		 * @return {bool} New value
+		 * @since  5.1.4
+		 */
+		$disable_query_logging = apply_filters( 'ep_disable_query_logging', false );
+
+		if ( ! $disable_query_logging && ( $wp_debug || $wp_ep_debug ) ) {
 			$this->queries[] = $query;
 		}
 
@@ -1768,7 +1798,7 @@ class Elasticsearch {
 	 * @since 4.4.0
 	 * @return array Array of indices in Elasticsearch
 	 */
-	public function get_cluster_indices() : array {
+	public function get_cluster_indices(): array {
 		$path = '_cat/indices?format=json';
 
 		$response = $this->remote_request( $path );

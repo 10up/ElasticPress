@@ -1,5 +1,5 @@
 /**
- * WordPress deendencies.
+ * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
 import { chevronDown, chevronUp, Icon } from '@wordpress/icons';
@@ -21,7 +21,7 @@ export default ({ isOpen, onClick }) => {
 			onClick={onClick}
 			type="button"
 		>
-			{isOpen ? __('Close filters', 'elasticpress') : __('All filters', 'elasticoress')}
+			{isOpen ? __('Close filters', 'elasticpress') : __('All filters', 'elasticpress')}
 			<Icon icon={isOpen ? chevronUp : chevronDown} />
 		</button>
 	);

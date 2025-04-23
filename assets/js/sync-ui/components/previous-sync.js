@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import { Icon } from '@wordpress/components';
 import { useMemo, WPElement } from '@wordpress/element';
 import { dateI18n } from '@wordpress/date';
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { __, _n, _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -44,6 +44,7 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 			case 'with_errors':
 				return failures
 					? sprintf(
+							/* translators: number of errors */
 							_n(
 								'Completed with %d error.',
 								'Completed with %d errors.',
@@ -51,7 +52,7 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 								'elasticpress',
 							),
 							failures,
-					  )
+						)
 					: __('Completed with errors.', 'elasticpress');
 			case 'aborted':
 				return __('Stopped.', 'elasticpress');
@@ -71,10 +72,18 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 		}
 
 		switch (trigger) {
+			case 'features':
+				return __('Automatic sync after settings change.', 'elasticpress');
+			case 'install':
+				return __('Automatic sync after installation.', 'elasticpress');
+			case 'synonyms-error':
+				return __('Manual sync following an error in synonyms settings.', 'elasticpress');
 			case 'manual':
-			default: {
 				return __('Manual sync from Sync Settings.', 'elasticpress');
-			}
+			case 'upgrade':
+				return __('Automatic sync after plugin update.', 'elasticpress');
+			default:
+				return null;
 		}
 	}, [method, trigger]);
 
@@ -101,7 +110,17 @@ export default ({ failures, method, stateDatetime, status, trigger }) => {
 		>
 			<Icon icon={isError ? error : success} />
 			<div className="ep-previous-sync__title">
-				{when} &mdash; {why}
+				{why
+					? sprintf(
+							/* translators: %1$s Sync date and time. %2%s sync trigger. */ _x(
+								'%1$s — %2$s',
+								'Sync info',
+								'elasticpress',
+							),
+							when,
+							why,
+						)
+					: when}
 			</div>
 			<div className="ep-previous-sync__help">{how}</div>
 		</div>

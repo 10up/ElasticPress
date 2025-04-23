@@ -75,3 +75,13 @@ function create_taxonomy() {
 	register_taxonomy( 'genre', [ 'movie' ], $args );
 }
 add_action( 'init', __NAMESPACE__ . '\\create_taxonomy' );
+
+/**
+ * Flush rewrite rules after registering the CPT and taxonomy
+ */
+function rewrite_flush() {
+	create_post_type();
+	create_taxonomy();
+	flush_rewrite_rules();
+}
+register_activation_hook( __FILE__, __NAMESPACE__ . '\\rewrite_flush' );

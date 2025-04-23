@@ -73,6 +73,7 @@ class TestComments extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new ElasticPress\Feature\Comments\Comments();
+		$instance->set_i18n_strings();
 
 		$this->assertEquals( 'comments', $instance->slug );
 		$this->assertEquals( 'Comments', $instance->title );
@@ -89,7 +90,7 @@ class TestComments extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Improve comment search relevancy and query performance.', $output );
+		$this->assertStringContainsString( 'This feature is only needed if you are using <code>WP_Comment_Query</code> directly.', $output );
 	}
 
 	/**
@@ -168,17 +169,17 @@ class TestComments extends BaseTestCase {
 	 * @group comments
 	 */
 	public function testIsVisible() {
-		$this->assertTrue( $this->get_feature()->is_visible() );
+		$this->assertFalse( $this->get_feature()->is_visible() );
 
 		$change_visibility = function ( $is_visible, $feature_slug, $feature ) {
-			$this->assertTrue( $is_visible );
+			$this->assertFalse( $is_visible );
 			$this->assertSame( 'comments', $feature_slug );
 			$this->assertInstanceOf( '\ElasticPress\Feature\Comments\Comments', $feature );
-			return false;
+			return true;
 		};
 		add_filter( 'ep_feature_is_visible', $change_visibility, 10, 3 );
 
-		$this->assertFalse( $this->get_feature()->is_visible() );
+		$this->assertTrue( $this->get_feature()->is_visible() );
 	}
 
 	/**
@@ -188,16 +189,16 @@ class TestComments extends BaseTestCase {
 	 * @group comments
 	 */
 	public function testIsAvailable() {
-		$this->assertTrue( $this->get_feature()->is_available() );
+		$this->assertFalse( $this->get_feature()->is_available() );
 
 		$change_availability = function ( $is_available, $feature_slug, $feature ) {
-			$this->assertTrue( $is_available );
+			$this->assertFalse( $is_available );
 			$this->assertSame( 'comments', $feature_slug );
 			$this->assertInstanceOf( '\ElasticPress\Feature\Comments\Comments', $feature );
-			return false;
+			return true;
 		};
 		add_filter( 'ep_feature_is_available', $change_availability, 10, 3 );
 
-		$this->assertFalse( $this->get_feature()->is_available() );
+		$this->assertTrue( $this->get_feature()->is_available() );
 	}
 }

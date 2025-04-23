@@ -29,8 +29,15 @@ export default (state, action) => {
 			break;
 		}
 		case 'SEARCH': {
-			newState.args = { ...newState.args, ...action.args, offset: 0 };
+			const { updateDefaults, ...args } = action.args;
+
+			newState.args = { ...newState.args, ...args, offset: 0 };
 			newState.isOn = true;
+
+			if (updateDefaults && args.post_type.length) {
+				newState.argsSchema.post_type.default = args.post_type;
+			}
+
 			break;
 		}
 		case 'SEARCH_FOR': {

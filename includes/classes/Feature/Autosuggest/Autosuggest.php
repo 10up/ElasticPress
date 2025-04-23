@@ -40,14 +40,6 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->title = $this->get_title();
-
-		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
-
-		$this->summary = __( 'Suggest relevant content as text is entered into the search field.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#autosuggest', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
@@ -58,9 +50,25 @@ class Autosuggest extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->set_settings_schema();
+		$this->is_powered_by_epio = Utils\is_epio();
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
+
+		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#autosuggest', 'elasticpress' );
 	}
 
 	/**
@@ -180,7 +188,7 @@ class Autosuggest extends Feature {
 	 * @return array
 	 */
 	public function set_fuzziness( $fuzziness, $search_fields, $args ) {
-		if ( Utils\is_integrated_request( $this->slug, [ 'public' ] ) && ! empty( $args['s'] ) ) {
+		if ( Utils\is_integrated_request( $this->slug, $this->get_contexts() ) && ! empty( $args['s'] ) ) {
 			return 'auto';
 		}
 		return $fuzziness;
@@ -195,7 +203,7 @@ class Autosuggest extends Feature {
 	 * @return array $query adjusted ES Query arguments
 	 */
 	public function adjust_fuzzy_fields( $query, $post_type, $args ) {
-		if ( ! Utils\is_integrated_request( $this->slug, [ 'public' ] ) || empty( $args['s'] ) ) {
+		if ( ! Utils\is_integrated_request( $this->slug, $this->get_contexts() ) || empty( $args['s'] ) ) {
 			return $query;
 		}
 
@@ -349,12 +357,10 @@ class Autosuggest extends Feature {
 
 		if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) {
 			$endpoint_url = EP_AUTOSUGGEST_ENDPOINT;
-		} else {
-			if ( Utils\is_epio() ) {
+		} elseif ( Utils\is_epio() ) {
 				$endpoint_url = trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/autosuggest';
-			} else {
-				$endpoint_url = $settings['endpoint_url'];
-			}
+		} else {
+			$endpoint_url = $settings['endpoint_url'];
 		}
 
 		if ( empty( $endpoint_url ) ) {
@@ -658,6 +664,10 @@ class Autosuggest extends Feature {
 		// Pass the same cookies, so the same authenticated user is used (and we can check the nonce).
 		$cookies = [];
 		foreach ( $_COOKIE as $name => $value ) {
+			if ( ! is_string( $name ) || ! is_string( $value ) ) {
+				continue;
+			}
+
 			$cookies[] = new \WP_Http_Cookie(
 				[
 					'name'  => $name,
@@ -780,7 +790,7 @@ class Autosuggest extends Feature {
 			<div class="input-wrap">
 			<?php
 			$epio_link                = 'https://elasticpress.io';
-			$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+			$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/elasticpress-io-autosuggest/';
 			$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
 
 			printf(
@@ -829,21 +839,6 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Returns the title.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_title() : string {
-		if ( ! Utils\is_epio() ) {
-			return esc_html__( 'Autosuggest', 'elasticpress' );
-		}
-
-		/* translators: 1. elasticpress.io logo;  */
-		return sprintf( esc_html__( 'Autosuggest By %s', 'elasticpress' ), $this->get_epio_logo() );
-	}
-
-	/**
 	 * Return true, so EP knows we want to intercept the remote request
 	 *
 	 * As we add and remove this function from `ep_intercept_remote_request`,
@@ -863,17 +858,17 @@ class Autosuggest extends Feature {
 	 * @since 5.0.0
 	 */
 	protected function maybe_add_epio_settings_schema() {
-		$allowed_params = $this->epio_autosuggest_set_and_get();
-		if ( empty( $allowed_params ) ) {
+		if ( ! Utils\is_epio() ) {
 			return;
 		}
 
 		$epio_link                = 'https://elasticpress.io';
-		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/360055402791';
+		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/elasticpress-io-autosuggest/';
 		$status_report_link       = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ? network_admin_url( 'admin.php?page=elasticpress-status-report' ) : admin_url( 'admin.php?page=elasticpress-status-report' );
 
 		$this->settings_schema[] = [
-			'default' => sprintf(
+			'key'   => 'epio',
+			'label' => sprintf(
 				/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>; */
 				__( 'You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s.', 'elasticpress' ),
 				'<a href="' . esc_url( $epio_link ) . '">',
@@ -883,9 +878,7 @@ class Autosuggest extends Feature {
 				'<a href="' . esc_url( $status_report_link ) . '">',
 				'</a>'
 			),
-			'key'     => 'epio',
-			'label'   => __( 'Connection', 'elasticpress' ),
-			'type'    => 'markup',
+			'type'  => 'markup',
 		];
 	}
 
@@ -898,33 +891,33 @@ class Autosuggest extends Feature {
 		$this->settings_schema = [
 			[
 				'default' => '.ep-autosuggest',
-				'help'    => __( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ),
+				'help'    => __( 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>', 'elasticpress' ),
 				'key'     => 'autosuggest_selector',
-				'label'   => __( 'Autosuggest Selector', 'elasticpress' ),
+				'label'   => __( 'Additional selectors', 'elasticpress' ),
 				'type'    => 'text',
 			],
 			[
-				'key'   => 'trigger_ga_event',
-				'help'  => __( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ),
-				'label' => __( 'Google Analytics Events', 'elasticpress' ),
-				'type'  => 'checkbox',
+				'default' => '0',
+				'key'     => 'trigger_ga_event',
+				'help'    => __( 'Enable to fire a gtag tracking event when an autosuggest result is clicked.', 'elasticpress' ),
+				'label'   => __( 'Trigger Google Analytics events', 'elasticpress' ),
+				'type'    => 'checkbox',
 			],
 		];
 
-		if ( Utils\is_epio() ) {
-			$this->maybe_add_epio_settings_schema();
-			return;
+		$this->maybe_add_epio_settings_schema();
+
+		if ( ! Utils\is_epio() ) {
+			$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
+
+			$this->settings_schema[] = [
+				'disabled' => $set_in_wp_config,
+				'help'     => ! $set_in_wp_config ? __( 'A valid URL starting with <code>http://</code> or <code>https://</code>. This address will be exposed to the public.', 'elasticpress' ) : '',
+				'key'      => 'endpoint_url',
+				'label'    => __( 'Endpoint URL', 'elasticpress' ),
+				'type'     => 'url',
+			];
 		}
-
-		$set_in_wp_config = defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT;
-
-		$this->settings_schema[] = [
-			'readonly' => $set_in_wp_config,
-			'help'     => $set_in_wp_config ? __( 'This address will be exposed to the public.', 'elasticpress' ) : '',
-			'key'      => 'endpoint_url',
-			'label'    => __( 'Endpoint URL', 'elasticpress' ),
-			'type'     => 'url',
-		];
 	}
 
 	/**
@@ -938,5 +931,23 @@ class Autosuggest extends Feature {
 			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.' ),
 			'ElasticPress 4.7.0'
 		);
+	}
+
+	/**
+	 * Get the contexts for autosuggest.
+	 *
+	 * @since 5.1.0
+	 * @return array
+	 */
+	protected function get_contexts(): array {
+		/**
+		 * Filter contexts for autosuggest.
+		 *
+		 * @hook ep_autosuggest_contexts
+		 * @since 5.1.0
+		 * @param {array} $contexts Contexts for autosuggest
+		 * @return {array} New contexts
+		 */
+		return apply_filters( 'ep_autosuggest_contexts', [ 'public', 'ajax' ] );
 	}
 }

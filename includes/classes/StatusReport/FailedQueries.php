@@ -8,8 +8,8 @@
 
 namespace ElasticPress\StatusReport;
 
-use \ElasticPress\QueryLogger;
-use \ElasticPress\Utils;
+use ElasticPress\QueryLogger;
+use ElasticPress\Utils;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,7 +41,7 @@ class FailedQueries extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return __( 'Failed Queries', 'elasticpress' );
 	}
 
@@ -50,7 +50,7 @@ class FailedQueries extends Report {
 	 *
 	 * @return array
 	 */
-	public function get_groups() : array {
+	public function get_groups(): array {
 		$this->maybe_clear_logs();
 
 		$logs = $this->query_logger->get_logs( false );
@@ -108,7 +108,7 @@ class FailedQueries extends Report {
 	 *
 	 * @return string
 	 */
-	public function get_actions() : array {
+	public function get_actions(): array {
 		global $wp;
 
 		$logs = $this->query_logger->get_logs( false );
@@ -132,7 +132,7 @@ class FailedQueries extends Report {
 	 * If a nonce is present, clear the logs
 	 */
 	protected function maybe_clear_logs() {
-		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'ep-clear-logged-queries' ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( empty( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['_wpnonce'] ), 'ep-clear-logged-queries' ) ) {
 			return;
 		}
 
@@ -155,6 +155,13 @@ class FailedQueries extends Report {
 	 * @return array The error in index 0, solution in index 1
 	 */
 	public function analyze_log( $log ) {
+		if ( is_array( $log['result'] ) && ! empty( $log['result']['is_wp_error'] ) ) {
+			return [
+				$log['result']['message'],
+				__( 'It seems WordPress was not able to complete the request. Review the error message and your configuration.', 'elasticpress' ),
+			];
+		}
+
 		$error = Utils\get_elasticsearch_error_reason( $log );
 
 		$solution = ( ! empty( $error ) ) ?

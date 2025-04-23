@@ -206,9 +206,9 @@ class TestUtils extends BaseTestCase {
 		 */
 		$sync_url = ElasticPress\Utils\get_sync_url( true );
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$this->assertStringContainsString( 'wp-admin/network/admin.php?page=elasticpress-sync&do_sync', $sync_url );
+			$this->assertStringContainsString( 'wp-admin/network/admin.php?page=elasticpress-sync&do_sync&ep_sync_nonce=', $sync_url );
 		} else {
-			$this->assertStringContainsString( 'wp-admin/admin.php?page=elasticpress-sync&do_sync', $sync_url );
+			$this->assertStringContainsString( 'wp-admin/admin.php?page=elasticpress-sync&do_sync&ep_sync_nonce=', $sync_url );
 		}
 	}
 
@@ -221,7 +221,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Use the `ep_index_prefix` filter so `get_index_prefix()` can return something.
 		 */
-		$custom_index_prefix = function() {
+		$custom_index_prefix = function () {
 			return 'custom-prefix';
 		};
 		add_filter( 'ep_index_prefix', $custom_index_prefix );
@@ -230,7 +230,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_request_id_base` filter
 		 */
-		$custom_request_id_base = function( $base ) {
+		$custom_request_id_base = function ( $base ) {
 			return $base . '-plus';
 		};
 		add_filter( 'ep_request_id_base', $custom_request_id_base );
@@ -248,7 +248,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Use the `ep_request_id_base` filter so `get_request_id_base()` can return something.
 		 */
-		$custom_request_id_base = function() {
+		$custom_request_id_base = function () {
 			return 'indexprefix';
 		};
 		add_filter( 'ep_request_id_base', $custom_request_id_base );
@@ -257,7 +257,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_request_id` filter
 		 */
-		$custom_request_id = function( $request_id ) {
+		$custom_request_id = function ( $request_id ) {
 			$this->assertMatchesRegularExpression( '/indexprefix[0-9a-f]{32}/', $request_id );
 			return 'totally-new-request-id';
 		};
@@ -276,13 +276,14 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_capability` filter.
 		 */
-		$change_cap_name = function( $cap ) {
+		$change_cap_name = function ( $cap, $context ) {
 			$this->assertSame( 'manage_elasticpress', $cap );
+			$this->assertSame( 'context', $context );
 			return 'custom_manage_ep';
 		};
-		add_filter( 'ep_capability', $change_cap_name );
+		add_filter( 'ep_capability', $change_cap_name, 10, 2 );
 
-		$this->assertSame( 'custom_manage_ep', Utils\get_capability() );
+		$this->assertSame( 'custom_manage_ep', Utils\get_capability( 'context' ) );
 	}
 
 	/**
@@ -296,13 +297,14 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_network_capability` filter.
 		 */
-		$change_cap_name = function( $cap ) {
+		$change_cap_name = function ( $cap, $context ) {
 			$this->assertSame( 'manage_network_elasticpress', $cap );
+			$this->assertSame( 'context', $context );
 			return 'custom_manage_network_ep';
 		};
-		add_filter( 'ep_network_capability', $change_cap_name );
+		add_filter( 'ep_network_capability', $change_cap_name, 10, 2 );
 
-		$this->assertSame( 'custom_manage_network_ep', Utils\get_network_capability() );
+		$this->assertSame( 'custom_manage_network_ep', Utils\get_network_capability( 'context' ) );
 	}
 
 	/**
@@ -322,6 +324,32 @@ class TestUtils extends BaseTestCase {
 		];
 
 		$this->assertSame( $expected, Utils\get_post_map_capabilities() );
+	}
+
+	/**
+	 * Test the `get_post_map_capabilities` function passing context
+	 *
+	 * @since 5.1.0
+	 */
+	public function test_get_post_map_capabilities_with_context() {
+		$change_cap_name = function ( $cap, $context ) {
+			$this->assertSame( 'manage_elasticpress', $cap );
+			$this->assertSame( 'context', $context );
+			return 'custom_manage_ep';
+		};
+		add_filter( 'ep_capability', $change_cap_name, 10, 2 );
+
+		$expected = [
+			'edit_post'          => 'custom_manage_ep',
+			'edit_posts'         => 'custom_manage_ep',
+			'edit_others_posts'  => 'custom_manage_ep',
+			'publish_posts'      => 'custom_manage_ep',
+			'read_post'          => 'custom_manage_ep',
+			'read_private_posts' => 'custom_manage_ep',
+			'delete_post'        => 'custom_manage_ep',
+		];
+
+		$this->assertSame( $expected, Utils\get_post_map_capabilities( 'context' ) );
 	}
 
 	/**
@@ -447,7 +475,7 @@ class TestUtils extends BaseTestCase {
 	public function test_get_language() {
 		$this->assertSame( 'site-default', Utils\get_language() );
 
-		$set_lang_via_option = function() {
+		$set_lang_via_option = function () {
 			return 'custom_via_option';
 		};
 		if ( is_multisite() ) {
@@ -461,7 +489,7 @@ class TestUtils extends BaseTestCase {
 		/**
 		 * Test the `ep_default_language` filter
 		 */
-		$set_lang_via_filter = function( $ep_language ) {
+		$set_lang_via_filter = function ( $ep_language ) {
 			$this->assertSame( 'custom_via_option', $ep_language );
 			return 'custom_via_filter';
 		};
@@ -576,5 +604,23 @@ class TestUtils extends BaseTestCase {
 		$sites = Utils\get_sites();
 		$this->assertGreaterThanOrEqual( 1, did_filter( 'ep_indexable_sites' ) );
 		$this->assertTrue( $sites['test'] );
+	}
+
+	/**
+	 * Test the `is_top_level_admin_context` function
+	 *
+	 * @since 5.0.0
+	 * @group utils
+	 */
+	public function test_is_top_level_admin_context() {
+		if ( is_multisite() ) {
+			// It will be in network admin mode by default as `WP_NETWORK_ADMIN` is set in bootstrap.php
+			$this->assertTrue( Utils\is_top_level_admin_context() );
+			set_current_screen( '/' );
+			$this->assertFalse( Utils\is_top_level_admin_context() );
+		} else {
+			set_current_screen( 'edit-comments.php' );
+			$this->assertTrue( Utils\is_top_level_admin_context() );
+		}
 	}
 }

@@ -103,7 +103,7 @@ const AuthenticatedApiSearchProvider = ({ children }) => {
  * @returns {void}
  */
 const init = async () => {
-	const form = document.getElementById('posts-filter');
+	const form = document.querySelector('#posts-filter, #wc-orders-filter');
 	const input = form.s;
 
 	if (!input) {

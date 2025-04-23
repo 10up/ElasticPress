@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16670678802189-Debugging](https://elasticpress.zendesk.com/hc/en-us/articles/16670678802189-Debugging).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/using-the-elasticpress-debugging-add-on-plugin/](https://www.elasticpress.io/documentation/article/using-the-elasticpress-debugging-add-on-plugin/).

@@ -40,6 +40,7 @@ const Context = createContext();
  * @param {string} props.apiUrl API endpoint URL.
  * @param {Function} props.children Component children
  * @param {Array} props.defaultSyncHistory Sync history.
+ * @param {Array} props.defaultSyncTrigger Sync trigger.
  * @param {object|null} props.indexMeta Details of a sync in progress.
  * @param {boolean} props.isEpio Whether ElasticPress.io is in use.
  * @param {string} props.nonce WordPress nonce.
@@ -49,6 +50,7 @@ export const SyncProvider = ({
 	apiUrl,
 	children,
 	defaultSyncHistory,
+	defaultSyncTrigger,
 	indexMeta,
 	isEpio,
 	nonce,
@@ -64,6 +66,11 @@ export const SyncProvider = ({
 	const [log, setLog] = useState([]);
 
 	/**
+	 * Error types state.
+	 */
+	const [errorCounts, setErrorCounts] = useState([]);
+
+	/**
 	 * Sync state.
 	 */
 	const [state, setState] = useState({
@@ -77,6 +84,7 @@ export const SyncProvider = ({
 		itemsTotal: 100,
 		syncStartDateTime: null,
 		syncHistory: defaultSyncHistory,
+		syncTrigger: defaultSyncTrigger,
 	});
 
 	/**
@@ -94,6 +102,39 @@ export const SyncProvider = ({
 		stateRef.current = { ...stateRef.current, ...newState };
 		setState((state) => ({ ...state, ...newState }));
 	};
+
+	const countErrors = useCallback(
+		/**
+		 * Add up the counts for each error type.
+		 *
+		 * @param {object} errors Errors returned by the sync request.
+		 */
+		(errors) => {
+			setErrorCounts((errorCounts) => {
+				const newErrorCounts = [...errorCounts];
+
+				Object.keys(errors).forEach((e) => {
+					if (!errors[e].solution) {
+						return;
+					}
+
+					const i = newErrorCounts.findIndex((t) => e === t.type);
+
+					if (i !== -1) {
+						newErrorCounts[i].count += errors[e].count;
+					} else {
+						newErrorCounts.push({
+							...errors[e],
+							type: e,
+						});
+					}
+				});
+
+				return newErrorCounts;
+			});
+		},
+		[],
+	);
 
 	const logMessage = useCallback(
 		/**
@@ -132,6 +173,7 @@ export const SyncProvider = ({
 		 */
 		() => {
 			setLog([]);
+			setErrorCounts([]);
 		},
 		[setLog],
 	);
@@ -226,7 +268,7 @@ export const SyncProvider = ({
 						isEpio
 							? __('ElasticPress.io', 'elasticpress')
 							: __('Elasticsearch', 'elasticpress'),
-				  )
+					)
 				: __('Sync interrupted by WP-CLI command.', 'elasticpress');
 
 			logMessage(message, 'info');
@@ -249,6 +291,7 @@ export const SyncProvider = ({
 				itemsProcessed: getItemsProcessedFromIndexMeta(indexMeta),
 				itemsTotal: getItemsTotalFromIndexMeta(indexMeta),
 				syncStartDateTime: indexMeta.start_date_time,
+				syncTrigger: indexMeta.trigger || null,
 			});
 		},
 		[],
@@ -284,7 +327,7 @@ export const SyncProvider = ({
 		 */
 		(response) => {
 			const { isPaused, isSyncing } = stateRef.current;
-			const { message, status, totals = [], index_meta: indexMeta } = response.data;
+			const { errors, message, status, totals = [], index_meta: indexMeta } = response.data;
 
 			return new Promise((resolve) => {
 				/**
@@ -292,6 +335,10 @@ export const SyncProvider = ({
 				 */
 				if (!isSyncing) {
 					return;
+				}
+
+				if (errors) {
+					countErrors(errors);
 				}
 
 				/**
@@ -344,7 +391,7 @@ export const SyncProvider = ({
 				resolve(indexMeta.method);
 			});
 		},
-		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, logMessage],
+		[syncCompleted, syncFailed, syncInProgress, syncInterrupted, countErrors, logMessage],
 	);
 
 	const doCancelIndex = useCallback(
@@ -354,7 +401,13 @@ export const SyncProvider = ({
 		 * @returns {void}
 		 */
 		() => {
-			cancelIndex().then(syncStopped);
+			cancelIndex()
+				.then(syncStopped)
+				.catch((error) => {
+					if (error?.name !== 'AbortError') {
+						throw error;
+					}
+				});
 		},
 		[cancelIndex, syncStopped],
 	);
@@ -454,7 +507,12 @@ export const SyncProvider = ({
 				isSyncing: true,
 			});
 
-			updateState({ itemsProcessed: 0, syncStartDateTime: Date.now() });
+			updateState({
+				itemsProcessed: 0,
+				syncStartDateTime: Date.now(),
+				syncTrigger: args.trigger || null,
+			});
+
 			doIndex(args);
 		},
 		[doIndex],
@@ -523,11 +581,13 @@ export const SyncProvider = ({
 		itemsTotal,
 		syncHistory,
 		syncStartDateTime,
+		syncTrigger,
 	} = stateRef.current;
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
 		clearLog,
+		errorCounts,
 		isCli,
 		isComplete,
 		isDeleting,
@@ -544,6 +604,7 @@ export const SyncProvider = ({
 		startSync,
 		stopSync,
 		syncStartDateTime,
+		syncTrigger,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;

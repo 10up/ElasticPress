@@ -8,6 +8,8 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use ElasticPress\Features;
+use ElasticPress\REST\Features as FeaturesRest;
 
 /**
  * Feature activation test class
@@ -178,15 +180,17 @@ class TestFeatureActivation extends BaseTestCase {
 	 * test that when it's req status changes, it's enabled.
 	 *
 	 * @group feature-activation
-	 * @since  2.2
+	 * @since 5.0.0
 	 */
-	public function testAutoActivateWithFeature() {
+	public function test_auto_activate_with_feature() {
 		delete_site_option( 'ep_feature_requirement_statuses' );
 		delete_site_option( 'ep_feature_settings' );
 
-		ElasticPress\Features::factory()->register_feature(
-			new FeatureTest()
-		);
+		$feature = new FeatureTest();
+
+		$feature->requires_install_reindex = false;
+
+		ElasticPress\Features::factory()->register_feature( $feature );
 
 		update_site_option( 'ep_test_feature_on', 2 );
 
@@ -270,7 +274,7 @@ class TestFeatureActivation extends BaseTestCase {
 			'setting_3' => 'custom_string',
 		];
 
-		$filter = function() use ( $new_values ) {
+		$filter = function () use ( $new_values ) {
 			return [
 				'test' => $new_values,
 			];
@@ -298,7 +302,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
 		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
 
-		$filter = function() {
+		$filter = function () {
 			return [
 				'test' => [
 					'setting_1' => 456,
@@ -313,6 +317,107 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertFalse( $feature->get_setting( 'setting_2' ) );
 		$this->assertEquals( 'new_string', $feature->get_setting( 'setting_3' ) );
 		$this->assertNull( $feature->get_setting( 'non_existent_setting' ) );
+	}
+
+	/**
+	 * Test if feature settings are updated when sent via REST API
+	 *
+	 * @since 5.0.0
+	 * @group feature-activation
+	 */
+	public function test_feature_setting_update() {
+		Features::factory()->register_feature(
+			new FeatureTest()
+		);
+
+		$controller = new FeaturesRest();
+		$request    = new \WP_REST_Request( 'PUT', '/elasticpress/v1/features' );
+		$request->set_param(
+			'test',
+			[
+				'active'  => '1',
+				'field_1' => '1',
+				'field_2' => '1',
+				'field_3' => '1',
+				'field_4' => '1',
+			]
+		);
+		$request->set_param( 'did-you-mean', [ 'active' => '1' ] );
+
+		$controller->update_settings( $request );
+
+		$current_settings = Features::factory()->get_feature_settings();
+
+		/*
+		 * field_2 will not be set yet as it requires a sync
+		 * field_3 will not be set yet as it requires the did-you-mean-feature
+		 */
+		$this->assertSame(
+			[
+				'active'         => false, // requires a sync, so will be false
+				'force_inactive' => false,
+				'field_1'        => '1',
+				'field_4'        => '1', // As search is already active, this field is set now
+			],
+			$current_settings['test']
+		);
+
+		$draft_settings = Features::factory()->get_feature_settings_draft();
+		$this->assertSame(
+			[
+				'active'         => true,
+				'force_inactive' => false,
+				'field_1'        => '1',
+				'field_4'        => '1',
+				'field_2'        => '1',
+				'field_3'        => '1',
+			],
+			$draft_settings['test']
+		);
+	}
+
+	/**
+	 * Test if feature settings are applied after a sync
+	 *
+	 * @since 5.0.0
+	 * @group feature-activation
+	 */
+	public function test_feature_setting_applied_after_sync() {
+		Features::factory()->register_feature(
+			new FeatureTest()
+		);
+
+		$test_settings = [
+			'active'  => '1',
+			'field_1' => '1',
+			'field_2' => '1',
+			'field_3' => '1',
+		];
+
+		Features::factory()->update_feature( 'test', $test_settings, true, 'draft' );
+
+		$wp_cli = new \ElasticPress\Command();
+
+		$wp_cli->sync(
+			[],
+			[
+				'setup' => true,
+				'yes'   => true,
+			]
+		);
+		ob_clean();
+
+		$updated_settings = Features::factory()->get_feature_settings();
+		$this->assertSame(
+			$updated_settings['test'],
+			[
+				'active'         => true,
+				'force_inactive' => false,
+				'field_1'        => '1',
+				'field_2'        => '1',
+				'field_3'        => '1',
+			]
+		);
 	}
 
 	/**

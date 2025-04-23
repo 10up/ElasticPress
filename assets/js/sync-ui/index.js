@@ -18,6 +18,7 @@ import {
 	nonce,
 	postTypes,
 	syncHistory,
+	syncTrigger,
 } from './config';
 import { SyncSettingsProvider } from './provider';
 import Sync from './apps/sync';
@@ -36,6 +37,7 @@ const App = () => (
 	<SyncProvider
 		apiUrl={apiUrl}
 		defaultSyncHistory={syncHistory}
+		defaultSyncTrigger={syncTrigger}
 		indexMeta={indexMeta}
 		isEpio={isEpio}
 		nonce={nonce}

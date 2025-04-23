@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16671887174541-Indexables](https://elasticpress.zendesk.com/hc/en-us/articles/16671887174541-Indexables).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/indexables/](https://www.elasticpress.io/documentation/article/indexables/).

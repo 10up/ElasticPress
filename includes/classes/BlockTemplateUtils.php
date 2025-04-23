@@ -43,7 +43,7 @@ class BlockTemplateUtils {
 	 * @param string $block_name The block name, e.g., `elasticpress/facet-meta`
 	 * @return array
 	 */
-	public function get_specific_block_in_all_templates( string $block_name ) : array {
+	public function get_specific_block_in_all_templates( string $block_name ): array {
 		$blocks = array_filter(
 			$this->get_all_blocks_in_all_templates(),
 			function ( $block ) use ( $block_name ) {
@@ -61,7 +61,7 @@ class BlockTemplateUtils {
 	 *
 	 * @return array
 	 */
-	public function get_all_blocks_in_all_templates() : array {
+	public function get_all_blocks_in_all_templates(): array {
 		/**
 		 * Short-circuits the process of getting all blocks of a template.
 		 *
@@ -114,7 +114,7 @@ class BlockTemplateUtils {
 	 * @param array $block      Block to be analyzed now
 	 * @return array
 	 */
-	protected function recursively_get_inner_blocks( array $all_blocks, array $block ) : array {
+	protected function recursively_get_inner_blocks( array $all_blocks, array $block ): array {
 		if ( empty( $block['innerBlocks'] ) ) {
 			return $all_blocks;
 		}

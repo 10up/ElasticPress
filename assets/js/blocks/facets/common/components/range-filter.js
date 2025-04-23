@@ -18,10 +18,15 @@ import { __ } from '@wordpress/i18n';
  * @param {number} props.max Maximum value.
  * @param {string} props.prefix Value prefix.
  * @param {string} props.suffix Value suffix.
- * @param {number[]} props.value Currnet value.
+ * @param {number[]} props.value Current value.
  * @returns {WPElement} Component element.
  */
 export default ({ clearUrl, min, max, prefix, suffix, value, ...props }) => {
+	// Expose the onChange() method so that Cypress can set the app state
+	if (window.Cypress) {
+		window.app = { sliderChange: props.onChange };
+	}
+
 	return (
 		<div className="ep-range-facet">
 			<div className="ep-range-facet__slider">

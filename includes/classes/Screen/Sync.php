@@ -75,13 +75,14 @@ class Sync {
 
 		$data = [
 			'apiUrl'      => rest_url( 'elasticpress/v1/sync' ),
-			'autoIndex'   => isset( $_GET['do_sync'] ) && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			'autoIndex'   => Utils\isset_do_sync_parameter() && ( ! defined( 'EP_DASHBOARD_SYNC' ) || EP_DASHBOARD_SYNC ),
 			'indexMeta'   => Utils\get_indexing_status(),
-			'indexables'  => array_map( fn( $indexable) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
+			'indexables'  => array_map( fn( $indexable ) => [ $indexable->slug, $indexable->labels['plural'] ], $indexables ),
 			'isEpio'      => Utils\is_epio(),
 			'nonce'       => wp_create_nonce( 'wp_rest' ),
 			'postTypes'   => array_map( fn( $post_type ) => [ $post_type, get_post_type_object( $post_type )->labels->name ], $post_types ),
 			'syncHistory' => $sync_history,
+			'syncTrigger' => Utils\isset_do_sync_parameter() ? sanitize_text_field( wp_unslash( $_GET['do_sync'] ) ) : null, // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 		];
 
 		wp_localize_script( 'ep_sync_scripts', 'epDash', $data );

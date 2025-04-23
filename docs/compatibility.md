@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16677288265741-Compatibility](https://elasticpress.zendesk.com/hc/en-us/articles/16677288265741-Compatibility).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/compatibility/](https://www.elasticpress.io/documentation/article/compatibility/).

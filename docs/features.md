@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features](https://elasticpress.zendesk.com/hc/en-us/articles/16671825423501-Features).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/](https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/).

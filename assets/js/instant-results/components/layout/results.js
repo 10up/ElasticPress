@@ -1,5 +1,5 @@
 /**
- * Internal depenencies.
+ * Internal dependencies.
  */
 import { useEffect, useRef, WPElement } from '@wordpress/element';
 import { _n, sprintf, __ } from '@wordpress/i18n';

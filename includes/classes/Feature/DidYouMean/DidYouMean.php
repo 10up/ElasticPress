@@ -21,23 +21,31 @@ class DidYouMean extends Feature {
 	public function __construct() {
 		$this->slug = 'did-you-mean';
 
-		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
-
-		$this->summary = __( 'Recommend alternative search terms for misspelled queries or terms with no results.', 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
 
 		$this->default_settings = [
-			'search_behavior' => false,
+			'search_behavior' => '0',
 		];
 
-		$this->set_settings_schema();
+		$this->requires_feature = 'search';
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
+
+		$this->summary = '<p>' . __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://www.elasticpress.io/documentation/article/did-you-mean/">this tutorial</a>.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/did-you-mean/', 'elasticpress' );
 	}
 
 	/**
@@ -66,7 +74,7 @@ class DidYouMean extends Feature {
 				sprintf(
 					/* translators: Tutorial URL */
 					__( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="%s">this tutorial</a>.', 'elasticpress' ),
-					'https://elasticpress.zendesk.com/hc/en-us/articles/16673223107085-Did-You-Mean'
+					'https://www.elasticpress.io/documentation/article/did-you-mean/'
 				)
 			);
 			?>
@@ -79,7 +87,7 @@ class DidYouMean extends Feature {
 	 *
 	 * @param array $mapping Post mapping.
 	 */
-	public function add_mapping( $mapping ) : array {
+	public function add_mapping( $mapping ): array {
 		// Shingle token filter.
 		$mapping['settings']['analysis']['filter']['shingle_filter'] = [
 			'type'             => 'shingle',
@@ -168,7 +176,7 @@ class DidYouMean extends Feature {
 	 * @param array $args           WP_Query arguments
 	 * @param array $wp_query       WP_Query object
 	 */
-	public function add_query_args( $formatted_args, $args, $wp_query ) : array {
+	public function add_query_args( $formatted_args, $args, $wp_query ): array {
 		$search_analyzer = [
 			'phrase' => [
 				'field'            => 'post_content.shingle',
@@ -210,7 +218,7 @@ class DidYouMean extends Feature {
 	 * @param bool     $enabled Whether to enable the search queries integration.
 	 * @param WP_Query $query   The WP_Query object.
 	 */
-	public function set_ep_suggestion( $enabled, $query ) : bool {
+	public function set_ep_suggestion( $enabled, $query ): bool {
 		if ( $query->is_search() && ! empty( $query->query_vars['s'] ) ) {
 			$query->set( 'ep_suggestion', true );
 		}
@@ -223,14 +231,7 @@ class DidYouMean extends Feature {
 	 *
 	 * Requires the search feature to be activated
 	 */
-	public function requirements_status() : FeatureRequirementsStatus {
-		$features = Features::factory();
-		$search   = $features->get_registered_feature( 'search' );
-
-		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
-		}
-
+	public function requirements_status(): FeatureRequirementsStatus {
 		return new FeatureRequirementsStatus( 1 );
 	}
 
@@ -426,7 +427,7 @@ class DidYouMean extends Feature {
 	protected function set_settings_schema() {
 		$this->settings_schema = [
 			[
-				'default' => false,
+				'default' => '0',
 				'key'     => 'search_behavior',
 				'label'   => __( 'Search behavior when no result is found', 'elasticpress' ),
 				'options' => [

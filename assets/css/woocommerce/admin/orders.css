@@ -1,8 +1,13 @@
+@import "../../global/colors.css";
 @import "components/combobox.css";
 @import "components/suggestion.css";
 
-#posts-filter .search-box {
-	position: relative;
+#posts-filter,
+#wc-orders-filter {
+
+	& .search-box {
+		position: relative;
+	}
 }
 
 #ep-woocommerce-order-search {

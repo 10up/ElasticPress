@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16672620635661-Theme-Integration](https://elasticpress.zendesk.com/hc/en-us/articles/16672620635661-Theme-Integration).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/theme-integration/](https://www.elasticpress.io/documentation/article/theme-integration/).

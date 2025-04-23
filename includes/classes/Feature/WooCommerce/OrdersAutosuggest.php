@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Elasticsearch;
+use ElasticPress\Features;
 use ElasticPress\Indexables;
 use ElasticPress\REST;
 use ElasticPress\Utils;
@@ -36,12 +37,23 @@ class OrdersAutosuggest {
 	protected $search_template;
 
 	/**
-	 * Initialize feature.
+	 * WooCommerce feature object instance
 	 *
-	 * @return void
+	 * @since 5.1.0
+	 * @var WooCommerce
 	 */
-	public function __construct() {
-		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
+	protected $woocommerce;
+
+	/**
+	 * Class constructor
+	 *
+	 * @param WooCommerce|null $woocommerce WooCommerce feature object instance
+	 */
+	public function __construct( ?WooCommerce $woocommerce = null ) {
+		$this->index       = Indexables::factory()->get( 'post' )->get_index_name();
+		$this->woocommerce = $woocommerce ?
+			$woocommerce :
+			Features::factory()->get_registered_feature( 'woocommerce' );
 	}
 
 	/**
@@ -50,6 +62,13 @@ class OrdersAutosuggest {
 	 * @return void
 	 */
 	public function setup() {
+		add_filter( 'ep_woocommerce_settings_schema', [ $this, 'add_settings_schema' ] );
+
+		// Orders Autosuggest feature.
+		if ( ! $this->is_enabled() ) {
+			return;
+		}
+
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
@@ -62,6 +81,26 @@ class OrdersAutosuggest {
 		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
+	}
+
+	/**
+	 * Un-setup feature functionality.
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
+		remove_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ] );
+		remove_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
+		remove_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
+		remove_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
+		remove_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
+		remove_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
+		remove_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ] );
+		remove_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
+		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
+		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
+		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
 	}
 
 	/**
@@ -115,12 +154,14 @@ class OrdersAutosuggest {
 	 * @param string $hook_suffix The current admin page.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( 'edit.php' !== $hook_suffix ) {
+		if ( ! in_array( $hook_suffix, [ 'edit.php', 'woocommerce_page_wc-orders' ], true ) ) {
 			return;
 		}
 
-		if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
+		if ( 'edit.php' === $hook_suffix ) {
+			if ( ! isset( $_GET['post_type'] ) || 'shop_order' !== $_GET['post_type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				return;
+			}
 		}
 
 		wp_enqueue_style(
@@ -271,7 +312,7 @@ class OrdersAutosuggest {
 
 		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
-		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
+		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 3 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
 		$query = new \WP_Query(
@@ -322,10 +363,9 @@ class OrdersAutosuggest {
 	 * @param object $response Response
 	 * @param array  $query Query
 	 * @param array  $args WP_Query argument array
-	 * @param int    $failures Count of failures in request loop
 	 * @return object $response Response
 	 */
-	public function intercept_search_request( $response, $query = [], $args = [], $failures = 0 ) {
+	public function intercept_search_request( $response, $query = [], $args = [] ) {
 		$this->search_template = $query['args']['body'];
 
 		return wp_remote_request( $query['url'], $args );
@@ -463,7 +503,7 @@ class OrdersAutosuggest {
 	 * @param \WP_Query $query         Query being executed
 	 * @return array New search fields
 	 */
-	public function set_search_fields( array $search_fields, \WP_Query $query ) : array {
+	public function set_search_fields( array $search_fields, \WP_Query $query ): array {
 		$is_orders_search_template = (bool) $query->get( 'ep_order_search_template' );
 
 		if ( $is_orders_search_template ) {
@@ -525,5 +565,122 @@ class OrdersAutosuggest {
 		$where .= " AND ( {$wpdb->posts}.post_password = '' OR {$wpdb->posts}.post_type = 'shop_order' )";
 
 		return $where;
+	}
+
+	/**
+	 * Whether orders autosuggest is available or not
+	 *
+	 * @since 5.1.0
+	 * @return boolean
+	 */
+	public function is_available(): bool {
+		/**
+		 * Whether the autosuggest feature is available for non
+		 * ElasticPress.io customers.
+		 *
+		 * @since 4.5.0
+		 * @hook ep_woocommerce_orders_autosuggest_available
+		 * @param {boolean} $available Whether the feature is available.
+		 */
+		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() && $this->is_hpos_compatible() );
+	}
+
+	/**
+	 * Whether orders autosuggest is enabled or not
+	 *
+	 * @since 5.1.0
+	 * @return boolean
+	 */
+	public function is_enabled(): bool {
+		return $this->is_available() && '1' === $this->woocommerce->get_setting( 'orders' );
+	}
+
+	/**
+	 * Whether the current setup is compatible with WooCommerce's HPOS or not
+	 *
+	 * @since 5.1.0
+	 * @return boolean
+	 */
+	public function is_hpos_compatible() {
+		if (
+			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+			return true;
+		}
+
+		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+			return true;
+		}
+
+		if ( wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::class )->data_sync_is_enabled() ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Add the orders autosuggest field to the WooCommerce feature schema
+	 *
+	 * @since 5.1.0
+	 * @param array $settings_schema Current settings schema
+	 * @return array
+	 */
+	public function add_settings_schema( array $settings_schema ): array {
+		$available = $this->is_available();
+
+		$settings_schema[] = [
+			'default'       => '0',
+			'disabled'      => ! $available,
+			'help'          => $this->get_setting_help_message(),
+			'key'           => 'orders',
+			'label'         => __( 'Show suggestions when searching for Orders', 'elasticpress' ),
+			'requires_sync' => true,
+			'type'          => 'checkbox',
+		];
+
+		return $settings_schema;
+	}
+
+	/**
+	 * Return the help message for the setting schema field
+	 *
+	 * @since 5.1.0
+	 * @return string
+	 */
+	protected function get_setting_help_message(): string {
+		$available = $this->is_available();
+
+		$epio_autosuggest_kb_link = 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-io-order-autosuggest/';
+
+		if ( $available ) {
+			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+			$message = __( 'You are directly connected to %1$sElasticPress.io%2$s! Enable autosuggest for Orders to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' );
+
+			return sprintf(
+				wp_kses( $message, 'ep-html' ),
+				'<a href="https://elasticpress.io/" target="_blank">',
+				'</a>',
+				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
+				'</a>'
+			);
+		}
+
+		if ( ! $this->is_hpos_compatible() ) {
+			return esc_html__( 'Currently, autosuggest for orders is only available if WooCommerce order data storage is set in legacy or compatibility mode.', 'elasticpress' );
+		}
+
+		/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
+		$message = __( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
+
+		$message = sprintf(
+			wp_kses( $message, 'ep-html' ),
+			'<a href="https://elasticpress.io/" target="_blank">',
+			'</a>',
+			'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
+			'</a>'
+		);
+
+		return $message;
 	}
 }

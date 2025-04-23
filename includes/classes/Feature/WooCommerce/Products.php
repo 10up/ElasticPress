@@ -41,7 +41,7 @@ class Products {
 	 */
 	public function setup() {
 		add_action( 'ep_formatted_args', [ $this, 'price_filter' ], 10, 3 );
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ], 10, 2 );
 		add_filter( 'ep_sync_taxonomies', [ $this, 'sync_taxonomies' ] );
 		add_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
 		add_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
@@ -60,6 +60,34 @@ class Products {
 		add_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
 		add_filter( 'ep_feature_settings_schema', [ $this, 'add_weight_settings_search_schema' ], 10, 2 );
 		add_filter( 'ep_is_decaying_enabled', [ $this, 'maybe_disable_decaying' ], 10, 3 );
+	}
+
+	/**
+	 * Un-setup product related hooks
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_action( 'ep_formatted_args', [ $this, 'price_filter' ] );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		remove_filter( 'ep_sync_taxonomies', [ $this, 'sync_taxonomies' ] );
+		remove_filter( 'ep_term_suggest_post_type', [ $this, 'suggest_wc_add_post_type' ] );
+		remove_filter( 'ep_facet_include_taxonomies', [ $this, 'add_product_attributes' ] );
+		remove_filter( 'ep_weighting_fields_for_post_type', [ $this, 'add_product_attributes_to_weighting' ] );
+		remove_filter( 'ep_weighting_default_post_type_weights', [ $this, 'add_product_default_post_type_weights' ] );
+		remove_filter( 'ep_prepare_meta_data', [ $this, 'add_variations_skus_meta' ] );
+		remove_filter( 'request', [ $this, 'admin_product_list_request_query' ], 9 );
+		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
+		remove_filter( 'ep_facet_tax_special_slug_taxonomies', [ $this, 'add_taxonomy_attributes' ] );
+
+		// Custom product ordering
+		remove_action( 'ep_admin_notices', [ $this, 'maybe_display_notice_about_product_ordering' ] );
+		remove_action( 'woocommerce_after_product_ordering', [ $this, 'action_sync_on_woocommerce_sort_single' ] );
+
+		// Settings for Weight results by date
+		remove_action( 'ep_weight_settings_after_search', [ $this, 'add_weight_settings_search' ] );
+		remove_filter( 'ep_feature_settings_schema', [ $this, 'add_weight_settings_search_schema' ] );
+		remove_filter( 'ep_is_decaying_enabled', [ $this, 'maybe_disable_decaying' ] );
 	}
 
 	/**
@@ -129,10 +157,15 @@ class Products {
 	/**
 	 * Index WooCommerce products meta fields
 	 *
-	 * @param  array $meta Existing post meta
+	 * @param array    $meta Existing post meta
+	 * @param \WP_Post $post Post object.
 	 * @return array
 	 */
-	public function allow_meta_keys( $meta ) {
+	public function allow_meta_keys( $meta, $post ) {
+		if ( 'product' !== $post->post_type ) {
+			return $meta;
+		}
+
 		return array_unique(
 			array_merge(
 				$meta,
@@ -286,12 +319,16 @@ class Products {
 
 		$sku_key = 'meta._sku.value';
 
+		unset( $fields['ep_metadata']['children'][ $sku_key ] );
+
 		$fields['attributes']['children'][ $sku_key ] = array(
 			'key'   => $sku_key,
 			'label' => __( 'SKU', 'elasticpress' ),
 		);
 
 		$variations_skus_key = 'meta._variations_skus.value';
+
+		unset( $fields['ep_metadata']['children'][ $variations_skus_key ] );
 
 		$fields['attributes']['children'][ $variations_skus_key ] = array(
 			'key'   => $variations_skus_key,
@@ -429,7 +466,7 @@ class Products {
 		// WooCommerce unsets the search term right after using it to fetch product IDs. Here we add it back.
 		$search_term = ! empty( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 		if ( ! empty( $search_term ) ) {
-			$query->set( 's', sanitize_text_field( $search_term ) ); // phpcs:ignore WordPress.Security.NonceVerification
+			$query->set( 's', sanitize_text_field( $search_term ) );
 
 			/**
 			 * Filter the fields used in WooCommerce Admin Product Search.
@@ -628,7 +665,7 @@ class Products {
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
-	public function should_integrate_with_query( \WP_Query $query ) : bool {
+	public function should_integrate_with_query( \WP_Query $query ): bool {
 		$has_ep_integrate = isset( $query->query_vars['ep_integrate'] ) && filter_var( $query->query_vars['ep_integrate'], FILTER_VALIDATE_BOOLEAN );
 		$is_search        = '' !== $this->woocommerce->get_search_term( $query );
 
@@ -666,7 +703,7 @@ class Products {
 	 *
 	 * @return array
 	 */
-	public function get_supported_taxonomies() : array {
+	public function get_supported_taxonomies(): array {
 		$supported_taxonomies = array(
 			'product_cat',
 			'product_tag',
@@ -712,7 +749,7 @@ class Products {
 	 * @param \WP_Query $query The WP_Query object
 	 * @return array
 	 */
-	public function get_supported_post_types( \WP_Query $query ) : array {
+	public function get_supported_post_types( \WP_Query $query ): array {
 		$post_types = [ 'product_variation' ];
 
 		$is_main_post_type_archive = $query->is_main_query() && $query->is_post_type_archive( 'product' );
@@ -741,11 +778,11 @@ class Products {
 		 *
 		 * @hook ep_woocommerce_products_supported_post_types
 		 * @since 4.7.0
-		 * @param {array}    $post_types Post types
-		 * @param {WP_Query} $query      The WP_Query object
+		 * @param {array}    $supported_post_types Post types
+		 * @param {WP_Query} $query                The WP_Query object
 		 * @return {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_products_supported_post_types', $post_types, $query );
+		$supported_post_types = apply_filters( 'ep_woocommerce_products_supported_post_types', $supported_post_types, $query );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
@@ -776,6 +813,31 @@ class Products {
 					'field'    => 'slug',
 					'terms'    => (array) $term,
 				);
+			}
+		}
+
+		/*
+		 * If the site is set to use the product attributes lookup table for catalog filtering
+		 * we need to add filters back to WP_Query, so EP can handle the filtering.
+		 */
+		$filterer_class = 'Automattic\WooCommerce\Internal\ProductAttributesLookup\Filterer';
+		if (
+			function_exists( 'wc_get_container' ) &&
+			class_exists( $filterer_class ) &&
+			method_exists( 'WC_Query', 'get_layered_nav_chosen_attributes' )
+		) {
+			$filterer = wc_get_container()->get( $filterer_class );
+
+			if ( $filterer->filtering_via_lookup_table_is_active() ) {
+				foreach ( \WC_Query::get_layered_nav_chosen_attributes() as $taxonomy => $data ) {
+					$tax_query[] = array(
+						'taxonomy'         => $taxonomy,
+						'field'            => 'slug',
+						'terms'            => $data['terms'],
+						'operator'         => 'and' === $data['query_type'] ? 'AND' : 'IN',
+						'include_children' => false,
+					);
+				}
 			}
 		}
 
@@ -873,7 +935,7 @@ class Products {
 	 * @param array $search_fields Array of search fields.
 	 * @return array
 	 */
-	public function remove_author( array $search_fields ) : array {
+	public function remove_author( array $search_fields ): array {
 		foreach ( $search_fields as $field_key => $field ) {
 			if ( 'author_name' === $field ) {
 				unset( $search_fields[ $field_key ] );
@@ -936,7 +998,7 @@ class Products {
 		 */
 		if ( ! empty( $_GET['orderby'] ) && $query->is_main_query() ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ) ); // phpcs:ignore WordPress.Security.NonceVerification
-			switch ( $orderby ) { // phpcs:ignore WordPress.Security.NonceVerification
+			switch ( $orderby ) {
 				case 'popularity':
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'total_sales' ) );
 					$query->set( 'order', 'DESC' );
@@ -973,7 +1035,7 @@ class Products {
 	 * @param array $meta_key The meta key to get the mapping for.
 	 * @return string The mapped meta key.
 	 */
-	public function get_orderby_meta_mapping( $meta_key ) : string {
+	public function get_orderby_meta_mapping( $meta_key ): string {
 		/**
 		 * Filter WooCommerce to Elasticsearch meta mapping
 		 *
@@ -1008,7 +1070,7 @@ class Products {
 	 * @param array $attribute_taxonomies  Attribute taxonomies.
 	 * @return array $attribute_taxonomies Attribute taxonomies.
 	 */
-	public function add_taxonomy_attributes( array $attribute_taxonomies ) : array {
+	public function add_taxonomy_attributes( array $attribute_taxonomies ): array {
 		$all_attr_taxonomies = wc_get_attribute_taxonomies();
 
 		foreach ( $all_attr_taxonomies as $attr_taxonomy ) {
@@ -1039,11 +1101,11 @@ class Products {
 				$setting_schema['options'],
 				[
 					[
-						'label' => __( 'Disabled for product only queries', 'elasticpress' ),
+						'label' => __( 'Weight results by date, except for product-only queries', 'elasticpress' ),
 						'value' => 'disabled_only_products',
 					],
 					[
-						'label' => __( 'Disabled for any query that includes products', 'elasticpress' ),
+						'label' => __( 'Weight results by date, except for any query that includes products', 'elasticpress' ),
 						'value' => 'disabled_includes_products',
 					],
 				]

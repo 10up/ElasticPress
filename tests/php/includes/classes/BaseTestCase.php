@@ -218,4 +218,13 @@ class BaseTestCase extends WP_UnitTestCase {
 			)
 		);
 	}
+
+	/**
+	 * Forces tests to use EP.io
+	 *
+	 * @since 5.1.0
+	 */
+	protected function force_epio() {
+		update_site_option( 'ep_host', 'https://prefix.elasticpress.io/' );
+	}
 }

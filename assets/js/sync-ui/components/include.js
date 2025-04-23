@@ -53,6 +53,8 @@ export default () => {
 				onChange={onChange}
 				saveTransform={saveTransform}
 				value={args.include}
+				__nextHasNoMarginBottom
+				__next40pxDefaultSize
 			/>
 		</div>
 	);

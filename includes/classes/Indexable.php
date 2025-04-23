@@ -76,7 +76,10 @@ abstract class Indexable {
 	 * @since 4.5.0
 	 * @var array
 	 */
-	public $labels = [];
+	public $labels = [
+		'plural'   => '',
+		'singular' => '',
+	];
 
 	/**
 	 * Get number of bulk items to index per page
@@ -260,7 +263,7 @@ abstract class Indexable {
 	 * @param  int     $object_id Object to index.
 	 * @param  boolean $blocking Blocking HTTP request or not.
 	 * @since  3.0
-	 * @return boolean
+	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
 		$document = $this->prepare_document( $object_id );
@@ -299,7 +302,7 @@ abstract class Indexable {
 		 *
 		 * @hook ep_after_index_{indexable_slug}
 		 * @param  {array} $document Document to index
-		 * @param  {array|boolean} $return ES response on success, false on failure
+		 * @param  {object|boolean} $return ES response on success, false on failure
 		 * @since  3.0
 		 */
 		do_action( 'ep_after_index_' . $this->slug, $document, $return );
@@ -386,6 +389,10 @@ abstract class Indexable {
 
 			$document = $this->prepare_document( $object_id );
 
+			if ( empty( $document ) ) {
+				continue;
+			}
+
 			/**
 			 * Conditionally kill indexing on a specific object
 			 *
@@ -400,6 +407,12 @@ abstract class Indexable {
 			$document_str .= "\n\n";
 
 			$documents[] = $document_str;
+		}
+
+		if ( empty( $documents ) ) {
+			return [
+				new \WP_Error( 'ep_bulk_index_no_documents', esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ), $object_ids ),
+			];
 		}
 
 		$results = $this->send_bulk_index_request( $documents );
@@ -522,7 +535,7 @@ abstract class Indexable {
 			timer_start();
 			$result       = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, implode( '', $body ) );
 			$request_time = timer_stop();
-			$requests++;
+			++$requests;
 
 			/**
 			 * Perform actions before a new batch of documents is processed.
@@ -668,7 +681,6 @@ abstract class Indexable {
 		}
 
 		return $prepared_meta;
-
 	}
 
 	/**
@@ -1173,7 +1185,7 @@ abstract class Indexable {
 	 * @param array  $query_vars    Query vars
 	 * @return SearchAlgorithm Instance of search algorithm to be used
 	 */
-	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ) : \ElasticPress\SearchAlgorithm {
+	public function get_search_algorithm( string $search_text, array $search_fields, array $query_vars ): \ElasticPress\SearchAlgorithm {
 		/**
 		 * Filter the search algorithm to be used
 		 *
@@ -1278,7 +1290,7 @@ abstract class Indexable {
 	 * @param array $mapping The mapping
 	 * @return array
 	 */
-	public function add_ngram_analyzer( array $mapping ) : array {
+	public function add_ngram_analyzer( array $mapping ): array {
 		$mapping['settings']['analysis']['analyzer']['edge_ngram_analyzer'] = array(
 			'type'      => 'custom',
 			'tokenizer' => 'standard',

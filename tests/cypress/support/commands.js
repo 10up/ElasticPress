@@ -1,3 +1,5 @@
+/* global wpVersion */
+
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -33,7 +35,8 @@ Cypress.Commands.add('login', (username = 'admin', password = 'password') => {
 	cy.get('body').then(($body) => {
 		if ($body.find('#wpwrap').length === 0) {
 			cy.get('input#user_login').clear();
-			cy.get('input#user_login').click().type(username);
+			cy.get('input#user_login').click();
+			cy.get('input#user_login').type(username);
 			cy.get('input#user_pass').type(`${password}{enter}`);
 		}
 	});
@@ -75,12 +78,21 @@ Cypress.Commands.add('createTerm', (data) => {
 
 	// wait for ajax request to finish.
 	cy.intercept('POST', 'wp-admin/admin-ajax.php*').as('ajaxRequest');
-	cy.get('#tag-name').click().type(`${name}{enter}`);
+	cy.get('#tag-name').click();
+	cy.get('#tag-name').type(`${name}{enter}`);
 	cy.wait('@ajaxRequest').its('response.statusCode').should('eq', 200);
 });
 
 Cypress.Commands.add('clearThenType', { prevSubject: true }, (subject, text, force = false) => {
-	cy.wrap(subject).clear().type(text, { force });
+	/**
+	 * Typing 'x' and immediately deleting it, as sometimes Cypress is too fast and
+	 * does not type the first character(s) correctly.
+	 *
+	 * @see https://github.com/cypress-io/cypress/issues/3817
+	 */
+	cy.wrap(subject).type('x');
+	cy.wrap(subject).clear();
+	cy.wrap(subject).type(text, { force });
 });
 
 Cypress.Commands.add('wpCli', (command, ignoreFailures) => {
@@ -118,7 +130,8 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	cy.visitAdminPage('post-new.php');
-	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+	cy.getBlockEditor().as('iframe');
+	cy.get('@iframe').find('h1.editor-post-title__input, #post-title-0').should('exist');
 	cy.get('body').then(($body) => {
 		const welcomeGuide = $body.find(
 			'.edit-post-welcome-guide .components-modal__header button',
@@ -128,20 +141,40 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 		}
 	});
 
-	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
-	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+	cy.get('@iframe')
+		.find('h1.editor-post-title__input, #post-title-0')
+		.clearThenType(newPostData.title);
+	cy.get('@iframe')
+		.find('.block-editor-default-block-appender__content')
+		.type(newPostData.content);
 
 	if (newPostData.password && newPostData.password !== '') {
-		cy.get('h1.editor-post-title__input').click();
-		cy.get('body').then(($body) => {
-			const $button = $body.find('.edit-post-post-visibility__toggle');
-			if (!$button.is(':visible')) {
-				cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
-			}
-		});
-		cy.get('.edit-post-post-visibility__toggle').click();
-		cy.get('.editor-post-visibility__radio').check('password');
-		cy.get('.editor-post-visibility__password-input').type(newPostData.password);
+		cy.get('@iframe').find('h1.editor-post-title__input').click();
+		if (wpVersion === '6.2') {
+			cy.get('body').then(($body) => {
+				const $button = $body.find('.edit-post-post-visibility__toggle');
+				if (!$button.is(':visible')) {
+					cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
+				}
+			});
+			cy.get('.edit-post-post-visibility__toggle').click();
+			cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
+				'password',
+			);
+			cy.get(
+				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+			).type(newPostData.password);
+		} else {
+			cy.get('body').then(($body) => {
+				const $button = $body.find('.components-dropdown.editor-post-status');
+				if (!$button.is(':visible')) {
+					cy.get('.editor-header__settings button[aria-label="Settings"]').click();
+				}
+			});
+			cy.get('.components-dropdown.editor-post-status').click();
+			cy.get('.editor-change-status__password-fieldset input[type="checkbox"]').click();
+			cy.get('.editor-change-status__password-input input').type(newPostData.password);
+		}
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
@@ -159,6 +192,60 @@ Cypress.Commands.add('publishPost', (postData, viewPost) => {
 			cy.get('.post-publish-panel__postpublish-buttons a').contains('View Post').click();
 		}
 	}
+
+	/**
+	 * Give Elasticsearch some time to process the new post.
+	 *
+	 * @todo instead of waiting for an arbitrary time, we should ensure the post is stored.
+	 */
+	// eslint-disable-next-line cypress/no-unnecessary-waiting
+	cy.wait(2000);
+});
+
+Cypress.Commands.add('setPostPassword', (password) => {
+	cy.getBlockEditor().as('iframe');
+	cy.get('@iframe').find('h1.editor-post-title__input').click();
+
+	if (wpVersion === '6.2') {
+		cy.get('body').then(($body) => {
+			const $button = $body.find('.edit-post-post-visibility__toggle');
+			if (!$button.is(':visible')) {
+				cy.get('.edit-post-header__settings button[aria-label="Settings"]').click();
+			}
+		});
+		cy.get('.edit-post-post-visibility__toggle').click();
+		cy.get('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio').check(
+			password !== '' ? 'password' : 'public',
+		);
+		if (password !== '') {
+			cy.get(
+				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+			).clearThenType(password);
+		}
+	} else {
+		cy.get('body').then(($body) => {
+			const $button = $body.find('.components-dropdown.editor-post-status');
+			if (!$button.is(':visible')) {
+				cy.get('.editor-header__settings button[aria-label="Settings"]').click();
+			}
+		});
+		cy.get('.components-dropdown.editor-post-status').click();
+		cy.get('.editor-change-status__password-fieldset input[type="checkbox"]').then(($el) => {
+			if (
+				($el.is(':checked') && password === '') ||
+				(!$el.is(':checked') && password !== '')
+			) {
+				cy.wrap($el).click();
+			}
+		});
+		if (password !== '') {
+			cy.get('.editor-change-status__password-input input').type(password);
+		}
+	}
+
+	cy.get('.editor-post-publish-button').click();
+
+	cy.get('.components-snackbar').should('be.visible');
 
 	/**
 	 * Give Elasticsearch some time to process the new post.
@@ -304,12 +391,11 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 	/**
 	 * Find and add the widget to the first widget area.
 	 */
-	cy.get(`#widget-list [id$="${widgetId}-__i__"]`)
-		.click('top')
-		.within(() => {
-			cy.get('.widgets-chooser-add').click();
-		})
-		.wait('@adminAjax');
+	cy.get(`#widget-list [id$="${widgetId}-__i__"]`).click('top');
+	cy.get(`#widget-list [id$="${widgetId}-__i__"]`).within(() => {
+		cy.get('.widgets-chooser-add').click();
+	});
+	cy.wait('@adminAjax');
 
 	/**
 	 * Set widget settings and save.
@@ -337,8 +423,8 @@ Cypress.Commands.add('createClassicWidget', (widgetId, settings) => {
 
 			cy.get('input[type="submit"]').click();
 			cy.wait('@adminAjax').its('response.statusCode').should('eq', 200);
-		})
-		.wait('@adminAjax');
+		});
+	cy.wait('@adminAjax');
 });
 
 Cypress.Commands.add('emptyWidgets', () => {
@@ -376,27 +462,25 @@ Cypress.Commands.add('dragAndDrop', (subject, target) => {
 				.first()
 				.then((subject) => {
 					const coordsDrag = subject[0].getBoundingClientRect();
-					cy.wrap(subject)
-						.trigger('mousedown', {
-							button: BUTTON_INDEX,
-							clientX: coordsDrag.x,
-							clientY: coordsDrag.y,
-							force: true,
-						})
-						.trigger('mousemove', {
-							button: BUTTON_INDEX,
-							clientX: coordsDrag.x + SLOPPY_CLICK_THRESHOLD,
-							clientY: coordsDrag.y,
-							force: true,
-						});
-					cy.get('body')
-						.trigger('mousemove', {
-							button: BUTTON_INDEX,
-							clientX: coordsDrop.x,
-							clientY: coordsDrop.y,
-							force: true,
-						})
-						.trigger('mouseup');
+					cy.wrap(subject).trigger('mousedown', {
+						button: BUTTON_INDEX,
+						clientX: coordsDrag.x,
+						clientY: coordsDrag.y,
+						force: true,
+					});
+					cy.wrap(subject).trigger('mousemove', {
+						button: BUTTON_INDEX,
+						clientX: coordsDrag.x + SLOPPY_CLICK_THRESHOLD,
+						clientY: coordsDrag.y,
+						force: true,
+					});
+					cy.get('body').trigger('mousemove', {
+						button: BUTTON_INDEX,
+						clientX: coordsDrop.x,
+						clientY: coordsDrop.y,
+						force: true,
+					});
+					cy.get('body').trigger('mouseup');
 				});
 		});
 });
@@ -406,19 +490,23 @@ Cypress.Commands.add('createAutosavePost', (postData) => {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	cy.visitAdminPage('post-new.php');
-	cy.get('h1.editor-post-title__input, #post-title-0').should('exist');
+	cy.getBlockEditor().as('iframe');
+	cy.get('@iframe').find('h1.editor-post-title__input, #post-title-0').should('exist');
 	cy.get('body').then(($body) => {
 		const welcomeGuide = $body.find(
 			'.edit-post-welcome-guide .components-modal__header button',
 		);
-		cy.log(welcomeGuide);
 		if (welcomeGuide.length) {
 			welcomeGuide.click();
 		}
 	});
 
-	cy.get('h1.editor-post-title__input, #post-title-0').clearThenType(newPostData.title);
-	cy.get('.block-editor-default-block-appender__content').type(newPostData.content);
+	cy.get('@iframe')
+		.find('h1.editor-post-title__input, #post-title-0')
+		.clearThenType(newPostData.title);
+	cy.get('@iframe')
+		.find('.block-editor-default-block-appender__content')
+		.type(newPostData.content);
 
 	/**
 	 * Wait for autosave to complete.
@@ -459,8 +547,8 @@ Cypress.Commands.add('createUser', (userData) => {
 
 	if (newUserDate.login) {
 		cy.visit('wp-login.php');
-		cy.get('#user_login').clear().type(newUserDate.username);
-		cy.get('#user_pass').clear().type(`${newUserDate.password}{enter}`);
+		cy.get('#user_login').clearThenType(newUserDate.username);
+		cy.get('#user_pass').clearThenType(`${newUserDate.password}{enter}`);
 	}
 });
 

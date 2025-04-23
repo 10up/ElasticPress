@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies.
  */
-import { SnackbarList } from '@wordpress/components';
+import { createSlotFill, SlotFillProvider, SnackbarList } from '@wordpress/components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { createContext, useContext, useMemo, WPElement } from '@wordpress/element';
 import { store as noticeStore } from '@wordpress/notices';
@@ -12,6 +12,7 @@ import { store as noticeStore } from '@wordpress/notices';
 import './style.css';
 
 const Context = createContext();
+const { Fill, Slot } = createSlotFill('SettingsPageAction');
 
 /**
  * ElasticPress Settings Screen provider component.
@@ -32,6 +33,7 @@ export const SettingsScreenProvider = ({ children, title }) => {
 
 	const contextValue = useMemo(
 		() => ({
+			ActionSlot: Fill,
 			createNotice,
 			removeNotice,
 		}),
@@ -39,19 +41,24 @@ export const SettingsScreenProvider = ({ children, title }) => {
 	);
 
 	return (
-		<Context.Provider value={contextValue}>
-			<div className="ep-settings-page">
-				<div className="ep-settings-page__wrap">
-					<h1 className="ep-settings-page__title">{title}</h1>
-					{children}
+		<SlotFillProvider>
+			<Context.Provider value={contextValue}>
+				<div className="ep-settings-page">
+					<div className="ep-settings-page__wrap">
+						<header className="ep-settings-page__header">
+							<h1 className="ep-settings-page__title">{title}</h1>
+							<Slot />
+						</header>
+						{children}
+					</div>
+					<SnackbarList
+						className="ep-settings-page__snackbar-list"
+						notices={notices}
+						onRemove={(notice) => removeNotice(notice)}
+					/>
 				</div>
-				<SnackbarList
-					className="ep-settings-page__snackbar-list"
-					notices={notices}
-					onRemove={(notice) => removeNotice(notice)}
-				/>
-			</div>
-		</Context.Provider>
+			</Context.Provider>
+		</SlotFillProvider>
 	);
 };
 

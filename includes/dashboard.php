@@ -8,12 +8,13 @@
 
 namespace ElasticPress\Dashboard;
 
-use ElasticPress\Utils;
+use ElasticPress\AdminNotices;
 use ElasticPress\Elasticsearch;
 use ElasticPress\Features;
-use ElasticPress\AdminNotices;
+use ElasticPress\Installer;
 use ElasticPress\Screen;
 use ElasticPress\Stats;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -28,13 +29,11 @@ function setup() {
 	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) { // Must be network admin in multisite.
 		add_action( 'network_admin_menu', __NAMESPACE__ . '\action_admin_menu' );
 		add_action( 'admin_bar_menu', __NAMESPACE__ . '\action_network_admin_bar_menu', 50 );
-	} else {
-		add_action( 'admin_menu', __NAMESPACE__ . '\action_admin_menu' );
 	}
 
+	add_action( 'admin_menu', __NAMESPACE__ . '\action_admin_menu' );
 	add_action( 'wp_ajax_ep_save_feature', __NAMESPACE__ . '\action_wp_ajax_ep_save_feature' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\action_admin_enqueue_dashboard_scripts' );
-	add_action( 'admin_init', __NAMESPACE__ . '\action_admin_init' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_clear_es_info_cache' );
 	add_action( 'admin_init', __NAMESPACE__ . '\maybe_skip_install' );
 	add_action( 'wp_ajax_ep_notice_dismiss', __NAMESPACE__ . '\action_wp_ajax_ep_notice_dismiss' );
@@ -188,7 +187,7 @@ function maybe_skip_install() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['nonce'] ), 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	if ( empty( $_GET['ep-skip-install'] ) || empty( $_GET['nonce'] ) || ! wp_verify_nonce( sanitize_key( $_GET['nonce'] ), 'ep-skip-install' ) || ! in_array( Screen::factory()->get_current_screen(), [ 'install' ], true ) ) {
 		return;
 	}
 
@@ -222,7 +221,11 @@ function maybe_clear_es_info_cache() {
 		return;
 	}
 
-	if ( empty( $_GET['ep-retry'] ) && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+	$isset_retry = ! empty( $_GET['ep-retry'] ) &&
+		! empty( $_GET['ep_retry_nonce'] ) &&
+		wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['ep_retry_nonce'] ) ), 'ep_retry_nonce' );
+
+	if ( ! $isset_retry && ! in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install' ], true ) ) {
 		return;
 	}
 
@@ -232,8 +235,8 @@ function maybe_clear_es_info_cache() {
 		delete_transient( 'ep_es_info' );
 	}
 
-	if ( ! empty( $_GET['ep-retry'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-		wp_safe_redirect( remove_query_arg( 'ep-retry' ) );
+	if ( $isset_retry ) {
+		wp_safe_redirect( remove_query_arg( [ 'ep-retry', 'ep_retry_nonce' ] ) );
 		exit();
 	}
 }
@@ -295,15 +298,8 @@ function filter_plugin_action_links( $plugin_actions, $plugin_file ) {
  * @since  3.0
  */
 function maybe_notice( $force = false ) {
-	// Admins only.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-		if ( ! is_super_admin() || ! is_network_admin() ) {
-			return false;
-		}
-	} else {
-		if ( is_network_admin() || ! current_user_can( Utils\get_capability() ) ) {
-			return false;
-		}
+	if ( ! current_user_can( Utils\get_capability() ) ) {
+		return false;
 	}
 
 	/**
@@ -470,13 +466,52 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'weighting', 'install' ], true ) ) {
+	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
+
+		wp_enqueue_style(
+			'ep_weighting_styles',
+			EP_URL . 'dist/css/weighting-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'weighting-script', 'version' )
+		);
+
 		wp_enqueue_script(
 			'ep_weighting_script',
 			EP_URL . 'dist/js/weighting-script.js',
 			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
 			Utils\get_asset_info( 'weighting-script', 'version' ),
 			true
+		);
+
+		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
+
+		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
+		$meta_mode               = $weighting->get_meta_mode();
+		$weightable_fields       = $weighting->get_weightable_fields();
+		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
+
+		/**
+		 * Filter weighting dashboard options.
+		 *
+		 * @hook ep_weighting_options
+		 * @param  {array} $data Weighting dashboard options
+		 * @return  {array} New options array
+		 * @since 5.1.0
+		 */
+		$data = apply_filters(
+			'ep_weighting_options',
+			[
+				'apiUrl'                 => $api_url,
+				'metaMode'               => $meta_mode,
+				'weightableFields'       => $weightable_fields,
+				'weightingConfiguration' => $weighting_configuration,
+			]
+		);
+
+		wp_localize_script(
+			'ep_weighting_script',
+			'epWeighting',
+			$data
 		);
 
 		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
@@ -493,9 +528,7 @@ function action_admin_enqueue_dashboard_scripts() {
 
 		wp_set_script_translations( 'ep_dashboard_scripts', 'elasticpress' );
 
-		$sync_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
-				network_admin_url( 'admin.php?page=elasticpress-sync&do_sync' ) :
-				admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
+		$sync_url = Utils\get_sync_url( true );
 
 		$skip_url = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ?
 				network_admin_url( 'admin.php?page=elasticpress' ) :
@@ -514,18 +547,6 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 
 		wp_localize_script( 'ep_dashboard_scripts', 'epDash', $data );
-	}
-
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'settings' ], true ) ) {
-		wp_enqueue_script(
-			'ep_settings_scripts',
-			EP_URL . 'dist/js/settings-script.js',
-			Utils\get_asset_info( 'settings-script', 'dependencies' ),
-			Utils\get_asset_info( 'settings-script', 'version' ),
-			true
-		);
-
-		wp_set_script_translations( 'ep_settings_scripts', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'health' ], true ) && ! empty( Utils\get_host() ) ) {
@@ -563,68 +584,13 @@ function action_admin_enqueue_dashboard_scripts() {
 			'nonce' => wp_create_nonce( 'ep_admin_nonce' ),
 		)
 	);
-}
 
-/**
- * Admin-init actions
- *
- * Sets up Settings API.
- *
- * @since 1.9
- * @return void
- */
-function action_admin_init() {
-	$post = wp_unslash( $_POST );
-
-	// Save options for multisite.
-	if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && isset( $post['ep_language'] ) ) {
-		check_admin_referer( 'elasticpress-options' );
-
-		$language = sanitize_text_field( $post['ep_language'] );
-		Utils\update_option( 'ep_language', $language );
-
-		if ( isset( $post['ep_host'] ) ) {
-			$host = esc_url_raw( trim( $post['ep_host'] ) );
-			Utils\update_option( 'ep_host', $host );
-		}
-
-		if ( isset( $post['ep_credentials'] ) ) {
-			$credentials = ( isset( $post['ep_credentials'] ) ) ? Utils\sanitize_credentials( $post['ep_credentials'] ) : [
-				'username' => '',
-				'token'    => '',
-			];
-
-			Utils\update_option( 'ep_credentials', $credentials );
-		}
-
-		if ( isset( $post['ep_bulk_setting'] ) ) {
-			Utils\update_option( 'ep_bulk_setting', intval( $post['ep_bulk_setting'] ) );
-		}
-	} else {
-		register_setting( 'elasticpress', 'ep_host', 'esc_url_raw' );
-		register_setting( 'elasticpress', 'ep_credentials', 'ep_sanitize_credentials' );
-		register_setting( 'elasticpress', 'ep_language', 'sanitize_text_field' );
-		register_setting(
-			'elasticpress',
-			'ep_bulk_setting',
-			[
-				'type'              => 'integer',
-				'sanitize_callback' => __NAMESPACE__ . '\sanitize_bulk_settings',
-			]
-		);
-	}
-}
-
-/**
- * Sanitize bulk settings.
- *
- * @param int $bulk_settings Number of bulk content items
- * @return int
- */
-function sanitize_bulk_settings( $bulk_settings = 350 ) {
-	$bulk_settings = absint( $bulk_settings );
-
-	return ( 0 === $bulk_settings ) ? 350 : $bulk_settings;
+	wp_enqueue_style(
+		'ep_general_styles',
+		EP_URL . 'dist/css/general-styles.css',
+		Utils\get_asset_info( 'general-styles', 'dependencies' ),
+		Utils\get_asset_info( 'general-styles', 'version' )
+	);
 }
 
 /**
@@ -645,6 +611,15 @@ function resolve_screen() {
  * @return void
  */
 function action_admin_menu() {
+	Installer::factory()->calculate_install_status();
+	if ( true !== Installer::factory()->get_install_status() && ! Utils\is_top_level_admin_context() ) {
+		return;
+	}
+
+	if ( ! Utils\is_site_indexable() && ! is_network_admin() ) {
+		return;
+	}
+
 	$capability = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) ? Utils\get_network_capability() : Utils\get_capability();
 
 	add_menu_page(
@@ -655,6 +630,10 @@ function action_admin_menu() {
 		__NAMESPACE__ . '\resolve_screen',
 		'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgNzMgNzEuMyIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNzMgNzEuMzsiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwYXRoIGQ9Ik0zNi41LDQuN0MxOS40LDQuNyw1LjYsMTguNiw1LjYsMzUuN2MwLDEwLDQuNywxOC45LDEyLjEsMjQuNWw0LjUtNC41YzAuMS0wLjEsMC4xLTAuMiwwLjItMC4zbDAuNy0wLjdsNi40LTYuNGMyLjEsMS4yLDQuNSwxLjksNy4xLDEuOWM4LDAsMTQuNS02LjUsMTQuNS0xNC41cy02LjUtMTQuNS0xNC41LTE0LjVTMjIsMjcuNiwyMiwzNS42YzAsMi44LDAuOCw1LjMsMi4xLDcuNWwtNi40LDYuNGMtMi45LTMuOS00LjYtOC43LTQuNi0xMy45YzAtMTIuOSwxMC41LTIzLjQsMjMuNC0yMy40czIzLjQsMTAuNSwyMy40LDIzLjRTNDkuNCw1OSwzNi41LDU5Yy0yLjEsMC00LjEtMC4zLTYtMC44bC0wLjYsMC42bC01LjIsNS40YzMuNiwxLjUsNy42LDIuMywxMS44LDIuM2MxNy4xLDAsMzAuOS0xMy45LDMwLjktMzAuOVM1My42LDQuNywzNi41LDQuN3oiLz48L3N2Zz4='
 	);
+
+	if ( ! Utils\is_top_level_admin_context() ) {
+		return;
+	}
 
 	add_submenu_page(
 		'elasticpress',
@@ -712,7 +691,7 @@ function action_admin_menu() {
  * @param string $format Format of the return ('locales' or 'elasticsearch' )
  * @return array
  */
-function get_available_languages( string $format = 'elasticsearch' ) : array {
+function get_available_languages( string $format = 'elasticsearch' ): array {
 	/**
 	 * Filter available languages in Elasticsearch.
 	 *
@@ -994,7 +973,7 @@ function block_categories( $block_categories ) {
 	];
 
 	return $block_categories;
-};
+}
 
 /**
  * Enqueue shared block editor assets.

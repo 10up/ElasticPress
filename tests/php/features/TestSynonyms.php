@@ -109,8 +109,11 @@ class TestSynonyms extends BaseTestCase {
 		);
 
 		$this->assertNotEmpty( $synonyms );
-		$this->assertContains( 'sneakers, tennis shoes, trainers, runners', $synonyms );
-		$this->assertContains( 'shoes =&gt; sneaker, sandal, boots, high heels', $synonyms );
+		$this->assertContains( 'runner, running shoe, sneaker, tennis shoe, trainer', $synonyms );
+		$this->assertContains( 'blue =&gt; blue, aqua, azure, cerulean, cyan, ultramarine', $synonyms );
+		$this->assertContains( 'supposably =&gt; supposedly', $synonyms );
+		$this->assertContains( 'flustrated =&gt; flustered, frustrated', $synonyms );
+		$this->assertContains( 'intensive purposes =&gt; intents and purposes', $synonyms );
 	}
 
 	/**
@@ -157,6 +160,48 @@ class TestSynonyms extends BaseTestCase {
 			]
 		);
 
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $post_id, $query->posts['0'] );
+	}
+
+	/**
+	 * Tests synonyms are case insensitive
+	 *
+	 * @since 5.1.0
+	 * @group synonyms
+	 */
+	public function test_synonyms_case_insensitive() {
+		$instance = $this->getFeature();
+
+		$this->ep_factory->post->create(
+			[
+				'ID'           => $instance->get_synonym_post_id(),
+				'post_content' => 'hoodie, sweatshirt',
+				'post_type'    => $instance::POST_TYPE_NAME,
+			]
+		);
+
+		$instance->update_synonyms();
+
+		$post_id = $this->ep_factory->post->create( [ 'post_content' => 'sweatshirt' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's'      => 'HoOdiE',
+				'fields' => 'ids',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $post_id, $query->posts['0'] );
+
+		$query = new \WP_Query(
+			[
+				's'      => 'HOODIE',
+				'fields' => 'ids',
+			]
+		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertSame( $post_id, $query->posts['0'] );
 	}

@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16670964167309-Development](https://elasticpress.zendesk.com/hc/en-us/articles/16670964167309-Development).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/development/](https://www.elasticpress.io/documentation/article/development/).

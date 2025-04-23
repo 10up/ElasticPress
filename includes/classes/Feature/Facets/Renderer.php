@@ -32,7 +32,7 @@ abstract class Renderer {
 	 *
 	 * @return bool
 	 */
-	protected function should_render() : bool {
+	protected function should_render(): bool {
 		return true;
 	}
 
@@ -44,7 +44,7 @@ abstract class Renderer {
 	 * @param string $order   ASC or DESC.
 	 * @return array
 	 */
-	protected function order_values( array $values, string $orderby = 'count', $order = 'desc' ) : array {
+	protected function order_values( array $values, string $orderby = 'count', $order = 'desc' ): array {
 		$orderby = strtolower( $orderby );
 		$orderby = in_array( $orderby, [ 'name', 'count' ], true ) ? $orderby : 'count';
 
@@ -72,7 +72,8 @@ abstract class Renderer {
 	 * @param string       $url         URL for the facet item.
 	 * @return string|null
 	 */
-	public function get_facet_item_value_html( $item, string $url ) {
+	public function get_facet_item_value_html( $item, string $url ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		// phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return null;
 	}
 }

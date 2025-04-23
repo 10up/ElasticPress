@@ -126,10 +126,29 @@ class TestElasticsearchErrorInterpreter extends BaseTestCase {
 		$sync_url          = Utils\get_sync_url();
 
 		$error     = 'Limit of total fields [1000] in index [elasticpresstest-post-1] has been exceeded';
-		$solution  = 'Your website content has more public custom fields than Elasticsearch is able to store. Check our articles about <a href="https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-">Elasticsearch field limitations</a> and <a href="https://elasticpress.zendesk.com/hc/en-us/articles/360052019111">how to index just the custom fields you need</a> and sync again.';
+		$solution  = 'Your website content has more public custom fields than Elasticsearch is able to store. Check our articles about <a href="https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/">Elasticsearch field limitations</a> and <a href="https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/">how to index just the custom fields you need</a> and sync again.';
 		$suggested = $error_interpreter->maybe_suggest_solution_for_es( $error );
 
 		$this->assertSame( 'Limit of total fields [???] in index [???] has been exceeded', $suggested['error'] );
+		$this->assertSame( $solution, $suggested['solution'] );
+	}
+
+	/**
+	 * Test the `maybe_suggest_solution_for_es` method when the indices limit was reached on EP.io
+	 *
+	 * @since 5.1.0
+	 * @group elasticsearch-error-interpreter
+	 */
+	public function test_maybe_suggest_solution_for_es_limit_of_indices() {
+		$this->force_epio();
+
+		$error_interpreter = new ElasticsearchErrorInterpreter();
+
+		$error     = 'It seems you have reached the limit of indices your plan supports and we were not able to create a new index. Currently, you can have up to 3 indices.';
+		$solution  = 'Please refer to <a href="https://www.elasticpress.io/documentation/article/how-to-fix-the-you-have-reached-the-limit-of-indices-of-your-plan-and-it-was-not-possible-to-create-a-new-index-error/">this article</a> outlining how to address this issue.';
+		$suggested = $error_interpreter->maybe_suggest_solution_for_es( $error );
+
+		$this->assertSame( $error, $suggested['error'] );
 		$this->assertSame( $solution, $suggested['solution'] );
 	}
 }

@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16672117103501-Sync-Process](https://elasticpress.zendesk.com/hc/en-us/articles/16672117103501-Sync-Process).
+This content was moved and is currently available at [https://www.elasticpress.io/documentation/article/sync-process/](https://www.elasticpress.io/documentation/article/sync-process/).

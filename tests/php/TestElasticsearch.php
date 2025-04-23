@@ -109,7 +109,7 @@ class TestElasticsearch extends BaseTestCase {
 
 		add_action(
 			'ep_update_index_settings',
-			function( $index_name, $settings ) {
+			function ( $index_name, $settings ) {
 				$this->assertSame( $index_name, 'lorem-ipsum' );
 				$this->assertSame( $settings, [ 'test' ] );
 			},
@@ -177,7 +177,7 @@ class TestElasticsearch extends BaseTestCase {
 		/**
 		 * Test when cached
 		 */
-		$set_cached_value = function() {
+		$set_cached_value = function () {
 			return 'cached';
 		};
 		add_filter( $transient_filter_name, $set_cached_value );
@@ -311,7 +311,7 @@ class TestElasticsearch extends BaseTestCase {
 		/**
 		 * Test the `ep_format_request_headers` filter
 		 */
-		$change_headers = function( $headers ) {
+		$change_headers = function ( $headers ) {
 			$headers['X-Custom'] = 'totally custom';
 			return $headers;
 		};
@@ -377,5 +377,69 @@ class TestElasticsearch extends BaseTestCase {
 			'present_indices' => [],
 		];
 		$this->assertEqualsCanonicalizing( $expected, \ElasticPress\Elasticsearch::factory()->get_indices_comparison() );
+	}
+
+	/**
+	 * Test the ep_disable_query_logging filter
+	 *
+	 * @since 5.1.4
+	 * @group elasticsearch
+	 */
+	public function testEpDisableQueryLoggingFilter() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		$reflection = new \ReflectionClass( $elasticsearch );
+		$property   = $reflection->getProperty( 'queries' );
+		$property->setAccessible( true );
+		$method = $reflection->getMethod( 'add_query_log' );
+		$method->setAccessible( true );
+
+		$example_query = [ 'example_query' ];
+
+		add_filter( 'ep_disable_query_logging', '__return_true' );
+
+		$method->invokeArgs( $elasticsearch, [ $example_query ] );
+		$this->assertEmpty( $property->getValue( $elasticsearch ) );
+
+		remove_filter( 'ep_disable_query_logging', '__return_true' );
+
+		$method->invokeArgs( $elasticsearch, [ $example_query ] );
+
+		$queries = $property->getValue( $elasticsearch );
+		$this->assertCount( 1, $queries );
+		$this->assertSame( $example_query, $queries[0] );
+	}
+
+	/**
+	 * Test the `ep_remote_request` action
+	 *
+	 * @since 5.2.0
+	 * @group elasticsearch
+	 */
+	public function test_ep_remote_request_action() {
+		$elasticsearch = new \ElasticPress\Elasticsearch();
+
+		// Make sure we don't fire any real request
+		add_filter( 'ep_do_intercept_request', '__return_empty_array' );
+
+		$callback = function ( $query, $type ) {
+			$this->assertIsArray( $query );
+			$this->assertSame( 'example_type', $type );
+		};
+		add_action( 'ep_remote_request', $callback, 10, 2 );
+
+		// It starts with 1, likely because of some previous tests.
+		$initial_count = did_action( 'ep_remote_request' );
+
+		$elasticsearch->remote_request( '', [], [], 'example_type' );
+		$this->assertSame( $initial_count + 1, did_action( 'ep_remote_request' ) );
+
+		// Make sure we execute the action even on non-blocking requests
+		$callback = function ( $query ) {
+			$this->assertFalse( $query['args']['blocking'] );
+		};
+		add_action( 'ep_remote_request', $callback, 10, 2 );
+		$elasticsearch->remote_request( '', [ 'blocking' => false ], [], 'example_type' );
+		$this->assertSame( $initial_count + 2, did_action( 'ep_remote_request' ) );
 	}
 }

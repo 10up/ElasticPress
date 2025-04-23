@@ -10,6 +10,11 @@ import FacetSelector from './components/facet-selector';
 
 document.addEventListener('DOMContentLoaded', () => {
 	const input = document.getElementById('feature_instant_results_facets');
+
+	if (!input) {
+		return;
+	}
+
 	const {
 		className,
 		dataset: { fieldName },

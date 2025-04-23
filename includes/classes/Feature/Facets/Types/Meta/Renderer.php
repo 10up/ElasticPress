@@ -188,7 +188,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param string $url   Filter URL.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_facet_item_value_html( $item, string $url ) : string {
+	public function get_facet_item_value_html( $item, string $url ): string {
 		$href = sprintf(
 			'href="%s"',
 			esc_url( $url )
@@ -274,7 +274,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @return boolean
 	 */
-	protected function should_render() : bool {
+	protected function should_render(): bool {
 		global $wp_query;
 
 		if ( empty( $this->meta_field ) ) {
@@ -299,7 +299,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 *
 	 * @return array
 	 */
-	protected function get_selected_meta() : array {
+	protected function get_selected_meta(): array {
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
 		$selected_filters = $feature->get_selected();
@@ -319,7 +319,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param string $url   Filter URL.
 	 * @return string HTML for an individual facet term.
 	 */
-	public function get_meta_value_html( array $value, string $url ) : string {
+	public function get_meta_value_html( array $value, string $url ): string {
 		_deprecated_function( __METHOD__, '4.7.0', '\ElasticPress\Feature\Facets\Types\Meta\Renderer::get_facet_item_value_html()' );
 
 		return $this->get_facet_item_value_html( $value, $url );

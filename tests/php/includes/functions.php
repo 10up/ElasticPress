@@ -22,7 +22,7 @@ function count_indexes() {
 	$count_indexes = 0;
 	foreach ( $sites as $site ) {
 		if ( ElasticPress\Indexables::factory()->get( 'post' )->index_exists( $site['blog_id'] ) ) {
-			$count_indexes++;
+			++$count_indexes;
 			$last_blog_id_with_index = $site['blog_id'];
 		}
 	}

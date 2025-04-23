@@ -39,12 +39,28 @@ class Orders {
 	 */
 	public function setup() {
 		add_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ], 10, 2 );
-		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		add_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ], 10, 2 );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20, 2 );
 		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
+	}
+
+	/**
+	 * Unsetup order related hooks
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_filter( 'ep_sync_insert_permissions_bypass', [ $this, 'bypass_order_permissions_check' ] );
+		remove_filter( 'ep_prepare_meta_allowed_protected_keys', [ $this, 'allow_meta_keys' ] );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'add_order_items_search' ], 20 );
+		remove_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20 );
+		remove_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
+		remove_action( 'parse_query', [ $this, 'search_order' ], 11 );
+		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
 	}
 
 	/**
@@ -86,10 +102,15 @@ class Orders {
 	/**
 	 * Index WooCommerce orders meta fields
 	 *
-	 * @param  array $meta Existing post meta
+	 * @param array    $meta Existing post meta
+	 * @param \WP_Post $post Post object.
 	 * @return array
 	 */
-	public function allow_meta_keys( $meta ) {
+	public function allow_meta_keys( $meta, $post ) {
+		if ( ! in_array( $post->post_type, $this->get_supported_post_types(), true ) ) {
+			return $meta;
+		}
+
 		return array_unique(
 			array_merge(
 				$meta,
@@ -134,6 +155,11 @@ class Orders {
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
+		$order = wc_get_order( $post_id );
+		if ( ! $order ) {
+			return $post_args;
+		}
+
 		$searchable_post_types = $this->get_admin_searchable_post_types();
 
 		// Make sure it is only WooCommerce orders we touch.
@@ -144,7 +170,6 @@ class Orders {
 		$post_indexable = Indexables::factory()->get( 'post' );
 
 		// Get order items.
-		$order     = wc_get_order( $post_id );
 		$item_meta = [];
 		foreach ( $order->get_items() as $delta => $product_item ) {
 			// WooCommerce 3.x uses WC_Order_Item_Product instance while 2.x an array
@@ -254,7 +279,7 @@ class Orders {
 	 * @param \WP_Query $query Query we might integrate with
 	 * @return bool
 	 */
-	public function should_integrate_with_query( \WP_Query $query ) : bool {
+	public function should_integrate_with_query( \WP_Query $query ): bool {
 		/**
 		 * Check the post type
 		 */
@@ -275,7 +300,7 @@ class Orders {
 	 *
 	 * @return array
 	 */
-	public function get_supported_post_types() : array {
+	public function get_supported_post_types(): array {
 		$post_types = [ 'shop_order', 'shop_order_refund' ];
 
 		/**
@@ -298,10 +323,10 @@ class Orders {
 		 *
 		 * @hook ep_woocommerce_orders_supported_post_types
 		 * @since 4.7.0
-		 * @param {array} $post_types Post types
+		 * @param {array} $supported_post_types Post types
 		 * @return {array} New post types
 		 */
-		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $post_types );
+		$supported_post_types = apply_filters( 'ep_woocommerce_orders_supported_post_types', $supported_post_types );
 
 		$supported_post_types = array_intersect(
 			$supported_post_types,
@@ -309,6 +334,49 @@ class Orders {
 		);
 
 		return $supported_post_types;
+	}
+
+	/**
+	 * Display a notice if WooCommerce Orders are not compatible with ElasticPress
+	 *
+	 * If the user has WooCommerce, Protected Content, and HPOS enabled, orders will not go through ElasticPress.
+	 *
+	 * @param array $notices Current EP notices
+	 * @return array
+	 */
+	public function hpos_compatibility_notice( array $notices ): array {
+		$current_screen = \get_current_screen();
+		if ( empty( $current_screen->id ) || 'woocommerce_page_wc-orders' !== $current_screen->id ) {
+			return $notices;
+		}
+
+		if ( \ElasticPress\Utils\get_option( 'ep_hide_wc_orders_incompatible_notice' ) ) {
+			return $notices;
+		}
+
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		if ( ! $protected_content->is_active() ) {
+			return $notices;
+		}
+
+		if (
+			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
+			return $notices;
+		}
+
+		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+			return $notices;
+		}
+
+		$notices['wc_orders_incompatible'] = [
+			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled.", 'elasticpress' ),
+			'type'    => 'warning',
+			'dismiss' => true,
+			'scope'   => 'site',
+		];
+
+		return $notices;
 	}
 
 	/**
@@ -448,12 +516,12 @@ class Orders {
 
 		if ( in_array( $method_name, $orders_autosuggest_methods, true ) ) {
 			_deprecated_function(
-				"\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method_name}", // phpcs:ignore
+				"\ElasticPress\Feature\WooCommerce\WooCommerce\Orders::{$method_name}", // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				'4.7.0',
-				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore
+				"\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->{$method_name}()" // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			);
 
-			if ( $this->woocommerce->is_orders_autosuggest_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
+			if ( $this->woocommerce->orders_autosuggest->is_enabled() && method_exists( $this->woocommerce->orders_autosuggest, $method_name ) ) {
 				call_user_func_array( [ $this->woocommerce->orders_autosuggest, $method_name ], $arguments );
 			}
 		}

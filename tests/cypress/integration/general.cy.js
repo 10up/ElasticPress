@@ -1,3 +1,5 @@
+/* global wpVersion */
+
 // eslint-disable-next-line jest/valid-describe-callback
 describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' }, () => {
 	it('Can see the settings page link in WordPress Dashboard', () => {
@@ -39,6 +41,9 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 		cy.publishPost({
 			title: 'Test ElasticPress 1',
 		});
+
+		cy.reload();
+		cy.get('#wp-admin-bar-ep-doc-status').should('contain.text', 'Content in sync');
 
 		cy.visit('/?s=Test+ElasticPress+1');
 		cy.contains('.site-content article h2', 'Test ElasticPress 1').should('exist');
@@ -99,10 +104,12 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 	it('Cannot save settings while a sync is in progress', () => {
 		cy.login();
 		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
 		cy.wpCliEval(`update_option( 'ep_index_meta', [ 'indexing' => true ] );`).then(() => {
-			cy.get('.ep-feature-search .settings-button').click();
-			cy.get('.ep-feature-search .button-primary').click();
-			cy.get('.ep-feature-search .requirements-status-notice--syncing').should('be.visible');
+			cy.contains('button', 'Save changes').click();
+			cy.wait('@apiRequest');
+			cy.contains('.components-snackbar', 'Cannot save settings').should('be.visible');
 			cy.wpCliEval(`delete_option( 'ep_index_meta' );`);
 		});
 	});
@@ -112,15 +119,25 @@ describe('WordPress can perform standard ElasticPress actions', { tags: '@slow' 
 		cy.visitAdminPage('site-health.php?tab=debug');
 		cy.get('[aria-controls="health-check-accordion-block-ep-last-sync"]').click();
 		cy.get('#health-check-accordion-block-ep-last-sync .health-check-table').as('syncTable');
-		cy.get('@syncTable').get('tr:nth-child(1) td').should('contain.text', 'Method');
-		cy.get('@syncTable').get('tr:nth-child(2) td').should('contain.text', 'Full Sync');
-		cy.get('@syncTable').get('tr:nth-child(3) td').should('contain.text', 'Start Date Time');
-		cy.get('@syncTable').get('tr:nth-child(4) td').should('contain.text', 'End Date Time');
-		cy.get('@syncTable').get('tr:nth-child(5) td').should('contain.text', 'Total Time');
-		cy.get('@syncTable').get('tr:nth-child(6) td').should('contain.text', 'Total');
-		cy.get('@syncTable').get('tr:nth-child(7) td').should('contain.text', 'Synced');
-		cy.get('@syncTable').get('tr:nth-child(8) td').should('contain.text', 'Skipped');
-		cy.get('@syncTable').get('tr:nth-child(9) td').should('contain.text', 'Failed');
-		cy.get('@syncTable').get('tr:nth-child(10) td').should('contain.text', 'Errors');
+
+		const selector = wpVersion === '6.2' ? 'td' : 'th';
+		cy.get('@syncTable').find(`tr:nth-child(1) ${selector}`).should('contain.text', 'Method');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(2) ${selector}`)
+			.should('contain.text', 'Full Sync');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(3) ${selector}`)
+			.should('contain.text', 'Start Date Time');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(4) ${selector}`)
+			.should('contain.text', 'End Date Time');
+		cy.get('@syncTable')
+			.find(`tr:nth-child(5) ${selector}`)
+			.should('contain.text', 'Total Time');
+		cy.get('@syncTable').find(`tr:nth-child(6) ${selector}`).should('contain.text', 'Total');
+		cy.get('@syncTable').find(`tr:nth-child(7) ${selector}`).should('contain.text', 'Synced');
+		cy.get('@syncTable').find(`tr:nth-child(8) ${selector}`).should('contain.text', 'Skipped');
+		cy.get('@syncTable').find(`tr:nth-child(9) ${selector}`).should('contain.text', 'Failed');
+		cy.get('@syncTable').find(`tr:nth-child(10) ${selector}`).should('contain.text', 'Errors');
 	});
 });

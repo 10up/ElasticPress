@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { useLayoutEffect, useState, WPElement } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { _x, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -12,7 +12,7 @@ import { currencyCode } from '../../config';
 import { formatPrice } from '../../utilities';
 import Panel from '../common/panel';
 import RangeSlider from '../common/range-slider';
-import { ActiveContraint } from '../tools/active-constraints';
+import { ActiveConstraint } from '../tools/active-constraints';
 
 /**
  * Price range facet.
@@ -137,10 +137,10 @@ export default ({ defaultIsOpen, label }) => {
 						</div>
 
 						{maxArg !== null && minArg !== null && (
-							<ActiveContraint
+							<ActiveConstraint
 								label={sprintf(
 									/* translators: %1$s: Minimum price. %2$s: Maximum price. */
-									__('%1$s — %2$s', 'elasticpress'),
+									_x('%1$s — %2$s', 'Price range', 'elasticpress'),
 									minPrice,
 									maxPrice,
 								)}

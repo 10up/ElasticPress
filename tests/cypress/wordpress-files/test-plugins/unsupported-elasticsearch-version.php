@@ -10,14 +10,14 @@
 
 add_filter(
 	'pre_option_ep_hide_es_above_compat_notice',
-	function() {
+	function () {
 		return 0;
 	}
 );
 
 add_filter(
 	'ep_elasticsearch_version',
-	function() {
-		return '8.0';
+	function () {
+		return '9.0';
 	}
 );

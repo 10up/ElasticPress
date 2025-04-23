@@ -17,9 +17,21 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 		cy.wait('@sidebarsRest');
 	}
 
+	/**
+	 * Create a Product Search widget.
+	 */
+	function createProductSearchWidget() {
+		cy.openWidgetsPage();
+		cy.openBlockInserter();
+		cy.getBlocksList().should('contain.text', 'Product Search'); // Checking if it exists give JS time to process the full list.
+		cy.insertBlock('Product Search');
+		cy.intercept('/wp-json/wp/v2/sidebars/*').as('sidebarsRest');
+		cy.get('.edit-widgets-header__actions button').contains('Update').click();
+		cy.wait('@sidebarsRest');
+	}
+
 	before(() => {
-		cy.deactivatePlugin('woocommerce', 'wpCli');
-		cy.deactivatePlugin('classic-widgets', 'wpCli');
+		cy.deactivatePlugin('classic-widgets woocommerce', 'wpCli');
 		createSearchWidget();
 
 		// Create some sample posts
@@ -53,12 +65,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 		cy.deactivatePlugin('elasticpress-proxy');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('.ep-feature-instant-results .settings-button').click();
-		cy.get('.requirements-status-notice').should(
-			'contain.text',
-			'To use this feature you need to be an ElasticPress.io customer or implement a custom proxy',
-		);
-		cy.get('.ep-feature-instant-results .input-wrap').should('have.class', 'disabled');
+
+		cy.contains('button', 'Instant Results').click();
+		cy.contains('.components-notice', 'To use this feature you need').should('exist');
+		cy.get('.components-form-toggle__input').should('be.disabled');
 	});
 
 	describe('Instant Results Available', () => {
@@ -77,19 +87,21 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 		it('Can activate the feature and sync automatically', () => {
 			// Can see the warning if using custom proxy
 			cy.visitAdminPage('admin.php?page=elasticpress');
-			cy.get('.ep-feature-instant-results .settings-button').click();
+			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-			cy.get('.ep-feature-instant-results .input-wrap').should('not.have.class', 'disabled');
-			cy.get('.requirements-status-notice').should(
-				isEpIo ? 'not.contain.text' : 'contain.text',
-				'You are using a custom proxy. Make sure you implement all security measures needed',
-			);
+			cy.contains('button', 'Instant Results').click();
 
-			cy.get('.ep-feature-instant-results [name="settings[active]"][value="1"]').click();
-			cy.get('.ep-feature-instant-results .button-primary').click();
-			cy.on('window:confirm', () => {
-				return true;
-			});
+			const noticeShould = isEpIo ? 'not.contain.text' : 'contain.text';
+
+			cy.get('.components-form-toggle__input').should('not.be.disabled');
+			cy.get('.components-notice').should(noticeShould, 'You are using a custom proxy.');
+
+			cy.contains('label', 'Enable').click();
+			cy.contains('button', 'Save and sync now').click();
+
+			cy.wait('@apiRequest');
+
+			cy.on('window:confirm', () => true);
 
 			cy.get('.ep-sync-progress strong', {
 				timeout: Cypress.config('elasticPressIndexTimeout'),
@@ -126,17 +138,14 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Add product category facet to test the labelling of facets
 				 * with the same name.
 				 */
-				cy.intercept('**/wp-admin/admin-ajax.php*').as('ajaxRequest');
 				cy.visitAdminPage('admin.php?page=elasticpress');
-				cy.get('.ep-feature-instant-results .settings-button').click();
-				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
-					'cat{downArrow}{enter}',
-				);
-				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
-					'prod{downArrow}{enter}{esc}',
-				);
-				cy.get('.ep-feature-instant-results .button-primary').click();
-				cy.wait('@ajaxRequest');
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type('prod{downArrow}{enter}{esc}');
+				cy.contains('button', 'Save changes').click();
+
+				cy.wait('@apiRequest');
 
 				/**
 				 * Perform a search.
@@ -147,7 +156,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 				cy.get('@searchBlock').find('.wp-block-search__input').type('blog');
 				cy.get('@searchBlock').find('.wp-block-search__button').click();
-				cy.get('.ep-search-modal').as('searchModal').should('be.visible'); // Should be visible immediatly
+				cy.get('.ep-search-modal').as('searchModal').should('be.visible'); // Should be visible immediately
 				cy.get('@searchModal')
 					.find('.ep-search-results__title')
 					.contains('Loading results');
@@ -168,11 +177,8 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@categoryFacet').should('contain', 'Movies');
 				cy.get('@categoryFacet').should('not.contain', 'Albums');
 
-				cy.get('.ep-search-sidebar #ep-search-post-type-post')
-					.click()
-					.then(() => {
-						cy.url().should('include', 'ep-post_type=post');
-					});
+				cy.get('.ep-search-sidebar #ep-search-post-type-post').click();
+				cy.url().should('include', 'ep-post_type=post');
 
 				// Show the modal in the same state after a reload
 				cy.reload();
@@ -184,14 +190,10 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('@searchModal').should('be.visible').should('contain.text', 'blog');
 
 				// Update the results when search term is changed
-				cy.get('@searchModal')
-					.find('.ep-search-input')
-					.clearThenType('test')
-					.then(() => {
-						cy.wait('@apiRequest');
-						cy.get('@searchModal').should('be.visible').should('contain.text', 'test');
-						cy.url().should('include', 'search=test');
-					});
+				cy.get('@searchModal').find('.ep-search-input').clearThenType('test');
+				cy.wait('@apiRequest');
+				cy.get('@searchModal').should('be.visible').should('contain.text', 'test');
+				cy.url().should('include', 'search=test');
 
 				cy.get('#wpadminbar li#wp-admin-bar-debug-bar').click();
 				cy.get('#querylist').should('be.visible');
@@ -235,14 +237,17 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Add price range facet.
 				 */
 				cy.maybeEnableFeature('instant-results');
+
 				cy.visitAdminPage('admin.php?page=elasticpress');
-				cy.intercept('/wp-admin/admin-ajax.php*').as('ajaxRequest');
-				cy.get('.ep-feature-instant-results .settings-button').click();
-				cy.get('.ep-feature-instant-results .components-form-token-field__input').type(
-					'{backspace}{backspace}price{downArrow}{enter}{esc}',
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type(
+					'{backspace}{backspace}{backspace}price{downArrow}{enter}{esc}',
 				);
-				cy.get('.ep-feature-instant-results .button-primary').click();
-				cy.wait('@ajaxRequest');
+				cy.contains('button', 'Save changes').click();
+
+				cy.wait('@apiRequest');
 
 				/**
 				 * Perform a search.
@@ -260,17 +265,28 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 * Adjusting the price range facet should filter results by price.
 				 */
 				cy.get('.ep-search-range-slider__thumb-0').as('priceThumb');
-				cy.get('@priceThumb').type('{rightArrow}');
-				cy.wait('@apiRequest');
-				cy.url().should('include', 'min_price=420');
-				cy.get('.ep-search-result').should('have.length', 2);
+				cy.get('@priceThumb')
+					.move({ deltaX: 1 })
+					.then(() => {
+						cy.get('.ep-search-price-facet__values')
+							.invoke('text')
+							.then((text) => {
+								const matches = text.match(/\$([0-9]*) /);
+								const value = matches[1];
+								expect(value).to.not.equal(419);
 
-				/**
-				 * Clearing the filter should return the unfiltered results.
-				 */
-				cy.get('.ep-search-tokens button').contains('420').click();
-				cy.wait('@apiRequest');
-				cy.get('.ep-search-result').should('have.length', 3);
+								cy.wait('@apiRequest');
+								cy.url().should('include', `min_price=${value}`);
+								cy.get('.ep-search-result').should('have.length', 2);
+
+								/**
+								 * Clearing the filter should return the unfiltered results.
+								 */
+								cy.get('.ep-search-tokens button').contains(value).click();
+								cy.wait('@apiRequest');
+								cy.get('.ep-search-result').should('have.length', 3);
+							});
+					});
 			});
 
 			it('Is possible to manually open Instant Results with a plugin', () => {
@@ -293,14 +309,18 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 					content: 'Testing openModal()',
 				});
 
+				cy.getBlockEditor().as('iframe');
 				cy.openBlockInserter();
 				cy.insertBlock('Buttons');
-				cy.get('.wp-block-button__link').type('Search "Block"');
+				cy.closeBlockInserter();
+				cy.get('@iframe').find('.wp-block-button__link').type('Search "Block"');
 
 				/**
 				 * Update the post and visit the front end.
 				 */
+				cy.wait(500); // eslint-disable-line
 				cy.get('.editor-post-publish-button__button').click();
+				cy.wait(2000); // eslint-disable-line
 				cy.get('.components-snackbar__action').click();
 
 				/**
@@ -362,6 +382,98 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.get('.ep-search-modal').should('be.visible');
 				cy.wait('@apiRequest');
 				cy.get('.ep-search-suggestion a').should('have.text', 'wordpress');
+			});
+
+			it('Is possible to set the default post type from a search form', () => {
+				cy.maybeEnableFeature('instant-results');
+
+				createProductSearchWidget();
+
+				/**
+				 * If the Post Type filter is in use, entering a new search
+				 * term should reset post type the filter.
+				 */
+				cy.visitAdminPage('admin.php?page=elasticpress');
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type(
+					'{backspace}{backspace}{backspace}post type{downArrow}{enter}{esc}',
+				);
+				cy.contains('button', 'Save changes').click();
+				cy.wait('@apiRequest');
+
+				cy.visit('/');
+				cy.intercept('*search=heavy*').as('apiRequest');
+				cy.get('.wc-block-product-search,.wp-block-search').last().as('productSearchBlock');
+				cy.get('@productSearchBlock').find('input[type="search"]').type('heavy{enter}');
+				cy.get('.ep-search-modal').should('be.visible');
+				cy.wait('@apiRequest');
+				cy.url().should('include', 'post_type=product');
+				cy.get('.ep-search-input').type(' duty');
+				cy.wait(300); // eslint-disable-line
+				cy.wait('@apiRequest');
+				cy.url().should('not.include', 'post_type=product');
+
+				/**
+				 * If the Post Type filter is not in use, entering a new search
+				 * term should not reset the post type filter.
+				 */
+				cy.visitAdminPage('admin.php?page=elasticpress');
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+				cy.contains('button', 'Instant Results').click();
+				cy.contains('.components-form-token-field__token', 'Post type')
+					.find('button')
+					.click();
+				cy.contains('button', 'Save changes').click();
+				cy.wait('@apiRequest');
+
+				cy.visit('/');
+				cy.intercept('*search=ergo*').as('apiRequest');
+				cy.get('.wc-block-product-search,.wp-block-search').last().as('productSearchBlock');
+				cy.get('@productSearchBlock').find('input[type="search"]').type('heavy{enter}');
+				cy.get('.ep-search-modal').should('be.visible');
+				cy.wait('@apiRequest');
+				cy.url().should('include', 'post_type=product');
+				cy.get('.ep-search-input').type(' duty');
+				cy.wait(300); // eslint-disable-line
+				cy.wait('@apiRequest');
+				cy.url().should('include', 'post_type=product');
+			});
+
+			it('Is possible to filter the taxonomy terms', () => {
+				/**
+				 * Activate test plugin.
+				 */
+				cy.maybeEnableFeature('instant-results');
+				cy.activatePlugin('filter-instant-results-category-terms', 'wpCli');
+
+				cy.visitAdminPage('admin.php?page=elasticpress');
+				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+
+				cy.contains('button', 'Instant Results').click();
+				cy.get('.components-form-token-field__input').type(
+					'{backspace}{backspace}{backspace}(category){downArrow}{enter}{esc}',
+				);
+				cy.contains('button', 'Save changes').click();
+
+				cy.wait('@apiRequest');
+
+				/**
+				 * Perform a search.
+				 */
+				cy.intercept('*search=block*').as('apiRequest');
+				cy.visit('/');
+				cy.get('.wp-block-search').first().as('searchBlock');
+				cy.get('@searchBlock').find('input[type="search"]').type('block');
+				cy.get('@searchBlock').find('button').click();
+				cy.wait('@apiRequest');
+
+				/**
+				 * The number of terms displayed in the filter should be one.
+				 */
+				cy.get('[id^="ep-search-tax-category-"]').should('have.length', 1);
+
+				cy.deactivatePlugin('filter-instant-results-category-terms', 'wpCli');
 			});
 		});
 

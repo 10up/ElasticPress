@@ -54,12 +54,6 @@ class WooCommerce extends Feature {
 	public function __construct() {
 		$this->slug = 'woocommerce';
 
-		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
-
-		$this->summary = __( "With ElasticPress, filtering WooCommerce product results is fast and easy. Your customers can find and buy exactly what they're looking for, even if you have a large or complex product catalog.", 'elasticpress' );
-
-		$this->docs_url = __( 'https://elasticpress.zendesk.com/hc/en-us/articles/360050447492-Configuring-ElasticPress-via-the-Plugin-Dashboard#woocommerce', 'elasticpress' );
-
 		$this->requires_install_reindex = true;
 
 		$this->setting_requires_install_reindex = 'orders';
@@ -72,11 +66,23 @@ class WooCommerce extends Feature {
 
 		$this->orders             = new Orders( $this );
 		$this->products           = new Products( $this );
-		$this->orders_autosuggest = new OrdersAutosuggest();
-
-		$this->set_settings_schema();
+		$this->orders_autosuggest = new OrdersAutosuggest( $this );
 
 		parent::__construct();
+	}
+
+	/**
+	 * Sets i18n strings.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
+		$this->title = esc_html__( 'WooCommerce', 'elasticpress' );
+
+		$this->summary = '<p>' . __( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ) . '</p>';
+
+		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#woocommerce', 'elasticpress' );
 	}
 
 	/**
@@ -89,20 +95,44 @@ class WooCommerce extends Feature {
 			return;
 		}
 
-		$this->products->setup();
-		$this->orders->setup();
+		add_action( 'switch_blog', [ $this, 'setup_or_tear_down' ] );
 
 		add_filter( 'ep_integrate_search_queries', [ $this, 'disallow_coupons' ], 10, 2 );
 
-		// These hooks are deprecated and will be removed in an upcoming major version of ElasticPress
-		add_filter( 'woocommerce_layered_nav_query_post_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-		add_filter( 'woocommerce_unfiltered_product_ids', [ $this, 'convert_post_object_to_id' ], 10, 4 );
-		add_action( 'ep_wp_query_search_cached_posts', [ $this, 'disallow_duplicated_query' ], 10, 2 );
+		$this->products->setup();
+		$this->orders->setup();
+		$this->orders_autosuggest->setup();
+	}
 
-		// Orders Autosuggest feature.
-		if ( $this->is_orders_autosuggest_enabled() ) {
-			$this->orders_autosuggest->setup();
+	/**
+	 * Setup or tear down the functionality depending on the plugin being active for the current site.
+	 *
+	 * If the site wasn't initialized yet (it does not have its database tables created) we skip it.
+	 *
+	 * @since 5.0.0
+	 * @param int $blog_id Blog ID
+	 * @return void
+	 */
+	public function setup_or_tear_down( $blog_id ) {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		if ( wp_is_site_initialized( $blog_id ) && \is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+			$this->setup();
+		} else {
+			$this->tear_down();
 		}
+	}
+
+	/**
+	 * Un-setup all feature filters
+	 *
+	 * @since 5.0.0
+	 */
+	public function tear_down() {
+		remove_filter( 'ep_integrate_search_queries', [ $this, 'disallow_coupons' ] );
+
+		$this->products->tear_down();
+		$this->orders->tear_down();
+		$this->orders_autosuggest->tear_down();
 	}
 
 	/**
@@ -114,7 +144,7 @@ class WooCommerce extends Feature {
 	 * @param \WP_Query $query The WP_Query object
 	 * @return string
 	 */
-	public function get_search_term( \WP_Query $query ) : string {
+	public function get_search_term( \WP_Query $query ): string {
 		$search = $query->get( 'search' );
 		return ( ! empty( $search ) ) ? $search : $query->get( 's', '' );
 	}
@@ -147,44 +177,6 @@ class WooCommerce extends Feature {
 	public function output_feature_box_long() {
 		?>
 		<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
-	 * Dashboard WooCommerce settings
-	 *
-	 * @since 4.5.0
-	 */
-	public function output_feature_box_settings() {
-		$available = $this->is_orders_autosuggest_available();
-		$enabled   = $this->is_orders_autosuggest_enabled();
-		?>
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Orders Autosuggest', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label><input name="settings[orders]" type="radio" <?php checked( $enabled ); ?> <?php disabled( $available, false, true ); ?> value="1"><?php echo wp_kses_post( __( 'Enabled', 'elasticpress' ) ); ?></label><br>
-				<label><input name="settings[orders]" type="radio" <?php checked( ! $enabled ); ?> <?php disabled( $available, false, true ); ?> value="0"><?php echo wp_kses_post( __( 'Disabled', 'elasticpress' ) ); ?></label>
-				<p class="field-description">
-					<?php
-					$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest';
-
-					$message = ( $available ) ?
-						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
-						__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable Orders Autosuggest to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
-						/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
-						__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
-
-					printf(
-						wp_kses( $message, 'ep-html' ),
-						'<a href="https://elasticpress.io/" target="_blank">',
-						'</a>',
-						'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
-						'</a>'
-					);
-					?>
-				</p>
-			</div>
-		</div>
 		<?php
 	}
 
@@ -269,77 +261,58 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * Whether orders autosuggest is available or not
-	 *
-	 * @since 4.5.0
-	 * @return boolean
-	 */
-	public function is_orders_autosuggest_available() : bool {
-		/**
-		 * Whether the autosuggest feature is available for non
-		 * ElasticPress.io customers.
-		 *
-		 * @since 4.5.0
-		 * @hook ep_woocommerce_orders_autosuggest_available
-		 * @param {boolean} $available Whether the feature is available.
-		 */
-		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
-	}
-
-	/**
-	 * Whether orders autosuggest is enabled or not
-	 *
-	 * @since 4.5.0
-	 * @return boolean
-	 */
-	public function is_orders_autosuggest_enabled() : bool {
-		return $this->is_orders_autosuggest_available() && '1' === $this->get_setting( 'orders' );
-	}
-
-	/**
 	 * Set the `settings_schema` attribute
 	 *
 	 * @since 5.0.0
 	 */
 	protected function set_settings_schema() {
-		$available = $this->is_orders_autosuggest_available();
+		/**
+		 * Filters the WooCommerce Settings schema.
+		 *
+		 * @since 5.1.0
+		 * @hook ep_woocommerce_settings_schema
+		 * @param {array} $settings_schema WooCommerce feature settings schema
+		 * @return {array} $settings_schema
+		 */
+		$this->settings_schema = apply_filters( 'ep_woocommerce_settings_schema', $this->settings_schema );
+	}
 
-		$epio_autosuggest_kb_link = 'https://elasticpress.zendesk.com/hc/en-us/articles/13374461690381-Configuring-ElasticPress-io-Order-Autosuggest';
-
-		$message = ( $available ) ?
-			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
-			__( 'You are directly connected to %1$sElasticPress.io%2$s! Enable Orders Autosuggest to enhance Dashboard results and quickly find WooCommerce Orders. %3$sLearn More%4$s.', 'elasticpress' ) :
-			/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
-			__( 'Due to the sensitive nature of orders, this autosuggest feature is available only to %1$sElasticPress.io%2$s customers. %3$sLearn More%4$s.', 'elasticpress' );
-
-		$message = sprintf(
-			wp_kses( $message, 'ep-html' ),
-			'<a href="https://elasticpress.io/" target="_blank">',
-			'</a>',
-			'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
-			'</a>'
+	/**
+	 * DEPRECATED. Dashboard WooCommerce settings
+	 *
+	 * @since 4.5.0
+	 * @deprecated 5.1.0
+	 */
+	public function output_feature_box_settings() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Settings are now generated via the set_settings_schema() method.', 'elasticpress' ),
+			'5.0.0'
 		);
+	}
 
-		$this->settings_schema = [
-			[
-				'default'  => '0',
-				'readonly' => ! $available,
-				'help'     => $message,
-				'key'      => 'orders',
-				'label'    => __( 'Orders Autosuggest', 'elasticpress' ),
-				'options'  => [
-					[
-						'label' => __( 'Enabled', 'elasticpress' ),
-						'value' => '1',
-					],
-					[
-						'label' => __( 'Disabled', 'elasticpress' ),
-						'value' => '0',
-					],
-				],
-				'type'     => 'radio',
-			],
-		];
+	/**
+	 * DEPRECATED. Whether orders autosuggest is available or not
+	 *
+	 * @since 4.5.0
+	 * @deprecated 5.1.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_available(): bool {
+		_deprecated_function( __METHOD__, '5.1.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->is_available()" );
+		return $this->orders_autosuggest->is_available();
+	}
+
+	/**
+	 * DEPRECATED. Whether orders autosuggest is enabled or not
+	 *
+	 * @since 4.5.0
+	 * @deprecated 5.1.0
+	 * @return boolean
+	 */
+	public function is_orders_autosuggest_enabled(): bool {
+		_deprecated_function( __METHOD__, '5.1.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders_autosuggest->is_enabled()" );
+		return $this->orders_autosuggest->is_enabled();
 	}
 
 	/**
@@ -347,6 +320,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @param  \WP_Query $query WP Query
 	 * @since  2.1
+	 * @deprecated 4.7.0
 	 */
 	public function translate_args( $query ) {
 		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->translate_args() OR \ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders->translate_args()" );
@@ -359,6 +333,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @param array $meta_key The meta key to get the mapping for.
 	 * @since  2.1
+	 * @deprecated 4.7.0
 	 * @return string    The mapped meta key.
 	 */
 	public function get_orderby_meta_mapping( $meta_key ) {
@@ -371,6 +346,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @param array $search_fields Array of search fields.
 	 * @since  3.0
+	 * @deprecated 4.7.0
 	 * @return array
 	 */
 	public function remove_author( $search_fields ) {
@@ -383,6 +359,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @param   array $meta Existing post meta.
 	 * @param   array $post Post arguments array.
+	 * @deprecated 4.7.0
 	 * @since   2.1
 	 * @return  array
 	 */
@@ -397,23 +374,11 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Make sure all loop shop post ins are IDS. We have to pass post objects here since we override
-	 * the fields=>id query for the layered filter nav query
-	 *
-	 * @param   array $posts Post object array.
-	 * @since   2.1
-	 * @return  array
-	 */
-	public function convert_post_object_to_id( $posts ) {
-		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
-		return $posts;
-	}
-
-	/**
 	 * DEPRECATED. Index WooCommerce taxonomies
 	 *
 	 * @param   array $taxonomies Index taxonomies array.
 	 * @param   array $post Post properties array.
+	 * @deprecated 4.7.0
 	 * @since   2.1
 	 * @return  array
 	 */
@@ -423,25 +388,10 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Disallow duplicated ES queries on Orders page.
-	 *
-	 * @since 2.4
-	 *
-	 * @param array    $value Original filter values.
-	 * @param WP_Query $query WP_Query
-	 *
-	 * @return array
-	 */
-	public function disallow_duplicated_query( $value, $query ) {
-		_doing_it_wrong( __METHOD__, 'This filter was removed from WooCommerce and will be removed from ElasticPress in a future release.', '4.5.0' );
-
-		return $value;
-	}
-
-	/**
 	 * DEPRECATED. Returns the WooCommerce-oriented post types in admin that EP will search
 	 *
 	 * @since 4.4.0
+	 * @deprecated 4.7.0
 	 * @return mixed|void
 	 */
 	public function get_admin_searchable_post_types() {
@@ -455,6 +405,7 @@ class WooCommerce extends Feature {
 	 * @param  bool     $enabled Coupons enabled or not
 	 * @param  WP_Query $query WP Query
 	 * @since  2.1
+	 * @deprecated 4.7.0
 	 * @return bool
 	 */
 	public function blacklist_coupons( $enabled, $query ) {
@@ -467,6 +418,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @since  2.1
 	 * @param  bool $override Original order perms check value
+	 * @deprecated 4.7.0
 	 * @param  int  $post_id Post ID
 	 * @return bool
 	 */
@@ -483,6 +435,7 @@ class WooCommerce extends Feature {
 	 * If we were to always return array() on this filter, we'd break admin searches when WooCommerce module is activated
 	 * without the Protected Content Module
 	 *
+	 * @deprecated 4.7.0
 	 * @param \WP_Query $query Current query
 	 */
 	public function maybe_hook_woocommerce_search_fields( $query ) {
@@ -498,6 +451,7 @@ class WooCommerce extends Feature {
 	 * 3. If the search key is integer but not an order id ( might be phone number ), use ES to find it
 	 *
 	 * @param WP_Query $wp WP Query
+	 * @deprecated 4.7.0
 	 * @since  2.3
 	 */
 	public function search_order( $wp ) {
@@ -516,7 +470,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @param array      $post_args Post arguments
 	 * @param string|int $post_id Post id
-	 *
+	 * @deprecated 4.7.0
 	 * @return array
 	 */
 	public function add_order_items_search( $post_args, $post_id ) {
@@ -528,6 +482,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Add WooCommerce Product Attributes to EP Facets.
 	 *
 	 * @param array $taxonomies Taxonomies array
+	 * @deprecated 4.7.0
 	 * @return array
 	 */
 	public function add_product_attributes( $taxonomies = [] ) {
@@ -539,7 +494,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Add WooCommerce Fields to the Weighting Dashboard.
 	 *
 	 * @since 3.x
-	 *
+	 * @deprecated 4.7.0
 	 * @param array  $fields    Current weighting fields.
 	 * @param string $post_type Current post type.
 	 * @return array            New fields.
@@ -553,7 +508,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Add WooCommerce Fields to the default values of the Weighting Dashboard.
 	 *
 	 * @since 3.x
-	 *
+	 * @deprecated 4.7.0
 	 * @param array  $defaults  Default values for the post type.
 	 * @param string $post_type Current post type.
 	 * @return array
@@ -568,6 +523,7 @@ class WooCommerce extends Feature {
 	 *
 	 * @param array $post_types Array of post types (e.g. post, page).
 	 * @since  2.6
+	 * @deprecated 4.7.0
 	 * @return array
 	 */
 	public function suggest_wc_add_post_type( $post_types ) {
@@ -582,6 +538,7 @@ class WooCommerce extends Feature {
 	 * @param  array    $query_args WP_Query args
 	 * @param  WP_Query $query WP_Query object
 	 * @since  3.2
+	 * @deprecated 4.7.0
 	 * @return array
 	 */
 	public function price_filter( $args, $query_args, $query ) {
@@ -598,6 +555,7 @@ class WooCommerce extends Feature {
 	 * @see https://github.com/10up/ElasticPress/issues/2726
 	 *
 	 * @since 4.2.0
+	 * @deprecated 4.7.0
 	 * @param bool  $skip      Whether the password protected content should have their content, and meta removed
 	 * @param array $post_args Post arguments
 	 * @return bool
@@ -611,6 +569,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Add a new `_variations_skus` meta field to the product to be indexed in Elasticsearch.
 	 *
 	 * @since 4.2.0
+	 * @deprecated 4.7.0
 	 * @param array   $post_meta Post meta
 	 * @param WP_Post $post      Post object
 	 * @return array
@@ -630,6 +589,7 @@ class WooCommerce extends Feature {
 	 * by ElasticPress.
 	 *
 	 * @since 4.2.0
+	 * @deprecated 4.7.0
 	 * @param array $query_vars Query vars.
 	 * @return array
 	 */
@@ -642,6 +602,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Apply the necessary changes to WP_Query in WooCommerce Admin Product List.
 	 *
 	 * @param WP_Query $query The WP Query being executed.
+	 * @deprecated 4.7.0
 	 */
 	public function translate_args_admin_products_list( $query ) {
 		_deprecated_function( __METHOD__, '4.7.0', "\ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->products->price_filter()" );
@@ -652,6 +613,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Depending on the number of products display an admin notice in the custom sort screen for WooCommerce Products
 	 *
 	 * @since 4.4.0
+	 * @deprecated 4.7.0
 	 * @param array $notices Current ElasticPress admin notices
 	 * @return array
 	 */
@@ -664,6 +626,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Conditionally resync products after applying a custom order.
 	 *
 	 * @since 4.4.0
+	 * @deprecated 4.7.0
 	 * @param int   $sorting_id  ID of post dragged and dropped
 	 * @param array $menu_orders Post IDs and their new menu_order value
 	 */
@@ -676,6 +639,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Add weight by date settings related to WooCommerce
 	 *
 	 * @since 4.6.0
+	 * @deprecated 4.7.0
 	 * @param array $settings Current settings.
 	 */
 	public function add_weight_settings_search( $settings ) {
@@ -687,6 +651,7 @@ class WooCommerce extends Feature {
 	 * DEPRECATED. Conditionally disable decaying by date based on WooCommerce Decay settings.
 	 *
 	 * @since 4.6.0
+	 * @deprecated 4.7.0
 	 * @param bool  $is_decaying_enabled Whether decay by date is enabled or not
 	 * @param array $settings            Settings
 	 * @param array $args                WP_Query args

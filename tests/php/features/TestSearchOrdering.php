@@ -73,6 +73,8 @@ class TestSearchOrdering extends BaseTestCase {
 	 */
 	public function testConstruct() {
 		$instance = new \ElasticPress\Feature\SearchOrdering\SearchOrdering();
+		$instance->set_i18n_strings();
+
 		$this->assertSame( 'searchordering', $instance->slug );
 		$this->assertSame( 'Custom Search Results', $instance->title );
 	}
@@ -105,7 +107,7 @@ class TestSearchOrdering extends BaseTestCase {
 		$this->get_feature()->output_feature_box_summary();
 		$output = ob_get_clean();
 
-		$this->assertStringContainsString( 'Insert specific posts into search results for specific search queries.', $output );
+		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
 	}
 
 	/**
@@ -265,7 +267,6 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$return = $this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
 		$this->assertNull( $return );
-
 	}
 
 	/**
@@ -436,7 +437,7 @@ class TestSearchOrdering extends BaseTestCase {
 	 * Test the `create_or_return_custom_result_term` method
 	 */
 	public function testCreateTermFailed() {
-		$create_term_failed = function() {
+		$create_term_failed = function () {
 			return new \WP_Error( 'test_error' );
 		};
 

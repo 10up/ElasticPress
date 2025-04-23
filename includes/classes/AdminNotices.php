@@ -116,12 +116,6 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress&do_sync' );
-		} else {
-			$url = admin_url( 'admin.php?page=elasticpress&do_sync' );
-		}
-
 		return [
 			'html'    => sprintf( esc_html__( 'Autosuggest feature is enabled. If documents feature is enabled, your media will also become searchable in the frontend.', 'elasticpress' ) ),
 			'type'    => 'info',
@@ -177,15 +171,11 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( Utils\isset_do_sync_parameter() ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
-		} else {
-			$url = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
-		}
+		$url = Utils\get_sync_url( 'features' );
 
 		$feature = Features::factory()->get_registered_feature( $auto_activate_sync );
 
@@ -252,15 +242,11 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( Utils\isset_do_sync_parameter() ) {
 			return false;
 		}
 
-		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$url = admin_url( 'network/admin.php?page=elasticpress-sync&do_sync' );
-		} else {
-			$url = admin_url( 'admin.php?page=elasticpress-sync&do_sync' );
-		}
+		$url = Utils\get_sync_url( 'upgrade' );
 
 		if ( defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) {
 			$html = esc_html__( 'Dashboard sync is disabled. The new version of ElasticPress requires that you delete all data and start a fresh sync using WP-CLI.', 'elasticpress' );
@@ -316,7 +302,7 @@ class AdminNotices {
 			return false;
 		}
 
-		if ( isset( $_GET['do_sync'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+		if ( Utils\isset_do_sync_parameter() ) {
 			return false;
 		}
 
@@ -533,7 +519,7 @@ class AdminNotices {
 			return false;
 		}
 
-		$doc_url = 'https://10up.github.io/ElasticPress/tutorial-compatibility.html';
+		$doc_url = 'https://www.elasticpress.io/resources/articles/compatibility/';
 		$html    = sprintf(
 			/* translators: Document page URL */
 			__( 'Your server software is not supported. To learn more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
@@ -595,10 +581,17 @@ class AdminNotices {
 			$response_error = get_transient( 'ep_es_info_response_error' );
 		}
 
+		$retry_url = add_query_arg(
+			[
+				'ep-retry'       => 1,
+				'ep_retry_nonce' => wp_create_nonce( 'ep_retry_nonce' ),
+			]
+		);
+
 		$html = sprintf(
 			/* translators: 1. Current URL with retry parameter; 2. Settings Page URL */
 			__( 'There is a problem with connecting to your Elasticsearch host. ElasticPress can <a href="%1$s">try your host again</a>, or you may need to <a href="%2$s">change your settings</a>.', 'elasticpress' ),
-			esc_url( add_query_arg( 'ep-retry', 1 ) ),
+			esc_url( $retry_url ),
 			esc_url( $url )
 		);
 
@@ -689,7 +682,6 @@ class AdminNotices {
 			];
 
 		}
-
 	}
 
 	/**
@@ -795,8 +787,8 @@ class AdminNotices {
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> before trying to sync.', 'elasticpress' ),
 				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
-				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+				'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+				'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
 			);
 
 			return [
@@ -811,8 +803,8 @@ class AdminNotices {
 				/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 				__( 'Your website content seems to have more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> if you receive any errors while syncing.', 'elasticpress' ),
 				Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-				'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
-				'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+				'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+				'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
 			);
 
 			return [
@@ -839,7 +831,19 @@ class AdminNotices {
 		 * @param  {array} $notices Admin notices
 		 * @return {array} New notices
 		 */
-		return apply_filters( 'ep_admin_notices', $this->notices );
+		$notices = apply_filters( 'ep_admin_notices', $this->notices );
+
+		// If the plugin is network-activated and not in the network admin, return the notices whose scope is site.
+		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! is_network_admin() ) {
+			$notices = array_filter(
+				$notices,
+				function ( $notice ) {
+					return isset( $notice['scope'] ) && 'site' === $notice['scope'];
+				}
+			);
+		}
+
+		return $notices;
 	}
 
 	/**
@@ -883,8 +887,14 @@ class AdminNotices {
 	protected function check_field_count() {
 		$post_indexable = Indexables::factory()->get( 'post' );
 
-		$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
-		$count_fields_db  = count( $indexable_fields );
+		$search = Features::factory()->get_registered_feature( 'search' );
+		if ( $search && ! empty( $search->weighting ) && 'manual' === $search->weighting->get_meta_mode() ) {
+			$indexable_fields = $post_indexable->get_all_allowed_metas_manual();
+			$count_fields_db  = count( $indexable_fields );
+		} else {
+			$indexable_fields = $post_indexable->get_predicted_indexable_meta_keys();
+			$count_fields_db  = count( $indexable_fields );
+		}
 
 		$index_name     = $post_indexable->get_index_name();
 		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );

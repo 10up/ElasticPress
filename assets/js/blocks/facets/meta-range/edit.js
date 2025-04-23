@@ -94,6 +94,8 @@ export default ({ attributes, name, setAttributes }) => {
 								label={__('Value prefix', 'elasticpress')}
 								onChange={onChangePrefix}
 								value={prefix}
+								__nextHasNoMarginBottom
+								__next40pxDefaultSize
 							/>
 						</FlexItem>
 						<FlexItem>
@@ -101,6 +103,8 @@ export default ({ attributes, name, setAttributes }) => {
 								label={__('Value suffix', 'elasticpress')}
 								onChange={onChangeSuffix}
 								value={suffix}
+								__nextHasNoMarginBottom
+								__next40pxDefaultSize
 							/>
 						</FlexItem>
 					</Flex>

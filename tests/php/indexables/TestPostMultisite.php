@@ -64,6 +64,21 @@ class TestPostMultisite extends BaseTestCase {
 
 		// Need to call this since it's hooked to init
 		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		// Allow some meta fields to be indexed.
+		add_filter(
+			'ep_prepare_meta_allowed_keys',
+			function ( $allowed_metakeys ) {
+				return array_merge(
+					$allowed_metakeys,
+					[
+						'test_key',
+						'test_key2',
+						'test_key3',
+					]
+				);
+			}
+		);
 	}
 
 	/**
@@ -225,7 +240,7 @@ class TestPostMultisite extends BaseTestCase {
 			$this->assertEquals( $post->site_id, get_current_blog_id() );
 
 			if ( get_current_blog_id() !== $original_site_id ) {
-				$other_site_post_count++;
+				++$other_site_post_count;
 			}
 		}
 
@@ -485,7 +500,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -547,7 +562,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -605,7 +620,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -657,7 +672,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -709,7 +724,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -760,7 +775,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -818,7 +833,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -874,14 +889,14 @@ class TestPostMultisite extends BaseTestCase {
 					)
 				);
 
-				$posts_created++;
+				++$posts_created;
 			}
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -935,7 +950,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1019,7 +1034,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1088,7 +1103,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1155,7 +1170,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1361,7 +1376,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1426,7 +1441,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1493,7 +1508,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		$args = array(
@@ -1572,7 +1587,7 @@ class TestPostMultisite extends BaseTestCase {
 
 			restore_current_blog();
 
-			$i++;
+			++$i;
 		}
 
 		add_filter( 'ep_skip_query_integration', '__return_true' );
@@ -1911,7 +1926,7 @@ class TestPostMultisite extends BaseTestCase {
 			$this->assertEquals( $post->site_id, get_current_blog_id() );
 
 			if ( get_current_blog_id() !== $original_site_id ) {
-				$other_site_post_count++;
+				++$other_site_post_count;
 			}
 		}
 
@@ -2093,6 +2108,4 @@ class TestPostMultisite extends BaseTestCase {
 		$this->assertEquals( 4, $query->post_count );
 		$this->assertEquals( 4, $query->found_posts );
 	}
-
-
 }

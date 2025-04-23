@@ -1,1 +1,1 @@
-This content was moved and is currently available at [https://elasticpress.zendesk.com/hc/en-us/articles/16672190381965-Install](https://elasticpress.zendesk.com/hc/en-us/articles/16672190381965-Install).
+This content was moved and is currently available at [https://www.elasticpress.io/getting-started/](https://www.elasticpress.io/getting-started/).

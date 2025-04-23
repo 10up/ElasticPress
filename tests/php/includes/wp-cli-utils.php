@@ -19,9 +19,9 @@ namespace WP_CLI\Utils;
  *
  * @param array  $assoc_args  Arguments array.
  * @param string $flag        Flag to get the value.
- * @param mixed  $default     Default value for the flag. Default: NULL
+ * @param mixed  $default_value     Default value for the flag. Default: NULL
  * @return mixed
  */
-function get_flag_value( $assoc_args, $flag, $default = null ) {
-	return isset( $assoc_args[ $flag ] ) ? $assoc_args[ $flag ] : $default;
+function get_flag_value( $assoc_args, $flag, $default_value = null ) {
+	return isset( $assoc_args[ $flag ] ) ? $assoc_args[ $flag ] : $default_value;
 }

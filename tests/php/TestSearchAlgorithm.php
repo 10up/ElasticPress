@@ -13,7 +13,7 @@ use ElasticPress\SearchAlgorithm;
 /**
  * Test abstract SearchAlgorithm class
  */
-class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
+class TestSearchAlgorithm extends BaseTestCase {
 	/**
 	 * "Concrete" stub for the abstract class
 	 *
@@ -39,7 +39,7 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testFilters() {
-		$test_filter = function() {
+		$test_filter = function () {
 			return [ 'changed' ];
 		};
 
@@ -59,7 +59,7 @@ class TestSearchAlgorithm extends \ElasticPressTest\BaseTestCase {
 	 * @group searchAlgorithms
 	 */
 	public function testLegacyFilters() {
-		$test_filter = function() {
+		$test_filter = function () {
 			return [ 'changed' ];
 		};
 

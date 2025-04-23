@@ -127,6 +127,22 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
+	 * The slug of a feature that is required to be active.
+	 *
+	 * @since 5.0.0
+	 * @var false|string
+	 */
+	protected $requires_feature = false;
+
+	/**
+	 * Whether the feature is using ElasticPress.io.
+	 *
+	 * @since 5.0.0
+	 * @var boolean
+	 */
+	protected $is_powered_by_epio = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -140,7 +156,7 @@ abstract class Feature {
 	 */
 	public function output_feature_box_summary() {
 		if ( $this->summary ) {
-			echo '<p>' . esc_html( $this->summary ) . '</p>';
+			echo wp_kses_post( $this->summary );
 		}
 	}
 
@@ -149,7 +165,7 @@ abstract class Feature {
 	 *
 	 * @since  3.0
 	 */
-	abstract public function output_feature_box_long();
+	public function output_feature_box_long() {}
 
 	/**
 	 * Create feature
@@ -417,8 +433,8 @@ abstract class Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	public function get_epio_logo() : string {
-		return sprintf( '<img class="feature-epio-logo" alt="ElasticPresss.io logo" src="%s" width="110" height="20">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
+	public function get_epio_logo(): string {
+		return sprintf( '<img class="feature-epio-logo" alt="ElasticPress.io logo" src="%s" width="110" height="20">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
 	}
 
 	/**
@@ -427,7 +443,7 @@ abstract class Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	public function get_title() : string {
+	public function get_title(): string {
 		return $this->title;
 	}
 
@@ -437,7 +453,7 @@ abstract class Feature {
 	 * @since 4.4.1
 	 * @return string
 	 */
-	public function get_short_title() : string {
+	public function get_short_title(): string {
 		if ( ! empty( $this->short_title ) ) {
 			return $this->short_title;
 		}
@@ -485,7 +501,7 @@ abstract class Feature {
 	 * @since 4.5.0
 	 * @return boolean
 	 */
-	public function is_available() : bool {
+	public function is_available(): bool {
 		$requirements_status = $this->requirements_status();
 		/**
 		 * Filter whether a feature is available or not.
@@ -509,7 +525,7 @@ abstract class Feature {
 		 * @since 4.5.0
 		 * @return {bool} New $is_available value
 		 */
-		return apply_filters( 'ep_feature_is_available', $this->is_visible && 2 !== $requirements_status->code, $this->slug, $this );
+		return apply_filters( 'ep_feature_is_available', $this->is_visible() && 2 !== $requirements_status->code, $this->slug, $this );
 	}
 
 	/**
@@ -530,11 +546,14 @@ abstract class Feature {
 			'defaultSettings'   => $this->default_settings,
 			'order'             => $this->order,
 			'isAvailable'       => $this->is_available(),
+			'isPoweredByEpio'   => $this->is_powered_by_epio,
+			'isVisible'         => $this->is_visible(),
 			'reqStatusCode'     => $requirements_status->code,
-			'reqStatusMessages' => $requirements_status->message,
+			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 		];
-		return wp_json_encode( $feature_desc );
+
+		return $feature_desc;
 	}
 
 	/**
@@ -544,14 +563,18 @@ abstract class Feature {
 	 * @return array
 	 */
 	public function get_settings_schema() {
-		$req_status = $this->requirements_status();
+		// Settings were not set yet.
+		if ( [] === $this->settings_schema ) {
+			$this->set_settings_schema();
+		}
 
 		$active = [
-			'default'       => 0 === $req_status->code,
-			'key'           => 'active',
-			'label'         => __( 'Enabled', 'elasticpress' ),
-			'requires_sync' => $this->requires_install_reindex,
-			'type'          => 'checkbox',
+			'default'          => false,
+			'key'              => 'active',
+			'label'            => __( 'Enable', 'elasticpress' ),
+			'requires_feature' => $this->requires_feature,
+			'requires_sync'    => $this->requires_install_reindex,
+			'type'             => 'toggle',
 		];
 
 		$settings_schema = [
@@ -570,5 +593,42 @@ abstract class Feature {
 		 * @return {array} New $settings_schema value
 		 */
 		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
+	}
+
+	/**
+	 * Default implementation of `set_settings_schema` based on the `default_settings` attribute
+	 *
+	 * @since 5.0.0
+	 */
+	protected function set_settings_schema() {
+		if ( [] === $this->default_settings ) {
+			return;
+		}
+
+		foreach ( $this->default_settings as $key => $default_value ) {
+			$type = 'text';
+			if ( in_array( $default_value, [ '0', '1' ], true ) ) {
+				$type = 'checkbox';
+			}
+			if ( is_bool( $default_value ) ) {
+				$type = 'toggle';
+			}
+
+			$this->settings_schema[] = [
+				'default' => $default_value,
+				'key'     => $key,
+				'label'   => $key,
+				'type'    => $type,
+			];
+		}
+	}
+
+	/**
+	 * Sets the i18n strings for the feature.
+	 *
+	 * @return void
+	 * @since 5.2.0
+	 */
+	public function set_i18n_strings(): void {
 	}
 }

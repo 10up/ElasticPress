@@ -25,6 +25,17 @@ class ElasticsearchErrorInterpreter {
 	public function maybe_suggest_solution_for_es( $error ) {
 		$sync_url = Utils\get_sync_url();
 
+		if ( 'no such index' === $error ) { // ES 5.x error
+			return [
+				'error'    => 'no such index',
+				'solution' => sprintf(
+					/* translators: Sync Page URL */
+					__( 'It seems one of the indices is missing. <a href="%1$s">Delete all data and sync</a> to fix the issue.', 'elasticpress' ),
+					$sync_url
+				),
+			];
+		}
+
 		if ( preg_match( '/no such index \[(.*?)\]/', $error, $matches ) ) {
 			return [
 				'error'    => 'no such index [???]',
@@ -73,20 +84,37 @@ class ElasticsearchErrorInterpreter {
 			];
 		}
 
-		if ( preg_match( '/Limit of total fields \[(.*?)\] in index \[(.*?)\] has been exceeded/', $error, $matches ) ) {
+		if ( preg_match( '/Limit of total fields \[(.*?)\]( in index \[(.*?)\])? has been exceeded/', $error, $matches ) ) {
 			return [
 				'error'    => 'Limit of total fields [???] in index [???] has been exceeded',
 				'solution' => sprintf(
 					/* translators: Elasticsearch or ElasticPress.io; 2. Link to article; 3. Link to article */
 					__( 'Your website content has more public custom fields than %1$s is able to store. Check our articles about <a href="%2$s">Elasticsearch field limitations</a> and <a href="%3$s">how to index just the custom fields you need</a> and sync again.', 'elasticpress' ),
 					Utils\is_epio() ? __( 'ElasticPress.io', 'elasticpress' ) : __( 'Elasticsearch', 'elasticpress' ),
-					'https://elasticpress.zendesk.com/hc/en-us/articles/360051401212-I-get-the-error-Limit-of-total-fields-in-index-has-been-exceeded-',
-					'https://elasticpress.zendesk.com/hc/en-us/articles/360052019111'
+					'https://www.elasticpress.io/documentation/article/i-get-the-error-limit-of-total-fields-in-index-has-been-exceeded/',
+					'https://www.elasticpress.io/documentation/article/how-to-exclude-metadata-from-indexing/'
 				),
 			];
 		}
 
+		if ( preg_match( '/Number of (.*) index errors/', $error, $matches ) ) {
+			return [
+				'error'    => $error,
+				'solution' => '',
+			];
+		}
+
 		if ( Utils\is_epio() ) {
+			if ( preg_match( '/you have reached the limit of indices your plan supports/', $error, $matches ) ) {
+				return [
+					'error'    => $error,
+					'solution' => sprintf(
+						/* translators: ElasticPress.io Article URL */
+						__( 'Please refer to <a href="%s">this article</a> outlining how to address this issue.', 'elasticpress' ),
+						'https://www.elasticpress.io/documentation/article/how-to-fix-the-you-have-reached-the-limit-of-indices-of-your-plan-and-it-was-not-possible-to-create-a-new-index-error/'
+					),
+				];
+			}
 			return [
 				'error'    => $error,
 				'solution' => sprintf(

@@ -1,11 +1,10 @@
-version: '2.2'
 services:
   elasticsearch:
     build:
       dockerfile: Dockerfile
       context: .
       args:
-        ES_VERSION: ${ES_VERSION-7.10.2}
+        ES_VERSION: ${ES_VERSION-8.16.1}
     ports:
       - 8890:9200
     mem_limit: 1024M

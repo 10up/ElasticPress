@@ -10,8 +10,8 @@
 
 namespace ElasticPress;
 
-use \WP_CLI_Command;
-use \WP_CLI;
+use WP_CLI_Command;
+use WP_CLI;
 use ElasticPress\Features;
 use ElasticPress\Utils;
 use ElasticPress\Elasticsearch;
@@ -144,11 +144,16 @@ class Command extends WP_CLI_Command {
 			WP_CLI::error( esc_html__( 'No feature with that slug is registered', 'elasticpress' ) );
 		}
 
-		$active_features = Utils\get_option( 'ep_feature_settings', [] );
+		$active_features       = (array) Features::factory()->get_feature_settings();
+		$active_features_draft = (array) Features::factory()->get_feature_settings_draft();
 
-		$key = array_search( $feature->slug, array_keys( $active_features ), true );
+		$key_current = array_search( $feature->slug, array_keys( $active_features ), true );
+		$key_draft   = array_search( $feature->slug, array_keys( $active_features_draft ), true );
 
-		if ( false === $key || empty( $active_features[ $feature->slug ]['active'] ) ) {
+		$in_current = false !== $key_current && ! empty( $active_features[ $feature->slug ]['active'] );
+		$in_draft   = false !== $key_draft && ! empty( $active_features_draft[ $feature->slug ]['active'] );
+
+		if ( ! $in_current && ! $in_draft ) {
 			WP_CLI::error( esc_html__( 'Feature is not active', 'elasticpress' ) );
 		}
 
@@ -174,7 +179,7 @@ class Command extends WP_CLI_Command {
 		$list_all = \WP_CLI\Utils\get_flag_value( $assoc_args, 'all', null );
 
 		if ( empty( $list_all ) ) {
-			$features = Utils\get_option( 'ep_feature_settings', [] );
+			$features = Features::factory()->get_feature_settings();
 
 			WP_CLI::line( esc_html__( 'Active features:', 'elasticpress' ) );
 
@@ -869,8 +874,6 @@ class Command extends WP_CLI_Command {
 	public function status() {
 		$this->connect_check();
 
-		$request_args = [ 'headers' => Elasticsearch::factory()->format_request_headers() ];
-
 		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
@@ -891,7 +894,7 @@ class Command extends WP_CLI_Command {
 
 		$index_names_imploded = implode( ',', $index_names );
 
-		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_recovery/?pretty', $request_args );
+		$request = Elasticsearch::factory()->remote_request( $index_names_imploded . '/_recovery/?pretty' );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -914,8 +917,6 @@ class Command extends WP_CLI_Command {
 	public function stats() {
 		$this->connect_check();
 
-		$request_args = array( 'headers' => Elasticsearch::factory()->format_request_headers() );
-
 		$registered_index_names = $this->get_index_names();
 
 		$response_cat_indices = Elasticsearch::factory()->remote_request( '_cat/indices?format=json' );
@@ -936,7 +937,8 @@ class Command extends WP_CLI_Command {
 
 		$index_names_imploded = implode( ',', $index_names );
 
-		$request = wp_remote_get( trailingslashit( Utils\get_host( true ) ) . $index_names_imploded . '/_stats/', $request_args );
+		Elasticsearch::factory()->refresh_indices();
+		$request = Elasticsearch::factory()->remote_request( $index_names_imploded . '/_stats/' );
 
 		if ( is_wp_error( $request ) ) {
 			WP_CLI::error( implode( "\n", $request->get_error_messages() ) );
@@ -1112,13 +1114,12 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-host'] ) ) {
 			add_filter(
 				'ep_host',
-				function ( $host ) use ( $assoc_args ) {
+				function () use ( $assoc_args ) {
 					return $assoc_args['ep-host'];
 				}
 			);
 		}
 	}
-
 
 	/**
 	 * maybe change index prefix on the fly
@@ -1131,7 +1132,7 @@ class Command extends WP_CLI_Command {
 		if ( isset( $assoc_args['ep-prefix'] ) ) {
 			add_filter(
 				'ep_index_prefix',
-				function ( $prefix ) use ( $assoc_args ) {
+				function ( $prefix ) use ( $assoc_args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 					return $assoc_args['ep-prefix'];
 				}
 			);
@@ -1327,15 +1328,17 @@ class Command extends WP_CLI_Command {
 		}
 
 		if ( 'index_next_batch' === $context ) {
-			$counter++;
+			++$counter;
 			if ( ( $counter % 10 ) === 0 ) {
 				$time_elapsed_diff = $time_elapsed > 0 ? ' (+' . (string) ( Utility::timer_stop() - $time_elapsed ) . ')' : '';
 				$time_elapsed      = Utility::timer_stop( 2 );
 				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Time elapsed: ', 'elasticpress' ) . '%N' . Utility::timer_format( $time_elapsed ) . $time_elapsed_diff ) );
 
-				$current_memory = round( memory_get_usage() / 1024 / 1024, 2 ) . 'mb';
-				$peak_memory    = ' (Peak: ' . round( memory_get_peak_usage() / 1024 / 1024, 2 ) . 'mb)';
-				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . $peak_memory ) );
+				$current_memory = memory_get_usage() / 1024 / 1024;
+				$current_memory = ( $current_memory > 1000 ) ? round( $current_memory / 1024, 2 ) . 'gb' : round( $current_memory, 2 ) . 'mb';
+				$peak_memory    = memory_get_peak_usage() / 1024 / 1024;
+				$peak_memory    = ( $peak_memory > 1000 ) ? round( $peak_memory / 1024, 2 ) . 'gb' : round( $peak_memory, 2 ) . 'mb';
+				WP_CLI::log( WP_CLI::colorize( '%Y' . esc_html__( 'Memory Usage: ', 'elasticpress' ) . '%N' . $current_memory . ' (Peak: ' . $peak_memory . ')' ) );
 			}
 		}
 	}

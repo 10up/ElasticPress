@@ -3,14 +3,15 @@
  * Plugin Name:       ElasticPress
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
- * Version:           4.7.1
- * Requires at least: 5.6
- * Requires PHP:      7.0
+ * Version:           5.2.0
+ * Requires at least: 6.2
+ * Requires PHP:      7.4
  * Author:            10up
  * Author URI:        https://10up.com
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       elasticpress
+ * Domain Path:       /lang
  *
  * This program derives work from Alley Interactive's SearchPress
  * and Automattic's VIP search plugin:
@@ -23,7 +24,7 @@
 
 namespace ElasticPress;
 
-use \WP_CLI;
+use WP_CLI;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -32,14 +33,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '4.7.1' );
+define( 'EP_VERSION', '5.2.0' );
 
-define( 'EP_PHP_VERSION_MIN', '7.0' );
+define( 'EP_PHP_VERSION_MIN', '7.4' );
 
 if ( ! version_compare( phpversion(), EP_PHP_VERSION_MIN, '>=' ) ) {
 	add_action(
 		'admin_notices',
-		function() {
+		function () {
 			?>
 			<div class="notice notice-error">
 				<p>
@@ -71,7 +72,7 @@ if ( file_exists( __DIR__ . '/vendor-prefixed/autoload.php' ) ) {
  * @since 2.6
  */
 spl_autoload_register(
-	function( $class ) {
+	function ( $class_name ) {
 			// project-specific namespace prefix.
 			$prefix = 'ElasticPress\\';
 
@@ -81,11 +82,11 @@ spl_autoload_register(
 			// does the class use the namespace prefix?
 			$len = strlen( $prefix );
 
-		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		if ( strncmp( $prefix, $class_name, $len ) !== 0 ) {
 			return;
 		}
 
-			$relative_class = substr( $class, $len );
+			$relative_class = substr( $class_name, $len );
 
 			$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
 
@@ -105,7 +106,7 @@ spl_autoload_register(
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '7.10' );
+define( 'EP_ES_VERSION_MAX', '8.99' );
 define( 'EP_ES_VERSION_MIN', '5.2' );
 
 require_once __DIR__ . '/includes/compat.php';
@@ -187,6 +188,10 @@ function register_indexable_posts() {
 
 	Features::factory()->register_feature(
 		new Feature\Documents\Documents()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\AcfRepeater\AcfRepeater()
 	);
 
 	Features::factory()->register_feature(
@@ -275,14 +280,22 @@ function handle_upgrades() {
  * @since  2.2
  */
 function setup_misc() {
-	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' ); // Load any available translations first.
-
 	if ( is_user_logged_in() && ! defined( 'WP_EP_DEBUG' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		define( 'WP_EP_DEBUG', is_plugin_active( 'debug-bar-elasticpress/debug-bar-elasticpress.php' ) );
 	}
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\setup_misc' );
+
+/**
+ * Load text domain
+ *
+ * @since 5.1.4
+ */
+function i18n() {
+	load_plugin_textdomain( 'elasticpress', false, basename( __DIR__ ) . '/lang' );
+}
+add_action( 'init', __NAMESPACE__ . '\i18n' );
 
 /**
  * Set up role(s) with EP capability

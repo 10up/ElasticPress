@@ -8,7 +8,7 @@
 
 namespace ElasticPress\REST;
 
-use ElasticPress\IndexHelper;
+use ElasticPress\Features as FeaturesStore;
 use ElasticPress\Utils;
 
 /**
@@ -57,21 +57,26 @@ class Features {
 					continue;
 				}
 
-				$property = [ 'description' => $schema['label'] ];
+				$type     = $schema['type'] ?? '';
+				$property = [
+					'description' => $schema['label'],
+					'type'        => 'string',
+				];
 
-				switch ( $schema['type'] ) {
+				switch ( $type ) {
 					case 'select':
 					case 'radio':
 						$property['enum'] = array_map( fn( $o ) => $o['value'], $schema['options'] );
 						break;
-					case 'multiple':
-						$property['type'] = 'string';
-						break;
-					case 'checkbox':
+					case 'toggle':
 						$property['type'] = 'boolean';
 						break;
-					default:
-						$property['type'] = 'string';
+					case 'number':
+						$property['type'] = 'number';
+						break;
+					case 'url':
+						$property['type']   = 'string';
+						$property['format'] = 'uri';
 						break;
 				}
 
@@ -89,7 +94,7 @@ class Features {
 	}
 
 	/**
-	 * Check that the request has permission to sync.
+	 * Check that the request has permission to save features.
 	 *
 	 * @return boolean
 	 */
@@ -100,16 +105,87 @@ class Features {
 	}
 
 	/**
-	 * Start or continue a sync.
+	 * Update features settings.
 	 *
 	 * @param \WP_REST_Request $request Full details about the request.
-	 * @return void
+	 * @return array
 	 */
 	public function update_settings( \WP_REST_Request $request ) {
-		$settings = $request->get_params();
+		if ( Utils\is_indexing() ) {
+			wp_send_json_error( 'is_syncing', 400 );
+			exit;
+		}
 
-		Utils\update_option( 'ep_feature_settings', $settings );
+		$current_settings = FeaturesStore::factory()->get_feature_settings();
+		$new_settings     = $current_settings;
 
-		wp_send_json_success();
+		$features = \ElasticPress\Features::factory()->registered_features;
+
+		$settings_that_requires_features = [];
+
+		foreach ( $features as $slug => $feature ) {
+			$param = $request->get_param( $slug );
+
+			if ( ! $param ) {
+				continue;
+			}
+
+			if ( empty( $current_settings[ $slug ] ) ) {
+				$current_settings[ $slug ] = [];
+				$new_settings[ $slug ]     = [];
+			}
+
+			$schema = $feature->get_settings_schema();
+
+			foreach ( $schema as $schema ) {
+				$key = $schema['key'];
+
+				if ( isset( $param[ $key ] ) ) {
+					$new_settings[ $slug ][ $key ] = $param[ $key ];
+
+					// Only apply to the current settings if does not require a sync or if it is activating it
+					if ( ! empty( $schema['requires_sync'] ) && ! empty( $param[ $key ] ) ) {
+						continue;
+					}
+
+					/*
+					 * If a setting requires another feature, we have to check for it after running through everything,
+					 * as it is possible that the feature will be active after this foreach.
+					 */
+					if ( empty( $schema['requires_feature'] ) ) {
+						$current_settings[ $slug ][ $key ] = $param[ $key ];
+					} else {
+						if ( ! isset( $settings_that_requires_features[ $slug ] ) ) {
+							$settings_that_requires_features[ $slug ] = [];
+						}
+						$settings_that_requires_features[ $slug ][ $key ] = [
+							'required_feature' => $schema['requires_feature'],
+							'value'            => $param[ $key ],
+						];
+					}
+				}
+			}
+		}
+
+		foreach ( $settings_that_requires_features as $feature => $fields ) {
+			foreach ( $fields as $field_key => $field_data ) {
+				if ( ! empty( $current_settings[ $field_data['required_feature'] ]['active'] ) ) {
+					$current_settings[ $feature ][ $field_key ] = $field_data['value'];
+				}
+			}
+		}
+
+		foreach ( $current_settings as $slug => $feature ) {
+			FeaturesStore::factory()->update_feature( $slug, $feature );
+		}
+
+		foreach ( $new_settings as $slug => $feature ) {
+			FeaturesStore::factory()->update_feature( $slug, $feature, true, 'draft' );
+		}
+
+		return [
+			'data'    => $current_settings,
+			'success' => true,
+		];
 	}
 }

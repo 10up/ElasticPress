@@ -17,11 +17,13 @@ import PreviousSync from './previous-sync';
 export default () => {
 	const { syncHistory } = useSync();
 
+	const previousSyncs = syncHistory.slice(0, 5);
+
 	return (
 		<ol className="ep-sync-history">
-			{syncHistory.map((s) => {
+			{previousSyncs.map((s) => {
 				return (
-					<li>
+					<li key={s.start_date_time}>
 						<PreviousSync
 							failures={s.failed}
 							method={s.method}
