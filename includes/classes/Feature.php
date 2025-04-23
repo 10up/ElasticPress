@@ -148,7 +148,7 @@ abstract class Feature {
 	 * @since 5.2.0
 	 * @var false|string
 	 */
-	protected $group = false;
+	public $group = false;
 
 	/**
 	 * Run on every page load for feature to set itself up
