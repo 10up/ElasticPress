@@ -28,7 +28,8 @@ class ProtectedContent extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug = 'protected_content';
+		$this->slug  = 'protected_content';
+		$this->group = 'Indexing Options';
 
 		$this->requires_install_reindex = true;
 

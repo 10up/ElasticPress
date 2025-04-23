@@ -24,7 +24,8 @@ class RelatedPosts extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug = 'related_posts';
+		$this->slug  = 'related_posts';
+		$this->group = 'Core Search';
 
 		$this->requires_install_reindex = false;
 

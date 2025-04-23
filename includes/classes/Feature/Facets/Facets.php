@@ -36,7 +36,8 @@ class Facets extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug = 'facets';
+		$this->slug  = 'facets';
+		$this->group = 'Core Search';
 
 		$this->requires_install_reindex = false;
 
