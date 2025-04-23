@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "elasticpress/related-posts",
+	"title": "Related Posts",
+	"category": "elasticpress",
+	"description": "Display a continuously updated list of related posts.",
+	"textdomain": "elasticpress",
+	"attributes": {
+		"alignment": {
+			"type": "string",
+			"default": "none"
+		},
+		"number": {
+			"type": "number",
+			"default": 5
+		}
+	},
+	"usesContext": ["postId"],
+	"supports": {
+		"align": true,
+		"color": {
+			"background": true,
+			"link": true,
+			"text": false
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"editorScript": "ep-related-posts-block-script",
+	"style": "file:/../../../../dist/css/related-posts-block-styles.css"
+}

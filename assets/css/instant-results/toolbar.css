@@ -1,0 +1,11 @@
+.ep-search-toolbar {
+	align-items: start;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25em;
+	margin: 1em 0;
+
+	@media ( min-width: 768px ) {
+		align-items: center;
+	}
+}

@@ -13,14 +13,15 @@ use ElasticPress;
  * Screen test class
  */
 class TestScreen extends BaseTestCase {
+
 	/**
 	 * Setup each test.
 	 *
 	 * @since 2.2
 	 */
-	public function setUp() {
+	public function set_up() {
 		global $wpdb;
-		parent::setUp();
+		parent::set_up();
 		$wpdb->suppress_errors();
 
 		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
@@ -31,7 +32,7 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->delete_all_indices();
 		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
 
-		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->sync_queue = [];
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->setup_test_post_type();
 
@@ -47,8 +48,8 @@ class TestScreen extends BaseTestCase {
 	 * @group screen
 	 * @since  3.0
 	 */
-	public function tearDown() {
-		parent::tearDown();
+	public function tear_down() {
+		parent::tear_down();
 
 		// phpcs:disable
 		if ( isset( $_GET['page'] ) ) {
@@ -61,6 +62,10 @@ class TestScreen extends BaseTestCase {
 
 		if ( isset( $_GET['do_sync'] ) ) {
 			unset( $_GET['do_sync'] );
+		}
+
+		if ( isset( $_GET['ep_sync_nonce'] ) ) {
+			unset( $_GET['ep_sync_nonce'] );
 		}
 		// phpcs:enable
 	}
@@ -88,7 +93,8 @@ class TestScreen extends BaseTestCase {
 
 		ElasticPress\Screen::factory()->determine_screen();
 
-		$this->assertEquals( null, ElasticPress\Screen::factory()->get_current_screen() );
+		// This will be 'install' for single site, but null for multisite.
+		$this->assertSame( 'install', ElasticPress\Screen::factory()->get_current_screen() );
 	}
 
 	/**
@@ -98,7 +104,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstallTrue() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return true;
 		};
 
@@ -110,8 +116,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -121,7 +125,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstall1() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 1;
 		};
 
@@ -133,8 +137,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -144,7 +146,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenSettingsInstall2() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 2;
 		};
 
@@ -156,8 +158,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'settings', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -167,7 +167,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstallTrue() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return true;
 		};
 
@@ -179,8 +179,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -190,7 +188,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall1() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 1;
 		};
 
@@ -202,8 +200,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -213,7 +209,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall2() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 1;
 		};
 
@@ -225,8 +221,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -236,7 +230,7 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstallComplete() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return true;
 		};
 
@@ -249,8 +243,6 @@ class TestScreen extends BaseTestCase {
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'install', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 
 	/**
@@ -260,20 +252,19 @@ class TestScreen extends BaseTestCase {
 	 * @since  3.0
 	 */
 	public function testDetermineScreenDashboardInstall3DoSync() {
-		$set_install_status = function() {
+		$set_install_status = function () {
 			return 3;
 		};
 
 		add_filter( 'ep_install_status', $set_install_status );
 
-		$_GET['page']    = 'elasticpress';
-		$_GET['do_sync'] = 1;
+		$_GET['page']          = 'elasticpress';
+		$_GET['do_sync']       = 1;
+		$_GET['ep_sync_nonce'] = wp_create_nonce( 'ep_sync_nonce' );
 
 		ElasticPress\Installer::factory()->calculate_install_status();
 		ElasticPress\Screen::factory()->determine_screen();
 
 		$this->assertEquals( 'dashboard', ElasticPress\Screen::factory()->get_current_screen() );
-
-		remove_filter( 'ep_install_status', $set_install_status );
 	}
 }

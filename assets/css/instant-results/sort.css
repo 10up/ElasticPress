@@ -1,0 +1,27 @@
+.ep-search-sort {
+	flex-shrink: 0;
+	gap: 0.5em;
+	margin: 0;
+}
+
+.ep-search-sidebar .ep-search-sort {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 1em;
+}
+
+.ep-search-results .ep-search-sort {
+	display: none;
+}
+
+@media ( min-width: 768px ) {
+
+	.ep-search-results .ep-search-sort {
+		align-items: center;
+		display: flex;
+	}
+
+	.ep-search-sidebar .ep-search-sort {
+		display: none;
+	}
+}

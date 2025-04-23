@@ -1,0 +1,26 @@
+.ep-search-range-slider {
+	align-items: center;
+	display: flex;
+	margin: 0.5em 0;
+	min-height: var(--ep-search-range-thumb-size);
+}
+
+.ep-search-range-slider__track {
+	background: var(--ep-c-medium-white);
+	border-radius: calc(var(--ep-search-range-track-size) / 2);
+	height: var(--ep-search-range-track-size);
+}
+
+.ep-search-range-slider__track-1 {
+	background-color: currentcolor;
+}
+
+.ep-search-range-slider__thumb {
+	background-color: currentcolor;
+	border-radius: calc(var(--ep-search-range-thumb-size) / 2);
+	box-shadow:
+		inset 0 0 0 calc(var(--ep-search-range-thumb-size) / 10) currentcolor,
+		inset 0 0 0 calc((var(--ep-search-range-thumb-size) - var(--ep-search-range-track-size)) / 2) var(--ep-c-white);
+	height: var(--ep-search-range-thumb-size);
+	width: var(--ep-search-range-thumb-size);
+}
