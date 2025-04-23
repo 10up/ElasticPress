@@ -596,7 +596,6 @@ class Post extends Indexable {
 
 		$size_array = array( absint( $width ), absint( $height ) );
 		$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $attachment_id );
-		$sizes      = wp_calculate_image_sizes( $size_array, $src, $image_meta, $attachment_id );
 
 		return [
 			'ID'     => $attachment_id,
