@@ -57,6 +57,59 @@ class TestFeature extends BaseTestCase {
 					'type'             => 'toggle',
 				],
 			],
+			'group'             => false,
+		];
+
+		$this->assertSame( $expected, $stub->get_json() );
+	}
+
+	/**
+	 * Test get_json with group.
+	 *
+	 * @group feature
+	 */
+	public function test_get_json_with_group() {
+		$stub                   = $this->getMockForAbstractClass( '\ElasticPress\Feature' );
+		$stub->slug             = 'slug';
+		$stub->group            = 'Example Group A';
+		$stub->title            = 'title';
+		$stub->short_title      = 'short_title';
+		$stub->summary          = 'summary';
+		$stub->docs_url         = 'https://elasticpress.io/';
+		$stub->default_settings = [];
+		$stub->order            = 1;
+
+		add_filter(
+			'ep_feature_requirements_status',
+			function () {
+				return new \ElasticPress\FeatureRequirementsStatus( 2, 'Testing' );
+			}
+		);
+
+		$expected = [
+			'slug'              => 'slug',
+			'title'             => 'title',
+			'shortTitle'        => 'short_title',
+			'summary'           => 'summary',
+			'docsUrl'           => 'https://elasticpress.io/',
+			'defaultSettings'   => [],
+			'order'             => 1,
+			'isAvailable'       => false, // Set by status code 2
+			'isPoweredByEpio'   => false,
+			'isVisible'         => true,
+			'reqStatusCode'     => 2,
+			'reqStatusMessages' => [ 'Testing' ],
+			'settingsSchema'    => [
+				[
+					'default'          => false,
+					'key'              => 'active',
+					'label'            => __( 'Enable', 'elasticpress' ),
+					'requires_feature' => false,
+					'requires_sync'    => false,
+					'type'             => 'toggle',
+				],
+			],
+			'group'             => 'Example Group A',
 		];
 
 		$this->assertSame( $expected, $stub->get_json() );
