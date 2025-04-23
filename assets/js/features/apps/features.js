@@ -4,6 +4,9 @@
 import { Button, Flex, FlexItem, Notice, Panel, PanelBody, TabPanel } from '@wordpress/components';
 import { useMemo, useState, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { create as createPersistence } from '@wordpress/preferences-persistence';
+import { dispatch, useDispatch, useSelect } from '@wordpress/data';
+import { store as prefsStore } from '@wordpress/preferences';
 
 /**
  * Internal dependencies.
@@ -18,6 +21,15 @@ import Tab from '../components/tab';
  * Styles.
  */
 import '../style.css';
+
+/**
+ * Keeps persistence of the last active feature setting across page reloads.
+ */
+wp.data.dispatch('core/preferences').setPersistenceLayer(createPersistence());
+
+dispatch(prefsStore).setDefaults('elasticpress', {
+	activeFeature: false,
+});
 
 /**
  * Feature settings dashboard app.
@@ -129,6 +141,14 @@ export default () => {
 			};
 		});
 
+	const activeFeature =
+		useSelect(
+			(select) => select('core/preferences').get('elasticpress', 'activeFeature'),
+			[],
+		) ?? tabs[0].name;
+
+	const { set } = useDispatch('core/preferences');
+
 	/**
 	 * Error handler.
 	 *
@@ -224,10 +244,17 @@ export default () => {
 		return (
 			<Panel className="ep-dashboard-panel">
 				<PanelBody>
+					{isSyncing ? (
+						<Notice actions={isSyncingActions} isDismissible={false} status="warning">
+							{isSyncingNotice}
+						</Notice>
+					) : null}
 					<TabPanel
 						className="ep-dashboard-tabs"
 						orientation="vertical"
 						tabs={group.tabs}
+						initialTabName={activeFeature}
+						onSelect={(name) => set('elasticpress', 'activeFeature', name)}
 					>
 						{({ name }) => <Feature feature={name} key={name} />}
 					</TabPanel>
