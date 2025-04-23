@@ -143,6 +143,14 @@ abstract class Feature {
 	protected $is_powered_by_epio = false;
 
 	/**
+	 * The name of a group that a feature may belong to.
+	 *
+	 * @since 5.2.0
+	 * @var false|string
+	 */
+	protected $group = false;
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -551,6 +559,7 @@ abstract class Feature {
 			'reqStatusCode'     => $requirements_status->code,
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
+			'group'             => $this->group,
 		];
 
 		return $feature_desc;
