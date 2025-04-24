@@ -51,7 +51,6 @@ class Search extends Feature {
 	 */
 	public function __construct() {
 		$this->slug  = 'search';
-		$this->group = 'Core Search';
 
 		$this->requires_install_reindex = false;
 
@@ -76,6 +75,8 @@ class Search extends Feature {
 	 */
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Post Search', 'elasticpress' );
+
+		$this->group = esc_html__( 'Core Search', 'elasticpress' );
 
 		$this->summary = '<p>' . __( 'Instantly find the content you’re looking for. The first time.', 'elasticpress' ) . '</p>' .
 		'<p>' . __( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ) . '</p>';

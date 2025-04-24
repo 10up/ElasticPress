@@ -51,7 +51,6 @@ class SearchOrdering extends Feature {
 	 */
 	public function __construct() {
 		$this->slug  = 'searchordering';
-		$this->group = 'Core Search';
 
 		$this->requires_install_reindex = false;
 
@@ -68,6 +67,8 @@ class SearchOrdering extends Feature {
 	 */
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Custom Search Results', 'elasticpress' );
+
+		$this->group = esc_html__( 'Core Search', 'elasticpress' );
 
 		$this->summary = '<p>' . __( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ) . '</p>';
 
