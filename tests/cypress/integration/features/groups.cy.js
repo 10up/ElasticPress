@@ -23,9 +23,9 @@ describe('Feature Grouping', () => {
 		cy.get(tabContainerSelector).as('tabsContainer');
 	});
 
-	it('renders feature group tabs', () => {
+	it('renders feature group tabs and handles tab switching', () => {
 		/**
-		 * Verifies the tabs container exists, is visible,
+		 * Test 1: Verifies the tabs container exists, is visible,
 		 * and contains at least one feature tab.
 		 */
 		cy.get('@tabsContainer')
@@ -33,11 +33,9 @@ describe('Feature Grouping', () => {
 			.and('be.visible')
 			.find('button')
 			.should('have.length.at.least', 1);
-	});
 
-	it('switches content when clicking a tab', () => {
 		/**
-		 * Clicks the second tab and verifies the corresponding
+		 * Test 2: Clicks the second tab and verifies the corresponding
 		 * panel is opened by checking the data-open attribute.
 		 */
 		// eslint-disable-next-line cypress/unsafe-to-chain-command
