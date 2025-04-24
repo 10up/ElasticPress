@@ -1,13 +1,25 @@
 describe('Feature Selection Persistence', () => {
 	/**
-	 * @constant {string} TAB_CONTAINER - Selector for the feature tabs container.
+	 * @constant {string} OUTER_TAB_CONTAINER - Selector for the group tabs container.
 	 */
-	const tabContainerSelector = '#ep-dashboard .components-tab-panel__tabs';
+	const outerTabContainerSelector =
+		'#ep-dashboard .ep-dashboard-outer-tabs .components-tab-panel__tabs';
 
 	/**
-	 * @type {string} savedTabId - ID of the last clicked tab.
+	 * @constant {string} INNER_TAB_CONTAINER - Selector for the feature tabs container.
 	 */
-	let savedTabId;
+	const innerTabContainerSelector =
+		'#ep-dashboard .ep-dashboard-tabs .components-tab-panel__tabs';
+
+	/**
+	 * @type {string} savedGroupId - ID of the selected group tab.
+	 */
+	let savedGroupId;
+
+	/**
+	 * @type {string} savedFeatureId - ID of the selected feature tab.
+	 */
+	let savedFeatureId;
 
 	beforeEach(() => {
 		/**
@@ -21,34 +33,64 @@ describe('Feature Selection Persistence', () => {
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
 		/**
-		 * Alias the tabs container for reuse in tests.
+		 * Alias the tabs containers for reuse in tests.
 		 */
-		cy.get(tabContainerSelector).as('tabsContainer');
+		cy.get(outerTabContainerSelector).as('groupTabsContainer');
+		cy.get(innerTabContainerSelector).as('featureTabsContainer');
 	});
 
 	/**
-	 * Verifies that the tabs are clickable and change their content.
+	 * Verifies that the group and feature tabs are clickable and persist their selections.
 	 */
-	it('has clickable tabs that change their content', () => {
+	it('allows selecting groups and features, and persists selections on reload', () => {
+		// First select a group (for example, the second group)
 		// eslint-disable-next-line cypress/unsafe-to-chain-command
-		cy.get('@tabsContainer')
-			.find('button#tab-panel-0-did-you-mean')
+		cy.get('@groupTabsContainer')
+			.find('button')
+			.eq(1) // Select the second group
 			.click()
 			.invoke('attr', 'id')
 			.then((id) => {
-				savedTabId = id;
-				const viewId = `${id}-view`;
-				const selector = `#${CSS.escape(viewId)}`;
-				cy.get(selector).should('have.attr', 'data-open', 'true');
-			});
-	});
+				savedGroupId = id;
 
-	/**
-	 * Verifies that the last selected feature is retained on page reload.
-	 */
-	it('retains its last selected feature on page reload', () => {
-		cy.reload();
-		const selector = `#${CSS.escape(savedTabId)}`;
-		cy.get(selector).should('have.attr', 'data-active-item', 'true');
+				// Now that we've selected a group, select a feature within it (for example, the second feature)
+				// eslint-disable-next-line cypress/unsafe-to-chain-command
+				cy.get('@featureTabsContainer')
+					.find('button')
+					.eq(1) // Select the second feature
+					.click()
+					.invoke('attr', 'id')
+					.then((featureId) => {
+						savedFeatureId = featureId;
+
+						// Verify the feature is active
+						cy.get(`#${CSS.escape(featureId)}`).should(
+							'have.attr',
+							'data-active-item',
+							'true',
+						);
+
+						// Reload the page to test persistence
+						cy.reload();
+
+						// Wait for UI to load completely
+						cy.get(outerTabContainerSelector).should('be.visible');
+						cy.get(innerTabContainerSelector).should('be.visible');
+
+						// Verify group selection persisted
+						cy.get(`#${CSS.escape(savedGroupId)}`).should(
+							'have.attr',
+							'data-active-item',
+							'true',
+						);
+
+						// Verify feature selection persisted
+						cy.get(`#${CSS.escape(savedFeatureId)}`).should(
+							'have.attr',
+							'data-active-item',
+							'true',
+						);
+					});
+			});
 	});
 });
