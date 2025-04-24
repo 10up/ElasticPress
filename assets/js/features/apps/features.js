@@ -2,7 +2,7 @@
  * WordPress dependencies.
  */
 import { Button, Flex, FlexItem, Notice, Panel, PanelBody, TabPanel } from '@wordpress/components';
-import { useMemo, useState, WPElement } from '@wordpress/element';
+import { useMemo, useState, WPElement, useRef, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { create as createPersistence } from '@wordpress/preferences-persistence';
 import { dispatch, useDispatch, useSelect } from '@wordpress/data';
@@ -28,7 +28,11 @@ import '../style.css';
 wp.data.dispatch('core/preferences').setPersistenceLayer(createPersistence());
 
 dispatch(prefsStore).setDefaults('elasticpress', {
-	activeFeature: false,
+	// userSetFeatures keeps track of 1. the active group and 2. the active feature within that group
+	userSetFeatures: {
+		activeGroup: '',
+		activeFeature: '',
+	},
 });
 
 /**
@@ -48,6 +52,20 @@ export default () => {
 		saveSettings,
 		setIsSyncing,
 	} = useFeatureSettings();
+
+	const userSetFeatures = useSelect(
+		(select) => select('core/preferences').get('elasticpress', 'userSetFeatures'),
+		[],
+	);
+
+	// Flag to track initial render and prevent unnecessary updates
+	const initialRenderRef = useRef(true);
+	const userSetFeaturesRef = useRef(userSetFeatures);
+
+	// Update the ref whenever userSetFeatures changes
+	useEffect(() => {
+		userSetFeaturesRef.current = userSetFeatures;
+	}, [userSetFeatures]);
 
 	/**
 	 * URL to start a sync.
@@ -140,12 +158,6 @@ export default () => {
 				group: f.group,
 			};
 		});
-
-	const activeFeature =
-		useSelect(
-			(select) => select('core/preferences').get('elasticpress', 'activeFeature'),
-			[],
-		) ?? tabs[0].name;
 
 	const { set } = useDispatch('core/preferences');
 
@@ -240,9 +252,37 @@ export default () => {
 		createNotice('success', resetNotice);
 	};
 
+	const setUserSetFeatures = (activeGroup, activeFeature) => {
+		// Skip setting userSetFeatures during initial render
+		if (initialRenderRef.current) {
+			return;
+		}
+
+		// Only update if values are actually changing to prevent unnecessary re-renders
+		if (
+			userSetFeaturesRef.current.activeGroup !== activeGroup ||
+			userSetFeaturesRef.current.activeFeature !== activeFeature
+		) {
+			userSetFeaturesRef.current = { activeGroup, activeFeature };
+			set('elasticpress', 'userSetFeatures', { activeGroup, activeFeature });
+		}
+	};
+
 	const renderFeatureTabs = (group) => {
+		const updatedTabs = group.tabs.map((tab) => ({
+			...tab,
+			isActive: tab.name === userSetFeatures.activeFeature,
+		}));
+
+		// Find initial tab - use stored preference if possible
+		const initialTab =
+			userSetFeatures.activeFeature &&
+			group.tabs.some((tab) => tab.name === userSetFeatures.activeFeature)
+				? userSetFeatures.activeFeature
+				: updatedTabs[0]?.name;
+
 		return (
-			<Panel className="ep-dashboard-panel">
+			<Panel className="ep-dashboard-panel" key={group.title}>
 				<PanelBody>
 					{isSyncing ? (
 						<Notice actions={isSyncingActions} isDismissible={false} status="warning">
@@ -252,9 +292,13 @@ export default () => {
 					<TabPanel
 						className="ep-dashboard-tabs"
 						orientation="vertical"
-						tabs={group.tabs}
-						initialTabName={activeFeature}
-						onSelect={(name) => set('elasticpress', 'activeFeature', name)}
+						initialTabName={initialTab}
+						onSelect={(name) => {
+							if (!initialRenderRef.current) {
+								setUserSetFeatures(group.title, name);
+							}
+						}}
+						tabs={updatedTabs}
 					>
 						{({ name }) => <Feature feature={name} key={name} />}
 					</TabPanel>
@@ -272,6 +316,13 @@ export default () => {
 	const renderFeatureGroup = (groupTabs) => {
 		if (!groupTabs.length) return null;
 
+		// Determine initial group tab
+		const initialGroup =
+			userSetFeatures.activeGroup &&
+			groupTabs.some((group) => group.title === userSetFeatures.activeGroup)
+				? userSetFeatures.activeGroup
+				: groupTabs[0].title;
+
 		return (
 			<TabPanel
 				className="ep-dashboard-outer-tabs"
@@ -280,9 +331,23 @@ export default () => {
 					name: group.title,
 					title: group.title,
 				}))}
+				initialTabName={initialGroup}
+				onSelect={(name) => {
+					if (initialRenderRef.current) {
+						return;
+					}
+
+					const selectedGroup = groupTabs.find((group) => group.title === name);
+					if (!selectedGroup) return;
+
+					const selectedFeatureWithinGroup = selectedGroup.tabs[0].name;
+					setUserSetFeatures(selectedGroup.title, selectedFeatureWithinGroup);
+				}}
 			>
 				{({ name }) => {
 					const group = groupTabs.find((g) => g.title === name);
+					if (!group) return null;
+
 					return renderFeatureTabs(group);
 				}}
 			</TabPanel>
@@ -309,6 +374,16 @@ export default () => {
 
 		return groupsWithTabs;
 	}, [features, tabs]);
+
+	// Set initialRenderRef to false after component mounts to allow updates in callbacks
+	useEffect(() => {
+		// Wait for a tick to ensure the initial rendering completes
+		const timeoutId = setTimeout(() => {
+			initialRenderRef.current = false;
+		}, 100);
+
+		return () => clearTimeout(timeoutId);
+	}, []);
 
 	return (
 		<form onReset={onReset} onSubmit={onSubmit}>
