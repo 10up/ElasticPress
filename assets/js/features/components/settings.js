@@ -38,6 +38,21 @@ export default ({ feature, settingsSchema }) => {
 		});
 	};
 
+	// Helper function to check if a control should be rendered based on requiresFields
+	const shouldRenderControl = (requiresFields) => {
+		// If no requirements, always render
+		if (!requiresFields || Object.keys(requiresFields).length === 0) {
+			return true;
+		}
+
+		// Check each requirement in the object
+		return Object.entries(requiresFields).every(([fieldKey, requiredValue]) => {
+			// Check if the field's current value matches the required value
+			const actualValue = settings[feature]?.[fieldKey];
+			return actualValue === requiredValue;
+		});
+	};
+
 	return settingsSchema.map((s) => {
 		const {
 			default: defaultValue,
@@ -48,13 +63,15 @@ export default ({ feature, settingsSchema }) => {
 			options,
 			requires_feature,
 			requires_sync,
+			requiresFields,
 			type,
 		} = s;
 
-		/**
-		 * Current control value. If no setting value is set, use the
-		 * setting's default value.
-		 */
+		// Skip rendering this control if its dependencies aren't met
+		if (!shouldRenderControl(requiresFields)) {
+			return null;
+		}
+
 		let value =
 			typeof settings[feature]?.[key] !== 'undefined' ? settings[feature][key] : defaultValue;
 
