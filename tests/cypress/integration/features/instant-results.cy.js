@@ -66,6 +66,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
 
+		cy.contains('button', 'Live Search').click();
 		cy.contains('button', 'Instant Results').click();
 		cy.contains('.components-notice', 'To use this feature you need').should('exist');
 		cy.get('.components-form-toggle__input').should('be.disabled');
@@ -89,6 +90,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 			cy.visitAdminPage('admin.php?page=elasticpress');
 			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
+			cy.contains('button', 'Live Search').click();
 			cy.contains('button', 'Instant Results').click();
 
 			const noticeShould = isEpIo ? 'not.contain.text' : 'contain.text';
@@ -141,6 +143,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
+				cy.contains('button', 'Live Search').click();
 				cy.contains('button', 'Instant Results').click();
 				cy.get('.components-form-token-field__input').type('prod{downArrow}{enter}{esc}');
 				cy.contains('button', 'Save changes').click();
@@ -241,6 +244,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
+				cy.contains('button', 'Live Search').click();
 				cy.contains('button', 'Instant Results').click();
 				cy.get('.components-form-token-field__input').type(
 					'{backspace}{backspace}{backspace}price{downArrow}{enter}{esc}',
@@ -395,6 +399,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 */
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+				cy.contains('button', 'Live Search').click();
 				cy.contains('button', 'Instant Results').click();
 				cy.get('.components-form-token-field__input').type(
 					'{backspace}{backspace}{backspace}post type{downArrow}{enter}{esc}',
@@ -420,6 +425,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				 */
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+				cy.contains('button', 'Live Search').click();
 				cy.contains('button', 'Instant Results').click();
 				cy.contains('.components-form-token-field__token', 'Post type')
 					.find('button')
@@ -450,6 +456,7 @@ describe('Instant Results Feature', { tags: '@slow' }, () => {
 				cy.visitAdminPage('admin.php?page=elasticpress');
 				cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
+				cy.contains('button', 'Live Search').click();
 				cy.contains('button', 'Instant Results').click();
 				cy.get('.components-form-token-field__input').type(
 					'{backspace}{backspace}{backspace}(category){downArrow}{enter}{esc}',
