@@ -38,16 +38,19 @@ export default ({ feature, settingsSchema }) => {
 		});
 	};
 
-	// Helper function to check if a control should be rendered based on requiresFields
+	/**
+	 * Determines whether a control should be rendered based on its requirements.
+	 *
+	 * @param {object} requiresFields An object representing the required field values for rendering.
+	 * The keys are field names, and the values are the required values.
+	 * @returns {boolean} Returns `true` if the control should be rendered, otherwise `false`.
+	 */
 	const shouldRenderControl = (requiresFields) => {
-		// If no requirements, always render
 		if (!requiresFields || Object.keys(requiresFields).length === 0) {
 			return true;
 		}
 
-		// Check each requirement in the object
 		return Object.entries(requiresFields).every(([fieldKey, requiredValue]) => {
-			// Check if the field's current value matches the required value
 			const actualValue = settings[feature]?.[fieldKey];
 			return actualValue === requiredValue;
 		});
@@ -67,7 +70,9 @@ export default ({ feature, settingsSchema }) => {
 			type,
 		} = s;
 
-		// Skip rendering this control if its dependencies aren't met
+		/**
+		 * Skip rendering if the control should not be rendered based on requiresFields.
+		 */
 		if (!shouldRenderControl(requiresFields)) {
 			return null;
 		}
