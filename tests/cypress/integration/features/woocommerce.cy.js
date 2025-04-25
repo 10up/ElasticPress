@@ -38,7 +38,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.contains('button', 'WooCommerce').click();
+		cy.get('#tab-panel-0-WooCommerce').click();
+		cy.get('#tab-panel-0-WooCommerce-view button').contains('WooCommerce').click();
 		cy.contains('label', 'Enable').click();
 		cy.contains('button', 'Save and sync now').click();
 
@@ -351,12 +352,11 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			cy.visitAdminPage('admin.php?page=elasticpress');
 			cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-			cy.contains('button', 'WooCommerce').click();
-
 			/**
 			 * Enable the feature.
 			 */
-			cy.contains('button', 'WooCommerce').click();
+			cy.get('#tab-panel-0-WooCommerce').click();
+			cy.get('#tab-panel-0-WooCommerce-view button').contains('WooCommerce').click();
 
 			cy.contains('label', 'Show suggestions')
 				.closest('.components-base-control')
