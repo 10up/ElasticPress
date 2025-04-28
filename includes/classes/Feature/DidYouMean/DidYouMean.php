@@ -19,7 +19,7 @@ class DidYouMean extends Feature {
 	 * Initialize feature, setting it's config.
 	 */
 	public function __construct() {
-		$this->slug  = 'did-you-mean';
+		$this->slug = 'did-you-mean';
 
 		$this->requires_install_reindex = true;
 
