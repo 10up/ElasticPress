@@ -49,6 +49,7 @@ export default ({ feature, settingsSchema }) => {
 			requires_feature,
 			requires_sync,
 			type,
+			fields,
 		} = s;
 
 		/**
@@ -79,6 +80,7 @@ export default ({ feature, settingsSchema }) => {
 				requiresSync={requires_sync}
 				type={type}
 				value={value}
+				fields={fields}
 			/>
 		);
 	});

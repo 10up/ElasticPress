@@ -78,6 +78,9 @@ class Features {
 						$property['type']   = 'string';
 						$property['format'] = 'uri';
 						break;
+					case 'field_group':
+						$property['type']       = 'object';
+						$property['properties'] = [];
 				}
 
 				$properties[ $schema['key'] ] = $property;
@@ -138,10 +141,30 @@ class Features {
 			$schema = $feature->get_settings_schema();
 
 			foreach ( $schema as $schema ) {
-				$key = $schema['key'];
+				$key  = $schema['key'];
+				$type = $schema['type'] ?? '';
 
 				if ( isset( $param[ $key ] ) ) {
-					$new_settings[ $slug ][ $key ] = $param[ $key ];
+					// Handle field group values
+					if ( 'field_group' === $type ) {
+						// Save the nested structure for the settings UI
+						$new_settings[ $slug ][ $key ] = $param[ $key ];
+
+						// Flatten the field group values into the main settings array
+						foreach ( $schema['fields'] as $field ) {
+							$field_key = $field['key'];
+							if ( isset( $param[ $key ][ $field_key ] ) ) {
+								$new_settings[ $slug ][ $field_key ] = $param[ $key ][ $field_key ];
+
+								// Only apply to current settings if no sync required
+								if ( empty( $schema['requires_sync'] ) ) {
+									$current_settings[ $slug ][ $field_key ] = $param[ $key ][ $field_key ];
+								}
+							}
+						}
+					} else {
+						$new_settings[ $slug ][ $key ] = $param[ $key ];
+					}
 
 					// Only apply to the current settings if does not require a sync or if it is activating it
 					if ( ! empty( $schema['requires_sync'] ) && ! empty( $param[ $key ] ) ) {
