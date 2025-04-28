@@ -145,7 +145,7 @@ abstract class Feature {
 	/**
 	 * The name of a group that a feature may belong to.
 	 *
-	 * @since 5.2.0
+	 * @since 5.3.0
 	 * @var false|string
 	 */
 	public $group = false;
