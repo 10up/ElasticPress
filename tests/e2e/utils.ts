@@ -1,0 +1,432 @@
+import { Page } from '@playwright/test';
+import { writeFileSync, unlinkSync } from 'fs';
+
+/**
+ * Login to WordPress admin
+ * @param page Playwright page object
+ * @param username Optional username, defaults to 'admin'
+ * @param password Optional password, defaults to 'password'
+ */
+export async function login(page: Page, username = 'admin', password = 'password') {
+	await page.goto('/wp-login.php');
+	await page.fill('#user_login', username);
+	await page.fill('#user_pass', password);
+	await page.click('#wp-submit');
+	await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Navigate to a specific admin page
+ * @param page Playwright page object
+ * @param path Admin page path (e.g. 'options-general.php')
+ */
+export async function goToAdminPage(page: Page, path: string) {
+	await page.goto(`/wp-admin/${path}`);
+	await page.waitForLoadState('networkidle');
+}
+
+export async function wpCli(command: string, ignoreFailures = false) {
+	const escapedCommand = command.replace(/"/g, '\\"').replace(/^wp /, '');
+
+	const { execSync } = require('child_process');
+
+	try {
+		const res = execSync(
+			`./bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`,
+		);
+		return res;
+	} catch (err) {
+		console.log('output', err);
+		console.log('sdterr', err.stderr.toString());
+		return null;
+	}
+}
+
+export async function wpCliEval(command: string) {
+	const fileName = (Math.random() + 1).toString(36).substring(7);
+	const escapedCommand = command.replace(/^<\?php /, '');
+
+	// Write the PHP code to a temporary file
+	writeFileSync(fileName, `<?php ${escapedCommand}`);
+
+	const pluginName = process.env.PLUGIN_NAME || 'elasticpress';
+
+	// Execute the PHP code using wp-cli
+	const result = await wpCli(`eval-file wp-content/plugins/${pluginName}/${fileName}`);
+
+	// Clean up the temporary file
+	unlinkSync(fileName);
+
+	return result;
+}
+
+/**
+ * Activate a WordPress plugin
+ * @param page Playwright page object
+ * @param slug Plugin slug to activate
+ * @param method Activation method ('dashboard' or 'wpCli')
+ * @param mode Site mode ('singleSite' or 'network')
+ */
+export async function activatePlugin(
+	page: Page,
+	slug: string,
+	method: 'dashboard' | 'wpCli' = 'dashboard',
+	mode: 'singleSite' | 'network' = 'singleSite',
+) {
+	if (method === 'dashboard') {
+		const path = mode === 'network' ? 'network/plugins.php' : 'plugins.php';
+		await goToAdminPage(page, path);
+
+		const activateButton = page.locator(`#activate-${slug}`);
+		if (await activateButton.isVisible()) {
+			await activateButton.click();
+			await page.waitForLoadState('networkidle');
+		}
+		return;
+	}
+
+	const pluginSlug = slug.replace('elasticpress', process.env.PLUGIN_NAME || 'elasticpress');
+	let command = `wp plugin activate ${pluginSlug}`;
+	if (mode === 'network') {
+		command += ' --network';
+	}
+	await wpCli(command);
+}
+
+/**
+ * Deactivate a WordPress plugin
+ * @param page Playwright page object
+ * @param slug Plugin slug to deactivate
+ * @param method Deactivation method ('dashboard' or 'wpCli')
+ * @param mode Site mode ('singleSite' or 'network')
+ */
+export async function deactivatePlugin(
+	page: Page,
+	slug: string,
+	method: 'dashboard' | 'wpCli' = 'dashboard',
+	mode: 'singleSite' | 'network' = 'singleSite',
+) {
+	if (method === 'dashboard') {
+		const path = mode === 'network' ? 'network/plugins.php' : 'plugins.php';
+		await goToAdminPage(page, path);
+
+		const deactivateButton = page.locator(`#deactivate-${slug}`);
+		if (await deactivateButton.isVisible()) {
+			await deactivateButton.click();
+			await page.waitForLoadState('networkidle');
+		}
+		return;
+	}
+
+	const pluginSlug = slug.replace('elasticpress', process.env.PLUGIN_NAME || 'elasticpress');
+	let command = `wp plugin deactivate ${pluginSlug}`;
+	if (mode === 'network') {
+		command += ' --network';
+	}
+	await wpCli(command);
+}
+
+/**
+ * Create a new term in WordPress
+ * @param page Playwright page object
+ * @param data Term data including taxonomy, name, and optional parent
+ */
+export async function createTerm(
+	page: Page,
+	data: { taxonomy: string; name: string; parent?: string },
+) {
+	const { taxonomy, name, parent } = {
+		name: 'Test taxonomy',
+		taxonomy: 'category',
+		parent: null,
+		...data,
+	};
+
+	await goToAdminPage(page, `edit-tags.php?taxonomy=${taxonomy}`);
+
+	if (parent !== null) {
+		await page.selectOption('#parent', parent);
+	}
+
+	await page.fill('#tag-name', name);
+	await page.keyboard.press('Enter');
+	await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Clear and type text into an input field
+ * @param page Playwright page object
+ * @param selector Element selector
+ * @param text Text to type
+ */
+export async function clearThenType(page: Page, selector: string, text: string) {
+	await page.fill(selector, 'x');
+	await page.fill(selector, '');
+	await page.fill(selector, text);
+}
+
+/**
+ * Create and publish a new post
+ * @param page Playwright page object
+ * @param postData Post data including title, content, password, and status
+ * @param postData.title Post title
+ * @param postData.content Post content
+ * @param postData.password Post password
+ * @param postData.status Post status ('draft' or 'publish')
+ * @param viewPost Whether to view the post after publishing
+ */
+export async function publishPost(
+	page: Page,
+	postData: { title?: string; content?: string; password?: string; status?: string },
+	viewPost = false,
+) {
+	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+
+	await goToAdminPage(page, 'post-new.php');
+	await page.waitForSelector('h1.editor-post-title__input, #post-title-0');
+
+	await clearThenType(page, 'h1.editor-post-title__input, #post-title-0', newPostData.title);
+	await page
+		.locator('.block-editor-default-block-appender__content')
+		.pressSequentially(newPostData.content);
+
+	if (newPostData.password && newPostData.password !== '') {
+		await page.click('h1.editor-post-title__input');
+		const settingsButton = page.locator(
+			'.edit-post-header__settings button[aria-label="Settings"]',
+		);
+		if (await settingsButton.isVisible()) {
+			await settingsButton.click();
+		}
+
+		const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
+		await visibilityToggle.click();
+		await page.check('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio');
+		await page.fill(
+			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+			newPostData.password,
+		);
+	}
+
+	if (newPostData.status && newPostData.status === 'draft') {
+		await page.click('.editor-post-save-draft');
+		await page.waitForSelector('.editor-post-saved-state');
+	} else {
+		await page.click('.editor-post-publish-panel__toggle');
+		await page.click('.editor-post-publish-button');
+		await page.waitForSelector('.components-snackbar');
+
+		if (viewPost) {
+			await page.click('.post-publish-panel__postpublish-buttons a:has-text("View Post")');
+		}
+	}
+
+	// Wait for Elasticsearch to process the new post
+	await page.waitForTimeout(2000);
+}
+
+/**
+ * Set post password
+ * @param page Playwright page object
+ * @param password Password to set
+ */
+export async function setPostPassword(page: Page, password: string) {
+	await page.click('h1.editor-post-title__input');
+
+	const settingsButton = page.locator(
+		'.edit-post-header__settings button[aria-label="Settings"]',
+	);
+	if (await settingsButton.isVisible()) {
+		await settingsButton.click();
+	}
+
+	const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
+	await visibilityToggle.click();
+	await page.check(
+		password !== ''
+			? '.editor-post-visibility__dialog-radio'
+			: '.editor-post-visibility__radio',
+	);
+
+	if (password !== '') {
+		await page.fill(
+			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+			password,
+		);
+	}
+
+	await page.click('.editor-post-publish-button');
+	await page.waitForSelector('.components-snackbar');
+
+	// Wait for Elasticsearch to process the post
+	await page.waitForTimeout(2000);
+}
+
+/**
+ * Update feature settings
+ * @param featureName Name of the feature to update
+ * @param newValues New values for the feature
+ */
+export async function updateFeatures(featureName: string, newValues: any) {
+	const escapedNewValues = JSON.stringify(newValues);
+	await wpCli(
+		`eval "\\$feature_settings = get_option( 'ep_feature_settings', [] ); \\$feature_settings['${featureName}'] = json_decode( '${escapedNewValues}', true ); update_option( 'ep_feature_settings', \\$feature_settings );"`,
+	);
+}
+
+/**
+ * Update weighting settings
+ * @param newWeightingValues New weighting values
+ */
+export async function updateWeighting(newWeightingValues: any = null) {
+	const defaultWeighting = {
+		post: {
+			post_title: { weight: 1, enabled: true },
+			post_content: { weight: 1, enabled: true },
+			post_excerpt: { weight: 1, enabled: true },
+			author_name: { weight: 0, enabled: false },
+		},
+		page: {
+			post_title: { weight: 1, enabled: true },
+			post_content: { weight: 1, enabled: true },
+			post_excerpt: { weight: 1, enabled: true },
+			author_name: { weight: 0, enabled: false },
+		},
+	};
+
+	const escapedWeighting = newWeightingValues
+		? JSON.stringify(newWeightingValues)
+		: JSON.stringify(defaultWeighting);
+
+	await wpCli(
+		`eval "\\$weighting = json_decode( '${escapedWeighting}', true ); update_option( 'elasticpress_weighting', \\$weighting );"`,
+	);
+}
+
+/**
+ * Enable a feature if not already enabled
+ * @param featureName Name of the feature to enable
+ */
+export async function maybeEnableFeature(featureName: string) {
+	await wpCli(`elasticpress activate-feature ${featureName}`, true);
+}
+
+/**
+ * Disable a feature if not already disabled
+ * @param featureName Name of the feature to disable
+ */
+export async function maybeDisableFeature(featureName: string) {
+	await wpCli(`elasticpress deactivate-feature ${featureName}`, true);
+}
+
+/**
+ * Check if total matches expected number
+ * @param page Playwright page object
+ * @param totalNumber Expected total number
+ */
+export async function getTotal(page: Page, totalNumber: number) {
+	const queryResults = await page.locator('.query-results').textContent();
+	expect(queryResults).toMatch(new RegExp(`"(total|value)": ${totalNumber}`, 'g'));
+}
+
+/**
+ * Create a classic widget
+ * @param page Playwright page object
+ * @param widgetId Widget ID
+ * @param settings Widget settings
+ */
+export async function createClassicWidget(
+	page: Page,
+	widgetId: string,
+	settings: Array<{ name: string; type: string; value: string }>,
+) {
+	await goToAdminPage(page, 'widgets.php');
+
+	// Add widget to first widget area
+	await page.click(`#widget-list [id$="${widgetId}-__i__"]`);
+	await page.click(`#widget-list [id$="${widgetId}-__i__"] .widgets-chooser-add`);
+
+	// Set widget settings and save
+	const widget = page.locator(`#widgets-right .widget[id*="${widgetId}"]`).last();
+	for (const setting of settings) {
+		const control = widget.locator(`[name*="[${setting.name}]"]`);
+
+		switch (setting.type) {
+			case 'select':
+				await control.selectOption(setting.value);
+				break;
+			case 'checkbox':
+			case 'radio':
+				await control.check(setting.value);
+				break;
+			default:
+				await control.fill(setting.value);
+				break;
+		}
+	}
+
+	await widget.locator('input[type="submit"]').click();
+	await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Empty all widgets
+ */
+export async function emptyWidgets() {
+	await wpCli('widget reset --all');
+	const inactiveWidgets = await wpCli('widget list wp_inactive_widgets --format=ids');
+	if (inactiveWidgets) {
+		await wpCli(`widget delete ${inactiveWidgets}`);
+	}
+}
+
+/**
+ * Create a user
+ * @param userData User data including username, password, email, role, and login flag
+ */
+export async function createUser(userData: {
+	username?: string;
+	password?: string;
+	email?: string;
+	role?: string;
+	login?: boolean;
+}) {
+	const newUserData = {
+		username: 'testuser',
+		password: 'password',
+		email: 'testuser@example.com',
+		role: 'subscriber',
+		login: false,
+		...userData,
+	};
+
+	// Delete the user if exists
+	await wpCli(`wp user delete ${newUserData.username} --yes --network`, true);
+
+	// Create the user
+	await wpCli(
+		`wp user create ${newUserData.username} ${newUserData.email} --user_pass=${newUserData.password} --role=${newUserData.role}`,
+	);
+
+	if (newUserData.login) {
+		await login(page, newUserData.username, newUserData.password);
+	}
+}
+
+/**
+ * Set per index cycle
+ * @param number Number of items per index cycle
+ */
+export async function setPerIndexCycle(number = 350) {
+	await wpCli(`option set ep_bulk_setting ${number}`);
+}
+
+/**
+ * Refresh index
+ * @param indexable Indexable to refresh
+ */
+export async function refreshIndex(indexable: string) {
+	await wpCli(
+		`eval "\\$index = \\\\ElasticPress\\\\Indexables::factory()->get( '${indexable}' )->get_index_name(); WP_CLI::runcommand('elasticpress request {\\$index}/_refresh --method=POST');"`,
+	);
+}

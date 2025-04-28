@@ -15,8 +15,9 @@ add_action(
 		wp_add_inline_script(
 			'wp-data',
 			"window.onload = function() {
-		wp.data.dispatch('core/preferences').set('core/edit-widgets', 'welcomeGuide', false);
-		}"
+				wp.data.dispatch('core/preferences').set('core/edit-widgets', 'welcomeGuide', false);
+				wp.data.select('core/edit-post').isFeatureActive('welcomeGuide') && wp.data.dispatch('core/edit-post').toggleFeature('welcomeGuide');
+			};"
 		);
 	},
 	999
