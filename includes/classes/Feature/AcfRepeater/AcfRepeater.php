@@ -37,7 +37,7 @@ class AcfRepeater extends Feature {
 	 * Initialize feature setting it's config
 	 */
 	public function __construct() {
-		$this->slug  = 'acf_repeater';
+		$this->slug = 'acf_repeater';
 		parent::__construct();
 	}
 

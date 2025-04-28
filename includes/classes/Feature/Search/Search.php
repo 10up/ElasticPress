@@ -50,7 +50,7 @@ class Search extends Feature {
 	 * @since  3.0
 	 */
 	public function __construct() {
-		$this->slug  = 'search';
+		$this->slug = 'search';
 
 		$this->requires_install_reindex = false;
 

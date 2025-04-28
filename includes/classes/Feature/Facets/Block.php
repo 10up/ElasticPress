@@ -29,5 +29,5 @@ abstract class Block {
 	 * @param array $attributes Block attributes.
 	 * @return string
 	 */
-	abstract  public function render_block( $attributes );
+	abstract public function render_block( $attributes );
 }

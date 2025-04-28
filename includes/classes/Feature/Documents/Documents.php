@@ -23,7 +23,7 @@ class Documents extends Feature {
 	 * @since  2.6
 	 */
 	public function __construct() {
-		$this->slug  = 'documents';
+		$this->slug = 'documents';
 
 		$this->requires_install_reindex = false;
 
