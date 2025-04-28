@@ -47,6 +47,9 @@ jobs:
         restore-keys: |
           composer-${{ env.COMPOSER_VERSION }}-
 
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+        
     - name: Set PHP version
       uses: shivammathur/setup-php@v2
       with:
@@ -77,9 +80,6 @@ jobs:
 
     - name: Set up database
       run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
-
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
 
     - name: Run Playwright tests
       run: npx playwright test
