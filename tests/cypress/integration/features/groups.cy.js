@@ -39,36 +39,29 @@ describe('Feature Grouping', () => {
 		 * panel is opened by checking the data-open attribute.
 		 */
 		// eslint-disable-next-line cypress/unsafe-to-chain-command
-		cy.get('@tabsContainer')
-			.find('button')
-			.eq(1)
-			.click()
-			.then(($btn) => {
-				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(1200);
+		cy.get('@tabsContainer').find('button').eq(1).as('secondTab').click();
+
+		/**
+		 * Get the button ID and verify the corresponding panel
+		 */
+		cy.get('@secondTab')
+			.invoke('attr', 'id')
+			.then((buttonId) => {
 				/** @type {string} ID of the clicked tab button. */
-				const buttonId = $btn.attr('id');
 				// eslint-disable-next-line no-unused-expressions
 				expect(buttonId, 'tab button id').to.be.a('string').and.not.be.empty;
 
 				/**
-				 * Create the panel ID and escape any special characters (including spaces).
-				 * Uses the built-in CSS.escape() to safely escape the ID value.
+				 * Create the panel ID.
 				 * @constant {string}
 				 */
 				const rawPanelId = `${buttonId}-view`;
-				const escapedPanelId = CSS.escape(rawPanelId);
-
-				/**
-				 * Construct the panel selector using the escaped ID.
-				 * @constant {string}
-				 */
-				const panelSelector = `#${escapedPanelId}`;
 
 				/**
 				 * Assert that the panel element has data-open="true".
+				 * Using increased timeout to accommodate slower environments.
 				 */
-				cy.get(panelSelector)
+				cy.get(`[id="${rawPanelId}"]`, { timeout: 10000 })
 					.should('exist')
 					.and('be.visible')
 					.should('have.attr', 'data-open', 'true');
