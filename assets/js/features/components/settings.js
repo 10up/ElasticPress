@@ -47,6 +47,7 @@ export default ({ feature, settingsSchema }) => {
 			label,
 			options,
 			requires_feature,
+			requires_features,
 			requires_sync,
 			type,
 		} = s;
@@ -76,6 +77,7 @@ export default ({ feature, settingsSchema }) => {
 				options={options}
 				syncedValue={syncedSettings?.[feature]?.[key]}
 				requiresFeature={requires_feature}
+				requiresFeatures={requires_features}
 				requiresSync={requires_sync}
 				type={type}
 				value={value}

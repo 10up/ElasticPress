@@ -44,13 +44,29 @@ export default ({
 	name,
 	onChange,
 	options,
-	requiresFeature,
+	requiresFeatures,
 	requiresSync,
 	syncedValue,
 	type,
 	value,
 }) => {
 	const { getFeature, isBusy, settings, willSettingRequireSync } = useFeatureSettings();
+
+	// Convert single feature requirement to array for compatibility
+	let requiredFeaturesList = [];
+	if (requiresFeatures) {
+		requiredFeaturesList = Array.isArray(requiresFeatures)
+			? requiresFeatures
+			: [requiresFeatures];
+	}
+
+	/**
+	 * Get missing required features.
+	 */
+	const missingRequiredFeatures = requiredFeaturesList
+		.filter((featureSlug) => settings[featureSlug]?.active !== true)
+		.map((featureSlug) => getFeature(featureSlug))
+		.filter(Boolean);
 
 	/**
 	 * Help text formatted to allow safe HTML.
@@ -70,14 +86,6 @@ export default ({
 				};
 			})
 		: [];
-
-	/**
-	 * The feature required by this setting, if any.
-	 */
-	const requiredFeature =
-		requiresFeature && settings[requiresFeature]?.active !== true
-			? getFeature(requiresFeature)
-			: false;
 
 	/**
 	 * The notice to display if a feature is required.
@@ -100,7 +108,7 @@ export default ({
 	/**
 	 * Whether the control is disabled.
 	 */
-	const isDisabled = isBusy || disabled || requiredFeature;
+	const isDisabled = isBusy || disabled || missingRequiredFeatures.length > 0;
 
 	/**
 	 * Whether the selected value for this setting will require a sync.
@@ -136,11 +144,17 @@ export default ({
 		onChange(value);
 	};
 
+	const titles = missingRequiredFeatures.map((f) => f.shortTitle);
+	const list =
+		titles.length > 1
+			? `${titles.slice(0, -1).join(', ')}, and ${titles[titles.length - 1]}`
+			: titles[0] || '';
+
 	return (
 		<>
-			{requiredFeature ? (
+			{missingRequiredFeatures.length > 0 ? (
 				<Notice isDismissible={false} status={name === 'active' ? 'error' : 'warning'}>
-					{sprintf(requiredFeatureNotice, requiredFeature.shortTitle)}
+					{sprintf(requiredFeatureNotice, list)}
 				</Notice>
 			) : null}
 			{willRequireSync ? (
