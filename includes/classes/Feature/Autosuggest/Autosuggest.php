@@ -64,6 +64,8 @@ class Autosuggest extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
+		$this->group = esc_html__( 'Live Search', 'elasticpress' );
+
 		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
 
 		$this->summary = '<p>' . __( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ) . '</p>';
