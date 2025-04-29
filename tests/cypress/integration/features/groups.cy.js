@@ -44,6 +44,8 @@ describe('Feature Grouping', () => {
 			.eq(1)
 			.click()
 			.then(($btn) => {
+				// eslint-disable-next-line cypress/no-unnecessary-waiting
+				cy.wait(1000);
 				/** @type {string} ID of the clicked tab button. */
 				const buttonId = $btn.attr('id');
 				// eslint-disable-next-line no-unused-expressions
@@ -66,7 +68,10 @@ describe('Feature Grouping', () => {
 				/**
 				 * Assert that the panel element has data-open="true".
 				 */
-				cy.get(panelSelector).should('have.attr', 'data-open', 'true');
+				cy.get(panelSelector)
+					.should('exist')
+					.and('be.visible')
+					.should('have.attr', 'data-open', 'true');
 			});
 	});
 });
