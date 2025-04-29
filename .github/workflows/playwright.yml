@@ -83,7 +83,7 @@ jobs:
       run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
 
     - name: Run Playwright tests
-      run: npx playwright test
+      run: npm run playwright:test
 
     - name: Make artifacts available
       uses: actions/upload-artifact@v4
@@ -91,7 +91,7 @@ jobs:
       with:
         name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}
         retention-days: 2
-        path: playwright-report/
+        path: ${{ github.workspace }}/playwright-report/
 
     - name: Stop Elasticsearch
       if: always()

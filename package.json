@@ -53,7 +53,8 @@
     "cypress:setup": "./bin/setup-cypress-env.sh",
     "cypress:open": "cypress open --config-file tests/cypress/config.js",
     "cypress:run": "cypress run --config-file tests/cypress/config.js",
-    "playwright:test": "playwright test -c tests/e2e/playwright.config.ts --ui"
+    "playwright:test": "playwright test -c tests/e2e/playwright.config.ts",
+    "playwright:ui": "playwright test -c tests/e2e/playwright.config.ts --ui"
   },
   "author": "10up",
   "repository": {
