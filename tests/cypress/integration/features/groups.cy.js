@@ -45,7 +45,7 @@ describe('Feature Grouping', () => {
 			.click()
 			.then(($btn) => {
 				// eslint-disable-next-line cypress/no-unnecessary-waiting
-				cy.wait(1000);
+				cy.wait(1200);
 				/** @type {string} ID of the clicked tab button. */
 				const buttonId = $btn.attr('id');
 				// eslint-disable-next-line no-unused-expressions
