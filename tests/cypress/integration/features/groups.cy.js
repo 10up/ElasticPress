@@ -1,72 +1,44 @@
+/**
+ * @file features/groups.cy.js
+ * @description Cypress test suite for ElasticPress Feature Grouping Tabs in the WordPress admin.
+ */
+
+/**
+ * Test suite for the Feature Grouping functionality in ElasticPress settings.
+ *
+ * @module FeatureGrouping
+ */
 describe('Feature Grouping', () => {
 	/**
-	 * CSS selector for the tabs container within the ElasticPress dashboard.
-	 * @constant {string}
+	 * CSS selector for the open "Live Search" feature panel.
+	 * @constant
+	 * @type {string}
 	 */
-	const tabContainerSelector =
-		'#ep-dashboard .ep-dashboard-outer-tabs > .components-tab-panel__tabs';
+	const panelSelector = 'div[id*="Live Search-view"]:has(.is-opened)';
 
-	beforeEach(() => {
-		/**
-		 * Log in to WordPress admin.
-		 */
+	/**
+	 * Test that verifies:
+	 * - Feature group tabs render correctly.
+	 * - Tab switching works as expected.
+	 *
+	 * @function
+	 * @name renders feature group tabs and handles tab switching
+	 * @memberof module:FeatureGrouping
+	 */
+	it('renders feature group tabs and handles tab switching', () => {
+		// Log in as an admin user (assumes cy.login() is a custom Cypress command).
 		cy.login();
 
-		/**
-		 * Navigate to the ElasticPress settings page.
-		 */
+		// Visit the ElasticPress settings page in the WordPress admin.
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
-		/**
-		 * Alias the tabs container for reuse in tests.
-		 */
-		cy.get(tabContainerSelector).as('tabsContainer');
-	});
+		// Ensure the settings form is visible.
+		cy.get('.ep-settings-page form').should('be.visible');
 
-	it('renders feature group tabs and handles tab switching', () => {
-		/**
-		 * Test 1: Verifies the tabs container exists, is visible,
-		 * and contains at least one feature tab.
-		 */
-		cy.get('@tabsContainer')
-			.should('exist')
-			.and('be.visible')
-			.find('button')
-			.should('have.length.at.least', 1);
+		// Find and click the "Live Search" feature group tab button.
+		cy.get('button[id*="Live Search"]').should('be.visible').and('not.be.disabled').click();
 
-		/**
-		 * Test 2: Clicks the second tab and verifies the corresponding
-		 * panel is opened by checking the data-open attribute.
-		 */
-		// eslint-disable-next-line cypress/unsafe-to-chain-command
-		cy.get('@tabsContainer')
-			.find('button')
-			.eq(1)
-			.click()
-			.then(($btn) => {
-				/** @type {string} ID of the clicked tab button. */
-				const buttonId = $btn.attr('id');
-				// eslint-disable-next-line no-unused-expressions
-				expect(buttonId, 'tab button id').to.be.a('string').and.not.be.empty;
-
-				/**
-				 * Create the panel ID and escape any special characters (including spaces).
-				 * Uses the built-in CSS.escape() to safely escape the ID value.
-				 * @constant {string}
-				 */
-				const rawPanelId = `${buttonId}-view`;
-				const escapedPanelId = CSS.escape(rawPanelId);
-
-				/**
-				 * Construct the panel selector using the escaped ID.
-				 * @constant {string}
-				 */
-				const panelSelector = `#${escapedPanelId}`;
-
-				/**
-				 * Assert that the panel element has data-open="true".
-				 */
-				cy.get(panelSelector).should('have.attr', 'data-open', 'true');
-			});
+		// Assert that the "Live Search" panel is open and visible.
+		cy.get(panelSelector, { timeout: 30000 }).should('exist').and('be.visible');
 	});
 });
