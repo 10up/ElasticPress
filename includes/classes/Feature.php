@@ -127,12 +127,20 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
-	 * The slug of a feature that is required to be active.
+	 * The slug of a feature that is required to be active. Left for backwards compatibility.
 	 *
 	 * @since 5.0.0
 	 * @var false|string
 	 */
 	protected $requires_feature = false;
+
+	/**
+	 * The slugs of multiple features that are required to be active.
+	 *
+	 * @since 5.3.0
+	 * @var false|string
+	 */
+	protected $requires_features = false;
 
 	/**
 	 * Whether the feature is using ElasticPress.io.
@@ -560,6 +568,7 @@ abstract class Feature {
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 			'group'             => $this->group,
+			'requiredFeatures'  => $this->get_required_features(),
 		];
 
 		return $feature_desc;
@@ -578,12 +587,12 @@ abstract class Feature {
 		}
 
 		$active = [
-			'default'          => false,
-			'key'              => 'active',
-			'label'            => __( 'Enable', 'elasticpress' ),
-			'requires_feature' => $this->requires_feature,
-			'requires_sync'    => $this->requires_install_reindex,
-			'type'             => 'toggle',
+			'default'           => false,
+			'key'               => 'active',
+			'label'             => __( 'Enable', 'elasticpress' ),
+			'requires_features' => $this->get_required_features(),
+			'requires_sync'     => $this->requires_install_reindex,
+			'type'              => 'toggle',
 		];
 
 		$settings_schema = [
@@ -639,5 +648,26 @@ abstract class Feature {
 	 * @since 5.2.0
 	 */
 	public function set_i18n_strings(): void {
+	}
+
+	/**
+	 * Get all features required by this feature
+	 *
+	 * @since 5.4.0
+	 * @return array List of required feature slugs
+	 */
+	public function get_required_features() {
+		$required_features = [];
+
+		// Support legacy single feature requirement
+		if ( $this->requires_feature ) {
+			$required_features[] = $this->requires_feature;
+		}
+		// Add multi-feature requirements if defined
+		if ( $this->requires_features && is_array( $this->requires_features ) ) {
+			$required_features = array_merge( $required_features, $this->requires_features );
+		}
+
+		return array_unique( $required_features );
 	}
 }
