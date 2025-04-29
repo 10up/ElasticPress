@@ -18,9 +18,10 @@ describe('Feature Grouping', () => {
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
 		/**
-		 * Alias the tabs container for reuse in tests.
+		 * Alias the tabs container. Add a visibility check here
+		 * to ensure the main container is ready before tests run.
 		 */
-		cy.get(tabContainerSelector).as('tabsContainer');
+		cy.get(tabContainerSelector).should('be.visible').as('tabsContainer');
 	});
 
 	it('renders feature group tabs and handles tab switching', () => {
@@ -28,18 +29,18 @@ describe('Feature Grouping', () => {
 		 * Test 1: Verifies the tabs container exists, is visible,
 		 * and contains at least one feature tab.
 		 */
-		cy.get('@tabsContainer')
-			.should('exist')
-			.and('be.visible')
-			.find('button')
-			.should('have.length.at.least', 1);
+		cy.get('@tabsContainer').should('exist').find('button').should('have.length.at.least', 1);
 
 		/**
 		 * Test 2: Clicks the second tab and verifies the corresponding
-		 * panel is opened by checking the data-open attribute.
+		 * panel is opened.
 		 */
-		// eslint-disable-next-line cypress/unsafe-to-chain-command
-		cy.get('@tabsContainer').find('button').eq(1).as('secondTab').click();
+
+		// Find the second tab button
+		cy.get('@tabsContainer').find('button').eq(1).as('secondTab');
+
+		// Wait for the button to be interactable
+		cy.get('@secondTab').should('be.visible').and('not.be.disabled').click();
 
 		/**
 		 * Get the button ID and verify the corresponding panel
@@ -53,18 +54,20 @@ describe('Feature Grouping', () => {
 
 				/**
 				 * Create the panel ID.
+				 * Use Cypress escaping for IDs if they might contain special characters,
+				 * although in this case it looks standard.
 				 * @constant {string}
 				 */
-				const rawPanelId = `${buttonId}-view`;
+				const panelSelector = `#${buttonId}-view`; // Simplified selector construction
 
-				/**
-				 * Assert that the panel element has data-open="true".
-				 * Using increased timeout to accommodate slower environments.
-				 */
-				cy.get(`[id="${rawPanelId}"]`, { timeout: 10000 })
-					.should('exist')
-					.and('be.visible')
-					.should('have.attr', 'data-open', 'true');
+				// *** IMPROVEMENT 2: Refined wait for the panel state ***
+				// Cypress will retry the *entire* `should` chain within the timeout.
+				// Waiting for existence, visibility, AND the attribute ensures
+				// all conditions are met before proceeding.
+				cy.get(panelSelector, { timeout: 15000 }) // Increased timeout slightly just in case
+					.should('exist') // Wait for the element to be in the DOM
+					.and('be.visible') // Wait for it to be visible (no CSS display:none, etc.)
+					.and('have.attr', 'data-open', 'true'); // Crucially, wait for the attribute change
 			});
 	});
 });
