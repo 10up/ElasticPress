@@ -1,15 +1,8 @@
 describe('Feature Selection Persistence', () => {
 	/**
-	 * @constant {string} TAB_CONTAINER - Selector for the feature tabs container.
+	 * Verifies that the group and feature tabs are clickable and persist their selections.
 	 */
-	const tabContainerSelector = '#ep-dashboard .components-tab-panel__tabs';
-
-	/**
-	 * @type {string} savedTabId - ID of the last clicked tab.
-	 */
-	let savedTabId;
-
-	beforeEach(() => {
+	it('allows selecting groups and features, and persists selections on reload', () => {
 		/**
 		 * Log in to WordPress admin.
 		 */
@@ -20,35 +13,30 @@ describe('Feature Selection Persistence', () => {
 		 */
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
-		/**
-		 * Alias the tabs container for reuse in tests.
-		 */
-		cy.get(tabContainerSelector).as('tabsContainer');
-	});
-
-	/**
-	 * Verifies that the tabs are clickable and change their content.
-	 */
-	it('has clickable tabs that change their content', () => {
+		// First select a group (for example, the second group)
 		// eslint-disable-next-line cypress/unsafe-to-chain-command
-		cy.get('@tabsContainer')
-			.find('button#tab-panel-0-did-you-mean')
+		cy.get('button[id*="Live Search"]')
 			.click()
-			.invoke('attr', 'id')
-			.then((id) => {
-				savedTabId = id;
-				const viewId = `${id}-view`;
-				const selector = `#${CSS.escape(viewId)}`;
-				cy.get(selector).should('have.attr', 'data-open', 'true');
-			});
-	});
+			.then(() => {
+				// eslint-disable-next-line cypress/unsafe-to-chain-command
+				cy.get('button[id*="autosuggest"]')
+					.click()
+					.then(() => {
+						// Verify the feature is active
+						cy.get('div[id*="autosuggest-view"]').should('be.visible');
 
-	/**
-	 * Verifies that the last selected feature is retained on page reload.
-	 */
-	it('retains its last selected feature on page reload', () => {
-		cy.reload();
-		const selector = `#${CSS.escape(savedTabId)}`;
-		cy.get(selector).should('have.attr', 'data-active-item', 'true');
+						// Reload the page to test persistence
+						cy.reload();
+
+						// Wait for UI to load completely
+						cy.get('.ep-settings-page form').should('be.visible');
+
+						// Verify group selection persisted
+						cy.get('div[id*="Live Search-view"]').should('be.visible');
+
+						// Verify feature selection persisted
+						cy.get('div[id*="autosuggest-view"]').should('be.visible');
+					});
+			});
 	});
 });
