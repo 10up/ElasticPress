@@ -46,6 +46,8 @@ class ProtectedContent extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Protected Content', 'elasticpress' );
 
+		$this->group = esc_html__( 'Indexing Options', 'elasticpress' );
+
 		$this->summary = '<p>' . __( 'Syncs unpublished content — including private, draft, and scheduled posts — improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query.', 'elasticpress' ) . '</p>' .
 		'<p><em>' . __( 'We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.', 'elasticpress' ) . '</em></p>';
 

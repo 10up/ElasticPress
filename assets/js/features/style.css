@@ -1,8 +1,11 @@
-.ep-dashboard-panel {
-	margin-bottom: 16px;
+#ep-dashboard {
 
 	& .components-notice {
-		margin: 0 0 16px 0;
+		margin: 16px 0;
+	}
+
+	& .components-panel {
+		height: calc(100% - 2px);
 	}
 
 	& .components-notice__actions {
@@ -20,8 +23,8 @@
 
 .ep-dashboard-tabs {
 	display: grid;
-	grid-gap: 40px;
-	grid-template-columns: max-content auto;
+	grid-gap: 16px;
+	grid-template-columns: 2fr 5fr;
 
 	& .components-tab-panel__tab-content {
 		padding-top: 14px;
@@ -93,4 +96,48 @@
 	gap: 8px;
 	justify-content: space-between;
 	min-height: 20px;
+}
+
+.ep-dashboard-outer-tabs {
+	display: grid;
+	grid-template-columns: 1fr 4fr;
+	margin-bottom: 16px;
+	
+	& .components-tab-panel__tab-content .components-panel__body {
+		padding-bottom: 32px;
+	}
+}
+
+@media (max-width: 782px) {
+	
+	.ep-dashboard-outer-tabs {
+		grid-template-columns: 1fr;
+	}
+}
+
+.ep-dashboard-outer-tabs > .components-tab-panel__tabs {
+	align-content: baseline;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-right: none;
+	flex-wrap: wrap;
+	
+	
+	& .components-tab-panel__tabs-item {
+		text-align: left;
+		width: 100%;
+
+		&.is-active {
+			background: #f0f0f0;
+			font-weight: 500;
+			
+			&::after {
+				content: none;
+			}
+		}
+
+		&:not(.is-active) {
+			font-weight: 400;
+		}
+	}
 }

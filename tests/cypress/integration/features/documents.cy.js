@@ -2,7 +2,7 @@ describe('Documents Feature', () => {
 	function enableDocumentsFeature() {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
-
+		cy.contains('button', 'Indexing Options').click();
 		cy.contains('button', 'Documents').click();
 		cy.contains('label', 'Enable').click();
 		cy.contains('button', 'Save changes').click();

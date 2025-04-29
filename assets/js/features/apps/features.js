@@ -125,6 +125,7 @@ export default () => {
 			return {
 				name: f.slug,
 				title: <Tab feature={f.slug} />,
+				group: f.group,
 			};
 		});
 
@@ -219,20 +220,77 @@ export default () => {
 		createNotice('success', resetNotice);
 	};
 
-	return (
-		<form onReset={onReset} onSubmit={onSubmit}>
+	const renderFeatureTabs = (group) => {
+		return (
 			<Panel className="ep-dashboard-panel">
 				<PanelBody>
-					{isSyncing ? (
-						<Notice actions={isSyncingActions} isDismissible={false} status="warning">
-							{isSyncingNotice}
-						</Notice>
-					) : null}
-					<TabPanel className="ep-dashboard-tabs" orientation="vertical" tabs={tabs}>
+					<TabPanel
+						className="ep-dashboard-tabs"
+						orientation="vertical"
+						tabs={group.tabs}
+					>
 						{({ name }) => <Feature feature={name} key={name} />}
 					</TabPanel>
 				</PanelBody>
 			</Panel>
+		);
+	};
+
+	/**
+	 * Render a feature group.
+	 *
+	 * @param {Array} groupTabs Group tabs.
+	 * @returns {WPElement|null}
+	 * */
+	const renderFeatureGroup = (groupTabs) => {
+		if (!groupTabs.length) return null;
+
+		return (
+			<TabPanel
+				className="ep-dashboard-outer-tabs"
+				orientation="horizontal"
+				tabs={groupTabs.map((group) => ({
+					name: group.title,
+					title: group.title,
+				}))}
+			>
+				{({ name }) => {
+					const group = groupTabs.find((g) => g.title === name);
+					return renderFeatureTabs(group);
+				}}
+			</TabPanel>
+		);
+	};
+
+	const groupedTabs = useMemo(() => {
+		// Get unique groups from features
+		const groups = [...new Set(features.map((f) => f.group).filter((slug) => slug))];
+		// Group tabs by their group property
+		const groupsWithTabs = groups.map((group) => ({
+			title: group,
+			tabs: tabs.filter((t) => t.group === group),
+		}));
+
+		// Add "Other" group for tabs without a group
+		const otherTabs = tabs.filter((t) => !t.group || !groups.includes(t.group));
+		if (otherTabs.length > 0) {
+			groupsWithTabs.push({
+				title: __('Other', 'elasticpress'),
+				tabs: otherTabs,
+			});
+		}
+
+		return groupsWithTabs;
+	}, [features, tabs]);
+
+	return (
+		<form onReset={onReset} onSubmit={onSubmit}>
+			{renderFeatureGroup(groupedTabs)}
+			{isSyncing && (
+				<Notice actions={isSyncingActions} isDismissible={false} status="warning">
+					{isSyncingNotice}
+				</Notice>
+			)}
 			<Flex justify="start">
 				<FlexItem>
 					<Button
