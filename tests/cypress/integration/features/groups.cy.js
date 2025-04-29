@@ -45,7 +45,7 @@ describe('Feature Grouping', () => {
 		/**
 		 * Get the button ID and verify the corresponding panel
 		 */
-		cy.get('@secondTab')
+		cy.get('button[id*="Live Search"]')
 			.invoke('attr', 'id')
 			.then((buttonId) => {
 				/** @type {string} ID of the clicked tab button. */
@@ -58,15 +58,13 @@ describe('Feature Grouping', () => {
 				 * although in this case it looks standard.
 				 * @constant {string}
 				 */
-				const panelSelector = `#${buttonId}-view`; // Simplified selector construction
-
-				// *** IMPROVEMENT 2: Refined wait for the panel state ***
+				const panelSelector = `div[id*="Live Search-view"]`;
 				// Cypress will retry the *entire* `should` chain within the timeout.
 				// Waiting for existence, visibility, AND the attribute ensures
 				// all conditions are met before proceeding.
-				cy.get(panelSelector, { timeout: 15000 }) // Increased timeout slightly just in case
-					.should('exist') // Wait for the element to be in the DOM
-					.and('be.visible') // Wait for it to be visible (no CSS display:none, etc.)
+				cy.get(panelSelector, { timeout: 15000 })
+					.should('exist')
+					.and('be.visible')
 					.and('have.attr', 'data-open', 'true'); // Crucially, wait for the attribute change
 			});
 	});
