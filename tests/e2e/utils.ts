@@ -1,6 +1,17 @@
 import { Page } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
 
+const path = require('path');
+const { execSync } = require('child_process');
+
+export function getPluginDir(): string {
+	return path.resolve(`${process.cwd()}../../../`).split('/').pop();
+}
+
+export async function getPluginSlug(slug: string) {
+	return slug === 'elasticpress' ? getPluginDir() : slug;
+}
+
 /**
  * Login to WordPress admin
  * @param page Playwright page object
@@ -28,8 +39,6 @@ export async function goToAdminPage(page: Page, path: string) {
 export async function wpCli(command: string, ignoreFailures = false) {
 	const escapedCommand = command.replace(/"/g, '\\"').replace(/^wp /, '');
 
-	const { execSync } = require('child_process');
-
 	try {
 		const res = execSync(
 			`./bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`,
@@ -49,10 +58,8 @@ export async function wpCliEval(command: string) {
 	// Write the PHP code to a temporary file
 	writeFileSync(fileName, `<?php ${escapedCommand}`);
 
-	const pluginName = process.env.PLUGIN_NAME || 'elasticpress';
-
 	// Execute the PHP code using wp-cli
-	const result = await wpCli(`eval-file wp-content/plugins/${pluginName}/${fileName}`);
+	const result = await wpCli(`eval-file wp-content/plugins/${getPluginDir()}/${fileName}`);
 
 	// Clean up the temporary file
 	unlinkSync(fileName);
@@ -63,13 +70,13 @@ export async function wpCliEval(command: string) {
 /**
  * Activate a WordPress plugin
  * @param page Playwright page object
- * @param slug Plugin slug to activate
+ * @param slugs Plugin slug to activate
  * @param method Activation method ('dashboard' or 'wpCli')
  * @param mode Site mode ('singleSite' or 'network')
  */
 export async function activatePlugin(
 	page: Page,
-	slug: string,
+	slugs: string,
 	method: 'dashboard' | 'wpCli' = 'dashboard',
 	mode: 'singleSite' | 'network' = 'singleSite',
 ) {
@@ -77,7 +84,7 @@ export async function activatePlugin(
 		const path = mode === 'network' ? 'network/plugins.php' : 'plugins.php';
 		await goToAdminPage(page, path);
 
-		const activateButton = page.locator(`#activate-${slug}`);
+		const activateButton = page.locator(`#activate-${slugs}`);
 		if (await activateButton.isVisible()) {
 			await activateButton.click();
 			await page.waitForLoadState('networkidle');
@@ -85,8 +92,11 @@ export async function activatePlugin(
 		return;
 	}
 
-	const pluginSlug = slug.replace('elasticpress', process.env.PLUGIN_NAME || 'elasticpress');
-	let command = `wp plugin activate ${pluginSlug}`;
+	const sanitizedSlugs = slugs
+		.split(' ')
+		.map((slug) => getPluginSlug(slug))
+		.join(' ');
+	let command = `wp plugin activate ${sanitizedSlugs}`;
 	if (mode === 'network') {
 		command += ' --network';
 	}
@@ -96,13 +106,13 @@ export async function activatePlugin(
 /**
  * Deactivate a WordPress plugin
  * @param page Playwright page object
- * @param slug Plugin slug to deactivate
+ * @param slugs Plugin slug to deactivate
  * @param method Deactivation method ('dashboard' or 'wpCli')
  * @param mode Site mode ('singleSite' or 'network')
  */
 export async function deactivatePlugin(
 	page: Page,
-	slug: string,
+	slugs: string,
 	method: 'dashboard' | 'wpCli' = 'dashboard',
 	mode: 'singleSite' | 'network' = 'singleSite',
 ) {
@@ -110,7 +120,7 @@ export async function deactivatePlugin(
 		const path = mode === 'network' ? 'network/plugins.php' : 'plugins.php';
 		await goToAdminPage(page, path);
 
-		const deactivateButton = page.locator(`#deactivate-${slug}`);
+		const deactivateButton = page.locator(`#deactivate-${slugs}`);
 		if (await deactivateButton.isVisible()) {
 			await deactivateButton.click();
 			await page.waitForLoadState('networkidle');
@@ -118,8 +128,11 @@ export async function deactivatePlugin(
 		return;
 	}
 
-	const pluginSlug = slug.replace('elasticpress', process.env.PLUGIN_NAME || 'elasticpress');
-	let command = `wp plugin deactivate ${pluginSlug}`;
+	const sanitizedSlugs = slugs
+		.split(' ')
+		.map((slug) => getPluginSlug(slug))
+		.join(' ');
+	let command = `wp plugin deactivate ${sanitizedSlugs}`;
 	if (mode === 'network') {
 		command += ' --network';
 	}
