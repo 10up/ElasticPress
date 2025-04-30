@@ -20,7 +20,7 @@ import Control from './control';
 export default ({ feature, settingsSchema }) => {
 	const { getFeature, settings, setSettings, syncedSettings } = useFeatureSettings();
 
-	const { isAvailable } = getFeature(feature);
+	const { isAvailable, defaultSettings } = getFeature(feature);
 
 	/**
 	 * Change event handler.
@@ -52,7 +52,8 @@ export default ({ feature, settingsSchema }) => {
 
 		return Object.entries(requiresFields).every(([fieldKey, requiredValue]) => {
 			const actualValue = settings[feature]?.[fieldKey];
-			return actualValue === requiredValue;
+			const defaultValue = defaultSettings[fieldKey] ?? false;
+			return actualValue === requiredValue ?? actualValue === defaultValue;
 		});
 	};
 
