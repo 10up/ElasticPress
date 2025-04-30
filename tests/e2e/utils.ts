@@ -4,7 +4,7 @@ import { Page } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 export function getPluginRootDir(): string {
 	return path.resolve(__dirname, '../..');
@@ -73,12 +73,12 @@ export async function goToAdminPage(page: Page, path: string) {
 }
 
 export async function wpCli(command: string, ignoreFailures = false) {
-	const escapedCommand = command.replace(/"/g, '\\"').replace(/^wp /, '');
+	const escapedCommand = command.replace(/^wp /, '');
 
 	try {
-		const res = execSync(
-			`${getPluginRootDir()}/bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`,
-		);
+		const command = `${getPluginRootDir()}/bin/wp-env-cli`;
+		const args = ['tests-wordpress', `wp --allow-root ${escapedCommand}`];
+		const res = execFileSync(command, args);
 		return res;
 	} catch (err) {
 		return null;
