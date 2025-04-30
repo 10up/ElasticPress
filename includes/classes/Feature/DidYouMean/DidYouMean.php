@@ -43,6 +43,8 @@ class DidYouMean extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Did You Mean', 'elasticpress' );
 
+		$this->group = esc_html__( 'Core Search', 'elasticpress' );
+
 		$this->summary = '<p>' . __( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="https://www.elasticpress.io/documentation/article/did-you-mean/">this tutorial</a>.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/did-you-mean/', 'elasticpress' );

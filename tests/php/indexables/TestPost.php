@@ -2675,6 +2675,44 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Tests orderby Rand(x).
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_rand_order_with_seed() {
+		$this->ep_factory->post->create_many( 9 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate'   => true,
+			'fields'         => 'ids',
+			'orderby'        => 'Rand(3)',
+			'posts_per_page' => 3,
+		];
+
+		$query = new \WP_Query( $args );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->post_count );
+
+		// Run the query again to see if it returns the same post.
+		$query1 = new \WP_Query( $args );
+		$this->assertTrue( $query1->elasticsearch_success );
+		$this->assertEquals( $query->posts, $query1->posts );
+
+		$args['paged'] = 2;
+		$query2        = new \WP_Query( $args );
+		$this->assertTrue( $query2->elasticsearch_success );
+
+		$args['paged'] = 3;
+		$query3        = new \WP_Query( $args );
+		$this->assertTrue( $query3->elasticsearch_success );
+
+		$this->assertEmpty( array_intersect( $query1->posts, $query2->posts, $query3->posts ) );
+	}
+
+	/**
 	 * Test orderby 'none'
 	 *
 	 * In this case, EP should order by ID ASC, as this is the behavior used by the database.

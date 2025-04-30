@@ -94,6 +94,8 @@ class Facets extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Filters', 'elasticpress' );
 
+		$this->group = esc_html__( 'Core Search', 'elasticpress' );
+
 		$this->summary = '<p>' .
 		( wp_is_block_theme()
 			? sprintf(
