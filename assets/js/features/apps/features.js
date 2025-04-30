@@ -387,20 +387,6 @@ export default () => {
 		return groupsWithTabs;
 	}, [features, tabs]);
 
-	// Handle URL change events (back/forward browser navigation)
-	useEffect(() => {
-		const handlePopState = () => {
-			const params = getUrlParams();
-			setActiveState({
-				activeGroup: params.activeGroup,
-				activeFeature: params.activeFeature,
-			});
-		};
-
-		window.addEventListener('popstate', handlePopState);
-		return () => window.removeEventListener('popstate', handlePopState);
-	}, []);
-
 	// Set initialRenderRef to false after component mounts to allow updates in callbacks
 	useEffect(() => {
 		// Wait for a tick to ensure the initial rendering completes
