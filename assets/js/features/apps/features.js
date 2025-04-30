@@ -4,9 +4,7 @@
 import { Button, Flex, FlexItem, Notice, Panel, PanelBody, TabPanel } from '@wordpress/components';
 import { useMemo, useState, WPElement, useRef, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { create as createPersistence } from '@wordpress/preferences-persistence';
-import { dispatch, useDispatch, useSelect } from '@wordpress/data';
-import { store as prefsStore } from '@wordpress/preferences';
+import { addQueryArgs } from '@wordpress/url';
 
 /**
  * Internal dependencies.
@@ -23,17 +21,32 @@ import Tab from '../components/tab';
 import '../style.css';
 
 /**
- * Keeps persistence of the last active feature setting across page reloads.
+ * Helper functions for URL parameter handling
+ *
+ * Retrieves the current 'group' and 'feature' parameters from the URL's query string.
+ *
+ * @returns {object} An object containing:
+ * - {string} activeGroup   The value of the 'group' URL parameter, or an empty string if not set.
+ * - {string} activeFeature The value of the 'feature' URL parameter, or an empty string if not set.
  */
-wp.data.dispatch('core/preferences').setPersistenceLayer(createPersistence());
+const getUrlParams = () => {
+	const searchParams = new URLSearchParams(window.location.search);
+	return {
+		activeGroup: searchParams.get('group') || '',
+		activeFeature: searchParams.get('feature') || '',
+	};
+};
 
-dispatch(prefsStore).setDefaults('elasticpress', {
-	// userSetFeatures keeps track of 1. the active group and 2. the active feature within that group
-	userSetFeatures: {
-		activeGroup: '',
-		activeFeature: '',
-	},
-});
+const updateUrlParams = (group, feature) => {
+	// Create new URL with updated parameters
+	const newUrl = addQueryArgs(window.location.href, {
+		group,
+		feature,
+	});
+
+	// Update URL without reloading the page
+	window.history.pushState({ group, feature }, '', newUrl);
+};
 
 /**
  * Feature settings dashboard app.
@@ -53,19 +66,17 @@ export default () => {
 		setIsSyncing,
 	} = useFeatureSettings();
 
-	const userSetFeatures = useSelect(
-		(select) => select('core/preferences').get('elasticpress', 'userSetFeatures'),
-		[],
-	);
+	// Get initial state from URL parameters
+	const initialParams = useMemo(() => getUrlParams(), []);
+
+	// State to track active group and feature
+	const [activeState, setActiveState] = useState({
+		activeGroup: initialParams.activeGroup,
+		activeFeature: initialParams.activeFeature,
+	});
 
 	// Flag to track initial render and prevent unnecessary updates
 	const initialRenderRef = useRef(true);
-	const userSetFeaturesRef = useRef(userSetFeatures);
-
-	// Update the ref whenever userSetFeatures changes
-	useEffect(() => {
-		userSetFeaturesRef.current = userSetFeatures;
-	}, [userSetFeatures]);
 
 	/**
 	 * URL to start a sync.
@@ -159,8 +170,6 @@ export default () => {
 			};
 		});
 
-	const { set } = useDispatch('core/preferences');
-
 	/**
 	 * Error handler.
 	 *
@@ -252,33 +261,36 @@ export default () => {
 		createNotice('success', resetNotice);
 	};
 
-	const setUserSetFeatures = (activeGroup, activeFeature) => {
-		// Skip setting userSetFeatures during initial render
+	/**
+	 * Update active selection and URL
+	 *
+	 * @param {string} group - The active group name
+	 * @param {string} feature - The active feature name
+	 */
+	const updateActiveState = (group, feature) => {
+		// Skip updating during initial render
 		if (initialRenderRef.current) {
 			return;
 		}
 
 		// Only update if values are actually changing to prevent unnecessary re-renders
-		if (
-			userSetFeaturesRef.current.activeGroup !== activeGroup ||
-			userSetFeaturesRef.current.activeFeature !== activeFeature
-		) {
-			userSetFeaturesRef.current = { activeGroup, activeFeature };
-			set('elasticpress', 'userSetFeatures', { activeGroup, activeFeature });
+		if (activeState.activeGroup !== group || activeState.activeFeature !== feature) {
+			setActiveState({ activeGroup: group, activeFeature: feature });
+			updateUrlParams(group, feature);
 		}
 	};
 
 	const renderFeatureTabs = (group) => {
 		const updatedTabs = group.tabs.map((tab) => ({
 			...tab,
-			isActive: tab.name === userSetFeatures.activeFeature,
+			isActive: tab.name === activeState.activeFeature,
 		}));
 
-		// Find initial tab - use stored preference if possible
+		// Find initial tab - use URL parameter if possible
 		const initialTab =
-			userSetFeatures.activeFeature &&
-			group.tabs.some((tab) => tab.name === userSetFeatures.activeFeature)
-				? userSetFeatures.activeFeature
+			activeState.activeFeature &&
+			group.tabs.some((tab) => tab.name === activeState.activeFeature)
+				? activeState.activeFeature
 				: updatedTabs[0]?.name;
 
 		return (
@@ -295,7 +307,7 @@ export default () => {
 						initialTabName={initialTab}
 						onSelect={(name) => {
 							if (!initialRenderRef.current) {
-								setUserSetFeatures(group.title, name);
+								updateActiveState(group.title, name);
 							}
 						}}
 						tabs={updatedTabs}
@@ -316,11 +328,11 @@ export default () => {
 	const renderFeatureGroup = (groupTabs) => {
 		if (!groupTabs.length) return null;
 
-		// Determine initial group tab
+		// Determine initial group tab from URL parameter
 		const initialGroup =
-			userSetFeatures.activeGroup &&
-			groupTabs.some((group) => group.title === userSetFeatures.activeGroup)
-				? userSetFeatures.activeGroup
+			activeState.activeGroup &&
+			groupTabs.some((group) => group.title === activeState.activeGroup)
+				? activeState.activeGroup
 				: groupTabs[0].title;
 
 		return (
@@ -341,7 +353,7 @@ export default () => {
 					if (!selectedGroup) return;
 
 					const selectedFeatureWithinGroup = selectedGroup.tabs[0].name;
-					setUserSetFeatures(selectedGroup.title, selectedFeatureWithinGroup);
+					updateActiveState(selectedGroup.title, selectedFeatureWithinGroup);
 				}}
 			>
 				{({ name }) => {
@@ -374,6 +386,20 @@ export default () => {
 
 		return groupsWithTabs;
 	}, [features, tabs]);
+
+	// Handle URL change events (back/forward browser navigation)
+	useEffect(() => {
+		const handlePopState = () => {
+			const params = getUrlParams();
+			setActiveState({
+				activeGroup: params.activeGroup,
+				activeFeature: params.activeFeature,
+			});
+		};
+
+		window.addEventListener('popstate', handlePopState);
+		return () => window.removeEventListener('popstate', handlePopState);
+	}, []);
 
 	// Set initialRenderRef to false after component mounts to allow updates in callbacks
 	useEffect(() => {
