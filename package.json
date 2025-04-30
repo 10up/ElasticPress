@@ -67,6 +67,7 @@
     "entry": {
       "admin-script": "./assets/js/admin.js",
       "autosuggest-script": "./assets/js/autosuggest/index.js",
+	  "autosuggest-v2-script": "./assets/js/autosuggest-v2/index.js",
       "blocks-script": "./assets/js/blocks/index.js",
       "comments-script": "./assets/js/comments.js",
       "comments-block-script": "./assets/js/blocks/comments/index.js",
@@ -96,6 +97,7 @@
       "woocommerce-order-search-script": "./assets/js/woocommerce/admin/orders/index.js",
       
       "autosuggest-styles": "./assets/css/autosuggest.css",
+	  "autosuggest-v2-styles": "./assets/css/autosuggest-v2.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",
       "facets-block-styles": "./assets/css/facets-block.css",

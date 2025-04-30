@@ -1,0 +1,73 @@
+@import "./global/colors.css";
+
+.ep-autosuggest-container {
+	position: relative;
+
+	& .ep-autosuggest {
+		background: var(--ep-c-white);
+		border: 1px solid var(--ep-c-white-gray);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		display: none;
+		position: absolute;
+
+		width: 100%;
+		z-index: 200;
+
+		& > ul {
+			list-style: none;
+			margin: 0 !important;
+
+			& > li {
+				font-family: sans-serif;
+
+				& > a.autosuggest-link {
+					color: var(--ep-c-black);
+					cursor: pointer;
+					display: block;
+					padding: 2px 10px;
+
+					&:hover,
+					&:active {
+						background-color: var(--ep-c-medium-white);
+						text-decoration: none;
+					}
+				}
+			}
+		}
+	}
+
+	& .selected {
+		background-color: var(--ep-c-medium-white);
+		text-decoration: none;
+	}
+}
+
+.ep-autosuggest {
+	background: #fff;
+	min-width: 500px;
+	padding: 20px;
+}
+
+button.ep-autosuggest-filter {
+	padding: 5px 10px;
+}
+
+.ep-autosuggest-header {
+	align-items: center;
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+}
+
+button.ep-autosuggest-close {
+	align-items: center;
+	display: flex;
+	height: 30px;
+	justify-content: center;
+	padding: 0;
+	position: absolute;
+	right: 0;
+	text-transform: uppercase;
+	top: 0;
+	width: 30px;
+}
