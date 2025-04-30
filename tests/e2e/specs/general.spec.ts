@@ -13,8 +13,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can see quick setup message after enabling the plugin for the first time', async ({
 		loggedInPage,
 	}) => {
-		await deactivatePlugin(loggedInPage, 'elasticpress', 'wpCli');
-		await activatePlugin(loggedInPage, 'fake-new-activation elasticpress', 'wpCli');
+		await activatePlugin(loggedInPage, 'fake-new-activation', 'wpCli');
 
 		await loggedInPage.goto('/wp-admin/');
 		await expect
@@ -27,8 +26,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can select features if user is setting up plugin for the first time', async ({
 		loggedInPage,
 	}) => {
-		await deactivatePlugin(loggedInPage, 'elasticpress', 'wpCli');
-		await activatePlugin(loggedInPage, 'fake-new-activation elasticpress', 'wpCli');
+		await activatePlugin(loggedInPage, 'fake-new-activation', 'wpCli');
 
 		await loggedInPage.goto('/wp-admin/admin.php?page=elasticpress');
 		await expect.soft(loggedInPage.locator('.setup-button')).toContainText('Save Features');
@@ -39,8 +37,6 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can sync post data and meta details in Elasticsearch if user creates/updates a published post', async ({
 		loggedInPage,
 	}) => {
-		await activatePlugin(loggedInPage, 'elasticpress', 'wpCli');
-
 		const postTitle = 'Test ElasticPress 1';
 
 		await publishPost(loggedInPage, {
@@ -61,12 +57,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can see a warning in the dashboard if user activates plugin with an Elasticsearch version before or after min/max requirements', async ({
 		loggedInPage,
 	}) => {
-		await deactivatePlugin(loggedInPage, 'elasticpress', 'wpCli');
-		await activatePlugin(
-			loggedInPage,
-			'unsupported-elasticsearch-version elasticpress',
-			'wpCli',
-		);
+		await activatePlugin(loggedInPage, 'unsupported-elasticsearch-version', 'wpCli');
 
 		await loggedInPage.goto('/wp-admin/plugins.php');
 		await expect
@@ -79,8 +70,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can see a warning in the dashboard if using other software than Elasticsearch', async ({
 		loggedInPage,
 	}) => {
-		await deactivatePlugin(loggedInPage, 'elasticpress', 'wpCli');
-		await activatePlugin(loggedInPage, 'unsupported-server-software elasticpress', 'wpCli');
+		await activatePlugin(loggedInPage, 'unsupported-server-software', 'wpCli');
 
 		await loggedInPage.goto('/wp-admin/plugins.php');
 		await expect
@@ -124,7 +114,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 		const syncTable = loggedInPage.locator(
 			'#health-check-accordion-block-ep-last-sync .health-check-table',
 		);
-		const selector = '6.2' === '6.2' ? 'td' : 'th';
+		const selector = process.env.WP_VERSION === '6.2' ? 'td' : 'th';
 		const cells = [
 			'Method',
 			'Full Sync',

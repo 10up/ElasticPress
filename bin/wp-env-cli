@@ -32,8 +32,7 @@ function spawnCommandDirectly({ container, command, dockerComposeConfigPath }) {
 }
 
 const run = async () => {
-	const configPath = path.resolve();
-	const { dockerComposeConfigPath } = await loadConfig(configPath);
+	const { dockerComposeConfigPath } = await loadConfig(path.resolve(__dirname, '..'));
 
 	const container = process.argv[2];
 	const command = process.argv.splice(3).join(' ');

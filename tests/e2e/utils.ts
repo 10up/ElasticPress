@@ -1,16 +1,52 @@
+/// <reference types="node" />
+
 import { Page } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
+import path from 'path';
 
-const path = require('path');
 const { execSync } = require('child_process');
 
-export function getPluginDir(): string {
-	return path.resolve(`${process.cwd()}../../../`).split('/').pop();
+export function getPluginRootDir(): string {
+	return path.resolve(__dirname, '../..');
 }
 
-export async function getPluginSlug(slug: string) {
+export function getPluginDir(): string {
+	return process.cwd().split('/').pop() ?? 'elasticpress';
+}
+
+export function getPluginSlug(slug: string) {
 	return slug === 'elasticpress' ? getPluginDir() : slug;
 }
+
+export const defaultFeatures = {
+	search: {
+		active: 1,
+		highlight_enabled: '1',
+		highlight_excerpt: '1',
+		highlight_tag: 'mark',
+	},
+	related_posts: {
+		active: true,
+	},
+	facets: {
+		active: true,
+	},
+	searchordering: {
+		active: true,
+	},
+	autosuggest: {
+		active: true,
+	},
+	woocommerce: {
+		active: false,
+	},
+	protected_content: {
+		active: false,
+	},
+	acf_repeater: {
+		active: true,
+	},
+};
 
 /**
  * Login to WordPress admin
@@ -41,28 +77,27 @@ export async function wpCli(command: string, ignoreFailures = false) {
 
 	try {
 		const res = execSync(
-			`./bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`,
+			`${getPluginRootDir()}/bin/wp-env-cli tests-wordpress "wp --allow-root ${escapedCommand}"`,
 		);
 		return res;
 	} catch (err) {
-		console.log('output', err);
-		console.log('sdterr', err.stderr.toString());
 		return null;
 	}
 }
 
 export async function wpCliEval(command: string) {
 	const fileName = (Math.random() + 1).toString(36).substring(7);
+	const fullFilePath = `${getPluginRootDir()}/${fileName}`;
 	const escapedCommand = command.replace(/^<\?php /, '');
 
 	// Write the PHP code to a temporary file
-	writeFileSync(fileName, `<?php ${escapedCommand}`);
+	writeFileSync(fullFilePath, `<?php ${escapedCommand}`);
 
 	// Execute the PHP code using wp-cli
 	const result = await wpCli(`eval-file wp-content/plugins/${getPluginDir()}/${fileName}`);
 
 	// Clean up the temporary file
-	unlinkSync(fileName);
+	unlinkSync(fullFilePath);
 
 	return result;
 }
