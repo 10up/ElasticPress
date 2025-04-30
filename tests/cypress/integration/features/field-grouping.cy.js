@@ -1,7 +1,7 @@
 /**
  * Test suite for verifying conditional feature visibility
  */
-describe('Feature Visibility Tests', () => {
+describe('Field Grouping Tests', () => {
 	/**
 	 * Test case to verify a conditional feature is hidden until its requirement is met
 	 *
@@ -25,13 +25,52 @@ describe('Feature Visibility Tests', () => {
 		 */
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
+		cy.window()
+			.then((win) => {
+				// Wait until epDashboard and features are available
+				return new Cypress.Promise((resolve) => {
+					const check = () => {
+						if (win.epDashboard && win.epDashboard.features) {
+							resolve(win);
+						} else {
+							setTimeout(check, 50);
+						}
+					};
+					check();
+				});
+			})
+			.then((win) => {
+				win.epDashboard.features[2].settingsSchema.push({
+					type: 'field_group',
+					key: 'fieldgroupa',
+					label: 'Field Group ABC',
+					fields: [
+						{
+							default: '.ep-autosuggest',
+							help: 'Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type="text"]</code>',
+							key: 'autosuggest_selector',
+							label: 'Additional selectors',
+							type: 'text',
+						},
+						{
+							default: '0',
+							key: 'trigger_ga_event',
+							help: 'Enable to fire a gtag tracking event when an autosuggest result is clicked.',
+							label: 'Trigger Google Analytics events',
+							type: 'checkbox',
+						},
+					],
+				});
+			});
+
 		/**
 		 * Navigate to the correct feature group and subfeature
 		 */
+		cy.contains('button', 'WooCommerce').click();
 		cy.contains('button', 'Live Search').click();
 		cy.contains('button', 'Autosuggest').click();
 
-		cy.contains('.ep-field-group', 'Field Group A').as('fieldGroup');
+		cy.contains('.ep-field-group', 'Field Group ABC').as('fieldGroup');
 		cy.get('@fieldGroup').should('exist');
 		cy.get('@fieldGroup').find('.ep-dashboard-control').should('exist');
 	});
