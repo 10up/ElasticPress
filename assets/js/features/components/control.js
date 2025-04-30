@@ -33,7 +33,7 @@ import { useFeatureSettings } from '../provider';
  * @param {string} props.name Setting name.
  * @param {Function} props.onChange Change event handler.
  * @param {Array|null} props.options (optional) Control options.
- * @param {false|string} props.requiresFeature Any feature required by this setting.
+ * @param {false|string} props.requiresFeatures Any features required by this setting.
  * @param {boolean} props.requiresSync Whether setting changes require a sync.
  * @param {boolean|string} props.syncedValue Setting value at last sync.
  * @param {string} props.type Control type.
