@@ -21,6 +21,8 @@ class DidYouMean extends Feature {
 	public function __construct() {
 		$this->slug = 'did-you-mean';
 
+		$this->group_slug = 'core-search';
+
 		$this->requires_install_reindex = true;
 
 		$this->available_during_installation = true;
