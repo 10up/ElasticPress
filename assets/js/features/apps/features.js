@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Route, Routes, Navigate, HashRouter, useParams, Link } from 'react-router-dom';
+import { Route, Routes, Navigate, HashRouter, useParams, useNavigate } from 'react-router-dom';
 
 /**
  * WordPress dependencies.
@@ -31,14 +31,17 @@ import '../style.css';
  * @returns {WPElement} Tab component
  */
 const NavigationTab = ({ title, to, isActive }) => {
+	const navigate = useNavigate();
 	return (
-		<Link
-			to={to}
+		<button
 			className={`ep-dashboard-tab ${isActive ? 'is-active' : ''}`}
 			aria-current={isActive ? 'page' : undefined}
+			onClick={() => navigate(to)}
+			type="button"
+			id={`title-${title}-to-${to}`}
 		>
 			{title}
-		</Link>
+		</button>
 	);
 };
 
@@ -339,13 +342,15 @@ const FeatureSettingsContent = () => {
 		createNotice('success', resetNotice);
 	};
 
+	const currentGroup = groupedFeatures.find((g) => g.groupSlug === groupSlug);
+
 	return (
 		<form onReset={onReset} onSubmit={onSubmit}>
 			<div className="form-grid">
 				{/* Group Navigation */}
 				<GroupNavigation groupedFeatures={groupedFeatures} groupSlug={groupSlug} />
 
-				<div className="group-content">
+				<div className="group-content" id={`${currentGroup.title}-view`}>
 					{/* Feature Navigation for the current group */}
 					<FeatureNavigation
 						groupedFeatures={groupedFeatures}
@@ -357,7 +362,7 @@ const FeatureSettingsContent = () => {
 					/>
 
 					{/* Feature Content based on route parameters */}
-					<div className="ep-dashboard-content">
+					<div className="ep-dashboard-content" id={`${feature}-view`}>
 						{groupSlug && feature ? (
 							<Feature feature={feature} />
 						) : (

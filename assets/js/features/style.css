@@ -103,6 +103,7 @@
 	margin: 0;
 	padding: 3px 16px;
 	position: relative;
+	text-align: left;
 	text-decoration: none;
 	width: 100%;
 }
@@ -112,7 +113,7 @@
 	color: inherit;
 }
   
-a.ep-dashboard-tab.is-active {
+.ep-dashboard-tab.is-active {
 	background: #f0f0f0;
 	font-weight: 500;
 }
