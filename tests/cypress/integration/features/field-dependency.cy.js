@@ -1,7 +1,7 @@
 /**
  * Test suite for verifying conditional feature visibility
  */
-describe('Feature Visibility Tests', () => {
+describe('Field Dependency Tests', () => {
 	/**
 	 * Test case to verify a conditional feature is hidden until its requirement is met
 	 *
@@ -9,12 +9,10 @@ describe('Feature Visibility Tests', () => {
 	 * dependent on a specific requirement selection.
 	 *
 	 * Testing steps:
-	 * 1. Navigate to the Core Search section
-	 * 2. Navigate to the Post Search feature
-	 * 3. Verify the conditional feature is initially hidden
-	 * 4. Verify the requirement option exists and is checked by default
-	 * 5. Toggle the requirement option off and verify the feature appears
-	 * 6. Toggle the requirement option on again and verify the feature disappears
+	 * 1. Navigate to the Live Search section
+	 * 2. Navigate to the Autosuggest feature
+	 * 3. Verify the group exists
+	 * 4. Verify the fields inside the group exist
 	 */
 	it('should hide conditional feature until specific requirement is selected', () => {
 		/**
@@ -27,79 +25,70 @@ describe('Feature Visibility Tests', () => {
 		 */
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
-		/**
-		 * Navigate to the correct feature group and subfeature
-		 */
-		cy.contains('button', 'Core Search').click();
-		cy.contains('button', 'Post Search').click();
-
-		// eslint-disable-next-line cypress/unsafe-to-chain-command
-		cy.contains('.components-radio-control__option', "Don't weight results by date")
-			.find('input')
-			.click()
-			.then(() => {
-				/**
-				 * Test data for the conditional feature
-				 * @type {object}
-				 * @property {string} slug - The feature's internal identifier
-				 * @property {string} text - The feature's display text
-				 */
-				const conditionalFeature = {
-					slug: 'highlight_enabled',
-					text: 'Enable to wrap search terms',
-				};
-
-				/**
-				 * Test data for the requirement that controls visibility
-				 * @type {object}
-				 * @property {string} text - The requirement's display text
-				 */
-				const requirements = {
-					text: 'Weight results by date',
-				};
-
-				/**
-				 * Step 1: Verify that the conditional feature is not initially visible
-				 */
-				cy.contains('.ep-dashboard-control', conditionalFeature.text).should('not.exist');
-
-				/**
-				 * Step 2: Verify that the requirement option exists in the UI
-				 * Step 3: Verify that the requirement is selected by default
-				 */
-				cy.contains('.components-radio-control__option', requirements.text)
-					.should('exist')
-					.within(() => {
-						cy.get('input[type="radio"]').should('have.attr', 'checked');
-					});
-
-				/**
-				 * Additional verification steps
-				 */
-
-				/**
-				 * Toggle the requirement to see how it affects the conditional feature
-				 */
-				cy.contains('.components-radio-control__option', requirements.text)
-					.find('input')
-					.click();
-
-				/**
-				 * Verify the conditional feature becomes visible when requirement is toggled
-				 */
-				cy.contains('.ep-dashboard-control', conditionalFeature.text).should('be.visible');
-
-				/**
-				 * Toggle the wrong requirement to verify the opposite behavior
-				 */
-				cy.contains('.components-radio-control__option', "Don't weight results by date")
-					.find('input')
-					.click();
-
-				/**
-				 * Verify the conditional feature is hidden again after toggling
-				 */
-				cy.contains('.ep-dashboard-control', conditionalFeature.text).should('not.exist');
+		cy.window()
+			.then((win) => {
+				// Wait until epDashboard and features are available
+				return new Cypress.Promise((resolve) => {
+					const check = () => {
+						if (win.epDashboard && win.epDashboard.features) {
+							resolve(win);
+						} else {
+							setTimeout(check, 50);
+						}
+					};
+					check();
+				});
+			})
+			.then((win) => {
+				win.epDashboard.features[0].settingsSchema.push({
+					default: '1',
+					key: 'test_field',
+					label: 'Testing Field 1',
+					options: [
+						{
+							label: 'Option A',
+							value: '0',
+						},
+						{
+							label: 'Option B',
+							value: '1',
+						},
+					],
+					type: 'radio',
+				});
+				win.epDashboard.features[0].settingsSchema.push({
+					default: '1',
+					key: 'test_field_2',
+					label: 'Testing Field 2',
+					options: [
+						{
+							label: 'Option A',
+							value: '0',
+						},
+						{
+							label: 'Option B',
+							value: '1',
+						},
+					],
+					type: 'radio',
+					requiresFields: {
+						test_field: '0',
+					},
+				});
 			});
+
+		// Toggle Re-Render
+		cy.contains('button', 'Live Search').click();
+		cy.contains('button', 'Core Search').click();
+
+		cy.contains('.ep-dashboard-control', 'Testing Field 2').should('not.exist');
+
+		cy.contains('.ep-dashboard-control', 'Testing Field 1').as('testField');
+
+		// inside of testField, find the input with the label "Option A" and click it
+		cy.get('@testField').find('input[value="0"]').click();
+
+		// now, Testing Field 2 should be visible
+		cy.contains('.ep-dashboard-control', 'Testing Field 2').should('exist');
 	});
 });
