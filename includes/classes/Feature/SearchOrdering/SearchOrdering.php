@@ -52,6 +52,8 @@ class SearchOrdering extends Feature {
 	public function __construct() {
 		$this->slug = 'searchordering';
 
+		$this->group_slug = 'core-search';
+
 		$this->requires_install_reindex = false;
 
 		$this->requires_feature = 'search';

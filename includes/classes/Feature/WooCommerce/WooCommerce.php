@@ -54,6 +54,8 @@ class WooCommerce extends Feature {
 	public function __construct() {
 		$this->slug = 'woocommerce';
 
+		$this->group_slug = 'woocommerce';
+
 		$this->requires_install_reindex = true;
 
 		$this->setting_requires_install_reindex = 'orders';

@@ -52,6 +52,8 @@ class Search extends Feature {
 	public function __construct() {
 		$this->slug = 'search';
 
+		$this->group_slug = 'core-search';
+
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [

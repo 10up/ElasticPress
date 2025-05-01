@@ -38,6 +38,9 @@ class AcfRepeater extends Feature {
 	 */
 	public function __construct() {
 		$this->slug = 'acf_repeater';
+
+		$this->group_slug = 'core-search';
+
 		parent::__construct();
 	}
 

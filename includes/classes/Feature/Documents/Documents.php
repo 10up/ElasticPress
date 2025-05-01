@@ -25,6 +25,8 @@ class Documents extends Feature {
 	public function __construct() {
 		$this->slug = 'documents';
 
+		$this->group_slug = 'indexing-options';
+
 		$this->requires_install_reindex = false;
 
 		parent::__construct();
