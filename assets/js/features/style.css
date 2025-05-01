@@ -11,7 +11,7 @@
 	& .components-notice__actions {
 		display: inline-flex;
 	}
-
+	
 	& .components-checkbox-control:has([disabled]) {
 
 		& input[disabled],
@@ -20,75 +20,23 @@
 		}
 	}
 }
+  
+/* Dashboard Layout and Structure */
+.ep-dashboard-panel {
 
-.ep-dashboard-tabs {
-	display: grid;
-	grid-gap: 16px;
-	grid-template-columns: 2fr 5fr;
-
-	& .components-tab-panel__tab-content {
-		padding-top: 14px;
-
-		& .components-notice {
-			margin: 16px 0;
-		}
+	&.components-panel {
+		border: none;
 	}
-
-	& .components-tab-panel__tabs-item {
-		flex-wrap: wrap;
-		font-weight: 400;
-		text-align: left;
-
-		&.is-active {
-			background: #f0f0f0;
-			font-weight: 500;
-
-			&::after {
-				content: none;
-			}
-		}
-
-		&:focus:not(:disabled) {
-			box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
-			outline: var(--wp-admin-border-width-focus) solid transparent;
-		}
-	}
-
-	@media (max-width: 782px) {
-		gap: 0;
-		grid-template-columns: 1fr;
-
-		& .components-tab-panel__tabs {
-			margin-left: -16px;
-			margin-right: -16px;
-		}
+  
+	& .ep-dashboard-tabs {
+		display: block;
 	}
 }
-
-.ep-feature-tab {
-	align-items: start;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
+  
+.ep-dashboard-content {
+	padding: 14px 16px 32px 0;
 }
-
-.ep-feature-tab__status {
-	color: rgb(117, 117, 117);
-	display: block;
-	font-size: 12px;
-	font-weight: 400;
-	width: 100%;
-}
-
-.ep-dashboard-control {
-	margin-bottom: 24px;
-	margin-top: 24px;
-
-	& .components-base-control__help code {
-		font-size: inherit;
-	}
-}
-
+  
 .ep-dashboard-heading {
 	align-items: center;
 	display: flex;
@@ -97,47 +45,121 @@
 	justify-content: space-between;
 	min-height: 20px;
 }
-
-.ep-dashboard-outer-tabs {
+  
+.ep-dashboard-control {
+	margin: 24px 0;
+  
+	& .components-base-control__help code {
+		font-size: inherit;
+	}
+}
+  
+/* Group Content Structure */
+.group-content {
+	background: #fff;
+	border: 1px solid #e0e0e0;
 	display: grid;
-	grid-template-columns: 1fr 4fr;
-	margin-bottom: 16px;
+	grid-gap: 16px;
+	grid-template-columns: 2fr 5fr;
 	
-	& .components-tab-panel__tab-content .components-panel__body {
-		padding-bottom: 32px;
+	
+  
+	& .components-notice {
+		margin: 16px 0;
 	}
 }
-
-@media (max-width: 782px) {
-	
-	.ep-dashboard-outer-tabs {
-		grid-template-columns: 1fr;
-	}
-}
-
-.ep-dashboard-outer-tabs > .components-tab-panel__tabs {
+  
+/* Tabs Navigation */
+.ep-dashboard-outer-tabs {
 	align-content: baseline;
 	background: #fff;
 	border: 1px solid #e0e0e0;
 	border-right: none;
+	display: block;
 	flex-wrap: wrap;
-	
-	
-	& .components-tab-panel__tabs-item {
-		text-align: left;
-		width: 100%;
+	margin-bottom: 0;
+}
+  
+.ep-dashboard-tabs-nav {
+	width: 100%;
+}
+  
+.ep-dashboard-tab {
 
-		&.is-active {
-			background: #f0f0f0;
-			font-weight: 500;
-			
-			&::after {
-				content: none;
-			}
-		}
+	/* Base tab styling */
+	align-items: center;
+	background: transparent;
+	border: none;
+	border-radius: 2px;
+	box-shadow: none;
+	box-sizing: border-box;
+	color: var(--wp-components-color-foreground, #1e1e1e);
+	cursor: pointer;
+	display: inline-flex;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	height: 48px !important;
+	margin: 0;
+	padding: 3px 16px;
+	position: relative;
+	text-decoration: none;
+	width: 100%;
+}
+  
+a.ep-dashboard-tab.is-active {
+	background: #f0f0f0;
+	font-weight: 500;
+}
+  
+/* Feature Tab Styling */
+.ep-feature-tab {
+	align-items: start;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+  
+.ep-feature-tab__status {
+	color: rgb(117, 117, 117);
+	display: block;
+	font-size: 12px;
+	font-weight: 400;
+	width: 100%;
+}
+  
+/* Settings Page Form */
+.ep-settings-page form .form-grid {
+	display: grid;
+	grid-template-columns: 1fr 4fr;
+	margin-bottom: 16px;
+}
+  
+/* Media Queries */
+@media (max-width: 782px) {
 
-		&:not(.is-active) {
-			font-weight: 400;
+	.group-content {
+		gap: 0;
+		grid-template-columns: 1fr;
+  
+		& .components-tab-panel__tabs {
+			margin-left: -16px;
+			margin-right: -16px;
 		}
+	}
+  
+	.ep-dashboard-outer-tabs {
+		grid-template-columns: 1fr;
+	}
+}
+  
+@media (max-width: 768px) {
+
+	.ep-settings-page form .form-grid {
+		grid-template-columns: 1fr;
+	}
+	
+	.group-content {
+		grid-template-columns: 1fr;
 	}
 }

@@ -9,6 +9,7 @@
     "@wordpress/icons": "^10.13.0",
     "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
+    "react-router-dom": "^7.5.3",
     "react-slider": "^2.0.6",
     "uuid": "^11.0.5"
   },
@@ -93,7 +94,6 @@
       "synonyms-script": "./assets/js/synonyms/index.js",
       "weighting-script": "./assets/js/weighting/index.js",
       "woocommerce-order-search-script": "./assets/js/woocommerce/admin/orders/index.js",
-      
       "autosuggest-styles": "./assets/css/autosuggest.css",
       "comments-styles": "./assets/css/comments.css",
       "dashboard-styles": "./assets/css/dashboard.css",
