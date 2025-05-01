@@ -1,5 +1,12 @@
 import { test, expect } from '../fixtures';
-import { wpCli, activatePlugin, deactivatePlugin, publishPost } from '../utils';
+import {
+	activatePlugin,
+	deactivatePlugin,
+	goToAdminPage,
+	isEpIo,
+	publishPost,
+	wpCli,
+} from '../utils';
 
 test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can see the settings page link in WordPress Dashboard', async ({ loggedInPage }) => {
@@ -15,7 +22,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	}) => {
 		await activatePlugin(loggedInPage, 'fake-new-activation', 'wpCli');
 
-		await loggedInPage.goto('/wp-admin/');
+		await goToAdminPage(loggedInPage, '');
 		await expect
 			.soft(loggedInPage.locator('.wrap'))
 			.toContainText('ElasticPress is almost ready to go.');
@@ -28,7 +35,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	}) => {
 		await activatePlugin(loggedInPage, 'fake-new-activation', 'wpCli');
 
-		await loggedInPage.goto('/wp-admin/admin.php?page=elasticpress');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 		await expect.soft(loggedInPage.locator('.setup-button')).toContainText('Save Features');
 
 		await deactivatePlugin(loggedInPage, 'fake-new-activation', 'wpCli');
@@ -57,9 +64,13 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can see a warning in the dashboard if user activates plugin with an Elasticsearch version before or after min/max requirements', async ({
 		loggedInPage,
 	}) => {
+		if (isEpIo()) {
+			return;
+		}
+
 		await activatePlugin(loggedInPage, 'unsupported-elasticsearch-version', 'wpCli');
 
-		await loggedInPage.goto('/wp-admin/plugins.php');
+		await goToAdminPage(loggedInPage, 'plugins.php');
 		await expect
 			.soft(loggedInPage.locator('[data-ep-notice="es_above_compat"].notice'))
 			.toContainText('ElasticPress may or may not work properly.');
@@ -70,9 +81,13 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	test('Can see a warning in the dashboard if using other software than Elasticsearch', async ({
 		loggedInPage,
 	}) => {
+		if (isEpIo()) {
+			return;
+		}
+
 		await activatePlugin(loggedInPage, 'unsupported-server-software', 'wpCli');
 
-		await loggedInPage.goto('/wp-admin/plugins.php');
+		await goToAdminPage(loggedInPage, 'plugins.php');
 		await expect
 			.soft(loggedInPage.locator('[data-ep-notice="different_server_type"].notice'))
 			.toContainText('Your server software is not supported.');
@@ -81,7 +96,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	});
 
 	test('Can see Sync and Settings buttons on Settings Page', async ({ loggedInPage }) => {
-		await loggedInPage.goto('/wp-admin/admin.php?page=elasticpress-settings');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-settings');
 		await expect(loggedInPage.locator('.dashicons.start-sync')).toHaveAttribute(
 			'title',
 			'Sync Page',
@@ -96,7 +111,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 		// Make sure the sync is not in progress yet
 		await wpCli('eval "delete_option( \'ep_index_meta\' );"');
 
-		await loggedInPage.goto('/wp-admin/admin.php?page=elasticpress');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 		await wpCli("eval \"update_option( 'ep_index_meta', [ 'indexing' => true ] );\"");
 
 		await loggedInPage.click('button:has-text("Save changes")');

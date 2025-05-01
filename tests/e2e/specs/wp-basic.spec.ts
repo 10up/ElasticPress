@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { wpCli } from '../utils';
+import { goToAdminPage, wpCli } from '../utils';
 
 test.describe('WordPress basic actions', () => {
 	test.beforeAll('EP Sync', async () => {
@@ -21,14 +21,14 @@ test.describe('WordPress basic actions', () => {
 	});
 
 	test('can save own profile', async ({ loggedInPage }) => {
-		await loggedInPage.goto('/wp-admin/profile.php');
+		await goToAdminPage(loggedInPage, 'profile.php');
 		await loggedInPage.fill('#first_name', 'Test Name');
 		await loggedInPage.click('#submit');
 		await expect(loggedInPage.locator('#first_name')).toHaveValue('Test Name');
 	});
 
 	test('can change site title', async ({ loggedInPage }) => {
-		await loggedInPage.goto('/wp-admin/options-general.php');
+		await goToAdminPage(loggedInPage, 'options-general.php');
 		await expect(loggedInPage.locator('#wpadminbar')).toBeVisible();
 		await loggedInPage.fill('#blogname', 'Updated Title');
 		await loggedInPage.click('#submit');

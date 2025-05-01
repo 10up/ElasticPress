@@ -1,10 +1,14 @@
 /// <reference types="node" />
 
-import { Page } from '@playwright/test';
+import { FrameLocator, Page } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
 const { execFileSync } = require('child_process');
+
+export function isEpIo(): boolean {
+	return process.env.EP_IS_EPIO === '1';
+}
 
 export function getPluginRootDir(): string {
 	return path.resolve(__dirname, '../..');
@@ -69,7 +73,7 @@ export async function login(page: Page, username = 'admin', password = 'password
  */
 export async function goToAdminPage(page: Page, path: string) {
 	await page.goto(`/wp-admin/${path}`);
-	await page.waitForLoadState('networkidle');
+	await page.waitForLoadState('domcontentloaded');
 }
 
 export async function wpCli(command: string, ignoreFailures = false) {
@@ -213,6 +217,15 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 	await page.fill(selector, text);
 }
 
+export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
+	const editorFrame = page.locator('iframe[name="editor-canvas"]');
+	if (await editorFrame.isVisible()) {
+		return editorFrame.contentFrame();
+	}
+
+	return page;
+}
+
 /**
  * Create and publish a new post
  * @param page Playwright page object
@@ -231,41 +244,46 @@ export async function publishPost(
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
 	await goToAdminPage(page, 'post-new.php');
-	await page.waitForSelector('h1.editor-post-title__input, #post-title-0');
+	const editorFrame = await getEditorFrame(page);
 
-	await clearThenType(page, 'h1.editor-post-title__input, #post-title-0', newPostData.title);
-	await page
+	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
+	await editorFrame
 		.locator('.block-editor-default-block-appender__content')
 		.pressSequentially(newPostData.content);
 
 	if (newPostData.password && newPostData.password !== '') {
-		await page.click('h1.editor-post-title__input');
-		const settingsButton = page.locator(
+		await editorFrame.locator('h1.editor-post-title__input').click();
+		const settingsButton = editorFrame.locator(
 			'.edit-post-header__settings button[aria-label="Settings"]',
 		);
 		if (await settingsButton.isVisible()) {
 			await settingsButton.click();
 		}
 
-		const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
+		const visibilityToggle = editorFrame.locator('.edit-post-post-visibility__toggle');
 		await visibilityToggle.click();
-		await page.check('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio');
-		await page.fill(
-			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
-			newPostData.password,
-		);
+		await editorFrame
+			.locator('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio')
+			.check();
+		await editorFrame
+			.locator(
+				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+			)
+			.fill(newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
-		await page.click('.editor-post-save-draft');
+		await page.locator('.editor-post-save-draft').click();
 		await page.waitForSelector('.editor-post-saved-state');
 	} else {
-		await page.click('.editor-post-publish-panel__toggle');
-		await page.click('.editor-post-publish-button');
+		await page.locator('.editor-post-publish-panel__toggle').click();
+		await page.locator('.editor-post-publish-button').click();
 		await page.waitForSelector('.components-snackbar');
 
 		if (viewPost) {
-			await page.click('.post-publish-panel__postpublish-buttons a:has-text("View Post")');
+			await page
+				.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")')
+				.click();
 		}
 	}
 
