@@ -1,5 +1,9 @@
 name: Playwright Tests
 
+permissions:
+  contents: read
+  pull-requests: write
+
 env:
   CI: true
   COMPOSER_VERSION: "2"
