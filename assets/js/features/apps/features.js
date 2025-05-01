@@ -89,7 +89,7 @@ const FeatureNavigation = ({
 							<NavigationTab
 								key={featureObj.slug}
 								slug={featureObj.slug}
-								title={featureObj.title || featureObj.slug}
+								title={featureObj.shortTitle || featureObj.title || featureObj.slug}
 								to={`/${currentGroup.groupSlug}/${featureObj.slug}`}
 								isActive={feature === featureObj.slug}
 							/>
