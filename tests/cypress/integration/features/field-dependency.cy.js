@@ -71,7 +71,7 @@ describe('Field Dependency Tests', () => {
 						},
 					],
 					type: 'radio',
-					requiresFields: {
+					requires_fields: {
 						test_field: '0',
 					},
 				});

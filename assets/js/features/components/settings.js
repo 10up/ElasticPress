@@ -41,16 +41,16 @@ export default ({ feature, settingsSchema }) => {
 	/**
 	 * Determines whether a control should be rendered based on its requirements.
 	 *
-	 * @param {object} requiresFields An object representing the required field values for rendering.
+	 * @param {object} requires_fields An object representing the required field values for rendering.
 	 * The keys are field names, and the values are the required values.
 	 * @returns {boolean} Returns `true` if the control should be rendered, otherwise `false`.
 	 */
-	const shouldRenderControl = (requiresFields) => {
-		if (!requiresFields || Object.keys(requiresFields).length === 0) {
+	const shouldRenderControl = (requires_fields) => {
+		if (!requires_fields || Object.keys(requires_fields).length === 0) {
 			return true;
 		}
 
-		return Object.entries(requiresFields).every(([fieldKey, requiredValue]) => {
+		return Object.entries(requires_fields).every(([fieldKey, requiredValue]) => {
 			const actualValue = settings[feature]?.[fieldKey];
 			const defaultValue = defaultSettings[fieldKey] ?? false;
 			return actualValue === requiredValue ?? actualValue === defaultValue;
@@ -67,14 +67,14 @@ export default ({ feature, settingsSchema }) => {
 			options,
 			requires_feature,
 			requires_sync,
-			requiresFields,
+			requires_fields,
 			type,
 		} = s;
 
 		/**
-		 * Skip rendering if the control should not be rendered based on requiresFields.
+		 * Skip rendering if the control should not be rendered based on requires_fields.
 		 */
-		if (!shouldRenderControl(requiresFields)) {
+		if (!shouldRenderControl(requires_fields)) {
 			return null;
 		}
 
