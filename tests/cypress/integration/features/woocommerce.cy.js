@@ -26,8 +26,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.activatePlugin('woocommerce');
 
 		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.get('#tab-panel-0-WooCommerce').click();
-		cy.get('#tab-panel-0-WooCommerce-view button').click();
+		cy.contains('.ep-dashboard-outer-tabs .ep-dashboard-tab', 'WooCommerce').click();
+		cy.contains('.group-content .ep-dashboard-tab', 'WooCommerce').click();
 		cy.get('.components-form-toggle__input').should('be.checked');
 	});
 
@@ -39,8 +39,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 		cy.visitAdminPage('admin.php?page=elasticpress');
 		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
-		cy.get('#tab-panel-0-WooCommerce').click();
-		cy.get('#tab-panel-0-WooCommerce-view button').contains('WooCommerce').click();
+		cy.contains('.ep-dashboard-outer-tabs .ep-dashboard-tab', 'WooCommerce').click();
+		cy.contains('.group-content .ep-dashboard-tab', 'WooCommerce').click();
 		cy.contains('label', 'Enable').click();
 		cy.contains('button', 'Save and sync now').click();
 
@@ -356,8 +356,8 @@ describe('WooCommerce Feature', { tags: '@slow' }, () => {
 			/**
 			 * Enable the feature.
 			 */
-			cy.get('#tab-panel-0-WooCommerce').click();
-			cy.get('#tab-panel-0-WooCommerce-view button').contains('WooCommerce').click();
+			cy.contains('.ep-dashboard-outer-tabs .ep-dashboard-tab', 'WooCommerce').click();
+			cy.contains('.group-content .ep-dashboard-tab', 'WooCommerce').click();
 
 			cy.contains('label', 'Show suggestions')
 				.closest('.components-base-control')
