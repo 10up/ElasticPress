@@ -3,16 +3,8 @@
  */
 describe('Multiple Requires Features Support', () => {
 	/**
-	 * Test case to verify a conditional feature is hidden until its requirement is met
-	 *
-	 * This test verifies the visibility behavior of a conditional feature
-	 * dependent on a specific requirement selection.
-	 *
-	 * Testing steps:
-	 * 1. Navigate to the Live Search section
-	 * 2. Navigate to the Autosuggest feature
-	 * 3. Verify the group exists
-	 * 4. Verify the fields inside the group exist
+	 * Checks to confirm that the did you mean feature requires the core search feature.
+	 * @todo Switch this test to a feature with multiple feature requirements, when one is available.
 	 */
 	it('should have two missing features', () => {
 		/**
@@ -25,33 +17,16 @@ describe('Multiple Requires Features Support', () => {
 		 */
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
-		// Disable AutoSuggest
-		cy.contains('button', 'Live Search').click();
-		cy.contains('button', 'Autosuggest').click();
-		cy.get('[id*="autosuggest-view"]').find('.components-form-toggle').as('formToggle');
-		cy.get('@formToggle').then(($toggle) => {
-			if ($toggle.hasClass('is-checked')) {
-				cy.wrap($toggle).find('input').click();
-			}
-		});
+		cy.contains('button', 'Core Search').click();
+		cy.contains('button', 'Post Search').click();
 
-		// Disable Protected Content
-		cy.contains('button', 'Indexing Options').click();
-		cy.contains('button', 'Protected Content').click();
-		cy.get('[id*="protected_content-view"]').find('.components-form-toggle').as('formToggle');
-		cy.get('@formToggle').then(($toggle) => {
-			if ($toggle.hasClass('is-checked')) {
-				cy.wrap($toggle).find('input').click();
-			}
-		});
+		// Disable search featuer
+		cy.get('.components-form-toggle__input').click();
 
-		// Confirm Documents can't be enabled
-		cy.contains('button', 'Indexing Options').click();
-		cy.contains('button', 'Documents').click();
-
+		cy.contains('button', 'Did You Mean').click();
 		cy.contains(
-			'.components-notice',
-			'Autosuggest, and Protected Content feature must be enabled to use this feature.',
-		).should('exist');
+			'.components-notice.is-error',
+			'The Post Search feature must be enabled to use this feature.',
+		).should('be.visible');
 	});
 });
