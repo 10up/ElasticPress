@@ -39,8 +39,6 @@ class AcfRepeater extends Feature {
 	public function __construct() {
 		$this->slug = 'acf_repeater';
 
-		$this->group_slug = 'core-search';
-
 		parent::__construct();
 	}
 
@@ -50,7 +48,10 @@ class AcfRepeater extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'ACF Repeater Field Compatibility', 'elasticpress' );
 
-		$this->group = esc_html__( '3rd Party Plugins', 'elasticpress' );
+		$this->group = [
+			'label' => esc_html__( '3rd Party Plugins', 'elasticpress' ),
+			'slug'  => 'third-party-plugins',
+		];
 
 		$this->short_title = esc_html__( 'ACF Repeater Field', 'elasticpress' );
 

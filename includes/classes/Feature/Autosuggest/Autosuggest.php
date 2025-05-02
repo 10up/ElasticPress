@@ -40,8 +40,6 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
-		$this->group_slug = 'live-search';
-
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
@@ -66,7 +64,10 @@ class Autosuggest extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Autosuggest', 'elasticpress' );
 
-		$this->group = esc_html__( 'Live Search', 'elasticpress' );
+		$this->group = [
+			'label' => esc_html__( 'Live Search', 'elasticpress' ),
+			'slug'  => 'live-search',
+		];
 
 		$this->short_title = esc_html__( 'Autosuggest', 'elasticpress' );
 

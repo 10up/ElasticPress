@@ -11,7 +11,7 @@
 	& .components-notice__actions {
 		display: inline-flex;
 	}
-	
+
 	& .components-checkbox-control:has([disabled]) {
 
 		& input[disabled],
@@ -20,23 +20,27 @@
 		}
 	}
 }
-  
+
 /* Dashboard Layout and Structure */
 .ep-dashboard-panel {
 
 	&.components-panel {
 		border: none;
 	}
-  
+
 	& .ep-dashboard-tabs {
 		display: block;
 	}
 }
-  
+
 .ep-dashboard-content {
 	padding: 14px 16px 32px 0;
+
+	@media (max-width: 768px) {
+		padding-left: 16px;
+	}
 }
-  
+
 .ep-dashboard-heading {
 	align-items: center;
 	display: flex;
@@ -45,15 +49,15 @@
 	justify-content: space-between;
 	min-height: 20px;
 }
-  
+
 .ep-dashboard-control {
 	margin: 24px 0;
-  
+
 	& .components-base-control__help code {
 		font-size: inherit;
 	}
 }
-  
+
 /* Group Content Structure */
 .group-content {
 	background: #fff;
@@ -61,14 +65,22 @@
 	display: grid;
 	grid-gap: 16px;
 	grid-template-columns: 2fr 5fr;
-	
-	
-  
+
 	& .components-notice {
 		margin: 16px 0;
 	}
+
+	@media (max-width: 768px) {
+		gap: 0;
+		grid-template-columns: 1fr;
+
+		& .components-tab-panel__tabs {
+			margin-left: -16px;
+			margin-right: -16px;
+		}
+	}
 }
-  
+
 /* Tabs Navigation */
 .ep-dashboard-outer-tabs {
 	align-content: baseline;
@@ -78,14 +90,18 @@
 	display: block;
 	flex-wrap: wrap;
 	margin-bottom: 0;
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
 }
-  
+
 .ep-dashboard-tabs-nav {
 	width: 100%;
 }
-  
-.ep-dashboard-tab {
 
+.ep-dashboard-tab {
+	
 	/* Base tab styling */
 	align-items: center;
 	background: transparent;
@@ -112,12 +128,12 @@
 	box-shadow: none;
 	color: inherit;
 }
-  
+
 .ep-dashboard-tab.is-active {
 	background: #f0f0f0;
 	font-weight: 500;
 }
-  
+
 /* Feature Tab Styling */
 .ep-feature-tab {
 	align-items: start;
@@ -125,7 +141,7 @@
 	flex-direction: column;
 	gap: 4px;
 }
-  
+
 .ep-feature-tab__status {
 	color: rgb(117, 117, 117);
 	display: block;
@@ -133,39 +149,14 @@
 	font-weight: 400;
 	width: 100%;
 }
-  
+
 /* Settings Page Form */
 .ep-settings-page form .form-grid {
 	display: grid;
 	grid-template-columns: 1fr 4fr;
 	margin-bottom: 16px;
-}
-  
-/* Media Queries */
-@media (max-width: 782px) {
 
-	.group-content {
-		gap: 0;
-		grid-template-columns: 1fr;
-  
-		& .components-tab-panel__tabs {
-			margin-left: -16px;
-			margin-right: -16px;
-		}
-	}
-  
-	.ep-dashboard-outer-tabs {
-		grid-template-columns: 1fr;
-	}
-}
-  
-@media (max-width: 768px) {
-
-	.ep-settings-page form .form-grid {
-		grid-template-columns: 1fr;
-	}
-	
-	.group-content {
+	@media (max-width: 768px) {
 		grid-template-columns: 1fr;
 	}
 }

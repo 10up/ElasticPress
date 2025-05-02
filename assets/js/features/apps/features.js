@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Route, Routes, Navigate, HashRouter, useParams, useNavigate } from 'react-router-dom';
 
@@ -48,13 +51,13 @@ const NavigationTab = ({ title, to, isActive }) => {
 const GroupNavigation = ({ groupedFeatures, groupSlug }) => (
 	<div className="ep-dashboard-outer-tabs">
 		<div className="ep-dashboard-tabs-nav">
-			{groupedFeatures.map((groupObj) => (
+			{groupedFeatures.map(({ groupSlug: slug, title, features }) => (
 				<NavigationTab
-					key={groupObj.title}
-					slug={groupObj.groupSlug}
-					title={groupObj.title}
-					to={`/${groupObj.groupSlug}/${groupObj.features[0]?.slug || ''}`}
-					isActive={groupSlug === groupObj.groupSlug}
+					key={title}
+					slug={slug}
+					title={title}
+					to={`/${slug}/${features[0]?.slug || ''}`}
+					isActive={groupSlug === slug}
 				/>
 			))}
 		</div>
@@ -85,13 +88,13 @@ const FeatureNavigation = ({
 				) : null}
 				<div className="ep-dashboard-tabs">
 					<div className="ep-dashboard-tabs-nav">
-						{currentGroup.features.map((featureObj) => (
+						{currentGroup.features.map(({ slug, shortTitle, title }) => (
 							<NavigationTab
-								key={featureObj.slug}
-								slug={featureObj.slug}
-								title={featureObj.shortTitle || featureObj.title || featureObj.slug}
-								to={`/${currentGroup.groupSlug}/${featureObj.slug}`}
-								isActive={feature === featureObj.slug}
+								key={slug}
+								slug={slug}
+								title={shortTitle || title || slug}
+								to={`/${currentGroup.groupSlug}/${slug}`}
+								isActive={feature === slug}
 							/>
 						))}
 					</div>
@@ -207,7 +210,7 @@ const FeatureSettingsContent = () => {
 			.filter((f) => f.isVisible && f.group)
 			.reduce((uniqueGroups, feature) => {
 				// Skip if we already have this group
-				if (uniqueGroups.some((g) => g.name === feature.group)) {
+				if (uniqueGroups.some((g) => g.name === feature.group.label)) {
 					return uniqueGroups;
 				}
 
@@ -215,10 +218,10 @@ const FeatureSettingsContent = () => {
 				return [
 					...uniqueGroups,
 					{
-						name: feature.group,
-						// Use group_slug if available, otherwise slugify the group name
+						name: feature.group.label,
 						slug:
-							feature.group_slug || feature.group.toLowerCase().replace(/\s+/g, '-'),
+							feature.group.slug ||
+							feature.group.label.toLowerCase().replace(/\s+/g, '-'),
 					},
 				];
 			}, []);
@@ -227,12 +230,16 @@ const FeatureSettingsContent = () => {
 		const groupsWithFeatures = groups.map((groupInfo) => ({
 			title: groupInfo.name,
 			groupSlug: groupInfo.slug,
-			features: features.filter((f) => f.isVisible && f.group === groupInfo.name),
+			features: features.filter(
+				(f) => f.isVisible && f.group && f.group.label === groupInfo.name,
+			),
 		}));
 
 		// Add "Other" group for visible features without a group
 		const otherFeatures = features.filter(
-			(f) => f.isVisible && (!f.group || !groups.some((g) => g.name === f.group)),
+			(f) =>
+				f.isVisible &&
+				(!f.group || !groups.some((g) => g.name === (f.group && f.group.label))),
 		);
 
 		if (otherFeatures.length > 0) {
@@ -433,7 +440,7 @@ export default () => {
 			.filter((f) => f.group)
 			.reduce((uniqueGroups, feature) => {
 				// Skip if we already have this group
-				if (uniqueGroups.some((g) => g.name === feature.group)) {
+				if (uniqueGroups.some((g) => g.name === feature.group.label)) {
 					return uniqueGroups;
 				}
 
@@ -441,10 +448,11 @@ export default () => {
 				return [
 					...uniqueGroups,
 					{
-						name: feature.group,
+						name: feature.group.label,
 						// Use group_slug if available, otherwise slugify the group name
 						slug:
-							feature.group_slug || feature.group.toLowerCase().replace(/\s+/g, '-'),
+							feature.group.slug ||
+							feature.group.label.toLowerCase().replace(/\s+/g, '-'),
 					},
 				];
 			}, []);
@@ -453,12 +461,12 @@ export default () => {
 		const groupedItems = groups.map((groupInfo) => ({
 			title: groupInfo.name,
 			groupSlug: groupInfo.slug,
-			features: visibleFeatures.filter((f) => f.group === groupInfo.name),
+			features: visibleFeatures.filter((f) => f.group && f.group.label === groupInfo.name),
 		}));
 
 		// Add "Other" group for features without a group
 		const otherFeatures = visibleFeatures.filter(
-			(f) => !f.group || !groups.some((g) => g.name === f.group),
+			(f) => !f.group || !groups.some((g) => g.name === (f.group && f.group.label)),
 		);
 
 		if (otherFeatures.length > 0) {
@@ -534,15 +542,12 @@ const GroupRedirect = ({ features, defaultFeature }) => {
 	const visibleFeatures = features.filter((f) => f.isVisible);
 
 	// Find the first feature in the specified group slug
-	// First look for features with matching group_slug
-	let featuresInGroup = visibleFeatures.filter((f) => f.group_slug === groupSlug);
-
-	// If no features found with group_slug, try finding by slugified group name
-	if (featuresInGroup.length === 0) {
-		featuresInGroup = visibleFeatures.filter(
-			(f) => f.group && f.group.toLowerCase().replace(/\s+/g, '-') === groupSlug,
-		);
-	}
+	const featuresInGroup = visibleFeatures.filter(
+		(f) =>
+			f.group &&
+			((f.group.slug && f.group.slug === groupSlug) ||
+				(f.group.label && f.group.label.toLowerCase().replace(/\s+/g, '-') === groupSlug)),
+	);
 
 	// Sort by order and get the first feature
 	const firstFeatureInGroup = featuresInGroup.sort((a, b) => a.order - b.order)[0];
