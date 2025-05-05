@@ -85,7 +85,7 @@ export async function wpCli(command: string, ignoreFailures = false) {
 		const res = execFileSync(command, args);
 		return res;
 	} catch (err) {
-		return null;
+		return ignoreFailures ? err.toString() : null;
 	}
 }
 
@@ -495,4 +495,8 @@ export async function refreshIndex(indexable: string) {
 	await wpCli(
 		`eval "\\$index = \\\\ElasticPress\\\\Indexables::factory()->get( '${indexable}' )->get_index_name(); WP_CLI::runcommand('elasticpress request {\\$index}/_refresh --method=POST');"`,
 	);
+}
+
+export function getSyncTimeout(): number {
+	return parseInt(process.env?.EP_INDEX_TIMEOUT || '30000', 10);
 }
