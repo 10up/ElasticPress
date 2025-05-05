@@ -121,7 +121,7 @@ test.describe('Post Indexable', () => {
 		await loggedInPage.waitForLoadState('domcontentloaded');
 		await setPostPassword(loggedInPage, '');
 
-		await loggedInPage.locator('#wp-admin-bar-view a').click();
+		await loggedInPage.locator('#wp-admin-bar-view a').click({ force: true });
 		await loggedInPage
 			.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-retrieve-es-document')
 			.dispatchEvent('click');
@@ -136,7 +136,7 @@ test.describe('Post Indexable', () => {
 		await loggedInPage.waitForLoadState('domcontentloaded');
 		await setPostPassword(loggedInPage, 'password');
 
-		await loggedInPage.locator('#wp-admin-bar-view a').click();
+		await loggedInPage.locator('#wp-admin-bar-view a').click({ force: true });
 		await loggedInPage
 			.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-retrieve-es-document')
 			.dispatchEvent('click');
