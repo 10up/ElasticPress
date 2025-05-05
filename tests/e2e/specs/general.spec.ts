@@ -142,10 +142,13 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 			'Failed',
 			'Errors',
 		];
-		cells.forEach(async (cell, index) => {
-			await expect(
+
+		const promises = cells.map((cell, index) =>
+			expect(
 				syncTable.locator(`tr:nth-child(${index + 1}) ${selector}`).first(),
-			).toContainText(cell);
-		});
+			).toContainText(cell),
+		);
+
+		await Promise.all(promises);
 	});
 });
