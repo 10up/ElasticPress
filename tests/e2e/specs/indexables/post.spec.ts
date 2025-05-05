@@ -23,7 +23,7 @@ test.describe('Post Indexable', () => {
 		// Make sure post categories are searchable
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-weighting');
 		const apiRequestPromise = loggedInPage.waitForResponse(
-			'/wp-json/elasticpress/v1/weighting*',
+			'**/wp-json/elasticpress/v1/weighting*',
 		);
 
 		const postsPanel = loggedInPage

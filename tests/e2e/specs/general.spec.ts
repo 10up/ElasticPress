@@ -123,7 +123,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 	});
 
 	test('Can see ElasticPress Last Sync Accordion', async ({ loggedInPage }) => {
-		await loggedInPage.goto('/wp-admin/site-health.php?tab=debug');
+		await goToAdminPage(loggedInPage, 'site-health.php?tab=debug');
 		await loggedInPage.click('[aria-controls="health-check-accordion-block-ep-last-sync"]');
 
 		const syncTable = loggedInPage.locator(

@@ -74,6 +74,9 @@ export async function login(page: Page, username = 'admin', password = 'password
 export async function goToAdminPage(page: Page, path: string) {
 	await page.goto(`/wp-admin/${path}`);
 	await page.waitForLoadState('domcontentloaded');
+	if (page.frames().length > 0) {
+		await Promise.all(page.frames().map((frame) => frame.waitForLoadState('domcontentloaded')));
+	}
 }
 
 export async function wpCli(command: string, ignoreFailures = false) {
@@ -226,6 +229,27 @@ export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
 	return page;
 }
 
+export async function maybeOpenEditorSettings(page: Page) {
+	const editorSettings = page.getByRole('region', { name: 'Editor settings' });
+	try {
+		await editorSettings.waitFor({ state: 'visible', timeout: 5 });
+		const isEditorSettingsVisible = await editorSettings.isVisible();
+		if (!isEditorSettingsVisible) {
+			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
+		}
+	} catch (error) {
+		// Do nothing
+	}
+}
+
+export async function maybeOpenPostTab(page: Page) {
+	const postTab = page.getByRole('tab', { name: 'Post' });
+	const isPostTabActive = await postTab.getAttribute('aria-selected');
+	if (!isPostTabActive) {
+		await postTab.click();
+	}
+}
+
 /**
  * Create and publish a new post
  * @param page Playwright page object
@@ -275,7 +299,10 @@ export async function publishPost(
 			if (!(await statusDropdown.isVisible())) {
 				await page.locator('.edit-post-header button[aria-label="Settings"]').click();
 			}
-			await page.getByRole('tablist').getByRole('tab', { name: 'Post' }).click();
+			await page
+				.getByRole('tablist')
+				.getByRole('tab', { name: 'Post' })
+				.click({ force: true });
 			await statusDropdown.click();
 			await page
 				.locator('.editor-change-status__password-fieldset input[type="checkbox"]')
@@ -334,12 +361,10 @@ export async function setPostPassword(page: Page, password: string) {
 			);
 		}
 	} else {
-		const statusDropdown = page.locator('.components-dropdown.editor-post-status');
-		const statusDropdownIsVisible = await statusDropdown.isVisible();
-		if (!statusDropdownIsVisible) {
-			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
-		}
-		await statusDropdown.click();
+		await maybeOpenEditorSettings(page);
+		await maybeOpenPostTab(page);
+
+		await page.locator('.components-dropdown.editor-post-status').click();
 
 		const passwordCheckbox = page.locator(
 			'.editor-change-status__password-fieldset input[type="checkbox"]',
