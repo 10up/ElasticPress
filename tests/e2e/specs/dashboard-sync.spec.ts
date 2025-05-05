@@ -4,6 +4,7 @@ import {
 	deactivatePlugin,
 	getSyncTimeout,
 	goToAdminPage,
+	resetSettings,
 	setPerIndexCycle,
 	wpCli,
 } from '../utils';
@@ -45,6 +46,7 @@ test.describe('Dashboard Sync', () => {
 		await wpCli('elasticpress settings-reset --yes');
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress');
 		await loggedInPage.getByRole('link', { name: 'Skip Install' }).click();
+		await loggedInPage.waitForSelector('.ep-settings-page');
 
 		// Check if "Delete all data" checkbox doesn't exist initially
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-sync');
@@ -61,6 +63,8 @@ test.describe('Dashboard Sync', () => {
 
 		// Check if "Delete all data" checkbox appears after sync
 		await expect(loggedInPage.getByText('Delete all data')).toBeVisible();
+
+		await resetSettings();
 	});
 
 	test('Can sync via Dashboard when activated in single site', async ({ loggedInPage }) => {
