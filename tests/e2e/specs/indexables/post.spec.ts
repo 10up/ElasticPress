@@ -119,9 +119,8 @@ test.describe('Post Indexable', () => {
 		// If the password is removed, the post should be indexed
 		await loggedInPage.locator('#wp-admin-bar-edit a').click();
 		await loggedInPage.waitForLoadState('domcontentloaded');
-		await setPostPassword(loggedInPage, '');
+		await setPostPassword(loggedInPage, '', true);
 
-		await loggedInPage.locator('#wp-admin-bar-view a').click({ force: true });
 		await loggedInPage
 			.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-retrieve-es-document')
 			.dispatchEvent('click');
@@ -134,9 +133,8 @@ test.describe('Post Indexable', () => {
 		// If the password is re-added, it should be removed from the index
 		await loggedInPage.locator('#wp-admin-bar-edit a').click();
 		await loggedInPage.waitForLoadState('domcontentloaded');
-		await setPostPassword(loggedInPage, 'password');
+		await setPostPassword(loggedInPage, 'password', true);
 
-		await loggedInPage.locator('#wp-admin-bar-view a').click({ force: true });
 		await loggedInPage
 			.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-retrieve-es-document')
 			.dispatchEvent('click');

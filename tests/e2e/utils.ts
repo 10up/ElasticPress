@@ -337,7 +337,7 @@ export async function publishPost(
  * @param page Playwright page object
  * @param password Password to set
  */
-export async function setPostPassword(page: Page, password: string) {
+export async function setPostPassword(page: Page, password: string, goToPost = false) {
 	if (process.env.WP_VERSION === '6.2') {
 		const settingsButton = page.locator(
 			'.edit-post-header__settings button[aria-label="Settings"]',
@@ -387,6 +387,11 @@ export async function setPostPassword(page: Page, password: string) {
 
 	// Wait for Elasticsearch to process the post
 	await page.waitForTimeout(2000);
+
+	if (goToPost) {
+		const postHref = (await page.locator('#wp-admin-bar-view a').getAttribute('href')) ?? '';
+		await page.goto(postHref);
+	}
 }
 
 /**
