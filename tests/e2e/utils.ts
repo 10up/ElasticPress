@@ -252,24 +252,38 @@ export async function publishPost(
 		.pressSequentially(newPostData.content);
 
 	if (newPostData.password && newPostData.password !== '') {
-		await editorFrame.locator('h1.editor-post-title__input').click();
-		const settingsButton = editorFrame.locator(
-			'.edit-post-header__settings button[aria-label="Settings"]',
-		);
-		if (await settingsButton.isVisible()) {
-			await settingsButton.click();
-		}
+		if (process.env.WP_VERSION === '6.2') {
+			const settingsButton = page.locator(
+				'.edit-post-header__settings button[aria-label="Settings"]',
+			);
+			if (await settingsButton.isVisible()) {
+				await settingsButton.click();
+			}
 
-		const visibilityToggle = editorFrame.locator('.edit-post-post-visibility__toggle');
-		await visibilityToggle.click();
-		await editorFrame
-			.locator('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio')
-			.check();
-		await editorFrame
-			.locator(
-				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
-			)
-			.fill(newPostData.password);
+			const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
+			await visibilityToggle.click();
+			await page
+				.locator('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio')
+				.check();
+			await page
+				.locator(
+					'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+				)
+				.fill(newPostData.password);
+		} else {
+			const statusDropdown = page.locator('.components-dropdown.editor-post-status');
+			if (!(await statusDropdown.isVisible())) {
+				await page.locator('.edit-post-header button[aria-label="Settings"]').click();
+			}
+			await page.getByRole('tablist').getByRole('tab', { name: 'Post' }).click();
+			await statusDropdown.click();
+			await page
+				.locator('.editor-change-status__password-fieldset input[type="checkbox"]')
+				.click();
+			await page
+				.locator('.editor-change-status__password-input input')
+				.fill(newPostData.password);
+		}
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
@@ -297,28 +311,50 @@ export async function publishPost(
  * @param password Password to set
  */
 export async function setPostPassword(page: Page, password: string) {
-	await page.click('h1.editor-post-title__input');
-
-	const settingsButton = page.locator(
-		'.edit-post-header__settings button[aria-label="Settings"]',
-	);
-	if (await settingsButton.isVisible()) {
-		await settingsButton.click();
-	}
-
-	const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
-	await visibilityToggle.click();
-	await page.check(
-		password !== ''
-			? '.editor-post-visibility__dialog-radio'
-			: '.editor-post-visibility__radio',
-	);
-
-	if (password !== '') {
-		await page.fill(
-			'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
-			password,
+	if (process.env.WP_VERSION === '6.2') {
+		const settingsButton = page.locator(
+			'.edit-post-header__settings button[aria-label="Settings"]',
 		);
+		if (await settingsButton.isVisible()) {
+			await settingsButton.click();
+		}
+
+		const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
+		await visibilityToggle.click();
+		await page.check(
+			password !== ''
+				? '.editor-post-visibility__dialog-radio'
+				: '.editor-post-visibility__radio',
+		);
+
+		if (password !== '') {
+			await page.fill(
+				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+				password,
+			);
+		}
+	} else {
+		const statusDropdown = page.locator('.components-dropdown.editor-post-status');
+		const statusDropdownIsVisible = await statusDropdown.isVisible();
+		if (!statusDropdownIsVisible) {
+			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
+		}
+		await statusDropdown.click();
+
+		const passwordCheckbox = page.locator(
+			'.editor-change-status__password-fieldset input[type="checkbox"]',
+		);
+		const passwordCheckboxIsChecked = await passwordCheckbox.isChecked();
+		if (
+			(passwordCheckboxIsChecked && password === '') ||
+			(!passwordCheckboxIsChecked && password !== '')
+		) {
+			await passwordCheckbox.click();
+		}
+
+		if (password !== '') {
+			await page.locator('.editor-change-status__password-input input').fill(password);
+		}
 	}
 
 	await page.click('.editor-post-publish-button');
