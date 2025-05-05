@@ -51,6 +51,7 @@ test.describe('WordPress can perform standard ElasticPress actions', () => {
 		});
 
 		await loggedInPage.reload();
+		await loggedInPage.waitForLoadState('domcontentloaded');
 		await expect(loggedInPage.locator('#wp-admin-bar-ep-doc-status')).toContainText(
 			'Content in sync',
 		);
