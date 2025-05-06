@@ -21,7 +21,7 @@ function mountAutosuggestOnInput(input, apiConfig, contextValue = {}) {
 	// createRoot once
 	const root = createRoot(dropdownContainer);
 	root.render(
-		<ApiSearchProvider {...apiConfig}>
+		<ApiSearchProvider {...apiConfig} useUrlParams={false}>
 			<AutosuggestContext.Provider value={contextValue}>
 				<AutosuggestUI inputEl={input} />
 			</AutosuggestContext.Provider>

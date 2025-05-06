@@ -79,6 +79,7 @@ const Context = createContext();
  * @param {WPElement} props.children Component children.
  * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
  * @param {Function} props.onAuthError Function to run when request authentication fails.
+ * @param {boolean} props.useUrlParams Whether to use URL parameters for state (default true).
  * @returns {WPElement} Component.
  */
 export const ApiSearchProvider = ({
@@ -90,17 +91,18 @@ export const ApiSearchProvider = ({
 	children,
 	paramPrefix,
 	onAuthError,
+	useUrlParams = true,
 }) => {
 	/**
 	 * Any default args from the URL.
 	 */
 	const defaultArgsFromUrl = useMemo(() => {
-		if (!paramPrefix) {
+		if (!paramPrefix || !useUrlParams) {
 			return {};
 		}
 
 		return getArgsFromUrlParams(argsSchema, paramPrefix);
-	}, [argsSchema, paramPrefix]);
+	}, [argsSchema, paramPrefix, useUrlParams]);
 
 	/**
 	 * All default args including defaults from the schema.
@@ -118,8 +120,8 @@ export const ApiSearchProvider = ({
 	 * Whether the provider is "on" by default.
 	 */
 	const defaultIsOn = useMemo(() => {
-		return Object.keys(defaultArgsFromUrl).length > 0;
-	}, [defaultArgsFromUrl]);
+		return useUrlParams ? Object.keys(defaultArgsFromUrl).length > 0 : false;
+	}, [defaultArgsFromUrl, useUrlParams]);
 
 	/**
 	 * Set up fetch method.
@@ -271,7 +273,7 @@ export const ApiSearchProvider = ({
 	 * @returns {void}
 	 */
 	const pushState = useCallback(() => {
-		if (typeof paramPrefix === 'undefined') {
+		if (typeof paramPrefix === 'undefined' || !useUrlParams) {
 			return;
 		}
 
@@ -292,7 +294,7 @@ export const ApiSearchProvider = ({
 		} else {
 			window.history.replaceState(state, document.title, window.location.href);
 		}
-	}, [argsSchema, paramPrefix]);
+	}, [argsSchema, paramPrefix, useUrlParams]);
 
 	/**
 	 * Handle popstate event.
@@ -301,7 +303,7 @@ export const ApiSearchProvider = ({
 	 */
 	const onPopState = useCallback(
 		(event) => {
-			if (typeof paramPrefix === 'undefined') {
+			if (typeof paramPrefix === 'undefined' || !useUrlParams) {
 				return;
 			}
 
@@ -311,7 +313,7 @@ export const ApiSearchProvider = ({
 				popState(event.state);
 			}
 		},
-		[paramPrefix],
+		[paramPrefix, useUrlParams],
 	);
 
 	/**
@@ -320,12 +322,14 @@ export const ApiSearchProvider = ({
 	 * @returns {Function} A cleanup function.
 	 */
 	const handleInit = useCallback(() => {
-		window.addEventListener('popstate', onPopState);
-
-		return () => {
-			window.removeEventListener('popstate', onPopState);
-		};
-	}, [onPopState]);
+		if (useUrlParams) {
+			window.addEventListener('popstate', onPopState);
+			return () => {
+				window.removeEventListener('popstate', onPopState);
+			};
+		}
+		return () => {};
+	}, [onPopState, useUrlParams]);
 
 	/**
 	 * Handle a change to search args.
@@ -336,7 +340,7 @@ export const ApiSearchProvider = ({
 		const handle = async () => {
 			const { args, isOn, isPoppingState, activeFilters, searchTerm } = stateRef.current;
 
-			if (!isPoppingState) {
+			if (!isPoppingState && useUrlParams) {
 				pushState();
 			}
 
@@ -344,16 +348,27 @@ export const ApiSearchProvider = ({
 				return;
 			}
 
-			// Get URL parameters from args
-			let urlParams = getUrlParamsFromArgs(args, argsSchema);
+			// Build URL parameters from args
+			const urlParams = new URLSearchParams();
+
+			// Add all args from schema to URL params
+			Object.entries(args).forEach(([key, value]) => {
+				if (value !== null && value !== undefined) {
+					if (Array.isArray(value)) {
+						urlParams.set(key, value.join(','));
+					} else {
+						urlParams.set(key, value.toString());
+					}
+				}
+			});
 
 			// Apply query parameter filters through WP hooks
-			urlParams = applyQueryParamsFilter(urlParams, searchTerm, activeFilters);
+			const filteredParams = applyQueryParamsFilter(urlParams, searchTerm, activeFilters);
 
 			setIsLoading(true);
 
 			try {
-				const response = await fetchResults(urlParams);
+				const response = await fetchResults(filteredParams);
 
 				if (!response) {
 					return;
@@ -379,7 +394,7 @@ export const ApiSearchProvider = ({
 		};
 
 		handle();
-	}, [argsSchema, fetchResults, pushState]);
+	}, [fetchResults, pushState, useUrlParams]);
 
 	/**
 	 * Effects.
@@ -434,6 +449,7 @@ export const ApiSearchProvider = ({
 		suggestedTerms,
 		isFirstSearch,
 		updateFilters,
+		useUrlParams,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
