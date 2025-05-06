@@ -48,31 +48,61 @@ const NavigationTab = ({ title, to, isActive }) => {
 	);
 };
 
-const GroupNavigation = ({ groupedFeatures, groupSlug }) => (
-	<div className="ep-dashboard-outer-tabs">
-		<div className="ep-dashboard-tabs-nav">
-			{groupedFeatures.map(({ groupSlug: slug, title, features }) => (
-				<NavigationTab
-					key={title}
-					slug={slug}
-					title={title}
-					to={`/${slug}/${features[0]?.slug || ''}`}
-					isActive={groupSlug === slug}
-				/>
-			))}
-		</div>
-	</div>
-);
+/**
+ * Group navigation component that determines which group is active based on the current feature
+ *
+ * @param {object} props Component props
+ * @param {Array} props.groupedFeatures Grouped features data
+ * @param {string} props.activeFeature Currently active feature slug
+ * @returns {WPElement} Group navigation component
+ */
+const GroupNavigation = ({ groupedFeatures, activeFeature }) => {
+	// Find which group contains the active feature
+	const activeGroup = groupedFeatures.find((group) =>
+		group.features.some((feature) => feature.slug === activeFeature),
+	);
 
+	const activeGroupSlug = activeGroup?.groupSlug || groupedFeatures[0]?.groupSlug;
+
+	return (
+		<div className="ep-dashboard-outer-tabs">
+			<div className="ep-dashboard-tabs-nav">
+				{groupedFeatures.map(({ groupSlug, title, features }) => (
+					<NavigationTab
+						key={title}
+						slug={groupSlug}
+						title={title}
+						to={`/${features[0]?.slug || ''}`}
+						isActive={groupSlug === activeGroupSlug}
+					/>
+				))}
+			</div>
+		</div>
+	);
+};
+
+/**
+ * Feature navigation component for features within a group
+ *
+ * @param {object} props Component props
+ * @param {Array} props.groupedFeatures Grouped features data
+ * @param {string} props.activeFeature Currently active feature
+ * @param {boolean} props.isSyncing Whether a sync is in progress
+ * @param {Array} props.isSyncingActions Actions when syncing
+ * @param {string} props.isSyncingNotice Notice when syncing
+ * @returns {WPElement} Feature navigation component
+ */
 const FeatureNavigation = ({
 	groupedFeatures,
-	groupSlug,
+	activeFeature,
 	isSyncing,
 	isSyncingActions,
 	isSyncingNotice,
-	feature,
 }) => {
-	const currentGroup = groupedFeatures.find((g) => g.groupSlug === groupSlug);
+	// Find which group contains the active feature
+	const currentGroup = groupedFeatures.find((group) =>
+		group.features.some((feature) => feature.slug === activeFeature),
+	);
 
 	if (!currentGroup) {
 		return null;
@@ -93,8 +123,8 @@ const FeatureNavigation = ({
 								key={slug}
 								slug={slug}
 								title={shortTitle || title || slug}
-								to={`/${currentGroup.groupSlug}/${slug}`}
-								isActive={feature === slug}
+								to={`/${slug}`}
+								isActive={activeFeature === slug}
 							/>
 						))}
 					</div>
@@ -122,8 +152,8 @@ const FeatureSettingsContent = () => {
 		setIsSyncing,
 	} = useFeatureSettings();
 
-	// Get group slug and feature from URL parameters
-	const { groupSlug, feature } = useParams();
+	// Get feature from URL parameters
+	const { feature } = useParams();
 
 	/**
 	 * URL to start a sync.
@@ -202,7 +232,7 @@ const FeatureSettingsContent = () => {
 	const [willSyncLater, setWillSyncLater] = useState(false);
 
 	/**
-	 * Group visible features by their group property and use group_slug for URLs
+	 * Group visible features by their group property
 	 */
 	const groupedFeatures = useMemo(() => {
 		// Get unique groups with their slugs from features that are visible and have a group
@@ -349,28 +379,33 @@ const FeatureSettingsContent = () => {
 		createNotice('success', resetNotice);
 	};
 
-	const currentGroup = groupedFeatures.find((g) => g.groupSlug === groupSlug);
+	// Find which group contains the active feature
+	const currentGroup = groupedFeatures.find((group) =>
+		group.features.some((feature) => feature.slug === feature),
+	);
+
+	// If we can't find the current group, use the first one
+	const activeGroup = currentGroup || groupedFeatures[0];
 
 	return (
 		<form onReset={onReset} onSubmit={onSubmit}>
 			<div className="form-grid">
 				{/* Group Navigation */}
-				<GroupNavigation groupedFeatures={groupedFeatures} groupSlug={groupSlug} />
+				<GroupNavigation groupedFeatures={groupedFeatures} activeFeature={feature} />
 
-				<div className="group-content" id={`${currentGroup.title}-view`}>
+				<div className="group-content" id={`${activeGroup?.title}-view`}>
 					{/* Feature Navigation for the current group */}
 					<FeatureNavigation
 						groupedFeatures={groupedFeatures}
-						groupSlug={groupSlug}
+						activeFeature={feature}
 						isSyncing={isSyncing}
 						isSyncingActions={isSyncingActions}
 						isSyncingNotice={isSyncingNotice}
-						feature={feature}
 					/>
 
 					{/* Feature Content based on route parameters */}
 					<div className="ep-dashboard-content" id={`${feature}-view`}>
-						{groupSlug && feature ? (
+						{feature ? (
 							<Feature feature={feature} />
 						) : (
 							<Notice status="info" isDismissible={false}>
@@ -435,82 +470,24 @@ export default () => {
 	const defaultRouteInfo = useMemo(() => {
 		const visibleFeatures = features.filter((f) => f.isVisible);
 
-		// Get unique groups with their slugs
-		const groups = visibleFeatures
-			.filter((f) => f.group)
-			.reduce((uniqueGroups, feature) => {
-				// Skip if we already have this group
-				if (uniqueGroups.some((g) => g.name === feature.group.label)) {
-					return uniqueGroups;
-				}
+		// Get the first visible feature as default
+		const defaultFeature = visibleFeatures[0]?.slug || '';
+		const hasFeatures = visibleFeatures.length > 0;
 
-				// Add the group with its name and slug
-				return [
-					...uniqueGroups,
-					{
-						name: feature.group.label,
-						// Use group_slug if available, otherwise slugify the group name
-						slug:
-							feature.group.slug ||
-							feature.group.label.toLowerCase().replace(/\s+/g, '-'),
-					},
-				];
-			}, []);
-
-		// Create grouped features with slugs
-		const groupedItems = groups.map((groupInfo) => ({
-			title: groupInfo.name,
-			groupSlug: groupInfo.slug,
-			features: visibleFeatures.filter((f) => f.group && f.group.label === groupInfo.name),
-		}));
-
-		// Add "Other" group for features without a group
-		const otherFeatures = visibleFeatures.filter(
-			(f) => !f.group || !groups.some((g) => g.name === (f.group && f.group.label)),
-		);
-
-		if (otherFeatures.length > 0) {
-			groupedItems.push({
-				title: __('Other', 'elasticpress'),
-				groupSlug: 'other',
-				features: otherFeatures,
-			});
-		}
-
-		const defaultGroup = groupedItems[0]?.groupSlug || '';
-		const defaultFeature = groupedItems[0]?.features[0]?.slug || '';
-		const hasFeatures = groupedItems.length > 0 && groupedItems[0]?.features.length > 0;
-
-		return { defaultGroup, defaultFeature, hasFeatures };
+		return { defaultFeature, hasFeatures };
 	}, [features]);
 
 	return (
 		<HashRouter>
 			<Routes>
-				{/* Main route for displaying feature settings with specific group slug and feature */}
-				<Route path="/:groupSlug/:feature" element={<FeatureSettingsContent />} />
-
-				{/* Group-level route that redirects to the first feature in that group */}
-				<Route
-					path="/:groupSlug"
-					element={
-						<GroupRedirect
-							features={features}
-							defaultFeature={defaultRouteInfo.defaultFeature}
-						/>
-					}
-				/>
+				{/* Main route for displaying feature settings with specific feature */}
+				<Route path="/:feature" element={<FeatureSettingsContent />} />
 
 				{/* Default redirect when accessing root or invalid URLs */}
 				{defaultRouteInfo.hasFeatures ? (
 					<Route
 						path="*"
-						element={
-							<Navigate
-								to={`/${defaultRouteInfo.defaultGroup}/${defaultRouteInfo.defaultFeature}`}
-								replace
-							/>
-						}
+						element={<Navigate to={`/${defaultRouteInfo.defaultFeature}`} replace />}
 					/>
 				) : (
 					<Route
@@ -525,36 +502,4 @@ export default () => {
 			</Routes>
 		</HashRouter>
 	);
-};
-
-/**
- * Helper component for redirecting from group-level URLs to specific features
- *
- * @param {object} props Component props
- * @param {Array} props.features All features
- * @param {string} props.defaultFeature Default feature to redirect to if none found
- * @returns {WPElement} Redirect component
- */
-const GroupRedirect = ({ features, defaultFeature }) => {
-	const { groupSlug } = useParams();
-
-	// Get all visible features
-	const visibleFeatures = features.filter((f) => f.isVisible);
-
-	// Find the first feature in the specified group slug
-	const featuresInGroup = visibleFeatures.filter(
-		(f) =>
-			f.group &&
-			((f.group.slug && f.group.slug === groupSlug) ||
-				(f.group.label && f.group.label.toLowerCase().replace(/\s+/g, '-') === groupSlug)),
-	);
-
-	// Sort by order and get the first feature
-	const firstFeatureInGroup = featuresInGroup.sort((a, b) => a.order - b.order)[0];
-
-	// If we found a feature, redirect to it, otherwise use the default
-	const targetFeature = firstFeatureInGroup?.slug || defaultFeature;
-
-	// Redirect to the first feature in the group
-	return <Navigate to={`/${groupSlug}/${targetFeature}`} replace />;
 };
