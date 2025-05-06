@@ -1,23 +1,42 @@
+import { applySuggestionItemFilter } from '../src/hooks';
+
 // Default Suggestion Item Template
-const SuggestionItem = ({ suggestion, isActive, onClick }) => (
-	<li
-		className={`autosuggest-item${isActive ? ' selected' : ''}`}
-		role="option"
-		aria-selected={isActive}
-		id={`autosuggest-option-${suggestion.id}`}
-		onMouseDown={onClick}
-		tabIndex={-1}
-	>
-		<a href={suggestion.url}>
-			{suggestion.thumbnail && (
-				<img src={suggestion.thumbnail} alt="" className="autosuggest-thumb" />
-			)}
-			<span className="autosuggest-title">{suggestion.title}</span>
-			{suggestion.category && (
-				<span className="autosuggest-category">{suggestion.category}</span>
-			)}
-		</a>
-	</li>
-);
+const SuggestionItem = ({ suggestion, isActive, onClick }) => {
+	// Apply filters to props
+	const filteredProps = applySuggestionItemFilter(suggestion, isActive, onClick);
+
+	// Check if a custom renderer was provided through the filter
+	if (filteredProps.renderSuggestion) {
+		return filteredProps.renderSuggestion();
+	}
+
+	// Otherwise, use the default rendering
+	const {
+		suggestion: filteredSuggestion,
+		isActive: filteredIsActive,
+		onClick: filteredOnClick,
+	} = filteredProps;
+
+	return (
+		<li
+			className={`autosuggest-item${filteredIsActive ? ' selected' : ''}`}
+			role="option"
+			aria-selected={filteredIsActive}
+			id={`autosuggest-option-${filteredSuggestion.id}`}
+			onMouseDown={filteredOnClick}
+			tabIndex={-1}
+		>
+			<a href={filteredSuggestion.url}>
+				{filteredSuggestion.thumbnail && (
+					<img src={filteredSuggestion.thumbnail} alt="" className="autosuggest-thumb" />
+				)}
+				<span className="autosuggest-title">{filteredSuggestion.title}</span>
+				{filteredSuggestion.category && (
+					<span className="autosuggest-category">{filteredSuggestion.category}</span>
+				)}
+			</a>
+		</li>
+	);
+};
 
 export default SuggestionItem;

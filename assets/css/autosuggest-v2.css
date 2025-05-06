@@ -44,8 +44,8 @@
 
 .ep-autosuggest {
 	background: #fff;
-	min-width: 500px;
 	padding: 20px;
+	width: 100%;
 }
 
 button.ep-autosuggest-filter {
@@ -70,4 +70,13 @@ button.ep-autosuggest-close {
 	text-transform: uppercase;
 	top: 0;
 	width: 30px;
+}
+
+.ep-autosuggest-wrapper {
+	position: relative;
+}
+
+.ep-autosuggest-dropdown-container {
+	position: absolute;
+	width: 100%;
 }
