@@ -1,31 +1,32 @@
 @import "./global/colors.css";
 
-.ep-autosuggest-container {
+.ep-autosuggest-wrapper {
 	position: relative;
 
 	& .ep-autosuggest {
 		background: var(--ep-c-white);
 		border: 1px solid var(--ep-c-white-gray);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-		display: none;
-		position: absolute;
-
 		width: 100%;
 		z-index: 200;
 
-		& > ul {
+		& ul {
 			list-style: none;
 			margin: 0 !important;
 
-			& > li {
+			& li {
 				font-family: sans-serif;
 
-				& > a.autosuggest-link {
+				& a {
 					color: var(--ep-c-black);
 					cursor: pointer;
 					display: block;
+					font-size: 14px;
+					font-weight: 700;
 					padding: 2px 10px;
-
+					text-decoration: none;
+					transition: background-color 0.15s, color 0.15s;
+					
 					&:hover,
 					&:active {
 						background-color: var(--ep-c-medium-white);
@@ -40,40 +41,6 @@
 		background-color: var(--ep-c-medium-white);
 		text-decoration: none;
 	}
-}
-
-.ep-autosuggest {
-	background: #fff;
-	padding: 20px;
-	width: 100%;
-}
-
-button.ep-autosuggest-filter {
-	padding: 5px 10px;
-}
-
-.ep-autosuggest-header {
-	align-items: center;
-	display: flex;
-	justify-content: space-between;
-	width: 100%;
-}
-
-button.ep-autosuggest-close {
-	align-items: center;
-	display: flex;
-	height: 30px;
-	justify-content: center;
-	padding: 0;
-	position: absolute;
-	right: 0;
-	text-transform: uppercase;
-	top: 0;
-	width: 30px;
-}
-
-.ep-autosuggest-wrapper {
-	position: relative;
 }
 
 .ep-autosuggest-dropdown-container {
