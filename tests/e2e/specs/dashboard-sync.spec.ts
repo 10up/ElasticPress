@@ -4,7 +4,7 @@ import {
 	deactivatePlugin,
 	getSyncTimeout,
 	goToAdminPage,
-	resetSettings,
+	setDefaultFeatureSettings,
 	setPerIndexCycle,
 	wpCli,
 } from '../utils';
@@ -64,7 +64,7 @@ test.describe('Dashboard Sync', () => {
 		// Check if "Delete all data" checkbox appears after sync
 		await expect(loggedInPage.getByText('Delete all data')).toBeVisible();
 
-		await resetSettings();
+		await setDefaultFeatureSettings();
 	});
 
 	test('Can sync via Dashboard when activated in single site', async ({ loggedInPage }) => {

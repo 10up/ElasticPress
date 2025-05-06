@@ -1,8 +1,8 @@
 import { test as setup } from '@playwright/test';
-import { resetSettings } from '../utils';
+import { setDefaultFeatureSettings } from '../utils';
 
 setup('Setup global variables', async () => {
-	const wpCliRespObj = await resetSettings();
+	const wpCliRespObj = await setDefaultFeatureSettings();
 
 	process.env.EP_INDEX_NAMES = wpCliRespObj.indexNames;
 	process.env.EP_IS_EPIO = wpCliRespObj.isEpIo === 1 ? '1' : '0';

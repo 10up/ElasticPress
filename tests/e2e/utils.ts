@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { FrameLocator, Page } from '@playwright/test';
+import { FrameLocator, Page, Locator } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
@@ -243,10 +243,79 @@ export async function maybeOpenEditorSettings(page: Page) {
 }
 
 export async function maybeOpenPostTab(page: Page) {
-	const postTab = page.getByRole('tab', { name: 'Post' });
-	const isPostTabActive = await postTab.getAttribute('aria-selected');
+	let postTab: Locator;
+	let isPostTabActive: string | boolean | null;
+	if (process.env.WP_VERSION === '6.2') {
+		postTab = page.locator('.edit-post-sidebar__panel-tab', { hasText: 'Post' });
+		const postTabClasses = await postTab.getAttribute('class');
+		isPostTabActive = postTabClasses?.includes('is-active') ?? false;
+	} else {
+		postTab = page.getByRole('tab', { name: 'Post' });
+		isPostTabActive = await postTab.getAttribute('aria-selected');
+	}
 	if (!isPostTabActive) {
 		await postTab.click();
+	}
+}
+
+/**
+ * Set post password
+ * @param page Playwright page object
+ * @param password Password to set
+ * @param save Whether to save the post after setting the password
+ * @param goToPost Whether to go to the post after setting the password
+ */
+export async function setPostPassword(
+	page: Page,
+	password: string,
+	save = false,
+	goToPost = false,
+) {
+	await maybeOpenEditorSettings(page);
+	await maybeOpenPostTab(page);
+
+	if (process.env.WP_VERSION === '6.2') {
+		await page.locator('.edit-post-post-visibility__toggle').click();
+		await page
+			.getByRole('radio', { name: password !== '' ? 'Password protected' : 'Public' })
+			.click();
+
+		if (password !== '') {
+			await page.fill(
+				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
+				password,
+			);
+		}
+	} else {
+		await page.locator('.components-dropdown.editor-post-status').click();
+
+		const passwordCheckbox = page.locator(
+			'.editor-change-status__password-fieldset input[type="checkbox"]',
+		);
+		const passwordCheckboxIsChecked = await passwordCheckbox.isChecked();
+		if (
+			(passwordCheckboxIsChecked && password === '') ||
+			(!passwordCheckboxIsChecked && password !== '')
+		) {
+			await passwordCheckbox.click();
+		}
+
+		if (password !== '') {
+			await page.locator('.editor-change-status__password-input input').fill(password);
+		}
+	}
+
+	if (save) {
+		await page.locator('.editor-post-publish-button__button').click();
+		await page.waitForSelector('.components-snackbar');
+
+		// Wait for Elasticsearch to process the post
+		await page.waitForTimeout(2000);
+	}
+
+	if (goToPost) {
+		const postHref = (await page.locator('#wp-admin-bar-view a').getAttribute('href')) ?? '';
+		await page.goto(postHref);
 	}
 }
 
@@ -276,41 +345,7 @@ export async function publishPost(
 		.pressSequentially(newPostData.content);
 
 	if (newPostData.password && newPostData.password !== '') {
-		if (process.env.WP_VERSION === '6.2') {
-			const settingsButton = page.locator(
-				'.edit-post-header__settings button[aria-label="Settings"]',
-			);
-			if (await settingsButton.isVisible()) {
-				await settingsButton.click();
-			}
-
-			const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
-			await visibilityToggle.click();
-			await page
-				.locator('.editor-post-visibility__dialog-radio, .editor-post-visibility__radio')
-				.check();
-			await page
-				.locator(
-					'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
-				)
-				.fill(newPostData.password);
-		} else {
-			const statusDropdown = page.locator('.components-dropdown.editor-post-status');
-			if (!(await statusDropdown.isVisible())) {
-				await page.locator('.edit-post-header button[aria-label="Settings"]').click();
-			}
-			await page
-				.getByRole('tablist')
-				.getByRole('tab', { name: 'Post' })
-				.click({ force: true });
-			await statusDropdown.click();
-			await page
-				.locator('.editor-change-status__password-fieldset input[type="checkbox"]')
-				.click();
-			await page
-				.locator('.editor-change-status__password-input input')
-				.fill(newPostData.password);
-		}
+		await setPostPassword(page, newPostData.password);
 	}
 
 	if (newPostData.status && newPostData.status === 'draft') {
@@ -330,68 +365,6 @@ export async function publishPost(
 
 	// Wait for Elasticsearch to process the new post
 	await page.waitForTimeout(2000);
-}
-
-/**
- * Set post password
- * @param page Playwright page object
- * @param password Password to set
- */
-export async function setPostPassword(page: Page, password: string, goToPost = false) {
-	if (process.env.WP_VERSION === '6.2') {
-		const settingsButton = page.locator(
-			'.edit-post-header__settings button[aria-label="Settings"]',
-		);
-		if (await settingsButton.isVisible()) {
-			await settingsButton.click();
-		}
-
-		const visibilityToggle = page.locator('.edit-post-post-visibility__toggle');
-		await visibilityToggle.click();
-		await page.check(
-			password !== ''
-				? '.editor-post-visibility__dialog-radio'
-				: '.editor-post-visibility__radio',
-		);
-
-		if (password !== '') {
-			await page.fill(
-				'.editor-post-visibility__dialog-password-input, .editor-post-visibility__password-input',
-				password,
-			);
-		}
-	} else {
-		await maybeOpenEditorSettings(page);
-		await maybeOpenPostTab(page);
-
-		await page.locator('.components-dropdown.editor-post-status').click();
-
-		const passwordCheckbox = page.locator(
-			'.editor-change-status__password-fieldset input[type="checkbox"]',
-		);
-		const passwordCheckboxIsChecked = await passwordCheckbox.isChecked();
-		if (
-			(passwordCheckboxIsChecked && password === '') ||
-			(!passwordCheckboxIsChecked && password !== '')
-		) {
-			await passwordCheckbox.click();
-		}
-
-		if (password !== '') {
-			await page.locator('.editor-change-status__password-input input').fill(password);
-		}
-	}
-
-	await page.click('.editor-post-publish-button');
-	await page.waitForSelector('.components-snackbar');
-
-	// Wait for Elasticsearch to process the post
-	await page.waitForTimeout(2000);
-
-	if (goToPost) {
-		const postHref = (await page.locator('#wp-admin-bar-view a').getAttribute('href')) ?? '';
-		await page.goto(postHref);
-	}
 }
 
 /**
@@ -567,7 +540,7 @@ export function getSyncTimeout(): number {
 	return parseInt(process.env?.EP_INDEX_TIMEOUT || '30000', 10);
 }
 
-export async function resetSettings() {
+export async function setDefaultFeatureSettings() {
 	const wpCliResponse = await wpCliEval(
 		`
 		\\ElasticPress\\IndexHelper::factory()->clear_index_meta();
