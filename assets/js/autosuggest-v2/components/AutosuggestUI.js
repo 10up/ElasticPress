@@ -40,17 +40,14 @@ const AutosuggestUI = ({
 
 	// Map searchResults to suggestions, applying any active filters
 	const suggestions = (searchResults || [])
-		// First apply type filter if active
 		.filter((hit) => !activeTypeFilter || hit._source.post_type === activeTypeFilter)
-		// Then map to the format expected by suggestion components
 		.map((hit) => ({
 			id: hit._source.ID,
 			title: hit._source.post_title,
 			url: hit._source.permalink,
 			type: hit._source.post_type,
-			thumbnail: hit._source.thumbnail || null,
+			thumbnail: typeof hit._source.thumbnail === 'string' ? hit._source.thumbnail : null,
 			category: hit._source.category || null,
-			// Include original source data for advanced filtering
 			_source: hit._source,
 		}));
 
