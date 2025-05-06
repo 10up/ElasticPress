@@ -98,6 +98,10 @@ export default (state, action) => {
 
 			break;
 		}
+		case 'UPDATE_FILTERS': {
+			newState.activeFilters = { ...newState.activeFilters, ...action.filters };
+			break;
+		}
 		default:
 			break;
 	}

@@ -26,6 +26,43 @@ import {
 } from './src/utilities';
 
 /**
+ * Add WordPress hooks integration
+ */
+
+/**
+ * Apply filters to search results
+ *
+ * @param {Array} searchResults - The original search results from API
+ * @param {string} searchTerm - The current search term
+ * @returns {Array} - The filtered search results
+ */
+export const applyResultsFilter = (searchResults, searchTerm) => {
+	// Check if wp.hooks is available (WordPress environment)
+	if (typeof wp !== 'undefined' && wp.hooks) {
+		return wp.hooks.applyFilters('ep.Autosuggest.suggestions', searchResults, searchTerm);
+	}
+
+	return searchResults;
+};
+
+/**
+ * Apply filters to query parameters
+ *
+ * @param {object} params - The original query parameters
+ * @param {string} searchTerm - The current search term
+ * @param {object} filters - Any active filters
+ * @returns {object} - The modified query parameters
+ */
+export const applyQueryParamsFilter = (params, searchTerm, filters = {}) => {
+	// Check if wp.hooks is available (WordPress environment)
+	if (typeof wp !== 'undefined' && wp.hooks) {
+		return wp.hooks.applyFilters('ep.Autosuggest.queryParams', params, searchTerm, filters);
+	}
+
+	return params;
+};
+
+/**
  * Instant Results context.
  */
 const Context = createContext();
@@ -110,6 +147,7 @@ export const ApiSearchProvider = ({
 		suggestedTerms: [],
 		isFirstSearch: true,
 		searchTerm: '',
+		activeFilters: {},
 	});
 
 	/**
@@ -150,15 +188,26 @@ export const ApiSearchProvider = ({
 	}, []);
 
 	/**
+	 * Update filters for the search
+	 *
+	 * @param {object} filters - Filter key-value pairs
+	 * @returns {void}
+	 */
+	const updateFilters = useCallback((filters) => {
+		dispatch({ type: 'UPDATE_FILTERS', filters });
+	}, []);
+
+	/**
 	 * Update the search term, triggering a search and resetting facet
 	 * constraints.
 	 *
 	 * @param {string} searchTerm Search term.
+	 * @param {object} filters Optional filters to apply
 	 * @returns {void}
 	 */
-	const searchFor = (searchTerm) => {
-		dispatch({ type: 'SEARCH_FOR', searchTerm });
-	};
+	const searchFor = useCallback((searchTerm, filters = {}) => {
+		dispatch({ type: 'SEARCH_FOR', searchTerm, filters });
+	}, []);
 
 	/**
 	 * Set loading state.
@@ -285,7 +334,7 @@ export const ApiSearchProvider = ({
 	 */
 	const handleSearch = useCallback(() => {
 		const handle = async () => {
-			const { args, isOn, isPoppingState } = stateRef.current;
+			const { args, isOn, isPoppingState, activeFilters, searchTerm } = stateRef.current;
 
 			if (!isPoppingState) {
 				pushState();
@@ -295,7 +344,11 @@ export const ApiSearchProvider = ({
 				return;
 			}
 
-			const urlParams = getUrlParamsFromArgs(args, argsSchema);
+			// Get URL parameters from args
+			let urlParams = getUrlParamsFromArgs(args, argsSchema);
+
+			// Apply query parameter filters through WP hooks
+			urlParams = applyQueryParamsFilter(urlParams, searchTerm, activeFilters);
 
 			setIsLoading(true);
 
@@ -304,6 +357,11 @@ export const ApiSearchProvider = ({
 
 				if (!response) {
 					return;
+				}
+
+				// Apply filters to search results if hooks are available
+				if (response.hits && response.hits.hits) {
+					response.hits.hits = applyResultsFilter(response.hits.hits, searchTerm);
 				}
 
 				setResults(response);
@@ -334,6 +392,7 @@ export const ApiSearchProvider = ({
 		state.args.order,
 		state.args.offset,
 		state.args.search,
+		state.activeFilters,
 	]);
 
 	/**
@@ -349,12 +408,14 @@ export const ApiSearchProvider = ({
 		totalResults,
 		suggestedTerms,
 		isFirstSearch,
+		activeFilters,
 	} = stateRef.current;
 
 	// eslint-disable-next-line react/jsx-no-constructed-context-values
 	const contextValue = {
 		aggregations,
 		args,
+		activeFilters,
 		clearConstraints,
 		clearResults,
 		getUrlParamsFromArgs,
@@ -372,6 +433,7 @@ export const ApiSearchProvider = ({
 		turnOff,
 		suggestedTerms,
 		isFirstSearch,
+		updateFilters,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;
