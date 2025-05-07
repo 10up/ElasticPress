@@ -1,0 +1,87 @@
+/*!*******************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./src/style.css ***!
+  \*******************************************************************************************************************************************************************/
+.custom-suggestion {
+	padding: 10px;
+	border-bottom: 1px solid #eee;
+	list-style: none;
+  }
+  
+  .custom-suggestion.active {
+	background-color: #f0f7ff;
+  }
+  
+  .custom-suggestion .suggestion-content {
+	display: flex;
+	align-items: center;
+  }
+  
+  .custom-suggestion .thumb {
+	width: 50px;
+	height: 50px;
+	margin-left: 10px;
+	-o-object-fit: cover;
+	   object-fit: cover;
+  }
+  
+  .custom-suggestion .suggestion-text {
+	flex: 1;
+  }
+  
+  .custom-suggestion .content-type {
+	display: inline-block;
+	font-size: 12px;
+	background: #eee;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin-top: 5px;
+  }
+
+  .custom-suggestion-list {
+	background: white;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	padding: 12px;
+  }
+  
+  .custom-header {
+	margin-bottom: 10px;
+	border-bottom: 1px solid #eee;
+	padding-bottom: 8px;
+  }
+  
+  .custom-header h3 {
+	margin: 0;
+	font-size: 16px;
+	color: #333;
+  }
+  
+  .suggestion-group {
+	margin-bottom: 15px;
+  }
+  
+  .group-title {
+	font-size: 14px;
+	color: #666;
+	margin: 0 0 8px 0;
+  }
+  
+  .group-items {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+  }
+  
+  .custom-view-all {
+	width: 100%;
+	padding: 8px;
+	border: none;
+	background: #f5f5f5;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+  }
+  
+  .custom-view-all:hover {
+	background: #e5e5e5;
+  }
