@@ -11,7 +11,7 @@
 function mytheme_enqueue_assets() {
 	wp_enqueue_script(
 		'mytheme-scripts',
-		'/wp-content/plugins/autosuggest-v2-test-hooks/autosuggest-v2-test-hooks.js',
+		'/wp-content/themes/child-theme/build/index.js',
 		array( 'wp-element', 'wp-hooks' ),
 		null,
 		true

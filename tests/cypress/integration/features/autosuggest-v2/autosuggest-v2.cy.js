@@ -129,7 +129,7 @@ describe('ElasticPress Autosuggest V2', () => {
 				}).then((actionResult) => {
 					if (actionResult.stdout.includes('exists')) {
 						// We're in GitHub Actions environment, use the known path
-						themesDir = '/home/runner/work/elasticpress/elasticpress/wp-content/themes';
+						themesDir = '/home/runner/work/ElasticPress/ElasticPress/wp-content/themes';
 						cy.log(`Using GitHub runner path: ${themesDir}`);
 						return setupChildTheme();
 					}
