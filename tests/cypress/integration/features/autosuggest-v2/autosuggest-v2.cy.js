@@ -1,6 +1,6 @@
-// autosuggest-v2.cy.js
-
 describe('ElasticPress Autosuggest V2', () => {
+	let wpEnvDir;
+	let themesDir;
 	before(() => {
 		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
 		cy.maybeDisableFeature('instant-results');
@@ -9,8 +9,8 @@ describe('ElasticPress Autosuggest V2', () => {
 
 		// Find WP environment directory
 		cy.exec('cd ~/.wp-env && ls -t | grep -E "^[0-9a-f]{32}$" | head -n 1').then((result) => {
-			const wpEnvDir = result.stdout.trim();
-			const themesDir = `~/.wp-env/${wpEnvDir}/tests-WordPress/wp-content/themes`;
+			wpEnvDir = result.stdout.trim();
+			themesDir = `~/.wp-env/${wpEnvDir}/tests-WordPress/wp-content/themes`;
 
 			cy.login();
 
@@ -21,29 +21,50 @@ describe('ElasticPress Autosuggest V2', () => {
 				// First check and perform network activation
 				cy.visit('/wp-admin/network/themes.php');
 
-				// Check if the theme is already network-activated
-				cy.get('.theme-title:contains("Twenty Twenty-One Child")').then(($theme) => {
-					// Check if the theme has .enable child element
+				// Break up the chain - check if theme exists
+				cy.get('body').should('exist');
+				cy.get('.theme-title:contains("Twenty Twenty-One Child")').first().as('childTheme');
+
+				// Check if theme needs activation
+				cy.get('@childTheme').then(($theme) => {
 					if ($theme.find('.enable').length > 0) {
-						// Find and click the edit link under enable
-						cy.wrap($theme).find('.enable .edit').click();
+						// Store reference to the enable button rather than finding it in the chain
+						cy.get('.theme-title:contains("Twenty Twenty-One Child")')
+							.first()
+							.find('.enable .edit')
+							.as('enableButton');
+
+						cy.get('@enableButton').click();
+
+						// Wait explicitly for page reload
+						// eslint-disable-next-line cypress/no-unnecessary-waiting
+						cy.wait(2000);
+						cy.reload();
+						cy.get('body').should('be.visible');
 					} else {
-						// Confirm it has a disable element instead
-						cy.wrap($theme).find('.disable').should('exist');
+						// Check with a separate command
+						cy.get('.theme-title:contains("Twenty Twenty-One Child")')
+							.first()
+							.find('.disable')
+							.should('exist');
 					}
 				});
 
-				// Activate on main site if needed
+				// Activate on main site if needed - also with broken up chains
 				cy.visit('/wp-admin/themes.php');
-				cy.get('.theme:contains("Twenty Twenty-One Child")').then(($theme) => {
-					// Check if theme needs activation without clicking first
+				cy.get('body').should('exist');
+				cy.get('.theme:contains("Twenty Twenty-One Child")').as('childThemeMain');
+
+				cy.get('@childThemeMain').then(($theme) => {
 					if ($theme.find('.activate').length > 0) {
-						// Theme not activated, activate it
-						cy.wrap($theme).find('.activate').click();
+						cy.get('.theme:contains("Twenty Twenty-One Child")')
+							.find('.activate')
+							.as('activateButton');
+
+						cy.get('@activateButton').click();
 						// eslint-disable-next-line cypress/no-unnecessary-waiting
-						cy.wait(2000);
+						cy.wait(3000);
 					} else {
-						// Already active, no need to do anything
 						cy.log('Child Theme already active on main site');
 					}
 				});
@@ -60,5 +81,40 @@ describe('ElasticPress Autosuggest V2', () => {
 		cy.get('.ep-autosuggest').should('be.visible');
 		cy.get('.ep-autosuggest .custom-header').should('be.visible');
 		cy.get('.ep-autosuggest .suggestion-group').should('be.visible');
+	});
+
+	// Add cleanup after test is complete
+	after(() => {
+		// Only execute if we have the theme directory
+		if (wpEnvDir && themesDir) {
+			// Switch to a different theme first to ensure the child theme can be removed
+			cy.visit('/wp-admin/themes.php');
+
+			// Break up the chain and handle the theme activation more safely
+			cy.get('body').then(() => {
+				// Check if parent theme exists and is not active
+				cy.get('.theme:contains("Twenty Twenty-One"):not(:contains("Child"))')
+					.first()
+					.then(($parentTheme) => {
+						// Check if we need to activate it
+						if ($parentTheme.find('.activate').length > 0) {
+							// Use cy.get again to ensure we have a fresh reference
+							cy.get('.theme:contains("Twenty Twenty-One"):not(:contains("Child"))')
+								.first()
+								.find('.activate')
+								.click();
+
+							// Wait for page to reload after theme activation
+							cy.reload();
+							cy.get('body').should('exist');
+						}
+					});
+			});
+
+			// After theme switching is complete, remove the child theme directory
+			cy.exec(`rm -rf ${themesDir}/child-theme`).then(() => {
+				cy.log('Child theme removed successfully');
+			});
+		}
 	});
 });
