@@ -2,74 +2,81 @@ describe('ElasticPress Autosuggest V2', () => {
 	let wpEnvDir;
 	let themesDir;
 	before(() => {
-		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
 		cy.maybeDisableFeature('instant-results');
 		cy.maybeDisableFeature('autosuggest');
 		cy.maybeEnableFeature('autosuggest-v2');
 
+		const wpEnvPath = process.env.GITHUB_ACTIONS
+			? `${process.env.GITHUB_WORKSPACE}/.wp-env`
+			: '~/.wp-env';
+
 		// Find WP environment directory
-		cy.exec('cd ~/.wp-env && ls -t | grep -E "^[0-9a-f]{32}$" | head -n 1').then((result) => {
-			wpEnvDir = result.stdout.trim();
-			themesDir = `~/.wp-env/${wpEnvDir}/tests-WordPress/wp-content/themes`;
+		cy.exec(`cd ${wpEnvPath} && ls -t | grep -E "^[0-9a-f]{32}$" | head -n 1`).then(
+			(result) => {
+				wpEnvDir = result.stdout.trim();
+				themesDir = `~/.wp-env/${wpEnvDir}/tests-WordPress/wp-content/themes`;
 
-			cy.login();
+				cy.login();
 
-			// Clone the child theme directory
-			cy.exec(
-				`cp -r ./tests/cypress/integration/features/autosuggest-v2/tests-child-theme ${themesDir}/child-theme`,
-			).then(() => {
-				// First check and perform network activation
-				cy.visit('/wp-admin/network/themes.php');
+				// Clone the child theme directory
+				cy.exec(
+					`cp -r ./tests/cypress/integration/features/autosuggest-v2/tests-child-theme ${themesDir}/child-theme`,
+				).then(() => {
+					// First check and perform network activation
+					cy.visit('/wp-admin/network/themes.php');
 
-				// Break up the chain - check if theme exists
-				cy.get('body').should('exist');
-				cy.get('.theme-title:contains("Twenty Twenty-One Child")').first().as('childTheme');
+					// Break up the chain - check if theme exists
+					cy.get('body').should('exist');
+					cy.get('.theme-title:contains("Twenty Twenty-One Child")')
+						.first()
+						.as('childTheme');
 
-				// Check if theme needs activation
-				cy.get('@childTheme').then(($theme) => {
-					if ($theme.find('.enable').length > 0) {
-						// Store reference to the enable button rather than finding it in the chain
-						cy.get('.theme-title:contains("Twenty Twenty-One Child")')
-							.first()
-							.find('.enable .edit')
-							.as('enableButton');
+					// Check if theme needs activation
+					cy.get('@childTheme').then(($theme) => {
+						if ($theme.find('.enable').length > 0) {
+							// Store reference to the enable button rather than finding it in the chain
+							cy.get('.theme-title:contains("Twenty Twenty-One Child")')
+								.first()
+								.find('.enable .edit')
+								.as('enableButton');
 
-						cy.get('@enableButton').click();
+							cy.get('@enableButton').click();
 
-						// Wait explicitly for page reload
-						// eslint-disable-next-line cypress/no-unnecessary-waiting
-						cy.wait(2000);
-						cy.reload();
-						cy.get('body').should('be.visible');
-					} else {
-						// Check with a separate command
-						cy.get('.theme-title:contains("Twenty Twenty-One Child")')
-							.first()
-							.find('.disable')
-							.should('exist');
-					}
+							// Wait explicitly for page reload
+							// eslint-disable-next-line cypress/no-unnecessary-waiting
+							cy.wait(2000);
+							cy.reload();
+							cy.get('body').should('be.visible');
+						} else {
+							// Check with a separate command
+							cy.get('.theme-title:contains("Twenty Twenty-One Child")')
+								.first()
+								.find('.disable')
+								.should('exist');
+						}
+					});
+
+					// Activate on main site if needed - also with broken up chains
+					cy.visit('/wp-admin/themes.php');
+					cy.get('body').should('exist');
+					cy.get('.theme:contains("Twenty Twenty-One Child")').as('childThemeMain');
+
+					cy.get('@childThemeMain').then(($theme) => {
+						if ($theme.find('.activate').length > 0) {
+							cy.get('.theme:contains("Twenty Twenty-One Child")')
+								.find('.activate')
+								.as('activateButton');
+
+							cy.get('@activateButton').click();
+							// eslint-disable-next-line cypress/no-unnecessary-waiting
+							cy.wait(3000);
+						} else {
+							cy.log('Child Theme already active on main site');
+						}
+					});
 				});
-
-				// Activate on main site if needed - also with broken up chains
-				cy.visit('/wp-admin/themes.php');
-				cy.get('body').should('exist');
-				cy.get('.theme:contains("Twenty Twenty-One Child")').as('childThemeMain');
-
-				cy.get('@childThemeMain').then(($theme) => {
-					if ($theme.find('.activate').length > 0) {
-						cy.get('.theme:contains("Twenty Twenty-One Child")')
-							.find('.activate')
-							.as('activateButton');
-
-						cy.get('@activateButton').click();
-						// eslint-disable-next-line cypress/no-unnecessary-waiting
-						cy.wait(3000);
-					} else {
-						cy.log('Child Theme already active on main site');
-					}
-				});
-			});
-		});
+			},
+		);
 	});
 
 	it('Should display results, and display the hooked customizations', () => {
