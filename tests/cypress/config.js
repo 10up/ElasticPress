@@ -15,6 +15,13 @@ module.exports = defineConfig({
 	elasticPressIndexTimeout: 100000,
 	e2e: {
 		async setupNodeEvents(on, config) {
+			on('task', {
+				log(message) {
+					// eslint-disable-next-line no-console
+					console.log(message);
+					return null;
+				},
+			});
 			on('after:spec', (spec, results) => {
 				if (results && results.video) {
 					// Do we have failures for any retry attempts?
