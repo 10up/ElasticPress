@@ -7,6 +7,30 @@ describe('ElasticPress Autosuggest V2', () => {
 
 	before(() => {
 		cy.task('log', '---------------------- TEST SETUP BEGINS ----------------------');
+
+		// Add this in the setup process before copying the child theme
+		cy.task('log', 'Inspecting environment directory structure');
+		cy.exec('pwd').then((result) => {
+			cy.task('log', `Current working directory: ${result.stdout}`);
+		});
+
+		// Find where wp-content might be located
+		cy.exec('find /home/runner/work -name "wp-content" -type d | head -n 5').then((result) => {
+			cy.task('log', `Possible wp-content directories:\n${result.stdout}`);
+		});
+
+		// Check current directory structure
+		cy.exec('ls -la').then((result) => {
+			cy.task('log', `Files in current directory:\n${result.stdout}`);
+		});
+
+		// Check if wp-content exists in current directory
+		cy.exec(
+			'ls -la ./wp-content 2>/dev/null || echo "No wp-content in current directory"',
+		).then((result) => {
+			cy.task('log', `wp-content directory content (if exists):\n${result.stdout}`);
+		});
+
 		cy.task('log', 'Disabling features and enabling autosuggest-v2');
 		cy.maybeDisableFeature('instant-results');
 		cy.maybeDisableFeature('autosuggest');
@@ -180,19 +204,22 @@ describe('ElasticPress Autosuggest V2', () => {
 					'Local .wp-env directory not found, checking for GitHub Actions environment',
 				);
 				// Local approach failed, check if we're in GitHub Actions
-				cy.exec('test -d "/home/runner/work" && echo "exists" || echo "not found"', {
+				cy.exec('find /home/runner/work -name "wp-content" -type d | head -n 1', {
 					failOnNonZeroExit: false,
 				}).then((actionResult) => {
-					cy.task('log', `GitHub runner check result: ${actionResult.stdout}`);
-					if (actionResult.stdout.includes('exists')) {
-						// We're in GitHub Actions environment, use the known path
-						themesDir = '/home/runner/work/ElasticPress/ElasticPress/wp-content/themes';
-						cy.task('log', `SUCCESS: Detected GitHub Actions environment`);
-						cy.task('log', `Using GitHub runner path: ${themesDir}`);
+					if (actionResult.stdout.trim() !== '') {
+						// Use the found wp-content directory
+						const wpContentPath = actionResult.stdout.trim();
+						themesDir = `${wpContentPath}/themes`;
+						cy.task('log', `Found wp-content directory at: ${wpContentPath}`);
+						cy.task('log', `Using themes directory: ${themesDir}`);
 						return setupChildTheme();
 					}
-					cy.task('log', 'GitHub Actions environment not detected');
-					// Not in GitHub Actions, use relative path as fallback
+					cy.task(
+						'log',
+						'Could not find wp-content directory in GitHub Actions environment',
+					);
+					// Fall back to relative path
 					return useRelativePath();
 				});
 			});
