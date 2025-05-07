@@ -16,7 +16,7 @@ describe('ElasticPress Autosuggest V2', () => {
 
 			// Clone the child theme directory
 			cy.exec(
-				`cp -r ./tests/cypress/integration/features/child-theme ${themesDir}/child-theme`,
+				`cp -r ./tests/cypress/integration/features/autosuggest-v2/tests-child-theme ${themesDir}/child-theme`,
 			).then(() => {
 				// First check and perform network activation
 				cy.visit('/wp-admin/network/themes.php');
