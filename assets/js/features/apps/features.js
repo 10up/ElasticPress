@@ -380,9 +380,9 @@ const FeatureSettingsContent = () => {
 	};
 
 	// Find which group contains the active feature
-	const currentGroup = groupedFeatures.find((group) =>
-		group.features.some((feature) => feature.slug === feature),
-	);
+	const currentGroup =
+		groupedFeatures.find((group) => group.features.some((feat) => feat.slug === feature))
+			?.title || null;
 
 	// If we can't find the current group, use the first one
 	const activeGroup = currentGroup || groupedFeatures[0];
@@ -393,7 +393,7 @@ const FeatureSettingsContent = () => {
 				{/* Group Navigation */}
 				<GroupNavigation groupedFeatures={groupedFeatures} activeFeature={feature} />
 
-				<div className="group-content" id={`${activeGroup?.title}-view`}>
+				<div className="group-content" id={`${activeGroup}-view`}>
 					{/* Feature Navigation for the current group */}
 					<FeatureNavigation
 						groupedFeatures={groupedFeatures}
