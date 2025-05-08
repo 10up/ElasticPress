@@ -70,7 +70,9 @@ jobs:
       run: npm ci --include=dev
 
     - name: Set up WP environment with Elasticsearch
-      run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
+      run: |
+        ES_VERSION=${{ matrix.esVersion }} npm run env:start
+        npm run env:install-tests-cli
 
     - name: Check ES response
       run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
