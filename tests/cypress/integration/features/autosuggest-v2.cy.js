@@ -7,7 +7,6 @@ describe('ElasticPress Autosuggest V2', () => {
 
 		// Feature management - disable conflicting features, enable autosuggest-v2
 		cy.task('log', 'Disabling features and enabling autosuggest-v2');
-		cy.maybeDisableFeature('instant-results');
 		cy.maybeDisableFeature('autosuggest');
 		cy.maybeEnableFeature('autosuggest-v2');
 
@@ -463,5 +462,16 @@ describe('ElasticPress Autosuggest V2', () => {
 				cy.task('log', `SUCCESS: Found element with class: ${$el[0].className}`);
 				cy.task('log', 'Test passed - autosuggest element exists');
 			});
+	});
+	after(() => {
+		cy.task('log', '---------------------- AFTER BEGINS ----------------------');
+
+		// Feature management - disable conflicting features, enable autosuggest-v2
+		cy.task('log', 'Resetting Feature settings');
+		cy.maybeDisableFeature('autosuggest-v2');
+		cy.maybeEnableFeature('autosuggest');
+
+		// Login to WordPress admin
+		cy.login();
 	});
 });
