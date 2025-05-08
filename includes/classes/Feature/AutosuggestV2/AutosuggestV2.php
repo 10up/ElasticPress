@@ -629,9 +629,15 @@ class AutosuggestV2 extends Feature {
 		wp_enqueue_script(
 			'elasticpress-autosuggest-v2',
 			EP_URL . 'dist/js/autosuggest-v2-script.js',
-			Utils\get_asset_info( 'autosuggest-v2-script', 'dependencies' ),
+			array( 'wp-hooks', 'wp-element' ),
 			Utils\get_asset_info( 'autosuggest-v2-script', 'version' ),
 			true
+		);
+
+		wp_add_inline_script(
+			'elasticpress-autosuggest-v2',
+			'window.wp = wp; window.wp.hooks = wp.hooks; window.wp.element = wp.element;',
+			'before'
 		);
 
 		wp_set_script_translations( 'elasticpress-autosuggest-v2', 'elasticpress' );
