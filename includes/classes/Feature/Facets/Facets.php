@@ -38,6 +38,8 @@ class Facets extends Feature {
 	public function __construct() {
 		$this->slug = 'facets';
 
+		$this->group = 'core-search';
+
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [
@@ -93,11 +95,6 @@ class Facets extends Feature {
 	 */
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Filters', 'elasticpress' );
-
-		$this->group = [
-			'label' => esc_html__( 'Core Search', 'elasticpress' ),
-			'slug'  => 'core-search',
-		];
 
 		$this->summary = '<p>' .
 		( wp_is_block_theme()

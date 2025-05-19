@@ -67,6 +67,8 @@ class InstantResults extends Feature {
 	public function __construct() {
 		$this->slug = 'instant-results';
 
+		$this->group = 'live-search';
+
 		$this->host = trailingslashit( Utils\get_host() );
 
 		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
@@ -101,11 +103,6 @@ class InstantResults extends Feature {
 	 */
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Instant Results', 'elasticpress' );
-
-		$this->group = [
-			'label' => esc_html__( 'Live Search', 'elasticpress' ),
-			'slug'  => 'live-search',
-		];
 
 		$this->short_title = esc_html__( 'Instant Results', 'elasticpress' );
 

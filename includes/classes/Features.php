@@ -39,6 +39,35 @@ class Features {
 	}
 
 	/**
+	 * Get all registered feature groups.
+	 *
+	 * This centralizes group definitions and allows extensibility via a filter.
+	 *
+	 * @since 5.3.0
+	 * @return array Array of group slugs and their labels.
+	 */
+	public static function get_feature_groups() {
+		$groups = [
+			'core-search' => [
+				'label' => esc_html__( 'Core Search', 'elasticpress' ),
+			],
+			'live-search' => [
+				'label' => esc_html__( 'Live Search', 'elasticpress' ),
+			],
+			'indexing-options' => [
+				'label' => esc_html__( 'Indexing Options', 'elasticpress' ),
+			],
+			'woocommerce' => [
+				'label' => esc_html__( 'WooCommerce', 'elasticpress' ),
+			],
+			'third-party-plugins' => [
+				'label' => esc_html__( 'Third Party Plugins', 'elasticpress' ),
+			],
+		];
+		return apply_filters( 'ep_feature_groups', $groups );
+	}
+
+	/**
 	 * Activate a feature
 	 *
 	 * @param string $slug   Feature slug

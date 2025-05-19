@@ -15,7 +15,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { useSettingsScreen } from '../../settings-screen';
-import { syncUrl, syncNonce } from '../config';
+import { syncUrl, syncNonce, featureGroups } from '../config';
 import { useFeatureSettings } from '../provider';
 import Feature from '../components/feature';
 
@@ -69,7 +69,7 @@ const GroupNavigation = ({ groupedFeatures, activeFeature }) => {
 			<div className="ep-dashboard-tabs-nav">
 				{groupedFeatures.map(({ groupSlug, title, features }) => (
 					<NavigationTab
-						key={title}
+						key={groupSlug}
 						slug={groupSlug}
 						title={title}
 						to={`/${features[0]?.slug || ''}`}
@@ -232,55 +232,48 @@ const FeatureSettingsContent = () => {
 	const [willSyncLater, setWillSyncLater] = useState(false);
 
 	/**
-	 * Group visible features by their group property
+	 * Group visible features by their group property using centralized featureGroups
 	 */
 	const groupedFeatures = useMemo(() => {
-		// Get unique groups with their slugs from features that are visible and have a group
-		const groups = features
-			.filter((f) => f.isVisible && f.group)
-			.reduce((uniqueGroups, feature) => {
-				// Skip if we already have this group
-				if (uniqueGroups.some((g) => g.name === feature.group.label)) {
-					return uniqueGroups;
-				}
+		const groupSlugs = Object.keys(featureGroups || {});
 
-				// Add the group with its name and slug
-				return [
-					...uniqueGroups,
-					{
-						name: feature.group.label,
-						slug:
-							feature.group.slug ||
-							feature.group.label.toLowerCase().replace(/\s+/g, '-'),
-					},
-				];
-			}, []);
-
-		// Group visible features by their group property
-		const groupsWithFeatures = groups.map((groupInfo) => ({
-			title: groupInfo.name,
-			groupSlug: groupInfo.slug,
-			features: features.filter(
-				(f) => f.isVisible && f.group && f.group.label === groupInfo.name,
-			),
+		// Map group slugs to group info (label, slug)
+		const groups = groupSlugs.map((slug) => ({
+			title: featureGroups[slug].label,
+			groupSlug: slug,
+			features: [],
 		}));
 
-		// Add "Other" group for visible features without a group
+		// Map for quick lookup
+		const groupMap = groups.reduce((acc, group) => {
+			acc[group.groupSlug] = group;
+			return acc;
+		}, {});
+
+		// Features with a valid group
+		features.forEach((feature) => {
+			if (feature.isVisible && feature.group && featureGroups[feature.group]) {
+				groupMap[feature.group].features.push(feature);
+			}
+		});
+
+		// Remove empty groups
+		const nonEmptyGroups = groups.filter((g) => g.features.length > 0);
+
+		// Features with no group or unknown group
 		const otherFeatures = features.filter(
-			(f) =>
-				f.isVisible &&
-				(!f.group || !groups.some((g) => g.name === (f.group && f.group.label))),
+			(f) => f.isVisible && (!f.group || !featureGroups[f.group]),
 		);
 
 		if (otherFeatures.length > 0) {
-			groupsWithFeatures.push({
+			nonEmptyGroups.push({
 				title: __('Other', 'elasticpress'),
 				groupSlug: 'other',
 				features: otherFeatures,
 			});
 		}
 
-		return groupsWithFeatures;
+		return nonEmptyGroups;
 	}, [features]);
 
 	/**
