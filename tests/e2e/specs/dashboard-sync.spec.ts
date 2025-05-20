@@ -138,16 +138,7 @@ test.describe('Dashboard Sync', () => {
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
 
 		// Start sync via dashboard and pause it
-		const responsePromise = loggedInPage.waitForResponse(
-			(response) => {
-				return (
-					response.url().includes('/wp-json/elasticpress/v1/sync') &&
-					response.status() === 200 &&
-					response.json().then((data) => data.data.message === 'Sync complete')
-				);
-			},
-			{ timeout: getSyncTimeout() },
-		);
+		const responsePromise = loggedInPage.waitForResponse('**/wp-json/elasticpress/v1/sync*');
 		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
 		const response = await responsePromise;
 		await expect(response.status()).toBe(200);
