@@ -1,30 +1,15 @@
 /**
- * Test suite for verifying conditional feature visibility
+ * Test suite for the feature selection interface in ElasticPress settings.
+ *
+ * @module FeatureInterface
  */
-describe('Field Dependency Tests', () => {
-	/**
-	 * Test case to verify a conditional feature is hidden until its requirement is met
-	 *
-	 * This test verifies the visibility behavior of a conditional feature
-	 * dependent on a specific requirement selection.
-	 *
-	 * Testing steps:
-	 * 1. Navigate to the Live Search section
-	 * 2. Navigate to the Autosuggest feature
-	 * 3. Verify the group exists
-	 * 4. Verify the fields inside the group exist
-	 */
-	it('should hide conditional feature until specific requirement is selected', () => {
-		/**
-		 * Log in to WordPress admin.
-		 */
+describe('Feature Grouping and Persistence', () => {
+	it('Supports field dependency', () => {
 		cy.login();
 
-		/**
-		 * Navigate to the ElasticPress dashboard page
-		 */
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
+		// Test case to verify a conditional feature is hidden until its requirement is met
 		cy.window()
 			.then((win) => {
 				// Wait until epDashboard and features are available
