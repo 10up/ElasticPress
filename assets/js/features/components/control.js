@@ -281,7 +281,7 @@ const Control = ({
 										<CardBody>
 											{fields.map((field) => {
 												const shouldRender = shouldRenderField(
-													field.requiresFields,
+													field.requires_fields,
 												);
 
 												// Skip rendering if the field's requirements aren't met
