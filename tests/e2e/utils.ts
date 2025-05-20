@@ -404,7 +404,7 @@ export async function updateWeighting(newWeightingValues: any = null) {
 		: JSON.stringify(defaultWeighting);
 
 	await wpCli(
-		`eval "\\$weighting = json_decode( '${escapedWeighting}', true ); update_option( 'elasticpress_weighting', \\$weighting );"`,
+		`eval "\\$weighting = json_decode( '${escapedWeighting.replace(/"/g, '\\"')}', true ); print_r( \\$weighting ); update_option( 'elasticpress_weighting', \\$weighting );"`,
 	);
 }
 
