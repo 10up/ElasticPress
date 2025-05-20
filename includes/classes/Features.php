@@ -48,16 +48,16 @@ class Features {
 	 */
 	public static function get_feature_groups() {
 		$groups = [
-			'core-search' => [
+			'core-search'         => [
 				'label' => esc_html__( 'Core Search', 'elasticpress' ),
 			],
-			'live-search' => [
+			'live-search'         => [
 				'label' => esc_html__( 'Live Search', 'elasticpress' ),
 			],
-			'indexing-options' => [
+			'indexing-options'    => [
 				'label' => esc_html__( 'Indexing Options', 'elasticpress' ),
 			],
-			'woocommerce' => [
+			'woocommerce'         => [
 				'label' => esc_html__( 'WooCommerce', 'elasticpress' ),
 			],
 			'third-party-plugins' => [
