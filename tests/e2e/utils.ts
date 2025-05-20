@@ -251,7 +251,7 @@ export async function maybeOpenPostTab(page: Page) {
 		isPostTabActive = postTabClasses?.includes('is-active') ?? false;
 	} else {
 		postTab = page.getByRole('tab', { name: 'Post' });
-		isPostTabActive = await postTab.getAttribute('aria-selected');
+		isPostTabActive = (await postTab.getAttribute('aria-selected')) === 'true';
 	}
 	if (!isPostTabActive) {
 		await postTab.click();
