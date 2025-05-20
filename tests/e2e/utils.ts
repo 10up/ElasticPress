@@ -67,6 +67,20 @@ export async function login(page: Page, username = 'admin', password = 'password
 }
 
 /**
+ * Logout from WordPress admin
+ * @param page Playwright page object
+ */
+export async function logout(page: Page) {
+	await page.goto('/wp-admin');
+	const adminBar = await page.locator('#wpadminbar');
+	if (await adminBar.isVisible()) {
+		await page.hover('#wp-admin-bar-my-account');
+		await page.click('#wp-admin-bar-logout > a');
+	}
+	await page.goto('/wp-admin');
+}
+
+/**
  * Navigate to a specific admin page
  * @param page Playwright page object
  * @param path Admin page path (e.g. 'options-general.php')
@@ -487,15 +501,24 @@ export async function emptyWidgets() {
 
 /**
  * Create a user
- * @param userData User data including username, password, email, role, and login flag
+ * @param page Playwright page object
+ * @param userData User data
+ * @param userData.username Username
+ * @param userData.password Password
+ * @param userData.email Email address
+ * @param userData.role User role
+ * @param userData.login Whether to login after creating user
  */
-export async function createUser(userData: {
-	username?: string;
-	password?: string;
-	email?: string;
-	role?: string;
-	login?: boolean;
-}) {
+export async function createUser(
+	page: Page,
+	userData: {
+		username?: string;
+		password?: string;
+		email?: string;
+		role?: string;
+		login?: boolean;
+	},
+) {
 	const newUserData = {
 		username: 'testuser',
 		password: 'password',
@@ -572,4 +595,35 @@ export async function setDefaultFeatureSettings() {
 		`,
 	);
 	return JSON.parse(wpCliResponse);
+}
+
+/**
+ * Create a post with autosave enabled
+ * @param page Playwright page object
+ * @param postData Post data
+ * @param postData.title Post title
+ * @param postData.content Post content
+ */
+export async function createAutosavePost(
+	page: Page,
+	postData: { title?: string; content?: string },
+) {
+	// Activate the shorten-autosave plugin
+	await activatePlugin(page, 'shorten-autosave', 'wpCli');
+
+	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
+
+	await goToAdminPage(page, 'post-new.php');
+	const editorFrame = await getEditorFrame(page);
+
+	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
+	await editorFrame
+		.locator('.block-editor-default-block-appender__content')
+		.pressSequentially(newPostData.content);
+
+	// Wait for autosave to complete
+	await page.waitForTimeout(5000);
+
+	// Deactivate the shorten-autosave plugin
+	await deactivatePlugin(page, 'shorten-autosave', 'wpCli');
 }
