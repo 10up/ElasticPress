@@ -64,6 +64,14 @@ class Features {
 				'label' => esc_html__( 'Third Party Plugins', 'elasticpress' ),
 			],
 		];
+		/**
+		 * Filter available groups.
+		 *
+		 * @hook ep_feature_groups
+		 * @since 5.3.0
+		 * @param  {array} $groups Current groups
+		 * @return {array} New groups
+		 */
 		return apply_filters( 'ep_feature_groups', $groups );
 	}
 
