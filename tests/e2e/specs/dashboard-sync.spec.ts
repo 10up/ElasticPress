@@ -138,7 +138,16 @@ test.describe('Dashboard Sync', () => {
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
 
 		// Start sync via dashboard and pause it
-		const responsePromise = loggedInPage.waitForResponse('**/wp-json/elasticpress/v1/sync*');
+		const responsePromise = loggedInPage.waitForResponse(
+			(response) => {
+				return (
+					response.url().includes('/wp-json/elasticpress/v1/sync') &&
+					response.status() === 200 &&
+					response.json().then((data) => data.data.message === 'Sync complete')
+				);
+			},
+			{ timeout: getSyncTimeout() },
+		);
 		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
 		const response = await responsePromise;
 		await expect(response.status()).toBe(200);
@@ -199,7 +208,19 @@ test.describe('Dashboard Sync', () => {
 
 		// Start sync and check for errors
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
+
+		const responsePromise = loggedInPage.waitForResponse(
+			(response) => {
+				return (
+					response.url().includes('/wp-json/elasticpress/v1/sync') &&
+					response.json().then((data) => data.data.message === 'Sync complete')
+				);
+			},
+			{ timeout: getSyncTimeout() },
+		);
 		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
+		await responsePromise;
+
 		await expect(loggedInPage.locator('.ep-sync-errors__table')).toBeVisible();
 		await expect(loggedInPage.locator('.ep-sync-errors tr')).toHaveCount(2);
 		await expect(loggedInPage.locator('.ep-sync-errors tr').locator('nth=1')).toContainText(
@@ -213,6 +234,7 @@ test.describe('Dashboard Sync', () => {
 		await deactivatePlugin(loggedInPage, 'sync-error', 'wpCli');
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
 
+		await loggedInPage.getByLabel('Delete all data and start fresh sync').check();
 		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
 		await expect(loggedInPage.locator('.ep-sync-progress strong')).toContainText(
 			'Sync complete',
@@ -220,7 +242,7 @@ test.describe('Dashboard Sync', () => {
 				timeout: getSyncTimeout(),
 			},
 		);
-		await loggedInPage.getByRole('button', { name: 'Log' }).click();
+		await loggedInPage.getByRole('button', { name: 'Log', exact: true }).click();
 		await loggedInPage.getByText('Errors (0)').click();
 		await expect(loggedInPage.locator('.ep-sync-errors')).toContainText(
 			'No errors found in the log.',
