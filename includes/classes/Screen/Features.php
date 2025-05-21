@@ -79,7 +79,7 @@ class Features {
 			'settingsDraft' => $store->get_feature_settings_draft(),
 			'syncUrl'       => $sync_url,
 			'syncNonce'     => wp_create_nonce( 'ep_sync_nonce' ),
-			'featureGroups' => FeaturesStore::get_feature_groups(),
+			'featureGroups' => $store->get_feature_groups(),
 		];
 
 		wp_localize_script( 'ep_features_script', 'epDashboard', $data );

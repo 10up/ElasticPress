@@ -46,7 +46,7 @@ class Features {
 	 * @since 5.3.0
 	 * @return array Array of group slugs and their labels.
 	 */
-	public static function get_feature_groups() {
+	public function get_feature_groups() {
 		$groups = [
 			'core-search'         => [
 				'label' => esc_html__( 'Core Search', 'elasticpress' ),
