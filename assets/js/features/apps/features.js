@@ -1,7 +1,13 @@
 /**
+ * External dependencies.
+ */
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Route, Routes, Navigate, HashRouter, useParams, useNavigate } from 'react-router-dom';
+
+/**
  * WordPress dependencies.
  */
-import { Button, Flex, FlexItem, Notice, Panel, PanelBody, TabPanel } from '@wordpress/components';
+import { Button, Flex, FlexItem, Notice, Panel, PanelBody } from '@wordpress/components';
 import { useMemo, useState, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
@@ -9,10 +15,9 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { useSettingsScreen } from '../../settings-screen';
-import { syncUrl, syncNonce } from '../config';
+import { syncUrl, syncNonce, featureGroups } from '../config';
 import { useFeatureSettings } from '../provider';
 import Feature from '../components/feature';
-import Tab from '../components/tab';
 
 /**
  * Styles.
@@ -20,11 +25,121 @@ import Tab from '../components/tab';
 import '../style.css';
 
 /**
- * Feature settings dashboard app.
+ * Navigation Tab Component for features
  *
- * @returns {WPElement} Reports component.
+ * @param {object} props Component props
+ * @param {string} props.title Feature title
+ * @param {string} props.to URL to navigate to
+ * @param {boolean} props.isActive Whether this tab is active
+ * @returns {WPElement} Tab component
  */
-export default () => {
+const NavigationTab = ({ title, to, isActive }) => {
+	const navigate = useNavigate();
+	return (
+		<button
+			className={`ep-dashboard-tab ${isActive ? 'is-active' : ''}`}
+			aria-current={isActive ? 'page' : undefined}
+			onClick={() => navigate(to)}
+			type="button"
+			id={`title-${title}-to-${to}`}
+		>
+			{title}
+		</button>
+	);
+};
+
+/**
+ * Group navigation component that determines which group is active based on the current feature
+ *
+ * @param {object} props Component props
+ * @param {Array} props.groupedFeatures Grouped features data
+ * @param {string} props.activeFeature Currently active feature slug
+ * @returns {WPElement} Group navigation component
+ */
+const GroupNavigation = ({ groupedFeatures, activeFeature }) => {
+	// Find which group contains the active feature
+	const activeGroup = groupedFeatures.find((group) =>
+		group.features.some((feature) => feature.slug === activeFeature),
+	);
+
+	const activeGroupSlug = activeGroup?.groupSlug || groupedFeatures[0]?.groupSlug;
+
+	return (
+		<div className="ep-dashboard-outer-tabs">
+			<div className="ep-dashboard-tabs-nav">
+				{groupedFeatures.map(({ groupSlug, title, features }) => (
+					<NavigationTab
+						key={groupSlug}
+						slug={groupSlug}
+						title={title}
+						to={`/${features[0]?.slug || ''}`}
+						isActive={groupSlug === activeGroupSlug}
+					/>
+				))}
+			</div>
+		</div>
+	);
+};
+
+/**
+ * Feature navigation component for features within a group
+ *
+ * @param {object} props Component props
+ * @param {Array} props.groupedFeatures Grouped features data
+ * @param {string} props.activeFeature Currently active feature
+ * @param {boolean} props.isSyncing Whether a sync is in progress
+ * @param {Array} props.isSyncingActions Actions when syncing
+ * @param {string} props.isSyncingNotice Notice when syncing
+ * @returns {WPElement} Feature navigation component
+ */
+const FeatureNavigation = ({
+	groupedFeatures,
+	activeFeature,
+	isSyncing,
+	isSyncingActions,
+	isSyncingNotice,
+}) => {
+	// Find which group contains the active feature
+	const currentGroup = groupedFeatures.find((group) =>
+		group.features.some((feature) => feature.slug === activeFeature),
+	);
+
+	if (!currentGroup) {
+		return null;
+	}
+
+	return (
+		<Panel className="ep-dashboard-panel">
+			<PanelBody>
+				{isSyncing ? (
+					<Notice actions={isSyncingActions} isDismissible={false} status="warning">
+						{isSyncingNotice}
+					</Notice>
+				) : null}
+				<div className="ep-dashboard-tabs">
+					<div className="ep-dashboard-tabs-nav">
+						{currentGroup.features.map(({ slug, shortTitle, title }) => (
+							<NavigationTab
+								key={slug}
+								slug={slug}
+								title={shortTitle || title || slug}
+								to={`/${slug}`}
+								isActive={activeFeature === slug}
+							/>
+						))}
+					</div>
+				</div>
+			</PanelBody>
+		</Panel>
+	);
+};
+
+/**
+ * Feature settings dashboard app content, using react-router-dom for navigation.
+ *
+ * @returns {WPElement} Feature Settings component
+ */
+const FeatureSettingsContent = () => {
 	const { createNotice } = useSettingsScreen();
 	const {
 		features,
@@ -37,15 +152,16 @@ export default () => {
 		setIsSyncing,
 	} = useFeatureSettings();
 
+	// Get feature from URL parameters
+	const { feature } = useParams();
+
 	/**
 	 * URL to start a sync.
 	 */
 	const syncNowUrl = useMemo(() => {
 		const url = new URL(syncUrl);
-
 		url.searchParams.append('do_sync', 'features');
 		url.searchParams.append('ep_sync_nonce', syncNonce);
-
 		return url.toString();
 	}, []);
 
@@ -55,7 +171,7 @@ export default () => {
 	const errorNotice = __('Could not save feature settings. Please try again.', 'elasticpress');
 
 	/**
-	 * Action when a sync is in progress
+	 * Action when a sync is in progress.
 	 */
 	const isSyncingActions = [
 		{
@@ -111,23 +227,54 @@ export default () => {
 	const successNotice = __('Feature settings saved.', 'elasticpress');
 
 	/**
-	 * Whether the user has chosen to sync later when saving. Used to show the
-	 * busy state on the correct button.
+	 * Whether the user has chosen to sync later when saving.
 	 */
 	const [willSyncLater, setWillSyncLater] = useState(false);
 
 	/**
-	 * Feature settings tabs.
+	 * Group visible features by their group property using centralized featureGroups
 	 */
-	const tabs = features
-		.filter((f) => f.isVisible)
-		.map((f) => {
-			return {
-				name: f.slug,
-				title: <Tab feature={f.slug} />,
-				group: f.group,
-			};
+	const groupedFeatures = useMemo(() => {
+		const groupSlugs = Object.keys(featureGroups || {});
+
+		// Map group slugs to group info (label, slug)
+		const groups = groupSlugs.map((slug) => ({
+			title: featureGroups[slug].label,
+			groupSlug: slug,
+			features: [],
+		}));
+
+		// Map for quick lookup
+		const groupMap = groups.reduce((acc, group) => {
+			acc[group.groupSlug] = group;
+			return acc;
+		}, {});
+
+		// Features with a valid group
+		features.forEach((feature) => {
+			if (feature.isVisible && feature.group && featureGroups[feature.group]) {
+				groupMap[feature.group].features.push(feature);
+			}
 		});
+
+		// Remove empty groups
+		const nonEmptyGroups = groups.filter((g) => g.features.length > 0);
+
+		// Features with no group or unknown group
+		const otherFeatures = features.filter(
+			(f) => f.isVisible && (!f.group || !featureGroups[f.group]),
+		);
+
+		if (otherFeatures.length > 0) {
+			nonEmptyGroups.push({
+				title: __('Other', 'elasticpress'),
+				groupSlug: 'other',
+				features: otherFeatures,
+			});
+		}
+
+		return nonEmptyGroups;
+	}, [features]);
 
 	/**
 	 * Error handler.
@@ -136,7 +283,9 @@ export default () => {
 	 */
 	const onError = (e) => {
 		if (e.data === 'is_syncing') {
-			createNotice('error', isSyncingNotice, { actions: isSyncingActions });
+			createNotice('error', isSyncingNotice, {
+				actions: isSyncingActions,
+			});
 			setIsSyncing(true);
 			return;
 		}
@@ -175,6 +324,7 @@ export default () => {
 			if (isSyncRequired) {
 				createNotice('success', syncNowNotice);
 
+				// Use window.location for full page redirect to sync URL
 				window.location = syncNowUrl;
 			} else {
 				createNotice('success', successNotice);
@@ -200,7 +350,9 @@ export default () => {
 		try {
 			await saveSettings(false);
 
-			createNotice('success', successNotice, { actions: syncLaterActions });
+			createNotice('success', successNotice, {
+				actions: syncLaterActions,
+			});
 		} catch (e) {
 			onError(e);
 		}
@@ -220,72 +372,42 @@ export default () => {
 		createNotice('success', resetNotice);
 	};
 
-	const renderFeatureTabs = (group) => {
-		return (
-			<Panel className="ep-dashboard-panel">
-				<PanelBody>
-					<TabPanel
-						className="ep-dashboard-tabs"
-						orientation="vertical"
-						tabs={group.tabs}
-					>
-						{({ name }) => <Feature feature={name} key={name} />}
-					</TabPanel>
-				</PanelBody>
-			</Panel>
-		);
-	};
+	// Find which group contains the active feature
+	const currentGroup =
+		groupedFeatures.find((group) => group.features.some((feat) => feat.slug === feature))
+			?.title || null;
 
-	/**
-	 * Render a feature group.
-	 *
-	 * @param {Array} groupTabs Group tabs.
-	 * @returns {WPElement|null}
-	 * */
-	const renderFeatureGroup = (groupTabs) => {
-		if (!groupTabs.length) return null;
-
-		return (
-			<TabPanel
-				className="ep-dashboard-outer-tabs"
-				orientation="horizontal"
-				tabs={groupTabs.map((group) => ({
-					name: group.title,
-					title: group.title,
-				}))}
-			>
-				{({ name }) => {
-					const group = groupTabs.find((g) => g.title === name);
-					return renderFeatureTabs(group);
-				}}
-			</TabPanel>
-		);
-	};
-
-	const groupedTabs = useMemo(() => {
-		// Get unique groups from features
-		const groups = [...new Set(features.map((f) => f.group).filter((slug) => slug))];
-		// Group tabs by their group property
-		const groupsWithTabs = groups.map((group) => ({
-			title: group,
-			tabs: tabs.filter((t) => t.group === group),
-		}));
-
-		// Add "Other" group for tabs without a group
-		const otherTabs = tabs.filter((t) => !t.group || !groups.includes(t.group));
-		if (otherTabs.length > 0) {
-			groupsWithTabs.push({
-				title: __('Other', 'elasticpress'),
-				tabs: otherTabs,
-			});
-		}
-
-		return groupsWithTabs;
-	}, [features, tabs]);
+	// If we can't find the current group, use the first one
+	const activeGroup = currentGroup || groupedFeatures[0];
 
 	return (
 		<form onReset={onReset} onSubmit={onSubmit}>
-			{renderFeatureGroup(groupedTabs)}
+			<div className="form-grid">
+				{/* Group Navigation */}
+				<GroupNavigation groupedFeatures={groupedFeatures} activeFeature={feature} />
+
+				<div className="group-content" id={`${activeGroup}-view`}>
+					{/* Feature Navigation for the current group */}
+					<FeatureNavigation
+						groupedFeatures={groupedFeatures}
+						activeFeature={feature}
+						isSyncing={isSyncing}
+						isSyncingActions={isSyncingActions}
+						isSyncingNotice={isSyncingNotice}
+					/>
+
+					{/* Feature Content based on route parameters */}
+					<div className="ep-dashboard-content" id={`${feature}-view`}>
+						{feature ? (
+							<Feature feature={feature} />
+						) : (
+							<Notice status="info" isDismissible={false}>
+								{__('Select a feature above.', 'elasticpress')}
+							</Notice>
+						)}
+					</div>
+				</div>
+			</div>
 			{isSyncing && (
 				<Notice actions={isSyncingActions} isDismissible={false} status="warning">
 					{isSyncingNotice}
@@ -326,5 +448,51 @@ export default () => {
 				) : null}
 			</Flex>
 		</form>
+	);
+};
+
+/**
+ * Root layout component with HashRouter configuration
+ *
+ * @returns {WPElement} Root component with routing
+ */
+export default () => {
+	const { features } = useFeatureSettings();
+
+	// Determine default routes for redirects
+	const defaultRouteInfo = useMemo(() => {
+		const visibleFeatures = features.filter((f) => f.isVisible);
+
+		// Get the first visible feature as default
+		const defaultFeature = visibleFeatures[0]?.slug || '';
+		const hasFeatures = visibleFeatures.length > 0;
+
+		return { defaultFeature, hasFeatures };
+	}, [features]);
+
+	return (
+		<HashRouter>
+			<Routes>
+				{/* Main route for displaying feature settings with specific feature */}
+				<Route path="/:feature" element={<FeatureSettingsContent />} />
+
+				{/* Default redirect when accessing root or invalid URLs */}
+				{defaultRouteInfo.hasFeatures ? (
+					<Route
+						path="*"
+						element={<Navigate to={`/${defaultRouteInfo.defaultFeature}`} replace />}
+					/>
+				) : (
+					<Route
+						path="*"
+						element={
+							<Notice status="info" isDismissible={false}>
+								{__('No features available.', 'elasticpress')}
+							</Notice>
+						}
+					/>
+				)}
+			</Routes>
+		</HashRouter>
 	);
 };
