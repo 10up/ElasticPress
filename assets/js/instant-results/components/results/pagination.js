@@ -3,6 +3,7 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 import { WPElement } from '@wordpress/element';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Search results component.
@@ -15,7 +16,8 @@ import { WPElement } from '@wordpress/element';
  * @param {number} props.total Total number of items.
  * @returns {WPElement} Element.
  */
-export default ({ offset, onNext, onPrevious, perPage, total }) => {
+export default (props) => {
+	const { offset, onNext, onPrevious, perPage, total } = props;
 	/**
 	 * Current page number.
 	 */
@@ -36,7 +38,7 @@ export default ({ offset, onNext, onPrevious, perPage, total }) => {
 	 */
 	const totalPages = Math.ceil(total / perPage);
 
-	return (
+	const paginationComponent = (
 		<nav className="ep-search-pagination">
 			<div className="ep-search-pagination__previous">
 				<button
@@ -71,4 +73,16 @@ export default ({ offset, onNext, onPrevious, perPage, total }) => {
 			</div>
 		</nav>
 	);
+
+	/**
+	 * Filter the pagination component.
+	 *
+	 * @filter ep.InstantResults.components.pagination
+	 * @since 5.3.0
+	 *
+	 * @param {WPElement} paginationComponent Pagination component.
+	 * @param {object} props Props.
+	 * @returns {WPElement} Pagination component.
+	 */
+	return applyFilters('ep.InstantResults.components.pagination', paginationComponent, props);
 };

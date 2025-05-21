@@ -310,13 +310,13 @@ export const ApiSearchProvider = ({
 				/**
 				 * Filter the search results response.
 				 *
-				 * @filter ep.ApiSearch.filter.response
+				 * @filter ep.InstantResults.response
 				 * @since 5.3.0
 				 *
 				 * @param {object} response The search results response.
 				 * @returns {object} Filtered search results response.
 				 */
-				setResults(applyFilters('ep.ApiSearch.filter.response', response));
+				setResults(applyFilters('ep.InstantResults.response', response));
 			} catch (e) {
 				const errorMessage = sprintf(
 					/* translators: Error message */
