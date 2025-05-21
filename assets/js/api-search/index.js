@@ -12,6 +12,7 @@ import {
 	WPElement,
 } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
@@ -306,7 +307,16 @@ export const ApiSearchProvider = ({
 					return;
 				}
 
-				setResults(response);
+				/**
+				 * Filter the search results response.
+				 *
+				 * @filter ep.ApiSearch.filter.response
+				 * @since 5.3.0
+				 *
+				 * @param {object} response The search results response.
+				 * @returns {object} Filtered search results response.
+				 */
+				setResults(applyFilters('ep.ApiSearch.filter.response', response));
 			} catch (e) {
 				const errorMessage = sprintf(
 					/* translators: Error message */
