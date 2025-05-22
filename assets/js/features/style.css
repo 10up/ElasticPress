@@ -19,6 +19,14 @@
 			opacity: 0.5;
 		}
 	}
+
+	& .components-base-control:not(:focus-within) {
+		
+		& .components-form-toggle__track,
+		& .components-form-toggle__thumb {
+			transition: none;
+		}
+	}
 }
 
 /* Dashboard Layout and Structure */
