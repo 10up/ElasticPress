@@ -38,7 +38,7 @@ export default (props) => {
 	 */
 	const totalPages = Math.ceil(total / perPage);
 
-	const paginationComponent = (
+	const pagination = (
 		<nav className="ep-search-pagination">
 			<div className="ep-search-pagination__previous">
 				<button
@@ -77,12 +77,12 @@ export default (props) => {
 	/**
 	 * Filter the pagination component.
 	 *
-	 * @filter ep.InstantResults.components.pagination
+	 * @filter ep.InstantResults.component.pagination
 	 * @since 5.3.0
 	 *
-	 * @param {WPElement} paginationComponent Pagination component.
+	 * @param {WPElement} pagination Pagination component.
 	 * @param {object} props Props.
 	 * @returns {WPElement} Pagination component.
 	 */
-	return applyFilters('ep.InstantResults.components.pagination', paginationComponent, props);
+	return applyFilters('ep.InstantResults.component.pagination', pagination, props);
 };

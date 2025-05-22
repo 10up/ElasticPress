@@ -72,12 +72,12 @@ export default (props) => {
 	/**
 	 * Filter the did you mean component.
 	 *
-	 * @filter ep.InstantResults.components.didYouMean
+	 * @filter ep.InstantResults.component.didYouMean
 	 * @since 5.3.0
 	 *
 	 * @param {WPElement} didYouMean Did you mean component.
 	 * @param {object} props Props.
 	 * @returns {WPElement} Did you mean component.
 	 */
-	return applyFilters('ep.InstantResults.components.didYouMean', didYouMean, props);
+	return applyFilters('ep.InstantResults.component.didYouMean', didYouMean, props);
 };
