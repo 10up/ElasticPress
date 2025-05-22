@@ -158,7 +158,6 @@ export const ApiSearchProvider = ({
 	 * constraints.
 	 *
 	 * @param {string} searchTerm Search term.
-	 * @param {object} filters Optional filters to apply
 	 * @returns {void}
 	 */
 	const searchFor = (searchTerm) => {
