@@ -1,25 +1,12 @@
-import { applySuggestionListFilter } from '../src/hooks';
+import { applySuggestionListFilter } from '../hooks';
 
-// Default Suggestion List Template
 const SuggestionList = (props) => {
-	// Apply filters to props
 	const filteredProps = applySuggestionListFilter(props);
-
-	// Check if a custom renderer was provided through the filter
 	if (filteredProps.renderSuggestionList) {
 		return filteredProps.renderSuggestionList();
 	}
 
-	// Otherwise, use the default rendering
-	const {
-		suggestions,
-		activeIndex,
-		onItemClick,
-		SuggestionItemTemplate,
-		showViewAll,
-		onViewAll,
-		expanded,
-	} = filteredProps;
+	const { suggestions, activeIndex, onItemClick, SuggestionItemTemplate } = filteredProps;
 
 	return (
 		<div className="ep-autosuggest-list-wrapper">
@@ -36,13 +23,6 @@ const SuggestionList = (props) => {
 					/>
 				))}
 			</ul>
-			{showViewAll && (
-				<button className="ep-autosuggest-view-all" onClick={onViewAll} type="button">
-					{expanded
-						? window.epasI18n?.viewLess || 'View less results'
-						: window.epasI18n?.viewAll || 'View all results'}
-				</button>
-			)}
 		</div>
 	);
 };

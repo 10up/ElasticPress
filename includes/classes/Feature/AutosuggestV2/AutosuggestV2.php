@@ -737,9 +737,9 @@ class AutosuggestV2 extends Feature {
 	 */
 	public function get_args_schema() {
 		/**
-		 * The number of results per page for Instant Results.
+		 * The number of results per page for AutosuggestV2.
 		 *
-		 * @since 4.5.0
+		 * @since 5.3.0
 		 * @hook ep_autosuggest_v2_per_page
 		 * @param {int} $per_page Results per page.
 		 */

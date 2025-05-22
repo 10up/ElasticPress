@@ -3,12 +3,15 @@ There are hooks available for use to provide developer customization. You can in
     import './style.css';
     
     /**
-     * Available hooks:
+     * Available JS hooks:
      * - ep.Autosuggest.queryParams - Modify search query parameters
      * - ep.Autosuggest.suggestions - Filter search results
      * - ep.Autosuggest.suggestionItem - Customize individual suggestion item rendering
      * - ep.Autosuggest.suggestionList - Customize suggestion list rendering
      * - ep.Autosuggest.onItemClick - Triggered when a suggestion item is clicked
+	 *
+	 * Available PHP hooks:
+	 * - ep_autosuggest_v2_per_page - Change the number of results returned
      * 
      * Available Events:
      * - ep_autosuggest_loaded - window.EPAutosuggest is available - safe to hook into ui overrides

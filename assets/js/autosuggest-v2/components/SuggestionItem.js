@@ -1,16 +1,12 @@
-import { applySuggestionItemFilter } from '../src/hooks';
+import { applySuggestionItemFilter } from '../hooks';
 
-// Default Suggestion Item Template
 const SuggestionItem = ({ suggestion, isActive, onClick }) => {
-	// Apply filters to props
 	const filteredProps = applySuggestionItemFilter(suggestion, isActive, onClick);
 
-	// Check if a custom renderer was provided through the filter
 	if (filteredProps.renderSuggestion) {
 		return filteredProps.renderSuggestion();
 	}
 
-	// Otherwise, use the default rendering
 	const {
 		suggestion: filteredSuggestion,
 		isActive: filteredIsActive,
