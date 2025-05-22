@@ -1,238 +1,307 @@
-There are hooks available for use to provide developer customization. You can insert the following hooks into a theme or plugin to customize the query, filter the results, override the markup, or trigger an action when a result is clicked.
+# ElasticPress Autosuggest V2 - Hooks Documentation
 
-    import './style.css';
-    
-    /**
-     * Available JS hooks:
-     * - ep.Autosuggest.queryParams - Modify search query parameters
-     * - ep.Autosuggest.suggestions - Filter search results
-     * - ep.Autosuggest.suggestionItem - Customize individual suggestion item rendering
-     * - ep.Autosuggest.suggestionList - Customize suggestion list rendering
-     * - ep.Autosuggest.onItemClick - Triggered when a suggestion item is clicked
-	 *
-	 * Available PHP hooks:
-	 * - ep_autosuggest_v2_per_page - Change the number of results returned
-     * 
-     * Available Events:
-     * - ep_autosuggest_loaded - window.EPAutosuggest is available - safe to hook into ui overrides
-     */
-    
-    /**
-     * Hook: ep.Autosuggest.queryParams
-     * Example: Only show "post" post_types in the search results.
-     * Status: Works
-     */
-    const enableOnlyShowPosts = false;
-    if (enableOnlyShowPosts) {
-        wp.hooks.addFilter(
-            "ep.Autosuggest.queryParams",
-            "my-theme/filter-post-types",
-            function (params, searchTerm, filters) {
-                const newParams = new URLSearchParams(params.toString());
-                newParams.set("post_type", "post");
-                return newParams;
-            }
-        );
+This document outlines the available hooks and filters for customizing the ElasticPress Autosuggest V2 feature.
+
+## PHP Hooks
+
+### `ep_autosuggest_v2_per_page`
+
+**Type**: Filter  
+**Description**: Modifies the number of suggestions displayed per page in autosuggest results.
+
+**Parameters**:
+
+-   `$default_per_page_value` (int): The default number of results per page
+
+**Example**:
+
+```php
+add_filter( 'ep_autosuggest_v2_per_page', function( $default_per_page_value ) {
+    return 8; // Show 8 suggestions instead of default
+} );
+
+```
+
+----------
+
+## JavaScript Hooks
+
+### `ep.Autosuggest.queryParams`
+
+**Type**: Filter  
+**Description**: Modifies the query parameters sent to ElasticSearch before the search is executed.
+
+**Parameters**:
+
+-   `params` (URLSearchParams): The original query parameters
+-   `searchTerm` (string): The current search term
+-   `filters` (object): Any applied filters
+
+**Returns**: URLSearchParams object with modified parameters
+
+**Example**:
+
+```javascript
+wp.hooks.addFilter(
+    'ep.Autosuggest.queryParams',
+    'my-theme/filter-search-by-author',
+    function (params, searchTerm, filters) {
+        const newParams = new URLSearchParams(params.toString());
+        
+        // Add author filter if search term includes "by:admin"
+        if (searchTerm.toLowerCase().includes('by:admin')) {
+            newParams.set('author_name', 'admin');
+        }
+        
+        // Add custom parameter
+        newParams.set('custom_param', 'custom_value');
+        
+        return newParams;
     }
-    
-    /**
-     * Hook: ep.Autosuggest.suggestions
-     * Example: Only show posts with thumbnails
-     * Status: Works
-     */
-    const enableOnlyPostsWithThumbnails = false;
-    if (enableOnlyPostsWithThumbnails) {
-        wp.hooks.addFilter(
-            "ep.Autosuggest.suggestions",
-            "my-theme/only-with-thumbnails",
-            function (searchResults, searchTerm) {
-                return searchResults.filter(
-                    (item) =>
-                        item._source.thumbnail && item._source.thumbnail !== ""
-                );
-            }
+);
+
+```
+
+### `ep.Autosuggest.suggestions`
+
+**Type**: Filter  
+**Description**: Modifies the search results/suggestions after they are retrieved but before they are rendered.
+
+**Parameters**:
+
+-   `searchResults` (array): Array of search result objects
+-   `searchTerm` (string): The current search term
+
+**Returns**: Modified array of search results
+
+**Example**:
+
+```javascript
+wp.hooks.addFilter(
+    'ep.Autosuggest.suggestions',
+    'my-theme/prioritize-pages',
+    function (searchResults, searchTerm) {
+        if (!Array.isArray(searchResults)) {
+            return searchResults;
+        }
+        
+        // Separate pages from other content types
+        const pages = searchResults.filter(item => 
+            item._source && item._source.post_type === 'page'
         );
-    }
-    
-    /**
-     * Hook: ep.Autosuggest.suggestions
-     * Example: Add some extra data to the source object (could be output later with a suggestionItem hook)
-     * Status: Works
-     */
-    const enableEnhanceResults = false;
-    if (enableEnhanceResults) {
-        wp.hooks.addFilter(
-            "ep.Autosuggest.suggestions",
-            "my-theme/enhance-results",
-            function (searchResults, searchTerm) {
-                return searchResults.map((item) => ({
-                    ...item,
-                    _source: {
-                        ...item._source,
-                        relevanceScore: 100,
-                        highlightedTitle: item._source.post_title,
-                    },
-                }));
-            }
+        const others = searchResults.filter(item => 
+            !item._source || item._source.post_type !== 'page'
         );
-    }
-    
-    /**
-     * Hook: ep.Autosuggest.onItemClick
-     * Example: Console log data on click (could be used for GA tracking)
-     * Status: Works
-     */
-    const enableAddClickHook = false;
-    if (enableAddClickHook) {
-        wp.hooks.addAction(
-            "ep.Autosuggest.onItemClick",
-            "my-theme/track-clicks",
-            function (suggestion, index, searchTerm) {
-                console.log("on click:", suggestion, index, searchTerm);
-            }
-        );
-    }
-    
-    /**
-     * Hook: ep.Autosuggest.suggestionItem
-     * Example: Custom UI Overrides
-     * Status: Works
-     */
-    const registerCustomSuggestionItem = () => {
-        const CustomSuggestionItem = (props) => {
-            const { suggestion, isActive, onClick } = props;
-            return (
-                <li
-                    className={`custom-suggestion ${isActive ? "active" : ""}`}
-                    role="option"
-                    aria-selected={isActive}
-                    id={`suggestion-${suggestion.id}`}
-                    onMouseDown={onClick}
-                    tabIndex={-1}
-                >
-                    <a href={suggestion.url}>
-                        <div className="suggestion-content">
-                            {suggestion.thumbnail && (
-                                <img
-                                    src={suggestion.thumbnail}
-                                    alt=""
-                                    className="thumb"
-                                />
-                            )}
-                            <div className="suggestion-text">
-                                <strong>Title Here!!! : {suggestion.title}</strong>
-                                {suggestion.excerpt && <p>{suggestion.excerpt}</p>}
-                                {suggestion.type && (
-                                    <span className="content-type">
-                                        {suggestion.type}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </a>
-                </li>
-            );
-        };
-        wp.hooks.addFilter(
-            "ep.Autosuggest.suggestionItem",
-            "my-theme/custom-suggestion-item",
-            function (props, originalSuggestion) {
-                if (!originalSuggestion || !originalSuggestion._source) {
-                    return props;
-                }
-                return {
-                    ...props,
-                    renderSuggestion: () => <CustomSuggestionItem {...props} />,
-                };
+        
+        // Prioritize pages and add custom flags
+        const prioritizedResults = [...pages, ...others];
+        
+        return prioritizedResults.map(item => ({
+            ...item,
+            _source: {
+                ...item._source,
+                customFlag: item._source.post_type === 'page' 
+                    ? 'Priority Content' 
+                    : 'Standard Content',
             },
-            5
-        );
-    };
-    document.addEventListener("ep_autosuggest_loaded", function () {
-        registerCustomSuggestionItem();
-    });
+        }));
+    }
+);
+
+```
+
+### `ep.Autosuggest.suggestionItem`
+
+**Type**: Filter  
+**Description**: Customizes the rendering of individual suggestion items in the dropdown.
+
+**Parameters**:
+
+-   `props` (object): Contains suggestion data, isActive state, and onClick handler
+-   `originalSuggestion` (object): The original suggestion object
+
+**Returns**: Modified props object with custom renderSuggestion function
+
+**Example**:
+
+```javascript
+const MyCustomSuggestionItem = (props) => {
+    const { suggestion, isActive, onClick } = props;
+    const itemClasses = `my-custom-item ${isActive ? 'my-active-item' : ''}`;
     
-    /**
-     * Hook: ep.Autosuggest.suggestionList
-     * Example: Custom UI Overrides
-     * Status: Works
-     */
-    const registerCustomSuggestionList = () => {
-        const CustomSuggestionList = (props) => {
-            const {
-                suggestions,
-                activeIndex,
-                onItemClick,
-                SuggestionItemTemplate,
-                showViewAll,
-                onViewAll,
-                expanded,
-            } = props;
-    
-            // Group suggestions by type
-            const groupedSuggestions = {};
-            suggestions.forEach((suggestion) => {
-                const type = suggestion.type || "other";
-                if (!groupedSuggestions[type]) {
-                    groupedSuggestions[type] = [];
-                }
-                groupedSuggestions[type].push(suggestion);
-            });
-    
-            return (
-                <div className="custom-suggestion-list">
-                    <div className="custom-header">
-                        <h3>Search Results ({suggestions.length})</h3>
-                    </div>
-                    {Object.entries(groupedSuggestions).map(([type, items]) => (
-                        <div key={type} className="suggestion-group">
-                            <h4 className="group-title">
-                                {type.charAt(0).toUpperCase() + type.slice(1)}s
-                            </h4>
-                            <ul className="group-items" role="listbox">
-                                {items.map((suggestion, idx) => (
-                                    <SuggestionItemTemplate
-                                        key={suggestion.id}
-                                        suggestion={suggestion}
-                                        isActive={
-                                            suggestions.indexOf(suggestion) ===
-                                            activeIndex
-                                        }
-                                        onClick={() =>
-                                            onItemClick(
-                                                suggestions.indexOf(suggestion)
-                                            )
-                                        }
-                                    />
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                    {showViewAll && (
-                        <button
-                            className="custom-view-all"
-                            onClick={onViewAll}
-                            type="button"
-                        >
-                            {expanded ? "Show Less" : "Show All Results"}
-                        </button>
+    return (
+        <li
+            className={itemClasses}
+            role="option"
+            aria-selected={isActive}
+            id={`custom-suggestion-${suggestion.id}`}
+            onMouseDown={onClick}
+            tabIndex={-1}
+        >
+            <a href={suggestion.url}>
+                {suggestion.thumbnail && (
+                    <img src={suggestion.thumbnail} alt="" className="item-thumbnail" />
+                )}
+                <div className="item-content">
+                    <strong className="item-title">{suggestion.title}</strong>
+                    {suggestion.category && (
+                        <span className="item-meta-category">
+                            Category: {suggestion.category}
+                        </span>
+                    )}
+                    <span className="item-meta-type">Type: {suggestion.type}</span>
+                    {suggestion._source.customFlag && (
+                        <p className="item-custom-flag">
+                            {suggestion._source.customFlag}
+                        </p>
                     )}
                 </div>
-            );
-        };
-        wp.hooks.addFilter(
-            "ep.Autosuggest.suggestionList",
-            "my-theme/custom-suggestion-list",
-            function (props) {
-                return {
-                    ...props,
-                    renderSuggestionList: () => <CustomSuggestionList {...props} />,
-                };
-            },
-            5
-        );
-    };
-    document.addEventListener("ep_autosuggest_loaded", function () {
-        registerCustomSuggestionList();
-    });
+            </a>
+        </li>
+    );
+};
 
+wp.hooks.addFilter(
+    'ep.Autosuggest.suggestionItem',
+    'my-theme/custom-suggestion-item-renderer',
+    function (props, originalSuggestion) {
+        return {
+            ...props,
+            renderSuggestion: () => <MyCustomSuggestionItem {...props} />,
+        };
+    }
+);
+
+```
+
+### `ep.Autosuggest.suggestionList`
+
+**Type**: Filter  
+**Description**: Customizes the entire suggestion list container and layout.
+
+**Parameters**:
+
+-   `listProps` (object): Contains suggestions array, activeIndex, click handlers, and other list properties
+
+**Returns**: Modified listProps object with custom renderSuggestionList function
+
+**Example**:
+
+```javascript
+const MyCustomSuggestionList = (props) => {
+    const {
+        suggestions,
+        activeIndex,
+        onItemClick,
+        SuggestionItemTemplate,
+        showViewAll,
+        onViewAll,
+        expanded,
+    } = props;
+
+    if (!suggestions.length) {
+        return null;
+    }
+
+    // Group suggestions by type
+    const groupedSuggestions = suggestions.reduce((acc, suggestion) => {
+        const type = suggestion.type || 'other';
+        if (!acc[type]) {
+            acc[type] = [];
+        }
+        acc[type].push(suggestion);
+        return acc;
+    }, {});
+
+    return (
+        <div className="my-custom-suggestion-list-wrapper">
+            <h3 className="list-main-title">Custom Search Results</h3>
+            {Object.entries(groupedSuggestions).map(([type, items]) => (
+                <div key={type} className="suggestion-group">
+                    <h4 className="suggestion-group-title">
+                        {type.charAt(0).toUpperCase() + type.slice(1)}s ({items.length})
+                    </h4>
+                    <ul className="custom-group-items" role="listbox">
+                        {items.map((suggestion) => {
+                            const originalIndex = suggestions.findIndex(s => s.id === suggestion.id);
+                            return (
+                                <SuggestionItemTemplate
+                                    key={suggestion.id}
+                                    suggestion={suggestion}
+                                    isActive={originalIndex === activeIndex}
+                                    onClick={() => onItemClick(originalIndex)}
+                                />
+                            );
+                        })}
+                    </ul>
+                </div>
+            ))}
+            {showViewAll && (
+                <button
+                    className="my-custom-view-all"
+                    onClick={onViewAll}
+                    type="button"
+                >
+                    {expanded ? 'View Less Results' : 'View All Results'}
+                </button>
+            )}
+        </div>
+    );
+};
+
+wp.hooks.addFilter(
+    'ep.Autosuggest.suggestionList',
+    'my-theme/custom-suggestion-list-renderer',
+    function (listProps) {
+        return {
+            ...listProps,
+            renderSuggestionList: () => <MyCustomSuggestionList {...listProps} />,
+        };
+    }
+);
+
+```
+
+### `ep.Autosuggest.onItemClick`
+
+**Type**: Action Hook  
+**Description**: Fires when a user clicks on a suggestion item. Useful for analytics and tracking.
+
+**Parameters**:
+
+-   `suggestion` (object): The clicked suggestion object
+-   `index` (number): The index of the clicked suggestion
+-   `inputValue` (string): The current search term
+
+**Example**:
+
+```javascript
+wp.hooks.addAction(
+    'ep.Autosuggest.onItemClick',
+    'my-theme/track-suggestion-clicks',
+    function (suggestion, index, inputValue) {
+        console.log('Suggestion Clicked (Action Hook):', {
+            title: suggestion.title,
+            url: suggestion.url,
+            type: suggestion.type,
+            index: index,
+            searchTerm: inputValue,
+        });
+        
+        // Send to analytics service
+        // gtag('event', 'autosuggest_click', { ... });
+    }
+);
+
+```
+
+## Event Listener
+
+The customizations should be registered when the ElasticPress Autosuggest V2 is fully loaded:
+
+```javascript
+document.addEventListener('ep_autosuggest_loaded', registerAutosuggestCustomizations);
+
+```
+
+This ensures that all the necessary components are available before attempting to modify them.
