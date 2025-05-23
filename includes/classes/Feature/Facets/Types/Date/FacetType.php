@@ -30,11 +30,22 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * Setup hooks and filters for feature
 	 */
 	public function setup() {
+		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ] );
 		add_filter( 'ep_facets_date_script_data', [ $this, 'add_filter_name' ] );
 
 		$this->block = new Block();
 		$this->block->setup();
+	}
+
+	/**
+	 * Register facet widget(s).
+	 *
+	 * @since 5.3.0
+	 * @return void
+	 */
+	public function register_widgets(): void {
+		register_widget( __NAMESPACE__ . '\\Widget' );
 	}
 
 	/**

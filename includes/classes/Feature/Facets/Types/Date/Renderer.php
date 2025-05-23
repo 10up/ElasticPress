@@ -33,7 +33,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
-		$this->display_custom_date = $instance['displayCustomDate'];
+		$this->display_custom_date = $instance['displayCustomDate'] ?? false;
 		$feature                   = Features::factory()->get_registered_feature( 'facets' );
 
 		$facet_type       = $feature->types['date'];
