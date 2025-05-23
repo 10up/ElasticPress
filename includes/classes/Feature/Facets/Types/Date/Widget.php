@@ -51,7 +51,7 @@ class Widget extends \WP_Widget {
 	 * @param array $instance Instance settings
 	 */
 	public function form( $instance ) {
-		$display_custom_date = isset( $instance['displayCustomDate'] ) ? (bool) $instance['displayCustomDate'] : true;
+		$display_custom_date = $instance['displayCustomDate'] ?? false;
 		?>
 		<div class="widget-ep-date-facet">
 			<p>
