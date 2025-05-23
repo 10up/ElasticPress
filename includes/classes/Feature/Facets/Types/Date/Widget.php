@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Widget extends \WP_Widget {
 	/**
-	 * Create widget
+	 * Create widget.
 	 */
 	public function __construct() {
 		$options = array(
@@ -29,7 +29,7 @@ class Widget extends \WP_Widget {
 	}
 
 	/**
-	 * Output widget
+	 * Output widget.
 	 *
 	 * @param array $args Widget args
 	 * @param array $instance Instance settings
@@ -46,7 +46,7 @@ class Widget extends \WP_Widget {
 	}
 
 	/**
-	 * Output widget form
+	 * Output widget form.
 	 *
 	 * @param array $instance Instance settings
 	 */
@@ -65,7 +65,7 @@ class Widget extends \WP_Widget {
 	}
 
 	/**
-	 * Sanitize fields
+	 * Update widget settings
 	 *
 	 * @param array $new_instance New instance settings
 	 * @param array $old_instance Old instance settings
@@ -73,7 +73,7 @@ class Widget extends \WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance                      = [];
-		$instance['displayCustomDate'] = ! empty( $new_instance['displayCustomDate'] ) ? 1 : 0;
+		$instance['displayCustomDate'] = ! empty( $new_instance['displayCustomDate'] ) ? true : false;
 
 		return $instance;
 	}
