@@ -21,11 +21,11 @@ class Widget extends \WP_Widget {
 	 */
 	public function __construct() {
 		$options = array(
-			'description'           => esc_html__( 'Add a date facet to an archive or search results page.', 'elasticpress' ),
+			'description'           => esc_html__( 'Let visitors filter your content by post date.', 'elasticpress' ),
 			'show_instance_in_rest' => true,
 		);
 
-		parent::__construct( 'ep-date-facet', esc_html__( 'ElasticPress - Filter by Date', 'elasticpress' ), $options );
+		parent::__construct( 'ep-date-facet', esc_html__( 'ElasticPress - Filter by Post Date', 'elasticpress' ), $options );
 	}
 
 	/**
@@ -57,7 +57,7 @@ class Widget extends \WP_Widget {
 			<p>
 				<input class="checkbox" type="checkbox" <?php checked( $display_custom_date ); ?> id="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'displayCustomDate' ) ); ?>" />
 				<label for="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>">
-					<?php esc_html_e( 'Allow custom date range', 'elasticpress' ); ?>
+					<?php esc_html_e( 'Display custom date option', 'elasticpress' ); ?>
 				</label>
 			</p>
 		</div>
