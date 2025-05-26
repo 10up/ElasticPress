@@ -52,7 +52,14 @@ class Widget extends \WP_Widget {
 	 * @param array $instance Instance settings
 	 */
 	public function form( $instance ) {
-		$display_custom_date = $instance['displayCustomDate'] ?? false;
+		$instance = wp_parse_args(
+			$instance,
+			[
+				'title'             => '',
+				'displayCustomDate' => false,
+			]
+		);
+
 		?>
 		<div class="widget-ep-facet-date">
 			<p>
@@ -60,7 +67,7 @@ class Widget extends \WP_Widget {
 				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 			</p>
 			<p>
-				<input class="checkbox" type="checkbox" <?php checked( $display_custom_date ); ?> id="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'displayCustomDate' ) ); ?>" />
+				<input class="checkbox" type="checkbox" <?php checked( $instance['displayCustomDate'] ); ?> id="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'displayCustomDate' ) ); ?>" />
 				<label for="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>">
 					<?php esc_html_e( 'Display custom date option', 'elasticpress' ); ?>
 				</label>

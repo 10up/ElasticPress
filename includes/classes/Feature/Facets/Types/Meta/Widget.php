@@ -1,7 +1,9 @@
 <?php
 /**
+ *
  * Meta Facet Widget
  *
+ * @since 5.3.0
  * @package elasticpress
  */
 
@@ -54,12 +56,17 @@ class Widget extends \WP_Widget {
 	public function form( $instance ) {
 		$meta_fields = \ElasticPress\Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
 
-		$title              = $instance['title'] ?? '';
-		$facet              = $instance['facet'] ?? '';
-		$orderby            = $instance['orderby'] ?? 'count';
-		$order              = $instance['order'] ?? 'desc';
-		$display_count      = ! empty( $instance['displayCount'] );
-		$search_placeholder = $instance['searchPlaceholder'] ?? __( 'Search', 'elasticpress' );
+		$instance = wp_parse_args(
+			$instance,
+			[
+				'title'             => '',
+				'facet'             => '',
+				'orderby'           => 'count',
+				'order'             => 'desc',
+				'displayCount'      => false,
+				'searchPlaceholder' => esc_html__( 'Search', 'elasticpress' ),
+			]
+		);
 
 		$orderby_options = [
 			[
@@ -86,7 +93,7 @@ class Widget extends \WP_Widget {
 				<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>">
 					<?php esc_html_e( 'Title:', 'elasticpress' ); ?>
 				</label>
-				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
+				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
 			</p>
 			<p>
 				<label for="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>">
@@ -94,7 +101,7 @@ class Widget extends \WP_Widget {
 				</label>
 				<select id="<?php echo esc_attr( $this->get_field_id( 'facet' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'facet' ) ); ?>" class="widefat">
 					<?php foreach ( $meta_fields as $meta_field ) : ?>
-						<option <?php selected( $facet, $meta_field ); ?> value="<?php echo esc_attr( $meta_field ); ?>"><?php echo esc_html( $meta_field ); ?></option>
+						<option <?php selected( $instance['facet'], $meta_field ); ?> value="<?php echo esc_attr( $meta_field ); ?>"><?php echo esc_html( $meta_field ); ?></option>
 					<?php endforeach; ?>
 				</select>
 				<small>
@@ -112,10 +119,10 @@ class Widget extends \WP_Widget {
 				<label for="<?php echo esc_attr( $this->get_field_id( 'searchPlaceholder' ) ); ?>">
 					<?php esc_html_e( 'Search field placeholder:', 'elasticpress' ); ?>
 				</label>
-				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'searchPlaceholder' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'searchPlaceholder' ) ); ?>" type="text" value="<?php echo esc_attr( $search_placeholder ); ?>" />
+				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'searchPlaceholder' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'searchPlaceholder' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['searchPlaceholder'] ); ?>" />
 			</p>
 			<p>
-				<input class="checkbox" type="checkbox" <?php checked( $display_count ); ?> id="<?php echo esc_attr( $this->get_field_id( 'displayCount' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'displayCount' ) ); ?>" />
+				<input class="checkbox" type="checkbox" <?php checked( $instance['displayCount'] ); ?> id="<?php echo esc_attr( $this->get_field_id( 'displayCount' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'displayCount' ) ); ?>" />
 				<label for="<?php echo esc_attr( $this->get_field_id( 'displayCount' ) ); ?>">
 					<?php esc_html_e( 'Display count', 'elasticpress' ); ?>
 				</label>
@@ -126,7 +133,7 @@ class Widget extends \WP_Widget {
 				</label><br>
 				<select id="<?php echo esc_attr( $this->get_field_id( 'orderby_order' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'orderby_order' ) ); ?>" class="widefat">
 					<?php foreach ( $orderby_options as $option ) : ?>
-						<option <?php selected( $orderby . '/' . $order, $option['value'] ); ?> value="<?php echo esc_attr( $option['value'] ); ?>"><?php echo esc_html( $option['label'] ); ?></option>
+						<option <?php selected( $instance['orderby'] . '/' . $instance['order'], $option['value'] ); ?> value="<?php echo esc_attr( $option['value'] ); ?>"><?php echo esc_html( $option['label'] ); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</p>

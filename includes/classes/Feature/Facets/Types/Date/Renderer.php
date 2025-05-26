@@ -36,7 +36,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$instance = wp_parse_args(
 			$instance,
 			[
-				'title' => '',
+				'title'             => '',
+				'displayCustomDate' => false,
 			]
 		);
 
@@ -50,7 +51,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 			]
 		);
 
-		$this->display_custom_date = $instance['displayCustomDate'] ?? false;
+		$this->display_custom_date = $instance['displayCustomDate'];
 		$feature                   = Features::factory()->get_registered_feature( 'facets' );
 
 		$facet_type       = $feature->types['date'];
