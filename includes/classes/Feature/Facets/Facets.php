@@ -536,7 +536,8 @@ class Facets extends Feature {
 	 */
 	public function hide_legacy_widget( $widgets ) {
 		$widgets[] = 'ep-facet';
-		$widgets[] = 'ep-date-facet';
+		$widgets[] = 'ep-facet-date';
+		$widgets[] = 'ep-facet-meta';
 
 		return $widgets;
 	}

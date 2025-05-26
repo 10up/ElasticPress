@@ -23,9 +23,10 @@ class Widget extends \WP_Widget {
 		$options = array(
 			'description'           => esc_html__( 'Let visitors filter your content by post date.', 'elasticpress' ),
 			'show_instance_in_rest' => true,
+			'classname'             => 'wp-widget-elasticpress-facet widget_ep-facet-date',
 		);
 
-		parent::__construct( 'ep-date-facet', esc_html__( 'ElasticPress - Filter by Post Date', 'elasticpress' ), $options );
+		parent::__construct( 'ep-facet-date', esc_html__( 'ElasticPress - Filter by Post Date', 'elasticpress' ), $options );
 	}
 
 	/**
@@ -53,7 +54,11 @@ class Widget extends \WP_Widget {
 	public function form( $instance ) {
 		$display_custom_date = $instance['displayCustomDate'] ?? false;
 		?>
-		<div class="widget-ep-date-facet">
+		<div class="widget-ep-facet-date">
+			<p>
+				<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php esc_html_e( 'Title:', 'elasticpress' ); ?></label>
+				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+			</p>
 			<p>
 				<input class="checkbox" type="checkbox" <?php checked( $display_custom_date ); ?> id="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'displayCustomDate' ) ); ?>" />
 				<label for="<?php echo esc_attr( $this->get_field_id( 'displayCustomDate' ) ); ?>">
@@ -73,6 +78,7 @@ class Widget extends \WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance                      = [];
+		$instance['title']             = ! empty( $new_instance['title'] ) ? sanitize_text_field( $new_instance['title'] ) : '';
 		$instance['displayCustomDate'] = ! empty( $new_instance['displayCustomDate'] ) ? true : false;
 
 		return $instance;

@@ -9,7 +9,8 @@
 }
 
 .widget_ep-facet,
-.wp-block-elasticpress-facet {
+.wp-block-elasticpress-facet,
+.wp-widget-elasticpress-facet {
 
 	& input[type="search"] {
 		margin-bottom: 1rem;
