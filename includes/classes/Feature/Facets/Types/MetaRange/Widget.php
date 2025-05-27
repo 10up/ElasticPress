@@ -45,15 +45,7 @@ class Widget extends \WP_Widget {
 		$renderer_class = apply_filters( 'ep_facet_renderer_class', __NAMESPACE__ . '\Renderer', 'meta-range', 'widget', $instance );
 		$renderer       = new $renderer_class();
 
-		echo wp_kses_post( $args['before_widget'] );
-
-		if ( ! empty( $instance['title'] ) ) {
-			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
-		}
-
 		$renderer->render( $args, $instance );
-
-		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**
