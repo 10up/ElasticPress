@@ -33,14 +33,6 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
-		$instance = wp_parse_args(
-			$instance,
-			[
-				'title'             => '',
-				'displayCustomDate' => false,
-			]
-		);
-
 		$args = wp_parse_args(
 			$args,
 			[
@@ -48,6 +40,14 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 				'before_title'  => '',
 				'after_title'   => '',
 				'after_widget'  => '',
+			]
+		);
+
+		$instance = wp_parse_args(
+			$instance,
+			[
+				'title'             => '',
+				'displayCustomDate' => false,
 			]
 		);
 
