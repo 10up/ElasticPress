@@ -538,6 +538,7 @@ class Facets extends Feature {
 		$widgets[] = 'ep-facet';
 		$widgets[] = 'ep-facet-date';
 		$widgets[] = 'ep-facet-meta';
+		$widgets[] = 'ep-facet-meta-range';
 
 		return $widgets;
 	}
