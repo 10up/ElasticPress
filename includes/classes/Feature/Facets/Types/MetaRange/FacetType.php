@@ -32,9 +32,17 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	public function setup() {
 		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ], 10, 2 );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
+		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
 
 		$this->block = new Block();
 		$this->block->setup();
+	}
+
+	/**
+	 * Register facet widgets
+	 */
+	public function register_widgets() {
+		register_widget( __NAMESPACE__ . '\Widget' );
 	}
 
 	/**
@@ -220,13 +228,14 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * Get all fields selected in all Facet blocks
+	 * Get all fields selected in all Facet blocks and widgets
 	 *
 	 * @return array
 	 */
 	public function get_facets_meta_fields() {
 		$facets_meta_fields = [];
 
+		// Get fields from block widgets
 		$widget_block_instances = ( new \WP_Widget_Block() )->get_settings();
 		foreach ( $widget_block_instances as $instance ) {
 			if ( ! isset( $instance['content'] ) ) {
@@ -242,6 +251,16 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			}
 
 			$facets_meta_fields = array_merge( $facets_meta_fields, $matches[1] );
+		}
+
+		// Get fields from classic widgets
+		$widget_instances = get_option( 'widget_ep-facet-meta-range' );
+		if ( ! empty( $widget_instances ) && is_array( $widget_instances ) ) {
+			foreach ( $widget_instances as $instance ) {
+				if ( ! empty( $instance['facet'] ) ) {
+					$facets_meta_fields[] = $instance['facet'];
+				}
+			}
 		}
 
 		if ( current_theme_supports( 'block-templates' ) ) {

@@ -54,7 +54,10 @@ class Widget extends \WP_Widget {
 	 * @param array $instance Widget instance settings
 	 */
 	public function form( $instance ) {
-		$meta_fields = \ElasticPress\Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
+		$meta_fields = array_merge(
+			[ '' => __( 'Select key', 'elasticpress' ) ],
+			\ElasticPress\Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys()
+		);
 
 		$instance = wp_parse_args(
 			$instance,
