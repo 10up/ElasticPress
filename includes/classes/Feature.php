@@ -132,7 +132,7 @@ abstract class Feature {
 	 * @since 5.0.0
 	 * @var false|string
 	 */
-	protected $requires_feature = false;
+	public $requires_feature = false;
 
 	/**
 	 * The slugs of multiple features that are required to be active.
@@ -140,7 +140,7 @@ abstract class Feature {
 	 * @since 5.3.0
 	 * @var false|string
 	 */
-	protected $requires_features = false;
+	public $requires_features = false;
 
 	/**
 	 * Whether the feature is using ElasticPress.io.
