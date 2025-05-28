@@ -23,6 +23,10 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 	 * Hook block functionality.
 	 */
 	public function setup() {
+		if ( ! $this->is_facet_enabled_in_editor() ) {
+			return;
+		}
+
 		add_action( 'init', [ $this, 'register_block' ] );
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_assets' ] );
 	}

@@ -119,22 +119,6 @@ class Facets extends Feature {
 	 * @since 2.5
 	 */
 	public function setup() {
-		global $pagenow;
-
-		$in_editor = in_array( $pagenow, [ 'post-new.php', 'post.php' ], true );
-
-		/**
-		 * Filter if facet should be enabled in the editor. Default: false
-		 *
-		 * @hook  ep_facet_enabled_in_editor
-		 * @since 5.1.0
-		 * @param {bool}  $enabled
-		 * @return {bool} If enabled or not
-		 */
-		if ( $in_editor && ! apply_filters( 'ep_facet_enabled_in_editor', false ) ) {
-			return;
-		}
-
 		foreach ( $this->types as $type => $class ) {
 			$this->types[ $type ]->setup();
 		}

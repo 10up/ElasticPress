@@ -19,6 +19,14 @@
 			opacity: 0.5;
 		}
 	}
+
+	& .components-base-control:not(:focus-within) {
+		
+		& .components-form-toggle__track,
+		& .components-form-toggle__thumb {
+			transition: none;
+		}
+	}
 }
 
 /* Dashboard Layout and Structure */
@@ -64,7 +72,7 @@
 	border: 1px solid #e0e0e0;
 	display: grid;
 	grid-gap: 16px;
-	grid-template-columns: 2fr 5fr;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
 
 	& .components-notice {
 		margin: 16px 0;
@@ -115,13 +123,13 @@
 	font-family: inherit;
 	font-size: 13px;
 	font-weight: 500;
-	height: 48px !important;
 	margin: 0;
-	padding: 3px 16px;
+	padding: 16px;
 	position: relative;
 	text-align: left;
 	text-decoration: none;
 	width: 100%;
+	word-break: break-word;
 }
 
 .ep-dashboard-tab:focus {
