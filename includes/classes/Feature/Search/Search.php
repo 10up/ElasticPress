@@ -894,18 +894,25 @@ class Search extends Feature {
 				'type'    => 'radio',
 			],
 			[
-				'default' => '0',
-				'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.' ),
-				'key'     => 'highlight_enabled',
-				'label'   => __( 'Highlight search terms', 'elasticpress' ),
-				'type'    => 'checkbox',
-			],
-			[
-				'default' => '0',
-				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
-				'key'     => 'highlight_excerpt',
-				'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
-				'type'    => 'checkbox',
+				'type'   => 'field_group',
+				'key'    => 'highlighting',
+				'label'  => 'Highlighting Options',
+				'fields' => [
+					[
+						'default' => '0',
+						'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.' ),
+						'key'     => 'highlight_enabled',
+						'label'   => __( 'Highlight search terms', 'elasticpress' ),
+						'type'    => 'checkbox',
+					],
+					[
+						'default' => '0',
+						'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
+						'key'     => 'highlight_excerpt',
+						'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
+						'type'    => 'checkbox',
+					],
+				],
 			],
 			[
 				'default' => 'mark',

@@ -251,23 +251,37 @@ const Control = ({
 									return true;
 								}
 
-								const result = Object.entries(requiresFields).every(
-									([fieldKey, requiredValue]) => {
-										let actualValue;
+								const conditions = requiresFields.conditions ?? false;
+								let relationship = requiresFields.relationship ?? 'AND';
 
-										// For fields that are part of the field group, check there first
-										if (fields.some((f) => f.key === fieldKey)) {
-											actualValue = value?.[fieldKey];
-										} else {
-											// For fields not in the group, check parent settings
-											actualValue = settings['instant-results']?.[fieldKey];
-										}
+								if (relationship !== 'OR' && relationship !== 'AND') {
+									relationship = 'AND';
+								}
 
-										return actualValue === requiredValue;
-									},
-								);
+								if (!conditions) {
+									return true;
+								}
 
-								return result;
+								// Helper function to check individual condition
+								const checkCondition = ([fieldKey, requiredValue]) => {
+									let actualValue;
+
+									// For fields that are part of the field group, check there first
+									if (fields.some((f) => f.key === fieldKey)) {
+										actualValue = value?.[fieldKey];
+									} else {
+										// For fields not in the group, check parent settings
+										actualValue = settings['instant-results']?.[fieldKey];
+									}
+
+									return actualValue === requiredValue;
+								};
+
+								// Apply the appropriate logic based on relationship
+								if (relationship === 'OR') {
+									return Object.entries(conditions).some(checkCondition);
+								}
+								return Object.entries(conditions).every(checkCondition);
 							};
 
 							return (
