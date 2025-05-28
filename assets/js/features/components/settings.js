@@ -42,7 +42,7 @@ export default ({ feature, settingsSchema }) => {
 	 * Determines whether a control should be rendered based on its requirements.
 	 *
 	 * @param {object} requires_fields An object representing the required field values for rendering.
-	 * The keys are field names, and the values are the required values.
+	 * Can contain 'conditions' object with field requirements and 'relationship' key ('AND' or 'OR').
 	 * @returns {boolean} Returns `true` if the control should be rendered, otherwise `false`.
 	 */
 	const shouldRenderControl = (requires_fields) => {
@@ -50,11 +50,37 @@ export default ({ feature, settingsSchema }) => {
 			return true;
 		}
 
-		return Object.entries(requires_fields).every(([fieldKey, requiredValue]) => {
+		// Get field requirements from 'conditions' key
+		let fieldRequirements;
+
+		if (requires_fields.conditions) {
+			fieldRequirements = Object.entries(requires_fields.conditions);
+		}
+
+		// If no actual field requirements, return true
+		if (fieldRequirements.length === 0) {
+			return true;
+		}
+
+		// Define the condition check function
+		const checkCondition = ([fieldKey, requiredValue]) => {
 			const actualValue = settings[feature]?.[fieldKey];
 			const defaultValue = defaultSettings[fieldKey] ?? false;
 			return actualValue === requiredValue ?? actualValue === defaultValue;
-		});
+		};
+
+		// Extract relationship type, default to 'AND'
+		const relationship = (requires_fields.relationship || 'AND').toUpperCase();
+
+		// Apply the appropriate logic based on relationship type
+		switch (relationship) {
+			case 'OR':
+				return fieldRequirements.some(checkCondition);
+			case 'AND':
+			default:
+				// Default to AND for any unexpected values
+				return fieldRequirements.every(checkCondition);
+		}
 	};
 
 	return settingsSchema.map((s) => {
