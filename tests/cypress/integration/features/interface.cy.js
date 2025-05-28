@@ -103,7 +103,9 @@ describe('Feature Grouping and Persistence', () => {
 					],
 					type: 'radio',
 					requires_fields: {
-						test_field: '0',
+						conditions: {
+							test_field: '0',
+						},
 					},
 				});
 			});
