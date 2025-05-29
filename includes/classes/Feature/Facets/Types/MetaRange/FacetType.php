@@ -270,6 +270,13 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			);
 		}
 
+		if ( class_exists( '\Elementor\Plugin' ) ) {
+			$facets_meta_fields = array_merge(
+				$facets_meta_fields,
+				$this->elementor_template_meta_fields( 'wp-widget-ep-facet-meta-range' )
+			);
+		}
+
 		/**
 		 * Filter meta fields to be used in aggregations related to meta range blocks.
 		 *

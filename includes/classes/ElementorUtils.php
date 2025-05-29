@@ -80,14 +80,24 @@ class ElementorUtils {
 			return (array) $pre_all_widgets;
 		}
 
-		$all_widgets         = [];
-
-		$elementor_templates = get_posts(
+		/**
+		 * Filter the query arguments used to get Elementor templates.
+		 *
+		 * @since 5.3.0
+		 * @hook ep_elementor_templates_query_args
+		 * @param {array} $query_args Query arguments
+		 * @return {array} Modified query arguments
+		 */
+		$query_args = apply_filters(
+			'ep_elementor_templates_query_args',
 			[
 				'post_type'      => [ 'elementor_library' ],
-				'posts_per_page' => -1,
+				'posts_per_page' => 999, // phpcs:ignore WordPress.WP.PostsPerPage.posts_per_page_posts_per_page
 			]
 		);
+
+		$elementor_templates = get_posts( $query_args );
+		$all_widgets         = [];
 
 		foreach ( $elementor_templates as $elementor_template ) {
 			$template_content = get_post_meta( $elementor_template->ID, '_elementor_data', true );
@@ -100,6 +110,7 @@ class ElementorUtils {
 				$this->recursively_get_inner_widgets( $template_content )
 			);
 		}
+
 		set_transient( self::CACHE_KEY, $all_widgets, MONTH_IN_SECONDS );
 		return $all_widgets;
 	}
