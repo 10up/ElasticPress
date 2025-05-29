@@ -455,21 +455,21 @@ class EP_AS_PHP_Proxy {
 	/**
 	 * Utilitary function to sanitize string.
 	 *
-	 * @param string $string String to be sanitized
+	 * @param string $str String to be sanitized
 	 * @return string
 	 */
-	protected function sanitize_string( $string ) {
-		return htmlspecialchars( $string );
+	protected function sanitize_string( $str ) {
+		return htmlspecialchars( $str );
 	}
 
 	/**
 	 * Utilitary function to sanitize numbers.
 	 *
-	 * @param string $string Number to be sanitized
+	 * @param string $str Number to be sanitized
 	 * @return string
 	 */
-	protected function sanitize_number( $string ) {
-		return filter_var( $string, FILTER_SANITIZE_NUMBER_INT );
+	protected function sanitize_number( $str ) {
+		return filter_var( $str, FILTER_SANITIZE_NUMBER_INT );
 	}
 }
 
