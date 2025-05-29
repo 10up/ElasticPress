@@ -47,11 +47,13 @@ class ElementorUtils {
 	 * @return array
 	 */
 	public function get_specific_widget_in_all_templates( string $widget_name ): array {
-		$widgets = array_filter(
-			$this->get_all_widgets_in_all_templates(),
-			function ( $widget ) use ( $widget_name ) {
-				return ( $widget['widgetType'] === $widget_name );
-			}
+		$widgets = array_values(
+			array_filter(
+				$this->get_all_widgets_in_all_templates(),
+				function ( $widget ) use ( $widget_name ) {
+					return ( $widget['widgetType'] === $widget_name );
+				}
+			)
 		);
 
 		return $widgets;
@@ -124,7 +126,7 @@ class ElementorUtils {
 	protected function recursively_get_inner_widgets( array $template_content ): array {
 		$widgets = [];
 		foreach ( $template_content as $element ) {
-			if ( isset( $element['widgetType'] ) && ! empty( $element['widgetType'] ) ) {
+			if ( ! empty( $element['widgetType'] ) ) {
 				$widgets[] = $element;
 			}
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
