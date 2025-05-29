@@ -40,7 +40,11 @@
         "wp-content/plugins/sync-error.php": "./tests/cypress/wordpress-files/test-plugins/sync-error.php",
         "wp-content/plugins/unsupported-server-software.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-server-software.php",
         "wp-content/plugins/unsupported-elasticsearch-version.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-elasticsearch-version.php",
-        "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml"
+        "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml",
+		"wp-content/plugins/customize-autosuggest-v2.php": "./tests/cypress/wordpress-files/test-plugins/customize-autosuggest-v2.php",
+		"wp-content/plugins/customize-autosuggest-v2.js": "./tests/cypress/wordpress-files/test-plugins/customize-autosuggest-v2.js",
+		"wp-content/plugins/autosuggestv2-proxy.php": "./tests/cypress/wordpress-files/test-plugins/autosuggestv2-proxy.php",
+		"wp-content/plugins/autosuggestv2-proxy-plugin.php": "./tests/cypress/wordpress-files/test-plugins/autosuggestv2-proxy-plugin.php"
       }
     }
   }
