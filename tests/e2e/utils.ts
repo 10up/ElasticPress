@@ -272,6 +272,24 @@ export async function maybeOpenPostTab(page: Page) {
 	}
 }
 
+export async function maybeOpenSettingsTab(page: Page, tabName: string) {
+	await maybeOpenEditorSettings(page);
+
+	let tab: Locator;
+	let isTabActive: string | boolean | null;
+	if (process.env.WP_VERSION === '6.2') {
+		tab = page.locator('.edit-post-sidebar__panel-tab', { hasText: tabName });
+		const postTabClasses = await tab.getAttribute('class');
+		isTabActive = postTabClasses?.includes('is-active') ?? false;
+	} else {
+		tab = page.getByRole('tab', { name: tabName });
+		isTabActive = (await tab.getAttribute('aria-selected')) === 'true';
+	}
+	if (!isTabActive) {
+		await tab.click();
+	}
+}
+
 /**
  * Set post password
  * @param page Playwright page object
