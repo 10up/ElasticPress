@@ -1452,19 +1452,6 @@ class AutosuggestV2 extends Feature {
 	}
 
 	/**
-	 * DEPRECATED. Delete the cached query for autosuggest.
-	 *
-	 * @since 3.5.5
-	 */
-	public function delete_cached_query() {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.' ),
-			'ElasticPress 4.7.0'
-		);
-	}
-
-	/**
 	 * Get the contexts for autosuggest.
 	 *
 	 * @since 5.1.0
