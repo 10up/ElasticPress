@@ -10,8 +10,8 @@ test.describe('Documents Feature', () => {
 		// Wait for the API request to complete
 		const responsePromise = page.waitForResponse('**/wp-json/elasticpress/v1/features*');
 
-		await page.getByRole('tab', { name: 'Indexing Options' }).click();
-		await page.getByRole('tab', { name: 'Documents' }).click();
+		await page.getByRole('button', { name: 'Indexing Options' }).click();
+		await page.getByRole('button', { name: 'Documents' }).click();
 		await page.getByLabel('Enable').click();
 		await page.getByRole('button', { name: 'Save changes' }).click();
 

@@ -25,8 +25,8 @@ test.describe('Protected Content Feature', () => {
 		maybeDisableFeature('protected_content');
 		await loggedInPage.goto('/wp-admin/admin.php?page=elasticpress');
 
-		await loggedInPage.getByRole('tab', { name: 'Indexing Options' }).click();
-		await loggedInPage.getByRole('tab', { name: 'Protected Content' }).click();
+		await loggedInPage.getByRole('button', { name: 'Indexing Options' }).click();
+		await loggedInPage.getByRole('button', { name: 'Protected Content' }).click();
 		await loggedInPage.getByLabel('Enable').check();
 		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
