@@ -117,4 +117,18 @@ test.describe('Autosuggest Feature', () => {
 		await page.keyboard.press('Enter');
 		await expect(page).toHaveURL(/.*blog/);
 	});
+
+	test('Can override default placeholder and confirm autosuggest works', async ({ page }) => {
+		await wpCli('wp plugin activate custom-autosuggest-placeholder');
+		await page.goto('/');
+
+		// Verify autosuggest still works with the custom placeholder
+		await page.getByRole('searchbox').pressSequentially('blog');
+		const autosuggest = page.locator('.ep-autosuggest');
+		await expect(autosuggest).toBeVisible();
+		await expect(autosuggest).toContainText('a Blog page');
+
+		// Cleanup
+		await wpCli('wp plugin deactivate custom-autosuggest-placeholder');
+	});
 });
