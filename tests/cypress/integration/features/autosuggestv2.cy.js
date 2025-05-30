@@ -2,12 +2,13 @@
 /* global isEpIo */
 
 // eslint-disable-next-line jest/valid-describe-callback
-describe('Autosuggest V2 Feature', () => {
+describe('Autosuggest V2 Feature', { tags: '@slow' }, () => {
 	before(() => {
 		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
 		cy.maybeDisableFeature('autosuggest-v2');
 		cy.maybeDisableFeature('autosuggest');
 	});
+
 	/**
 	 * Test that the feature cannot be activated when not in ElasticPress.io nor using a custom PHP proxy.
 	 */
@@ -31,6 +32,13 @@ describe('Autosuggest V2 Feature', () => {
 			}
 			cy.maybeEnableFeature('autosuggest-v2');
 			cy.wpCli('wp elasticpress sync');
+		});
+
+		after(() => {
+			cy.maybeDisableFeature('autosuggest-v2');
+			if (!isEpIo) {
+				cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
+			}
 		});
 
 		it('Reports as enabled', () => {
@@ -74,6 +82,7 @@ describe('Autosuggest V2 Feature', () => {
 
 	describe('Autosuggest V2 Disabled', () => {
 		before(() => {
+			// This block already ensures its desired state
 			cy.maybeDisableFeature('autosuggest-v2');
 			cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
 		});
