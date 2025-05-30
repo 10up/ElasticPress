@@ -86,9 +86,28 @@ describe('Autosuggest V2 Feature', () => {
 		});
 	});
 
-	after(() => {
+	it('Can be disabled', () => {
 		cy.maybeDisableFeature('autosuggest-v2');
 		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
 		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
+
+		cy.wait(2000);
+
+		cy.visitAdminPage('admin.php?page=elasticpress');
+		cy.contains('button', 'Live Search').click();
+		cy.contains('button', 'Autosuggest V2').click();
+
+		cy.get('.components-toggle-control input:checked').should('not.exist');
+		cy.get('.components-toggle-control input:not(:checked)').should('exist');
+
+		cy.wait(2000);
+
+		cy.contains('button', 'Save changes').click();
+
+		cy.wait(2000);
+
+		cy.reload();
+
+		cy.wait(2000);
 	});
 });
