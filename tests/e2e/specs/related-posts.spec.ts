@@ -165,8 +165,10 @@ test.describe('Related Posts Feature', () => {
 
 		// Transform to Related Posts block
 		await legacyWidget.click();
-		await loggedInPage.getByRole('button', { name: 'Block' }).click();
-		await loggedInPage.getByRole('option', { name: 'Related Posts' }).click();
+		await loggedInPage.click('.block-editor-block-switcher button');
+		await loggedInPage.click(
+			'.block-editor-block-switcher__popover .editor-block-list-item-elasticpress-related-posts',
+		);
 
 		// Verify transformation
 		await expect(loggedInPage.locator('.wp-block-heading')).toContainText(

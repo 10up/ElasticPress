@@ -480,27 +480,27 @@ export async function createClassicWidget(
 	await goToAdminPage(page, 'widgets.php');
 
 	// Add widget to first widget area
-	await page.click(`#widget-list [id$="${widgetId}-__i__"]`);
+	await page.click(`#widget-list [id$="${widgetId}-__i__"] h3`);
 	await page.click(`#widget-list [id$="${widgetId}-__i__"] .widgets-chooser-add`);
 
 	// Set widget settings and save
 	const widget = page.locator(`#widgets-right .widget[id*="${widgetId}"]`).last();
-	for (const setting of settings) {
+
+	const settingPromises = settings.map(async (setting) => {
 		const control = widget.locator(`[name*="[${setting.name}]"]`);
 
 		switch (setting.type) {
 			case 'select':
-				await control.selectOption(setting.value);
-				break;
+				return control.selectOption(setting.value);
 			case 'checkbox':
 			case 'radio':
-				await control.check(setting.value);
-				break;
+				return control.check();
 			default:
-				await control.fill(setting.value);
-				break;
+				return control.fill(setting.value);
 		}
-	}
+	});
+
+	await Promise.all(settingPromises);
 
 	await widget.locator('input[type="submit"]').click();
 	await page.waitForLoadState('networkidle');
