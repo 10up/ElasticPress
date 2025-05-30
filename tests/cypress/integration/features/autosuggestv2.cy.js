@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 /* global isEpIo */
 
 // eslint-disable-next-line jest/valid-describe-callback
@@ -8,7 +9,6 @@ describe('Autosuggest V2 Feature', () => {
 		cy.maybeDisableFeature('autosuggest');
 		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 	});
-
 	/**
 	 * Test that the feature cannot be activated when not in ElasticPress.io nor using a custom PHP proxy.
 	 */
@@ -29,11 +29,15 @@ describe('Autosuggest V2 Feature', () => {
 	 * Test that the feature works after being activated
 	 */
 	it('Displays autosuggestions after being enabled', () => {
-		cy.activatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
+		if (!isEpIo) {
+			cy.activatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
+		}
 
 		cy.reload();
 
 		cy.visitAdminPage('admin.php?page=elasticpress#/autosuggest-v2');
+
+		cy.reload();
 
 		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
 
@@ -44,6 +48,7 @@ describe('Autosuggest V2 Feature', () => {
 		cy.get('.components-notice').should(noticeShould, 'You are using a custom proxy.');
 
 		cy.contains('label', 'Enable').click();
+		cy.wait(1000);
 		cy.contains('button', 'Save and sync now').click();
 
 		cy.wait('@apiRequest');
@@ -54,7 +59,7 @@ describe('Autosuggest V2 Feature', () => {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
 
-		cy.timeout(2000);
+		cy.wait(2000);
 
 		cy.visit('/');
 
@@ -62,7 +67,7 @@ describe('Autosuggest V2 Feature', () => {
 
 		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
 
-		cy.timeout(2000);
+		cy.wait(2000);
 
 		cy.get('.ep-autosuggest').should(($autosuggestList) => {
 			// eslint-disable-next-line no-unused-expressions
@@ -93,8 +98,8 @@ describe('Autosuggest V2 Feature', () => {
 	});
 
 	after(() => {
-		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
 		cy.maybeDisableFeature('autosuggest-v2');
+		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
 		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 	});
 });
