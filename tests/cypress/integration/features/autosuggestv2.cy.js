@@ -5,9 +5,9 @@
 describe('Autosuggest V2 Feature', () => {
 	before(() => {
 		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
+		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 		cy.maybeDisableFeature('autosuggest-v2');
 		cy.maybeDisableFeature('autosuggest');
-		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 	});
 	/**
 	 * Test that the feature cannot be activated when not in ElasticPress.io nor using a custom PHP proxy.
@@ -33,25 +33,19 @@ describe('Autosuggest V2 Feature', () => {
 			cy.activatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
 		}
 
-		cy.reload();
+		cy.visitAdminPage('admin.php?page=elasticpress');
 
-		cy.visitAdminPage('admin.php?page=elasticpress#/autosuggest-v2');
+		cy.contains('button', 'Live Search').click();
+		cy.contains('button', 'Autosuggest V2').click();
 
-		cy.reload();
+		if (!isEpIo) {
+			cy.get('.components-notice').should('contain.text', 'You are using a custom proxy.');
+		}
 
-		cy.intercept('/wp-json/elasticpress/v1/features*').as('apiRequest');
+		cy.maybeEnableFeature('autosuggest-v2');
 
-		cy.get('.components-form-toggle__input').should('not.be.disabled');
-
-		const noticeShould = isEpIo ? 'not.contain.text' : 'contain.text';
-
-		cy.get('.components-notice').should(noticeShould, 'You are using a custom proxy.');
-
-		cy.contains('label', 'Enable').click();
-		cy.wait(1000);
-		cy.contains('button', 'Save and sync now').click();
-
-		cy.wait('@apiRequest');
+		cy.visitAdminPage('admin.php?page=elasticpress-sync');
+		cy.contains('.components-button', 'Start sync').click();
 
 		cy.on('window:confirm', () => true);
 
@@ -59,15 +53,11 @@ describe('Autosuggest V2 Feature', () => {
 			timeout: Cypress.config('elasticPressIndexTimeout'),
 		}).should('contain.text', 'Sync complete');
 
-		cy.wait(2000);
-
 		cy.visit('/');
-
-		cy.get('.wp-block-search').last().as('searchBlock');
 
 		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
 
-		cy.wait(2000);
+		cy.wait(500);
 
 		cy.get('.ep-autosuggest').should(($autosuggestList) => {
 			// eslint-disable-next-line no-unused-expressions
@@ -82,11 +72,10 @@ describe('Autosuggest V2 Feature', () => {
 	it('Can be customized using filters', () => {
 		cy.activatePlugin('customize-autosuggest-v2', 'wpCli');
 		cy.visit('/');
-		cy.get('.wp-block-search').last().as('searchBlock');
 
 		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
 
-		cy.timeout(2000);
+		cy.wait(500);
 
 		cy.get('.ep-autosuggest').should(($autosuggestList) => {
 			// eslint-disable-next-line no-unused-expressions
