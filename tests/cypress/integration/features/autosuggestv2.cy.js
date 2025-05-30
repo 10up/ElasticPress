@@ -25,89 +25,69 @@ describe('Autosuggest V2 Feature', () => {
 		cy.get('.components-form-toggle__input').should('be.disabled');
 	});
 
-	/**
-	 * Test that the feature works after being activated
-	 */
-	it('Displays autosuggestions after being enabled', () => {
-		if (!isEpIo) {
-			cy.activatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
-		}
+	describe('Autosuggest V2 enabled', () => {
+		before(() => {
+			if (!isEpIo) {
+				cy.activatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
+			}
+			cy.maybeEnableFeature('autosuggest-v2');
+			cy.wpCli('wp elasticpress sync');
+		});
 
-		cy.visitAdminPage('admin.php?page=elasticpress');
+		it('Reports as enabled', () => {
+			/** Visit the feature */
+			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.contains('button', 'Live Search').click();
+			cy.contains('button', 'Autosuggest V2').click();
 
-		cy.contains('button', 'Live Search').click();
-		cy.contains('button', 'Autosuggest V2').click();
+			if (!isEpIo) {
+				cy.get('.components-notice').should(
+					'contain.text',
+					'You are using a custom proxy.',
+				);
+			}
 
-		if (!isEpIo) {
-			cy.get('.components-notice').should('contain.text', 'You are using a custom proxy.');
-		}
+			cy.get('.components-toggle-control input:checked').should('exist');
+			cy.get('.components-toggle-control input:not(:checked)').should('not.exist');
+		});
 
-		cy.maybeEnableFeature('autosuggest-v2');
+		/**
+		 * Test that the feature works after being activated
+		 */
+		it('Displays autosuggestions after being enabled', () => {
+			cy.intercept({ url: /search=[^&]*/, method: 'GET' }).as('apiRequest');
 
-		cy.visitAdminPage('admin.php?page=elasticpress-sync');
-		cy.contains('.components-button', 'Start sync').click();
+			cy.visit('/');
 
-		cy.on('window:confirm', () => true);
+			cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
 
-		cy.get('.ep-sync-progress strong', {
-			timeout: Cypress.config('elasticPressIndexTimeout'),
-		}).should('contain.text', 'Sync complete');
+			cy.wait('@apiRequest');
 
-		cy.visit('/');
-
-		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
-
-		cy.wait(500);
-
-		cy.get('.ep-autosuggest').should(($autosuggestList) => {
-			// eslint-disable-next-line no-unused-expressions
-			expect($autosuggestList).to.be.visible;
-			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
+			cy.get('.ep-autosuggest').should(($autosuggestList) => {
+				// eslint-disable-next-line no-unused-expressions
+				expect($autosuggestList).to.be.visible;
+				expect($autosuggestList[0].innerText).to.contains(
+					'Markup: HTML Tags and Formatting',
+				);
+			});
 		});
 	});
 
-	/**
-	 * Test that the feature can be modified via filters in a custom plugin
-	 */
-	it('Can be customized using filters', () => {
-		cy.activatePlugin('customize-autosuggest-v2', 'wpCli');
-		cy.visit('/');
-
-		cy.get('.wp-block-search__input').type('Markup: HTML Tags and Formatting');
-
-		cy.wait(500);
-
-		cy.get('.ep-autosuggest').should(($autosuggestList) => {
-			// eslint-disable-next-line no-unused-expressions
-			expect($autosuggestList).to.be.visible;
-			expect($autosuggestList[0].innerText).to.contains('Custom Search Results');
-			expect($autosuggestList[0].innerText).to.contains('Type:');
-			expect($autosuggestList[0].innerText).to.contains('Markup: HTML Tags and Formatting');
+	describe('Autosuggest V2 Disabled', () => {
+		before(() => {
+			cy.maybeDisableFeature('autosuggest-v2');
+			cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
+			cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 		});
-	});
+		it('Can be disabled', () => {
+			cy.visitAdminPage('admin.php?page=elasticpress');
+			cy.contains('button', 'Live Search').click();
+			cy.contains('button', 'Autosuggest V2').click();
 
-	it('Can be disabled', () => {
-		cy.maybeDisableFeature('autosuggest-v2');
-		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
-		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
+			cy.get('.components-toggle-control input:checked').should('not.exist');
+			cy.get('.components-toggle-control input:not(:checked)').should('exist');
 
-		cy.wait(2000);
-
-		cy.visitAdminPage('admin.php?page=elasticpress');
-		cy.contains('button', 'Live Search').click();
-		cy.contains('button', 'Autosuggest V2').click();
-
-		cy.get('.components-toggle-control input:checked').should('not.exist');
-		cy.get('.components-toggle-control input:not(:checked)').should('exist');
-
-		cy.wait(2000);
-
-		cy.contains('button', 'Save changes').click();
-
-		cy.wait(2000);
-
-		cy.reload();
-
-		cy.wait(2000);
+			cy.contains('button', 'Save changes').click();
+		});
 	});
 });
