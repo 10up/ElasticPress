@@ -5,7 +5,6 @@
 describe('Autosuggest V2 Feature', () => {
 	before(() => {
 		cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
-		cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 		cy.maybeDisableFeature('autosuggest-v2');
 		cy.maybeDisableFeature('autosuggest');
 	});
@@ -77,7 +76,6 @@ describe('Autosuggest V2 Feature', () => {
 		before(() => {
 			cy.maybeDisableFeature('autosuggest-v2');
 			cy.deactivatePlugin('autosuggestv2-proxy-plugin', 'wpCli');
-			cy.deactivatePlugin('customize-autosuggest-v2', 'wpCli');
 		});
 		it('Can be disabled', () => {
 			cy.visitAdminPage('admin.php?page=elasticpress');
