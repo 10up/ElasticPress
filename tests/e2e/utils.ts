@@ -246,12 +246,14 @@ export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
 export async function maybeOpenEditorSettings(page: Page) {
 	const selector =
 		process.env.WP_VERSION === '6.2'
-			? '.interface-interface-skeleton__sidebar'
+			? '.interface-interface-skeleton__sidebar .interface-complementary-area'
 			: '.interface-interface-skeleton__sidebar .interface-complementary-area__fill';
 	const editorSettings = page.locator(selector);
 
 	try {
-		await editorSettings.waitFor({ state: 'visible', timeout: 5 });
+		if (process.env.WP_VERSION !== '6.2') {
+			await editorSettings.waitFor({ state: 'visible', timeout: 5 });
+		}
 		const isEditorSettingsVisible = await editorSettings.isVisible();
 		if (!isEditorSettingsVisible) {
 			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
