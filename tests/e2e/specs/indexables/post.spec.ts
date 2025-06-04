@@ -1,11 +1,7 @@
 import { test, expect } from '../../fixtures';
 import {
-	activatePlugin,
-	deactivatePlugin,
-	getSyncTimeout,
 	goToAdminPage,
 	setPerIndexCycle,
-	wpCli,
 	refreshIndex,
 	publishPost,
 	setPostPassword,

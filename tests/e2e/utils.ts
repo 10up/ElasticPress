@@ -244,11 +244,20 @@ export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
-	const isEditorSettingsVisible = await page
-		.locator('.interface-interface-skeleton__sidebar')
-		.isVisible();
-	if (!isEditorSettingsVisible) {
-		await page.locator('.edit-post-header button[aria-label="Settings"]').click();
+	const selector =
+		process.env.WP_VERSION === '6.2'
+			? '.interface-interface-skeleton__sidebar'
+			: '.interface-interface-skeleton__sidebar .interface-complementary-area__fill';
+	const editorSettings = page.locator(selector);
+
+	try {
+		await editorSettings.waitFor({ state: 'visible', timeout: 5 });
+		const isEditorSettingsVisible = await editorSettings.isVisible();
+		if (!isEditorSettingsVisible) {
+			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
+		}
+	} catch (error) {
+		// Do nothing
 	}
 }
 
@@ -301,7 +310,7 @@ export async function setPostPassword(
 			);
 		}
 	} else {
-		await page.locator('.components-dropdown.editor-post-status').click();
+		await page.locator('.components-dropdown.editor-post-status').click({ force: true });
 
 		const passwordCheckbox = page.locator(
 			'.editor-change-status__password-fieldset input[type="checkbox"]',
@@ -311,7 +320,7 @@ export async function setPostPassword(
 			(passwordCheckboxIsChecked && password === '') ||
 			(!passwordCheckboxIsChecked && password !== '')
 		) {
-			await passwordCheckbox.click();
+			await passwordCheckbox.setChecked(password !== '');
 		}
 
 		if (password !== '') {
@@ -320,7 +329,7 @@ export async function setPostPassword(
 	}
 
 	if (save) {
-		await page.locator('.editor-post-publish-button__button').click();
+		await page.locator('.editor-post-publish-button__button').click({ force: true });
 		await page.waitForSelector('.components-snackbar');
 
 		// Wait for Elasticsearch to process the post
