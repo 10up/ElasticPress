@@ -486,17 +486,20 @@ export async function createClassicWidget(
 	// Set widget settings and save
 	const widget = page.locator(`#widgets-right .widget[id*="${widgetId}"]`).last();
 
-	const settingPromises = settings.map(async (setting) => {
-		const control = widget.locator(`[name*="[${setting.name}]"]`);
+	const settingPromises = settings.map(async ({ name, type, value }) => {
+		const control = widget.locator(`[name*="[${name}]"]`);
 
-		switch (setting.type) {
+		switch (type) {
 			case 'select':
-				return control.selectOption(setting.value);
+				await control.selectOption(value);
+				break;
 			case 'checkbox':
 			case 'radio':
-				return control.check();
+				await control.check();
+				break;
 			default:
-				return control.fill(setting.value);
+				await control.fill(value);
+				break;
 		}
 	});
 

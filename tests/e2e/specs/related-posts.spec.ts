@@ -180,6 +180,10 @@ test.describe('Related Posts Feature', () => {
 		// Verify block settings match widget settings
 		await block.click();
 		await maybeOpenSettingsTab(loggedInPage, 'Block');
-		await expect(loggedInPage.getByLabel('Number of items')).toHaveValue('2');
+		await expect(
+			loggedInPage
+				.locator('input[type="number"]')
+				.and(loggedInPage.getByLabel('Number of items')),
+		).toHaveValue('2');
 	});
 });
