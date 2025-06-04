@@ -244,31 +244,11 @@ export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
-	const editorSettings = page.getByRole('region', { name: 'Editor settings' });
-	try {
-		await editorSettings.waitFor({ state: 'visible', timeout: 5 });
-		const isEditorSettingsVisible = await editorSettings.isVisible();
-		if (!isEditorSettingsVisible) {
-			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
-		}
-	} catch (error) {
-		// Do nothing
-	}
-}
-
-export async function maybeOpenPostTab(page: Page) {
-	let postTab: Locator;
-	let isPostTabActive: string | boolean | null;
-	if (process.env.WP_VERSION === '6.2') {
-		postTab = page.locator('.edit-post-sidebar__panel-tab', { hasText: 'Post' });
-		const postTabClasses = await postTab.getAttribute('class');
-		isPostTabActive = postTabClasses?.includes('is-active') ?? false;
-	} else {
-		postTab = page.getByRole('tab', { name: 'Post' });
-		isPostTabActive = (await postTab.getAttribute('aria-selected')) === 'true';
-	}
-	if (!isPostTabActive) {
-		await postTab.click();
+	const isEditorSettingsVisible = await page
+		.locator('.interface-interface-skeleton__sidebar')
+		.isVisible();
+	if (!isEditorSettingsVisible) {
+		await page.locator('.edit-post-header button[aria-label="Settings"]').click();
 	}
 }
 
@@ -278,7 +258,9 @@ export async function maybeOpenSettingsTab(page: Page, tabName: string) {
 	let tab: Locator;
 	let isTabActive: string | boolean | null;
 	if (process.env.WP_VERSION === '6.2') {
-		tab = page.locator('.edit-post-sidebar__panel-tab', { hasText: tabName });
+		tab = page.locator('.edit-post-sidebar__panel-tab, .edit-widgets-sidebar__panel-tab', {
+			hasText: tabName,
+		});
 		const postTabClasses = await tab.getAttribute('class');
 		isTabActive = postTabClasses?.includes('is-active') ?? false;
 	} else {
@@ -304,7 +286,7 @@ export async function setPostPassword(
 	goToPost = false,
 ) {
 	await maybeOpenEditorSettings(page);
-	await maybeOpenPostTab(page);
+	await maybeOpenSettingsTab(page, 'Post');
 
 	if (process.env.WP_VERSION === '6.2') {
 		await page.locator('.edit-post-post-visibility__toggle').click();
@@ -486,7 +468,7 @@ export async function createClassicWidget(
 	// Set widget settings and save
 	const widget = page.locator(`#widgets-right .widget[id*="${widgetId}"]`).last();
 
-	const settingPromises = settings.map(async ({ name, type, value }) => {
+	for await (const { name, type, value } of settings) {
 		const control = widget.locator(`[name*="[${name}]"]`);
 
 		switch (type) {
@@ -501,9 +483,7 @@ export async function createClassicWidget(
 				await control.fill(value);
 				break;
 		}
-	});
-
-	await Promise.all(settingPromises);
+	}
 
 	await widget.locator('input[type="submit"]').click();
 	await page.waitForLoadState('networkidle');

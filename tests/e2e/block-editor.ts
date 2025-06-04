@@ -148,19 +148,22 @@ export async function supportsBlockTypography(page: Page, element: Locator, isEd
 		await fontSizeButton.dispatchEvent('click');
 		await fontSizeButton.press('Escape');
 
-		await page
-			.locator('.block-editor-block-inspector fieldset.components-font-size-picker')
-			.locator('button[role="combobox"], button[aria-label="Font size"]')
-			.click();
-
-		await page
-			.locator(
-				'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
-			)
-			.filter({ hasText: 'Extra small' })
-			.click();
-
 		if (process.env.WP_VERSION === '6.2') {
+			await page
+				.locator('.block-editor-block-inspector button[aria-label="Typography options"]')
+				.click();
+			const fontSizeButton = page
+				.locator(
+					'[role="menu"][aria-label="Typography options"] button, .popover-slot button',
+				)
+				.filter({ hasText: 'Font size' });
+			await fontSizeButton.click();
+			await fontSizeButton.press('Escape');
+			await page.getByRole('button', { name: 'Set custom size' }).click();
+			await page
+				.locator('.components-font-size-picker__controls input[type="number"]')
+				.fill('16');
+
 			await page
 				.locator('.block-editor-block-inspector button[aria-label="Typography options"]')
 				.click();
@@ -168,10 +171,21 @@ export async function supportsBlockTypography(page: Page, element: Locator, isEd
 				.locator('[aria-label="Typography options"] button, .popover-slot button')
 				.filter({ hasText: 'Line height' });
 			await lineHeightButton.click();
-			await lineHeightButton.click();
 			await lineHeightButton.press('Escape');
 			await page.locator('.components-input-control__input[placeholder="1.5"]').fill('2');
 		} else {
+			await page
+				.locator('.block-editor-block-inspector fieldset.components-font-size-picker')
+				.locator('button[role="combobox"], button[aria-label="Font size"]')
+				.click();
+
+			await page
+				.locator(
+					'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
+				)
+				.filter({ hasText: 'Extra small' })
+				.click();
+
 			await page.locator('.block-editor-line-height-control input').fill('2');
 			await page
 				.locator('.block-editor-block-inspector button[aria-label="Settings"]')
@@ -203,7 +217,6 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 			.locator('[aria-label="Dimensions options"] button, .popover-slot button')
 			.filter({ hasText: 'Padding' });
 		await paddingButton.dispatchEvent('click');
-		await paddingButton.dispatchEvent('click');
 		await paddingButton.press('Escape');
 
 		if (process.env.WP_VERSION === '6.2') {
@@ -216,7 +229,7 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 				{ label: 'Left padding', value: 15 },
 			];
 
-			const promises = inputs.map(async ({ label, value }) => {
+			for await (const { label, value } of inputs) {
 				const customSizeButton = dimensionsPanel
 					.locator('button[aria-label="Set custom size"]')
 					.first();
@@ -227,9 +240,7 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 
 				await customSizeButton.click({ force: true });
 				await input.fill(value.toString());
-			});
-
-			await Promise.all(promises);
+			}
 
 			await dimensionsPanel.click();
 		} else {

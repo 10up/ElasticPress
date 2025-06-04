@@ -9,6 +9,7 @@ import {
 	goToAdminPage,
 	wpCliEval,
 	maybeOpenSettingsTab,
+	getEditorFrame,
 } from '../utils';
 import {
 	openBlockInserter,
@@ -56,7 +57,7 @@ test.describe('Related Posts Feature', () => {
 		});
 
 		// Get the editor frame
-		const editorFrame = await loggedInPage.frameLocator('iframe[name="editor-canvas"]');
+		const editorFrame = await getEditorFrame(loggedInPage);
 
 		// Insert Related Posts block
 		await openBlockInserter(loggedInPage);
@@ -91,9 +92,18 @@ test.describe('Related Posts Feature', () => {
 		await expect(loggedInPage).toHaveURL(/wp-admin\/post\.php/);
 
 		// Update post and visit front end
-		await loggedInPage.getByRole('button', { name: 'Save', exact: true }).click();
-		const postHref =
-			(await loggedInPage.locator('a[aria-label="View Post"]').getAttribute('href')) ?? '';
+		const buttonLabel = process.env.WP_VERSION === '6.2' ? 'Update' : 'Save';
+		await loggedInPage.getByRole('button', { name: buttonLabel, exact: true }).click();
+
+		let viewPostLink;
+		if (process.env.WP_VERSION === '6.2') {
+			await loggedInPage.reload();
+			viewPostLink = loggedInPage.getByRole('link', { name: 'View Post' });
+		} else {
+			viewPostLink = loggedInPage.locator('a[aria-label="View Post"]');
+		}
+
+		const postHref = (await viewPostLink.getAttribute('href')) ?? '';
 		await loggedInPage.goto(postHref);
 
 		// Verify block on front end
