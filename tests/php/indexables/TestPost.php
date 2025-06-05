@@ -5475,6 +5475,54 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test a date query with a range and relation OR
+	 *
+	 * @return void
+	 */
+	public function test_date_query_with_range_and_relation_or() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'January 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'February 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => wp_date( 'Y-m-d H:i:s', strtotime( 'March 1st, 2025 00:01:01' ) ),
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query' => [
+			'relation' => 'OR',
+			[
+				'year'  => 2025,
+				'month' => 2,
+			],
+			[
+				'year'  => 2025,
+				'month' => 3,
+			],
+		],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test a date query with multiple eltries
 	 *
 	 * @group post
@@ -5967,6 +6015,70 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 9, $query->post_count );
 		$this->assertEquals( 9, $query->found_posts );
 	}
+
+	public function test_date_query_with_or_relation() {
+		$this->create_date_query_posts();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				'relation' => 'OR',
+				[
+					'before'    => 'December 29th 2011 00:00:00',
+				],
+				[
+					'after'     => 'January 4th 2012 23:59:00',
+				],
+			],
+		];
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 4, $query->post_count );
+		$this->assertEquals( 4, $query->found_posts );
+	}
+
+	public function test_date_query_with_or_relation_with_year() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2023-01-01 00:00:00',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2024-01-01 00:00:00',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2025-01-01 00:00:00',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = [
+			'ep_integrate' => true,
+			'date_query'   => [
+				'relation' => 'OR',
+				[
+					'year' => 2023,
+				],
+				[
+					'year' => 2025,
+				],
+			],
+		];
+
+		$query = new \WP_Query( $args );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
 
 	/**
 	 * Check if elasticpress_enabled() properly handles an object without the is_search() method.

@@ -81,7 +81,6 @@ class DateQuery extends WP_Date_Query {
 			}
 		}
 
-		// @todo implement OR filter relationships.
 		if ( empty( $relation ) ) {
 			$relation = 'AND';
 		}
@@ -102,14 +101,40 @@ class DateQuery extends WP_Date_Query {
 
 			if ( $range_filters ) {
 				$filter_array['and'] = array(
-					'bool' => $this->build_es_range_filter( $range_filters ),
+					'bool' => $this->build_es_range_filter( $range_filters, 'AND' ),
 				);
 			}
 
 			if ( $term_filters ) {
 				$filter_array['and'] = array(
-					'bool' => $this->build_es_date_term_filter( $term_filters ),
+					'bool' => $this->build_es_date_term_filter( $term_filters, 'AND' ),
 				);
+			}
+		} elseif ( 'OR' === $relation ) {
+			$should_clauses = [];
+			foreach ( $filter_chunks['filters'] as $filter ) {
+
+				$group = [];
+				if ( ! empty( $filter['range_filters'] ) ) {
+					$group[] = [ 'range' => $filter['range_filters'] ];
+				}
+
+				if ( ! empty( $filter['date_terms'] ) ) {
+					foreach ( $filter['date_terms']['must'] ?? [] as $must_clause ) {
+						$group[] = $must_clause;
+					}
+				}
+
+				if ( $group ) {
+					$should_clauses[] = [ 'bool' => [ 'must' => $group ] ];
+				}
+			}
+			if ( $should_clauses ) {
+				$filter_array['or'] = [
+					'bool' => [
+						'should' => $should_clauses,
+					],
+				];
 			}
 		}
 
@@ -139,6 +164,21 @@ class DateQuery extends WP_Date_Query {
 				$date_term_filter_array['should']   = ! empty( $date_term_filter['should'] ) ? array_merge( $date_term_filter_array['should'], $date_term_filter['should'] ) : [];
 				$date_term_filter_array['must_not'] = ! empty( $date_term_filter['must_not'] ) ? array_merge( $date_term_filter_array['must_not'], $date_term_filter['must_not'] ) : [];
 			}
+		} elseif ( 'OR' === $type ) {
+
+			foreach ( $date_term_filters as $date_term_filter ) {
+				if ( ! empty( $date_term_filter['must'] ) ) {
+					foreach ( $date_term_filter['must'] as $must_clause ) {
+						$date_term_filter_array['should'][] = $must_clause;
+					}
+				}
+				if ( ! empty( $date_term_filter['should'] ) ) {
+					$date_term_filter_array['should'] = array_merge( $date_term_filter_array['should'], $date_term_filter['should'] );
+				}
+				if ( ! empty( $date_term_filter['must_not'] ) ) {
+					$date_term_filter_array['must_not'] = array_merge( $date_term_filter_array['must_not'], $date_term_filter['must_not'] );
+				}
+			}
 		}
 
 		return array_filter( $date_term_filter_array );
@@ -147,12 +187,13 @@ class DateQuery extends WP_Date_Query {
 	/**
 	 * Takes array of range filters and groups them into a single filter
 	 *
-	 * @param array $range_filters Range filters.
+	 * @param array  $range_filters Range filters.
+	 * @param string $type Type of relationship between range filters (AND, OR).
 	 *
 	 * @since 0.1.4
 	 * @return array
 	 */
-	protected function build_es_range_filter( $range_filters = [] ) {
+	protected function build_es_range_filter( $range_filters = [], $type = 'AND' ) {
 		$range_filter_array = array(
 			'must'     => [],
 			'should'   => [],
@@ -164,8 +205,12 @@ class DateQuery extends WP_Date_Query {
 				$range_filter_array['must_not'][] = array(
 					'range' => $range_filter['not'],
 				);
-			} else {
+			} elseif ( 'AND' === $type ) {
 				$range_filter_array['must'][] = array(
+					'range' => $range_filter,
+				);
+			} elseif ( 'OR' === $type ) {
+				$range_filter_array['should'][] = array(
 					'range' => $range_filter,
 				);
 			}
