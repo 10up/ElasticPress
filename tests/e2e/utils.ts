@@ -254,12 +254,16 @@ export async function maybeOpenEditorSettings(page: Page) {
 		if (process.env.WP_VERSION !== '6.2') {
 			await editorSettings.waitFor({ state: 'visible', timeout: 5 });
 		}
-		const isEditorSettingsVisible = await editorSettings.isVisible();
-		if (!isEditorSettingsVisible) {
-			await page.locator('.edit-post-header button[aria-label="Settings"]').click();
-		}
 	} catch (error) {
 		// Do nothing
+	}
+
+	const isEditorSettingsVisible = await editorSettings.isVisible();
+	if (!isEditorSettingsVisible) {
+		await page
+			.locator('.edit-post-header, .edit-widgets-header')
+			.locator('button[aria-label="Settings"]')
+			.click();
 	}
 }
 
@@ -488,7 +492,7 @@ export async function createClassicWidget(
 				break;
 			case 'checkbox':
 			case 'radio':
-				await control.check();
+				await control.and(page.locator(`[value="${value}"]`)).check();
 				break;
 			default:
 				await control.fill(value);

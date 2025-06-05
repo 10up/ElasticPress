@@ -92,6 +92,7 @@ export async function getBlocksList(page: Page) {
  * @param blockName Name of the block to insert
  */
 export async function insertBlock(page: Page, blockName: string) {
+	await openBlockInserter(page);
 	await page.locator('.block-editor-inserter__search input[type="search"]').fill(blockName);
 	await page
 		.locator('.block-editor-block-types-list__item')
