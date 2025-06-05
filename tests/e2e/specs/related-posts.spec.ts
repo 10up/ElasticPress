@@ -98,7 +98,7 @@ test.describe('Related Posts Feature', () => {
 		let viewPostLink;
 		if (process.env.WP_VERSION === '6.2') {
 			await loggedInPage.reload();
-			viewPostLink = loggedInPage.getByRole('link', { name: 'View Post' });
+			viewPostLink = loggedInPage.locator('#wp-admin-bar-view a');
 		} else {
 			viewPostLink = loggedInPage.locator('a[aria-label="View Post"]');
 		}
