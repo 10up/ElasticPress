@@ -30,9 +30,9 @@ defined( 'ABSPATH' ) || exit;
  */
 function add_demo_field_groups( $settings_schema ) {
 	$settings_schema[] = [
-		'type'  => 'field_group',
-		'key'   => 'field_group_a',
-		'label' => 'Field Group Example',
+		'type'   => 'field_group',
+		'key'    => 'field_group_a',
+		'label'  => 'Field Group Example',
 		'fields' => [
 			[
 				'default' => 'Lorem ipsum',
