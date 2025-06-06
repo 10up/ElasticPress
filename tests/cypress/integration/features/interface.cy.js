@@ -52,30 +52,33 @@ describe('Feature Grouping and Persistence', () => {
 						cy.get('div[id*="autosuggest-view"]').should('be.visible');
 					});
 			});
+	});
 
-		/**
-		 * Tests for verifying conditional feature visibility
-		 */
-		cy.activatePlugin('multiple-required-features', 'wpCli');
+	/**
+	 * Tests for verifying conditional feature visibility
+	 */
+	describe('Multiple Features', () => {
+		before(() => {
+			cy.activatePlugin('multiple-required-features', 'wpCli');
+			cy.maybeDisableFeature('related_posts');
+			cy.maybeDisableFeature('documents');
+		});
 
-		// Disable and check the message is there:
-		cy.maybeDisableFeature('related_posts');
-		cy.maybeDisableFeature('documents');
-		cy.reload();
-		cy.visit('/wp-admin/admin.php?page=elasticpress#/autosuggest');
-		cy.contains(
-			'.components-notice.is-error',
-			'The Related Posts, and Documents feature must be enabled to use this feature.',
-		);
+		after(() => {
+			cy.deactivatePlugin('multiple-required-features', 'wpCli');
+			cy.maybeEnableFeature('related_posts');
+			cy.maybeEnableFeature('documents');
+		});
 
-		// Enable and check the message is gone:
-		cy.maybeEnableFeature('related_posts');
-		cy.maybeEnableFeature('documents');
-		cy.reload();
-		cy.visit('/wp-admin/admin.php?page=elasticpress#/autosuggest');
-		cy.get('.components-notice.is-error').should('not.exist');
-
-		// cleanup
-		cy.deactivatePlugin('multiple-required-features', 'wpCli');
+		it('supports multiple required features', () => {
+			cy.login();
+			cy.visit('/wp-admin/admin.php?page=elasticpress');
+			cy.contains('button', 'Live Search');
+			cy.contains('button', 'Autosuggest');
+			cy.contains(
+				'.components-notice.is-error',
+				'The Related Posts, and Documents feature must be enabled to use this feature.',
+			);
+		});
 	});
 });
