@@ -500,8 +500,9 @@ export async function createClassicWidget(
 		}
 	}
 
+	const saveWidgetResponse = page.waitForResponse('**/wp-admin/admin-ajax.php*');
 	await widget.locator('input[type="submit"]').click();
-	await page.waitForLoadState('networkidle');
+	await saveWidgetResponse;
 }
 
 /**

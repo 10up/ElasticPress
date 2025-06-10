@@ -41,6 +41,7 @@ export async function openBlockInserter(page: Page) {
 		.locator(
 			'.block-editor-inserter__panel-content, .edit-widgets-layout__inserter-panel-content',
 		)
+		.first()
 		.isVisible();
 
 	if (isInserterOpen) {

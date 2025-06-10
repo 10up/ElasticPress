@@ -320,7 +320,7 @@ test.describe('Comments Indexable', { tag: '@slow' }, () => {
 		await login(loggedInPage);
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=moderated');
 		const ajaxRequest1 = loggedInPage.waitForResponse('**/wp-admin/admin-ajax.php*');
-		await loggedInPage.locator('.approve a').first().click({ force: true });
+		await loggedInPage.locator('.approve a').first().dispatchEvent('click');
 		const response1 = await ajaxRequest1;
 		expect(response1.status()).toBe(200);
 
@@ -329,7 +329,7 @@ test.describe('Comments Indexable', { tag: '@slow' }, () => {
 
 		// Trash the comment
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=approved');
-		await loggedInPage.locator('.column-comment .trash a').first().click({ force: true });
+		await loggedInPage.locator('.column-comment .trash a').first().dispatchEvent('click');
 
 		const statsResult2 = await wpCli('wp elasticpress stats');
 		expect(statsResult2.toString()).toContain(`Documents:  ${defaultApprovedComments}`);
