@@ -37,25 +37,21 @@ export async function openBlockSettingsSidebar(page: Page) {
  * @param page Playwright page object
  */
 export async function openBlockInserter(page: Page) {
-	const body = await page.locator('body');
 	const isInserterOpen = await page
-		.locator('.edit-widgets-layout__inserter-panel-content')
+		.locator(
+			'.block-editor-inserter__panel-content, .edit-widgets-layout__inserter-panel-content',
+		)
 		.isVisible();
 
 	if (isInserterOpen) {
 		return;
 	}
 
-	const isWidgetsPage = await body.evaluate((el) => el.classList.contains('widgets-php'));
-	if (isWidgetsPage) {
-		await page.locator('.edit-widgets-header-toolbar__inserter-toggle').click();
-	} else {
-		await page
-			.locator(
-				'.edit-post-header-toolbar__inserter-toggle,.editor-document-tools__inserter-toggle',
-			)
-			.click();
-	}
+	await page
+		.locator(
+			'.edit-widgets-header-toolbar__inserter-toggle, .edit-post-header-toolbar__inserter-toggle,.editor-document-tools__inserter-toggle',
+		)
+		.click();
 }
 
 /**
