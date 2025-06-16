@@ -51,31 +51,14 @@ describe('Feature Grouping and Persistence', () => {
 						cy.get('div[id*="autosuggest-view"]').should('be.visible');
 					});
 			});
-	});
 
-	describe('Field grouping', () => {
-		before(() => {
-			cy.activatePlugin('field-grouping', 'wpCli');
-		});
+		// Field grouping test
+		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
-		after(() => {
-			cy.deactivatePlugin('field-grouping', 'wpCli');
-		});
+		cy.contains('button', 'Core Search').click();
+		cy.contains('button', 'Post Search').click();
 
-		/**
-		 * Navigate to the correct feature group and subfeature
-		 */
-		it('has functioning field groups', () => {
-			cy.login();
-
-			// Visit the ElasticPress settings page in the WordPress admin.
-			cy.visit('/wp-admin/admin.php?page=elasticpress');
-
-			cy.contains('button', 'Live Search').click();
-			cy.contains('button', 'Autosuggest').click();
-
-			cy.contains('.ep-field-group', 'Field Group Example').as('fieldGroup');
-			cy.get('@fieldGroup').should('exist');
-		});
+		cy.contains('.ep-field-group', 'Highlighting Options').as('fieldGroup');
+		cy.get('@fieldGroup').should('exist');
 	});
 });
