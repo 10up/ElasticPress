@@ -896,7 +896,7 @@ class Search extends Feature {
 			[
 				'type'   => 'field_group',
 				'key'    => 'highlighting',
-				'label'  => 'Highlighting Options',
+				'label'  => __( 'Highlighting Options', 'elasticpress' ),
 				'fields' => [
 					[
 						'default' => '0',
