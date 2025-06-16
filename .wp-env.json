@@ -41,7 +41,7 @@
         "wp-content/plugins/unsupported-server-software.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-server-software.php",
         "wp-content/plugins/unsupported-elasticsearch-version.php": "./tests/cypress/wordpress-files/test-plugins/unsupported-elasticsearch-version.php",
         "wp-content/uploads/content-example.xml": "./tests/cypress/wordpress-files/test-docs/content-example.xml",
-		"wp-content/plugins/field-grouping.php": "./tests/cypress/wordpress-files/test-plugins/field-grouping.php"
+        "wp-content/plugins/field-grouping.php": "./tests/cypress/wordpress-files/test-plugins/field-grouping.php"
       }
     }
   }
