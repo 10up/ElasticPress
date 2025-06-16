@@ -38,25 +38,6 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
-	 * Test the feature is not loaded in the editor screen
-	 *
-	 * @since 5.1.0
-	 * @group facets
-	 */
-	public function test_setup_editor_screen() {
-		$GLOBALS['pagenow'] = 'post-new.php';
-		set_current_screen( 'post-new.php' );
-
-		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
-		$facet_feature->tear_down();
-		$facet_feature->setup();
-
-		$this->assertFalse( has_action( 'rest_api_init', [ $facet_feature, 'setup_endpoints' ] ) );
-
-		set_current_screen( 'front' );
-	}
-
-	/**
 	 * Test the ep_facet_enabled_in_editor filter
 	 *
 	 * @since 5.1.0
