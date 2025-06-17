@@ -6160,7 +6160,6 @@ class TestPost extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 	}
 
-
 	/**
 	 * Check if elasticpress_enabled() properly handles an object without the is_search() method.
 	 *
