@@ -2082,6 +2082,7 @@ class Post extends Indexable {
 		if ( ! empty( $args['date_query'] ) ) {
 
 			$date_query = new DateQuery( $args['date_query'] );
+
 			$date_filter = $date_query->get_es_filter();
 
 			if ( array_key_exists( 'and', $date_filter ) ) {
