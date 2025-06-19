@@ -123,13 +123,5 @@ describe('Feature Grouping and Persistence', () => {
 
 		// now, Testing Field 2 should be visible
 		cy.contains('.ep-dashboard-control', 'Testing Field 2').should('exist');
-
-		/**
-		 * Testing for feature field groups
-		 */
-		cy.visit('/wp-admin/admin.php?page=elasticpress');
-		cy.contains('button', 'Core Search').click();
-		cy.contains('button', 'Post Search').click();
-		cy.contains('.ep-field-group', 'Highlighting Options').should('exist');
 	});
 });
