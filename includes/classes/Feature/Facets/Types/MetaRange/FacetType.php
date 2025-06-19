@@ -32,16 +32,19 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	public function setup() {
 		add_filter( 'ep_facet_query_filters', [ $this, 'add_query_filters' ], 10, 2 );
 		add_filter( 'ep_facet_wp_query_aggs_facet', [ $this, 'set_wp_query_aggs' ] );
-		add_action( 'widgets_init', [ $this, 'register_widgets' ] );
+		add_action( 'widgets_init', [ $this, 'register_widget' ] );
 
 		$this->block = new Block();
 		$this->block->setup();
 	}
 
 	/**
-	 * Register facet widgets
+	 * Register facet widget.
+	 *
+	 * @since 5.3.0
+	 * @return void
 	 */
-	public function register_widgets() {
+	public function register_widget() {
 		register_widget( __NAMESPACE__ . '\Widget' );
 	}
 
@@ -228,7 +231,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	}
 
 	/**
-	 * Get all fields selected in all Facet blocks and widgets
+	 * Get all fields selected in all Facet blocks and widgets.
 	 *
 	 * @return array
 	 */

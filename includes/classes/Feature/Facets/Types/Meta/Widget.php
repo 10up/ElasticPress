@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Meta Facet Widget class
  */
 class Widget extends \WP_Widget {
+
 	/**
 	 * Constructor
 	 */
@@ -35,7 +36,7 @@ class Widget extends \WP_Widget {
 	}
 
 	/**
-	 * Output the widget content
+	 * Output the widget content.
 	 *
 	 * @param array $args     Widget args
 	 * @param array $instance Widget instance settings
@@ -49,7 +50,7 @@ class Widget extends \WP_Widget {
 	}
 
 	/**
-	 * Output the widget settings form
+	 * Output the widget settings form.
 	 *
 	 * @param array $instance Widget instance settings
 	 */

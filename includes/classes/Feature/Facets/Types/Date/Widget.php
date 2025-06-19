@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Date Facet Widget class
  */
 class Widget extends \WP_Widget {
+
 	/**
 	 * Create widget.
 	 */
@@ -86,7 +87,7 @@ class Widget extends \WP_Widget {
 	public function update( $new_instance, $old_instance ) {
 		$instance                      = [];
 		$instance['title']             = ! empty( $new_instance['title'] ) ? sanitize_text_field( $new_instance['title'] ) : '';
-		$instance['displayCustomDate'] = ! empty( $new_instance['displayCustomDate'] ) ? true : false;
+		$instance['displayCustomDate'] = ! empty( $new_instance['displayCustomDate'] );
 
 		return $instance;
 	}

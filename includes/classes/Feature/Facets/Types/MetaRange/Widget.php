@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Meta Range Facets widget class
  */
 class Widget extends \WP_Widget {
+
 	/**
 	 * Create widget
 	 */

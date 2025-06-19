@@ -19,7 +19,7 @@ class ElementorUtils {
 	const CACHE_KEY = 'ep_elementor_widgets';
 
 	/**
-	 * Hook cache cleanup calls.
+	 * Setup.
 	 */
 	public function setup() {
 		// Bail if Elementor is not installed.
@@ -50,9 +50,7 @@ class ElementorUtils {
 		$widgets = array_values(
 			array_filter(
 				$this->get_all_widgets_in_all_templates(),
-				function ( $widget ) use ( $widget_name ) {
-					return ( $widget['widgetType'] === $widget_name );
-				}
+				fn ( $widget ) => $widget['widgetType'] === $widget_name
 			)
 		);
 
@@ -60,9 +58,7 @@ class ElementorUtils {
 	}
 
 	/**
-	 * Get all widgets in all elementor templates
-	 *
-	 * It returns a flat list of all widgets, including innerWidgets.
+	 * Get all widgets in all elementor templates.
 	 *
 	 * @return array
 	 */
