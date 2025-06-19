@@ -900,7 +900,7 @@ class Search extends Feature {
 				'fields' => [
 					[
 						'default' => '0',
-						'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.' ),
+						'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.', 'elasticpress' ),
 						'key'     => 'highlight_enabled',
 						'label'   => __( 'Highlight search terms', 'elasticpress' ),
 						'type'    => 'checkbox',
