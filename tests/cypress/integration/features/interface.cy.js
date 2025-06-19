@@ -3,7 +3,7 @@
  *
  * @module FeatureInterface
  */
-describe('Feature Grouping and Persistence', () => {
+describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 	/**
 	 * CSS selector for the open "Live Search" feature panel.
 	 * @constant
