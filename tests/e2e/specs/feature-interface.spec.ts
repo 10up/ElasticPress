@@ -7,7 +7,9 @@ import { goToAdminPage } from '../utils';
  * @module FeatureInterface
  */
 test.describe('Feature Grouping and Persistence', () => {
-	test('Renders group tabs and persists across reloads', async ({ loggedInPage }) => {
+	test('Renders group tabs, persists across reloads, and supports field dependency', async ({
+		loggedInPage,
+	}) => {
 		// Visit the ElasticPress settings page in the WordPress admin
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 
@@ -47,5 +49,63 @@ test.describe('Feature Grouping and Persistence', () => {
 
 		// Verify feature selection persisted
 		await expect(loggedInPage.locator('div[id*="autosuggest-view"]')).toBeVisible();
+
+		// Wait for epDashboard and features to be available
+		await loggedInPage.waitForFunction(() => {
+			return !!(window as any).epDashboard && !!(window as any).epDashboard.features;
+		});
+
+		// Push new fields into settingsSchema
+		await loggedInPage.evaluate(() => {
+			(window as any).epDashboard.features[0].settingsSchema.push({
+				default: '1',
+				key: 'test_field',
+				label: 'Testing Field 1',
+				options: [
+					{ label: 'Option A', value: '0' },
+					{ label: 'Option B', value: '1' },
+				],
+				type: 'radio',
+			});
+			(window as any).epDashboard.features[0].settingsSchema.push({
+				default: '1',
+				key: 'test_field_2',
+				label: 'Testing Field 2',
+				options: [
+					{ label: 'Option A', value: '0' },
+					{ label: 'Option B', value: '1' },
+				],
+				type: 'radio',
+				requires_fields: {
+					conditions: {
+						test_field: '0',
+					},
+				},
+			});
+		});
+
+		// Toggle Re-Render
+		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+
+		await expect(
+			loggedInPage.locator('.ep-dashboard-control', {
+				hasText: 'Testing Field 2',
+			}),
+		).not.toBeVisible();
+
+		const testField = loggedInPage.locator('.ep-dashboard-control', {
+			hasText: 'Testing Field 1',
+		});
+
+		// inside of testField, find the input with the label "Option A" and click it
+		await testField.locator('input[value="0"]').click();
+
+		// now, Testing Field 2 should be visible
+		await expect(
+			loggedInPage.locator('.ep-dashboard-control', {
+				hasText: 'Testing Field 2',
+			}),
+		).toBeVisible();
 	});
 });
