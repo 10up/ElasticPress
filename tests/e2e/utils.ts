@@ -102,7 +102,7 @@ export async function wpCli(command: string, ignoreFailures = false) {
 		const res = execFileSync(command, args);
 		return res;
 	} catch (err) {
-		return ignoreFailures ? err.toString() : null;
+		return ignoreFailures ? err.stdout.toString() : null;
 	}
 }
 
