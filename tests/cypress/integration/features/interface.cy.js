@@ -3,6 +3,7 @@
  *
  * @module FeatureInterface
  */
+// eslint-disable-next-line jest/valid-describe-callback
 describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 	/**
 	 * CSS selector for the open "Live Search" feature panel.
@@ -55,101 +56,66 @@ describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 
-		// Test case to verify a conditional feature is hidden until its requirement is met
-		cy.window()
-			.then((win) => {
-				// Wait until epDashboard and features are available
-				return new Cypress.Promise((resolve) => {
-					const check = () => {
-						if (win.epDashboard && win.epDashboard.features) {
-							resolve(win);
-						} else {
-							setTimeout(check, 50);
+		// open the panel
+		cy.contains('button', 'Core Search').click();
+		cy.contains('button', 'Post Search').click();
+
+		// find both “Highlight search terms” controls (plain + “in excerpts”)
+		cy.get('.ep-dashboard-control')
+			.filter(':contains("Highlight search terms")')
+			.each(($ctl) => {
+				cy.wrap($ctl)
+					.find('input')
+					.then(($input) => {
+						if ($input.is(':checked')) {
+							cy.wrap($input).click();
 						}
-					};
-					check();
-				});
-			})
-			.then((win) => {
-				win.epDashboard.features[0].settingsSchema.push({
-					default: '1',
-					key: 'test_field',
-					label: 'Testing Field 1',
-					options: [
-						{
-							label: 'Option A',
-							value: '0',
-						},
-						{
-							label: 'Option B',
-							value: '1',
-						},
-					],
-					type: 'radio',
-				});
-				win.epDashboard.features[0].settingsSchema.push({
-					default: '1',
-					key: 'test_field_2',
-					label: 'Testing Field 2',
-					options: [
-						{
-							label: 'Option A',
-							value: '0',
-						},
-						{
-							label: 'Option B',
-							value: '1',
-						},
-					],
-					type: 'radio',
-					requires_fields: {
-						conditions: {
-							test_field: '0',
-						},
-					},
-				});
+					});
 			});
 
-		// Toggle Re-Render
-		cy.contains('button', 'Live Search').click();
-		cy.contains('button', 'Core Search').click();
+		// dependent control should be hidden
+		cy.contains('.ep-dashboard-control', 'Highlight tag').should('not.exist');
 
-		cy.contains('.ep-dashboard-control', 'Testing Field 2').should('not.exist');
+		// find both “Highlight search terms” controls (plain + “in excerpts”)
+		cy.get('.ep-dashboard-control')
+			.filter(':contains("Highlight search terms")')
+			.each(($ctl) => {
+				cy.wrap($ctl)
+					.find('input')
+					.then(($input) => {
+						if (!$input.is(':checked')) {
+							cy.wrap($input).click();
+						}
+					});
+			});
 
-		cy.contains('.ep-dashboard-control', 'Testing Field 1').as('testField');
+		// now the dependent control appears
+		cy.contains('.ep-dashboard-control', 'Highlight tag').should('exist').and('be.visible');
+	});
+});
 
-		// inside of testField, find the input with the label "Option A" and click it
-		cy.get('@testField').find('input[value="0"]').click();
-
-		// now, Testing Field 2 should be visible
-		cy.contains('.ep-dashboard-control', 'Testing Field 2').should('exist');
+/**
+ * Tests for verifying conditional feature visibility
+ */
+describe('Multiple Required Features', () => {
+	before(() => {
+		cy.activatePlugin('multiple-required-features', 'wpCli');
+		cy.maybeDisableFeature('related_posts');
+		cy.maybeDisableFeature('documents');
 	});
 
-	/**
-	 * Tests for verifying conditional feature visibility
-	 */
-	describe('Multiple Features', () => {
-		before(() => {
-			cy.activatePlugin('multiple-required-features', 'wpCli');
-			cy.maybeDisableFeature('related_posts');
-			cy.maybeDisableFeature('documents');
-		});
+	after(() => {
+		cy.deactivatePlugin('multiple-required-features', 'wpCli');
+	});
 
-		after(() => {
-			cy.deactivatePlugin('multiple-required-features', 'wpCli');
-			cy.maybeEnableFeature('related_posts');
-			cy.maybeEnableFeature('documents');
-		});
-
-		it('supports multiple required features', () => {
-			cy.login();
-			cy.visit('/wp-admin/admin.php?page=elasticpress');
-			cy.contains('button', 'Live Search');
-			cy.contains('button', 'Autosuggest');
-			cy.contains(
-				'.components-notice.is-error',
-				'The Related Posts, and Documents feature must be enabled to use this feature.',
-			);
-		});
+	it('supports multiple required features', () => {
+		cy.login();
+		cy.visit('/wp-admin/admin.php?page=elasticpress');
+		cy.contains('button', 'Live Search').click();
+		cy.contains('button', 'Autosuggest').click();
+		cy.contains(
+			'.components-notice.is-error',
+			'The Related Posts, and Documents feature must be enabled to use this feature.',
+		);
 	});
 });

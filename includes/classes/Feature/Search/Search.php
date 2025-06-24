@@ -934,7 +934,14 @@ class Search extends Feature {
 						'value' => 'i',
 					],
 				],
-				'type'    => 'select',
+				'type'            => 'select',
+				'requires_fields' => [
+					'relationship' => 'OR',
+					'conditions'   => [
+						'highlight_enabled' => '1',
+						'highlight_excerpt' => '1',
+					],
+				],
 			],
 			[
 				'default' => 'simple',
