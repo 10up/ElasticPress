@@ -75,6 +75,7 @@ class ProtectedContent extends Feature {
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 			add_filter( 'ep_post_query_db_args', [ $this, 'query_password_protected_posts' ] );
 			add_filter( 'ep_set_sort', [ $this, 'maybe_change_sort' ] );
+			add_filter( 'ep_post_formatted_args', [ $this, 'filter_private_posts_for_current_user' ], 10, 2 );
 		}
 
 		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
@@ -463,6 +464,65 @@ class ProtectedContent extends Feature {
 			[ 'post_date' => [ 'order' => 'desc' ] ],
 			[ 'post_title.sortable' => [ 'order' => 'asc' ] ],
 		];
+	}
+
+	/**
+	 * Filter private posts for current user
+	 *
+	 * @param array $formatted_args Formatted Elasticsearch query
+	 * @param array $args Query variables
+	 *
+	 * @return array
+	 */
+	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
+		if ( ! is_admin() ) {
+			return $formatted_args;
+		}
+
+		$queried_post_type_object = get_post_type_object( $args['post_type'] );
+		$read_private_cap         = $queried_post_type_object->cap->read_private_posts;
+
+		$statuses = array_merge(
+			get_post_stati( [ 'public' => true ] ),
+			get_post_stati(
+				[
+					'protected'              => true,
+					'show_in_admin_all_list' => true,
+				]
+			)
+		);
+
+		/**
+		 * If the current user can't read private posts, then only show their private posts.
+		 */
+		if ( ! current_user_can( $read_private_cap ) ) {
+			$formatted_args['post_filter']['bool']['should'][] = [
+				'terms' => [
+					'post_status' => array_values( $statuses ),
+				],
+			];
+
+			$formatted_args['post_filter']['bool']['should'][] = [
+				'bool' => [
+					'must' => [
+						[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
+						[ 'term' => [ 'post_status' => 'private' ] ],
+					],
+				],
+			];
+
+			$formatted_args['post_filter']['bool']['minimum_should_match'] = 1;
+
+		} else {
+			$statuses                                        = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
+			$formatted_args['post_filter']['bool']['must'][] = [
+				'terms' => [
+					'post_status' => array_values( $statuses ),
+				],
+			];
+		}
+
+		return $formatted_args;
 	}
 
 	/**
