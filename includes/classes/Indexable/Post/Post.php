@@ -2222,7 +2222,7 @@ class Post extends Indexable {
 					],
 				];
 			}
-		} else if ( ! is_admin() ) {
+		} elseif ( ! is_admin() ) {
 			$statuses = get_post_stati( array( 'public' => true ) );
 			$statuses = array_values( $statuses );
 
