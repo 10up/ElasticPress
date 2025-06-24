@@ -913,11 +913,11 @@ class Search extends Feature {
 						'type'    => 'checkbox',
 					],
 					[
-						'default' => 'mark',
-						'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
-						'key'     => 'highlight_tag',
-						'label'   => __( 'Highlight tag', 'elasticpress' ),
-						'options' => [
+						'default'         => 'mark',
+						'help'            => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
+						'key'             => 'highlight_tag',
+						'label'           => __( 'Highlight tag', 'elasticpress' ),
+						'options'         => [
 							[
 								'label' => 'mark',
 								'value' => 'mark',
@@ -939,7 +939,7 @@ class Search extends Feature {
 								'value' => 'i',
 							],
 						],
-						'type'    => 'select',
+						'type'            => 'select',
 						'requires_fields' => [
 							'relationship' => 'OR',
 							'conditions'   => [
