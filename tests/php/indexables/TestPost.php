@@ -5491,7 +5491,8 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test a date query with a range and relation OR
 	 *
-	 * @return void
+	 * @since 5.3.0
+	 * @group post
 	 */
 	public function test_date_query_with_range_and_relation_or() {
 		$this->ep_factory->post->create(
@@ -5573,6 +5574,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test a date query with multiple column range comparison not inclusive
 	 *
+	 * @since 5.3.0
 	 * @group post
 	 */
 	public function testDateQueryMultiColumnNotInclusive() {
@@ -5777,6 +5779,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test date_query with compare !=.
 	 *
+	 * @since 5.3.0
 	 * @group post
 	 */
 	public function test_date_query_not_equals_compare() {
@@ -6090,6 +6093,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test date query with OR relation.
 	 *
+	 * @since 5.3.0
 	 * @group post
 	 */
 	public function test_date_query_with_or_relation() {
@@ -6117,6 +6121,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test date query with OR relation and year.
 	 *
+	 * @since 5.3.0
 	 * @group post
 	 */
 	public function test_date_query_with_or_relation_with_year() {
