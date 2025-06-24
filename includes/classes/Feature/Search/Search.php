@@ -912,36 +912,43 @@ class Search extends Feature {
 						'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
 						'type'    => 'checkbox',
 					],
+					[
+						'default' => 'mark',
+						'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
+						'key'     => 'highlight_tag',
+						'label'   => __( 'Highlight tag', 'elasticpress' ),
+						'options' => [
+							[
+								'label' => 'mark',
+								'value' => 'mark',
+							],
+							[
+								'label' => 'span',
+								'value' => 'span',
+							],
+							[
+								'label' => 'strong',
+								'value' => 'strong',
+							],
+							[
+								'label' => 'em',
+								'value' => 'em',
+							],
+							[
+								'label' => 'i',
+								'value' => 'i',
+							],
+						],
+						'type'    => 'select',
+						'requires_fields' => [
+							'relationship' => 'OR',
+							'conditions'   => [
+								'highlight_enabled' => '1',
+								'highlight_excerpt' => '1',
+							],
+						],
+					],
 				],
-			],
-			[
-				'default' => 'mark',
-				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
-				'key'     => 'highlight_tag',
-				'label'   => __( 'Highlight tag', 'elasticpress' ),
-				'options' => [
-					[
-						'label' => 'mark',
-						'value' => 'mark',
-					],
-					[
-						'label' => 'span',
-						'value' => 'span',
-					],
-					[
-						'label' => 'strong',
-						'value' => 'strong',
-					],
-					[
-						'label' => 'em',
-						'value' => 'em',
-					],
-					[
-						'label' => 'i',
-						'value' => 'i',
-					],
-				],
-				'type'    => 'select',
 			],
 			[
 				'default' => 'simple',
