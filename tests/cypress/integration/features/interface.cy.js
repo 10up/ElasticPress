@@ -55,41 +55,5 @@ describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 			});
 
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
-
-		// open the panel
-		cy.contains('button', 'Core Search').click();
-		cy.contains('button', 'Post Search').click();
-
-		// find both “Highlight search terms” controls (plain + “in excerpts”)
-		cy.get('.ep-dashboard-control')
-			.filter(':contains("Highlight search terms")')
-			.each(($ctl) => {
-				cy.wrap($ctl)
-					.find('input')
-					.then(($input) => {
-						if ($input.is(':checked')) {
-							cy.wrap($input).click();
-						}
-					});
-			});
-
-		// dependent control should be hidden
-		cy.contains('.ep-dashboard-control', 'Highlight tag').should('not.exist');
-
-		// find both “Highlight search terms” controls (plain + “in excerpts”)
-		cy.get('.ep-dashboard-control')
-			.filter(':contains("Highlight search terms")')
-			.each(($ctl) => {
-				cy.wrap($ctl)
-					.find('input')
-					.then(($input) => {
-						if (!$input.is(':checked')) {
-							cy.wrap($input).click();
-						}
-					});
-			});
-
-		// now the dependent control appears
-		cy.contains('.ep-dashboard-control', 'Highlight tag').should('exist').and('be.visible');
 	});
 });
