@@ -45,7 +45,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return void
 	 */
 	public function register_widget() {
-		register_widget( __NAMESPACE__ . '\Widget' );
+		register_widget( __NAMESPACE__ . '\\Widget' );
 	}
 
 	/**

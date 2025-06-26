@@ -49,7 +49,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * Register meta facet widget
 	 */
 	public function register_widget() {
-		register_widget( __NAMESPACE__ . '\Widget' );
+		register_widget( __NAMESPACE__ . '\\Widget' );
 	}
 
 	/**
