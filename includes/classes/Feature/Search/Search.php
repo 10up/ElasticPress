@@ -84,7 +84,7 @@ class Search extends Feature {
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#post-search', 'elasticpress' );
 
 		$this->field_group_map = [
-			'highlight_group' => __( 'Highlight Group' ),
+			'highlight_group' => __( 'Highlight Group', 'elasticpress' ),
 		];
 	}
 
