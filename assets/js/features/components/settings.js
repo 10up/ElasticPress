@@ -91,7 +91,6 @@ export default ({ feature, settingsSchema }) => {
 			key,
 			label,
 			options,
-			requires_feature,
 			requires_features,
 			requires_sync,
 			requires_fields,
@@ -125,7 +124,6 @@ export default ({ feature, settingsSchema }) => {
 				onChange={(value) => onChange(key, value)}
 				options={options}
 				syncedValue={syncedSettings?.[feature]?.[key]}
-				requiresFeature={requires_feature}
 				requiresFeatures={requires_features}
 				requiresSync={requires_sync}
 				type={type}

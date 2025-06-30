@@ -13,7 +13,7 @@ import {
 } from '@wordpress/components';
 import { safeHTML } from '@wordpress/dom';
 import { RawHTML, WPElement } from '@wordpress/element';
-import { __, sprintf } from '@wordpress/i18n';
+import { _n, __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
@@ -87,15 +87,27 @@ export default ({
 			})
 		: [];
 
+	const titles = missingRequiredFeatures.map((f) => f.shortTitle);
+
 	/**
 	 * The notice to display if a feature is required.
 	 */
 	const requiredFeatureNotice =
 		name === 'active'
-			? /* translators: Feature name */
-				__('The %s feature must be enabled to use this feature.', 'elasticpress')
-			: /* translators: Feature name */
-				__('The %s feature must be enabled to use the following setting.', 'elasticpress');
+			? /* translators: %s: feature list */
+				_n(
+					'The %s feature must be enabled to use this feature.',
+					'The %s features must be enabled to use this feature.',
+					titles.length,
+					'elasticpress',
+				)
+			: /* translators: %s: feature list */
+				_n(
+					'The %s feature must be enabled to use the following setting.',
+					'The %s features must be enabled to use the following setting.',
+					titles.length,
+					'elasticpress',
+				);
 
 	/**
 	 * The notice to display if a sync is required.
@@ -144,7 +156,6 @@ export default ({
 		onChange(value);
 	};
 
-	const titles = missingRequiredFeatures.map((f) => f.shortTitle);
 	const list =
 		titles.length > 1
 			? sprintf(
