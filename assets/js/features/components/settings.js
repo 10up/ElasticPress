@@ -135,54 +135,12 @@ export default ({ feature, settingsSchema }) => {
 	let groupEntries = [];
 	let groupCounter = 0;
 
-	settingsSchema.forEach((entry) => {
-		const groupSlug = entry.field_group_slug;
-
-		if (groupSlug) {
-			if (currentGroup !== groupSlug) {
-				if (groupEntries.length > 0) {
-					rendered.push(
-						<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
-							<Card>
-								{groupEntries[0].field_group_label && (
-									<CardHeader>
-										<strong>{groupEntries[0].field_group_label}</strong>
-									</CardHeader>
-								)}
-								<CardBody>{groupEntries.map(renderControl)}</CardBody>
-							</Card>
-						</div>,
-					);
-					groupEntries = [];
-					groupCounter++;
-				}
-				currentGroup = groupSlug;
-			}
-			groupEntries.push(entry);
-		} else {
-			if (groupEntries.length > 0) {
-				rendered.push(
-					<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
-						<Card>
-							{groupEntries[0].field_group_label && (
-								<CardHeader>
-									<strong>{groupEntries[0].field_group_label}</strong>
-								</CardHeader>
-							)}
-							<CardBody>{groupEntries.map(renderControl)}</CardBody>
-						</Card>
-					</div>,
-				);
-				groupEntries = [];
-				groupCounter++;
-				currentGroup = null;
-			}
-			rendered.push(renderControl(entry));
+	const pushGroup = () => {
+		if (groupEntries.length === 0) {
+			return;
 		}
-	});
-	if (groupEntries.length > 0) {
 		rendered.push(
-			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}-final`}>
+			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
 				<Card>
 					{groupEntries[0].field_group_label && (
 						<CardHeader>
@@ -193,7 +151,29 @@ export default ({ feature, settingsSchema }) => {
 				</Card>
 			</div>,
 		);
-	}
+		groupEntries = [];
+		groupCounter++;
+	};
+
+	settingsSchema.forEach((entry) => {
+		const groupSlug = entry.field_group_slug;
+
+		if (groupSlug && currentGroup !== groupSlug) {
+			pushGroup();
+			currentGroup = groupSlug;
+		}
+
+		if (groupSlug) {
+			groupEntries.push(entry);
+			return;
+		}
+
+		pushGroup();
+		currentGroup = null;
+		rendered.push(renderControl(entry));
+	});
+
+	pushGroup();
 
 	if (rendered.length > 1) {
 		return rendered;
