@@ -84,23 +84,6 @@ export default ({ feature, settingsSchema }) => {
 		}
 	};
 
-	// Group settingsSchema entries by 'field_group_slug' and store group labels
-	const grouped = {};
-	const groupLabels = {};
-	const ungrouped = [];
-	settingsSchema.forEach((entry) => {
-		if (entry.field_group_slug) {
-			if (!grouped[entry.field_group_slug]) {
-				grouped[entry.field_group_slug] = [];
-				// Store the label for this group (first occurrence wins)
-				groupLabels[entry.field_group_slug] = entry.field_group_label || '';
-			}
-			grouped[entry.field_group_slug].push(entry);
-		} else {
-			ungrouped.push(entry);
-		}
-	});
-
 	// Helper to render a Control from a schema entry
 	const renderControl = (s) => {
 		const {
@@ -147,23 +130,76 @@ export default ({ feature, settingsSchema }) => {
 		);
 	};
 
-	return (
-		<>
-			{/* Render grouped controls */}
-			{Object.entries(grouped).map(([groupSlug, entries]) => (
-				<div className="ep-field-group" key={groupSlug}>
-					<Card>
-						{groupLabels[groupSlug] && (
-							<CardHeader>
-								<strong>{groupLabels[groupSlug]}</strong>
-							</CardHeader>
-						)}
-						<CardBody>{entries.map(renderControl)}</CardBody>
-					</Card>
-				</div>
-			))}
-			{/* Render ungrouped controls */}
-			{ungrouped.map(renderControl)}
-		</>
-	);
+	const rendered = [];
+	let currentGroup = null;
+	let groupEntries = [];
+	let groupCounter = 0;
+
+	settingsSchema.forEach((entry) => {
+		const groupSlug = entry.field_group_slug;
+
+		if (groupSlug) {
+			if (currentGroup !== groupSlug) {
+				if (groupEntries.length > 0) {
+					rendered.push(
+						<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
+							<Card>
+								{groupEntries[0].field_group_label && (
+									<CardHeader>
+										<strong>{groupEntries[0].field_group_label}</strong>
+									</CardHeader>
+								)}
+								<CardBody>{groupEntries.map(renderControl)}</CardBody>
+							</Card>
+						</div>,
+					);
+					groupEntries = [];
+					groupCounter++;
+				}
+				currentGroup = groupSlug;
+			}
+			groupEntries.push(entry);
+		} else {
+			if (groupEntries.length > 0) {
+				rendered.push(
+					<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
+						<Card>
+							{groupEntries[0].field_group_label && (
+								<CardHeader>
+									<strong>{groupEntries[0].field_group_label}</strong>
+								</CardHeader>
+							)}
+							<CardBody>{groupEntries.map(renderControl)}</CardBody>
+						</Card>
+					</div>,
+				);
+				groupEntries = [];
+				groupCounter++;
+				currentGroup = null;
+			}
+			rendered.push(renderControl(entry));
+		}
+	});
+	if (groupEntries.length > 0) {
+		rendered.push(
+			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}-final`}>
+				<Card>
+					{groupEntries[0].field_group_label && (
+						<CardHeader>
+							<strong>{groupEntries[0].field_group_label}</strong>
+						</CardHeader>
+					)}
+					<CardBody>{groupEntries.map(renderControl)}</CardBody>
+				</Card>
+			</div>,
+		);
+	}
+
+	if (rendered.length > 1) {
+		return rendered;
+	}
+	if (rendered.length === 1) {
+		return rendered[0];
+	}
+	return null;
 };
