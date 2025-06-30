@@ -2,6 +2,7 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
+import { Card, CardHeader, CardBody } from '@wordpress/components';
 
 /**
  * Internal dependencies.
@@ -83,7 +84,25 @@ export default ({ feature, settingsSchema }) => {
 		}
 	};
 
-	return settingsSchema.map((s) => {
+	// Group settingsSchema entries by 'field_group_slug' and store group labels
+	const grouped = {};
+	const groupLabels = {};
+	const ungrouped = [];
+	settingsSchema.forEach((entry) => {
+		if (entry.field_group_slug) {
+			if (!grouped[entry.field_group_slug]) {
+				grouped[entry.field_group_slug] = [];
+				// Store the label for this group (first occurrence wins)
+				groupLabels[entry.field_group_slug] = entry.field_group_label || '';
+			}
+			grouped[entry.field_group_slug].push(entry);
+		} else {
+			ungrouped.push(entry);
+		}
+	});
+
+	// Helper to render a Control from a schema entry
+	const renderControl = (s) => {
 		const {
 			default: defaultValue,
 			disabled,
@@ -98,9 +117,6 @@ export default ({ feature, settingsSchema }) => {
 			fields,
 		} = s;
 
-		/**
-		 * Skip rendering if the control should not be rendered based on requires_fields.
-		 */
 		if (!shouldRenderControl(requires_fields)) {
 			return null;
 		}
@@ -108,9 +124,6 @@ export default ({ feature, settingsSchema }) => {
 		let value =
 			typeof settings[feature]?.[key] !== 'undefined' ? settings[feature][key] : defaultValue;
 
-		/**
-		 * If the feature is unavailable, the active toggle should be off.
-		 */
 		if (key === 'active' && !isAvailable) {
 			value = false;
 		}
@@ -132,5 +145,25 @@ export default ({ feature, settingsSchema }) => {
 				fields={fields}
 			/>
 		);
-	});
+	};
+
+	return (
+		<>
+			{/* Render grouped controls */}
+			{Object.entries(grouped).map(([groupSlug, entries]) => (
+				<div className="ep-field-group" key={groupSlug}>
+					<Card>
+						{groupLabels[groupSlug] && (
+							<CardHeader>
+								<strong>{groupLabels[groupSlug]}</strong>
+							</CardHeader>
+						)}
+						<CardBody>{entries.map(renderControl)}</CardBody>
+					</Card>
+				</div>
+			))}
+			{/* Render ungrouped controls */}
+			{ungrouped.map(renderControl)}
+		</>
+	);
 };
