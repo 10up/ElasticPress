@@ -66,6 +66,22 @@
 	}
 }
 
+.ep-field-group {
+
+	& .ep-dashboard-control {
+		margin: 0;
+
+		&:not(:last-child) {
+			margin-bottom: 24px;
+		}
+	}
+
+	& .components-card,
+	& .components-card__header:first-of-type {
+		border-radius: 0;
+	}
+}
+
 /* Group Content Structure */
 .group-content {
 	background: #fff;
