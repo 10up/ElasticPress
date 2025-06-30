@@ -1141,8 +1141,8 @@ class InstantResults extends Feature {
 						'value' => 'list',
 					],
 				],
-				'requires_feature' => 'did-you-mean',
-				'type'             => 'radio',
+				'requires_features' => [ 'did-you-mean' ],
+				'type'              => 'radio',
 			],
 		];
 	}

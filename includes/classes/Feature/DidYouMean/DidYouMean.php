@@ -31,7 +31,7 @@ class DidYouMean extends Feature {
 			'search_behavior' => '0',
 		];
 
-		$this->requires_feature = 'search';
+		$this->requires_features = [ 'search' ];
 
 		parent::__construct();
 	}
