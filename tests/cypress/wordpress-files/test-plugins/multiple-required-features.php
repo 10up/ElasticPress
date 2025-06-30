@@ -9,10 +9,10 @@
  */
 
 $modify_feature = function ( $feature ) {
-	if ( 'autosuggest' !== $feature->slug ) {
+	if ( 'related_posts' !== $feature->slug ) {
 		return $feature;
 	}
-	$feature->requires_feature = [ 'related_posts', 'documents' ];
+	$feature->requires_feature = [ 'facets', 'documents' ];
 	return $feature;
 };
 add_filter( 'ep_feature_create', $modify_feature, 10, 3 );
