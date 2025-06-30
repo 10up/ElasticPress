@@ -101,4 +101,16 @@ class ElasticPressIo {
 
 		return $endpoint_status['avaiableServices'] ?? [];
 	}
+
+	/**
+	 * Returns true if the service is available.
+	 *
+	 * @param string $service_name The name of the service to check.
+	 * @param bool   $skip_cache   Whether to use cached available services or not. Defaults to false, i.e., use cache.
+	 * @return bool True if the service is available, false otherwise.
+	 */
+	public function is_service_available( $service_name, $skip_cache = false ): bool {
+		$available_services = $this->get_endpoint_available_services( $skip_cache );
+		return isset( $available_services[ $service_name ] ) && ! empty( $available_services[ $service_name ] );
+	}
 }
