@@ -1128,10 +1128,10 @@ class InstantResults extends Feature {
 				'type'    => 'hidden',
 			],
 			[
-				'default'          => '0',
-				'key'              => 'search_behavior',
-				'label'            => __( 'Search behavior when no result is found', 'elasticpress' ),
-				'options'          => [
+				'default'           => '0',
+				'key'               => 'search_behavior',
+				'label'             => __( 'Search behavior when no result is found', 'elasticpress' ),
+				'options'           => [
 					[
 						'label' => __( 'Display the top suggestion', 'elasticpress' ),
 						'value' => '0',
