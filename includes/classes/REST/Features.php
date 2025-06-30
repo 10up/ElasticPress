@@ -182,7 +182,7 @@ class Features {
 							$settings_that_requires_features[ $slug ] = [];
 						}
 						$settings_that_requires_features[ $slug ][ $key ] = [
-							'required_feature' => $schema['requires_feature'],
+							'required_features' => $schema['requires_features'],
 							'value'            => $param[ $key ],
 						];
 					}
@@ -192,7 +192,7 @@ class Features {
 
 		foreach ( $settings_that_requires_features as $feature => $fields ) {
 			foreach ( $fields as $field_key => $field_data ) {
-				if ( ! empty( $current_settings[ $field_data['required_feature'] ]['active'] ) ) {
+				if ( ! empty( $current_settings[ $field_data['required_features'] ]['active'] ) ) {
 					$current_settings[ $feature ][ $field_key ] = $field_data['value'];
 				}
 			}
