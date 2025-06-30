@@ -147,7 +147,11 @@ export default ({
 	const titles = missingRequiredFeatures.map((f) => f.shortTitle);
 	const list =
 		titles.length > 1
-			? `${titles.slice(0, -1).join(', ')}, and ${titles[titles.length - 1]}`
+			? sprintf(
+					__('%1$s, and %2$s', 'elasticpress'),
+					titles.slice(0, -1).join(__(', ', 'elasticpress')),
+					titles[titles.length - 1],
+				)
 			: titles[0] || '';
 
 	return (
