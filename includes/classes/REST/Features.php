@@ -175,7 +175,7 @@ class Features {
 					 * If a setting requires another feature, we have to check for it after running through everything,
 					 * as it is possible that the feature will be active after this foreach.
 					 */
-					if ( empty( $schema['requires_features'] ) ) {
+					if ( empty( $schema['requires_feature'] ) ) {
 						$current_settings[ $slug ][ $key ] = $param[ $key ];
 					} else {
 						if ( ! isset( $settings_that_requires_features[ $slug ] ) ) {
@@ -183,7 +183,7 @@ class Features {
 						}
 						$settings_that_requires_features[ $slug ][ $key ] = [
 							'required_features' => $schema['requires_features'],
-							'value'             => $param[ $key ],
+							'value'            => $param[ $key ],
 						];
 					}
 				}

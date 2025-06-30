@@ -71,18 +71,18 @@ class FeatureTest extends ElasticPress\Feature {
 				'requires_sync' => true,
 			],
 			[
-				'default'           => '0',
-				'key'               => 'field_3',
-				'label'             => 'Field 3',
-				'type'              => 'text',
-				'requires_features' => [ 'did-you-mean' ],
+				'default'          => '0',
+				'key'              => 'field_3',
+				'label'            => 'Field 3',
+				'type'             => 'text',
+				'requires_feature' => 'did-you-mean',
 			],
 			[
-				'default'           => '0',
-				'key'               => 'field_4',
-				'label'             => 'Field 4',
-				'type'              => 'text',
-				'requires_features' => [ 'search' ],
+				'default'          => '0',
+				'key'              => 'field_4',
+				'label'            => 'Field 4',
+				'type'             => 'text',
+				'requires_feature' => 'search',
 			],
 		];
 	}
