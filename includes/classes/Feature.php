@@ -653,7 +653,7 @@ abstract class Feature {
 	/**
 	 * Get all features required by this feature
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.0
 	 * @return array List of required feature slugs
 	 */
 	public function get_required_features() {
@@ -661,6 +661,11 @@ abstract class Feature {
 
 		// Support legacy single feature requirement
 		if ( $this->requires_feature ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( '`requires_feature` is deprecated. Use `requires_features` (array) instead.', 'elasticpress' ),
+				'5.3.0'
+			);
 			$required_features[] = $this->requires_feature;
 		}
 		// Add multi-feature requirements if defined
