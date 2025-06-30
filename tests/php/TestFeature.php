@@ -58,7 +58,7 @@ class TestFeature extends BaseTestCase {
 				],
 			],
 			'group'             => false,
-			'requiredFeatures'  => [],
+			'requiredFeature'  => [],
 		];
 
 		$this->assertSame( $expected, $stub->get_json() );
@@ -111,7 +111,7 @@ class TestFeature extends BaseTestCase {
 				],
 			],
 			'group'             => 'Example Group A',
-			'requiredFeatures'  => [],
+			'requiredFeature'   => [],
 		];
 
 		$this->assertSame( $expected, $stub->get_json() );

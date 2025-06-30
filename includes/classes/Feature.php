@@ -657,6 +657,10 @@ abstract class Feature {
 			return array_unique( $required_feature );
 		}
 
-		return [ $this->requires_feature ];
+		if ( $this->requires_feature ) {
+			return [ $this->requires_feature ];
+		}
+
+		return [];
 	}
 }
