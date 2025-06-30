@@ -421,6 +421,27 @@ class TestFeatureActivation extends BaseTestCase {
 	}
 
 	/**
+	 * Test if feature groups can be changed by the `ep_feature_groups` filter
+	 *
+	 * @since 5.3.0
+	 * @group feature-activation
+	 */
+	public function test_get_feature_groups() {
+		$feature_groups = Features::factory()->get_feature_groups();
+		$this->assertArrayHasKey( 'core-search', $feature_groups );
+
+		$filter = function ( $groups ) {
+			return array_merge( $groups, [ 'test' => [ 'label' => 'Test' ] ] );
+		};
+		add_filter( 'ep_feature_groups', $filter );
+
+		$feature_groups = Features::factory()->get_feature_groups();
+		$this->assertArrayHasKey( 'core-search', $feature_groups );
+		$this->assertArrayHasKey( 'test', $feature_groups );
+		$this->assertEquals( 'Test', $feature_groups['test']['label'] );
+	}
+
+	/**
 	 * Wrapper for Features::handle_feature_activation() calls in admin context.
 	 *
 	 * To avoid unnecessary updates on the `ep_feature_requirement_statuses` option,

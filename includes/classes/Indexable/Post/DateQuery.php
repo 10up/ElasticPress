@@ -263,11 +263,11 @@ class DateQuery extends WP_Date_Query {
 				} elseif ( '!=' === $compare ) {
 					$date_terms['must_not'][]['term'][ "date_terms.{$param}" ] = $value;
 				} elseif ( 'IN' === $compare ) {
-					foreach ( $value as $in_value ) {
+					foreach ( (array) $value as $in_value ) {
 						$date_terms['should'][]['term'][ "date_terms.{$param}" ] = $in_value;
 					}
 				} elseif ( 'NOT IN' === $compare ) {
-					foreach ( $value as $in_value ) {
+					foreach ( (array) $value as $in_value ) {
 						$date_terms['must_not'][]['term'][ "date_terms.{$param}" ] = $in_value;
 					}
 				} elseif ( 'BETWEEN' === $compare ) {

@@ -39,6 +39,8 @@ class AcfRepeater extends Feature {
 	public function __construct() {
 		$this->slug = 'acf_repeater';
 
+		$this->group = 'third-party-plugins';
+
 		parent::__construct();
 	}
 

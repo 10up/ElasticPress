@@ -41,7 +41,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	public function render( $args, $instance ) {
 		$this->meta_field = $instance['facet'];
 		if ( empty( $this->meta_field ) ) {
-			if ( $instance['is_preview'] ) {
+			if ( ! empty( $instance['is_preview'] ) ) {
 				esc_html_e( 'Preview not available. Make sure you select a field.', 'elasticpress' );
 			}
 			return false;

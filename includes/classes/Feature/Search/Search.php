@@ -52,6 +52,8 @@ class Search extends Feature {
 	public function __construct() {
 		$this->slug = 'search';
 
+		$this->group = 'core-search';
+
 		$this->requires_install_reindex = false;
 
 		$this->default_settings = [
@@ -892,47 +894,61 @@ class Search extends Feature {
 				'type'    => 'radio',
 			],
 			[
-				'default' => '0',
-				'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.' ),
-				'key'     => 'highlight_enabled',
-				'label'   => __( 'Highlight search terms', 'elasticpress' ),
-				'type'    => 'checkbox',
-			],
-			[
-				'default' => '0',
-				'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
-				'key'     => 'highlight_excerpt',
-				'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
-				'type'    => 'checkbox',
-			],
-			[
-				'default' => 'mark',
-				'help'    => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
-				'key'     => 'highlight_tag',
-				'label'   => __( 'Highlight tag', 'elasticpress' ),
-				'options' => [
+				'type'   => 'field_group',
+				'key'    => 'highlighting',
+				'label'  => __( 'Highlighting Options', 'elasticpress' ),
+				'fields' => [
 					[
-						'label' => 'mark',
-						'value' => 'mark',
+						'default' => '0',
+						'help'    => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.', 'elasticpress' ),
+						'key'     => 'highlight_enabled',
+						'label'   => __( 'Highlight search terms', 'elasticpress' ),
+						'type'    => 'checkbox',
 					],
 					[
-						'label' => 'span',
-						'value' => 'span',
+						'default' => '0',
+						'help'    => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
+						'key'     => 'highlight_excerpt',
+						'label'   => __( 'Highlight search terms in excerpts', 'elasticpress' ),
+						'type'    => 'checkbox',
 					],
 					[
-						'label' => 'strong',
-						'value' => 'strong',
-					],
-					[
-						'label' => 'em',
-						'value' => 'em',
-					],
-					[
-						'label' => 'i',
-						'value' => 'i',
+						'default'         => 'mark',
+						'help'            => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
+						'key'             => 'highlight_tag',
+						'label'           => __( 'Highlight tag', 'elasticpress' ),
+						'options'         => [
+							[
+								'label' => 'mark',
+								'value' => 'mark',
+							],
+							[
+								'label' => 'span',
+								'value' => 'span',
+							],
+							[
+								'label' => 'strong',
+								'value' => 'strong',
+							],
+							[
+								'label' => 'em',
+								'value' => 'em',
+							],
+							[
+								'label' => 'i',
+								'value' => 'i',
+							],
+						],
+						'type'            => 'select',
+						'requires_fields' => [
+							'relationship' => 'OR',
+							'conditions'   => [
+								'highlight_enabled' => '1',
+								'highlight_excerpt' => '1',
+							],
+						],
 					],
 				],
-				'type'    => 'select',
 			],
 			[
 				'default' => 'simple',

@@ -346,7 +346,7 @@ class TestSearch extends BaseTestCase {
 
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
-		$expected = [ 'active', 'decaying_enabled', 'highlight_enabled', 'highlight_excerpt', 'highlight_tag', 'synonyms_editor_mode' ];
+		$expected = [ 'active', 'decaying_enabled', 'highlighting', 'synonyms_editor_mode' ];
 		if ( ! is_multisite() ) {
 			$expected[] = 'additional_links';
 		}

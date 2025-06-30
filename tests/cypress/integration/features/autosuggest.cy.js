@@ -120,4 +120,16 @@ describe('Autosuggest Feature', () => {
 		cy.get('.wp-block-search__input').type('blog{downArrow}{enter}');
 		cy.url().should('include', 'blog');
 	});
+
+	it('Can override default placeholder and confirm autosuggest works', () => {
+		cy.activatePlugin('custom-autosuggest-placeholder', 'wpCli');
+		cy.visit('/');
+
+		// Verify autosuggest still works with the custom placeholder
+		cy.get('.wp-block-search__input').type('blog');
+		cy.get('.ep-autosuggest').should('be.visible').should('contain.text', 'a Blog page');
+
+		// Cleanup
+		cy.deactivatePlugin('custom-autosuggest-placeholder', 'wpCli');
+	});
 });

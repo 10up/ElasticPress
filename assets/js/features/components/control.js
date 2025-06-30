@@ -10,6 +10,9 @@ import {
 	TextControl,
 	TextareaControl,
 	ToggleControl,
+	Card,
+	CardHeader,
+	CardBody,
 } from '@wordpress/components';
 import { safeHTML } from '@wordpress/dom';
 import { RawHTML, WPElement } from '@wordpress/element';
@@ -35,9 +38,10 @@ import { useFeatureSettings } from '../provider';
  * @param {boolean|string} props.syncedValue Setting value at last sync.
  * @param {string} props.type Control type.
  * @param {boolean|string} props.value Setting value.
+ * @param {object} props.fields (optional) Fields for field group control.
  * @returns {WPElement} Reports component.
  */
-export default ({
+const Control = ({
 	disabled,
 	help,
 	label,
@@ -49,6 +53,7 @@ export default ({
 	syncedValue,
 	type,
 	value,
+	fields,
 }) => {
 	const { getFeature, isBusy, settings, willSettingRequireSync } = useFeatureSettings();
 
@@ -240,6 +245,90 @@ export default ({
 								/>
 							);
 						}
+						case 'field_group': {
+							const shouldRenderField = (requiresFields) => {
+								if (!requiresFields || Object.keys(requiresFields).length === 0) {
+									return true;
+								}
+
+								const conditions = requiresFields.conditions ?? false;
+								let relationship = requiresFields.relationship ?? 'AND';
+
+								if (relationship !== 'OR' && relationship !== 'AND') {
+									relationship = 'AND';
+								}
+
+								if (!conditions) {
+									return true;
+								}
+
+								// Helper function to check individual condition
+								const checkCondition = ([fieldKey, requiredValue]) => {
+									let actualValue;
+
+									// For fields that are part of the field group, check there first
+									if (fields.some((f) => f.key === fieldKey)) {
+										actualValue = value?.[fieldKey];
+									} else {
+										// For fields not in the group, check parent settings
+										actualValue = settings['instant-results']?.[fieldKey];
+									}
+
+									return actualValue === requiredValue;
+								};
+
+								// Apply the appropriate logic based on relationship
+								if (relationship === 'OR') {
+									return Object.entries(conditions).some(checkCondition);
+								}
+								return Object.entries(conditions).every(checkCondition);
+							};
+
+							return (
+								<div className="ep-field-group">
+									<Card>
+										{label && (
+											<CardHeader>
+												<strong>{label}</strong>
+											</CardHeader>
+										)}
+										<CardBody>
+											{fields.map((field) => {
+												const shouldRender = shouldRenderField(
+													field.requires_fields,
+												);
+
+												// Skip rendering if the field's requirements aren't met
+												if (!shouldRender) {
+													return null;
+												}
+
+												// Get the current value for this field
+												const fieldValue = value?.[field.key];
+
+												return (
+													<Control
+														key={field.key}
+														{...field}
+														value={fieldValue}
+														onChange={(newValue) => {
+															// Create a new object with the updated field value
+															const updatedValue = {
+																...value,
+																[field.key]: newValue,
+															};
+
+															// Call the parent onChange with the updated nested value
+															onChange(updatedValue);
+														}}
+													/>
+												);
+											})}
+										</CardBody>
+									</Card>
+								</div>
+							);
+						}
 						default: {
 							return (
 								<TextControl
@@ -260,3 +349,5 @@ export default ({
 		</>
 	);
 };
+
+export default Control;
