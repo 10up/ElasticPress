@@ -127,20 +127,12 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
-	 * The slug of a feature that is required to be active. Left for backwards compatibility.
+	 * The slug, or array of slugs, of a feature that is required to be active.
 	 *
 	 * @since 5.0.0
-	 * @var false|string
+	 * @var false|string|array
 	 */
 	public $requires_feature = false;
-
-	/**
-	 * The slugs of multiple features that are required to be active.
-	 *
-	 * @since 5.3.0
-	 * @var false|string
-	 */
-	public $requires_features = false;
 
 	/**
 	 * Whether the feature is using ElasticPress.io.
@@ -568,7 +560,7 @@ abstract class Feature {
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 			'group'             => $this->group,
-			'requiredFeatures'  => $this->get_required_features(),
+			'requiredFeature'   => $this->get_required_feature(),
 		];
 
 		return $feature_desc;
@@ -587,12 +579,12 @@ abstract class Feature {
 		}
 
 		$active = [
-			'default'           => false,
-			'key'               => 'active',
-			'label'             => __( 'Enable', 'elasticpress' ),
-			'requires_features' => $this->get_required_features(),
-			'requires_sync'     => $this->requires_install_reindex,
-			'type'              => 'toggle',
+			'default'          => false,
+			'key'              => 'active',
+			'label'            => __( 'Enable', 'elasticpress' ),
+			'requires_feature' => $this->get_required_feature(),
+			'requires_sync'    => $this->requires_install_reindex,
+			'type'             => 'toggle',
 		];
 
 		$settings_schema = [
@@ -656,23 +648,15 @@ abstract class Feature {
 	 * @since 5.3.0
 	 * @return array List of required feature slugs
 	 */
-	public function get_required_features() {
-		$required_features = [];
+	public function get_required_feature() {
+		$required_feature = [];
 
-		// Support legacy single feature requirement
-		if ( $this->requires_feature ) {
-			_doing_it_wrong(
-				__METHOD__,
-				esc_html__( '`requires_feature` is deprecated. Use `requires_features` (array) instead.', 'elasticpress' ),
-				'5.3.0'
-			);
-			$required_features[] = $this->requires_feature;
-		}
 		// Add multi-feature requirements if defined
-		if ( $this->requires_features && is_array( $this->requires_features ) ) {
-			$required_features = array_merge( $required_features, $this->requires_features );
+		if ( is_array( $this->requires_feature ) ) {
+			$required_feature = array_merge( $required_feature, $this->requires_feature );
+			return array_unique( $required_feature );
 		}
 
-		return array_unique( $required_features );
+		return [ $this->requires_feature ];
 	}
 }

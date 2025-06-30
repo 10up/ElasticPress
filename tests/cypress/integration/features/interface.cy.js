@@ -64,7 +64,7 @@ describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 		cy.contains('button', 'Autosuggest').click();
 		cy.contains(
 			'.components-notice.is-error',
-			'The Related Posts, and Documents feature must be enabled to use this feature.',
+			'The Related Posts, and Documents features must be enabled to use this feature.',
 		);
 	});
 });

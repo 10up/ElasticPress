@@ -48,7 +48,7 @@ const Control = ({
 	name,
 	onChange,
 	options,
-	requiresFeatures,
+	requiresFeature,
 	requiresSync,
 	syncedValue,
 	type,
@@ -59,10 +59,8 @@ const Control = ({
 
 	// Convert single feature requirement to array for compatibility
 	let requiredFeaturesList = [];
-	if (requiresFeatures) {
-		requiredFeaturesList = Array.isArray(requiresFeatures)
-			? requiresFeatures
-			: [requiresFeatures];
+	if (requiresFeature) {
+		requiredFeaturesList = Array.isArray(requiresFeature) ? requiresFeature : [requiresFeature];
 	}
 
 	/**
