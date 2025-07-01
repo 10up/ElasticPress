@@ -560,6 +560,7 @@ abstract class Feature {
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 			'group'             => $this->group,
+			'fieldGroups'       => $this->get_field_group_map(),
 		];
 
 		return $feature_desc;
@@ -639,5 +640,28 @@ abstract class Feature {
 	 * @since 5.2.0
 	 */
 	public function set_i18n_strings(): void {
+	}
+
+	/**
+	 * Get the field group map for the feature.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	public function get_field_group_map(): array {
+		$field_groups = [
+			'highlight_group' => [
+				'label' => esc_html__( 'Highlighting Options', 'elasticpress' ),
+			],
+		];
+		/**
+		 * Filter available field groups.
+		 *
+		 * @hook ep_feature_field_groups
+		 * @since 5.3.0
+		 * @param  {array} $field_groups Current field groups
+		 * @return {array} New field groups
+		 */
+		return apply_filters( 'ep_feature_field_groups', $field_groups );
 	}
 }

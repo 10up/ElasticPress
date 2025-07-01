@@ -21,7 +21,7 @@ import Control from './control';
 export default ({ feature, settingsSchema }) => {
 	const { getFeature, settings, setSettings, syncedSettings } = useFeatureSettings();
 
-	const { isAvailable, defaultSettings } = getFeature(feature);
+	const { isAvailable, defaultSettings, fieldGroups } = getFeature(feature);
 
 	/**
 	 * Change event handler.
@@ -130,10 +130,6 @@ export default ({ feature, settingsSchema }) => {
 		);
 	};
 
-	const fieldLabelMap = {
-		highlight_group: 'Highlight Group',
-	};
-
 	const rendered = [];
 	let currentGroup = null;
 	let groupEntries = [];
@@ -146,9 +142,9 @@ export default ({ feature, settingsSchema }) => {
 		rendered.push(
 			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
 				<Card>
-					{fieldLabelMap[groupEntries[0].field_group_slug] && (
+					{fieldGroups[groupEntries[0].field_group_slug] && (
 						<CardHeader>
-							<strong>{fieldLabelMap[groupEntries[0].field_group_slug]}</strong>
+							<strong>{fieldGroups[groupEntries[0].field_group_slug].label}</strong>
 						</CardHeader>
 					)}
 					<CardBody>{groupEntries.map(renderControl)}</CardBody>
