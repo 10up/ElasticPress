@@ -82,10 +82,6 @@ class Search extends Feature {
 		'<p>' . __( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#post-search', 'elasticpress' );
-
-		$this->field_group_map = [
-			'highlight_group' => __( 'Highlight Group', 'elasticpress' ),
-		];
 	}
 
 	/**
@@ -898,29 +894,27 @@ class Search extends Feature {
 				'type'    => 'radio',
 			],
 			[
-				'default'           => '0',
-				'help'              => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.', 'elasticpress' ),
-				'key'               => 'highlight_enabled',
-				'label'             => __( 'Highlight search terms', 'elasticpress' ),
-				'type'              => 'checkbox',
-				'field_group_slug'  => 'highlight_group',
-				'field_group_label' => $this->field_group_map['highlight_group'],
+				'default'          => '0',
+				'help'             => __( 'Enable to wrap search terms in HTML tags in results for custom styling. The wrapping HTML tag comes with the <code>ep-highlight</code> class for easy styling.', 'elasticpress' ),
+				'key'              => 'highlight_enabled',
+				'label'            => __( 'Highlight search terms', 'elasticpress' ),
+				'type'             => 'checkbox',
+				'field_group_slug' => 'highlight_group',
 			],
 			[
-				'default'           => '0',
-				'help'              => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
-				'key'               => 'highlight_excerpt',
-				'label'             => __( 'Highlight search terms in excerpts', 'elasticpress' ),
-				'type'              => 'checkbox',
-				'field_group_slug'  => 'highlight_group',
-				'field_group_label' => $this->field_group_map['highlight_group'],
+				'default'          => '0',
+				'help'             => __( 'By default, WordPress strips HTML from content excerpts. Enable when using <code>the_excerpt()</code> to display search results.', 'elasticpress' ),
+				'key'              => 'highlight_excerpt',
+				'label'            => __( 'Highlight search terms in excerpts', 'elasticpress' ),
+				'type'             => 'checkbox',
+				'field_group_slug' => 'highlight_group',
 			],
 			[
-				'default'           => 'mark',
-				'help'              => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
-				'key'               => 'highlight_tag',
-				'label'             => __( 'Highlight tag', 'elasticpress' ),
-				'options'           => [
+				'default'          => 'mark',
+				'help'             => __( 'Select the HTML tag used to highlight search terms.', 'elasticpress' ),
+				'key'              => 'highlight_tag',
+				'label'            => __( 'Highlight tag', 'elasticpress' ),
+				'options'          => [
 					[
 						'label' => 'mark',
 						'value' => 'mark',
@@ -942,16 +936,15 @@ class Search extends Feature {
 						'value' => 'i',
 					],
 				],
-				'type'              => 'select',
-				'requires_fields'   => [
+				'type'             => 'select',
+				'requires_fields'  => [
 					'relationship' => 'OR',
 					'conditions'   => [
 						'highlight_enabled' => '1',
 						'highlight_excerpt' => '1',
 					],
 				],
-				'field_group_slug'  => 'highlight_group',
-				'field_group_label' => $this->field_group_map['highlight_group'],
+				'field_group_slug' => 'highlight_group',
 			],
 			[
 				'default' => 'simple',

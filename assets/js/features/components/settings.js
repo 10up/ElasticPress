@@ -130,6 +130,10 @@ export default ({ feature, settingsSchema }) => {
 		);
 	};
 
+	const fieldLabelMap = {
+		highlight_group: 'Highlight Group',
+	};
+
 	const rendered = [];
 	let currentGroup = null;
 	let groupEntries = [];
@@ -142,9 +146,9 @@ export default ({ feature, settingsSchema }) => {
 		rendered.push(
 			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
 				<Card>
-					{groupEntries[0].field_group_label && (
+					{fieldLabelMap[groupEntries[0].field_group_slug] && (
 						<CardHeader>
-							<strong>{groupEntries[0].field_group_label}</strong>
+							<strong>{fieldLabelMap[groupEntries[0].field_group_slug]}</strong>
 						</CardHeader>
 					)}
 					<CardBody>{groupEntries.map(renderControl)}</CardBody>
