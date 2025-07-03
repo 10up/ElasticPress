@@ -66,6 +66,12 @@ class Search extends Feature {
 
 		$this->available_during_installation = true;
 
+		$this->field_group_map = [
+			'highlight_group' => [
+				'label' => esc_html__( 'Highlighting Options', 'elasticpress' ),
+			],
+		];
+
 		parent::__construct();
 	}
 
