@@ -132,7 +132,7 @@ abstract class Feature {
 	 * @since 5.0.0
 	 * @var false|string|array
 	 */
-	public $requires_feature = false;
+	protected $requires_feature = false;
 
 	/**
 	 * Whether the feature is using ElasticPress.io.

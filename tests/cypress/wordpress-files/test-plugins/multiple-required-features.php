@@ -12,7 +12,12 @@ $modify_feature = function ( $feature ) {
 	if ( 'related_posts' !== $feature->slug ) {
 		return $feature;
 	}
-	$feature->requires_feature = [ 'facets', 'documents' ];
+
+	$reflection          = new \ReflectionClass( $feature );
+	$reflection_property = $reflection->getProperty( 'requires_feature' );
+	$reflection_property->setAccessible( true );
+	$reflection_property->setValue( $feature, [ 'facets', 'documents' ] );
+
 	return $feature;
 };
 add_filter( 'ep_feature_create', $modify_feature, 10, 3 );
