@@ -649,6 +649,6 @@ abstract class Feature {
 	 * @return array List of required feature slugs
 	 */
 	public function get_required_feature() {
-		return array_unique( (array) $this->requires_feature );
+		return $this->requires_feature ? array_unique( (array) $this->requires_feature ) : [];
 	}
 }
