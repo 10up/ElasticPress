@@ -159,14 +159,28 @@ const Control = ({
 		onChange(value);
 	};
 
-	const list =
-		titles.length > 1
-			? sprintf(
-					__('%1$s, and %2$s', 'elasticpress'),
-					titles.slice(0, -1).join(__(', ', 'elasticpress')),
-					titles[titles.length - 1],
-				)
-			: titles[0] || '';
+	const list = (() => {
+		if (titles.length === 0) {
+			return '';
+		}
+		if (titles.length === 1) {
+			return titles[0];
+		}
+		if (titles.length === 2) {
+			return sprintf(
+				/* translators: %1$s: first feature name, %2$s: second feature name */
+				__('%1$s and %2$s', 'elasticpress'),
+				titles[0],
+				titles[1],
+			);
+		}
+		return sprintf(
+			/* translators: %1$s: comma-separated list of feature names, %2$s: last feature name */
+			__('%1$s and %2$s', 'elasticpress'),
+			titles.slice(0, -1).join(__(', ', 'elasticpress')),
+			titles[titles.length - 1],
+		);
+	})();
 
 	return (
 		<>
