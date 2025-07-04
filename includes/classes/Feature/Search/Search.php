@@ -66,12 +66,6 @@ class Search extends Feature {
 
 		$this->available_during_installation = true;
 
-		$this->field_group_map = [
-			'highlight_group' => [
-				'label' => esc_html__( 'Highlighting Options', 'elasticpress' ),
-			],
-		];
-
 		parent::__construct();
 	}
 
@@ -88,6 +82,12 @@ class Search extends Feature {
 		'<p>' . __( 'Overcome higher-end performance and functional limits posed by the traditional WordPress structured (SQL) database to deliver superior keyword search, instantly. ElasticPress indexes custom fields, tags, and other metadata to improve search results. Fuzzy matching accounts for misspellings and verb tenses.', 'elasticpress' ) . '</p>';
 
 		$this->docs_url = __( 'https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#post-search', 'elasticpress' );
+
+		$this->field_group_map = [
+			'highlight_group' => [
+				'label' => esc_html__( 'Highlighting Options', 'elasticpress' ),
+			],
+		];
 	}
 
 	/**
