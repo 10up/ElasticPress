@@ -649,18 +649,6 @@ abstract class Feature {
 	 * @return array List of required feature slugs
 	 */
 	public function get_required_feature() {
-		$required_feature = [];
-
-		// Add multi-feature requirements if defined
-		if ( is_array( $this->requires_feature ) ) {
-			$required_feature = array_merge( $required_feature, $this->requires_feature );
-			return array_unique( $required_feature );
-		}
-
-		if ( $this->requires_feature ) {
-			return [ $this->requires_feature ];
-		}
-
-		return [];
+		return array_unique( (array) $this->requires_feature );
 	}
 }
