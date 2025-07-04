@@ -75,7 +75,7 @@ describe('multiple features', { tags: '@slow' }, () => {
 		cy.contains('button', 'Related Posts').click();
 		cy.contains(
 			'.components-notice.is-error',
-			'The Filters, and Documents features must be enabled to use this feature.',
+			'The Filters and Documents features must be enabled to use this feature.',
 		);
 	});
 });
