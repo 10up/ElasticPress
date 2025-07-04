@@ -139,12 +139,16 @@ export default ({ feature, settingsSchema }) => {
 		if (groupEntries.length === 0) {
 			return;
 		}
+		const group = fieldGroups[groupEntries[0].field_group_slug];
+		if (!shouldRenderControl(group.requires_fields)) {
+			return;
+		}
 		rendered.push(
 			<div className="ep-field-group" key={`${currentGroup}-${groupCounter}`}>
 				<Card>
-					{fieldGroups[groupEntries[0].field_group_slug] && (
+					{group && (
 						<CardHeader>
-							<strong>{fieldGroups[groupEntries[0].field_group_slug].label}</strong>
+							<strong>{group.label}</strong>
 						</CardHeader>
 					)}
 					<CardBody>{groupEntries.map(renderControl)}</CardBody>
