@@ -81,8 +81,8 @@ test.describe('WP-CLI Commands', () => {
 			const match2 = output.match(/Number of posts indexed: (?<indexed>\d+)/);
 
 			if (match1?.groups && match2?.groups) {
-				const total = parseInt(match1.groups.total);
-				const indexed = parseInt(match2.groups.indexed);
+				const total = parseInt(match1.groups.total, 10);
+				const indexed = parseInt(match2.groups.indexed, 10);
 				expect(10).toBe(total - indexed);
 			}
 
@@ -229,21 +229,15 @@ test.describe('WP-CLI Commands', () => {
 	});
 
 	test.describe('multisite parameters', () => {
-		test.beforeAll(async ({ browser }) => {
-			const context = await browser.newContext();
-			const page = await context.newPage();
-			await activatePlugin(page, 'elasticpress', 'wpCli', 'network');
+		test.beforeAll(async () => {
+			await wpCli('wp plugin activate elasticpress --network');
 			const indicesResult = await wpCli('elasticpress get-indices');
 			indexAllSitesNames = JSON.parse(indicesResult.toString());
-			await context.close();
 		});
 
-		test.afterAll(async ({ browser }) => {
-			const context = await browser.newContext();
-			const page = await context.newPage();
-			await deactivatePlugin(page, 'elasticpress', 'wpCli', 'network');
-			await activatePlugin(page, 'elasticpress', 'wpCli');
-			await context.close();
+		test.afterAll(async () => {
+			await wpCli('wp plugin deactivate elasticpress --network');
+			await wpCli('wp plugin activate elasticpress');
 		});
 
 		test('Can index all blogs in network if user specifies --network-wide argument', async ({
