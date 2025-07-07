@@ -37,7 +37,7 @@ import { useFeatureSettings } from '../provider';
  * @param {boolean|string} props.value Setting value.
  * @returns {WPElement} Reports component.
  */
-export default ({
+const Control = ({
 	disabled,
 	help,
 	label,
@@ -260,3 +260,5 @@ export default ({
 		</>
 	);
 };
+
+export default Control;
