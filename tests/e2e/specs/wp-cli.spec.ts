@@ -146,11 +146,14 @@ test.describe('WP-CLI Commands', () => {
 		);
 	});
 
-	test('Can put mapping of the current blog if user runs wp elasticpress put-mapping', async () => {
+	test('Can put and get mapping of the current blog if user runs wp elasticpress put-mapping', async () => {
 		const result = await wpCli('wp elasticpress put-mapping');
 		const output = result.toString();
 		expect(output).toContain('Adding post mapping');
 		expect(output).toContain('Mapping sent');
+
+		const getMappingResult = await wpCli('wp elasticpress get-mapping');
+		expect(getMappingResult.toString()).toContain('mapping_version');
 
 		const networkResult = await wpCli('wp elasticpress put-mapping --network-wide');
 		const networkOutput = networkResult.toString();
@@ -186,6 +189,8 @@ test.describe('WP-CLI Commands', () => {
 		const woocommerceResult = await wpCli('wp elasticpress activate-feature woocommerce', true);
 		expect(woocommerceResult.toString()).toContain('Feature requirements are not met');
 
+		// Deactivate protected content feature to avoid conflicts with other tests
+		await wpCli('wp elasticpress deactivate-feature protected_content');
 		const protectedContentResult = await wpCli(
 			'wp elasticpress activate-feature protected_content',
 			true,
@@ -334,11 +339,6 @@ test.describe('WP-CLI Commands', () => {
 		expect(errorResult.toString()).toContain(
 			'This command expects a version number or the --default flag',
 		);
-	});
-
-	test('Can get the mapping information', async () => {
-		const result = await wpCli('wp elasticpress get-mapping');
-		expect(result.toString()).toContain('mapping_version');
 	});
 
 	test('Can get the cluster indices information', async () => {
