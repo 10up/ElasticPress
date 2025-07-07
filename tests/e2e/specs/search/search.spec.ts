@@ -34,8 +34,7 @@ test.describe('Post Search Feature', () => {
 	});
 
 	test('Can see newer matches showing higher', async ({ loggedInPage }) => {
-		const attempt = 1; // Playwright doesn't have Cypress._.get, so use a static or random value if needed
-		const postTitle = `Duplicated post Attempt #${attempt}`;
+		const postTitle = 'Duplicated post';
 
 		// Create two posts with 1 month difference
 		const now = new Date();
@@ -44,14 +43,14 @@ test.describe('Post Search Feature', () => {
 		const formatDate = (date: Date) => date.toISOString().slice(0, 19).replace('T', ' ');
 
 		await wpCli(
-			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor ${attempt}' --post_author=1 --post_status='publish' --post_date='${formatDate(oneMonthAgo)}'`,
+			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(oneMonthAgo)}'`,
 		);
 		await wpCli(
-			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor ${attempt}' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
+			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
 		);
 
 		await loggedInPage.waitForTimeout(2000);
-		await loggedInPage.goto(`/?s=duplicated+post+attempt+${attempt}`);
+		await loggedInPage.goto(`/?s=duplicated+post`);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
 			postTitle,
 		);
@@ -72,10 +71,17 @@ test.describe('Post Search Feature', () => {
 
 	test('Can see highlighted text', async ({ loggedInPage }) => {
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+
+		const responsePromise = loggedInPage.waitForResponse(
+			'**/wp-json/elasticpress/v1/features*',
+		);
+
 		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
 		await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
 		await loggedInPage.getByLabel('Weight results by date').click();
 		await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+		await responsePromise;
 
 		await publishPost(loggedInPage, {
 			title: 'test highlight color',

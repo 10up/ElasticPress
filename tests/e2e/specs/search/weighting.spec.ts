@@ -1,22 +1,33 @@
 import { test, expect } from '../../fixtures';
-import { wpCli, activatePlugin, deactivatePlugin, goToAdminPage, clearThenType } from '../../utils';
+import {
+	wpCli,
+	activatePlugin,
+	goToAdminPage,
+	clearThenType,
+	updateWeighting,
+	wpCliEval,
+} from '../../utils';
 
 test.describe('Post Search Feature - Weighting Functionality', () => {
 	test.beforeAll(async () => {
-		const wpCliResponse = await wpCli(
-			'post list --meta_key="_weighting_tests" --meta_value="1" --ep_integrate=false --format=ids',
-		);
-		if (wpCliResponse && wpCliResponse.toString().trim()) {
-			await wpCli(`post delete ${wpCliResponse.toString().trim()} --force`);
-		}
+		await wpCliEval(`
+			$posts = new WP_Query(
+				[
+					'post_type'    => 'post',
+					'meta_key'     => '_weighting_tests',
+					'meta_value'   => '1',
+					'ep_integrate' => false,
+				]
+			);
+			foreach ( $posts as $post ) {
+				wp_delete_post( $post->ID, true );
+			}
+		`);
 	});
 
-	test.beforeEach(async ({ loggedInPage }) => {
-		await deactivatePlugin(loggedInPage, 'auto-meta-mode', 'wpCli');
-		// Assume updateWeighting is a helper, otherwise skip
-		if (typeof global.updateWeighting === 'function') {
-			await global.updateWeighting();
-		}
+	test.beforeEach(async () => {
+		await wpCli('wp plugin deactivate auto-meta-mode');
+		updateWeighting();
 	});
 
 	test("Can't find a post by title if title is not marked as searchable", async ({
@@ -25,7 +36,9 @@ test.describe('Post Search Feature - Weighting Functionality', () => {
 		await wpCli(
 			`eval "wp_insert_post([ 'post_title' => 'supercustomtitle', 'post_content' => '', 'post_status' => 'publish', 'meta_input' => [ '_weighting_tests' => 1 ] ]);"`,
 		);
-		await wpCli('wp elasticpress sync --yes');
+		const result = await wpCli('wp elasticpress sync --yes');
+		expect(result.toString()).toContain('Done!');
+
 		await loggedInPage.waitForTimeout(500);
 		await loggedInPage.goto('/?s=supercustomtitle');
 		await expect(loggedInPage.locator('.entry-title')).toContainText('supercustomtitle');
