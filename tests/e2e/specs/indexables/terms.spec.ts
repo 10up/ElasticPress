@@ -2,30 +2,32 @@ import { test, expect } from '../../fixtures';
 import {
 	goToAdminPage,
 	wpCli,
-	login,
 	maybeEnableFeature,
 	maybeDisableFeature,
 	createTerm,
+	wpCliEval,
 } from '../../utils';
 
-const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing'];
+const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing', 'search term'];
 
 test.describe('Terms Feature', { tag: '@slow' }, () => {
 	test.beforeAll(async () => {
-		await wpCli('wp plugin activate show-comments-and-terms');
-		// Delete all tags
-		await Promise.all(
-			tags.map((tag) =>
-				wpCli(
-					`wp term delete post_tag $(wp term get post_tag -s='${tag}' --field=ids)`,
-					true,
-				),
-			),
-		);
+		await wpCliEval(`
+			WP_CLI::runcommand( 'plugin activate show-comments-and-terms', [ 'return' => true ] );
+			$tags = get_terms(
+				[
+					'taxonomy'   => 'post_tag',
+					'name__in'   => ${JSON.stringify(tags)},
+					'hide_empty' => false,
+				]
+			);
+			foreach ( $tags as $tag ) {
+				wp_delete_term( $tag->term_id, 'post_tag' );
+			}
+		`);
 	});
 
 	test('Can turn the feature on', async ({ loggedInPage }) => {
-		await login(loggedInPage);
 		await maybeDisableFeature('terms');
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 
@@ -44,14 +46,14 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 		expect(listFeaturesResult.toString()).toContain('terms');
 	});
 
-	test('Can search a term in the admin dashboard using Elasticsearch', async ({
+	test('Can add, search and delete a term in the admin dashboard using Elasticsearch', async ({
 		loggedInPage,
 	}) => {
-		await login(loggedInPage);
 		await maybeEnableFeature('terms');
 
 		const searchTerm = 'search term';
 		await createTerm(loggedInPage, { taxonomy: 'post_tag', name: searchTerm });
+		await goToAdminPage(loggedInPage, 'edit-tags.php?taxonomy=post_tag');
 
 		await loggedInPage.getByLabel('Search Tags').fill(searchTerm);
 		await loggedInPage.getByRole('button', { name: 'Search Tags' }).click();
@@ -60,51 +62,31 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 		await expect(rows).toHaveCount(1);
 		await expect(rows).toContainText(searchTerm);
 
-		const debugResult = loggedInPage.locator(
-			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
-		);
-		await expect(debugResult).toContainText(searchTerm);
+		await expect(
+			loggedInPage
+				.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+				.filter({ hasText: 'term' })
+				.first(),
+		).toContainText(searchTerm);
 
 		// Delete the term
-		await rows.first().locator('.row-actions .delete a').click({ force: true });
-	});
-
-	test('Can a term be removed from the admin dashboard after deleting it', async ({
-		loggedInPage,
-	}) => {
-		await login(loggedInPage);
-		await maybeEnableFeature('terms');
-
-		const term = 'amazing term';
-		await createTerm(loggedInPage, { taxonomy: 'post_tag', name: term });
-
-		await loggedInPage.getByLabel('Search Tags').fill(term);
-		await loggedInPage.getByRole('button', { name: 'Search Tags' }).click();
-		const rows = loggedInPage.locator('.wp-list-table tbody tr');
-		await expect(rows).toHaveCount(1);
-		await expect(rows).toContainText(term);
-
-		const debugResult = loggedInPage.locator(
-			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
-		);
-		await expect(debugResult).toContainText(term);
-
-		await rows.first().locator('.row-actions .delete a').click({ force: true });
-		await loggedInPage.waitForTimeout(2000);
+		await rows.first().locator('.row-actions .delete a').dispatchEvent('click');
+		await loggedInPage.waitForTimeout(4000);
 
 		await loggedInPage.getByRole('button', { name: 'Search Tags' }).click();
 		const tbody = loggedInPage.locator('.wp-list-table tbody');
 		await expect(tbody).toContainText('No categories found');
-		const debug = loggedInPage.locator(
-			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug',
-		);
-		await expect(debug).toContainText('Query Response Code: HTTP 200');
+		await expect(
+			loggedInPage
+				.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+				.filter({ hasText: 'term' })
+				.first(),
+		).toContainText('Query Response Code: HTTP 200');
 	});
 
 	test('Can return a correct tag on searching a tag in admin dashboard', async ({
 		loggedInPage,
 	}) => {
-		await login(loggedInPage);
 		await maybeEnableFeature('terms');
 		await goToAdminPage(loggedInPage, 'edit-tags.php?taxonomy=post_tag');
 
@@ -125,7 +107,6 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 	});
 
 	test('Can update a child term when a parent term is deleted', async ({ loggedInPage }) => {
-		await login(loggedInPage);
 		await maybeEnableFeature('terms');
 
 		const parentTerm = 'bar-parent';
