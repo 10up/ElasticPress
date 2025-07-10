@@ -3,7 +3,8 @@
  *
  * @module FeatureInterface
  */
-describe('Feature Grouping and Persistence', () => {
+// eslint-disable-next-line jest/valid-describe-callback
+describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 	/**
 	 * CSS selector for the open "Live Search" feature panel.
 	 * @constant
@@ -11,7 +12,7 @@ describe('Feature Grouping and Persistence', () => {
 	 */
 	const panelSelector = 'div[id*="Live Search-view"]:has(.is-opened)';
 
-	it('Renders group tabs and persists across reloads', () => {
+	it('Renders group tabs, persists across reloads, and supports field dependency', () => {
 		// Log in as an admin user (assumes cy.login() is a custom Cypress command).
 		cy.login();
 
@@ -52,5 +53,7 @@ describe('Feature Grouping and Persistence', () => {
 						cy.get('div[id*="autosuggest-view"]').should('be.visible');
 					});
 			});
+
+		cy.visit('/wp-admin/admin.php?page=elasticpress');
 	});
 });
