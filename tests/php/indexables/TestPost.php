@@ -5574,7 +5574,6 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test a date query with multiple column range comparison not inclusive
 	 *
-	 * @since 5.3.0
 	 * @group post
 	 */
 	public function testDateQueryMultiColumnNotInclusive() {
