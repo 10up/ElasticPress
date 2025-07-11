@@ -151,6 +151,14 @@ abstract class Feature {
 	public $group = false;
 
 	/**
+	 * Field groups available to a feature
+	 *
+	 * @since 5.3.0
+	 * @var array
+	 */
+	protected $field_group_map = [];
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
@@ -561,6 +569,7 @@ abstract class Feature {
 			'settingsSchema'    => $this->get_settings_schema(),
 			'group'             => $this->group,
 			'requiredFeature'   => $this->get_required_feature(),
+			'fieldGroups'       => $this->get_field_group_map(),
 		];
 
 		return $feature_desc;
@@ -650,5 +659,23 @@ abstract class Feature {
 	 */
 	public function get_required_feature() {
 		return $this->requires_feature ? array_unique( (array) $this->requires_feature ) : [];
+	}
+
+	/**
+	 * Get the field group map for the feature.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	public function get_field_group_map(): array {
+		/**
+		 * Filter available field groups.
+		 *
+		 * @hook ep_feature_field_groups
+		 * @since 5.3.0
+		 * @param  {array} $field_groups Current field groups
+		 * @return {array} New field groups
+		 */
+		return apply_filters( 'ep_feature_field_groups', $this->field_group_map );
 	}
 }
