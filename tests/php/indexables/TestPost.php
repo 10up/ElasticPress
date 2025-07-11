@@ -5744,6 +5744,7 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test date_query with week and dayofyear, expecting specific post counts.
 	 *
+	 * @since 5.3.0
 	 * @group post
 	 */
 	public function test_date_query_week_and_day_of_year() {
@@ -6163,6 +6164,124 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->post_count );
 		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a date query with IN comparison
+	 *
+	 * @group post
+	 */
+	public function test_date_query_compare_in() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2023-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2024-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2025-01-01',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => 2023,
+						'compare' => 'IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => [ 2023, 2025 ],
+						'compare' => 'IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
+	 * Test a date query with NOT IN comparison
+	 *
+	 * @group post
+	 */
+	public function test_date_query_compare_not_in() {
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2023-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2024-01-01',
+			]
+		);
+
+		$this->ep_factory->post->create(
+			[
+				'post_date' => '2025-01-01',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => 2024,
+						'compare' => 'NOT IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+		$this->assertEquals( 2, $query->found_posts );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'date_query'   => [
+					[
+						'year'    => [ 2023, 2025 ],
+						'compare' => 'NOT IN',
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( 1, $query->found_posts );
 	}
 
 	/**
