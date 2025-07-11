@@ -163,6 +163,10 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
+		new Feature\AutosuggestV2\AutosuggestV2()
+	);
+
+	Features::factory()->register_feature(
 		new Feature\DidYouMean\DidYouMean()
 	);
 

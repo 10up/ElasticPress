@@ -25,6 +25,8 @@ import {
 	getUrlWithParams,
 } from './src/utilities';
 
+import { applyResultsFilter } from '../autosuggest-v2/hooks';
+
 /**
  * Instant Results context.
  */
@@ -42,6 +44,7 @@ const Context = createContext();
  * @param {WPElement} props.children Component children.
  * @param {string} props.paramPrefix Prefix used to set and parse URL parameters.
  * @param {Function} props.onAuthError Function to run when request authentication fails.
+ * @param {boolean} props.useUrlParams Whether to use URL parameters for state (default true).
  * @returns {WPElement} Component.
  */
 export const ApiSearchProvider = ({
@@ -53,17 +56,18 @@ export const ApiSearchProvider = ({
 	children,
 	paramPrefix,
 	onAuthError,
+	useUrlParams = true,
 }) => {
 	/**
 	 * Any default args from the URL.
 	 */
 	const defaultArgsFromUrl = useMemo(() => {
-		if (!paramPrefix) {
+		if (!paramPrefix || !useUrlParams) {
 			return {};
 		}
 
 		return getArgsFromUrlParams(argsSchema, paramPrefix);
-	}, [argsSchema, paramPrefix]);
+	}, [argsSchema, paramPrefix, useUrlParams]);
 
 	/**
 	 * All default args including defaults from the schema.
@@ -81,8 +85,8 @@ export const ApiSearchProvider = ({
 	 * Whether the provider is "on" by default.
 	 */
 	const defaultIsOn = useMemo(() => {
-		return Object.keys(defaultArgsFromUrl).length > 0;
-	}, [defaultArgsFromUrl]);
+		return useUrlParams ? Object.keys(defaultArgsFromUrl).length > 0 : false;
+	}, [defaultArgsFromUrl, useUrlParams]);
 
 	/**
 	 * Set up fetch method.
@@ -222,7 +226,7 @@ export const ApiSearchProvider = ({
 	 * @returns {void}
 	 */
 	const pushState = useCallback(() => {
-		if (typeof paramPrefix === 'undefined') {
+		if (typeof paramPrefix === 'undefined' || !useUrlParams) {
 			return;
 		}
 
@@ -243,7 +247,7 @@ export const ApiSearchProvider = ({
 		} else {
 			window.history.replaceState(state, document.title, window.location.href);
 		}
-	}, [argsSchema, paramPrefix]);
+	}, [argsSchema, paramPrefix, useUrlParams]);
 
 	/**
 	 * Handle popstate event.
@@ -252,7 +256,7 @@ export const ApiSearchProvider = ({
 	 */
 	const onPopState = useCallback(
 		(event) => {
-			if (typeof paramPrefix === 'undefined') {
+			if (typeof paramPrefix === 'undefined' || !useUrlParams) {
 				return;
 			}
 
@@ -262,7 +266,7 @@ export const ApiSearchProvider = ({
 				popState(event.state);
 			}
 		},
-		[paramPrefix],
+		[paramPrefix, useUrlParams],
 	);
 
 	/**
@@ -271,12 +275,14 @@ export const ApiSearchProvider = ({
 	 * @returns {Function} A cleanup function.
 	 */
 	const handleInit = useCallback(() => {
-		window.addEventListener('popstate', onPopState);
-
-		return () => {
-			window.removeEventListener('popstate', onPopState);
-		};
-	}, [onPopState]);
+		if (useUrlParams) {
+			window.addEventListener('popstate', onPopState);
+			return () => {
+				window.removeEventListener('popstate', onPopState);
+			};
+		}
+		return () => {};
+	}, [onPopState, useUrlParams]);
 
 	/**
 	 * Handle a change to search args.
@@ -285,9 +291,9 @@ export const ApiSearchProvider = ({
 	 */
 	const handleSearch = useCallback(() => {
 		const handle = async () => {
-			const { args, isOn, isPoppingState } = stateRef.current;
+			const { args, isOn, isPoppingState, searchTerm } = stateRef.current;
 
-			if (!isPoppingState) {
+			if (!isPoppingState && useUrlParams) {
 				pushState();
 			}
 
@@ -306,6 +312,11 @@ export const ApiSearchProvider = ({
 					return;
 				}
 
+				// Apply filters to search results if hooks are available
+				if (response.hits && response.hits.hits && !useUrlParams) {
+					response.hits.hits = applyResultsFilter(response.hits.hits, searchTerm);
+				}
+
 				setResults(response);
 			} catch (e) {
 				const errorMessage = sprintf(
@@ -321,7 +332,7 @@ export const ApiSearchProvider = ({
 		};
 
 		handle();
-	}, [argsSchema, fetchResults, pushState]);
+	}, [argsSchema, fetchResults, pushState, useUrlParams]);
 
 	/**
 	 * Effects.
@@ -372,6 +383,7 @@ export const ApiSearchProvider = ({
 		turnOff,
 		suggestedTerms,
 		isFirstSearch,
+		useUrlParams,
 	};
 
 	return <Context.Provider value={contextValue}>{children}</Context.Provider>;

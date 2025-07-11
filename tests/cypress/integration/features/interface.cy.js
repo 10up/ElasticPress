@@ -35,6 +35,7 @@ describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 			.then(() => {
 				// eslint-disable-next-line cypress/unsafe-to-chain-command
 				cy.get('button[id*="autosuggest"]')
+					.first()
 					.click()
 					.then(() => {
 						// Verify the feature is active
