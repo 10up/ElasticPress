@@ -57,3 +57,25 @@ describe('Feature Grouping and Persistence', { tags: '@slow' }, () => {
 		cy.visit('/wp-admin/admin.php?page=elasticpress');
 	});
 });
+
+// eslint-disable-next-line jest/valid-describe-callback
+describe('multiple features', { tags: '@slow' }, () => {
+	before(() => {
+		cy.activatePlugin('multiple-required-features', 'wpCli');
+	});
+	after(() => {
+		cy.deactivatePlugin('multiple-required-features', 'wpCli');
+	});
+	it('supports multiple required features', () => {
+		cy.maybeDisableFeature('facets');
+		cy.maybeDisableFeature('documents');
+		cy.login();
+		cy.visit('/wp-admin/admin.php?page=elasticpress');
+		cy.contains('button', 'Core Search').click();
+		cy.contains('button', 'Related Posts').click();
+		cy.contains(
+			'.components-notice.is-error',
+			'The Filters and Documents features must be enabled to use this feature.',
+		);
+	});
+});

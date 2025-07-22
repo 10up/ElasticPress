@@ -192,7 +192,17 @@ class Features {
 
 		foreach ( $settings_that_requires_features as $feature => $fields ) {
 			foreach ( $fields as $field_key => $field_data ) {
-				if ( ! empty( $current_settings[ $field_data['required_feature'] ]['active'] ) ) {
+				$required_features = (array) $field_data['required_feature'];
+
+				$all_required_active = true;
+				foreach ( $required_features as $required_feature_slug ) {
+					if ( empty( $current_settings[ $required_feature_slug ]['active'] ) ) {
+						$all_required_active = false;
+						break;
+					}
+				}
+
+				if ( $all_required_active ) {
 					$current_settings[ $feature ][ $field_key ] = $field_data['value'];
 				}
 			}

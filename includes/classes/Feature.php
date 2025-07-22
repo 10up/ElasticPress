@@ -127,10 +127,10 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
-	 * The slug of a feature that is required to be active.
+	 * The slug, or array of slugs, of a feature that is required to be active.
 	 *
 	 * @since 5.0.0
-	 * @var false|string
+	 * @var false|string|array
 	 */
 	protected $requires_feature = false;
 
@@ -568,6 +568,7 @@ abstract class Feature {
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
 			'group'             => $this->group,
+			'requiredFeature'   => $this->get_required_feature(),
 			'fieldGroups'       => $this->get_field_group_map(),
 		];
 
@@ -590,7 +591,7 @@ abstract class Feature {
 			'default'          => false,
 			'key'              => 'active',
 			'label'            => __( 'Enable', 'elasticpress' ),
-			'requires_feature' => $this->requires_feature,
+			'requires_feature' => $this->get_required_feature(),
 			'requires_sync'    => $this->requires_install_reindex,
 			'type'             => 'toggle',
 		];
@@ -648,6 +649,16 @@ abstract class Feature {
 	 * @since 5.2.0
 	 */
 	public function set_i18n_strings(): void {
+	}
+
+	/**
+	 * Get all features required by this feature
+	 *
+	 * @since 5.3.0
+	 * @return array List of required feature slugs
+	 */
+	public function get_required_feature() {
+		return $this->requires_feature ? array_unique( (array) $this->requires_feature ) : [];
 	}
 
 	/**
