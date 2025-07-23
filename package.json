@@ -109,5 +109,8 @@
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },
     "wpDependencyExternals": true
+  },
+  "overrides": {
+    "@babel/runtime": "^7.27.6"
   }
 }
