@@ -81,7 +81,6 @@ class DateQuery extends WP_Date_Query {
 			}
 		}
 
-		// @todo implement OR filter relationships.
 		if ( empty( $relation ) ) {
 			$relation = 'AND';
 		}
@@ -110,6 +109,33 @@ class DateQuery extends WP_Date_Query {
 				$filter_array['and'] = array(
 					'bool' => $this->build_es_date_term_filter( $term_filters ),
 				);
+			}
+		} elseif ( 'OR' === $relation ) {
+			$should_clauses = [];
+			foreach ( $filter_chunks['filters'] as $filter ) {
+
+				$group = [];
+				if ( ! empty( $filter['range_filters'] ) ) {
+					$group[] = [ 'range' => $filter['range_filters'] ];
+				}
+
+				if ( ! empty( $filter['date_terms'] ) ) {
+					foreach ( $filter['date_terms']['must'] ?? [] as $must_clause ) {
+						$group[] = $must_clause;
+					}
+				}
+
+				if ( $group ) {
+					$should_clauses[] = [ 'bool' => [ 'must' => $group ] ];
+				}
+			}
+
+			if ( $should_clauses ) {
+				$filter_array['or'] = [
+					'bool' => [
+						'should' => $should_clauses,
+					],
+				];
 			}
 		}
 
