@@ -14,4 +14,4 @@ export const test = base.extend<LoggedInFixtures>({
 	},
 });
 
-export { expect } from '@playwright/test';
+export { expect, Page } from '@playwright/test';
