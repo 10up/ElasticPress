@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { goToAdminPage } from '../utils';
+import { goToAdminPage, wpCli, maybeDisableFeature } from '../utils';
 
 /**
  * Test suite for the feature selection interface in ElasticPress settings.
@@ -105,6 +105,29 @@ test.describe('Feature Grouping and Persistence', () => {
 		await expect(
 			loggedInPage.locator('.ep-dashboard-control', {
 				hasText: 'Testing Field 2',
+			}),
+		).toBeVisible();
+	});
+});
+
+test.describe('Multiple Required Features', () => {
+	test.afterAll(async () => {
+		await wpCli('plugin deactivate multiple-required-features');
+	});
+
+	test('supports multiple required features', async ({ loggedInPage }) => {
+		await wpCli('plugin activate multiple-required-features');
+		await maybeDisableFeature('facets');
+		await maybeDisableFeature('documents');
+
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+
+		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Related Posts' }).click();
+
+		await expect(
+			loggedInPage.locator('.components-notice.is-error').filter({
+				hasText: 'The Filters and Documents features must be enabled to use this feature.',
 			}),
 		).toBeVisible();
 	});

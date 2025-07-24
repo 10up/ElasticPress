@@ -22,7 +22,7 @@ on:
       - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
 jobs:
-  cypress_local:
+  e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }}
     runs-on: ubuntu-latest
     strategy:
@@ -84,7 +84,7 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run cypress:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      run: npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
 
     - name: Run Playwright tests
       run: npm run playwright:test
