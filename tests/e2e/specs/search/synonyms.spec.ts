@@ -180,7 +180,7 @@ test.describe('Post Search Feature - Synonyms Functionality', () => {
 		await loggedInPage.goto('/?s=plugin');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'ElasticPress' }),
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
@@ -229,14 +229,16 @@ test.describe('Post Search Feature - Synonyms Functionality', () => {
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=elasticpress');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'ElasticPress' })).toBeVisible();
+		await expect(
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
+		).toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=redirect');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'ElasticPress' }),
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
@@ -263,20 +265,24 @@ test.describe('Post Search Feature - Synonyms Functionality', () => {
 		 */
 		await loggedInPage.goto('/?s=plugin');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'ElasticPress' })).toBeVisible();
+		await expect(
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
+		).toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
 		).toBeVisible();
 		await loggedInPage.goto('/?s=elasticpress');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'ElasticPress' })).toBeVisible();
+		await expect(
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
+		).toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=redirect');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'ElasticPress' }),
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
@@ -311,21 +317,23 @@ test.describe('Post Search Feature - Synonyms Functionality', () => {
 		await loggedInPage.goto('/?s=plugin');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'ElasticPress' }),
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=elasticpress');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'ElasticPress' })).toBeVisible();
+		await expect(
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
+		).toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=redirect');
 		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'ElasticPress' }),
+			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
 			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
@@ -464,12 +472,14 @@ test.describe('Post Search Feature - Synonyms Functionality', () => {
 		 * Our rule should be reflected in results.
 		 */
 		await loggedInPage.goto('/?s=red');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Red' })).toBeVisible();
+		await expect(loggedInPage.getByRole('heading', { name: 'Red', exact: true })).toBeVisible();
 		await expect(loggedInPage.locator('article h2', { hasText: 'Carmine' })).toBeVisible();
 		await expect(loggedInPage.locator('article h2', { hasText: 'Cordovan' })).toBeVisible();
 		await expect(loggedInPage.locator('article h2', { hasText: 'Crimson' })).toBeVisible();
 		await loggedInPage.goto('/?s=carmine');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Red' })).not.toBeVisible();
+		await expect(
+			loggedInPage.getByRole('heading', { name: 'Red', exact: true }),
+		).not.toBeVisible();
 		await expect(loggedInPage.locator('article h2', { hasText: 'Carmine' })).toBeVisible();
 		await expect(loggedInPage.locator('article h2', { hasText: 'Cordovan' })).not.toBeVisible();
 		await expect(loggedInPage.locator('article h2', { hasText: 'Crimson' })).not.toBeVisible();
