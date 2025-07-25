@@ -78,7 +78,9 @@ test.describe('Post Search Feature', () => {
 
 		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
 		await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
-		await loggedInPage.getByLabel('Weight results by date').click();
+		await loggedInPage
+			.getByRole('radio', { name: 'Weight results by date', exact: true })
+			.click();
 		await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 		await responsePromise;
