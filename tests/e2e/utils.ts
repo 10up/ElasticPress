@@ -202,7 +202,7 @@ export async function deactivatePlugin(
  */
 export async function createTerm(
 	page: Page,
-	data: { taxonomy: string; name: string; parent?: string },
+	data: { taxonomy?: string; name?: string; parent?: string },
 ) {
 	const { taxonomy, name, parent } = {
 		name: 'Test taxonomy',
@@ -220,6 +220,9 @@ export async function createTerm(
 	await page.fill('#tag-name', name);
 	await page.keyboard.press('Enter');
 	await page.waitForLoadState('networkidle');
+
+	// Wait for Elasticsearch to process the new post
+	await page.waitForTimeout(2000);
 }
 
 /**

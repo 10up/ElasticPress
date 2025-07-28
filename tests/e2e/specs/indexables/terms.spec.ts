@@ -24,6 +24,7 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 			foreach ( $tags as $tag ) {
 				wp_delete_term( $tag->term_id, 'post_tag' );
 			}
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes --indexables=terms', [ 'return' => true ] );
 		`);
 	});
 
@@ -70,12 +71,13 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 		).toContainText(searchTerm);
 
 		// Delete the term
+		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await rows.first().locator('.row-actions .delete a').dispatchEvent('click');
 		await loggedInPage.waitForTimeout(4000);
 
 		await loggedInPage.getByRole('button', { name: 'Search Tags' }).click();
 		const tbody = loggedInPage.locator('.wp-list-table tbody');
-		await expect(tbody).toContainText('No categories found');
+		await expect(tbody).toContainText('No tags found');
 		await expect(
 			loggedInPage
 				.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
@@ -90,9 +92,9 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 		await maybeEnableFeature('terms');
 		await goToAdminPage(loggedInPage, 'edit-tags.php?taxonomy=post_tag');
 
-		await Promise.all(
-			tags.map((tag) => createTerm(loggedInPage, { taxonomy: 'post_tag', name: tag })),
-		);
+		for await (const tag of tags) {
+			await createTerm(loggedInPage, { taxonomy: 'post_tag', name: tag });
+		}
 
 		await loggedInPage.getByLabel('Search Tags').fill('the most fun thing');
 		await loggedInPage.getByRole('button', { name: 'Search Tags' }).click();
@@ -100,9 +102,11 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 		const rowTitle = loggedInPage.locator('.wp-list-table tbody tr .row-title');
 		await expect(rowTitle).toContainText('The Most Fun Thing');
 
-		const debugResult = loggedInPage.locator(
-			'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
-		);
+		const debugResult = loggedInPage
+			.locator(
+				'#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug .ep-query-result',
+			)
+			.first();
 		await expect(debugResult).toContainText('The Most Fun Thing');
 	});
 
@@ -112,28 +116,43 @@ test.describe('Terms Feature', { tag: '@slow' }, () => {
 		const parentTerm = 'bar-parent';
 		const childTerm = 'baz-child';
 
-		await createTerm(loggedInPage, { taxonomy: 'post_tag', name: parentTerm });
+		await wpCliEval(`
+			$tags = get_terms(
+				[
+					'taxonomy'   => 'category',
+					'name__in'   => ${JSON.stringify([parentTerm, childTerm])},
+					'hide_empty' => false,
+				]
+			);
+			foreach ( $tags as $tag ) {
+				wp_delete_term( $tag->term_id, 'category' );
+			}
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes --indexables=terms', [ 'return' => true ] );
+		`);
+
+		await createTerm(loggedInPage, { name: parentTerm });
 		await createTerm(loggedInPage, {
-			taxonomy: 'post_tag',
 			name: childTerm,
 			parent: parentTerm,
 		});
 
-		await loggedInPage.getByLabel('Search Tags').fill(`${parentTerm}\n`);
+		await loggedInPage.getByLabel('Search Categories').fill(parentTerm);
 
 		await loggedInPage.route('**/wp-admin/admin-ajax.php*', (route) => route.continue());
 		const rows = loggedInPage.locator('.wp-list-table tbody tr');
-		await rows.first().locator('.row-actions .delete a').click({ force: true });
+		loggedInPage.on('dialog', (dialog) => dialog.accept());
+		await rows.first().locator('.row-actions .delete a').dispatchEvent('click');
 		// Wait for ajax
 		await loggedInPage.waitForResponse(
 			(resp) => resp.url().includes('admin-ajax.php') && resp.status() === 200,
 		);
+		// Wait for Elasticsearch to process
+		await loggedInPage.waitForTimeout(2000);
 
-		await loggedInPage.getByLabel('Search Tags').fill('');
-		await loggedInPage.getByLabel('Search Tags').fill(`${childTerm}\n`);
+		await loggedInPage.getByLabel('Search Categories').fill(childTerm);
 		await loggedInPage.locator('.wp-list-table tbody tr .column-primary a').first().click();
 		await expect(loggedInPage.getByLabel('Parent')).toHaveValue('-1');
 
-		await loggedInPage.getByRole('link', { name: 'Delete' }).click();
+		await loggedInPage.getByRole('link', { name: 'Delete' }).dispatchEvent('click');
 	});
 });
