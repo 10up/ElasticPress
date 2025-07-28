@@ -1,8 +1,8 @@
-import { test, expect } from '../fixtures';
+import { test, expect, Page } from '../fixtures';
 import { goToAdminPage, getPluginRootDir } from '../utils';
 
 test.describe('ACF Repeater Field Compatibility Feature', () => {
-	test.beforeAll(async ({ loggedInPage }) => {
+	const setupFieldGroup = async (loggedInPage: Page) => {
 		// Import ACF field group
 		await goToAdminPage(loggedInPage, 'edit.php?post_type=acf-field-group&page=acf-tools');
 
@@ -16,12 +16,14 @@ test.describe('ACF Repeater Field Compatibility Feature', () => {
 
 		// Click the Import JSON button
 		await loggedInPage.getByRole('button', { name: 'Import JSON' }).click();
-	});
+	};
 
 	test('Can index an ACF Repeater Field', async ({ loggedInPage }) => {
+		await setupFieldGroup(loggedInPage);
+
 		// Check ElasticPress controls in the ACF group edit screen
 		await goToAdminPage(loggedInPage, 'edit.php?post_type=acf-field-group');
-		await loggedInPage.locator('a[aria-label="Edit “Repeater Test”"]').click();
+		await loggedInPage.locator('a[aria-label="Edit “Repeater Test”"]').dispatchEvent('click');
 
 		// Check that we have the expected repeater fields
 		await loggedInPage.locator('.edit-field').first().click();
