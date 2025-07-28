@@ -244,10 +244,10 @@ test.describe('WP-CLI Commands', () => {
 			loggedInPage,
 		}) => {
 			const sites = await wpCli('wp site list --field=url');
-			console.log(sites);
+			console.log(sites.toString());
 
 			const plugins = await wpCli('wp plugin list --field=name');
-			console.log(plugins);
+			console.log(plugins.toString());
 
 			const result = await wpCli('wp elasticpress sync --network-wide');
 			const output = result.toString();
