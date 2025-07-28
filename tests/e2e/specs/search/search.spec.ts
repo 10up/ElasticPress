@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures';
-import { logout, wpCli, publishPost, goToAdminPage } from '../../utils';
+import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '../../utils';
 
 // Parity with Cypress: Post Search Feature
 
@@ -103,11 +103,13 @@ test.describe('Post Search Feature', () => {
 			password: 'password',
 		});
 
-		await logout(page);
+		// Reset features. If the Facets/Filters are enabled, the password protected post will not be visible in the homepage.
+		await setDefaultFeatureSettings();
 		await page.goto('/');
 		await expect(
 			page.locator('.site-content article h2', { hasText: 'Password Protected' }),
 		).not.toBeVisible();
+
 		await page.goto('/?s=Password+Protected');
 		await expect(
 			page.locator('.site-content article h2', { hasText: 'Password Protected' }),
