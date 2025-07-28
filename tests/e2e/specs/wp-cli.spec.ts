@@ -1,5 +1,12 @@
 import { test, expect } from '../fixtures';
-import { activatePlugin, deactivatePlugin, goToAdminPage, wpCli, wpCliEval } from '../utils';
+import {
+	activatePlugin,
+	deactivatePlugin,
+	getPluginSlug,
+	goToAdminPage,
+	wpCli,
+	wpCliEval,
+} from '../utils';
 
 const indexNames = process.env?.EP_INDEX_NAMES || [];
 
@@ -229,26 +236,22 @@ test.describe('WP-CLI Commands', () => {
 	});
 
 	test.describe('multisite parameters', () => {
+		const pluginSlug = getPluginSlug('elasticpress');
+
 		test.beforeAll(async () => {
-			await wpCli('wp plugin activate elasticpress --network');
+			await wpCli(`plugin activate ${pluginSlug} --network`);
 			const indicesResult = await wpCli('elasticpress get-indices');
 			indexAllSitesNames = JSON.parse(indicesResult.toString());
 		});
 
 		test.afterAll(async () => {
-			await wpCli('wp plugin deactivate elasticpress --network');
-			await wpCli('wp plugin activate elasticpress');
+			await wpCli(`plugin deactivate ${pluginSlug} --network`);
+			await wpCli(`plugin activate ${pluginSlug}`);
 		});
 
 		test('Can index all blogs in network if user specifies --network-wide argument', async ({
 			loggedInPage,
 		}) => {
-			const sites = await wpCli('wp site list');
-			console.log(sites.toString());
-
-			const plugins = await wpCli('wp plugin list');
-			console.log(plugins.toString());
-
 			const result = await wpCli('wp elasticpress sync --network-wide');
 			const output = result.toString();
 
