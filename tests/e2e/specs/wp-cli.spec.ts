@@ -243,6 +243,12 @@ test.describe('WP-CLI Commands', () => {
 		test('Can index all blogs in network if user specifies --network-wide argument', async ({
 			loggedInPage,
 		}) => {
+			const sites = await wpCli('wp site list --field=url');
+			console.log(sites);
+
+			const plugins = await wpCli('wp plugin list --field=name');
+			console.log(plugins);
+
 			const result = await wpCli('wp elasticpress sync --network-wide');
 			const output = result.toString();
 

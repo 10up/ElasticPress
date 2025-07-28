@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures';
-import { wpCli, publishPost, goToAdminPage } from '../../utils';
+import { logout, wpCli, publishPost, goToAdminPage } from '../../utils';
 
 // Parity with Cypress: Post Search Feature
 
@@ -103,6 +103,7 @@ test.describe('Post Search Feature', () => {
 			password: 'password',
 		});
 
+		await logout(page);
 		await page.goto('/');
 		await expect(
 			page.locator('.site-content article h2', { hasText: 'Password Protected' }),
