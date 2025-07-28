@@ -46,18 +46,23 @@ test.describe('Custom Results', () => {
 		await expect(apiResponse.status()).toBe(200);
 
 		// Get initial order of posts
+		const initialPostTitles = await loggedInPage
+			.locator('.pointers .pointer .title')
+			.allTextContents();
+
+		expect(initialPostTitles.length).toBeGreaterThan(0);
+
+		// Perform drag and drop operation, but using keyboard instead of mouse.
+		await loggedInPage.locator('.pointers > div').first().locator('.dashicons-menu').focus();
+		await loggedInPage.keyboard.press('Space');
+		await loggedInPage.keyboard.press('ArrowDown');
+		await loggedInPage.keyboard.press('Space');
+
 		const postTitles = await loggedInPage
 			.locator('.pointers .pointer .title')
 			.allTextContents();
+		expect(initialPostTitles).not.toEqual(postTitles); // Make sure the order has changed
 		searchResult.push(...postTitles);
-
-		expect(searchResult.length).toBeGreaterThan(0);
-
-		// Perform drag and drop operation
-		await loggedInPage.locator('.pointers > div').first().locator('.dashicons-menu').hover();
-		await loggedInPage.mouse.down();
-		await loggedInPage.locator('.pointers > div').nth(1).locator('.dashicons-menu').hover();
-		await loggedInPage.mouse.up();
 
 		// Get the updated order after drag and drop
 		const newPostTitles = await loggedInPage
@@ -72,9 +77,10 @@ test.describe('Custom Results', () => {
 		// Verify the search results match the new order
 		await loggedInPage.goto(`/?s=${searchTerm}`);
 
-		const searchResultTitles = await loggedInPage
-			.locator(`article:nth-child(-n+${searchResult.length}) .entry-title`)
+		const searchResultTitlesPromise = await loggedInPage
+			.locator('article .entry-title')
 			.allTextContents();
+		const searchResultTitles = await searchResultTitlesPromise.slice(0, searchResult.length);
 
 		for (let index = 0; index < searchResult.length; index++) {
 			expect(searchResultTitles[index]).toBe(searchResult[index]);
@@ -134,9 +140,10 @@ test.describe('Custom Results', () => {
 		// Verify the search results match the expected order
 		await loggedInPage.goto(`/?s=${searchTerm}`);
 
-		const searchResultTitles = await loggedInPage
-			.locator(`article:nth-child(-n+${searchResult.length}) .entry-title`)
+		const searchResultTitlesPromise = await loggedInPage
+			.locator(`article .entry-title`)
 			.allTextContents();
+		const searchResultTitles = searchResultTitlesPromise.slice(0, searchResult.length);
 
 		for (let index = 0; index < searchResult.length; index++) {
 			expect(searchResultTitles[index]).toBe(searchResult[index]);
