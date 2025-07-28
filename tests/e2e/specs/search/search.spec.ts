@@ -23,7 +23,10 @@ test.describe('Post Search Feature', () => {
 			{ title: 'Higher', content: '10up loves elasticpress' },
 			{ title: 'Lower', content: 'elasticpress loves 10up' },
 		];
-		await Promise.all(postsData.map((postData) => publishPost(loggedInPage, postData)));
+		for await (const postData of postsData) {
+			await publishPost(loggedInPage, postData);
+		}
+		await loggedInPage.waitForTimeout(2000);
 		await loggedInPage.goto('/?s=10up+loves+elasticpress');
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
 			'Higher',
@@ -91,7 +94,7 @@ test.describe('Post Search Feature', () => {
 		});
 
 		await loggedInPage.goto('/?s=findme');
-		await expect(loggedInPage.locator('.ep-highlight')).toBeVisible();
+		await expect(loggedInPage.locator('.ep-highlight').first()).toBeVisible();
 	});
 
 	test('Can not see any password protected post', async ({ loggedInPage, page }) => {
