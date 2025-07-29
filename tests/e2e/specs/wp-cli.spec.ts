@@ -196,6 +196,7 @@ test.describe('WP-CLI Commands', () => {
 		const invalidResult = await wpCli('wp elasticpress activate-feature invalid', true);
 		expect(invalidResult.toString()).toContain('No feature with that slug is registered');
 
+		await wpCli('plugin deactivate woocommerce');
 		const woocommerceResult = await wpCli('wp elasticpress activate-feature woocommerce', true);
 		expect(woocommerceResult.toString()).toContain('Feature requirements are not met');
 
