@@ -373,14 +373,30 @@ export async function publishPost(
 	await goToAdminPage(page, 'post-new.php');
 	const editorFrame = await getEditorFrame(page);
 
-	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
-	if (rawContent) {
-		await page.keyboard.press('Control+Shift+Alt+M');
-		await page.locator('.editor-post-text-editor').fill(newPostData.content);
+	const isInCodeEditorMode = await editorFrame.locator('.editor-post-text-editor').isVisible();
+	const changeMode = async (page: Page) => {
 		const apiResponsePromise = page.waitForResponse('**/wp-json/wp/v2/users/me*');
 		await page.keyboard.press('Control+Shift+Alt+M');
 		await apiResponsePromise; // Wait for WP to save the preference
+	};
+
+	if (rawContent) {
+		if (!isInCodeEditorMode) {
+			await changeMode(page);
+		}
+		await page.locator('.wp-block-post-title textarea').fill(newPostData.title);
+		await page.locator('.editor-post-text-editor').fill(newPostData.content);
+
+		// Return to visual editor
+		changeMode(page);
 	} else {
+		// Return to visual editor
+		if (isInCodeEditorMode) {
+			changeMode(page);
+		}
+		await editorFrame
+			.locator('h1.editor-post-title__input, #post-title-0')
+			.fill(newPostData.title);
 		await editorFrame
 			.locator('.block-editor-default-block-appender__content')
 			.pressSequentially(newPostData.content);
@@ -661,7 +677,7 @@ export async function createAutosavePost(
 export async function setCustomPostTypes() {
 	await wpCliEval(
 		`
-		activate_plugin( 'cpt-and-custom-tax.php' );
+		WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => true ] );
 		$page_id = wp_insert_post(
 			[
 				'post_title'  => 'A new page',

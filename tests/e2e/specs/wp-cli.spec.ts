@@ -4,6 +4,7 @@ import {
 	deactivatePlugin,
 	getPluginSlug,
 	goToAdminPage,
+	setDefaultFeatureSettings,
 	wpCli,
 	wpCliEval,
 } from '../utils';
@@ -178,6 +179,8 @@ test.describe('WP-CLI Commands', () => {
 	});
 
 	test('Can activate and deactivate a feature', async () => {
+		await setDefaultFeatureSettings();
+
 		const alreadyActiveResult = await wpCli('wp elasticpress activate-feature search', true);
 		expect(alreadyActiveResult.toString()).toContain('This feature is already active');
 

@@ -9,6 +9,7 @@ import {
 	isEpIo,
 	wpCliEval,
 	setCustomPostTypes,
+	maybeDisableFeature,
 } from '../utils';
 import { openBlockInserter, insertBlock } from '../block-editor';
 
@@ -37,6 +38,12 @@ test.describe('Instant Results Feature', () => {
 		await page.keyboard.press('Escape');
 	};
 
+	const searchFor = async (page: Page, searchTerm: string) => {
+		const searchBlock = page.locator('form.search-form').last();
+		await searchBlock.locator('input[type="search"]').fill(searchTerm);
+		await searchBlock.locator('input[type="submit"]').click();
+	};
+
 	/**
 	 * Create a Product Search widget.
 	 *
@@ -55,7 +62,7 @@ test.describe('Instant Results Feature', () => {
 	};
 
 	test.beforeAll(async () => {
-		const output = await wpCliEval(
+		await wpCliEval(
 			`
 			WP_CLI::runcommand( 'plugin deactivate classic-widgets woocommerce', [ 'return' => true ] );
 			$widgets = explode( "\n", WP_CLI::runcommand( 'widget list sidebar-1 --fields=id', [ 'return' => true ] ) );
@@ -82,7 +89,6 @@ test.describe('Instant Results Feature', () => {
 			);
 			`,
 		);
-		console.log(output.toString());
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
@@ -131,6 +137,8 @@ test.describe('Instant Results Feature', () => {
 		 * Also, it can show a warning when using a custom PHP proxy
 		 */
 		test('Can activate the feature and sync automatically', async ({ loggedInPage }) => {
+			await maybeDisableFeature('instant-results');
+
 			// Can see the warning if using custom proxy
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
@@ -184,7 +192,7 @@ test.describe('Instant Results Feature', () => {
 
 				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
 				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
-				await addInstantResultFilter(loggedInPage, 'prod');
+				await addInstantResultFilter(loggedInPage, 'post type');
 				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 				await apiResponsePromise;
@@ -196,9 +204,7 @@ test.describe('Instant Results Feature', () => {
 
 				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=new');
 
-				const searchBlock = loggedInPage.locator('.wp-block-search').last();
-				await searchBlock.locator('.wp-block-search__input').fill('new');
-				await searchBlock.locator('.wp-block-search__button').click();
+				await searchFor(loggedInPage, 'new');
 
 				const searchModal = loggedInPage.locator('.ep-search-modal');
 				await expect(searchModal).toBeVisible(); // Should be visible immediately
@@ -260,9 +266,7 @@ test.describe('Instant Results Feature', () => {
 				const perPage = await perPageInput.inputValue();
 
 				await loggedInPage.goto('/');
-				const searchBlock = loggedInPage.locator('.wp-block-search').last();
-				await searchBlock.locator('input[type="search"]').fill('block');
-				await searchBlock.locator('button').click();
+				await searchFor(loggedInPage, 'block');
 				await expect(loggedInPage).toHaveURL(new RegExp(`per_page=${perPage}`));
 
 				/**
@@ -275,9 +279,7 @@ test.describe('Instant Results Feature', () => {
 				 * filtered value.
 				 */
 				await loggedInPage.goto('/');
-				const searchBlock2 = loggedInPage.locator('.wp-block-search').last();
-				await searchBlock2.locator('input[type="search"]').fill('block');
-				await searchBlock2.locator('button').click();
+				await searchFor(loggedInPage, 'block');
 				await expect(loggedInPage).toHaveURL(/.*per_page=3/);
 			});
 
@@ -309,9 +311,7 @@ test.describe('Instant Results Feature', () => {
 					loggedInPage,
 					'search=ergonomic',
 				);
-				const searchBlock = loggedInPage.locator('.wp-block-search').last();
-				await searchBlock.locator('input[type="search"]').fill('ergonomic');
-				await searchBlock.locator('button').click();
+				await searchFor(loggedInPage, 'ergonomic');
 				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
 				await responsePromise;
 				await expect(loggedInPage.locator('.ep-search-result')).toHaveCount(3);
@@ -401,9 +401,7 @@ test.describe('Instant Results Feature', () => {
 				 */
 				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=blog');
 				await loggedInPage.goto('/');
-				const searchBlock = loggedInPage.locator('.wp-block-search').last();
-				await searchBlock.locator('input[type="search"]').fill('blog');
-				await searchBlock.locator('button').click();
+				await searchFor(loggedInPage, 'blog');
 				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
 				await responsePromise;
 
@@ -428,9 +426,7 @@ test.describe('Instant Results Feature', () => {
 					'search=wordpless',
 				);
 				await loggedInPage.goto('/');
-				const searchBlock = loggedInPage.locator('.wp-block-search').last();
-				await searchBlock.locator('input[type="search"]').fill('wordpless');
-				await searchBlock.locator('button').click();
+				await searchFor(loggedInPage, 'wordpless');
 				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
 				await responsePromise;
 				await expect(loggedInPage.locator('.ep-search-suggestion a')).toHaveText(
@@ -536,9 +532,7 @@ test.describe('Instant Results Feature', () => {
 				 */
 				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=block');
 				await loggedInPage.goto('/');
-				const searchBlock = loggedInPage.locator('.wp-block-search').first();
-				await searchBlock.locator('input[type="search"]').fill('block');
-				await searchBlock.locator('button').click();
+				await searchFor(loggedInPage, 'block');
 				await responsePromise;
 
 				/**
@@ -573,9 +567,7 @@ test.describe('Instant Results Feature', () => {
 			 * Perform a search.
 			 */
 			await loggedInPage.goto('/');
-			const searchBlock = loggedInPage.locator('.wp-block-search').last();
-			await searchBlock.locator('input[type="search"]').fill('block');
-			await searchBlock.locator('button').click();
+			await searchFor(loggedInPage, 'block');
 			await responsePromise;
 
 			/**
