@@ -91,9 +91,12 @@ test.describe('Related Posts Feature', () => {
 		await firstLink.dispatchEvent('click');
 		await expect(loggedInPage).toHaveURL(/wp-admin\/post\.php/);
 
+		const requestPromise = loggedInPage.waitForResponse('**/wp-json/wp/v2/posts/*');
+
 		// Update post and visit front end
 		const buttonLabel = process.env.WP_VERSION === '6.2' ? 'Update' : 'Save';
 		await loggedInPage.getByRole('button', { name: buttonLabel, exact: true }).click();
+		await requestPromise;
 
 		let viewPostLink;
 		if (process.env.WP_VERSION === '6.2') {
