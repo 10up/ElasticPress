@@ -115,7 +115,7 @@ export async function wpCliEval(command: string) {
 	writeFileSync(fullFilePath, `<?php ${escapedCommand}`);
 
 	// Execute the PHP code using wp-cli
-	const result = await wpCli(`eval-file wp-content/plugins/${getPluginDir()}/${fileName}`);
+	const result = await wpCli(`eval-file wp-content/plugins/${getPluginDir()}/${fileName}`, true);
 
 	// Clean up the temporary file
 	unlinkSync(fullFilePath);
@@ -360,11 +360,13 @@ export async function setPostPassword(
  * @param postData.password Post password
  * @param postData.status Post status ('draft' or 'publish')
  * @param viewPost Whether to view the post after publishing
+ * @param rawContent Whether to use raw content instead of block editor
  */
 export async function publishPost(
 	page: Page,
 	postData: { title?: string; content?: string; password?: string; status?: string },
 	viewPost = false,
+	rawContent = false,
 ) {
 	const newPostData = { title: 'Test Post', content: 'Test content.', ...postData };
 
@@ -372,9 +374,17 @@ export async function publishPost(
 	const editorFrame = await getEditorFrame(page);
 
 	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
-	await editorFrame
-		.locator('.block-editor-default-block-appender__content')
-		.pressSequentially(newPostData.content);
+	if (rawContent) {
+		await page.keyboard.press('Control+Shift+Alt+M');
+		await page.locator('.editor-post-text-editor').fill(newPostData.content);
+		const apiResponsePromise = page.waitForResponse('**/wp-json/wp/v2/users/me*');
+		await page.keyboard.press('Control+Shift+Alt+M');
+		await apiResponsePromise; // Wait for WP to save the preference
+	} else {
+		await editorFrame
+			.locator('.block-editor-default-block-appender__content')
+			.pressSequentially(newPostData.content);
+	}
 
 	if (newPostData.password && newPostData.password !== '') {
 		await setPostPassword(page, newPostData.password);
@@ -646,4 +656,35 @@ export async function createAutosavePost(
 
 	// Deactivate the shorten-autosave plugin
 	await deactivatePlugin(page, 'shorten-autosave', 'wpCli');
+}
+
+export async function setCustomPostTypes() {
+	await wpCliEval(
+		`
+		activate_plugin( 'cpt-and-custom-tax.php' );
+		$page_id = wp_insert_post(
+			[
+				'post_title'  => 'A new page',
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			]
+		);
+		$post_id = wp_insert_post(
+			[
+				'post_title'  => 'A new post',
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+			]
+		);
+		$movie_id = wp_insert_post(
+			[
+				'post_title'  => 'A new movie',
+				'post_type'   => 'movie',
+				'post_status' => 'publish',
+			]
+		);
+		wp_set_object_terms( $movie_id, 'action', 'genre' );
+		WP_CLI::runcommand( "elasticpress sync --include={$page_id},{$post_id},{$movie_id}", [ 'return' => true ] );
+		`,
+	);
 }
