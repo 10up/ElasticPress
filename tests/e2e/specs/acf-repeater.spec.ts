@@ -26,7 +26,7 @@ test.describe('ACF Repeater Field Compatibility Feature', () => {
 		await loggedInPage.locator('a[aria-label="Edit “Repeater Test”"]').dispatchEvent('click');
 
 		// Check that we have the expected repeater fields
-		await loggedInPage.locator('.edit-field').first().click();
+		await loggedInPage.locator('.edit-field').first().dispatchEvent('click');
 		await expect(loggedInPage.locator('.acf-field-object-repeater')).toHaveCount(3);
 		await expect(
 			loggedInPage.locator('.acf-field-setting-ep_acf_repeater_index_field'),
