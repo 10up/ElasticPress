@@ -66,20 +66,21 @@ test.describe('Instant Results Feature', () => {
 			`
 			WP_CLI::runcommand( 'plugin deactivate classic-widgets woocommerce', [ 'return' => 'all' ] );
 
-			print_r( 'Widgets' );
-			$widgets = explode( "\n", WP_CLI::runcommand( 'widget list sidebar-1 --fields=id', [ 'return' => 'all' ] ) );
-			print_r( $widgets );
+			print_r( "Widgets\n" );
+			$widgets_obj = WP_CLI::runcommand( 'widget list sidebar-1 --fields=id', [ 'return' => 'all' ] );
+			var_dump( $widgets_obj );
+			$widgets = explode( "\n", $widgets_obj->stdout );
 			$widgets = array_filter( $widgets, function( $widget ) {
 				return str_starts_with( $widget, 'search-' );
 			} );
 			$widgets = implode( ' ', $widgets );
 
 			$deleted = WP_CLI::runcommand( "widget delete {$widgets}", [ 'return' => 'all' ] );
-			print_r( 'Deleted' );
+			print_r( "\nDeleted\n" );
 			print_r( $deleted );
 
 			$added = WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all' ] );
-			print_r( 'Added' );
+			print_r( "\nAdded\n" );
 			print_r( $added );
 
 			wp_insert_post(
