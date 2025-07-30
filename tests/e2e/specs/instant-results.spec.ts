@@ -66,22 +66,31 @@ test.describe('Instant Results Feature', () => {
 			`
 			WP_CLI::runcommand( 'plugin deactivate classic-widgets woocommerce', [ 'return' => 'all', 'exit_error' => false ] );
 
-			print_r( "Widgets\n" );
 			$widgets_obj = WP_CLI::runcommand( 'widget list sidebar-1 --fields=id', [ 'return' => 'all', 'exit_error' => false ] );
-			var_dump( $widgets_obj );
-			$widgets = explode( "\n", $widgets_obj->stdout );
-			$widgets = array_filter( $widgets, function( $widget ) {
-				return str_starts_with( $widget, 'search-' );
-			} );
-			$widgets = implode( ' ', $widgets );
+			if ( $widgets_obj->return_code !== 0 ) {
+				print_r( "\nError listing widgets\n" );
+				print_r( $widgets_obj );
+			}
 
-			$deleted = WP_CLI::runcommand( "widget delete {$widgets}", [ 'return' => 'all', 'exit_error' => false ] );
-			print_r( "\nDeleted\n" );
-			print_r( $deleted );
+			if ( $widgets_obj->stdout && $widgets_obj->return_code === 0 ) {
+				$widgets = explode( "\n", $widgets_obj->stdout );
+				$widgets = array_filter( $widgets, function( $widget ) {
+					return str_starts_with( $widget, 'search-' );
+				} );
+				$widgets = implode( ' ', $widgets );
+
+				$deleted = WP_CLI::runcommand( "widget delete {$widgets}", [ 'return' => 'all', 'exit_error' => false ] );
+				if ( $deleted->return_code !== 0 ) {
+					print_r( "\nError deleting widgets\n" );
+					print_r( $deleted );
+				}
+			}
 
 			$added = WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all', 'exit_error' => false ] );
-			print_r( "\nAdded\n" );
-			print_r( $added );
+			if ( $added->return_code !== 0 ) {
+				print_r( "\nError adding widget\n" );
+				print_r( $added );
+			}
 
 			wp_insert_post(
 				[
