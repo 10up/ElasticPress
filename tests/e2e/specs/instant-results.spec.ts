@@ -64,10 +64,10 @@ test.describe('Instant Results Feature', () => {
 	test.beforeAll(async () => {
 		const output = await wpCliEval(
 			`
-			WP_CLI::runcommand( 'plugin deactivate classic-widgets woocommerce', [ 'return' => 'all' ] );
+			WP_CLI::runcommand( 'plugin deactivate classic-widgets woocommerce', [ 'return' => 'all', 'exit_error' => false ] );
 
 			print_r( "Widgets\n" );
-			$widgets_obj = WP_CLI::runcommand( 'widget list sidebar-1 --fields=id', [ 'return' => 'all' ] );
+			$widgets_obj = WP_CLI::runcommand( 'widget list sidebar-1 --fields=id', [ 'return' => 'all', 'exit_error' => false ] );
 			var_dump( $widgets_obj );
 			$widgets = explode( "\n", $widgets_obj->stdout );
 			$widgets = array_filter( $widgets, function( $widget ) {
@@ -75,11 +75,11 @@ test.describe('Instant Results Feature', () => {
 			} );
 			$widgets = implode( ' ', $widgets );
 
-			$deleted = WP_CLI::runcommand( "widget delete {$widgets}", [ 'return' => 'all' ] );
+			$deleted = WP_CLI::runcommand( "widget delete {$widgets}", [ 'return' => 'all', 'exit_error' => false ] );
 			print_r( "\nDeleted\n" );
 			print_r( $deleted );
 
-			$added = WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all' ] );
+			$added = WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all', 'exit_error' => false ] );
 			print_r( "\nAdded\n" );
 			print_r( $added );
 
