@@ -675,9 +675,14 @@ export async function createAutosavePost(
 }
 
 export async function setCustomPostTypes() {
-	await wpCliEval(
+	const output = await wpCliEval(
 		`
-		WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => true ] );
+		$output = WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => 'all', 'exit_error' => false ] );
+		if ( $output->return_code !== 0 ) {
+			print_r( "\nError activating cpt-and-custom-tax\n" );
+			print_r( $output );
+		}
+
 		$page_id = wp_insert_post(
 			[
 				'post_title'  => 'A new page',
@@ -703,4 +708,5 @@ export async function setCustomPostTypes() {
 		WP_CLI::runcommand( "elasticpress sync --include={$page_id},{$post_id},{$movie_id}", [ 'return' => true ] );
 		`,
 	);
+	console.log(output.toString());
 }

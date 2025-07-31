@@ -114,7 +114,7 @@ test.describe('Instant Results Feature', () => {
 	test.beforeEach(async ({ loggedInPage }) => {
 		await deactivatePlugin(
 			loggedInPage,
-			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema cpt-and-custom-tax',
+			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema',
 			'wpCli',
 		);
 	});
@@ -188,6 +188,10 @@ test.describe('Instant Results Feature', () => {
 		});
 
 		test.describe('Instant Results activated', () => {
+			test.beforeAll(async () => {
+				await setCustomPostTypes();
+			});
+
 			/**
 			 * Test that the instant results list is visible
 			 * It can display the number of test results
@@ -198,7 +202,6 @@ test.describe('Instant Results Feature', () => {
 				loggedInPage,
 			}) => {
 				await maybeEnableFeature('instant-results');
-				await setCustomPostTypes();
 				await wpCli('elasticpress put-search-template', true);
 
 				/**
@@ -529,6 +532,7 @@ test.describe('Instant Results Feature', () => {
 				 * Activate test plugin.
 				 */
 				await maybeEnableFeature('instant-results');
+				await setCustomPostTypes();
 				await activatePlugin(
 					loggedInPage,
 					'filter-instant-results-category-terms',
