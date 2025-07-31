@@ -10,7 +10,7 @@
  */
 
 /**
- * Limit the Instant Results terms to only the "Classic" term.
+ * Limit the Instant Results terms to only the "Markup" term.
  */
 add_action(
 	'wp_footer',
@@ -24,8 +24,8 @@ add_action(
 						return terms;
 					}
 
-					// keep only Term Classic
-					const filteredTerms = terms.filter(term => term.label === 'Classic');
+					// keep only Term Markup
+					const filteredTerms = terms.filter(term => term.label === 'Markup');
 					return filteredTerms;
 				}
 

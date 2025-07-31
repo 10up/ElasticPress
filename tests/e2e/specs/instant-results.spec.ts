@@ -559,7 +559,7 @@ test.describe('Instant Results Feature', () => {
 				await loggedInPage.goto('/');
 				await searchFor(loggedInPage, 'block');
 				const response = await responsePromise;
-				console.log(await response.json());
+				console.log(JSON.stringify(await response.json()));
 
 				const output = await wpCliEval(
 					`
