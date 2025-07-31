@@ -40,7 +40,7 @@ test.describe('ACF Repeater Field Compatibility Feature', () => {
 
 		const isChecked = await firstRepeaterToggle.isChecked();
 		if (!isChecked) {
-			await firstRepeaterToggle.check({ force: true });
+			await firstRepeaterToggle.setChecked(true, { force: true });
 		}
 
 		await loggedInPage.locator('button.acf-publish').click();

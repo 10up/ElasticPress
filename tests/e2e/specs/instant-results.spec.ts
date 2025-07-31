@@ -559,6 +559,26 @@ test.describe('Instant Results Feature', () => {
 				await searchFor(loggedInPage, 'block');
 				await responsePromise;
 
+				const output = await wpCliEval(
+					`
+					$output = WP_CLI::runcommand( 'elasticpress list-features', [ 'return' => 'all', 'exit_error' => false ] );
+					print_r( $output );
+
+					$output = WP_CLI::runcommand( 'plugin list', [ 'return' => 'all', 'exit_error' => false ] );
+					print_r( $output );
+
+					$posts = new \\WP_Query(
+						[
+							'post_type' => 'post',
+							'posts_per_page' => -1,
+							's' => 'block',
+						]
+					);
+					print_r( $posts );
+					`,
+				);
+				console.log(output.toString());
+
 				/**
 				 * The number of terms displayed in the filter should be one.
 				 */
