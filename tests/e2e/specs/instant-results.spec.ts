@@ -559,7 +559,7 @@ test.describe('Instant Results Feature', () => {
 				await loggedInPage.goto('/');
 				await searchFor(loggedInPage, 'block');
 				const response = await responsePromise;
-				console.log(response.json());
+				console.log(await response.json());
 
 				const output = await wpCliEval(
 					`
@@ -571,9 +571,9 @@ test.describe('Instant Results Feature', () => {
 
 					$posts = new \\WP_Query(
 						[
-							'post_type' => 'markup html',
+							'post_type' => 'post',
 							'posts_per_page' => -1,
-							's' => 'block',
+							's' => 'markup html',
 						]
 					);
 					print_r( $posts );
