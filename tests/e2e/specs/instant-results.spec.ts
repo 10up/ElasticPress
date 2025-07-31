@@ -538,6 +538,7 @@ test.describe('Instant Results Feature', () => {
 					'filter-instant-results-category-terms',
 					'wpCli',
 				);
+				await wpCli('elasticpress put-search-template', true);
 
 				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 				const apiResponsePromise = loggedInPage.waitForResponse(
@@ -557,7 +558,8 @@ test.describe('Instant Results Feature', () => {
 				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=block');
 				await loggedInPage.goto('/');
 				await searchFor(loggedInPage, 'block');
-				await responsePromise;
+				const response = await responsePromise;
+				console.log(response.json());
 
 				const output = await wpCliEval(
 					`
@@ -569,7 +571,7 @@ test.describe('Instant Results Feature', () => {
 
 					$posts = new \\WP_Query(
 						[
-							'post_type' => 'post',
+							'post_type' => 'markup html',
 							'posts_per_page' => -1,
 							's' => 'block',
 						]
