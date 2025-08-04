@@ -431,9 +431,14 @@ export async function publishPost(
  * @param newValues New values for the feature
  */
 export async function updateFeatures(featureName: string, newValues: any) {
-	const escapedNewValues = JSON.stringify(newValues);
-	await wpCli(
-		`eval "\\$feature_settings = get_option( 'ep_feature_settings', [] ); \\$feature_settings['${featureName}'] = json_decode( '${escapedNewValues}', true ); update_option( 'ep_feature_settings', \\$feature_settings );"`,
+	await wpCliEval(
+		`
+		$features = get_option( 'ep_feature_settings', [] );
+		$new_feature_value = json_decode( '${JSON.stringify(newValues)}', true );
+		$features['${featureName}'] = $new_feature_value;
+
+		update_option( 'ep_feature_settings', $features );
+		`,
 	);
 }
 
