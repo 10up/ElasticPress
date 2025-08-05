@@ -573,6 +573,7 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
 		$this->assertEquals( $private_page_1_id, $query->posts[2]->ID );
 
+		// Admin can see all posts.
 		wp_set_current_user( $admin_id );
 
 		$query = new \WP_Query(
@@ -587,5 +588,31 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
 		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
 		$this->assertEquals( $private_page_1_id, $query->posts[3]->ID );
+	}
+
+	/**
+	 * Tests post statuses for admin.
+	 *
+	 * @since 5.3.0
+	 * @group protected-content
+	 */
+	public function test_post_statuses_for_admin() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		// This will include statuses besides publish.
+		$args     = $post->format_args( [ 'post_type' => [ 'post' ] ], new \WP_Query() );
+		$statuses = $args['post_filter']['bool']['should'][0]['bool']['must'][1]['terms']['post_status'];
+
+		$this->assertContains( 'publish', $statuses );
+		$this->assertContains( 'future', $statuses );
+		$this->assertContains( 'draft', $statuses );
+		$this->assertContains( 'pending', $statuses );
+		$this->assertContains( 'private', $statuses );
 	}
 }
