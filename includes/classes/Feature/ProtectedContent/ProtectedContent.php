@@ -475,14 +475,11 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
-		if ( ! is_admin() ) {
-			return $formatted_args;
-		}
+		$post_types = (array) $args['post_type'];
 
-		$queried_post_type_object = get_post_type_object( $args['post_type'] );
-		$read_private_cap         = $queried_post_type_object->cap->read_private_posts;
+		$valid_post_types = array_filter( $post_types, 'post_type_exists' );
 
-		$statuses = array_merge(
+		$base_statuses = array_merge(
 			get_post_stati( [ 'public' => true ] ),
 			get_post_stati(
 				[
@@ -492,34 +489,67 @@ class ProtectedContent extends Feature {
 			)
 		);
 
-		/**
-		 * If the current user can't read private posts, then only show their private posts.
-		 */
-		if ( ! current_user_can( $read_private_cap ) ) {
-			$formatted_args['post_filter']['bool']['should'][] = [
-				'terms' => [
-					'post_status' => array_values( $statuses ),
-				],
-			];
+		$post_types_with_capability    = [];
+		$post_types_without_capability = [];
 
-			$formatted_args['post_filter']['bool']['should'][] = [
+		foreach ( $valid_post_types as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+
+			if ( empty( $post_type_object ) || empty( $post_type_object->cap->read_private_posts ) ) {
+				continue;
+			}
+
+			$read_private_cap = $post_type_object->cap->read_private_posts;
+
+			if ( current_user_can( $read_private_cap ) ) {
+				$post_types_with_capability[] = $post_type;
+			} else {
+				$post_types_without_capability[] = $post_type;
+			}
+		}
+
+		$should_clauses = [];
+
+		if ( ! empty( $post_types_with_capability ) ) {
+			$all_statuses = array_merge( $base_statuses, get_post_stati( [ 'private' => true ] ) );
+
+			$should_clauses[] = [
 				'bool' => [
 					'must' => [
-						[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
-						[ 'term' => [ 'post_status' => 'private' ] ],
+						[ 'terms' => [ 'post_type' => array_values( $post_types_with_capability ) ] ],
+						[ 'terms' => [ 'post_status' => array_values( $all_statuses ) ] ],
+					],
+				],
+			];
+		}
+
+		if ( ! empty( $post_types_without_capability ) ) {
+			$should_clauses[] = [
+				'bool' => [
+					'must' => [
+						[ 'terms' => [ 'post_type' => array_values( $post_types_without_capability ) ] ],
+						[ 'terms' => [ 'post_status' => array_values( $base_statuses ) ] ],
 					],
 				],
 			];
 
-			$formatted_args['post_filter']['bool']['minimum_should_match'] = 1;
-
-		} else {
-			$statuses                                        = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
-			$formatted_args['post_filter']['bool']['must'][] = [
-				'terms' => [
-					'post_status' => array_values( $statuses ),
+			$should_clauses[] = [
+				'bool' => [
+					'must' => [
+						[ 'terms' => [ 'post_type' => array_values( $post_types_without_capability ) ] ],
+						[ 'term' => [ 'post_status' => 'private' ] ],
+						[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
+					],
 				],
 			];
+		}
+
+		if ( ! empty( $should_clauses ) ) {
+			$formatted_args['post_filter']['bool']['should']               = array_merge(
+				$formatted_args['post_filter']['bool']['should'] ?? [],
+				$should_clauses
+			);
+			$formatted_args['post_filter']['bool']['minimum_should_match'] = 1;
 		}
 
 		return $formatted_args;

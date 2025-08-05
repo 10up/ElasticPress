@@ -6764,13 +6764,10 @@ class TestPost extends BaseTestCase {
 		set_current_screen( 'edit.php' );
 		$this->assertTrue( is_admin() );
 
-		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
-		ElasticPress\Features::factory()->setup_features();
-
 		$post = new \ElasticPress\Indexable\Post\Post();
 
 		// This will include statuses besides publish.
-		$args = $post->format_args( [ 'post_type' => 'post' ], new \WP_Query() );
+		$args = $post->format_args( [], new \WP_Query() );
 
 		$statuses = $args['post_filter']['bool']['must'][1]['terms']['post_status'];
 
