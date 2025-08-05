@@ -52,12 +52,14 @@ class TestFeature extends BaseTestCase {
 					'default'          => false,
 					'key'              => 'active',
 					'label'            => __( 'Enable', 'elasticpress' ),
-					'requires_feature' => false,
+					'requires_feature' => [],
 					'requires_sync'    => false,
 					'type'             => 'toggle',
 				],
 			],
 			'group'             => false,
+			'requiredFeature'   => [],
+			'fieldGroups'       => [],
 		];
 
 		$this->assertSame( $expected, $stub->get_json() );
@@ -104,12 +106,14 @@ class TestFeature extends BaseTestCase {
 					'default'          => false,
 					'key'              => 'active',
 					'label'            => __( 'Enable', 'elasticpress' ),
-					'requires_feature' => false,
+					'requires_feature' => [],
 					'requires_sync'    => false,
 					'type'             => 'toggle',
 				],
 			],
 			'group'             => 'Example Group A',
+			'requiredFeature'   => [],
+			'fieldGroups'       => [],
 		];
 
 		$this->assertSame( $expected, $stub->get_json() );
@@ -138,7 +142,7 @@ class TestFeature extends BaseTestCase {
 					'default'          => false,
 					'key'              => 'active',
 					'label'            => __( 'Enable', 'elasticpress' ),
-					'requires_feature' => false,
+					'requires_feature' => [],
 					'requires_sync'    => false,
 					'type'             => 'toggle',
 				],
@@ -173,7 +177,7 @@ class TestFeature extends BaseTestCase {
 					'default'          => false,
 					'key'              => 'active',
 					'label'            => __( 'Enable', 'elasticpress' ),
-					'requires_feature' => false,
+					'requires_feature' => [],
 					'requires_sync'    => false,
 					'type'             => 'toggle',
 				],
@@ -205,7 +209,7 @@ class TestFeature extends BaseTestCase {
 					'default'          => false,
 					'key'              => 'active',
 					'label'            => 'Enable',
-					'requires_feature' => false,
+					'requires_feature' => [],
 					'requires_sync'    => false,
 					'type'             => 'toggle',
 				],

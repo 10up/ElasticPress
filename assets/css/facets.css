@@ -10,6 +10,7 @@
 
 .widget_ep-facet,
 .wp-block-elasticpress-facet,
+.wp-widget-elasticpress-facet,
 [class*="elementor-widget-wp-widget-ep-facet"] {
 
 	& input[type="search"] {
