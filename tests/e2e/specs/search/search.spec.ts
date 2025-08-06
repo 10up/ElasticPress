@@ -3,7 +3,7 @@ import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '..
 
 // Parity with Cypress: Post Search Feature
 
-test.describe('Post Search Feature', () => {
+test.describe('Post Search Feature', { tag: '@group1' }, () => {
 	test.beforeAll(async () => {
 		await wpCli('elasticpress sync --setup --yes');
 	});

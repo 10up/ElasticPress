@@ -8,7 +8,7 @@ import {
 	wpCli,
 } from '../utils';
 
-test.describe('WordPress can perform standard ElasticPress actions', () => {
+test.describe('WordPress can perform standard ElasticPress actions', { tag: '@group1' }, () => {
 	test('Can see the settings page link in WordPress Dashboard', async ({ loggedInPage }) => {
 		await activatePlugin(loggedInPage, 'elasticpress');
 

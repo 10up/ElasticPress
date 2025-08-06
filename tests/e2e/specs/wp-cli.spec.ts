@@ -11,7 +11,7 @@ import {
 
 const indexNames = process.env?.EP_INDEX_NAMES || [];
 
-test.describe('WP-CLI Commands', () => {
+test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 	let indexAllSitesNames: string[] = [];
 
 	async function checkIfNotMissingIndices(loggedInPage: any, mode = 'singleSite') {

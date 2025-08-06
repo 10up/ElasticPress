@@ -10,7 +10,7 @@ import {
 
 const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing', 'search term'];
 
-test.describe('Terms Feature', { tag: '@slow' }, () => {
+test.describe('Terms Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {
 		await wpCliEval(`
 			WP_CLI::runcommand( 'plugin activate show-comments-and-terms', [ 'return' => true ] );

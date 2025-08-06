@@ -20,7 +20,7 @@ import {
 	supportsBlockDimensions,
 } from '../block-editor';
 
-test.describe('Facets Feature', { tag: '@slow' }, () => {
+test.describe('Facets Feature', { tag: '@group2' }, () => {
 	const setSlider = async (page: Page, block: Locator, min: number, max: number) => {
 		const firstSliderThumb = block.locator('.ep-range-slider__thumb').first();
 		const currentMin = parseInt(

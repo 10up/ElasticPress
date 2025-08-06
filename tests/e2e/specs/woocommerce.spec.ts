@@ -20,7 +20,7 @@ import {
  *
  * @module WooCommerce
  */
-test.describe('WooCommerce Feature', { tag: '@slow' }, () => {
+test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	const userData = {
 		username: 'testuser',
 		email: 'testuser@example.com',

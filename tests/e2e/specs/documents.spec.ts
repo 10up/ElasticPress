@@ -3,7 +3,7 @@ import { wpCli, maybeDisableFeature, goToAdminPage, getPluginRootDir } from '../
 
 const { execFileSync } = require('child_process');
 
-test.describe('Documents Feature', () => {
+test.describe('Documents Feature', { tag: '@group1' }, () => {
 	async function enableDocumentsFeature(page) {
 		await goToAdminPage(page, 'admin.php?page=elasticpress');
 

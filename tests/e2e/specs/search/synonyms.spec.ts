@@ -1,7 +1,7 @@
 import { test, expect, Page } from '../../fixtures';
 import { wpCliEval, goToAdminPage, activatePlugin, deactivatePlugin } from '../../utils';
 
-test.describe('Post Search Feature - Synonyms Functionality', () => {
+test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }, () => {
 	/**
 	 * Save the synonyms settings and wait for the API response.
 	 *

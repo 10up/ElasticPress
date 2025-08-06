@@ -1,7 +1,7 @@
 import { test, expect, Page } from '../fixtures';
 import { goToAdminPage, getPluginRootDir } from '../utils';
 
-test.describe('ACF Repeater Field Compatibility Feature', () => {
+test.describe('ACF Repeater Field Compatibility Feature', { tag: '@paidPlugins' }, () => {
 	const setupFieldGroup = async (loggedInPage: Page) => {
 		// Import ACF field group
 		await goToAdminPage(loggedInPage, 'edit.php?post_type=acf-field-group&page=acf-tools');

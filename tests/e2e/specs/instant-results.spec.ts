@@ -18,7 +18,7 @@ import { openBlockInserter, insertBlock } from '../block-editor';
  *
  * @module InstantResults
  */
-test.describe('Instant Results Feature', () => {
+test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 	const instantResultRequestPromise = (page: Page, urlPart: string) => {
 		return page.waitForResponse((response) => {
 			const requestId = response.request().headers()['x-elasticpress-request-id'];

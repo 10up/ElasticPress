@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import { goToAdminPage, wpCli } from '../utils';
 
-test.describe('WordPress basic actions', () => {
+test.describe('WordPress basic actions', { tag: '@group2' }, () => {
 	test.beforeAll('EP Sync', async () => {
 		wpCli('elasticpress sync --setup --yes');
 	});

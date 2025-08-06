@@ -11,7 +11,7 @@ import {
 
 const indexNames = process.env?.EP_INDEX_NAMES || [];
 
-test.describe('Dashboard Sync', () => {
+test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 	async function canSeeIndexesNames(loggedInPage) {
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-health');
 		const text = await loggedInPage.locator('.metabox-holder').textContent();

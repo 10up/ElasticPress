@@ -23,11 +23,12 @@ on:
 
 jobs:
   e2e_local:
-    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }}
+    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        testGroup: ['@group1', '@group2', '@paidPlugins']
         esVersion: ['7.10.1', '8.12.2', 'EP.io']
         core:
           - {name: 'WP latest', version: '', wcVersion: ''}
@@ -100,7 +101,7 @@ jobs:
       if: matrix.esVersion == 'EP.io'
 
     - name: Run Playwright tests
-      run: npm run playwright:test
+      run: npm run playwright:test --grep =${{ matrix.testGroup }}
 
     - name: Make artifacts available
       uses: actions/upload-artifact@v4

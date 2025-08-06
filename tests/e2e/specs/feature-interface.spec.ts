@@ -6,7 +6,7 @@ import { goToAdminPage, wpCli, maybeDisableFeature } from '../utils';
  *
  * @module FeatureInterface
  */
-test.describe('Feature Grouping and Persistence', () => {
+test.describe('Feature Grouping and Persistence', { tag: '@group1' }, () => {
 	test('Renders group tabs, persists across reloads, and supports field dependency', async ({
 		loggedInPage,
 	}) => {

@@ -23,7 +23,7 @@ import {
 	maybeOpenSettingsTab,
 } from '../../utils';
 
-test.describe('Comments Indexable', { tag: '@slow' }, () => {
+test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	const defaultApprovedComments = 26;
 
 	test.beforeAll(async () => {

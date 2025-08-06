@@ -8,7 +8,7 @@ import {
 	wpCli,
 } from '../../utils';
 
-test.describe('Post Indexable', () => {
+test.describe('Post Indexable', { tag: '@group1' }, () => {
 	test('Can conditionally update posts when a term is edited', async ({ loggedInPage }) => {
 		/**
 		 * At this point, using the default content:

@@ -20,7 +20,7 @@ import {
 	supportsBlockDimensions,
 } from '../block-editor';
 
-test.describe('Related Posts Feature', () => {
+test.describe('Related Posts Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {
 		await maybeEnableFeature('related_posts');
 	});

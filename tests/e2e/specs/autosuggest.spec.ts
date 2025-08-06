@@ -7,7 +7,7 @@ import {
 	updateWeighting,
 } from '../utils';
 
-test.describe('Autosuggest Feature', () => {
+test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {
 		await wpCli('elasticpress sync --setup --yes');
 		await wpCli('plugin deactivate filter-autosuggest-navigate-callback');

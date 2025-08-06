@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import { goToAdminPage, publishPost, wpCliEval } from '../utils';
 
-test.describe('Custom Results', () => {
+test.describe('Custom Results', { tag: '@group2' }, () => {
 	const testPost = 'test-post';
 
 	test.beforeEach(async () => {
