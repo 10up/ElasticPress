@@ -2270,19 +2270,36 @@ class Post extends Indexable {
 	 * @return array
 	 */
 	protected function painless_script_query( $args ) {
-		if ( empty( $args['painless_script'] ) ) {
+		$scripts = $args['painless_script'] ?? [];
+
+		if ( empty( $scripts ) ) {
 			return [];
 		}
 
+		$normalized_scripts = array_map(
+			function ( $script_config ) {
+				return is_string( $script_config )
+					? [ 'source' => $script_config ]
+					: $script_config;
+			},
+			$scripts
+		);
+
+		$normalized_scripts = array_filter( $normalized_scripts );
+
 		$filters = [];
-		foreach ( $args['painless_script'] as $painless_script ) {
+		foreach ( $normalized_scripts as $script_config ) {
+			$script_query = [ 'source' => $script_config['source'] ];
+
+			if ( ! empty( $script_config['params'] ) && is_array( $script_config['params'] ) ) {
+				$script_query['params'] = $script_config['params'];
+			}
+
 			$filters['bool']['must'][] = [
 				'bool' => [
 					'filter' => [
 						'script' => [
-							'script' => [
-								'source' => $painless_script,
-							],
+							'script' => $script_query,
 						],
 					],
 				],
