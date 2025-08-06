@@ -1483,6 +1483,7 @@ class Post extends Indexable {
 			'meta_query'          => $this->parse_meta_queries( $args ),
 			'post_type'           => $this->parse_post_type( $args ),
 			'post_status'         => $this->parse_post_status( $args ),
+			'painless_script'     => $this->painless_script_query( $args ),
 		];
 
 		/**
@@ -2259,6 +2260,36 @@ class Post extends Indexable {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Parse the `painless_script` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 5.3.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function painless_script_query( $args ) {
+		if ( empty( $args['painless_script'] ) ) {
+			return [];
+		}
+
+		$filters = [];
+		foreach ( $args['painless_script'] as $painless_script ) {
+			$filters['bool']['must'][] = [
+				'bool' => [
+					'filter' => [
+						'script' => [
+							'script' => [
+								'source' => $painless_script,
+							],
+						],
+					],
+				],
+			];
+		}
+
+		return $filters;
 	}
 
 	/**

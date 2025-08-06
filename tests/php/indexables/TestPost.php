@@ -9852,4 +9852,42 @@ class TestPost extends BaseTestCase {
 		$formatted_doc_status = $method->invokeArgs( $sync_manager, [ $custom_status ] );
 		$this->assertSame( $formatted_doc_status, 'Custom message' );
 	}
+
+	/**
+	 * Test the `painless_script_query` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query() {
+		$this->ep_factory->post->create_many( 10, [ ] );
+		$post_id = $this->ep_factory->post->create( [ 'post_title' => 'test' ] );
+		$page_id = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'custom_query' => [ "doc['post_title.raw'].value == 'test'" ] ,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post_type' => ['page', 'post'],
+				'custom_query' => [ "doc['post_id'].value == ". $post_id ." || doc['post_type.raw'].value == 'page'" ] ,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+		$this->assertEquals( $page_id, $query->posts[1]->ID );
+	}
 }
