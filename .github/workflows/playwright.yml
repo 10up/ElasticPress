@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        esVersion: ['7.10.1', '8.12.2']
+        esVersion: ['7.10.1', '8.12.2', 'EP.io']
         core:
           - {name: 'WP latest', version: '', wcVersion: ''}
           - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0'}
@@ -76,15 +76,28 @@ jobs:
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Set up WP environment with Elasticsearch (EP.io)
+      run: |
+        npm run env start
+        npm run env:install-tests-cli
+      if: matrix.esVersion == 'EP.io'
 
     - name: Check ES response
       run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
+      if: matrix.esVersion != 'EP.io'
 
     - name: Build asset
       run: npm run build
 
     - name: Set up database
       run: npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Set up database (EP.io)
+      run: npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      if: matrix.esVersion == 'EP.io'
 
     - name: Run Playwright tests
       run: npm run playwright:test
@@ -98,8 +111,15 @@ jobs:
         path: ${{ github.workspace }}/playwright-report/
 
     - name: Stop Elasticsearch
-      if: always()
+      if: matrix.esVersion != 'EP.io'
       run: cd bin/es-docker/ && docker compose down
+
+    - name: Delete Elasticsearch indices
+      if: matrix.esVersion == 'EP.io'
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress-tests delete-all-indices"
 
     - name: Test plugin uninstall
       if: always()
