@@ -116,7 +116,7 @@ jobs:
       run: cd bin/es-docker/ && docker compose down
 
     - name: Delete Elasticsearch indices
-      if: matrix.esVersion == 'EP.io'
+      if: ${{ !cancelled() && matrix.esVersion == 'EP.io' }}
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
