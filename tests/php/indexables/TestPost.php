@@ -9901,7 +9901,6 @@ class TestPost extends BaseTestCase {
 			[
 				'meta_input' => [
 					'test_key' => rand( 1, 10 ),
-					'status'   => 'active',
 				],
 			]
 		);
@@ -9910,7 +9909,6 @@ class TestPost extends BaseTestCase {
 			[
 				'meta_input' => [
 					'test_key' => 15,
-					'status'   => 'active',
 				],
 			]
 		);
@@ -9945,7 +9943,6 @@ class TestPost extends BaseTestCase {
 			[
 				'meta_input' => [
 					'test_key' => rand( 1, 20 ),
-					'status'   => 'active',
 				],
 			]
 		);
@@ -9954,7 +9951,6 @@ class TestPost extends BaseTestCase {
 			[
 				'meta_input' => [
 					'test_key' => 30,
-					'status'   => 'active',
 				],
 			]
 		);
@@ -9989,7 +9985,6 @@ class TestPost extends BaseTestCase {
 				[
 					'meta_input' => [
 						'test_key' => 5,
-						'status'   => 'active',
 					],
 				]
 			);
@@ -9998,7 +9993,6 @@ class TestPost extends BaseTestCase {
 			[
 				'meta_input' => [
 					'test_key' => 30,
-					'status'   => 'active',
 				],
 			]
 		);
@@ -10007,7 +10001,6 @@ class TestPost extends BaseTestCase {
 				[
 					'meta_input' => [
 						'test_key' => 50,
-						'status'   => 'active',
 					],
 				]
 			);
