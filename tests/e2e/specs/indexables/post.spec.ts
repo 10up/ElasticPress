@@ -5,16 +5,20 @@ import {
 	refreshIndex,
 	publishPost,
 	setPostPassword,
+	wpCli,
 } from '../../utils';
 
 test.describe('Post Indexable', () => {
 	test('Can conditionally update posts when a term is edited', async ({ loggedInPage }) => {
 		/**
 		 * At this point, using the default content:
-		 * - the `Classic` (ID 29) term has 36 posts
-		 * - the `Block` (ID 54) term has 7 posts
+		 * - the `Classic` term has 36 posts
+		 * - the `Block` term has 7 posts
 		 * Important: There is no post with both categories, as that would skew results.
 		 */
+
+		const classicTermId = await wpCli('wp term get category classic --by=slug --field=id');
+		const blockTermId = await wpCli('wp term get category block --by=slug --field=id');
 
 		// Make sure post categories are searchable
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-weighting');
@@ -50,7 +54,7 @@ test.describe('Post Indexable', () => {
 		).toBeVisible();
 
 		// Change the `Classic` term, should not index
-		await goToAdminPage(loggedInPage, '/term.php?taxonomy=category&tag_ID=29');
+		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${classicTermId}`);
 		await expect(
 			loggedInPage.locator('div[data-ep-notice="edited_single_term"]'),
 		).toBeVisible();
@@ -58,7 +62,7 @@ test.describe('Post Indexable', () => {
 		await loggedInPage.locator('input.button-primary').click();
 
 		// Change the `Block` term, should index
-		await goToAdminPage(loggedInPage, '/term.php?taxonomy=category&tag_ID=20');
+		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${blockTermId}`);
 		await expect(
 			loggedInPage.locator('div[data-ep-notice="edited_single_term"]'),
 		).not.toBeVisible();
@@ -81,11 +85,11 @@ test.describe('Post Indexable', () => {
 		).toBeAttached();
 
 		// Restore
-		await goToAdminPage(loggedInPage, '/term.php?taxonomy=category&tag_ID=29');
+		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${classicTermId}`);
 		await loggedInPage.locator('#name').fill('Classic');
 		await loggedInPage.locator('input.button-primary').click();
 
-		await goToAdminPage(loggedInPage, '/term.php?taxonomy=category&tag_ID=20');
+		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${blockTermId}`);
 		await loggedInPage.locator('#name').fill('Block');
 		await loggedInPage.locator('input.button-primary').click();
 
