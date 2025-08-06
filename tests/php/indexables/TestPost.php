@@ -9900,7 +9900,7 @@ class TestPost extends BaseTestCase {
 			10,
 			[
 				'meta_input' => [
-					'test_key' => rand( 1, 10 ),
+					'test_key' => wp_rand( 1, 10 ),
 				],
 			]
 		);
@@ -9942,7 +9942,7 @@ class TestPost extends BaseTestCase {
 			10,
 			[
 				'meta_input' => [
-					'test_key' => rand( 1, 20 ),
+					'test_key' => wp_rand( 1, 20 ),
 				],
 			]
 		);
