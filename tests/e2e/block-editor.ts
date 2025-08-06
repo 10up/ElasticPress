@@ -94,6 +94,7 @@ export async function insertBlock(page: Page, blockName: string) {
 	await page
 		.locator('.block-editor-block-types-list__item')
 		.filter({ hasText: blockName })
+		.first()
 		.click({ force: true });
 }
 

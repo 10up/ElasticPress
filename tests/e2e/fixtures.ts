@@ -1,4 +1,4 @@
-import { test as base, Page } from '@playwright/test';
+import { test as base, Page, Locator } from '@playwright/test';
 import { login } from './utils';
 
 // Declare the types of your fixtures
@@ -14,4 +14,4 @@ export const test = base.extend<LoggedInFixtures>({
 	},
 });
 
-export { expect, Page } from '@playwright/test';
+export { expect, Page, Locator } from '@playwright/test';

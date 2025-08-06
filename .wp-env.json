@@ -22,6 +22,7 @@
         "wp-content/mu-plugins/disable-welcome-guide.php": "./tests/e2e/wordpress-files/test-mu-plugins/disable-welcome-guide.php",
         "wp-content/mu-plugins/skip-wp-lookup.php": "./tests/e2e/wordpress-files/test-mu-plugins/skip-wp-lookup.php",
         "wp-content/mu-plugins/unique-index-name.php": "./tests/e2e/wordpress-files/test-mu-plugins/unique-index-name.php",
+        "wp-content/plugins/add-meta-fields.php": "./tests/e2e/wordpress-files/test-plugins/add-meta-fields.php",
         "wp-content/plugins/auto-meta-mode.php": "./tests/e2e/wordpress-files/test-plugins/auto-meta-mode.php",
         "wp-content/plugins/cpt-and-custom-tax.php": "./tests/e2e/wordpress-files/test-plugins/cpt-and-custom-tax.php",
         "wp-content/plugins/custom-autosuggest-placeholder.php": "./tests/e2e/wordpress-files/test-plugins/custom-autosuggest-placeholder.php",
