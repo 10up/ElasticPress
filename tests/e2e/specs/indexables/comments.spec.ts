@@ -385,6 +385,10 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 
 		await maybeEnableFeature('comments');
 
+		await publishPost(loggedInPage, {
+			title: 'Test Comment',
+		});
+
 		await goToAdminPage(loggedInPage, 'options-discussion.php');
 
 		// Disable settings
@@ -397,15 +401,17 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await logout(loggedInPage);
 
 		// Publish comment as a logged out user
-		await loggedInPage.goto('/');
-		await loggedInPage
+		await loggedInPage.goto('/?s=Test Comment');
+		const postUrl = await loggedInPage
 			.locator('#main .entry-title a')
 			.getByText('Test Comment')
 			.first()
-			.click();
-		await loggedInPage.locator('#comment').fill('This is a anonymous comment');
+			.getAttribute('href');
+		await loggedInPage.goto(postUrl || '/');
+		await loggedInPage.locator('#comment').fill(`This is a anonymous comment ${Date.now()}`);
 		await loggedInPage.locator('#submit').click();
 
+		await refreshIndex('comment');
 		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
 
 		// Trash the comment
