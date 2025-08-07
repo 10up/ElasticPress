@@ -384,7 +384,11 @@ export async function publishPost(
 		if (!isInCodeEditorMode) {
 			await changeMode(page);
 		}
-		await page.locator('.wp-block-post-title textarea').fill(newPostData.title);
+		if (process.env.WP_VERSION === '6.2') {
+			await page.locator('.wp-block-post-title').fill(newPostData.title);
+		} else {
+			await page.locator('.wp-block-post-title textarea').fill(newPostData.title);
+		}
 		await page.locator('.editor-post-text-editor').fill(newPostData.content);
 
 		// Return to visual editor
