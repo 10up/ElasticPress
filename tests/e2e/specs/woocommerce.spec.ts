@@ -32,6 +32,11 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		phoneNumber: '1234567890',
 	};
 
+	const isMinWcVersion = async () => {
+		const wcVersion = await wpCli('plugin get woocommerce --field=version');
+		return wcVersion.toString().trim() === '6.4.0';
+	};
+
 	const checkMainEsQuery = async (loggedInPage: Page) => {
 		await expect(
 			loggedInPage.locator('.ep-query-debug').filter({
@@ -164,8 +169,12 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				loggedInPage,
 				'admin.php?page=wc-settings&tab=checkout&section=cod',
 			);
-			await loggedInPage.getByLabel('Enable cash on delivery payments').setChecked(false);
-			await loggedInPage.getByLabel('Enable cash on delivery payments').setChecked(true);
+			const checkboxLabel = (await isMinWcVersion())
+				? 'Enable cash on delivery'
+				: 'Enable cash on delivery payments';
+
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
 			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 			// Disable coming soon option
@@ -206,8 +215,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
 			// Check WooCommerce version and place order accordingly
-			const wcVersion = await wpCli('plugin get woocommerce --field=version');
-			if (wcVersion === '6.4.0') {
+			if (await isMinWcVersion()) {
 				await loggedInPage.locator('#place_order').click();
 			} else {
 				await loggedInPage.waitForTimeout(1000);
