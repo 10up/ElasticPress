@@ -24,7 +24,11 @@ import {
 } from '../../utils';
 
 test.describe('Comments Indexable', { tag: '@group2' }, () => {
-	const defaultApprovedComments = 26;
+	const getCommentsCount = async () => {
+		const statsResult = await wpCli('wp elasticpress stats');
+		const counts = [...statsResult.toString().matchAll(/Documents:\s+(\d+)/g)];
+		return parseInt(counts?.[1]?.[1] || 0, 10);
+	};
 
 	test.beforeAll(async () => {
 		await wpCliEval(`
@@ -282,10 +286,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
 		await expect(syncMessages).toContainText('Mapping sent', { timeout: 60000 });
 		await expect(syncMessages).toContainText('Sync complete', { timeout: 60000 });
-		await expect(syncMessages).toContainText(
-			`Number of comments indexed: ${defaultApprovedComments}`,
-			{ timeout: 60000 },
-		);
+		await expect(syncMessages).toContainText('Number of comments indexed', { timeout: 60000 });
 
 		const listFeaturesResult = await wpCli('elasticpress list-features');
 		expect(listFeaturesResult.toString()).toContain('comments');
@@ -312,9 +313,9 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await page.locator('#submit').click();
 
 		const syncResult1 = await wpCli('wp elasticpress sync');
-		expect(syncResult1.toString()).toContain(
-			`Number of comments indexed: ${defaultApprovedComments}`,
-		);
+		expect(syncResult1.toString()).toContain('Number of comments indexed');
+
+		const commentsStartCount = await getCommentsCount();
 
 		// Approve the comment
 		await login(loggedInPage);
@@ -324,18 +325,18 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		const response1 = await ajaxRequest1;
 		expect(response1.status()).toBe(200);
 
-		const statsResult1 = await wpCli('wp elasticpress stats');
-		expect(statsResult1.toString()).toContain(`Documents:  ${defaultApprovedComments + 1}`);
+		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
 
 		// Trash the comment
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=approved');
 		await loggedInPage.locator('.column-comment .trash a').first().dispatchEvent('click');
 
-		const statsResult2 = await wpCli('wp elasticpress stats');
-		expect(statsResult2.toString()).toContain(`Documents:  ${defaultApprovedComments}`);
+		expect(await getCommentsCount()).toBe(commentsStartCount);
 	});
 
 	test('Can sync woocommerce reviews', async ({ loggedInPage }) => {
+		const commentsStartCount = await getCommentsCount();
+
 		await activatePlugin(loggedInPage, 'woocommerce', 'wpCli');
 		await maybeEnableFeature('comments');
 		await maybeEnableFeature('woocommerce');
@@ -352,13 +353,12 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await loggedInPage.locator('#wp-admin-bar-view a').click();
 		await loggedInPage.locator('#tab-title-reviews a').click();
 		await loggedInPage.locator('.comment-form-rating .star-4').click();
-		await loggedInPage.locator('#comment').fill('This is a test review');
+		await loggedInPage.locator('#comment').fill(`This is a test review ${Date.now()}`);
 		await loggedInPage.locator('#submit').click();
 
 		// Check if the new comment was indexed
 		await refreshIndex('comment');
-		const statsResult = await wpCli('wp elasticpress stats');
-		expect(statsResult.toString()).toContain(`Documents:  ${defaultApprovedComments + 1}`);
+		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
 
 		// Trash the review
 		const wcVersionResult = await wpCli('plugin get woocommerce --field=version');
@@ -381,6 +381,8 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	});
 
 	test('Can sync anonymous comments when settings are disabled', async ({ loggedInPage }) => {
+		const commentsStartCount = await getCommentsCount();
+
 		await maybeEnableFeature('comments');
 
 		await goToAdminPage(loggedInPage, 'options-discussion.php');
@@ -404,8 +406,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await loggedInPage.locator('#comment').fill('This is a anonymous comment');
 		await loggedInPage.locator('#submit').click();
 
-		const statsResult = await wpCli('wp elasticpress stats');
-		expect(statsResult.toString()).toContain(`Documents:  ${defaultApprovedComments + 1}`);
+		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
 
 		// Trash the comment
 		await login(loggedInPage);
