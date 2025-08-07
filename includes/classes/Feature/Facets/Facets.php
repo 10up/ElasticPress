@@ -31,6 +31,14 @@ class Facets extends Feature {
 	public $types = [];
 
 	/**
+	 * Store aggregations on WP_Query objects
+	 *
+	 * @since 5.3.0
+	 * @var string
+	 */
+	const QUERY_AGGREGATIONS = 'ep_aggregations';
+
+	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -271,14 +279,26 @@ class Facets extends Feature {
 	public function is_facetable( $query ) {
 
 		/**
-		 * Bypass the standard checks and set a query to be facetable
+		 * Bypass the standard checks and set a query to be facetable.
+		 *
+		 * @deprecated 5.3.0 Use the 'ep_is_facetable' argument in WP_Query instead.
+		 *                   This filter will be removed in a future release.
 		 *
 		 * @hook ep_is_facetable
 		 * @param  {bool}     $bypass Defaults to false.
 		 * @param  {WP_Query} $query  The current WP_Query.
 		 * @return {bool}     true to bypass, false to ignore
 		 */
-		if ( \apply_filters( 'ep_is_facetable', false, $query ) ) {
+		if ( \apply_filters_deprecated(
+			'ep_is_facetable',
+			[ false, $query ],
+			'5.3.0',
+			'WP_Query->ep_is_facetable argument'
+		) ) {
+			return true;
+		}
+
+		if ( ! empty( $query->get( 'ep_is_facetable' ) ) ) {
 			return true;
 		}
 
@@ -362,7 +382,7 @@ class Facets extends Feature {
 	}
 
 	/**
-	 * Hacky. Save aggregation data for later in a global
+	 * Get aggregations from Elasticsearch response and store on query object
 	 *
 	 * @param  array $response ES response
 	 * @param  array $query Prepared Elasticsearch query
@@ -375,10 +395,8 @@ class Facets extends Feature {
 			return;
 		}
 
-		$GLOBALS['ep_facet_aggs'] = false;
-
 		if ( ! empty( $response['aggregations'] ) ) {
-			$GLOBALS['ep_facet_aggs'] = [];
+			$processed_aggs = [];
 
 			if ( isset( $response['aggregations']['terms'] ) && is_array( $response['aggregations']['terms'] ) ) {
 				foreach ( $response['aggregations']['terms'] as $key => $agg ) {
@@ -390,19 +408,111 @@ class Facets extends Feature {
 						continue;
 					}
 
-					$GLOBALS['ep_facet_aggs'][ $key ] = [];
+					$processed_aggs[ $key ] = [];
 
 					if ( ! empty( $agg['value'] ) ) {
-						$GLOBALS['ep_facet_aggs'][ $key ] = $agg['value'];
+						$processed_aggs[ $key ] = $agg['value'];
 						continue;
 					}
 
 					foreach ( $agg['buckets'] as $bucket ) {
-						$GLOBALS['ep_facet_aggs'][ $key ][ $bucket['key'] ] = $bucket['doc_count'];
+						$processed_aggs[ $key ][ $bucket['key'] ] = $bucket['doc_count'];
 					}
 				}
 			}
+
+			$this->set_query_aggregations( $query_object, $processed_aggs );
+		} else {
+			$this->set_query_aggregations( $query_object, [] );
 		}
+	}
+
+	/**
+	 * Set aggregation data for a query.
+	 *
+	 * @since 5.3.0
+	 * @param \WP_Query $query        The WP_Query object to store data for
+	 * @param array     $aggregations The aggregation data to store
+	 * @return bool True on success, false on failure
+	 */
+	public function set_query_aggregations( $query, $aggregations ) {
+		if ( ! $query instanceof \WP_Query ) {
+			return false;
+		}
+
+		// Store aggregations on the query object
+		$query->{self::QUERY_AGGREGATIONS} = $aggregations;
+
+		if ( $query->is_main_query() && $this->should_sync_to_global( $query ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					esc_html__( 'The global variable $GLOBALS[\'ep_facet_aggs\'] is deprecated. Access aggregation data directly from the query object using $query->ep_aggregations or the Facets feature methods get_query_aggregations() and get_facet_aggregation().', 'elasticpress' ),
+					'5.3.0'
+				);
+
+				$GLOBALS['ep_facet_aggs'] = $aggregations;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get aggregation data for a specific query
+	 *
+	 * @since 5.3.0
+	 * @param \WP_Query $query The WP_Query object
+	 * @return array|false Aggregation data or false if not found
+	 */
+	public function get_query_aggregations( $query ) {
+		if ( ! $query instanceof \WP_Query ) {
+			return $GLOBALS['ep_facet_aggs'] ?? false;
+		}
+
+		$query_aggs = $query->{self::QUERY_AGGREGATIONS} ?? false;
+		if ( false !== $query_aggs ) {
+			return $query_aggs;
+		}
+
+		// Fallback to global variable
+		return $GLOBALS['ep_facet_aggs'] ?? false;
+	}
+
+	/**
+	 * Get aggregation data for a specific facet within a query
+	 *
+	 * @since 5.3.0
+	 * @param \WP_Query $query      The WP_Query object
+	 * @param string    $facet_name The name of the facet to retrieve
+	 * @return array|false Facet aggregation data or false if not found
+	 */
+	public function get_facet_aggregation( $query, $facet_name ) {
+		$aggregations = $this->get_query_aggregations( $query );
+
+		if ( false === $aggregations || ! isset( $aggregations[ $facet_name ] ) ) {
+			return false;
+		}
+
+		return $aggregations[ $facet_name ];
+	}
+
+	/**
+	 * Determine if aggregations should be synced to global variable
+	 *
+	 * @since 5.3.0
+	 * @param \WP_Query $query The query to evaluate
+	 * @return bool True if should sync to global, false otherwise
+	 */
+	protected function should_sync_to_global( $query ) {
+		/**
+		 * Filter whether to sync query aggregations to global variable
+		 *
+		 * @since 5.3.0
+		 * @hook ep_facet_sync_aggregations_to_global
+		 * @param {bool}     $sync  Whether to sync (default: false)
+		 * @param {WP_Query} $query The query object
+		 * @return {bool} Whether to sync aggregations to global variable
+		 */
+		return apply_filters( 'ep_facet_sync_aggregations_to_global', false, $query );
 	}
 
 	/**

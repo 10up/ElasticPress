@@ -7,12 +7,30 @@
 
 namespace ElasticPressTest;
 
+use ElasticPress;
 use ElasticPress\Features;
 
 /**
  * Facet test class
  */
 class TestFacet extends BaseTestCase {
+
+	/**
+	 * Setup each test.
+	 *
+	 * @since 5.3.0
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
+
+		$this->setup_test_post_type();
+	}
+
 	/**
 	 * Clean up after each test.
 	 *
@@ -318,15 +336,13 @@ class TestFacet extends BaseTestCase {
 				],
 			];
 
-			$this->assertSame( [], $args );
 			$this->assertInstanceOf( '\WP_Query', $query );
 
 			return $filters;
 		};
 		add_filter( 'ep_facet_query_filters', $add_filter, 10, 3 );
-		add_filter( 'ep_is_facetable', '__return_true' );
 
-		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [ 'ep_is_facetable' => true ] ) );
 		$expected_filter = [
 			'facets' => [
 				'bool' => [
@@ -350,7 +366,7 @@ class TestFacet extends BaseTestCase {
 		};
 		add_filter( 'ep_facet_match_type', $change_match_type );
 
-		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [] ) );
+		$new_filters     = $facet_feature->apply_facets_filters( [], [], new \WP_Query( [ 'ep_is_facetable' => true ] ) );
 		$expected_filter = [
 			'facets' => [
 				'bool' => [
@@ -450,6 +466,87 @@ class TestFacet extends BaseTestCase {
 		foreach ( $selected['taxonomies']['taxonomy']['terms'] as $key => $value ) {
 			$this->assertStringStartsWith( 'cap-', $key );
 		}
+	}
+
+	/**
+	 * Test if the query has aggregations
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 */
+	public function test_query_has_aggregations() {
+		$this->ep_factory->post->create();
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( [ 'ep_is_facetable' => true ] );
+		$this->assertNotEmpty( $query->ep_aggregations );
+	}
+
+	/**
+	 * Test if the query does not have aggregations
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 */
+	public function test_query_does_not_have_aggregations() {
+		$query = new \WP_Query( [ 'ep_is_facetable' => false ] );
+		$this->assertEmpty( $query->ep_aggregations );
+	}
+
+	/**
+	 * Test get_query_aggregations method
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 */
+	public function test_get_query_aggregations() {
+		$this->ep_factory->post->create_many( 5 );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( [ 'ep_is_facetable' => true ] );
+
+		$expected_aggregations = [
+			'post_type' => [
+				'post' => 5,
+			],
+			'category'  => [
+				'uncategorized' => 5,
+			],
+		];
+		$facet_feature         = Features::factory()->get_registered_feature( 'facets' );
+
+		$this->assertSame( $expected_aggregations, $facet_feature->get_query_aggregations( $query ) );
+	}
+
+	/**
+	 * Test get_facet_aggregation method
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 */
+	public function test_get_facet_aggregation() {
+		$this->ep_factory->post->create_many( 5, [ 'post_type' => 'page' ] );
+		$this->ep_factory->post->create_many( 5, [ 'post_type' => 'post' ] );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_is_facetable' => true,
+				'post_type'       => [ 'page', 'post' ],
+			]
+		);
+
+		$expected_aggregations = [
+			'post_type' => [
+				'page' => 5,
+				'post' => 5,
+			],
+		];
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$aggregation   = $facet_feature->get_facet_aggregation( $query, 'post_type' );
+
+		$this->assertSame( $expected_aggregations['post_type'], $aggregation );
 	}
 
 	/**

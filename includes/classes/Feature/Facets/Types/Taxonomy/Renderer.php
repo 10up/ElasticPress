@@ -120,12 +120,13 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		}
 
 		$terms_by_slug = array();
+		$aggregations = $feature->get_facet_aggregation( $wp_query, $taxonomy );
 
 		foreach ( $terms as $term ) {
 			$terms_by_slug[ $term->slug ] = $term;
 
-			if ( ! empty( $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ] ) ) {
-				$term->count = $GLOBALS['ep_facet_aggs'][ $taxonomy ][ $term->slug ];
+			if ( ! empty( $aggregations[ $term->slug ] ) ) {
+				$term->count = $aggregations[ $term->slug ];
 			} else {
 				$term->count = 0;
 			}

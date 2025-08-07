@@ -67,14 +67,13 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		global $wp_query;
 
 		if ( $attributes['isPreview'] ) {
-			add_filter( 'ep_is_facetable', '__return_true' );
-
 			$search = Features::factory()->get_registered_feature( 'search' );
 
 			$wp_query->query(
 				[
 					'posts_per_page' => 1,
 					'post_type'      => $search->get_searchable_post_types(),
+					'ep_is_facetable' => true,
 				]
 			);
 		}

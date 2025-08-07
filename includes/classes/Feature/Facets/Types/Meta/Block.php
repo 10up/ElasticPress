@@ -73,8 +73,6 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 		global $wp_query;
 
 		if ( $attributes['isPreview'] ) {
-			add_filter( 'ep_is_facetable', '__return_true' );
-
 			add_filter(
 				'ep_facet_meta_fields',
 				function ( $meta_fields ) use ( $attributes ) {
@@ -88,8 +86,8 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			$args = [
 				'posts_per_page' => 1,
 				'post_type'      => $search->get_searchable_post_types(),
+				'ep_is_facetable' => true,
 			];
-
 			$wp_query->query( $args );
 		}
 
