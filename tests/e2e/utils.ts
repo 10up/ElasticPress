@@ -199,6 +199,9 @@ export async function deactivatePlugin(
  * Create a new term in WordPress
  * @param page Playwright page object
  * @param data Term data including taxonomy, name, and optional parent
+ * @param data.taxonomy Taxonomy name (defaults to 'category')
+ * @param data.name Term name (defaults to 'Test taxonomy')
+ * @param data.parent Parent term name (optional)
  */
 export async function createTerm(
 	page: Page,
@@ -717,5 +720,8 @@ export async function setCustomPostTypes() {
 		WP_CLI::runcommand( "elasticpress sync --include={$page_id},{$post_id},{$movie_id}", [ 'return' => true ] );
 		`,
 	);
-	console.log(output.toString());
+	if (process.env.PWDEBUG === '1') {
+		// eslint-disable-next-line no-console
+		console.log(output.toString());
+	}
 }

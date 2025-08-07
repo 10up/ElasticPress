@@ -108,7 +108,10 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			);
 			`,
 		);
-		console.log(output.toString());
+		if (process.env.PWDEBUG === '1') {
+			// eslint-disable-next-line no-console
+			console.log(output.toString());
+		}
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
@@ -558,10 +561,9 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=block');
 				await loggedInPage.goto('/');
 				await searchFor(loggedInPage, 'block');
-				const response = await responsePromise;
-				console.log(JSON.stringify(await response.json()));
+				await responsePromise;
 
-				const output = await wpCliEval(
+				await wpCliEval(
 					`
 					$output = WP_CLI::runcommand( 'elasticpress list-features', [ 'return' => 'all', 'exit_error' => false ] );
 					print_r( $output );
@@ -579,7 +581,6 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 					print_r( $posts );
 					`,
 				);
-				console.log(output.toString());
 
 				/**
 				 * The number of terms displayed in the filter should be one.
