@@ -297,7 +297,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	});
 
 	test('Can not sync anonymous comments until it is approved manually', async ({
-		page,
+		browser,
 		loggedInPage,
 	}) => {
 		await maybeEnableFeature('comments');
@@ -310,11 +310,23 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		});
 
 		// Publish comment as a logged out user
-		await logout(page);
-		await page.goto('/');
-		await page.locator('#main .entry-title a').getByText('Test Comment').first().click();
-		await page.locator('#comment').fill('This is a anonymous comment');
-		await page.locator('#submit').click();
+		// await logout(loggedInPage);
+
+		const anonymousContext = await browser.newContext();
+		const anonymousPage = await anonymousContext.newPage();
+
+		await expect(anonymousPage.locator('#wpadminbar')).not.toBeVisible();
+
+		await anonymousPage.goto('/');
+		await anonymousPage
+			.locator('#main .entry-title a')
+			.getByText('Test Comment')
+			.first()
+			.click();
+		await anonymousPage.locator('#comment').fill('This is a anonymous comment');
+		await anonymousPage.locator('#submit').click();
+		await anonymousPage.waitForLoadState('networkidle');
+		await anonymousContext.close();
 
 		const syncResult1 = await wpCli('wp elasticpress sync');
 		expect(syncResult1.toString()).toContain('Number of comments indexed');
@@ -322,7 +334,6 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		const commentsStartCount = await getCommentsCount();
 
 		// Approve the comment
-		await login(loggedInPage);
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=moderated');
 		const ajaxRequest1 = loggedInPage.waitForResponse('**/wp-admin/admin-ajax.php*');
 		await loggedInPage.locator('.approve a').first().dispatchEvent('click');
@@ -336,6 +347,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=approved');
 		await loggedInPage.locator('.column-comment .trash a').first().dispatchEvent('click');
 
+		await refreshIndex('comment');
 		expect(await getCommentsCount()).toBe(commentsStartCount);
 	});
 

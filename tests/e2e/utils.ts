@@ -612,9 +612,17 @@ export async function setPerIndexCycle(number = 350) {
  * @param indexable Indexable to refresh
  */
 export async function refreshIndex(indexable: string) {
-	await wpCli(
-		`eval "\\$index = \\\\ElasticPress\\\\Indexables::factory()->get( '${indexable}' )->get_index_name(); WP_CLI::runcommand('elasticpress request {\\$index}/_refresh --method=POST');"`,
+	const output = await wpCliEval(
+		`
+		$index = \\ElasticPress\\Indexables::factory()->get( '${indexable}' )->get_index_name();
+		$output = WP_CLI::runcommand( "elasticpress request {$index}/_refresh --method=POST", [ 'return' => 'all', 'exit_error' => false ] );
+		print_r( $output );
+		`,
 	);
+	if (process.env.PWDEBUG === '1') {
+		// eslint-disable-next-line no-console
+		console.log(output.toString());
+	}
 }
 
 export function getSyncTimeout(): number {
