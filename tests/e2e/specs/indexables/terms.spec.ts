@@ -28,6 +28,10 @@ test.describe('Terms Feature', { tag: '@group2' }, () => {
 		`);
 	});
 
+	test.afterAll(async () => {
+		await maybeDisableFeature('terms');
+	});
+
 	test('Can turn the feature on', async ({ loggedInPage }) => {
 		await maybeDisableFeature('terms');
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');

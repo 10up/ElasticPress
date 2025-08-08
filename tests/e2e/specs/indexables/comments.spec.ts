@@ -45,6 +45,10 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await deactivatePlugin(loggedInPage, 'classic-widgets', 'wpCli');
 	});
 
+	test.afterAll(async () => {
+		await maybeDisableFeature('comments');
+	});
+
 	test('Can insert, configure, and use the Search Comments block', async ({ loggedInPage }) => {
 		const setTitle = async (title: string) => {
 			await loggedInPage
@@ -325,6 +329,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		const response1 = await ajaxRequest1;
 		expect(response1.status()).toBe(200);
 
+		await refreshIndex('comment');
 		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
 
 		// Trash the comment
