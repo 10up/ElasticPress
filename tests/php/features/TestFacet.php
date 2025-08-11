@@ -550,6 +550,28 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
+	 * Test ep_is_facetable filter throws deprecated warning.
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 *
+	 * @expectedDeprecated ep_is_facetable
+	 */
+	public function test_ep_is_facetable_throws_deprecated_warning() {
+		Features::factory()->get_registered_feature( 'facets' );
+
+		$this->ep_factory->post->create_many( 5 );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		add_filter( 'ep_is_facetable', '__return_true' );
+
+		$query = new \WP_Query(  ['ep_integrate' => true] );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertNotEmpty( $query->ep_aggregations );
+	}
+
+	/**
 	 * Utilitary function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.

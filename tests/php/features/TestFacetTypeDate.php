@@ -327,13 +327,12 @@ class TestFacetTypeDate extends BaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		add_filter( 'ep_is_facetable', '__return_true' );
-
 		// get all the post between 2022-01-01 and 2022-12-31
 		parse_str( 'ep_date_filter=2022-01-01,2022-12-31', $_GET );
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
+				'ep_is_facetable' => true,
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
@@ -344,6 +343,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
+				'ep_is_facetable' => true,
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
@@ -354,6 +354,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
+				'ep_is_facetable' => true,
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
@@ -364,6 +365,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		$query = new \WP_Query(
 			[
 				'ep_integrate' => true,
+				'ep_is_facetable' => true,
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
