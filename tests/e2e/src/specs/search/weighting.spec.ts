@@ -1,8 +1,8 @@
-import { test, expect } from '../../fixtures';
+import { test, expect, Page } from '../../fixtures';
 import { wpCli, activatePlugin, goToAdminPage, updateWeighting, wpCliEval } from '../../utils';
 
 test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' }, () => {
-	const sync = async (page) => {
+	const sync = async (page: Page) => {
 		await wpCli('wp elasticpress sync --yes');
 		await page.waitForTimeout(2000);
 	};

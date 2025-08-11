@@ -11,7 +11,7 @@ test.describe('ACF Repeater Field Compatibility Feature', { tag: '@paidPlugins' 
 		await loggedInPage.locator('#acf_import_file').click();
 		const fileChooser = await fileChooserPromise;
 		await fileChooser.setFiles(
-			`${getPluginRootDir()}/tests/e2e/fixtures/acf-repeater-field-test.json`,
+			`${getPluginRootDir()}/tests/e2e/src/fixtures/acf-repeater-field-test.json`,
 		);
 
 		// Click the Import JSON button

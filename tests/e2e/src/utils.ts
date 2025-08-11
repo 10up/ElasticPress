@@ -1,17 +1,21 @@
 /// <reference types="node" />
 
+import { execFileSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 import { FrameLocator, Page, Locator } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
-import path from 'path';
-
-const { execFileSync } = require('child_process');
+import * as path from 'path';
 
 export function isEpIo(): boolean {
 	return process.env.EP_IS_EPIO === '1';
 }
 
 export function getPluginRootDir(): string {
-	return path.resolve(__dirname, '../..');
+	const __filename = fileURLToPath(import.meta.url);
+	const __dirname = dirname(__filename);
+	return path.resolve(__dirname, '../../..');
 }
 
 export function getPluginDir(): string {
@@ -101,8 +105,8 @@ export async function wpCli(command: string, ignoreFailures = false) {
 		const args = ['tests-wordpress', `wp --allow-root ${escapedCommand}`];
 		const res = execFileSync(command, args);
 		return res;
-	} catch (err) {
-		return ignoreFailures ? err.stdout.toString() : null;
+	} catch (err: any) {
+		return ignoreFailures ? err.stdout?.toString() || '' : null;
 	}
 }
 
@@ -492,16 +496,6 @@ export async function maybeEnableFeature(featureName: string) {
  */
 export async function maybeDisableFeature(featureName: string) {
 	await wpCli(`elasticpress deactivate-feature ${featureName}`, true);
-}
-
-/**
- * Check if total matches expected number
- * @param page Playwright page object
- * @param totalNumber Expected total number
- */
-export async function getTotal(page: Page, totalNumber: number) {
-	const queryResults = await page.locator('.query-results').textContent();
-	expect(queryResults).toMatch(new RegExp(`"(total|value)": ${totalNumber}`, 'g'));
 }
 
 /**

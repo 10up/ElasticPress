@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect, Page } from '../fixtures';
 import {
 	activatePlugin,
 	deactivatePlugin,
@@ -12,7 +12,7 @@ import {
 const indexNames = process.env?.EP_INDEX_NAMES || [];
 
 test.describe('Dashboard Sync', { tag: '@group2' }, () => {
-	async function canSeeIndexesNames(loggedInPage) {
+	async function canSeeIndexesNames(loggedInPage: Page) {
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-health');
 		const text = await loggedInPage.locator('.metabox-holder').textContent();
 		for (const index of indexNames) {
@@ -20,7 +20,7 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 		}
 	}
 
-	async function resumeAndWait(page) {
+	async function resumeAndWait(page: Page) {
 		await page.getByRole('button', { name: 'Resume sync' }).click();
 		await expect(page.locator('.ep-sync-progress strong')).toContainText('Sync complete', {
 			timeout: getSyncTimeout(),

@@ -1,10 +1,10 @@
-import { test, expect } from '../fixtures';
+import { execFileSync } from 'child_process';
+
+import { test, expect, Page } from '../fixtures';
 import { wpCli, maybeDisableFeature, goToAdminPage, getPluginRootDir } from '../utils';
 
-const { execFileSync } = require('child_process');
-
 test.describe('Documents Feature', { tag: '@group1' }, () => {
-	async function enableDocumentsFeature(page) {
+	async function enableDocumentsFeature(page: Page) {
 		await goToAdminPage(page, 'admin.php?page=elasticpress');
 
 		// Wait for the API request to complete
@@ -18,14 +18,14 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 		await responsePromise;
 	}
 
-	async function uploadFile(page, fileName) {
+	async function uploadFile(page: Page, fileName: string) {
 		await goToAdminPage(page, 'media-new.php?browser-uploader');
 
 		// Create a file input and upload the file
 		const fileChooserPromise = page.waitForEvent('filechooser');
 		await page.locator('#async-upload').click();
 		const fileChooser = await fileChooserPromise;
-		await fileChooser.setFiles(`${getPluginRootDir()}/tests/e2e/fixtures/${fileName}`);
+		await fileChooser.setFiles(`${getPluginRootDir()}/tests/e2e/src/fixtures/${fileName}`);
 
 		await page.locator('#html-upload').click();
 

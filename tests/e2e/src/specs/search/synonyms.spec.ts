@@ -7,7 +7,7 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 	 *
 	 * @param {Page} page - The Playwright Page object.
 	 */
-	async function saveSynonyms(page) {
+	async function saveSynonyms(page: Page) {
 		const responsePromise = page.waitForResponse('**/wp-json/elasticpress/v1/synonyms*');
 		await page.getByRole('button', { name: 'Save changes' }).click();
 		await responsePromise;

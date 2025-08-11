@@ -3,6 +3,7 @@
   "version": "5.2.0",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
+  "private": true,
   "dependencies": {
     "@10up/component-tooltip": "^2.0.0",
     "@hello-pangea/dnd": "^18.0.1",
@@ -26,6 +27,7 @@
     "terser-webpack-plugin": "^5.3.0",
     "wp-hookdoc": "github:felipeelia/wp-hookdoc#trunk"
   },
+  "workspaces": ["tests/e2e"],
   "scripts": {
     "prepare": "husky",
     "start": "composer install --ignore-platform-reqs && npm install && npm run build",
@@ -47,8 +49,8 @@
     "es:start": "cd bin/es-docker/ && docker compose build --build-arg ES_VERSION=${ES_VERSION-8.16.1} && docker compose up -d",
     "es:stop": "cd bin/es-docker/ && docker compose down",
     "e2e:setup": "./bin/setup-e2e-env.sh",
-    "playwright:test": "playwright test -c tests/e2e/playwright.config.ts",
-    "playwright:ui": "playwright test -c tests/e2e/playwright.config.ts --ui"
+    "playwright:test": "playwright test -c tests/e2e/src/playwright.config.ts",
+    "playwright:ui": "playwright test -c tests/e2e/src/playwright.config.ts --ui"
   },
   "author": "10up",
   "repository": {
