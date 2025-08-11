@@ -23,7 +23,6 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: npm ci
-        working-directory: tests/e2e
 
       - run: npm test --if-present
         working-directory: tests/e2e
