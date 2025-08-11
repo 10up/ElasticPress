@@ -1,0 +1,34 @@
+name: Publish elasticpress-playwright-utils
+
+on:
+  push:
+    branches:
+      - develop
+      - trunk
+      - chore/e2e-playwright
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+        working-directory: tests/e2e
+
+      - run: npm test --if-present
+        working-directory: tests/e2e
+
+      - run: npm publish --access public
+        working-directory: tests/e2e
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
