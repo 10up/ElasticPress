@@ -391,7 +391,7 @@ class Facets extends Feature {
 	 * @since  2.5
 	 */
 	public function get_aggs( $response, $query, $query_args, $query_object ) {
-		if ( empty( $query_object ) || 'WP_Query' !== get_class( $query_object ) || ! $this->is_facetable( $query_object ) ) {
+		if ( empty( $query_object ) || ! $query_object instanceof \WP_Query || ! $this->is_facetable( $query_object ) ) {
 			return;
 		}
 
@@ -422,8 +422,6 @@ class Facets extends Feature {
 			}
 
 			$this->set_query_aggregations( $query_object, $processed_aggs );
-		} else {
-			$this->set_query_aggregations( $query_object, [] );
 		}
 	}
 
@@ -433,27 +431,20 @@ class Facets extends Feature {
 	 * @since 5.3.0
 	 * @param \WP_Query $query        The WP_Query object to store data for
 	 * @param array     $aggregations The aggregation data to store
-	 * @return bool True on success, false on failure
 	 */
-	public function set_query_aggregations( $query, $aggregations ) {
-		if ( ! $query instanceof \WP_Query ) {
-			return false;
-		}
-
+	public function set_query_aggregations( $query, $aggregations ): void {
 		// Store aggregations on the query object
 		$query->{self::QUERY_AGGREGATIONS} = $aggregations;
 
 		if ( $query->is_main_query() && $this->should_sync_to_global( $query ) ) {
-				_doing_it_wrong(
-					__METHOD__,
-					esc_html__( 'The global variable $GLOBALS[\'ep_facet_aggs\'] is deprecated. Access aggregation data directly from the query object using $query->ep_aggregations or the Facets feature methods get_query_aggregations() and get_facet_aggregation().', 'elasticpress' ),
-					'5.3.0'
-				);
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'The global variable $GLOBALS[\'ep_facet_aggs\'] is deprecated. Access aggregation data directly from the query object using $query->ep_aggregations or the Facets feature methods get_query_aggregations() and get_facet_aggregation().', 'elasticpress' ),
+				'5.3.0'
+			);
 
-				$GLOBALS['ep_facet_aggs'] = $aggregations;
+			$GLOBALS['ep_facet_aggs'] = $aggregations;
 		}
-
-		return true;
 	}
 
 	/**
