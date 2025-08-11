@@ -120,7 +120,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		}
 
 		$terms_by_slug = array();
-		$aggregations = $feature->get_facet_aggregation( $wp_query, $taxonomy );
+		$aggregations  = $feature->get_facet_aggregation( $wp_query, $taxonomy );
 
 		foreach ( $terms as $term ) {
 			$terms_by_slug[ $term->slug ] = $term;

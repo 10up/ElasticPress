@@ -331,7 +331,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		parse_str( 'ep_date_filter=2022-01-01,2022-12-31', $_GET );
 		$query = new \WP_Query(
 			[
-				'ep_integrate' => true,
+				'ep_integrate'    => true,
 				'ep_is_facetable' => true,
 			]
 		);
@@ -342,7 +342,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		parse_str( 'ep_date_filter=2022-01-01', $_GET );
 		$query = new \WP_Query(
 			[
-				'ep_integrate' => true,
+				'ep_integrate'    => true,
 				'ep_is_facetable' => true,
 			]
 		);
@@ -353,7 +353,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		parse_str( 'ep_date_filter=,2022-01-01', $_GET );
 		$query = new \WP_Query(
 			[
-				'ep_integrate' => true,
+				'ep_integrate'    => true,
 				'ep_is_facetable' => true,
 			]
 		);
@@ -364,7 +364,7 @@ class TestFacetTypeDate extends BaseTestCase {
 		parse_str( 'ep_date_filter=invalid date', $_GET );
 		$query = new \WP_Query(
 			[
-				'ep_integrate' => true,
+				'ep_integrate'    => true,
 				'ep_is_facetable' => true,
 			]
 		);

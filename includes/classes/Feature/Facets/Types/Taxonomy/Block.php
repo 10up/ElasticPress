@@ -79,8 +79,8 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 
 			$wp_query->query(
 				[
-					'posts_per_page' => 1,
-					'post_type'      => $search->get_searchable_post_types(),
+					'posts_per_page'  => 1,
+					'post_type'       => $search->get_searchable_post_types(),
 					'ep_is_facetable' => true,
 				]
 			);

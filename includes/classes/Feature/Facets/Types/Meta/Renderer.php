@@ -77,7 +77,7 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 */
 		$raw_values = $facet_type->get_meta_values( $instance['facet'] );
 
-		$facet_name = $facet_type->get_filter_name() . $this->meta_field;
+		$facet_name         = $facet_type->get_filter_name() . $this->meta_field;
 		$facet_aggregations = $feature->get_facet_aggregation( $wp_query, $facet_name );
 
 		$values = [];

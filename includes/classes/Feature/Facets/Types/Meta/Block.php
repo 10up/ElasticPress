@@ -84,8 +84,8 @@ class Block extends \ElasticPress\Feature\Facets\Block {
 			$search = Features::factory()->get_registered_feature( 'search' );
 
 			$args = [
-				'posts_per_page' => 1,
-				'post_type'      => $search->get_searchable_post_types(),
+				'posts_per_page'  => 1,
+				'post_type'       => $search->get_searchable_post_types(),
 				'ep_is_facetable' => true,
 			];
 			$wp_query->query( $args );

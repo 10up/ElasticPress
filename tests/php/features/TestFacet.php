@@ -565,10 +565,46 @@ class TestFacet extends BaseTestCase {
 
 		add_filter( 'ep_is_facetable', '__return_true' );
 
-		$query = new \WP_Query(  ['ep_integrate' => true] );
+		$query = new \WP_Query( [ 'ep_integrate' => true ] );
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertNotEmpty( $query->ep_aggregations );
+	}
+
+	/**
+	 * Test ep_facet_sync_aggregations_to_global filter
+	 *
+	 * @expectedIncorrectUsage ElasticPress\Feature\Facets\Facets::set_query_aggregations
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 */
+	public function test_ep_facet_sync_aggregations_to_global_filter() {
+		global $wp_the_query, $wp_query;
+
+		Features::factory()->get_registered_feature( 'facets' );
+
+		add_filter( 'ep_facet_sync_aggregations_to_global', '__return_true' );
+
+		$this->ep_factory->post->create_many( 5 );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args  = [
+			'ep_integrate'    => true,
+			'ep_is_facetable' => true,
+		];
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$query->query( $args );
+
+		$this->assertNotEmpty( $GLOBALS['ep_facet_aggs'] );
+		$this->assertEquals( $query->ep_aggregations, $GLOBALS['ep_facet_aggs'] );
 	}
 
 	/**
