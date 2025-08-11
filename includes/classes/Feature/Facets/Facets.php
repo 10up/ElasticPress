@@ -31,14 +31,6 @@ class Facets extends Feature {
 	public $types = [];
 
 	/**
-	 * Store aggregations on WP_Query objects
-	 *
-	 * @since 5.3.0
-	 * @var string
-	 */
-	const QUERY_AGGREGATIONS = 'ep_aggregations';
-
-	/**
 	 * Initialize feature setting it's config
 	 *
 	 * @since  3.0
@@ -434,7 +426,7 @@ class Facets extends Feature {
 	 */
 	public function set_query_aggregations( $query, $aggregations ): void {
 		// Store aggregations on the query object
-		$query->{self::QUERY_AGGREGATIONS} = $aggregations;
+		$query->ep_aggregations = $aggregations;
 
 		if ( $query->is_main_query() && $this->should_sync_to_global( $query ) ) {
 			_doing_it_wrong(
@@ -459,7 +451,7 @@ class Facets extends Feature {
 			return $GLOBALS['ep_facet_aggs'] ?? false;
 		}
 
-		$query_aggs = $query->{self::QUERY_AGGREGATIONS} ?? false;
+		$query_aggs = $query->ep_aggregations ?? false;
 		if ( false !== $query_aggs ) {
 			return $query_aggs;
 		}
