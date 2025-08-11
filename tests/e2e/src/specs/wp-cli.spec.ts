@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures.js';
 import {
 	activatePlugin,
 	deactivatePlugin,
@@ -7,7 +7,7 @@ import {
 	setDefaultFeatureSettings,
 	wpCli,
 	wpCliEval,
-} from '../utils';
+} from '../utils.js';
 
 const indexNames = process.env?.EP_INDEX_NAMES || [];
 

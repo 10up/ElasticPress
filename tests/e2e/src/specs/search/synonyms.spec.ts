@@ -1,5 +1,5 @@
-import { test, expect, Page } from '../../fixtures';
-import { wpCliEval, goToAdminPage, activatePlugin, deactivatePlugin } from '../../utils';
+import { test, expect, Page } from '../../fixtures.js';
+import { wpCliEval, goToAdminPage, activatePlugin, deactivatePlugin } from '../../utils.js';
 
 test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }, () => {
 	/**

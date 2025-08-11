@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures';
-import { goToAdminPage } from '../utils';
+import { test, expect } from '../fixtures.js';
+import { goToAdminPage } from '../utils.js';
 
 test.describe('Status Report', { tag: '@group1' }, () => {
 	test.beforeEach(async ({ loggedInPage }) => {

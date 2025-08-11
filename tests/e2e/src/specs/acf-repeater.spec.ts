@@ -1,5 +1,5 @@
-import { test, expect, Page } from '../fixtures';
-import { goToAdminPage, getPluginRootDir } from '../utils';
+import { test, expect, Page } from '../fixtures.js';
+import { goToAdminPage, getPluginRootDir } from '../utils.js';
 
 test.describe('ACF Repeater Field Compatibility Feature', { tag: '@paidPlugins' }, () => {
 	const setupFieldGroup = async (loggedInPage: Page) => {

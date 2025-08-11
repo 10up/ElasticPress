@@ -112,14 +112,18 @@ export async function wpCli(command: string, ignoreFailures = false) {
 
 export async function wpCliEval(command: string) {
 	const fileName = (Math.random() + 1).toString(36).substring(7);
-	const fullFilePath = `${getPluginRootDir()}/${fileName}`;
+	const pluginRootDir = getPluginRootDir();
+	const fullFilePath = `${pluginRootDir}/${fileName}`;
 	const escapedCommand = command.replace(/^<\?php /, '');
 
 	// Write the PHP code to a temporary file
 	writeFileSync(fullFilePath, `<?php ${escapedCommand}`);
 
 	// Execute the PHP code using wp-cli
-	const result = await wpCli(`eval-file wp-content/plugins/${getPluginDir()}/${fileName}`, true);
+	const result = await wpCli(
+		`eval-file wp-content/plugins/${pluginRootDir.split('/').pop()}/${fileName}`,
+		true,
+	);
 
 	// Clean up the temporary file
 	unlinkSync(fullFilePath);

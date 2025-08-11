@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures.js';
 import {
 	wpCli,
 	maybeEnableFeature,
@@ -8,7 +8,7 @@ import {
 	createAutosavePost,
 	logout,
 	maybeDisableFeature,
-} from '../utils';
+} from '../utils.js';
 
 test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 	const deleteOldDraftsAndSync = async () => {

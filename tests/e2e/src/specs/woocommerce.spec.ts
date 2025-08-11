@@ -1,4 +1,4 @@
-import { test, expect, Page } from '../fixtures';
+import { test, expect, Page } from '../fixtures.js';
 import {
 	logout,
 	goToAdminPage,
@@ -13,7 +13,7 @@ import {
 	refreshIndex,
 	isEpIo,
 	deactivatePlugin,
-} from '../utils';
+} from '../utils.js';
 
 /**
  * Test suite for WooCommerce feature functionality in ElasticPress.

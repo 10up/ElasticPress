@@ -1,5 +1,5 @@
 import { test as setup } from '@playwright/test';
-import { setDefaultFeatureSettings } from '../utils';
+import { setDefaultFeatureSettings } from '../utils.js';
 
 setup('Setup global variables', async () => {
 	const wpCliRespObj = await setDefaultFeatureSettings();

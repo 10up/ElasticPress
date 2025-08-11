@@ -1,7 +1,7 @@
 import { execFileSync } from 'child_process';
 
-import { test, expect, Page } from '../fixtures';
-import { wpCli, maybeDisableFeature, goToAdminPage, getPluginRootDir } from '../utils';
+import { test, expect, Page } from '../fixtures.js';
+import { wpCli, maybeDisableFeature, goToAdminPage, getPluginRootDir } from '../utils.js';
 
 test.describe('Documents Feature', { tag: '@group1' }, () => {
 	async function enableDocumentsFeature(page: Page) {

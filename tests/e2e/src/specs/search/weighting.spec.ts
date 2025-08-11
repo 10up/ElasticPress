@@ -1,5 +1,5 @@
-import { test, expect, Page } from '../../fixtures';
-import { wpCli, activatePlugin, goToAdminPage, updateWeighting, wpCliEval } from '../../utils';
+import { test, expect, Page } from '../../fixtures.js';
+import { wpCli, activatePlugin, goToAdminPage, updateWeighting, wpCliEval } from '../../utils.js';
 
 test.describe('Post Search Feature - Weighting Functionality', { tag: '@group1' }, () => {
 	const sync = async (page: Page) => {

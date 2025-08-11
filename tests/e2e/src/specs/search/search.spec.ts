@@ -1,5 +1,5 @@
-import { test, expect } from '../../fixtures';
-import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '../../utils';
+import { test, expect } from '../../fixtures.js';
+import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '../../utils.js';
 
 // Parity with Cypress: Post Search Feature
 

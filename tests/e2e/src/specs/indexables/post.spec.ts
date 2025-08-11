@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures';
+import { test, expect } from '../../fixtures.js';
 import {
 	goToAdminPage,
 	setPerIndexCycle,
@@ -6,7 +6,7 @@ import {
 	publishPost,
 	setPostPassword,
 	wpCli,
-} from '../../utils';
+} from '../../utils.js';
 
 test.describe('Post Indexable', { tag: '@group1' }, () => {
 	test('Can conditionally update posts when a term is edited', async ({ loggedInPage }) => {

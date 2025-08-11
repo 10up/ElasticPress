@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures.js';
 import {
 	activatePlugin,
 	deactivatePlugin,
@@ -6,7 +6,7 @@ import {
 	isEpIo,
 	publishPost,
 	wpCli,
-} from '../utils';
+} from '../utils.js';
 
 test.describe('WordPress can perform standard ElasticPress actions', { tag: '@group1' }, () => {
 	test('Can see the settings page link in WordPress Dashboard', async ({ loggedInPage }) => {

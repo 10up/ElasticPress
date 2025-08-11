@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures.js';
 import {
 	maybeEnableFeature,
 	publishPost,
@@ -10,7 +10,7 @@ import {
 	wpCliEval,
 	maybeOpenSettingsTab,
 	getEditorFrame,
-} from '../utils';
+} from '../utils.js';
 import {
 	openBlockInserter,
 	closeBlockInserter,
@@ -18,7 +18,7 @@ import {
 	supportsBlockColors,
 	supportsBlockTypography,
 	supportsBlockDimensions,
-} from '../block-editor';
+} from '../block-editor.js';
 
 test.describe('Related Posts Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {

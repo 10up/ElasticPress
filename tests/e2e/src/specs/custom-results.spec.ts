@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures';
-import { goToAdminPage, publishPost, wpCliEval } from '../utils';
+import { test, expect } from '../fixtures.js';
+import { goToAdminPage, publishPost, wpCliEval } from '../utils.js';
 
 test.describe('Custom Results', { tag: '@group2' }, () => {
 	const testPost = 'test-post';

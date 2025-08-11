@@ -3,8 +3,8 @@ import {
 	supportsBlockColors,
 	supportsBlockDimensions,
 	supportsBlockTypography,
-} from '../../block-editor';
-import { test, expect } from '../../fixtures';
+} from '../../block-editor.js';
+import { test, expect } from '../../fixtures.js';
 import {
 	goToAdminPage,
 	activatePlugin,
@@ -21,7 +21,7 @@ import {
 	wpCliEval,
 	getEditorFrame,
 	maybeOpenSettingsTab,
-} from '../../utils';
+} from '../../utils.js';
 
 test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	const getCommentsCount = async () => {

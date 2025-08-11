@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures';
-import { goToAdminPage, wpCli, maybeDisableFeature } from '../utils';
+import { test, expect } from '../fixtures.js';
+import { goToAdminPage, wpCli, maybeDisableFeature } from '../utils.js';
 
 /**
  * Test suite for the feature selection interface in ElasticPress settings.

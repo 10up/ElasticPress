@@ -1,6 +1,6 @@
 import { test as base } from '@playwright/test';
 import type { Page } from 'playwright';
-import { login } from './utils';
+import { login } from './utils.js';
 
 // Declare the types of your fixtures
 type LoggedInFixtures = {

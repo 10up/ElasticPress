@@ -1,4 +1,4 @@
-import { test, expect, Locator, Page } from '../fixtures';
+import { test, expect, Locator, Page } from '../fixtures.js';
 import {
 	activatePlugin,
 	deactivatePlugin,
@@ -9,7 +9,7 @@ import {
 	createClassicWidget,
 	wpCli,
 	setCustomPostTypes,
-} from '../utils';
+} from '../utils.js';
 import {
 	openBlockInserter,
 	getBlocksList,
@@ -18,7 +18,7 @@ import {
 	supportsBlockColors,
 	supportsBlockTypography,
 	supportsBlockDimensions,
-} from '../block-editor';
+} from '../block-editor.js';
 
 test.describe('Facets Feature', { tag: '@group2' }, () => {
 	const setSlider = async (page: Page, block: Locator, min: number, max: number) => {

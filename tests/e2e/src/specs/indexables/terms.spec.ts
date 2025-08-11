@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures';
+import { test, expect } from '../../fixtures.js';
 import {
 	goToAdminPage,
 	wpCli,
@@ -6,7 +6,7 @@ import {
 	maybeDisableFeature,
 	createTerm,
 	wpCliEval,
-} from '../../utils';
+} from '../../utils.js';
 
 const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing', 'search term'];
 

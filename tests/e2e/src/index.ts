@@ -1,3 +1,3 @@
-export * from './utils';
-export * from './block-editor';
-export * from './fixtures';
+export * from './utils.js';
+export * from './block-editor.js';
+export * from './fixtures.js';

@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures';
-import { goToAdminPage, wpCli } from '../utils';
+import { test, expect } from '../fixtures.js';
+import { goToAdminPage, wpCli } from '../utils.js';
 
 test.describe('WordPress basic actions', { tag: '@group2' }, () => {
 	test.beforeAll('EP Sync', async () => {

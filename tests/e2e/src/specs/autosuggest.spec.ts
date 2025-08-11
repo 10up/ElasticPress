@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures';
+import { test, expect } from '../fixtures.js';
 import {
 	wpCli,
 	deactivatePlugin,
 	maybeDisableFeature,
 	maybeEnableFeature,
 	updateWeighting,
-} from '../utils';
+} from '../utils.js';
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {

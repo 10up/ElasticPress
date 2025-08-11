@@ -1,4 +1,4 @@
-import { test, expect, Page } from '../fixtures';
+import { test, expect, Page } from '../fixtures.js';
 import {
 	wpCli,
 	publishPost,
@@ -10,8 +10,8 @@ import {
 	wpCliEval,
 	setCustomPostTypes,
 	maybeDisableFeature,
-} from '../utils';
-import { openBlockInserter, insertBlock } from '../block-editor';
+} from '../utils.js';
+import { openBlockInserter, insertBlock } from '../block-editor.js';
 
 /**
  * Test suite for the Instant Results Feature in ElasticPress.
