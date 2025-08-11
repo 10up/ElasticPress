@@ -4,35 +4,38 @@
 	"description": "Shared Playwright testing utilities for ElasticPress projects.",
 	"license": "GPL-2.0-only",
 	"repository": {
-	  "type": "git",
-	  "url": "https://github.com/10up/ElasticPress.git",
-	  "directory": "tests/e2e"
+		"type": "git",
+		"url": "https://github.com/10up/ElasticPress.git",
+		"directory": "tests/e2e"
 	},
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
-	  ".": {
-		"types": "./dist/index.d.ts",
-		"default": "./dist/index.js"
-	  }
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
 	},
 	"sideEffects": false,
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"scripts": {
-	  "build": "tsc -p tsconfig.json",
-	  "clean": "rimraf dist",
-	  "prepare": "npm run build",
-	  "prepublishOnly": "npm run clean && npm run build && npm test --if-present"
+		"build": "tsc -p tsconfig.json",
+		"clean": "rimraf dist",
+		"prepare": "npm run build",
+		"prepublishOnly": "npm run clean && npm run build && npm test --if-present"
 	},
 	"peerDependencies": {
-	  "@playwright/test": "^1.46.0"
+		"@playwright/test": "^1.46.0"
 	},
 	"devDependencies": {
-	  "typescript": "^5.5.0",
-	  "rimraf": "^6.0.0"
+		"@types/node": "^24.2.1",
+		"rimraf": "^6.0.0",
+		"typescript": "^5.5.0"
 	},
 	"publishConfig": {
-	  "access": "public"
+		"access": "public"
 	}
 }
