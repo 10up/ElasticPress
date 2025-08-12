@@ -274,14 +274,13 @@ class Facets extends Feature {
 		 * Bypass the standard checks and set a query to be facetable.
 		 *
 		 * @deprecated 5.3.0 Use the 'ep_is_facetable' argument in WP_Query instead.
-		 *                   This filter will be removed in a future release.
 		 *
 		 * @hook ep_is_facetable
 		 * @param  {bool}     $bypass Defaults to false.
 		 * @param  {WP_Query} $query  The current WP_Query.
 		 * @return {bool}     true to bypass, false to ignore
 		 */
-		if ( \apply_filters_deprecated(
+		if ( apply_filters_deprecated(
 			'ep_is_facetable',
 			[ false, $query ],
 			'5.3.0',
