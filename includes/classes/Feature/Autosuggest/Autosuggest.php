@@ -839,6 +839,26 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Return true, so EP knows we want to intercept the remote request
+	 *
+	 * As we add and remove this function from `ep_intercept_remote_request`,
+	 * using `__return_true` could remove a *real* `__return_true` added by someone else.
+	 *
+	 * @since 4.7.0
+	 * @see https://github.com/10up/ElasticPress/issues/2887
+	 * @return true
+	 */
+	public function intercept_remote_request() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'This method should not be called anymore, use WP_Query argument `ep_intercept_request` instead.' ),
+			'5.3.0'
+		);
+
+		return true;
+	}
+
+	/**
 	 * Conditionally add EP.io information to the settings schema
 	 *
 	 * @since 5.0.0
