@@ -603,6 +603,26 @@ class InstantResults extends Feature {
 	}
 
 	/**
+	 * If generating the search template query, do not bypass the post exclusion
+	 *
+	 * @since 4.4.0
+	 * @param bool     $bypass_exclusion_from_search Whether the post exclusion from search should be applied or not
+	 * @param WP_Query $query The WP Query
+	 * @return bool
+	 */
+	public function maybe_bypass_post_exclusion( $bypass_exclusion_from_search, $query ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'This method should not be called anymore, use WP_Query argument `ep_skip_search_exclusion` instead.' ),
+			'5.3.0'
+		);
+
+		return true === $query->get( 'ep_search_template' ) ?
+			false : // not bypass, apply
+			$bypass_exclusion_from_search;
+	}
+
+	/**
 	 * Apply product visibility taxonomy query to search template queries.
 	 *
 	 * @param \WP_Query $query Query instance.
