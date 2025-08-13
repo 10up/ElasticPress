@@ -316,12 +316,12 @@ class OrdersAutosuggest {
 
 		$query = new \WP_Query(
 			array(
-				'ep_integrate'              => true,
-				'ep_order_search_template'  => true,
-				'ep_skip_search_exclusions' => true,
-				'post_status'               => array_keys( $order_statuses ),
-				'post_type'                 => 'shop_order',
-				's'                         => '{{ep_placeholder}}',
+				'ep_integrate'             => true,
+				'ep_order_search_template' => true,
+				'ep_skip_search_exclusion' => true,
+				'post_status'              => array_keys( $order_statuses ),
+				'post_type'                => 'shop_order',
+				's'                        => '{{ep_placeholder}}',
 			)
 		);
 

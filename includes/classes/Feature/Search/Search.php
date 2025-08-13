@@ -760,7 +760,7 @@ class Search extends Feature {
 	 * @param WP_Query $query WP Query object
 	 */
 	public function exclude_posts_from_search( $filters, $args, $query ) {
-		if ( ! empty( $query->get( 'ep_skip_search_exclusions' ) ) ) {
+		if ( ! empty( $query->get( 'ep_skip_search_exclusion' ) ) ) {
 			return $filters;
 		}
 
@@ -779,7 +779,7 @@ class Search extends Feature {
 			'ep_bypass_exclusion_from_search',
 			[ $bypass_exclusion_from_search, $query ],
 			'5.3.0',
-			'WP_Query->ep_skip_search_exclusions argument'
+			'WP_Query->ep_skip_search_exclusion argument'
 		) ) {
 			return $filters;
 		}

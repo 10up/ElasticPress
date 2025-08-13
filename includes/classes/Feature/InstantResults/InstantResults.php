@@ -542,12 +542,12 @@ class InstantResults extends Feature {
 
 		$query = new \WP_Query(
 			array(
-				'ep_integrate'              => true,
-				'ep_search_template'        => true,
-				'ep_skip_search_exclusions' => true,
-				'post_status'               => array_values( $post_statuses ),
-				'post_type'                 => $post_types,
-				's'                         => '{{ep_placeholder}}',
+				'ep_integrate'             => true,
+				'ep_search_template'       => true,
+				'ep_skip_search_exclusion' => true,
+				'post_status'              => array_values( $post_statuses ),
+				'post_type'                => $post_types,
+				's'                        => '{{ep_placeholder}}',
 			)
 		);
 

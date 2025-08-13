@@ -8742,12 +8742,12 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests the `ep_skip_search_exclusions` argument
+	 * Tests the `ep_skip_search_exclusion` argument
 	 *
 	 * @since 5.3.0
 	 * @group post
 	 */
-	public function test_ep_skip_search_exclusions_argument() {
+	public function test_ep_skip_search_exclusion_argument() {
 		$this->ep_factory->post->create_many(
 			2,
 			[
@@ -8760,8 +8760,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query(
 			[
-				's'                         => 'search',
-				'ep_skip_search_exclusions' => true,
+				's'                        => 'search',
+				'ep_skip_search_exclusion' => true,
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
@@ -8769,8 +8769,8 @@ class TestPost extends BaseTestCase {
 
 		$query = new \WP_Query(
 			[
-				's'                         => 'search',
-				'ep_skip_search_exclusions' => false,
+				's'                        => 'search',
+				'ep_skip_search_exclusion' => false,
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
