@@ -8603,6 +8603,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests the `ep_bypass_exclusion_from_search` filter
+	 *
+	 * @expectedDeprecated ep_bypass_exclusion_from_search
 	 */
 	public function testExcludeFromSearchQueryBypassFilter() {
 		$this->ep_factory->post->create_many(
@@ -8650,7 +8652,6 @@ class TestPost extends BaseTestCase {
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
 	 */
 	public function testExcludeFromSearchQuery() {
-
 		$this->ep_factory->post->create_many(
 			2,
 			array(
@@ -8738,6 +8739,42 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
 		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
+	}
+
+	/**
+	 * Tests the `ep_skip_search_exclusions` argument
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_ep_skip_search_exclusions_argument() {
+		$this->ep_factory->post->create_many(
+			2,
+			[
+				'post_content' => 'find me in search',
+				'meta_input'   => [ 'ep_exclude_from_search' => true ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's'                         => 'search',
+				'ep_skip_search_exclusions' => true,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+
+		$query = new \WP_Query(
+			[
+				's'                         => 'search',
+				'ep_skip_search_exclusions' => false,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
 	}
 
 	/**
