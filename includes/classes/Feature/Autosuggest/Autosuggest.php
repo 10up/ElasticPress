@@ -512,7 +512,6 @@ class Autosuggest extends Feature {
 		 */
 		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
 
-		add_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
 		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 2 );
@@ -543,10 +542,11 @@ class Autosuggest extends Feature {
 			apply_filters(
 				'ep_autosuggest_query_args',
 				[
-					'post_type'    => $post_type,
-					'post_status'  => $post_status,
-					's'            => $placeholder,
-					'ep_integrate' => true,
+					'post_type'            => $post_type,
+					'post_status'          => $post_status,
+					's'                    => $placeholder,
+					'ep_integrate'         => true,
+					'ep_intercept_request' => true,
 				]
 			)
 		);
@@ -556,8 +556,6 @@ class Autosuggest extends Feature {
 		remove_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ] );
 
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
-
-		remove_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 
 		return [
 			'body'        => $this->autosuggest_query,
@@ -838,20 +836,6 @@ class Autosuggest extends Feature {
 		}
 
 		return $allowed_params;
-	}
-
-	/**
-	 * Return true, so EP knows we want to intercept the remote request
-	 *
-	 * As we add and remove this function from `ep_intercept_remote_request`,
-	 * using `__return_true` could remove a *real* `__return_true` added by someone else.
-	 *
-	 * @since 4.7.0
-	 * @see https://github.com/10up/ElasticPress/issues/2887
-	 * @return true
-	 */
-	public function intercept_remote_request() {
-		return true;
 	}
 
 	/**
