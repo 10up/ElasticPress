@@ -114,6 +114,8 @@ class SearchOrdering {
 	public function get_preview( $request ) {
 		$search = $request->get_param( 's' );
 
+		add_filter( 'ep_autosuggest_contexts', [ $this, 'add_rest_api_context' ] );
+
 		$query = new \WP_Query(
 			[
 				's'                => $search,
@@ -121,6 +123,22 @@ class SearchOrdering {
 			]
 		);
 
+		remove_filter( 'ep_autosuggest_contexts', [ $this, 'add_rest_api_context' ] );
+
 		return $query->posts;
+	}
+
+	/**
+	 * Add the rest context to the autosuggest contexts.
+	 *
+	 * This makes sure the search results preview matches the search results on the frontend.
+	 *
+	 * @since 5.3.0
+	 * @param array $contexts The contexts.
+	 * @return array The contexts.
+	 */
+	public function add_rest_api_context( $contexts ) {
+		$contexts[] = 'rest';
+		return $contexts;
 	}
 }
