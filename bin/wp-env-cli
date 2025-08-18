@@ -14,38 +14,50 @@ function spawnCommandDirectly({ container, command, dockerComposeConfigPath }) {
 	];
 
 	return new Promise((resolve, reject) => {
+		let output = '';
 		const childProc = spawn('docker compose', composeCommand, {
-			stdio: 'inherit',
+			stdio: 'pipe',
 			shell: true,
+			encoding: 'utf-8',
+		});
+		childProc.stdout.on('data', (data) => {
+			output += data;
+		});
+		childProc.stderr.on('data', (data) => {
+			output += data;
 		});
 		childProc.on('error', reject);
 		childProc.on('exit', (code) => {
 			// Code 130 is set if the user tries to exit with ctrl-c before using
 			// ctrl-d (so it is not an error which should fail the script.)
 			if (code === 0 || code === 130) {
-				resolve();
+				resolve(output);
 			} else {
-				reject(code);
+				const error = new Error(`Command failed with code ${code}`);
+				error.output = output;
+				error.code = code;
+				reject(error);
 			}
 		});
 	});
 }
 
 const run = async () => {
-	const configPath = path.resolve();
-	const { dockerComposeConfigPath } = await loadConfig(configPath);
+	const { dockerComposeConfigPath } = await loadConfig(path.resolve(__dirname, '..'));
 
 	const container = process.argv[2];
 	const command = process.argv.splice(3).join(' ');
 
 	try {
-		await spawnCommandDirectly({
+		const result = await spawnCommandDirectly({
 			container,
 			command,
 			dockerComposeConfigPath,
 		});
-	} catch (errorCode) {
-		process.exit(errorCode);
+		console.log(result);
+	} catch (error) {
+		console.log(error.output);
+		process.exit(error.code);
 	}
 };
 
