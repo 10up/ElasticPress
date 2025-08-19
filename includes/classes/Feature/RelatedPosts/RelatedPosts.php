@@ -285,15 +285,4 @@ class RelatedPosts extends Feature {
 
 		return $widgets;
 	}
-
-	/**
-	 * Output feature box long
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php echo wp_kses_post( __( 'Output related content using our Widget or directly in your theme using our <a href="https://www.elasticpress.io/documentation/article/related-posts-api/">API functions.</a>', 'elasticpress' ) ); ?></p>
-		<?php
-	}
 }

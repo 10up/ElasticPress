@@ -113,109 +113,6 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Output detailed feature description.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p>
-			<?php
-			printf(
-				/* translators: %s: ElasticPress.io link. */
-				esc_html__( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress. As the user refines their search, results are refreshed. Requires an %s or a custom proxy to function.', 'elasticpress' ),
-				sprintf(
-					'<a href="%1$s" target="_blank">%2$s</a>',
-					'https://www.elasticpress.io/',
-					esc_html__( 'ElasticPress.io plan', 'elasticpress' )
-				)
-			);
-			?>
-		</p>
-		<?php
-	}
-
-	/**
-	 * Display feature settings.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_settings() {
-		if ( ! $this->is_active() ) {
-			return;
-		}
-
-		$highlight_tags = [ 'mark', 'span', 'strong', 'em', 'i' ];
-		?>
-
-		<div class="field">
-			<label for="instant-results-highlight-tag" class="field-name status"><?php echo esc_html_e( 'Highlight tag ', 'elasticpress' ); ?></label>
-			<div class="input-wrap">
-				<select id="instant-results-highlight-tag" name="settings[highlight_tag]">
-					<option value=""><?php esc_html_e( 'None', 'elasticpress' ); ?></option>
-					<?php
-					foreach ( $highlight_tags as $highlight_tag ) {
-						printf(
-							'<option value="%1$s" %2$s>%3$s</option>',
-							esc_attr( $highlight_tag ),
-							selected( $this->settings['highlight_tag'], $highlight_tag, false ),
-							esc_html( $highlight_tag )
-						);
-					}
-					?>
-				</select>
-				<p class="field-description"><?php esc_html_e( 'Highlight search terms in results with the selected HTML tag.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<div class="field">
-			<label for="feature_instant_results_facets" class="field-name status"><?php esc_html_e( 'Filters', 'elasticpress' ); ?></label>
-			<div class="input-wrap">
-				<input value="<?php echo esc_attr( $this->settings['facets'] ); ?>" type="text" name="settings[facets]" id="feature_instant_results_facets">
-			</div>
-		</div>
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label>
-					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'all' ); ?> value="all">
-					<?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?>
-				</label><br>
-				<label>
-					<input name="settings[match_type]" type="radio" <?php checked( $this->settings['match_type'], 'any' ); ?> value="any">
-					<?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?>
-				</label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Term Count', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label>
-					<input name="settings[term_count]" <?php checked( (bool) $this->settings['term_count'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?>
-				</label><br>
-				<label>
-					<input name="settings[term_count]" <?php checked( ! (bool) $this->settings['term_count'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?>
-				</label>
-				<p class="field-description"><?php esc_html_e( 'When enabled, it will show the term count in the instant results widget.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<?php
-		$show_suggestions = \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active();
-
-		if ( $show_suggestions ) :
-			?>
-			<div class="field">
-				<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
-				<div class="input-wrap">
-					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], '0' ); ?> <?php disabled( $show_suggestions, false ); ?> value="0"><?php esc_html_e( 'Display the top suggestion', 'elasticpress' ); ?></label><br>
-					<label><input name="settings[search_behavior]" type="radio" <?php checked( $this->settings['search_behavior'], 'list' ); ?> <?php disabled( $show_suggestions, false ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
-				</div>
-			</div>
-			<?php
-		endif;
-	}
-
-	/**
 	 * Tell user whether requirements for feature are met or not.
 	 *
 	 * @return array $status Status array
@@ -270,7 +167,6 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function setup() {
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_assets' ] );
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_formatted_args', [ $this, 'maybe_apply_aggs_args' ], 10, 3 );
 		add_filter( 'ep_post_mapping', [ $this, 'add_mapping_properties' ] );
@@ -344,37 +240,6 @@ class InstantResults extends Feature {
 				'requestIdBase'       => Utils\get_request_id_base(),
 				'showSuggestions'     => \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active(),
 				'suggestionsBehavior' => $this->settings['search_behavior'],
-			)
-		);
-	}
-
-	/**
-	 * Enqueue admin assets.
-	 *
-	 * @param string $hook_suffix The current admin page.
-	 */
-	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( 'toplevel_page_elasticpress' !== $hook_suffix ) {
-			return;
-		}
-
-		wp_enqueue_style( 'wp-edit-post' );
-
-		wp_enqueue_script(
-			'elasticpress-instant-results-admin',
-			EP_URL . 'dist/js/instant-results-admin-script.js',
-			Utils\get_asset_info( 'instant-results-admin-script', 'dependencies' ),
-			Utils\get_asset_info( 'instant-results-admin-script', 'version' ),
-			true
-		);
-
-		wp_set_script_translations( 'elasticpress-instant-results-admin', 'elasticpress' );
-
-		wp_localize_script(
-			'elasticpress-instant-results-admin',
-			'epInstantResultsAdmin',
-			array(
-				'facets' => $this->get_facets_for_admin(),
 			)
 		);
 	}

@@ -196,15 +196,6 @@ class SearchOrdering extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Selected posts will be inserted into search results in the specified position.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Adds this taxonomy as one of the taxonomies to index
 	 *
 	 * @param array $taxonomies Current indexable taxonomies

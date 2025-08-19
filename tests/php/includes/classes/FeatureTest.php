@@ -40,16 +40,6 @@ class FeatureTest extends ElasticPress\Feature {
 	/**
 	 * Do nothing
 	 */
-	public function output_feature_box_long() { }
-
-	/**
-	 * Do nothing
-	 */
-	public function output_feature_box_summary() { }
-
-	/**
-	 * Do nothing
-	 */
 	public function setup() { }
 
 	/**

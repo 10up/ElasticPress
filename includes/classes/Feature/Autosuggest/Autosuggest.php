@@ -74,17 +74,6 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 *
-	 * @since 2.4
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Setup feature functionality
 	 *
 	 * @since  2.4
@@ -98,56 +87,6 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
 		add_filter( 'ep_pre_sync_index', [ $this, 'epio_send_autosuggest_public_request' ] );
-	}
-
-	/**
-	 * Display decaying settings on dashboard.
-	 *
-	 * @since 2.4
-	 */
-	public function output_feature_box_settings() {
-		$settings = $this->get_settings();
-		?>
-		<div class="field">
-			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
-			<div class="input-wrap">
-				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? '.ep-autosuggest' : esc_attr( $settings['autosuggest_selector'] ); ?>" type="text" name="settings[autosuggest_selector]" id="feature_autosuggest_selector">
-				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Google Analytics Events', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label><input name="settings[trigger_ga_event]" <?php checked( (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[trigger_ga_event]" <?php checked( ! (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
-				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<?php
-
-		if ( Utils\is_epio() ) {
-			$this->epio_allowed_parameters();
-			return;
-		}
-
-		$endpoint_url = ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) ? EP_AUTOSUGGEST_ENDPOINT : $settings['endpoint_url'];
-		?>
-
-		<div class="field">
-			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
-			<div class="input-wrap">
-				<input <?php disabled( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ); ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" name="settings[endpoint_url]" id="feature_autosuggest_endpoint_url">
-
-				<?php if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) : ?>
-					<p class="field-description"><?php esc_html_e( 'Your autosuggest endpoint is set in wp-config.php', 'elasticpress' ); ?></p>
-				<?php endif; ?>
-
-				<p class="field-description"><?php esc_html_e( 'This address will be exposed to the public.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-
-		<?php
 	}
 
 	/**

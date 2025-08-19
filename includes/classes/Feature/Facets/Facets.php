@@ -152,25 +152,6 @@ class Facets extends Feature {
 	}
 
 	/**
-	 * Dashboard facet settings
-	 *
-	 * @since 2.5
-	 */
-	public function output_feature_box_settings() {
-		$settings = $this->get_settings();
-		?>
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Match Type', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'all' ); ?> value="all"><?php echo wp_kses_post( __( 'Show any content tagged to <strong>all</strong> selected terms', 'elasticpress' ) ); ?></label><br>
-				<label><input name="settings[match_type]" type="radio" <?php checked( $settings['match_type'], 'any' ); ?> value="any"><?php echo wp_kses_post( __( 'Show all content tagged to <strong>any</strong> selected term', 'elasticpress' ) ); ?></label>
-				<p class="field-description"><?php esc_html_e( '"All" will only show content that matches all filters. "Any" will show content that matches any filter.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<?php
-	}
-
-	/**
 	 * If we are doing `or` matches, we need to remove filters from aggs.
 	 *
 	 * By default, the same filters applied to the main query are applied to aggregations.
@@ -525,36 +506,6 @@ class Facets extends Feature {
 		$widgets[] = 'ep-facet-meta-range';
 
 		return $widgets;
-	}
-
-	/**
-	 * Output feature box long
-	 *
-	 * @since 2.5
-	 */
-	public function output_feature_box_long() {
-		if ( current_theme_supports( 'widgets' ) ) {
-			$message = sprintf(
-				/* translators: Widgets Edit Screen URL */
-				__( "Adds <a href='%s'>filter widgets</a> that administrators can add to the website's sidebars (widgetized areas), so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ),
-				esc_url( admin_url( 'widgets.php' ) )
-			);
-		}
-
-		if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
-			$message = sprintf(
-				/* translators: Site Editor URL */
-				__( "Adds <a href='%s'>filter blocks</a> that administrators can add to the website's templates and template parts, so that visitors can filter applicable content and search results by one or more taxonomy terms.", 'elasticpress' ),
-				esc_url( admin_url( 'site-editor.php' ) )
-			);
-		}
-
-		if ( ! isset( $message ) ) {
-			return;
-		}
-		?>
-		<p><?php echo wp_kses_post( $message ); ?></p>
-		<?php
 	}
 
 	/**

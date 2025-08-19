@@ -36,10 +36,6 @@ class GlobalFeature extends \ElasticPress\Feature {
 		Indexables::factory()->activate( 'global' );
 	}
 
-	/**
-	 * Output feature box long text
-	 */
-	public function output_feature_box_long() {}
 
 	/**
 	 * Determine feature reqs status
