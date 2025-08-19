@@ -165,10 +165,6 @@ abstract class Feature {
 	 */
 	abstract public function setup();
 
-
-
-
-
 	/**
 	 * Create feature
 	 *
@@ -294,14 +290,6 @@ abstract class Feature {
 		 */
 		do_action( 'ep_feature_post_activation', $this->slug, $this );
 	}
-
-
-
-
-
-
-
-
 
 	/**
 	 * Returns the feature title.
