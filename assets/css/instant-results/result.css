@@ -36,6 +36,7 @@
 	grid-area: thumbnail;
 
 	& img {
+		aspect-ratio: 1;
 		display: block;
 		height: auto;
 		margin: 0;
