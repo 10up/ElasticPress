@@ -9358,9 +9358,10 @@ class TestPost extends BaseTestCase {
 	/**
 	 * Test if post thumbnail has all attributes.
 	 *
-	 * @since 5.0.0
+	 * @since 5.3.0
+	 * @group post
 	 */
-	public function testPostThumbnailHasAllAttributes() {
+	public function test_post_thumbnail_has_all_attributes() {
 		$post_id      = $this->ep_factory->post->create();
 		$thumbnail_id = $this->factory->attachment->create_object(
 			'test.jpg',
@@ -9380,6 +9381,64 @@ class TestPost extends BaseTestCase {
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
 		$ep_post   = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$thumbnail = $ep_post['thumbnail'];
+
+		$this->assertEquals( 6, count( $thumbnail ) );
+
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
+		foreach ( $keys as $key ) {
+			$this->assertArrayHasKey( $key, $thumbnail );
+		}
+	}
+
+	/**
+	 * Test that post thumbnail index with missing srcset mapping does not throw an error.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_post_thumbnail_index_with_missing_srcset_mapping() {
+		$post_id      = $this->ep_factory->post->create();
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$post_id,
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			]
+		);
+
+		set_post_thumbnail( $post_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+
+		add_filter(
+			'ep_post_mapping',
+			function ( $mapping ) {
+				unset( $mapping['mappings']['properties']['thumbnail']['properties']['srcset'] );
+				return $mapping;
+			}
+		);
+
+		add_filter(
+			'ep_post_mapping',
+			function ( $mapping ) {
+				$this->assertArrayNotHasKey( 'srcset', $mapping['mappings']['properties']['thumbnail']['properties'] );
+				return $mapping;
+			},
+			15
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+
+		$indexable = ElasticPress\Indexables::factory()->get( 'post' );
+		$indexable->put_mapping();
+
+		$indexable->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$ep_post   = $indexable->get( $post_id );
 		$thumbnail = $ep_post['thumbnail'];
 
 		$this->assertEquals( 6, count( $thumbnail ) );

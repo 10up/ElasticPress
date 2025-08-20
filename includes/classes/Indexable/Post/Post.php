@@ -593,9 +593,7 @@ class Post extends Indexable {
 		list( $src, $width, $height ) = $image;
 
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
-
-		$size_array = array( absint( $width ), absint( $height ) );
-		$srcset     = wp_calculate_image_srcset( $size_array, $src, $image_meta, $attachment_id );
+		$srcset     = wp_calculate_image_srcset( [ absint( $width ), absint( $height ) ], $src, $image_meta, $attachment_id );
 
 		return [
 			'ID'     => $attachment_id,
