@@ -78,6 +78,9 @@ class Features {
 						$property['type']   = 'string';
 						$property['format'] = 'uri';
 						break;
+					case 'field_group':
+						$property['type']       = 'object';
+						$property['properties'] = [];
 				}
 
 				$properties[ $schema['key'] ] = $property;
@@ -138,10 +141,30 @@ class Features {
 			$schema = $feature->get_settings_schema();
 
 			foreach ( $schema as $schema ) {
-				$key = $schema['key'];
+				$key  = $schema['key'];
+				$type = $schema['type'] ?? '';
 
 				if ( isset( $param[ $key ] ) ) {
-					$new_settings[ $slug ][ $key ] = $param[ $key ];
+					// Handle field group values
+					if ( 'field_group' === $type ) {
+						// Save the nested structure for the settings UI
+						$new_settings[ $slug ][ $key ] = $param[ $key ];
+
+						// Flatten the field group values into the main settings array
+						foreach ( $schema['fields'] as $field ) {
+							$field_key = $field['key'];
+							if ( isset( $param[ $key ][ $field_key ] ) ) {
+								$new_settings[ $slug ][ $field_key ] = $param[ $key ][ $field_key ];
+
+								// Only apply to current settings if no sync required
+								if ( empty( $schema['requires_sync'] ) ) {
+									$current_settings[ $slug ][ $field_key ] = $param[ $key ][ $field_key ];
+								}
+							}
+						}
+					} else {
+						$new_settings[ $slug ][ $key ] = $param[ $key ];
+					}
 
 					// Only apply to the current settings if does not require a sync or if it is activating it
 					if ( ! empty( $schema['requires_sync'] ) && ! empty( $param[ $key ] ) ) {
@@ -169,7 +192,17 @@ class Features {
 
 		foreach ( $settings_that_requires_features as $feature => $fields ) {
 			foreach ( $fields as $field_key => $field_data ) {
-				if ( ! empty( $current_settings[ $field_data['required_feature'] ]['active'] ) ) {
+				$required_features = (array) $field_data['required_feature'];
+
+				$all_required_active = true;
+				foreach ( $required_features as $required_feature_slug ) {
+					if ( empty( $current_settings[ $required_feature_slug ]['active'] ) ) {
+						$all_required_active = false;
+						break;
+					}
+				}
+
+				if ( $all_required_active ) {
 					$current_settings[ $feature ][ $field_key ] = $field_data['value'];
 				}
 			}

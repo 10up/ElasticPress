@@ -1,8 +1,11 @@
-.ep-dashboard-panel {
-	margin-bottom: 16px;
+#ep-dashboard {
 
 	& .components-notice {
-		margin: 0 0 16px 0;
+		margin: 16px 0;
+	}
+
+	& .components-panel {
+		height: calc(100% - 2px);
 	}
 
 	& .components-notice__actions {
@@ -16,42 +19,82 @@
 			opacity: 0.5;
 		}
 	}
+
+	& .components-base-control:not(:focus-within) {
+		
+		& .components-form-toggle__track,
+		& .components-form-toggle__thumb {
+			transition: none;
+		}
+	}
 }
 
-.ep-dashboard-tabs {
+/* Dashboard Layout and Structure */
+.ep-dashboard-panel {
+
+	&.components-panel {
+		border: none;
+	}
+
+	& .ep-dashboard-tabs {
+		display: block;
+	}
+}
+
+.ep-dashboard-content {
+	padding: 14px 16px 32px 0;
+
+	@media (max-width: 768px) {
+		padding-left: 16px;
+	}
+}
+
+.ep-dashboard-heading {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: space-between;
+	min-height: 20px;
+}
+
+.ep-dashboard-control {
+	margin: 24px 0;
+
+	& .components-base-control__help code {
+		font-size: inherit;
+	}
+}
+
+.ep-field-group {
+
+	& .ep-dashboard-control {
+		margin: 0;
+
+		&:not(:last-child) {
+			margin-bottom: 24px;
+		}
+	}
+
+	& .components-card,
+	& .components-card__header:first-of-type {
+		border-radius: 0;
+	}
+}
+
+/* Group Content Structure */
+.group-content {
+	background: #fff;
+	border: 1px solid #e0e0e0;
 	display: grid;
-	grid-gap: 40px;
-	grid-template-columns: max-content auto;
+	grid-gap: 16px;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 5fr);
 
-	& .components-tab-panel__tab-content {
-		padding-top: 14px;
-
-		& .components-notice {
-			margin: 16px 0;
-		}
+	& .components-notice {
+		margin: 16px 0;
 	}
 
-	& .components-tab-panel__tabs-item {
-		flex-wrap: wrap;
-		font-weight: 400;
-		text-align: left;
-
-		&.is-active {
-			background: #f0f0f0;
-			font-weight: 500;
-
-			&::after {
-				content: none;
-			}
-		}
-
-		&:focus:not(:disabled) {
-			box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
-			outline: var(--wp-admin-border-width-focus) solid transparent;
-		}
-	}
-
-	@media (max-width: 782px) {
+	@media (max-width: 768px) {
 		gap: 0;
 		grid-template-columns: 1fr;
 
@@ -62,6 +105,60 @@
 	}
 }
 
+/* Tabs Navigation */
+.ep-dashboard-outer-tabs {
+	align-content: baseline;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-right: none;
+	display: block;
+	flex-wrap: wrap;
+	margin-bottom: 0;
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.ep-dashboard-tabs-nav {
+	width: 100%;
+}
+
+.ep-dashboard-tab {
+	
+	/* Base tab styling */
+	align-items: center;
+	background: transparent;
+	border: none;
+	border-radius: 2px;
+	box-shadow: none;
+	box-sizing: border-box;
+	color: var(--wp-components-color-foreground, #1e1e1e);
+	cursor: pointer;
+	display: inline-flex;
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 500;
+	margin: 0;
+	padding: 16px;
+	position: relative;
+	text-align: left;
+	text-decoration: none;
+	width: 100%;
+	word-break: break-word;
+}
+
+.ep-dashboard-tab:focus {
+	box-shadow: none;
+	color: inherit;
+}
+
+.ep-dashboard-tab.is-active {
+	background: #f0f0f0;
+	font-weight: 500;
+}
+
+/* Feature Tab Styling */
 .ep-feature-tab {
 	align-items: start;
 	display: flex;
@@ -77,20 +174,13 @@
 	width: 100%;
 }
 
-.ep-dashboard-control {
-	margin-bottom: 24px;
-	margin-top: 24px;
+/* Settings Page Form */
+.ep-settings-page form .form-grid {
+	display: grid;
+	grid-template-columns: 1fr 4fr;
+	margin-bottom: 16px;
 
-	& .components-base-control__help code {
-		font-size: inherit;
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
 	}
-}
-
-.ep-dashboard-heading {
-	align-items: center;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	justify-content: space-between;
-	min-height: 20px;
 }

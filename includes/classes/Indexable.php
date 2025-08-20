@@ -1215,9 +1215,9 @@ abstract class Indexable {
 
 		try {
 			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
+				$meta_fields = (array) $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
-				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
+				$meta_fields = (array) $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
 			}
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );

@@ -1201,7 +1201,7 @@ class Post extends Indexable {
 				$order          = $default_order;
 			}
 
-			if ( empty( $orderby_clause ) || 'rand' === $orderby_clause ) {
+			if ( empty( $orderby_clause ) || 'rand' === $orderby_clause || preg_match( '/^rand\((\d+)\)$/i', $orderby_clause ) ) {
 				continue;
 			}
 
@@ -1693,17 +1693,31 @@ class Post extends Indexable {
 		}
 
 		/**
-		 * Order by 'rand' support
+		 * Order by 'rand' and 'Rand(x)' support
 		 *
 		 * Ref: https://github.com/elastic/elasticsearch/issues/1170
 		 */
 		if ( ! empty( $args['orderby'] ) ) {
-			$orderbys = $this->get_orderby_array( $args['orderby'] );
-			if ( in_array( 'rand', $orderbys, true ) ) {
-				$formatted_args_query                                      = $formatted_args['query'];
-				$formatted_args['query']                                   = [];
-				$formatted_args['query']['function_score']['query']        = $formatted_args_query;
-				$formatted_args['query']['function_score']['random_score'] = (object) [];
+			$orderbys        = $this->get_orderby_array( $args['orderby'] );
+			$random_orderbys = preg_grep( '/^rand(?:\((\d+)\))?$/i', $orderbys );
+
+			if ( ! empty( $random_orderbys ) ) {
+				$formatted_args_query                               = $formatted_args['query'];
+				$formatted_args['query']                            = [];
+				$formatted_args['query']['function_score']['query'] = $formatted_args_query;
+
+				// Get the first random orderby found.
+				$random_orderby = reset( $random_orderbys );
+
+				// check if rand with seed.
+				if ( preg_match( '/^rand\((\d+)\)$/i', $random_orderby, $matches ) ) {
+					$formatted_args['query']['function_score']['random_score'] = (object) [
+						'seed'  => (int) $matches[1],
+						'field' => '_seq_no',
+					];
+				} else {
+					$formatted_args['query']['function_score']['random_score'] = (object) [];
+				}
 			}
 		}
 
@@ -2078,6 +2092,8 @@ class Post extends Indexable {
 
 			if ( array_key_exists( 'and', $date_filter ) ) {
 				return $date_filter['and'];
+			} elseif ( array_key_exists( 'or', $date_filter ) ) {
+				return $date_filter['or'];
 			}
 		}
 	}

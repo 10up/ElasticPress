@@ -193,13 +193,12 @@ function getJsonQuery() {
  * Build the search query from the search text
  *
  * @param {string} searchText    - user search string
- * @param {string} placeholder   - placeholder text to replace
  * @param {object} options       - Autosuggest settings
  * @param {string} options.query - JSON query string to pass to ElasticSearch
  * @returns {string} json representation of search query
  */
-function buildSearchQuery(searchText, placeholder, { query }) {
-	const newQuery = replaceGlobally(query, placeholder, searchText);
+function buildSearchQuery(searchText, { query }) {
+	const newQuery = replaceGlobally(query, epas.placeholder, searchText);
 	return newQuery;
 }
 
@@ -638,13 +637,12 @@ function init() {
 		}
 
 		const searchText = input.value;
-		const placeholder = 'ep_autosuggest_placeholder';
 		const postTypes = getPostTypesFromForm(input.form);
 
 		if (searchText.length >= 2) {
 			setFormIsLoading(true, input);
 
-			let query = buildSearchQuery(searchText, placeholder, queryJSON);
+			let query = buildSearchQuery(searchText, queryJSON);
 
 			query = JSON.parse(query);
 
