@@ -431,7 +431,7 @@ class Facets extends Feature {
 			_doing_it_wrong(
 				__METHOD__,
 				esc_html__( 'The global variable $GLOBALS[\'ep_facet_aggs\'] is deprecated. Access aggregation data directly from the query object using $query->ep_aggregations or the Facets feature methods get_query_aggregations() and get_facet_aggregation().', 'elasticpress' ),
-				'5.3.0'
+				'ElasticPress 5.3.0'
 			);
 
 			$GLOBALS['ep_facet_aggs'] = $aggregations;
@@ -446,15 +446,9 @@ class Facets extends Feature {
 	 * @return array|false Aggregation data or false if not found
 	 */
 	public function get_query_aggregations( $query ) {
-		if ( ! $query instanceof \WP_Query ) {
-			return $GLOBALS['ep_facet_aggs'] ?? false;
+		if ( $query instanceof \WP_Query && isset( $query->ep_aggregations ) && false !== $query->ep_aggregations ) {
+			return $query->ep_aggregations;
 		}
-
-		$query_aggs = $query->ep_aggregations ?? false;
-		if ( false !== $query_aggs ) {
-			return $query_aggs;
-		}
-
 		// Fallback to global variable
 		return $GLOBALS['ep_facet_aggs'] ?? false;
 	}
