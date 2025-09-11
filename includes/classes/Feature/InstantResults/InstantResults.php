@@ -613,8 +613,8 @@ class InstantResults extends Feature {
 	public function maybe_bypass_post_exclusion( $bypass_exclusion_from_search, $query ) {
 		_doing_it_wrong(
 			__METHOD__,
-			esc_html__( 'This method should not be called anymore, use WP_Query argument `ep_skip_search_exclusion` instead.' ),
-			'5.3.0'
+			esc_html__( 'Use the WP_Query argument `ep_skip_search_exclusion`.', 'elasticpress' ),
+			'ElasticPress 5.3.0'
 		);
 
 		return true === $query->get( 'ep_search_template' ) ?

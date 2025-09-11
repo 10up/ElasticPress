@@ -930,7 +930,7 @@ class Autosuggest extends Feature {
 	public function delete_cached_query() {
 		_doing_it_wrong(
 			__METHOD__,
-			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.' ),
+			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.', 'elasticpress' ),
 			'ElasticPress 4.7.0'
 		);
 	}
