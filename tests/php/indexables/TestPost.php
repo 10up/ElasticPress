@@ -9854,7 +9854,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `ep_intercept_request` argument
+	 * Test the `ep_intercept_request` argument.
 	 *
 	 * @since 5.3.0
 	 * @group post

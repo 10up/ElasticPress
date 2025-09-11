@@ -851,8 +851,8 @@ class Autosuggest extends Feature {
 	public function intercept_remote_request() {
 		_doing_it_wrong(
 			__METHOD__,
-			esc_html__( 'This method should not be called anymore, use WP_Query argument `ep_intercept_request` instead.' ),
-			'5.3.0'
+			esc_html__( 'Use the WP_Query argument `ep_intercept_request` instead.', 'elasticpress' ),
+			'ElasticPress 5.3.0'
 		);
 
 		return true;
