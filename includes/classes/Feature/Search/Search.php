@@ -778,7 +778,7 @@ class Search extends Feature {
 		if ( apply_filters_deprecated(
 			'ep_bypass_exclusion_from_search',
 			[ $bypass_exclusion_from_search, $query ],
-			'5.3.0',
+			'ElasticPress 5.3.0',
 			'WP_Query->ep_skip_search_exclusion argument'
 		) ) {
 			return $filters;
