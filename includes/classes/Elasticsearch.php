@@ -1300,7 +1300,7 @@ class Elasticsearch {
 			 * @param {boolean} $intercept True to intercept
 			 * @return {boolean} New value
 			 */
-			if ( true === apply_filters( 'ep_intercept_remote_request', false ) ) {
+			if ( true === apply_filters( 'ep_intercept_remote_request', false ) || ! empty( $query_args['ep_intercept_request'] ) ) {
 				/**
 				 * Filter intercepted request
 				 *
