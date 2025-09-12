@@ -96,13 +96,15 @@ class MetaRange {
 		$min_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_min';
 		$max_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_max';
 
-		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] ) || empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] ) ) {
+		$aggregations = $facets->get_query_aggregations( $wp_query );
+
+		if ( empty( $aggregations[ $min_field_name ] ) || empty( $aggregations[ $max_field_name ] ) ) {
 			wp_send_json_error();
 			return;
 		}
 
-		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
-		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
+		$min = $aggregations[ $min_field_name ];
+		$max = $aggregations[ $max_field_name ];
 
 		wp_send_json_success(
 			[
