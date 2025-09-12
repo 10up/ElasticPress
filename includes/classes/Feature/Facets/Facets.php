@@ -283,7 +283,7 @@ class Facets extends Feature {
 		if ( apply_filters_deprecated(
 			'ep_is_facetable',
 			[ false, $query ],
-			'5.3.0',
+			'ElasticPress 5.3.0',
 			'WP_Query->ep_is_facetable argument'
 		) ) {
 			return true;

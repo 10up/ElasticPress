@@ -71,8 +71,6 @@ class MetaRange {
 	public function get_meta_range( \WP_REST_Request $request ) {
 		global $wp_query;
 
-		add_filter( 'ep_is_facetable', '__return_true' );
-
 		$search = Features::factory()->get_registered_feature( 'search' );
 		$facets = Features::factory()->get_registered_feature( 'facets' );
 
@@ -88,8 +86,9 @@ class MetaRange {
 		);
 
 		$args = [
-			'post_type'      => $search->get_searchable_post_types(),
-			'posts_per_page' => 1,
+			'post_type'       => $search->get_searchable_post_types(),
+			'posts_per_page'  => 1,
+			'ep_is_facetable' => true,
 		];
 		$wp_query->query( $args );
 
