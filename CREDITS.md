@@ -253,6 +253,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Evan Connolly (@econscript)](https://github.com/econscript),
 [Dik Takken (@dtakken)](https://github.com/dtakken),
 [@nymwo](https://github.com/nymwo),
+[Dilip Bheda (@dilipbheda)](https://github.com/dilipbheda),
+[Zach (@ZacharyRener)](https://github.com/ZacharyRener),
+[Christian (@eartahhj)](https://github.com/eartahhj),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

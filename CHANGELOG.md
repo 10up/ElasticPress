@@ -14,6 +14,46 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.0] - 2025-XX-XX
+
+This version adds full compatibility with Elementor and introduces several improvements in the Features Screen.
+
+### Added
+* Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4137](https://github.com/10up/ElasticPress/pull/4137) and [#4154](https://github.com/10up/ElasticPress/pull/4154).
+* Selected features and groups now persist across reload. Props [@ZacharyRener](https://github.com/ZacharyRener), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia) via [#4138](https://github.com/10up/ElasticPress/pull/4138).
+* Feature fields can be dependent on other fields. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4141](https://github.com/10up/ElasticPress/pull/4141).
+* Ability to create groups of fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4142](https://github.com/10up/ElasticPress/pull/4142), [#4171](https://github.com/10up/ElasticPress/pull/4171), and [#4172](https://github.com/10up/ElasticPress/pull/4172).
+* Ability for a feature to require multiple other features, instead of just one. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4143](https://github.com/10up/ElasticPress/pull/4143).
+* Add new widgets for Date, Meta, and Meta Range Filters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4156](https://github.com/10up/ElasticPress/pull/4156).
+* Support for rand with a seed in the orderby clause. Props [@asharirfan](https://github.com/asharirfan), [@asharirfan](https://github.com/asharirfan), [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), [@tlovett1](https://github.com/tlovett1), [@mustafauysal](https://github.com/mustafauysal), and [@jgmedialtd](https://github.com/jgmedialtd) via [#1639](https://github.com/10up/ElasticPress/pull/1639).
+* Implement "OR" filter relationship in DateQuery. Props [@burhandodhy](https://github.com/burhandodhy) and [@eartahhj](https://github.com/eartahhj) via [#4165](https://github.com/10up/ElasticPress/pull/4165).
+* Add support for new WP_Query argument `ep_intercept_request`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4185](https://github.com/10up/ElasticPress/pull/4185).
+
+### Changed
+
+### Deprecated
+* Remove deprecated side param from edge_ngram filter for ES 8.16.x compatibility. Props [@rebeccahum](https://github.com/rebeccahum) via [#4155](https://github.com/10up/ElasticPress/pull/4155) and [#4173](https://github.com/10up/ElasticPress/pull/4173).
+
+### Removed
+
+### Fixed
+* Autosuggest doesn't work if the placeholder is changed via a `ep_autosuggest_query_placeholder` filter. Props [@fabianmarz](https://github.com/fabianmarz) and [@burhandodhy](https://github.com/burhandodhy) via [#1619](https://github.com/10up/ElasticPress/pull/1619).
+* Link to compatibility documentation in admin notices. Props [@dilipbheda](https://github.com/dilipbheda) via [#4126](https://github.com/10up/ElasticPress/pull/4126).
+* [Metadata Range filter] Warning `Undefined array key "is_preview"`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4157](https://github.com/10up/ElasticPress/pull/4157).
+* 'Filter by Taxonomy' widget does not appear in Elementor. Props [@burhandodhy](https://github.com/burhandodhy) via [#4152](https://github.com/10up/ElasticPress/pull/4152).
+* Add support to handle values in array format when the comparison operator was 'IN' or 'NOT IN'. Props [@burhandodhy](https://github.com/burhandodhy) via [#4168](https://github.com/10up/ElasticPress/pull/4168).
+
+### Security
+* Bumped `http-proxy-middleware` from 2.0.7 to 2.0.9. Props [@dependabot](https://github.com/dependabot) via [#4135](https://github.com/10up/ElasticPress/pull/4135).
+* Bumped `tar-fs` from 3.0.8 to 3.0.9. Props [@dependabot](https://github.com/dependabot) via [#4160](https://github.com/10up/ElasticPress/pull/4160).
+* Bumped `compression` from 1.7.5 to 1.8.1. Props [@dependabot](https://github.com/dependabot) via [#4175](https://github.com/10up/ElasticPress/pull/4175).
+* Bumped `form-data` from 4.0.1 to 4.0.4. Props [@dependabot](https://github.com/dependabot) via [#4178](https://github.com/10up/ElasticPress/pull/4178).
+* Overwrite package `@babel/runtime` coming from core packages due to a vulnerability. Props [@hugosolar](https://github.com/hugosolar) via [#4177](https://github.com/10up/ElasticPress/pull/4177).
+
+### Developer
+* Fixed e2e tests on WP 6.8. Props [@felipeelia](https://github.com/felipeelia) via [#4125](https://github.com/10up/ElasticPress/pull/4125).
+* Migrated e2e tests from Cypress to Playwright. Props [@felipeelia](https://github.com/felipeelia) via [#4134](https://github.com/10up/ElasticPress/pull/4134).
+
 ## [5.2.0] - 2025-04-10
 
 This version bumps the minimum WordPress version to 6.2+.
@@ -2227,6 +2267,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0
 [5.2.0]: https://github.com/10up/ElasticPress/compare/5.1.4...5.2.0
 [5.1.4]: https://github.com/10up/ElasticPress/compare/5.1.3...5.1.4
 [5.1.3]: https://github.com/10up/ElasticPress/compare/5.1.2...5.1.3
