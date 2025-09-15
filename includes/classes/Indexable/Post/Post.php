@@ -2087,6 +2087,8 @@ class Post extends Indexable {
 
 			if ( array_key_exists( 'and', $date_filter ) ) {
 				return $date_filter['and'];
+			} elseif ( array_key_exists( 'or', $date_filter ) ) {
+				return $date_filter['or'];
 			}
 		}
 	}

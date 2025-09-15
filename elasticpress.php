@@ -223,6 +223,7 @@ function register_indexable_posts() {
 	get_container()->set( '\ElasticPress\BlockTemplateUtils', new \ElasticPress\BlockTemplateUtils(), true );
 
 	get_container()->set( '\ElasticPress\ElasticPressIo', new \ElasticPress\ElasticPressIo() );
+	get_container()->set( '\ElasticPress\ElementorUtils', new \ElasticPress\ElementorUtils(), true );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 

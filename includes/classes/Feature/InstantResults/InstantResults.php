@@ -537,21 +537,20 @@ class InstantResults extends Feature {
 
 		wp_set_current_user( $template_user_id );
 
-		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
 		$query = new \WP_Query(
 			array(
-				'ep_integrate'       => true,
-				'ep_search_template' => true,
-				'post_status'        => array_values( $post_statuses ),
-				'post_type'          => $post_types,
-				's'                  => '{{ep_placeholder}}',
+				'ep_integrate'         => true,
+				'ep_search_template'   => true,
+				'post_status'          => array_values( $post_statuses ),
+				'post_type'            => $post_types,
+				's'                    => '{{ep_placeholder}}',
+				'ep_intercept_request' => true,
 			)
 		);
 
-		remove_filter( 'ep_intercept_remote_request', '__return_true' );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
 
