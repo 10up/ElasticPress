@@ -487,7 +487,7 @@ class ProtectedContent extends Feature {
 					'show_in_admin_all_list' => true,
 				]
 			),
-			$args['post_status'] ?? []
+			! empty( $args['post_status'] ) ? (array) $args['post_status'] : []
 		);
 
 		$post_types_with_capability    = [];
