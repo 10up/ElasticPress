@@ -9827,4 +9827,36 @@ class TestPost extends BaseTestCase {
 		$formatted_doc_status = $method->invokeArgs( $sync_manager, [ $custom_status ] );
 		$this->assertSame( $formatted_doc_status, 'Custom message' );
 	}
+
+	/**
+	 * Test the `ep_intercept_request` argument.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_ep_intercept_request_argument() {
+		add_filter(
+			'ep_do_intercept_request',
+			function () {
+				return new \WP_Error( 400, 'Error: Request failed.' );
+			}
+		);
+
+		add_action(
+			'ep_remote_request',
+			function ( $query ) {
+				$this->assertTrue( is_wp_error( $query['request'] ) );
+				$this->assertEquals( 'Error: Request failed.', $query['request']->get_error_message() );
+			}
+		);
+
+		$query = new \WP_Query(
+			[
+				's'                    => 'search',
+				'ep_intercept_request' => true,
+			]
+		);
+
+		$this->assertFalse( $query->elasticsearch_success );
+	}
 }
