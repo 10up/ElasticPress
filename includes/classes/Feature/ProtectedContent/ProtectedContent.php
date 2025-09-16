@@ -475,11 +475,6 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
-		// Exit early if post_status is set.
-		if ( ! empty( $args['post_status'] ) ) {
-			return $formatted_args;
-		}
-
 		$post_types = (array) $args['post_type'];
 
 		$valid_post_types = array_filter( $post_types, 'post_type_exists' );
@@ -491,7 +486,8 @@ class ProtectedContent extends Feature {
 					'protected'              => true,
 					'show_in_admin_all_list' => true,
 				]
-			)
+			),
+			$args['post_status'] ?? []
 		);
 
 		$post_types_with_capability    = [];
@@ -521,7 +517,7 @@ class ProtectedContent extends Feature {
 			$should_clauses[] = [
 				'bool' => [
 					'must' => [
-						[ 'terms' => [ 'post_type' => array_values( $post_types_with_capability ) ] ],
+						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_with_capability ) ] ],
 						[ 'terms' => [ 'post_status' => array_values( $all_statuses ) ] ],
 					],
 				],
@@ -532,7 +528,7 @@ class ProtectedContent extends Feature {
 			$should_clauses[] = [
 				'bool' => [
 					'must' => [
-						[ 'terms' => [ 'post_type' => array_values( $post_types_without_capability ) ] ],
+						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_without_capability ) ] ],
 						[ 'terms' => [ 'post_status' => array_values( $base_statuses ) ] ],
 					],
 				],
@@ -541,7 +537,7 @@ class ProtectedContent extends Feature {
 			$should_clauses[] = [
 				'bool' => [
 					'must' => [
-						[ 'terms' => [ 'post_type' => array_values( $post_types_without_capability ) ] ],
+						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_without_capability ) ] ],
 						[ 'term' => [ 'post_status' => 'private' ] ],
 						[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
 					],
