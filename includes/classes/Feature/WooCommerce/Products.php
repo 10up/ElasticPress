@@ -1058,11 +1058,7 @@ class Products {
 			)
 		);
 
-		if ( isset( $mapping[ $meta_key ] ) ) {
-			return $mapping[ $meta_key ];
-		}
-
-		return $this->get_orderby_meta_mapping( 'menu_order' );
+		return isset( $mapping[ $meta_key ] ) ? $mapping[ $meta_key ] : $mapping['menu_order'];
 	}
 
 	/**
