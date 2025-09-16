@@ -237,7 +237,6 @@ class OrdersAutosuggest {
 		$order_statuses = wc_get_order_statuses();
 
 		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 3 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
@@ -248,11 +247,11 @@ class OrdersAutosuggest {
 				'post_status'              => array_keys( $order_statuses ),
 				'post_type'                => 'shop_order',
 				's'                        => '{{ep_placeholder}}',
+				'ep_intercept_request'     => true,
 			)
 		);
 
 		remove_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
-		remove_filter( 'ep_intercept_remote_request', '__return_true' );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
 
