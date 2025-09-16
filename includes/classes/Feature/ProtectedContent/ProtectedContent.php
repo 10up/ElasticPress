@@ -475,6 +475,11 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
+		// Exit early if post_status is set.
+		if ( ! empty( $args['post_status'] ) ) {
+			return $formatted_args;
+		}
+
 		$post_types = (array) $args['post_type'];
 
 		$valid_post_types = array_filter( $post_types, 'post_type_exists' );
