@@ -48,7 +48,9 @@ trait ElasticPressIoTemplateManager {
 	 *
 	 * @return string Hook prefix.
 	 */
-	abstract public function get_hook_prefix(): string;
+	public function get_hook_prefix(): string {
+		return $this->get_feature_slug();
+	}
 
 	/**
 	 * Save the search template to ElasticPress.io.

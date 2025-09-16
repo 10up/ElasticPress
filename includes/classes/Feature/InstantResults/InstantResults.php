@@ -384,15 +384,6 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Get the feature slug for ElasticPress.io template management.
-	 *
-	 * @return string Feature slug.
-	 */
-	public function get_feature_slug(): string {
-		return $this->slug;
-	}
-
-	/**
 	 * Get the hook prefix for ElasticPress.io template management.
 	 *
 	 * @return string Hook prefix.
