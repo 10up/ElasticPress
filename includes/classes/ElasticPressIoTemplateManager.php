@@ -49,7 +49,7 @@ trait ElasticPressIoTemplateManager {
 	 * @return string Hook prefix.
 	 */
 	public function get_hook_prefix(): string {
-		return $this->get_feature_slug();
+		return 'ep_' . str_replace( '-', '_', $this->get_feature_slug() );
 	}
 
 	/**

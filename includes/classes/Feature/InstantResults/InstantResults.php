@@ -384,15 +384,6 @@ class InstantResults extends Feature {
 	}
 
 	/**
-	 * Get the hook prefix for ElasticPress.io template management.
-	 *
-	 * @return string Hook prefix.
-	 */
-	public function get_hook_prefix(): string {
-		return 'ep_instant_results';
-	}
-
-	/**
 	 * Get the endpoint for the Instant Results search template.
 	 *
 	 * @return string Instant Results search template endpoint.
