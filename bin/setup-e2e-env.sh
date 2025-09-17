@@ -71,19 +71,20 @@ if [ ! -z $WP_VERSION ]; then
 	./bin/wp-env-cli tests-wordpress "wp --allow-root core update --version=${WP_VERSION} --force"
 fi
 
+LOCALHOST="172.17.0.1"
+if [ "$(uname | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
+	echo "Running tests on $(uname)"
+	LOCALHOST="host.docker.internal"
+elif grep -qi microsoft /proc/version; then
+	echo "Running tests on Windows"
+	LOCALHOST="host.docker.internal"
+else
+	echo "Running tests on $(uname)"
+fi
+./bin/wp-env-cli tests-wordpress "wp --allow-root config set REAL_LOCALHOST ${LOCALHOST}"
+
 if [ -z $EP_HOST ]; then
-	# Determine what kind of env we're in
-	if [ "$(uname | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
-		echo "Running tests on $(uname)"
-		EP_HOST="http://host.docker.internal:8890/"
-	elif grep -qi microsoft /proc/version; then
-		echo "Running tests on Windows"
-		EP_HOST="http://host.docker.internal:8890/"
-	else
-		echo "Running tests on $(uname)"
-		# 172.17.0.1 is the IP Address of host when using Linux
-		EP_HOST="http://172.17.0.1:8890/"
-	fi
+	EP_HOST="http://${LOCALHOST}:8890/"
 fi
 ./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_HOST ${EP_HOST}"
 

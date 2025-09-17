@@ -5,12 +5,19 @@ import {
 	maybeDisableFeature,
 	maybeEnableFeature,
 	updateWeighting,
+	wpCliEval,
+	emptyWidgets,
 } from '../utils.js';
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {
-		await wpCli('elasticpress sync --setup --yes');
-		await wpCli('plugin deactivate filter-autosuggest-navigate-callback');
+		await emptyWidgets();
+		await wpCliEval(`
+			WP_CLI::runcommand( "plugin activate cpt-and-custom-tax fix-autosuggest-localhost", [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
+			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback fix-autosuggest-localhost', [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all', 'exit_error' => false ] );
+		`);
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
