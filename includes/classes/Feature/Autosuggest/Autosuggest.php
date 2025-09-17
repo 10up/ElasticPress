@@ -651,15 +651,7 @@ class Autosuggest extends Feature {
 			return;
 		}
 
-		$url = add_query_arg(
-			[
-				's'                       => 'search test',
-				'ep_epio_set_autosuggest' => 1,
-				'ep_epio_nonce'           => wp_create_nonce( 'ep-epio-set-autosuggest' ),
-				'nocache'                 => time(), // Here just to avoid the request hitting a CDN.
-			],
-			home_url( '/' )
-		);
+		$url = $this->get_epio_public_request_url();
 
 		// Pass the same cookies, so the same authenticated user is used (and we can check the nonce).
 		$cookies = [];
@@ -682,6 +674,24 @@ class Autosuggest extends Feature {
 				'cookies'  => $cookies,
 				'blocking' => (bool) $blocking,
 			]
+		);
+	}
+
+	/**
+	 * Get the public request URL that saves the autosuggest allowed parameters.
+	 *
+	 * @since 5.3.0
+	 * @return string
+	 */
+	public function get_epio_public_request_url() {
+		return add_query_arg(
+			[
+				's'                       => 'search test',
+				'ep_epio_set_autosuggest' => 1,
+				'ep_epio_nonce'           => wp_create_nonce( 'ep-epio-set-autosuggest' ),
+				'nocache'                 => time(), // Here just to avoid the request hitting a CDN.
+			],
+			home_url( '/' )
 		);
 	}
 

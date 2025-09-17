@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures.js';
+import { test, expect, Page } from '../fixtures.js';
 import {
 	wpCli,
 	deactivatePlugin,
@@ -6,28 +6,26 @@ import {
 	maybeEnableFeature,
 	updateWeighting,
 	wpCliEval,
-	emptyWidgets,
+	goToAdminPage,
+	login,
 } from '../utils.js';
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
-	test.beforeAll(async () => {
-		await emptyWidgets();
+	test.beforeAll(async ({ browser }) => {
 		await wpCliEval(`
 			WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => 'all', 'exit_error' => false ] );
 			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
-
-			/**
-			 * This is needed because the request made by epio_send_autosuggest_public_request points to "localhost".
-			 * Unfortunately, for internal requests that doesn't work. This plugin overrides that value when needed.
-			 *
-			 * Adding this before syncing would send to Elasticsearch the wrong URL for all posts.
-			 */
-			WP_CLI::runcommand( "plugin activate fix-autosuggest-localhost", [ 'return' => 'all', 'exit_error' => false ] );
-			WP_CLI::runcommand( 'elasticpress epio-set-autosuggest', [ 'return' => 'all', 'exit_error' => false ] );
-			
-			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback fix-autosuggest-localhost', [ 'return' => 'all', 'exit_error' => false ] );
-			WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback', [ 'return' => 'all', 'exit_error' => false ] );
 		`);
+
+		const loggedInPage = await browser.newPage();
+		await login(loggedInPage);
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-status-report');
+		await loggedInPage.getByRole('button').getByText('Allowed Autosuggest Parameters').click();
+		const autosuggestLink = loggedInPage.getByRole('link').getByText('this URL');
+		const autosuggestUrl = (await autosuggestLink.getAttribute('href')) ?? '';
+		await loggedInPage.goto(autosuggestUrl);
+		await loggedInPage.close();
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
