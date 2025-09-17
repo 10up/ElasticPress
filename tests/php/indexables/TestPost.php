@@ -9807,43 +9807,17 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 5.2.0
 	 * @group post
+	 * @expectedDeprecated ElasticPress\Indexable\Post\SyncManager::add_admin_bar_status
 	 */
 	public function test_add_admin_bar_status() {
-		global $pagenow;
-
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 
 		$admin_bar    = new \WP_Admin_Bar();
 		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
 		$sync_manager = $indexable->sync_manager;
 
-		// Not displaying. Wrong screen.
+		// Throws deprecated warning.
 		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Not displaying. Right screen, no post.
-		$pagenow = 'post.php';
-		set_current_screen( 'post.php' );
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Not displaying. Right screen, but post type not indexable.
-		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
-		$GLOBALS['post'] = $post;
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Displaying.
-		$post            = $this->ep_factory->post->create_and_get();
-		$GLOBALS['post'] = $post;
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertArrayHasKey( 'ep-doc-status', $admin_bar->get_nodes() );
-
-		// Not displaying. No status.
-		add_filter( 'ep_doc_status', '__return_empty_array' );
-		$admin_bar = new \WP_Admin_Bar();
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
 	}
 
 	/**
@@ -9914,6 +9888,7 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 5.2.0
 	 * @group post
+	 * @expectedDeprecated ep_formatted_doc_status
 	 */
 	public function test_format_doc_status() {
 		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
@@ -10151,5 +10126,88 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->found_posts );
 		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the `SyncManager::maybe_add_doc_status_to_admin_bar_status` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_maybe_add_doc_status_to_admin_bar_status() {
+		global $pagenow;
+
+		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
+		$sync_manager = $indexable->sync_manager;
+
+		$initial_status_and_summary = [
+			'status' => 'success',
+			'summary' => [
+				'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+			],
+		];
+
+		// Not changing. Wrong screen.
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Not changing. Right screen, no post.
+		$pagenow = 'post.php';
+		set_current_screen( 'post.php' );
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Not changing. Right screen, but post type not indexable.
+		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
+		$GLOBALS['post'] = $post;
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Changing.
+		$post            = $this->ep_factory->post->create_and_get();
+		$GLOBALS['post'] = $post;
+		$this->assertSame(
+			[
+				'status' => 'success',
+				'summary' => [
+					'doc_status'                     => 'Content in sync: WordPress and Elasticsearch content match.',
+					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+				],
+			],
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		$change_doc_status = function ( $status, $post_id, $es_doc ) {
+			return [
+				'status'      => 'custom',
+				'message'     => 'Sync required',
+				'explanation' => 'Custom explanation.',
+			];
+		};
+		add_filter( 'ep_doc_status', $change_doc_status, 10, 3 );
+		$this->assertSame(
+			[
+				'status' => 'custom',
+				'summary' => [
+					'doc_status'                     => 'Sync required: Custom explanation.',
+					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+				],
+			],
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+		remove_filter( 'ep_doc_status', $change_doc_status );
+
+		// Not changing. No status.
+		add_filter( 'ep_doc_status', '__return_empty_array' );
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
 	}
 }

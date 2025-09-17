@@ -1065,6 +1065,7 @@ class SyncManager extends \ElasticPress\SyncManager {
 	 * Format the document status for the admin bar.
 	 *
 	 * @since 5.2.0
+	 * @deprecated 5.3.0
 	 * @param array $document_status Document status
 	 * @return string
 	 */
@@ -1082,13 +1083,19 @@ class SyncManager extends \ElasticPress\SyncManager {
 		 * Filter the formatted document status.
 		 *
 		 * @since 5.2.0
+		 * @deprecated 5.3.0
 		 * @hook ep_formatted_doc_status
 		 * @param string $formatted_status The formatted status
 		 * @param array  $document_status  The document status
 		 * @param string $status_indicator The status indicator
 		 * @param string $message          The message
 		 */
-		return (string) apply_filters( 'ep_formatted_doc_status', $status_indicator . $message, $document_status, $status_indicator, $message );
+		return (string) apply_filters_deprecated(
+			'ep_formatted_doc_status',
+			[ $status_indicator . $message, $document_status, $status_indicator, $message ],
+			'ElasticPress 5.3.0',
+			'ep_admin_bar_status_and_summary'
+		);
 	}
 
 	/**
