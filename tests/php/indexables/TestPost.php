@@ -9948,6 +9948,42 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the painless script query with simple string.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query() {
+		$this->ep_factory->post->create_many( 10, [] );
+		$post_id = $this->ep_factory->post->create( [ 'post_title' => 'test' ] );
+		$page_id = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Test with simple string.
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [ "doc['post_title.raw'].value == 'test'" ],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+
+		// Test with multiple conditions.
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'post_type'       => [ 'page', 'post' ],
+				'painless_script' => [ "doc['post_id'].value == " . $post_id . " || doc['post_type.raw'].value == 'page'" ],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test the `ep_intercept_request` argument.
 	 *
 	 * @since 5.3.0
@@ -9977,5 +10013,143 @@ class TestPost extends BaseTestCase {
 		);
 
 		$this->assertFalse( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test the painless script query with params.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_params() {
+		$this->ep_factory->post->create_many(
+			10,
+			[
+				'meta_input' => [
+					'test_key' => wp_rand( 1, 10 ),
+				],
+			]
+		);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 15,
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] > params.max_value",
+						'params' => [ 'max_value' => 10 ],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the painless script query with mixed format.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_mixed_format() {
+		$this->ep_factory->post->create_many(
+			10,
+			[
+				'meta_input' => [
+					'test_key' => wp_rand( 1, 20 ),
+				],
+			]
+		);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 30,
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					"doc['post_type.raw'].value == 'post'",
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] > params.max_value",
+						'params' => [ 'max_value' => 25 ],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the painless script query with multiple params.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_multiple_params() {
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						'test_key' => 5,
+					],
+				]
+			);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 30,
+				],
+			]
+		);
+
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						'test_key' => 50,
+					],
+				]
+			);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] >= params.min_value && doc['meta.test_key.long'][0] <= params.max_value",
+						'params' => [
+							'min_value' => 10,
+							'max_value' => 40,
+						],
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
 	}
 }
