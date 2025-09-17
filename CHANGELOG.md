@@ -28,8 +28,13 @@ This version adds full compatibility with Elementor and introduces several impro
 * Support for rand with a seed in the orderby clause. Props [@asharirfan](https://github.com/asharirfan), [@asharirfan](https://github.com/asharirfan), [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), [@tlovett1](https://github.com/tlovett1), [@mustafauysal](https://github.com/mustafauysal), and [@jgmedialtd](https://github.com/jgmedialtd) via [#1639](https://github.com/10up/ElasticPress/pull/1639).
 * Implement "OR" filter relationship in DateQuery. Props [@burhandodhy](https://github.com/burhandodhy) and [@eartahhj](https://github.com/eartahhj) via [#4165](https://github.com/10up/ElasticPress/pull/4165).
 * Add support for new WP_Query argument `ep_intercept_request`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4185](https://github.com/10up/ElasticPress/pull/4185).
+* New ElasticPressIoTemplateManager class. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4189](https://github.com/10up/ElasticPress/pull/4189).
+* Support for painless scripts in the ES queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@scottbuckel](https://github.com/scottbuckel) via [#4181](https://github.com/10up/ElasticPress/pull/4181).
+* Support to set an array value in the `orderby_meta_mapping` filters. Props [@burhandodhy](https://github.com/burhandodhy) and [@jzzaj](https://github.com/jzzaj) via [#4188](https://github.com/10up/ElasticPress/pull/4188).
 
 ### Changed
+* Index `srcset` for post thumbnails. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3693](https://github.com/10up/ElasticPress/pull/3693).
+* Menu SVG icon with default WP color. Props [@LenVan](https://github.com/LenVan) via [#4167](https://github.com/10up/ElasticPress/pull/4167).
 
 ### Deprecated
 * Remove deprecated side param from edge_ngram filter for ES 8.16.x compatibility. Props [@rebeccahum](https://github.com/rebeccahum) via [#4155](https://github.com/10up/ElasticPress/pull/4155) and [#4173](https://github.com/10up/ElasticPress/pull/4173).
@@ -42,6 +47,7 @@ This version adds full compatibility with Elementor and introduces several impro
 * [Metadata Range filter] Warning `Undefined array key "is_preview"`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4157](https://github.com/10up/ElasticPress/pull/4157).
 * 'Filter by Taxonomy' widget does not appear in Elementor. Props [@burhandodhy](https://github.com/burhandodhy) via [#4152](https://github.com/10up/ElasticPress/pull/4152).
 * Add support to handle values in array format when the comparison operator was 'IN' or 'NOT IN'. Props [@burhandodhy](https://github.com/burhandodhy) via [#4168](https://github.com/10up/ElasticPress/pull/4168).
+* Users could see other authors' private posts. Props [@burhandodhy](https://github.com/burhandodhy) via [#4169](https://github.com/10up/ElasticPress/pull/4169).
 
 ### Security
 * Bumped `http-proxy-middleware` from 2.0.7 to 2.0.9. Props [@dependabot](https://github.com/dependabot) via [#4135](https://github.com/10up/ElasticPress/pull/4135).

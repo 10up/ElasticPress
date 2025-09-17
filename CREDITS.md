@@ -256,6 +256,9 @@ Thank you to all the people who have already contributed to this repository via 
 [Dilip Bheda (@dilipbheda)](https://github.com/dilipbheda),
 [Zach (@ZacharyRener)](https://github.com/ZacharyRener),
 [Christian (@eartahhj)](https://github.com/eartahhj),
+[Vania from TigriWeb (@LenVan)](https://github.com/LenVan),
+[Scott Buckel (@scottbuckel)](https://github.com/scottbuckel),
+[@jzzaj](https://github.com/jzzaj),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
