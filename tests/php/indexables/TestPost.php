@@ -10141,7 +10141,7 @@ class TestPost extends BaseTestCase {
 		$sync_manager = $indexable->sync_manager;
 
 		$initial_status_and_summary = [
-			'status' => 'success',
+			'status'  => 'success',
 			'summary' => [
 				'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
 			],
@@ -10174,7 +10174,7 @@ class TestPost extends BaseTestCase {
 		$GLOBALS['post'] = $post;
 		$this->assertSame(
 			[
-				'status' => 'success',
+				'status'  => 'success',
 				'summary' => [
 					'doc_status'                     => 'Content in sync: WordPress and Elasticsearch content match.',
 					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
@@ -10183,17 +10183,17 @@ class TestPost extends BaseTestCase {
 			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
 		);
 
-		$change_doc_status = function ( $status, $post_id, $es_doc ) {
+		$change_doc_status = function () {
 			return [
 				'status'      => 'custom',
 				'message'     => 'Sync required',
 				'explanation' => 'Custom explanation.',
 			];
 		};
-		add_filter( 'ep_doc_status', $change_doc_status, 10, 3 );
+		add_filter( 'ep_doc_status', $change_doc_status, 10, 0 );
 		$this->assertSame(
 			[
-				'status' => 'custom',
+				'status'  => 'custom',
 				'summary' => [
 					'doc_status'                     => 'Sync required: Custom explanation.',
 					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
