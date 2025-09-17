@@ -8,6 +8,7 @@ import {
 	wpCliEval,
 	goToAdminPage,
 	login,
+	isEpIo,
 } from '../utils.js';
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
@@ -18,14 +19,19 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback', [ 'return' => 'all', 'exit_error' => false ] );
 		`);
 
-		const loggedInPage = await browser.newPage();
-		await login(loggedInPage);
-		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-status-report');
-		await loggedInPage.getByRole('button').getByText('Allowed Autosuggest Parameters').click();
-		const autosuggestLink = loggedInPage.getByRole('link').getByText('this URL');
-		const autosuggestUrl = (await autosuggestLink.getAttribute('href')) ?? '';
-		await loggedInPage.goto(autosuggestUrl);
-		await loggedInPage.close();
+		if (isEpIo()) {
+			const loggedInPage = await browser.newPage();
+			await login(loggedInPage);
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-status-report');
+			await loggedInPage
+				.getByRole('button')
+				.getByText('Allowed Autosuggest Parameters')
+				.click();
+			const autosuggestLink = loggedInPage.getByRole('link').getByText('this URL');
+			const autosuggestUrl = (await autosuggestLink.getAttribute('href')) ?? '';
+			await loggedInPage.goto(autosuggestUrl);
+			await loggedInPage.close();
+		}
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {
