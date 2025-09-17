@@ -2228,29 +2228,8 @@ class Post extends Indexable {
 					],
 				];
 			}
-		} else {
+		} elseif ( ! is_admin() ) {
 			$statuses = get_post_stati( array( 'public' => true ) );
-
-			if ( is_admin() ) {
-				/**
-				 * In the admin we will add protected and private post statuses to the default query
-				 * per WP default behavior.
-				 */
-				$statuses = array_merge(
-					$statuses,
-					get_post_stati(
-						array(
-							'protected'              => true,
-							'show_in_admin_all_list' => true,
-						)
-					)
-				);
-
-				if ( is_user_logged_in() ) {
-					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
-				}
-			}
-
 			$statuses = array_values( $statuses );
 
 			$post_status_filter_type = 'terms';
