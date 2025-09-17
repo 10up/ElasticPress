@@ -91,69 +91,88 @@ class AdminBar {
 			return;
 		}
 
+		$queries = $this->get_queries();
+		$status  = $this->get_status( $queries );
+
 		$has_main_query        = ! empty( $wp_query->query_vars['ep_integrate'] );
 		$is_main_query_success = $has_main_query && $wp_query->elasticsearch_success;
-
-		$queries = \ElasticPress\Elasticsearch::factory()->get_query_log();
-
-		$filtered_queries = array_filter(
-			$queries,
-			function ( $query ) {
-				return ! isset( $query['request'], $query['request']['is_ep_fake_request'] ) || ! $query['request']['is_ep_fake_request'];
-			}
-		);
-		$failed_queries   = array_filter(
-			$filtered_queries,
-			function ( $query ) {
-				return ! isset( $query['request'], $query['request']['response'], $query['request']['response']['code'] ) || $query['request']['response']['code'] < 200 || $query['request']['response']['code'] >= 300;
-			}
-		);
-
-		$status = '';
-		if ( $filtered_queries ) {
-			$status = 'success';
-		}
-		if ( $failed_queries ) {
-			$status = 'error';
-		}
 
 		$main_query_status = __( 'No', 'elasticpress' );
 		if ( $has_main_query ) {
 			$main_query_status = $is_main_query_success ? __( 'Yes', 'elasticpress' ) : __( 'Failed', 'elasticpress' );
 		}
 
-		$results   = [];
-		$results[] = sprintf(
+		$results               = [];
+		$results['main_query'] = sprintf(
 			/* translators: %s: Yes, Failed, or No */
 			__( 'Main query: %s', 'elasticpress' ),
 			$main_query_status
 		);
-		$results[] = sprintf(
+		$results['total_queries'] = sprintf(
 			/* translators: %s: Total queries */
 			__( 'Total queries: %s', 'elasticpress' ),
-			count( $filtered_queries )
+			count( $queries['filtered'] )
 		);
-		$results[] = sprintf(
+		$results['failed_queries'] = sprintf(
 			/* translators: %s: Failed queries */
 			__( 'Failed queries: %s', 'elasticpress' ),
-			count( $failed_queries )
+			count( $queries['failed'] )
 		);
 
-		$results[] = sprintf(
-			/* translators: %s: Debugging Article URL */
-			__( '<a href="%s">More about debugging</a>', 'elasticpress' ),
+		$results['debugging_article'] = sprintf(
+			'<a href="%s">' . __( 'More about debugging', 'elasticpress' ) . '</a>',
 			'https://www.elasticpress.io/resources/articles/using-the-elasticpress-debugging-add-on-plugin/'
 		);
 
-		$results_output = implode( '<br>', $results );
+		$status_and_summary = [
+			'status'  => $status,
+			'summary' => $results,
+		];
+
+		/**
+		 * Filter whether to display the admin bar status.
+		 *
+		 * @since 5.3.0
+		 * @hook ep_admin_bar_status_and_summary
+		 * @param {array} $status_and_summary     CSS class of status indicator. (success, warning, or error)
+		 * @param {array}  $results               Array of results to display in the admin bar.
+		 * @param {array}  $queries               Array of filtered and failed queries.
+		 * @param {bool}   $has_main_query        Whether the main query was integrated with Elasticsearch.
+		 * @param {bool}   $is_main_query_success Whether the main query is successful.
+		 * @return {array} New status value
+		 */
+		$filtered_status_and_summary = apply_filters( 'ep_admin_bar_status_and_summary', $status_and_summary, $queries, $has_main_query, $is_main_query_success );
+
+		if ( ! isset( $filtered_status_and_summary['status'], $filtered_status_and_summary['summary'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html__( 'The ep_admin_bar_status_and_summary filter must return an array with the status and summary keys.', 'elasticpress' ),
+				'ElasticPress 5.3.0'
+			);
+			return;
+		}
+
+		$results_output = implode( '<br>', $filtered_status_and_summary['summary'] );
 		$results_output = str_replace( '"', "'", $results_output );
 
-		echo '<script>
+		$final_output = '<script>
 			document.addEventListener("DOMContentLoaded", function() {
-       			document.getElementById("ep-ab-indicator").classList.add("ep-status-indicator--' . esc_js( $status ) . '");
+       			document.getElementById("ep-ab-indicator").classList.add("ep-status-indicator--' . esc_js( $filtered_status_and_summary['status'] ) . '");
 				document.querySelector("#wp-admin-bar-ep-basic-status-summary .ab-item").innerHTML = "' . wp_kses_post( $results_output ) . '";
     		});
 		</script>';
+
+		/**
+		 * Filter the final output of the admin bar status and summary.
+		 *
+		 * @since 5.3.0
+		 * @hook ep_admin_bar_status_and_summary_output
+		 * @param {string} $final_output                The final output of the admin bar status and summary.
+		 * @param {array}  $filtered_status_and_summary The filtered status and summary.
+		 * @param {array}  $queries                     The queries.
+		 * @return {string} New final output
+		 */
+		echo apply_filters( 'ep_admin_bar_status_and_summary_output', $final_output, $filtered_status_and_summary, $queries ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -171,5 +190,51 @@ class AdminBar {
 		 * @return {bool} New should display value
 		 */
 		return apply_filters( 'ep_admin_bar_should_display', true );
+	}
+
+	/**
+	 * Get the queries.
+	 *
+	 * @since 5.3.0
+	 * @return array Array of filtered and failed queries.
+	 */
+	protected function get_queries(): array {
+		$queries = \ElasticPress\Elasticsearch::factory()->get_query_log();
+
+		$filtered_queries = array_filter(
+			$queries,
+			function ( $query ) {
+				return ! isset( $query['request'], $query['request']['is_ep_fake_request'] ) || ! $query['request']['is_ep_fake_request'];
+			}
+		);
+		$failed_queries   = array_filter(
+			$filtered_queries,
+			function ( $query ) {
+				return ! isset( $query['request'], $query['request']['response'], $query['request']['response']['code'] ) || $query['request']['response']['code'] < 200 || $query['request']['response']['code'] >= 300;
+			}
+		);
+
+		return [
+			'filtered' => $filtered_queries,
+			'failed'   => $failed_queries,
+		];
+	}
+
+	/**
+	 * Get the status.
+	 *
+	 * @since 5.3.0
+	 * @param array $queries The queries.
+	 * @return string The status.
+	 *                 success, error, or empty string.
+	 */
+	protected function get_status( $queries ): string {
+		if ( $queries['filtered'] ) {
+			return 'success';
+		}
+		if ( $queries['failed'] ) {
+			return 'error';
+		}
+		return '';
 	}
 }

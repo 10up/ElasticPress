@@ -38,12 +38,10 @@
 	}
 }
 
-#wp-admin-bar-ep-doc-status .ab-item,
 #wp-admin-bar-ep-basic-status .ab-item {
 	height: auto !important;
 }
 
-#wp-admin-bar-ep-doc-status-explanation,
 #wp-admin-bar-ep-basic-status-summary {
 
 	& ul {
@@ -53,5 +51,9 @@
 		& li {
 			list-style: disc;
 		}
+	}
+
+	& a {
+		font-weight: 700;
 	}
 }
