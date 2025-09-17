@@ -541,7 +541,12 @@ class TestProtectedContent extends BaseTestCase {
 
 		wp_set_current_user( $author_1_id );
 
-		$query = new \WP_Query( [ 'ep_integrate' => true ] );
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
@@ -551,6 +556,7 @@ class TestProtectedContent extends BaseTestCase {
 			[
 				'post_type'    => [ 'post', 'page' ] ,
 				'ep_integrate' => true,
+				'orderby'      => 'date',
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
@@ -565,6 +571,7 @@ class TestProtectedContent extends BaseTestCase {
 			[
 				'post_type'    => [ 'post', 'page' ] ,
 				'ep_integrate' => true,
+				'orderby'      => 'date',
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
@@ -580,6 +587,7 @@ class TestProtectedContent extends BaseTestCase {
 			[
 				'post_type'    => [ 'post', 'page' ] ,
 				'ep_integrate' => true,
+				'orderby'      => 'date',
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
