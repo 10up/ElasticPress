@@ -13,8 +13,18 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 	test.beforeAll(async () => {
 		await emptyWidgets();
 		await wpCliEval(`
-			WP_CLI::runcommand( "plugin activate cpt-and-custom-tax fix-autosuggest-localhost", [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => 'all', 'exit_error' => false ] );
 			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
+
+			/**
+			 * This is needed because the request made by epio_send_autosuggest_public_request points to "localhost".
+			 * Unfortunately, for internal requests that doesn't work. This plugin overrides that value when needed.
+			 *
+			 * Adding this before syncing would send to Elasticsearch the wrong URL for all posts.
+			 */
+			WP_CLI::runcommand( "plugin activate fix-autosuggest-localhost", [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( 'elasticpress epio-set-autosuggest', [ 'return' => 'all', 'exit_error' => false ] );
+			
 			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback fix-autosuggest-localhost', [ 'return' => 'all', 'exit_error' => false ] );
 			WP_CLI::runcommand( 'widget add search sidebar-1', [ 'return' => 'all', 'exit_error' => false ] );
 		`);
