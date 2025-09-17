@@ -1,4 +1,4 @@
-import { test, expect, Page } from '../fixtures.js';
+import { test, expect } from '../fixtures.js';
 import {
 	wpCli,
 	deactivatePlugin,
