@@ -683,7 +683,7 @@ class Autosuggest extends Feature {
 	 * @since 5.3.0
 	 * @return string
 	 */
-	public function get_epio_public_request_url() {
+	public function get_epio_public_request_url(): string {
 		return add_query_arg(
 			[
 				's'                       => 'search test',

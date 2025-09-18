@@ -180,7 +180,7 @@ class AdminBar {
 	 *
 	 * @return bool
 	 */
-	protected function should_display() {
+	protected function should_display(): bool {
 		/**
 		 * Filter whether to display the admin bar status.
 		 *
