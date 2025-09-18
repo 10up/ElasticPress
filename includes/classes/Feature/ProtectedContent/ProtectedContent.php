@@ -371,17 +371,6 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php echo wp_kses_post( __( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Fetches all post statuses we need to index
 	 *
 	 * @since  2.1

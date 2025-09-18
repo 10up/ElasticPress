@@ -327,17 +327,6 @@ class Documents extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 *
-	 * @since  2.3
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Website search results will include popular document file types, using file names as well as their content. Supported file types include: ppt, pptx, doc, docx, xls, xlsx, pdf.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Make sure to create pipeline after activation
 	 *
 	 * @since  2.6
