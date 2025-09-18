@@ -39,6 +39,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
+		global $wp_query;
+
 		$instance = wp_parse_args(
 			$instance,
 			[
@@ -75,6 +77,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		 */
 		$raw_values = $facet_type->get_meta_values( $instance['facet'] );
 
+		$facet_name         = $facet_type->get_filter_name() . $this->meta_field;
+		$facet_aggregations = $feature->get_facet_aggregation( $wp_query, $facet_name );
+
 		$values = [];
 
 		foreach ( $raw_values as $raw_value ) {
@@ -85,8 +90,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 				'is_selected' => in_array( $raw_value, $selected_meta, true ),
 			];
 
-			if ( ! empty( $GLOBALS['ep_facet_aggs'][ $facet_type->get_filter_name() . $this->meta_field ][ $raw_value ] ) ) {
-				$values[ $raw_value ]['count'] = (int) $GLOBALS['ep_facet_aggs'][ $facet_type->get_filter_name() . $this->meta_field ][ $raw_value ];
+			if ( ! empty( $facet_aggregations[ $raw_value ] ) ) {
+				$values[ $raw_value ]['count'] = (int) $facet_aggregations[ $raw_value ];
 			}
 		}
 
