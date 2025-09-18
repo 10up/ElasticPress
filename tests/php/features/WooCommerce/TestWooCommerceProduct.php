@@ -1066,7 +1066,9 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 			[ '_wc_average_rating', 'meta._wc_average_rating.double date' ],
 			[ '_price', 'meta._price.double date' ],
 			[ '_sku', 'meta._sku.value.sortable date' ],
-			[ 'custom_parameter', 'date' ],
+			[ 'date', 'date' ],
+			// if no mapping is found, it should fallback to menu_order
+			[ 'custom_order', 'menu_order title date' ],
 		];
 	}
 
@@ -1144,5 +1146,58 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		$options = wp_list_pluck( $decaying['options'], 'value' );
 		$this->assertContains( 'disabled_only_products', $options );
 		$this->assertContains( 'disabled_includes_products', $options );
+	}
+
+	/**
+	 * Test that array values in orderby_meta_mapping filter are applied correctly on query level.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 *
+	 * @since 5.3.0
+	 */
+	public function test_custom_orderby_is_applied() {
+		global $wp_the_query, $wp_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		add_filter(
+			'orderby_meta_mapping',
+			function ( $mapping ) {
+				$mapping['custom_order'] = [
+					'meta._price.double' => 'desc',
+					'title'              => 'asc',
+				];
+				return $mapping;
+			}
+		);
+
+		parse_str( 'orderby=custom_order', $_GET );
+
+		$this->ep_factory->product->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$args = array(
+			'post_type'    => 'product',
+			'ep_integrate' => true,
+		);
+
+		$query = new \WP_Query( $args );
+
+		// mock the query as main query
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$query = $query->query( $args );
+
+		$this->assertSame(
+			$wp_the_query->get( 'orderby' ),
+			[
+				'meta._price.double' => 'desc',
+				'title'              => 'asc',
+			]
+		);
 	}
 }

@@ -678,4 +678,14 @@ abstract class Feature {
 		 */
 		return apply_filters( 'ep_feature_field_groups', $this->field_group_map );
 	}
+
+	/**
+	 * Get the feature slug.
+	 *
+	 * @since 5.3.0
+	 * @return string Feature slug.
+	 */
+	public function get_feature_slug(): string {
+		return $this->slug;
+	}
 }

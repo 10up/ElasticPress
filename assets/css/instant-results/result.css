@@ -36,9 +36,11 @@
 	grid-area: thumbnail;
 
 	& img {
+		aspect-ratio: 1;
 		display: block;
 		height: auto;
 		margin: 0;
+		object-fit: cover;
 		width: 100%;
 	}
 }
