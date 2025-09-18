@@ -487,4 +487,140 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertEquals( 2, $query->found_posts );
 		$this->assertEquals( $not_so_good_match_id, $query->posts[0]->ID );
 	}
+
+	/**
+	 * Test that user can only see their own private posts.
+	 *
+	 * @since 5.3.0
+	 * @group protected-content
+	 */
+	public function test_user_can_only_see_their_own_private_posts() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$author_1_id = $this->factory->user->create();
+		$author_2_id = $this->factory->user->create();
+		$admin_id    = get_current_user_id();
+
+		$public_post_1_id = $this->ep_factory->post->create(
+			[
+				'post_title' => 'Public Post 1',
+				'post_type'  => 'post',
+			]
+		);
+
+		$public_page_1_id = $this->ep_factory->post->create(
+			[
+				'post_title' => 'Public Page 1',
+				'post_type'  => 'page',
+			]
+		);
+
+		$private_post_1_id = $this->ep_factory->post->create(
+			[
+				'post_title'  => 'Private Post 1 (Author 1)',
+				'post_type'   => 'post',
+				'post_status' => 'private',
+				'post_author' => $author_1_id,
+			]
+		);
+
+		$private_page_1_id = $this->ep_factory->post->create(
+			[
+				'post_title'  => 'Private Page 1 (Author 2)',
+				'post_type'   => 'page',
+				'post_status' => 'private',
+				'post_author' => $author_2_id,
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_set_current_user( $author_1_id );
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
+		$this->assertEquals( $private_post_1_id, $query->posts[1]->ID );
+
+		$query = new \WP_Query(
+			[
+				'post_type'    => [ 'post', 'page' ] ,
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
+		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
+		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
+
+		wp_set_current_user( $author_2_id );
+
+		$query = new \WP_Query(
+			[
+				'post_type'    => [ 'post', 'page' ] ,
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 3, $query->found_posts );
+		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
+		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
+		$this->assertEquals( $private_page_1_id, $query->posts[2]->ID );
+
+		// Admin can see all posts.
+		wp_set_current_user( $admin_id );
+
+		$query = new \WP_Query(
+			[
+				'post_type'    => [ 'post', 'page' ] ,
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 4, $query->found_posts );
+		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
+		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
+		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
+		$this->assertEquals( $private_page_1_id, $query->posts[3]->ID );
+	}
+
+	/**
+	 * Tests post statuses for admin.
+	 *
+	 * @since 5.3.0
+	 * @group protected-content
+	 */
+	public function test_post_statuses_for_admin() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post = new \ElasticPress\Indexable\Post\Post();
+
+		// This will include statuses besides publish.
+		$args     = $post->format_args( [ 'post_type' => [ 'post' ] ], new \WP_Query() );
+		$statuses = $args['post_filter']['bool']['should'][0]['bool']['must'][1]['terms']['post_status'];
+
+		$this->assertContains( 'publish', $statuses );
+		$this->assertContains( 'future', $statuses );
+		$this->assertContains( 'draft', $statuses );
+		$this->assertContains( 'pending', $statuses );
+		$this->assertContains( 'private', $statuses );
+	}
 }

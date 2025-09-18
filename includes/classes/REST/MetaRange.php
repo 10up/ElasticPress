@@ -71,8 +71,6 @@ class MetaRange {
 	public function get_meta_range( \WP_REST_Request $request ) {
 		global $wp_query;
 
-		add_filter( 'ep_is_facetable', '__return_true' );
-
 		$search = Features::factory()->get_registered_feature( 'search' );
 		$facets = Features::factory()->get_registered_feature( 'facets' );
 
@@ -88,21 +86,24 @@ class MetaRange {
 		);
 
 		$args = [
-			'post_type'      => $search->get_searchable_post_types(),
-			'posts_per_page' => 1,
+			'post_type'       => $search->get_searchable_post_types(),
+			'posts_per_page'  => 1,
+			'ep_is_facetable' => true,
 		];
 		$wp_query->query( $args );
 
 		$min_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_min';
 		$max_field_name = $facets->types['meta-range']->get_filter_name() . $facet . '_max';
 
-		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] ) || empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] ) ) {
+		$aggregations = $facets->get_query_aggregations( $wp_query );
+
+		if ( empty( $aggregations[ $min_field_name ] ) || empty( $aggregations[ $max_field_name ] ) ) {
 			wp_send_json_error();
 			return;
 		}
 
-		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
-		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
+		$min = $aggregations[ $min_field_name ];
+		$max = $aggregations[ $max_field_name ];
 
 		wp_send_json_success(
 			[
