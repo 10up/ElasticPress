@@ -38,21 +38,7 @@ class TestInstantResults extends BaseTestCase {
 		$instant_results_feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
 		$instant_results_feature->setup();
 
-		$this->assertSame( 10, has_action( 'admin_enqueue_scripts', [ $instant_results_feature, 'enqueue_admin_assets' ] ) );
-	}
-
-	/**
-	 * Test the output_feature_box_summary method.
-	 *
-	 * @group instant-results
-	 * @since 5.3.0
-	 */
-	public function test_output_feature_box_summary() {
-		ob_start();
-		\ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->output_feature_box_summary();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'WordPress search forms will display results instantly. When the search query is submitted, a modal will open that populates results by querying ElasticPress directly, bypassing WordPress', $output );
+		$this->assertSame( 10, has_action( 'wp_enqueue_scripts', [ $instant_results_feature, 'enqueue_frontend_assets' ] ) );
 	}
 
 	/**
