@@ -451,7 +451,6 @@ class Autosuggest extends Feature {
 		 */
 		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
 
-		add_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
 		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 2 );
@@ -482,10 +481,11 @@ class Autosuggest extends Feature {
 			apply_filters(
 				'ep_autosuggest_query_args',
 				[
-					'post_type'    => $post_type,
-					'post_status'  => $post_status,
-					's'            => $placeholder,
-					'ep_integrate' => true,
+					'post_type'            => $post_type,
+					'post_status'          => $post_status,
+					's'                    => $placeholder,
+					'ep_integrate'         => true,
+					'ep_intercept_request' => true,
 				]
 			)
 		);
@@ -495,8 +495,6 @@ class Autosuggest extends Feature {
 		remove_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ] );
 
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
-
-		remove_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 
 		return [
 			'body'        => $this->autosuggest_query,
@@ -790,6 +788,12 @@ class Autosuggest extends Feature {
 	 * @return true
 	 */
 	public function intercept_remote_request() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Use the WP_Query argument `ep_intercept_request` instead.', 'elasticpress' ),
+			'ElasticPress 5.3.0'
+		);
+
 		return true;
 	}
 

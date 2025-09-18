@@ -483,4 +483,16 @@ class TestAutosuggest extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 	}
+
+	/**
+	 * Test the `intercept_remote_request` method throws a warning.
+	 *
+	 * @group autosuggest
+	 * @since 5.3.0
+	 *
+	 * @expectedIncorrectUsage ElasticPress\Feature\Autosuggest\Autosuggest::intercept_remote_request
+	 */
+	public function test_intercept_remote_request_method_throws_warning() {
+		$this->assertTrue( $this->get_feature()->intercept_remote_request() );
+	}
 }

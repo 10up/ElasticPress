@@ -1024,7 +1024,7 @@ class Products {
 					$query->set( 'orderby', $this->get_orderby_meta_mapping( '_sku' ) );
 					break;
 				default:
-					$query->set( 'orderby', $this->get_orderby_meta_mapping( 'menu_order' ) ); // Order by menu and title.
+					$query->set( 'orderby', $this->get_orderby_meta_mapping( $orderby ) );
 			}
 		}
 	}
@@ -1033,9 +1033,9 @@ class Products {
 	 * Fetch the ES related meta mapping for orderby
 	 *
 	 * @param array $meta_key The meta key to get the mapping for.
-	 * @return string The mapped meta key.
+	 * @return string|array The mapped meta key.
 	 */
-	public function get_orderby_meta_mapping( $meta_key ): string {
+	public function get_orderby_meta_mapping( $meta_key ): string|array {
 		/**
 		 * Filter WooCommerce to Elasticsearch meta mapping
 		 *
@@ -1054,14 +1054,11 @@ class Products {
 				'_wc_average_rating' => 'meta._wc_average_rating.double date',
 				'_price'             => 'meta._price.double date',
 				'_sku'               => 'meta._sku.value.sortable date',
+				'date'               => 'date',
 			)
 		);
 
-		if ( isset( $mapping[ $meta_key ] ) ) {
-			return $mapping[ $meta_key ];
-		}
-
-		return 'date';
+		return isset( $mapping[ $meta_key ] ) ? $mapping[ $meta_key ] : $mapping['menu_order'];
 	}
 
 	/**
