@@ -39,6 +39,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
+		global $wp_query;
+
 		$args = wp_parse_args(
 			$args,
 			[
@@ -77,17 +79,15 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$min_field_name = $facet_type->get_filter_name() . $this->meta_field . '_min';
 		$max_field_name = $facet_type->get_filter_name() . $this->meta_field . '_max';
 
-		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] )
-			|| empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] )
-		) {
+		$min = $feature->get_facet_aggregation( $wp_query, $min_field_name );
+		$max = $feature->get_facet_aggregation( $wp_query, $max_field_name );
+
+		if ( empty( $min ) || empty( $max ) ) {
 			if ( ! empty( $instance['is_preview'] ) ) {
 				esc_html_e( 'Could not get min and max values. Is this a numeric field?', 'elasticpress' );
 			}
 			return false;
 		}
-
-		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
-		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
 
 		$selected_min_value = null;
 		$selected_max_value = null;

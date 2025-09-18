@@ -100,28 +100,6 @@ class TestSearchOrdering extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `output_feature_box_summary` method
-	 */
-	public function testOutputFeatureBoxSummary() {
-		ob_start();
-		$this->get_feature()->output_feature_box_summary();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
-	}
-
-	/**
-	 * Test the `output_feature_box_long` method
-	 */
-	public function testOutputFeatureBoxLong() {
-		ob_start();
-		$this->get_feature()->output_feature_box_long();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'Selected posts will be inserted into search results in the specified position.', $output );
-	}
-
-	/**
 	 * Test the `admin_menu` method
 	 */
 	public function testAdminMenu() {

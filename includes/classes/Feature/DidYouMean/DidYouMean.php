@@ -64,27 +64,6 @@ class DidYouMean extends Feature {
 	}
 
 	/**
-	 * Output feature box long.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p>
-			<?php
-			echo wp_kses_post(
-				sprintf(
-					/* translators: Tutorial URL */
-					__( '"Did You Mean" search feature provides alternative suggestions for misspelled or ambiguous search queries, enhancing search accuracy and user experience. To display suggestions in your theme, please follow <a href="%s">this tutorial</a>.', 'elasticpress' ),
-					'https://www.elasticpress.io/documentation/article/did-you-mean/'
-				)
-			);
-			?>
-		</p>
-		<?php
-	}
-
-	/**
 	 * Add mapping.
 	 *
 	 * @param array $mapping Post mapping.
@@ -235,25 +214,6 @@ class DidYouMean extends Feature {
 	 */
 	public function requirements_status(): FeatureRequirementsStatus {
 		return new FeatureRequirementsStatus( 1 );
-	}
-
-	/**
-	 * Display feature settings.
-	 *
-	 * @return void
-	 */
-	public function output_feature_box_settings() {
-		$settings = $this->get_settings();
-		?>
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Search behavior when no result is found', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label><input name="settings[search_behavior]" type="radio" <?php checked( ! (bool) $settings['search_behavior'] ); ?> value="0"><?php esc_html_e( 'Display the top suggestion', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'list' ); ?> value="list"><?php esc_html_e( 'Display all the suggestions', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[search_behavior]" type="radio" <?php checked( $settings['search_behavior'], 'redirect' ); ?> value="redirect"><?php esc_html_e( 'Automatically redirect the user to the top suggestion', 'elasticpress' ); ?></label><br>
-			</div>
-		</div>
-		<?php
 	}
 
 	/**

@@ -5,12 +5,33 @@ import {
 	maybeDisableFeature,
 	maybeEnableFeature,
 	updateWeighting,
+	wpCliEval,
+	goToAdminPage,
+	login,
+	isEpIo,
 } from '../utils.js';
 
 test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
-	test.beforeAll(async () => {
-		await wpCli('elasticpress sync --setup --yes');
-		await wpCli('plugin deactivate filter-autosuggest-navigate-callback');
+	test.beforeAll(async ({ browser }) => {
+		await wpCliEval(`
+			WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => 'all', 'exit_error' => false ] );
+			WP_CLI::runcommand( 'elasticpress sync --setup --yes' );
+			WP_CLI::runcommand( 'plugin deactivate filter-autosuggest-navigate-callback', [ 'return' => 'all', 'exit_error' => false ] );
+		`);
+
+		if (isEpIo()) {
+			const loggedInPage = await browser.newPage();
+			await login(loggedInPage);
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-status-report');
+			await loggedInPage
+				.getByRole('button')
+				.getByText('Allowed Autosuggest Parameters')
+				.click();
+			const autosuggestLink = loggedInPage.getByRole('link').getByText('this URL');
+			const autosuggestUrl = (await autosuggestLink.getAttribute('href')) ?? '';
+			await loggedInPage.goto(autosuggestUrl);
+			await loggedInPage.close();
+		}
 	});
 
 	test.beforeEach(async ({ loggedInPage }) => {

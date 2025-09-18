@@ -104,17 +104,6 @@ class Comments extends Feature {
 	}
 
 	/**
-	 * Output feature box long text
-	 *
-	 * @since 3.6.0
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Enable integration on search queries
 	 *
 	 * @param  bool              $enabled Whether EP is enabled

@@ -1486,6 +1486,7 @@ class Post extends Indexable {
 			'meta_query'          => $this->parse_meta_queries( $args ),
 			'post_type'           => $this->parse_post_type( $args ),
 			'post_status'         => $this->parse_post_status( $args ),
+			'painless_script'     => $this->painless_script_query( $args ),
 		];
 
 		/**
@@ -2227,29 +2228,8 @@ class Post extends Indexable {
 					],
 				];
 			}
-		} else {
+		} elseif ( ! is_admin() ) {
 			$statuses = get_post_stati( array( 'public' => true ) );
-
-			if ( is_admin() ) {
-				/**
-				 * In the admin we will add protected and private post statuses to the default query
-				 * per WP default behavior.
-				 */
-				$statuses = array_merge(
-					$statuses,
-					get_post_stati(
-						array(
-							'protected'              => true,
-							'show_in_admin_all_list' => true,
-						)
-					)
-				);
-
-				if ( is_user_logged_in() ) {
-					$statuses = array_merge( $statuses, get_post_stati( array( 'private' => true ) ) );
-				}
-			}
-
 			$statuses = array_values( $statuses );
 
 			$post_status_filter_type = 'terms';
@@ -2262,6 +2242,53 @@ class Post extends Indexable {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Parse the `painless_script` WP Query arg and transform it into an ES query clause.
+	 *
+	 * @since 5.3.0
+	 * @param array $args WP_Query arguments
+	 * @return array
+	 */
+	protected function painless_script_query( $args ) {
+		$scripts = $args['painless_script'] ?? [];
+
+		if ( empty( $scripts ) ) {
+			return [];
+		}
+
+		$normalized_scripts = array_map(
+			function ( $script_config ) {
+				return is_string( $script_config )
+					? [ 'source' => $script_config ]
+					: $script_config;
+			},
+			$scripts
+		);
+
+		$normalized_scripts = array_filter( $normalized_scripts );
+
+		$filters = [];
+		foreach ( $normalized_scripts as $script_config ) {
+			$script_query = [ 'source' => $script_config['source'] ];
+
+			if ( ! empty( $script_config['params'] ) && is_array( $script_config['params'] ) ) {
+				$script_query['params'] = $script_config['params'];
+			}
+
+			$filters['bool']['must'][] = [
+				'bool' => [
+					'filter' => [
+						'script' => [
+							'script' => $script_query,
+						],
+					],
+				],
+			];
+		}
+
+		return $filters;
 	}
 
 	/**
