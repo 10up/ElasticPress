@@ -236,7 +236,6 @@ class OrdersAutosuggest {
 	public function get_search_template(): string {
 		$order_statuses = wc_get_order_statuses();
 
-		add_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 3 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 
@@ -244,6 +243,7 @@ class OrdersAutosuggest {
 			array(
 				'ep_integrate'             => true,
 				'ep_order_search_template' => true,
+				'ep_skip_search_exclusion' => true,
 				'post_status'              => array_keys( $order_statuses ),
 				'post_type'                => 'shop_order',
 				's'                        => '{{ep_placeholder}}',
@@ -251,7 +251,6 @@ class OrdersAutosuggest {
 			)
 		);
 
-		remove_filter( 'ep_bypass_exclusion_from_search', '__return_true', 10 );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10 );
 

@@ -281,7 +281,6 @@ class InstantResults extends Feature {
 		add_filter( 'ep_post_sync_args', [ $this, 'add_post_sync_args' ], 10, 2 );
 		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
-		add_filter( 'ep_bypass_exclusion_from_search', [ $this, 'maybe_bypass_post_exclusion' ], 10, 2 );
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 		add_action( 'wp_footer', [ $this, 'render' ] );
@@ -445,12 +444,13 @@ class InstantResults extends Feature {
 
 		$query = new \WP_Query(
 			array(
-				'ep_integrate'         => true,
-				'ep_search_template'   => true,
-				'post_status'          => array_values( $post_statuses ),
-				'post_type'            => $post_types,
-				's'                    => '{{ep_placeholder}}',
-				'ep_intercept_request' => true,
+				'ep_integrate'             => true,
+				'ep_search_template'       => true,
+				'post_status'              => array_values( $post_statuses ),
+				'post_type'                => $post_types,
+				's'                        => '{{ep_placeholder}}',
+				'ep_intercept_request'     => true,
+				'ep_skip_search_exclusion' => true,
 			)
 		);
 
@@ -513,6 +513,12 @@ class InstantResults extends Feature {
 	 * @return bool
 	 */
 	public function maybe_bypass_post_exclusion( $bypass_exclusion_from_search, $query ) {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Use the WP_Query argument `ep_skip_search_exclusion`.', 'elasticpress' ),
+			'ElasticPress 5.3.0'
+		);
+
 		return true === $query->get( 'ep_search_template' ) ?
 			false : // not bypass, apply
 			$bypass_exclusion_from_search;

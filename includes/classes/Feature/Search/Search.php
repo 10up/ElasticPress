@@ -760,6 +760,10 @@ class Search extends Feature {
 	 * @param WP_Query $query WP Query object
 	 */
 	public function exclude_posts_from_search( $filters, $args, $query ) {
+		if ( ! empty( $query->get( 'ep_skip_search_exclusion' ) ) ) {
+			return $filters;
+		}
+
 		$bypass_exclusion_from_search = ( is_admin() && ! wp_doing_ajax() ) || ! $query->is_search();
 
 		/**
@@ -771,7 +775,12 @@ class Search extends Feature {
 		 * @param  {WP_Query} $query                         WP Query
 		 * @return {bool} New $bypass_exclusion_from_search value
 		 */
-		if ( apply_filters( 'ep_bypass_exclusion_from_search', $bypass_exclusion_from_search, $query ) ) {
+		if ( apply_filters_deprecated(
+			'ep_bypass_exclusion_from_search',
+			[ $bypass_exclusion_from_search, $query ],
+			'ElasticPress 5.3.0',
+			'WP_Query->ep_skip_search_exclusion argument'
+		) ) {
 			return $filters;
 		}
 
