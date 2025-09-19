@@ -16,7 +16,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [5.3.0] - 2025-XX-XX
 
-This version adds full compatibility with Elementor and introduces several improvements in the Features Screen.
+Highlights of this version:
+
+* Full compatibility with Elementor
+* Several improvements in the Features Screen
+* New indicator in the WordPress Admin Bar
 
 ### Added
 * Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4137](https://github.com/10up/ElasticPress/pull/4137) and [#4154](https://github.com/10up/ElasticPress/pull/4154).
