@@ -25,21 +25,29 @@ This version adds full compatibility with Elementor and introduces several impro
 * Ability to create groups of fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4142](https://github.com/10up/ElasticPress/pull/4142), [#4171](https://github.com/10up/ElasticPress/pull/4171), and [#4172](https://github.com/10up/ElasticPress/pull/4172).
 * Ability for a feature to require multiple other features, instead of just one. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4143](https://github.com/10up/ElasticPress/pull/4143).
 * Add new widgets for Date, Meta, and Meta Range Filters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4156](https://github.com/10up/ElasticPress/pull/4156).
+* Status indicator in the WordPress Admin Bar. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@tott](https://github.com/tott) via [#4199](https://github.com/10up/ElasticPress/pull/4199).
 * Support for rand with a seed in the orderby clause. Props [@asharirfan](https://github.com/asharirfan), [@asharirfan](https://github.com/asharirfan), [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), [@tlovett1](https://github.com/tlovett1), [@mustafauysal](https://github.com/mustafauysal), and [@jgmedialtd](https://github.com/jgmedialtd) via [#1639](https://github.com/10up/ElasticPress/pull/1639).
 * Implement "OR" filter relationship in DateQuery. Props [@burhandodhy](https://github.com/burhandodhy) and [@eartahhj](https://github.com/eartahhj) via [#4165](https://github.com/10up/ElasticPress/pull/4165).
 * Add support for new WP_Query argument `ep_intercept_request`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4185](https://github.com/10up/ElasticPress/pull/4185).
 * New ElasticPressIoTemplateManager class. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4189](https://github.com/10up/ElasticPress/pull/4189).
 * Support for painless scripts in the ES queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@scottbuckel](https://github.com/scottbuckel) via [#4181](https://github.com/10up/ElasticPress/pull/4181).
 * Support to set an array value in the `orderby_meta_mapping` filters. Props [@burhandodhy](https://github.com/burhandodhy) and [@jzzaj](https://github.com/jzzaj) via [#4188](https://github.com/10up/ElasticPress/pull/4188).
+* New `ep_skip_search_exclusions` WP_Query argument. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4184](https://github.com/10up/ElasticPress/pull/4184).
+* [Autosuggest] Added link in Status Report to send allowed parameters directly. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@tott](https://github.com/tott) via [#4199](https://github.com/10up/ElasticPress/pull/4199).
 
 ### Changed
 * Index `srcset` for post thumbnails. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3693](https://github.com/10up/ElasticPress/pull/3693).
 * Menu SVG icon with default WP color. Props [@LenVan](https://github.com/LenVan) via [#4167](https://github.com/10up/ElasticPress/pull/4167).
+* Aggregation data stored at query level instead of a global variable. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4182](https://github.com/10up/ElasticPress/pull/4182).
+* Text explaining when a manual sync may be required. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige) via [#4203](https://github.com/10up/ElasticPress/pull/4203).
+* ElasticPress.io endpoint to fetch messages and available services. Props [@felipeelia](https://github.com/felipeelia) via [#4124](https://github.com/10up/ElasticPress/pull/4124).
 
 ### Deprecated
 * Remove deprecated side param from edge_ngram filter for ES 8.16.x compatibility. Props [@rebeccahum](https://github.com/rebeccahum) via [#4155](https://github.com/10up/ElasticPress/pull/4155) and [#4173](https://github.com/10up/ElasticPress/pull/4173).
+* The `ep_bypass_exclusion_from_search` filter (replaced by the new `ep_skip_search_exclusions` WP_Query argument). Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4184](https://github.com/10up/ElasticPress/pull/4184).
 
 ### Removed
+* Old feature settings code. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4187](https://github.com/10up/ElasticPress/pull/4187).
 
 ### Fixed
 * Autosuggest doesn't work if the placeholder is changed via a `ep_autosuggest_query_placeholder` filter. Props [@fabianmarz](https://github.com/fabianmarz) and [@burhandodhy](https://github.com/burhandodhy) via [#1619](https://github.com/10up/ElasticPress/pull/1619).
