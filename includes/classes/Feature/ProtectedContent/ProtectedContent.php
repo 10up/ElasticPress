@@ -75,6 +75,7 @@ class ProtectedContent extends Feature {
 			add_action( 'pre_get_posts', [ $this, 'integrate' ] );
 			add_filter( 'ep_post_query_db_args', [ $this, 'query_password_protected_posts' ] );
 			add_filter( 'ep_set_sort', [ $this, 'maybe_change_sort' ] );
+			add_filter( 'ep_post_formatted_args', [ $this, 'filter_private_posts_for_current_user' ], 10, 2 );
 		}
 
 		if ( Features::factory()->get_registered_feature( 'comments' )->is_active() ) {
@@ -370,17 +371,6 @@ class ProtectedContent extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php echo wp_kses_post( __( 'Securely indexes unpublished content—including private, draft, and scheduled posts —improving load times in places like the administrative dashboard where WordPress needs to include protected content in a query. <em>We recommend using a secured Elasticsearch setup, such as ElasticPress.io, to prevent potential exposure of content not intended for the public.</em>', 'elasticpress' ) ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Fetches all post statuses we need to index
 	 *
 	 * @since  2.1
@@ -463,6 +453,96 @@ class ProtectedContent extends Feature {
 			[ 'post_date' => [ 'order' => 'desc' ] ],
 			[ 'post_title.sortable' => [ 'order' => 'asc' ] ],
 		];
+	}
+
+	/**
+	 * Filter private posts for current user
+	 *
+	 * @param array $formatted_args Formatted Elasticsearch query
+	 * @param array $args Query variables
+	 *
+	 * @return array
+	 */
+	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
+		$post_types = (array) $args['post_type'];
+
+		$valid_post_types = array_filter( $post_types, 'post_type_exists' );
+
+		$base_statuses = array_merge(
+			get_post_stati( [ 'public' => true ] ),
+			get_post_stati(
+				[
+					'protected'              => true,
+					'show_in_admin_all_list' => true,
+				]
+			),
+			! empty( $args['post_status'] ) ? (array) $args['post_status'] : []
+		);
+
+		$post_types_with_capability    = [];
+		$post_types_without_capability = [];
+
+		foreach ( $valid_post_types as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+
+			if ( empty( $post_type_object ) || empty( $post_type_object->cap->read_private_posts ) ) {
+				continue;
+			}
+
+			$read_private_cap = $post_type_object->cap->read_private_posts;
+
+			if ( current_user_can( $read_private_cap ) ) {
+				$post_types_with_capability[] = $post_type;
+			} else {
+				$post_types_without_capability[] = $post_type;
+			}
+		}
+
+		$should_clauses = [];
+
+		if ( ! empty( $post_types_with_capability ) ) {
+			$all_statuses = array_merge( $base_statuses, get_post_stati( [ 'private' => true ] ) );
+
+			$should_clauses[] = [
+				'bool' => [
+					'must' => [
+						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_with_capability ) ] ],
+						[ 'terms' => [ 'post_status' => array_values( $all_statuses ) ] ],
+					],
+				],
+			];
+		}
+
+		if ( ! empty( $post_types_without_capability ) ) {
+			$should_clauses[] = [
+				'bool' => [
+					'must' => [
+						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_without_capability ) ] ],
+						[ 'terms' => [ 'post_status' => array_values( $base_statuses ) ] ],
+					],
+				],
+			];
+
+			$should_clauses[] = [
+				'bool' => [
+					'must' => [
+						[ 'terms' => [ 'post_type.raw' => array_values( $post_types_without_capability ) ] ],
+						[ 'term' => [ 'post_status' => 'private' ] ],
+						[ 'term' => [ 'post_author.id' => get_current_user_id() ] ],
+					],
+				],
+			];
+		}
+
+		if ( ! empty( $should_clauses ) ) {
+			$formatted_args['post_filter']['bool']['should']               = array_merge(
+				$formatted_args['post_filter']['bool']['should'] ?? [],
+				$should_clauses
+			);
+			$formatted_args['post_filter']['bool']['minimum_should_match'] = 1;
+		}
+
+		return $formatted_args;
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures.js';
-import { goToAdminPage } from '../utils.js';
+import { goToAdminPage, isEpIo } from '../utils.js';
 
 test.describe('Status Report', { tag: '@group1' }, () => {
 	test.beforeEach(async ({ loggedInPage }) => {
@@ -40,6 +40,37 @@ test.describe('Status Report', { tag: '@group1' }, () => {
 		);
 		await expect(loggedInPage.locator('#copy-report')).toHaveText(
 			'Copy full status report to clipboard',
+		);
+
+		if (!isEpIo()) {
+			return;
+		}
+
+		// Verify if the ElasticPress.io message is visible
+		await expect(
+			loggedInPage
+				.locator('.components-notice__content')
+				.getByText('Testing message', { exact: true }),
+		).toBeVisible();
+
+		// Until we expose the available services, we simply check the endpoint returned data
+		await expect(
+			loggedInPage
+				.locator('.ep-query-url', { hasText: 'elasticpress.io/endpoint-status' })
+				.locator('..')
+				.locator('.ep-query-result'),
+		).toContainText(
+			`{
+    "messages": [
+        {
+            "type": "info",
+            "message": "Testing message"
+        }
+    ],
+    "avaiableServices": {
+        "vectorEmbeddings": false
+    }
+}`,
 		);
 	});
 });

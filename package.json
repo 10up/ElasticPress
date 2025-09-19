@@ -79,7 +79,6 @@
       "facets-meta-range-block-view-script": "./assets/js/blocks/facets/meta-range/view.js",
       "facets-post-type-block-script": "./assets/js/blocks/facets/post-type/index.js",
       "features-script": "./assets/js/features/index.js",
-      "instant-results-admin-script": "./assets/js/instant-results/admin/index.js",
       "instant-results-script": "./assets/js/instant-results/index.js",
       "notice-script": "./assets/js/notice.js",
       "ordering-script": "./assets/js/ordering/index.js",

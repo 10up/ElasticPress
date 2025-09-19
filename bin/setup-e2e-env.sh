@@ -5,7 +5,7 @@
 ACF_PRO_LICENSE_KEY=""
 DISPLAY_HELP=0
 EP_HOST=""
-ES_SHIELD=""
+EP_CREDENTIALS=""
 EP_INDEX_PREFIX=""
 WP_VERSION=""
 WC_VERSION=""
@@ -18,8 +18,8 @@ for opt in "$@"; do
     -H=*|--ep-host=*)
       EP_HOST="${opt#*=}"
       ;;
-    -S=*|--es-shield=*)
-      ES_SHIELD="${opt#*=}"
+    -C=*|--ep-credentials=*)
+      EP_CREDENTIALS="${opt#*=}"
       ;;
     -p=*|--ep-index-prefix=*)
       EP_INDEX_PREFIX="${opt#*=}"
@@ -45,7 +45,7 @@ if [ $DISPLAY_HELP -eq 1 ]; then
 	echo "Optional parameters:"
 	echo "--acf-pro-license=*       ACF Pro License Key."
 	echo "-H=*, --ep-host=*         The remote Elasticsearch Host URL."
-	echo "-S=*, --es-shield=*       The Elasticsearch credentials, used in the ES_SHIELD constant."
+	echo "-C=*, --ep-credentials=*       The Elasticsearch credentials, used in the EP_CREDENTIALS constant."
 	echo "-p=*, --ep-index-prefix=* The Elasticsearch credentials, used in the EP_INDEX_PREFIX constant."
 	echo "-W=*, --wp-version=*      WordPress Core version."
 	echo "-w=*, --wc-version=*      WooCommerce version."
@@ -87,8 +87,8 @@ if [ -z $EP_HOST ]; then
 fi
 ./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_HOST ${EP_HOST}"
 
-if [ ! -z $ES_SHIELD ]; then
-	./bin/wp-env-cli tests-wordpress "wp --allow-root config set ES_SHIELD ${ES_SHIELD}"
+if [ ! -z $EP_CREDENTIALS ]; then
+	./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_CREDENTIALS ${EP_CREDENTIALS}"
 fi
 
 if [ ! -z $EP_INDEX_PREFIX ]; then

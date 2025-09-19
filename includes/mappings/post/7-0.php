@@ -461,6 +461,9 @@ return array(
 					'src'    => array(
 						'type' => 'text',
 					),
+					'srcset' => array(
+						'type' => 'text',
+					),
 					'width'  => array(
 						'type' => 'integer',
 					),

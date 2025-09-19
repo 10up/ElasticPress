@@ -7070,31 +7070,6 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Tests post statuses for admin in format_args().
-	 *
-	 * @return void
-	 * @group post
-	 */
-	public function testFormatArgsAdminPostStatuses() {
-
-		set_current_screen( 'edit.php' );
-		$this->assertTrue( is_admin() );
-
-		$post = new \ElasticPress\Indexable\Post\Post();
-
-		// This will include statuses besides publish.
-		$args = $post->format_args( [], new \WP_Query() );
-
-		$statuses = $args['post_filter']['bool']['must'][1]['terms']['post_status'];
-
-		$this->assertContains( 'publish', $statuses );
-		$this->assertContains( 'future', $statuses );
-		$this->assertContains( 'draft', $statuses );
-		$this->assertContains( 'pending', $statuses );
-		$this->assertContains( 'private', $statuses );
-	}
-
-	/**
 	 * Tests fields in format_args().
 	 *
 	 * @return void
@@ -8603,6 +8578,8 @@ class TestPost extends BaseTestCase {
 
 	/**
 	 * Tests the `ep_bypass_exclusion_from_search` filter
+	 *
+	 * @expectedDeprecated ep_bypass_exclusion_from_search
 	 */
 	public function testExcludeFromSearchQueryBypassFilter() {
 		$this->ep_factory->post->create_many(
@@ -8650,7 +8627,6 @@ class TestPost extends BaseTestCase {
 	 * Tests query doesn't return the post in if `ep_exclude_from_search` meta is set.
 	 */
 	public function testExcludeFromSearchQuery() {
-
 		$this->ep_factory->post->create_many(
 			2,
 			array(
@@ -8738,6 +8714,42 @@ class TestPost extends BaseTestCase {
 
 		$this->assertEmpty( get_post_meta( $post_ids[0], 'ep_exclude_from_search', true ) );
 		$this->assertEquals( 1, get_post_meta( $post_ids[1], 'ep_exclude_from_search', true ) );
+	}
+
+	/**
+	 * Tests the `ep_skip_search_exclusion` argument
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_ep_skip_search_exclusion_argument() {
+		$this->ep_factory->post->create_many(
+			2,
+			[
+				'post_content' => 'find me in search',
+				'meta_input'   => [ 'ep_exclude_from_search' => true ],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's'                        => 'search',
+				'ep_skip_search_exclusion' => true,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->post_count );
+
+		$query = new \WP_Query(
+			[
+				's'                        => 'search',
+				'ep_skip_search_exclusion' => false,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 0, $query->post_count );
 	}
 
 	/**
@@ -9356,6 +9368,100 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test if post thumbnail has all attributes.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_post_thumbnail_has_all_attributes() {
+		$post_id      = $this->ep_factory->post->create();
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$post_id,
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			]
+		);
+
+		set_post_thumbnail( $post_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$ep_post   = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
+		$thumbnail = $ep_post['thumbnail'];
+
+		$this->assertEquals( 6, count( $thumbnail ) );
+
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
+		foreach ( $keys as $key ) {
+			$this->assertArrayHasKey( $key, $thumbnail );
+		}
+	}
+
+	/**
+	 * Test that post thumbnail index with missing srcset mapping does not throw an error.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_post_thumbnail_index_with_missing_srcset_mapping() {
+		$post_id      = $this->ep_factory->post->create();
+		$thumbnail_id = $this->factory->attachment->create_object(
+			'test.jpg',
+			$post_id,
+			[
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			]
+		);
+
+		set_post_thumbnail( $post_id, $thumbnail_id );
+
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+		$this->assertEquals( $thumbnail_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+
+		add_filter(
+			'ep_post_mapping',
+			function ( $mapping ) {
+				unset( $mapping['mappings']['properties']['thumbnail']['properties']['srcset'] );
+				return $mapping;
+			}
+		);
+
+		add_filter(
+			'ep_post_mapping',
+			function ( $mapping ) {
+				$this->assertArrayNotHasKey( 'srcset', $mapping['mappings']['properties']['thumbnail']['properties'] );
+				return $mapping;
+			},
+			15
+		);
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+
+		$indexable = ElasticPress\Indexables::factory()->get( 'post' );
+		$indexable->put_mapping();
+
+		$indexable->index( $post_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$ep_post   = $indexable->get( $post_id );
+		$thumbnail = $ep_post['thumbnail'];
+
+		$this->assertEquals( 6, count( $thumbnail ) );
+
+		$keys = [ 'ID', 'src', 'width', 'height', 'alt', 'srcset' ];
+		foreach ( $keys as $key ) {
+			$this->assertArrayHasKey( $key, $thumbnail );
+		}
+	}
+
+	/**
 	 * Test that query with unsupported orderby does not use EP.
 	 *
 	 * @since 4.5.0
@@ -9713,43 +9819,17 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 5.2.0
 	 * @group post
+	 * @expectedDeprecated ElasticPress\Indexable\Post\SyncManager::add_admin_bar_status
 	 */
 	public function test_add_admin_bar_status() {
-		global $pagenow;
-
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 
 		$admin_bar    = new \WP_Admin_Bar();
 		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
 		$sync_manager = $indexable->sync_manager;
 
-		// Not displaying. Wrong screen.
+		// Throws deprecated warning.
 		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Not displaying. Right screen, no post.
-		$pagenow = 'post.php';
-		set_current_screen( 'post.php' );
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Not displaying. Right screen, but post type not indexable.
-		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
-		$GLOBALS['post'] = $post;
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
-
-		// Displaying.
-		$post            = $this->ep_factory->post->create_and_get();
-		$GLOBALS['post'] = $post;
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertArrayHasKey( 'ep-doc-status', $admin_bar->get_nodes() );
-
-		// Not displaying. No status.
-		add_filter( 'ep_doc_status', '__return_empty_array' );
-		$admin_bar = new \WP_Admin_Bar();
-		$sync_manager->add_admin_bar_status( $admin_bar );
-		$this->assertNull( $admin_bar->get_nodes() );
 	}
 
 	/**
@@ -9820,6 +9900,7 @@ class TestPost extends BaseTestCase {
 	 *
 	 * @since 5.2.0
 	 * @group post
+	 * @expectedDeprecated ep_formatted_doc_status
 	 */
 	public function test_format_doc_status() {
 		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
@@ -9854,6 +9935,42 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the painless script query with simple string.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query() {
+		$this->ep_factory->post->create_many( 10, [] );
+		$post_id = $this->ep_factory->post->create( [ 'post_title' => 'test' ] );
+		$page_id = $this->ep_factory->post->create( [ 'post_type' => 'page' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Test with simple string.
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [ "doc['post_title.raw'].value == 'test'" ],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+
+		// Test with multiple conditions.
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'post_type'       => [ 'page', 'post' ],
+				'painless_script' => [ "doc['post_id'].value == " . $post_id . " || doc['post_type.raw'].value == 'page'" ],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+	}
+
+	/**
 	 * Test the `ep_intercept_request` argument.
 	 *
 	 * @since 5.3.0
@@ -9883,5 +10000,226 @@ class TestPost extends BaseTestCase {
 		);
 
 		$this->assertFalse( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test the painless script query with params.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_params() {
+		$this->ep_factory->post->create_many(
+			10,
+			[
+				'meta_input' => [
+					'test_key' => wp_rand( 1, 10 ),
+				],
+			]
+		);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 15,
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] > params.max_value",
+						'params' => [ 'max_value' => 10 ],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the painless script query with mixed format.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_mixed_format() {
+		$this->ep_factory->post->create_many(
+			10,
+			[
+				'meta_input' => [
+					'test_key' => wp_rand( 1, 20 ),
+				],
+			]
+		);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 30,
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					"doc['post_type.raw'].value == 'post'",
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] > params.max_value",
+						'params' => [ 'max_value' => 25 ],
+					],
+				],
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the painless script query with multiple params.
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_painless_script_query_with_multiple_params() {
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						'test_key' => 5,
+					],
+				]
+			);
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 30,
+				],
+			]
+		);
+
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						'test_key' => 50,
+					],
+				]
+			);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'    => true,
+				'painless_script' => [
+					[
+						'source' => "doc['meta.test_key.long'].size() > 0 && doc['meta.test_key.long'][0] >= params.min_value && doc['meta.test_key.long'][0] <= params.max_value",
+						'params' => [
+							'min_value' => 10,
+							'max_value' => 40,
+						],
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+	}
+
+	/**
+	 * Test the `SyncManager::maybe_add_doc_status_to_admin_bar_status` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_maybe_add_doc_status_to_admin_bar_status() {
+		global $pagenow;
+
+		$indexable    = ElasticPress\Indexables::factory()->get( 'post' );
+		$sync_manager = $indexable->sync_manager;
+
+		$initial_status_and_summary = [
+			'status'  => 'success',
+			'summary' => [
+				'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+			],
+		];
+
+		// Not changing. Wrong screen.
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Not changing. Right screen, no post.
+		$pagenow = 'post.php';
+		set_current_screen( 'post.php' );
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Not changing. Right screen, but post type not indexable.
+		$post            = $this->ep_factory->post->create_and_get( [ 'post_type' => 'attachment' ] );
+		$GLOBALS['post'] = $post;
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		// Changing.
+		$post            = $this->ep_factory->post->create_and_get();
+		$GLOBALS['post'] = $post;
+		$this->assertSame(
+			[
+				'status'  => 'success',
+				'summary' => [
+					'doc_status'                     => 'Content in sync: WordPress and Elasticsearch content match.',
+					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+				],
+			],
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+
+		$change_doc_status = function () {
+			return [
+				'status'      => 'custom',
+				'message'     => 'Sync required',
+				'explanation' => 'Custom explanation.',
+			];
+		};
+		add_filter( 'ep_doc_status', $change_doc_status, 10, 0 );
+		$this->assertSame(
+			[
+				'status'  => 'custom',
+				'summary' => [
+					'doc_status'                     => 'Sync required: Custom explanation.',
+					'no_calls_made_to_elasticsearch' => 'No calls made to Elasticsearch',
+				],
+			],
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
+		remove_filter( 'ep_doc_status', $change_doc_status );
+
+		// Not changing. No status.
+		add_filter( 'ep_doc_status', '__return_empty_array' );
+		$this->assertSame(
+			$initial_status_and_summary,
+			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
+		);
 	}
 }
