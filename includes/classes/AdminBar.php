@@ -204,13 +204,16 @@ class AdminBar {
 		$filtered_queries = array_filter(
 			$queries,
 			function ( $query ) {
-				return ! isset( $query['request'], $query['request']['is_ep_fake_request'] ) || ! $query['request']['is_ep_fake_request'];
+				if ( ! isset( $query['request'] ) ) {
+					return false;
+				}
+				return is_wp_error( $query['request'] ) || empty( $query['request']['is_ep_fake_request'] );
 			}
 		);
 		$failed_queries   = array_filter(
 			$filtered_queries,
 			function ( $query ) {
-				return ! isset( $query['request'], $query['request']['response'], $query['request']['response']['code'] ) || $query['request']['response']['code'] < 200 || $query['request']['response']['code'] >= 300;
+				return is_wp_error( $query['request'] ) || ! isset( $query['request']['response'], $query['request']['response']['code'] ) || $query['request']['response']['code'] < 200 || $query['request']['response']['code'] >= 300;
 			}
 		);
 
