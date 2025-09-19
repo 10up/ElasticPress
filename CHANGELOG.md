@@ -19,8 +19,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 Highlights of this version:
 
 * Full compatibility with Elementor
-* Several improvements in the Features Screen
-* New indicator in the WordPress Admin Bar
+* Better UX/UI in the Features Screen: Ggrouped features and conditional display of fields 
+* New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page. 
 
 ### Added
 * Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4137](https://github.com/10up/ElasticPress/pull/4137) and [#4154](https://github.com/10up/ElasticPress/pull/4154).
