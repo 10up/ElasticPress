@@ -46,6 +46,13 @@ class ElasticPressIo {
 	 * @return array ElasticPress.io endpoint status.
 	 */
 	public function get_endpoint_status( $skip_cache = false ): array {
+		static $status = null;
+
+		// Avoid sending multiple requests to the API in the same WP request.
+		if ( null !== $status ) {
+			return (array) $status;
+		}
+
 		if ( ! Utils\is_epio() ) {
 			return [];
 		}
