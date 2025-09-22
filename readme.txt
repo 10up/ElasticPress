@@ -1,7 +1,7 @@
 === ElasticPress ===
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
-Tested up to: 6.7
+Tested up to: 6.8
 Stable tag:   5.3.0
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
