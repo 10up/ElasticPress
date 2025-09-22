@@ -98,6 +98,17 @@ class ElasticPressIo extends Report {
 			];
 		}
 
+		$formatted_fields['url'] = [
+			'label' => 'Reset URL',
+			'value' => wp_kses_post(
+				sprintf(
+					/* translators: %s: URL */
+					__( 'If you need to reset the allowed parameters, you can do so by saving your Search Fields & Weighting settings or by visiting <a href="%s">this URL</a>.', 'elasticpress' ),
+					$autosuggest_feature->get_epio_public_request_url()
+				)
+			),
+		];
+
 		return [
 			'title'  => $title,
 			'fields' => $formatted_fields,
@@ -220,7 +231,7 @@ class ElasticPressIo extends Report {
 	 * @since 4.5.0
 	 */
 	public function get_messages(): array {
-		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages( true );
+		$messages = \ElasticPress\get_container()->get( '\ElasticPress\ElasticPressIo' )->get_endpoint_messages( true );
 		$messages = array_values( $messages );
 
 		return $messages;

@@ -97,7 +97,7 @@ jobs:
       if: matrix.esVersion != 'EP.io'
 
     - name: Set up database (EP.io)
-      run: npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --es-shield='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      run: npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
       if: matrix.esVersion == 'EP.io'
 
     - name: Run Playwright tests

@@ -52,7 +52,7 @@ test.describe('WordPress can perform standard ElasticPress actions', { tag: '@gr
 
 		await loggedInPage.reload();
 		await loggedInPage.waitForLoadState('domcontentloaded');
-		await expect(loggedInPage.locator('#wp-admin-bar-ep-doc-status')).toContainText(
+		await expect(loggedInPage.locator('#wp-admin-bar-ep-basic-status-summary')).toContainText(
 			'Content in sync',
 		);
 
@@ -151,5 +151,17 @@ test.describe('WordPress can perform standard ElasticPress actions', { tag: '@gr
 		);
 
 		await Promise.all(promises);
+	});
+
+	test('Can see the status and summary in the admin bar', async ({ loggedInPage }) => {
+		await loggedInPage.goto('/?s=test');
+		await expect(loggedInPage.locator('#wp-admin-bar-ep-basic-status-summary')).toContainText(
+			'Main query: Yes',
+		);
+
+		await loggedInPage.locator('.site-content article a').first().click();
+		await expect(loggedInPage.locator('#wp-admin-bar-ep-basic-status-summary')).toContainText(
+			'Main query: No',
+		);
 	});
 });

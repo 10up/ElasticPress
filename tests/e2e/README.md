@@ -64,4 +64,4 @@ docker compose up -d --build --force-recreate
 
 ### Running tests with ElasticPress.io
 
-To run tests locally using an ElasticPress.io endpoint, in place of running `npm run e2e:setup` during setup, run: `./bin/setup-e2e-env.sh --ep-host="https://" --es-shield="username:password" --ep-index-prefix="username"`, with the arguments populated with the details for your ElasticPress.io endpoint.
+To run tests locally using an ElasticPress.io endpoint, in place of running `npm run e2e:setup` during setup, run: `./bin/setup-e2e-env.sh --ep-host="https://" --ep-credentials="username:password" --ep-index-prefix="username"`, with the arguments populated with the details for your ElasticPress.io endpoint.
