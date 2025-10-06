@@ -87,18 +87,9 @@ const GroupNavigation = ({ groupedFeatures, activeFeature }) => {
  * @param {object} props Component props
  * @param {Array} props.groupedFeatures Grouped features data
  * @param {string} props.activeFeature Currently active feature
- * @param {boolean} props.isSyncing Whether a sync is in progress
- * @param {Array} props.isSyncingActions Actions when syncing
- * @param {string} props.isSyncingNotice Notice when syncing
  * @returns {WPElement} Feature navigation component
  */
-const FeatureNavigation = ({
-	groupedFeatures,
-	activeFeature,
-	isSyncing,
-	isSyncingActions,
-	isSyncingNotice,
-}) => {
+const FeatureNavigation = ({ groupedFeatures, activeFeature }) => {
 	// Find which group contains the active feature
 	const currentGroup = groupedFeatures.find((group) =>
 		group.features.some((feature) => feature.slug === activeFeature),
@@ -111,11 +102,6 @@ const FeatureNavigation = ({
 	return (
 		<Panel className="ep-dashboard-panel">
 			<PanelBody>
-				{isSyncing ? (
-					<Notice actions={isSyncingActions} isDismissible={false} status="warning">
-						{isSyncingNotice}
-					</Notice>
-				) : null}
 				<div className="ep-dashboard-tabs">
 					<div className="ep-dashboard-tabs-nav">
 						{currentGroup.features.map(({ slug, shortTitle, title }) => (
@@ -382,19 +368,18 @@ const FeatureSettingsContent = () => {
 
 	return (
 		<form onReset={onReset} onSubmit={onSubmit}>
+			{isSyncing ? (
+				<Notice actions={isSyncingActions} isDismissible={false} status="warning">
+					{isSyncingNotice}
+				</Notice>
+			) : null}
 			<div className="form-grid">
 				{/* Group Navigation */}
 				<GroupNavigation groupedFeatures={groupedFeatures} activeFeature={feature} />
 
 				<div className="group-content" id={`${activeGroup}-view`}>
 					{/* Feature Navigation for the current group */}
-					<FeatureNavigation
-						groupedFeatures={groupedFeatures}
-						activeFeature={feature}
-						isSyncing={isSyncing}
-						isSyncingActions={isSyncingActions}
-						isSyncingNotice={isSyncingNotice}
-					/>
+					<FeatureNavigation groupedFeatures={groupedFeatures} activeFeature={feature} />
 
 					{/* Feature Content based on route parameters */}
 					<div className="ep-dashboard-content" id={`${feature}-view`}>
