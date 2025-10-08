@@ -259,6 +259,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Vania from TigriWeb (@LenVan)](https://github.com/LenVan),
 [Scott Buckel (@scottbuckel)](https://github.com/scottbuckel),
 [@jzzaj](https://github.com/jzzaj),
+[@DarioBF](https://github.com/DarioBF),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

@@ -23,7 +23,7 @@ Highlights of this version:
 * New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page. 
 
 ### Added
-* Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4137](https://github.com/10up/ElasticPress/pull/4137) and [#4154](https://github.com/10up/ElasticPress/pull/4154).
+* Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4137](https://github.com/10up/ElasticPress/pull/4137), [#4154](https://github.com/10up/ElasticPress/pull/4154), and [#4207](https://github.com/10up/ElasticPress/pull/4207).
 * Selected features and groups now persist across reload. Props [@ZacharyRener](https://github.com/ZacharyRener), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia) via [#4138](https://github.com/10up/ElasticPress/pull/4138).
 * Feature fields can be dependent on other fields. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4141](https://github.com/10up/ElasticPress/pull/4141).
 * Ability to create groups of fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4142](https://github.com/10up/ElasticPress/pull/4142), [#4171](https://github.com/10up/ElasticPress/pull/4171), and [#4172](https://github.com/10up/ElasticPress/pull/4172).
@@ -38,6 +38,7 @@ Highlights of this version:
 * Support to set an array value in the `orderby_meta_mapping` filters. Props [@burhandodhy](https://github.com/burhandodhy) and [@jzzaj](https://github.com/jzzaj) via [#4188](https://github.com/10up/ElasticPress/pull/4188).
 * New `ep_skip_search_exclusions` WP_Query argument. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4184](https://github.com/10up/ElasticPress/pull/4184).
 * [Autosuggest] Added link in Status Report to send allowed parameters directly. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@tott](https://github.com/tott) via [#4199](https://github.com/10up/ElasticPress/pull/4199).
+* New `ep_get_query_log` filter. Props [@felipeelia](https://github.com/felipeelia) via [#4209](https://github.com/10up/ElasticPress/pull/4209).
 
 ### Changed
 * Index `srcset` for post thumbnails. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3693](https://github.com/10up/ElasticPress/pull/3693).
@@ -45,6 +46,7 @@ Highlights of this version:
 * Aggregation data stored at query level instead of a global variable. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4182](https://github.com/10up/ElasticPress/pull/4182).
 * Text explaining when a manual sync may be required. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige) via [#4203](https://github.com/10up/ElasticPress/pull/4203).
 * ElasticPress.io endpoint to fetch messages and available services. Props [@felipeelia](https://github.com/felipeelia) via [#4124](https://github.com/10up/ElasticPress/pull/4124).
+* [Autosuggest] WP_Query arguments are now passed to Elasticsearch->query() when setting allowed parameters. Props [@felipeelia](https://github.com/felipeelia) via [#4204](https://github.com/10up/ElasticPress/pull/4204).
 
 ### Deprecated
 * Remove deprecated side param from edge_ngram filter for ES 8.16.x compatibility. Props [@rebeccahum](https://github.com/rebeccahum) via [#4155](https://github.com/10up/ElasticPress/pull/4155) and [#4173](https://github.com/10up/ElasticPress/pull/4173).
@@ -60,6 +62,7 @@ Highlights of this version:
 * 'Filter by Taxonomy' widget does not appear in Elementor. Props [@burhandodhy](https://github.com/burhandodhy) via [#4152](https://github.com/10up/ElasticPress/pull/4152).
 * Add support to handle values in array format when the comparison operator was 'IN' or 'NOT IN'. Props [@burhandodhy](https://github.com/burhandodhy) via [#4168](https://github.com/10up/ElasticPress/pull/4168).
 * Users could see other authors' private posts. Props [@burhandodhy](https://github.com/burhandodhy) via [#4169](https://github.com/10up/ElasticPress/pull/4169).
+* Undefined array key warning related to media mime types. Props [@burhandodhy](https://github.com/burhandodhy) and [@DarioBF](https://github.com/DarioBF) via [#4208](https://github.com/10up/ElasticPress/pull/4208).
 
 ### Security
 * Bumped `http-proxy-middleware` from 2.0.7 to 2.0.9. Props [@dependabot](https://github.com/dependabot) via [#4135](https://github.com/10up/ElasticPress/pull/4135).
