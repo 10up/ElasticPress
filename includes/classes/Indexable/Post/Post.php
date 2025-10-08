@@ -2047,7 +2047,10 @@ class Post extends Indexable {
 				} else {
 					$filtered_mime_type_by_type = wp_match_mime_types( $mime_type, wp_get_mime_types() );
 
-					$args_post_mime_type = array_merge( $args_post_mime_type, $filtered_mime_type_by_type[ $mime_type ] );
+					$args_post_mime_type = array_merge(
+						$args_post_mime_type,
+						$filtered_mime_type_by_type[ $mime_type ] ?? [ $mime_type ]
+					);
 				}
 			}
 
