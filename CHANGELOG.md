@@ -47,6 +47,7 @@ Highlights of this version:
 * Text explaining when a manual sync may be required. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige) via [#4203](https://github.com/10up/ElasticPress/pull/4203).
 * ElasticPress.io endpoint to fetch messages and available services. Props [@felipeelia](https://github.com/felipeelia) via [#4124](https://github.com/10up/ElasticPress/pull/4124).
 * [Autosuggest] WP_Query arguments are now passed to Elasticsearch->query() when setting allowed parameters. Props [@felipeelia](https://github.com/felipeelia) via [#4204](https://github.com/10up/ElasticPress/pull/4204).
+* Exceptions thrown during a post sync will now become error messages in sync processes. Props [@felipeelia](https://github.com/felipeelia) via [#4210](https://github.com/10up/ElasticPress/pull/4210).
 
 ### Deprecated
 * Remove deprecated side param from edge_ngram filter for ES 8.16.x compatibility. Props [@rebeccahum](https://github.com/rebeccahum) via [#4155](https://github.com/10up/ElasticPress/pull/4155) and [#4173](https://github.com/10up/ElasticPress/pull/4173).

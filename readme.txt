@@ -114,6 +114,7 @@ __Changed:__
 * Text explaining when a manual sync may be required. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige).
 * ElasticPress.io endpoint to fetch messages and available services. Props [@felipeelia](https://github.com/felipeelia).
 * [Autosuggest] WP_Query arguments are now passed to Elasticsearch->query() when setting allowed parameters. Props [@felipeelia](https://github.com/felipeelia).
+* Exceptions thrown during a post sync will now become error messages in sync processes. Props [@felipeelia](https://github.com/felipeelia).
 
 __Deprecated:__
 
