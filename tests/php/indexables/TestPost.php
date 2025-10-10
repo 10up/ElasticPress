@@ -22,6 +22,13 @@ class TestPost extends BaseTestCase {
 	public $is_404 = false;
 
 	/**
+	 * Post with exception.
+	 *
+	 * @var int|null
+	 */
+	protected $post_with_exception = null;
+
+	/**
 	 * Setup each test.
 	 *
 	 * @since 0.1.0
@@ -10221,5 +10228,162 @@ class TestPost extends BaseTestCase {
 			$initial_status_and_summary,
 			$sync_manager->maybe_add_doc_status_to_admin_bar_status( $initial_status_and_summary )
 		);
+	}
+
+	/**
+	 * Test the `index` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_index() {
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$post_id        = $this->ep_factory->post->create();
+		$this->assertIsObject( $post_indexable->index( $post_id, true ) );
+
+		// We should test the object attributes.
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test the `index` method with an exception
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_index_with_exception() {
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+		$this->post_with_exception = $this->ep_factory->post->create();
+		$this->assertFalse( $post_indexable->index( $this->post_with_exception, true ) );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+	}
+
+	/**
+	 * Test the `bulk_index` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		$result = $post_indexable->bulk_index( $posts );
+		$this->assertIsArray( $result );
+		$this->assertEmpty( $result['errors'] );
+
+		// We should test other array indices.
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test the `bulk_index` method with an exception
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index_with_exception() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$this->post_with_exception = $post_id_1;
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+		$result = $post_indexable->bulk_index( $posts );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+
+		$error_item = [
+			'index' => [
+				'_id'   => $post_id_1,
+				'error' => [
+					'type'   => 'prepare_document_error',
+					'reason' => 'Something went wrong.',
+				],
+			],
+		];
+
+		$this->assertIsArray( $result );
+		$this->assertTrue( $result['errors'] );
+		$this->assertContains( $error_item, $result['items'] );
+	}
+
+	/**
+	 * Test the `bulk_index_dynamically` method
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index_dynamically() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		$results = $post_indexable->bulk_index_dynamically( $posts );
+		$this->assertIsArray( $results );
+		foreach ( $results as $result ) {
+			$this->assertEmpty( $result['errors'] );
+		}
+
+		// We should test other array indices.
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * Test the `bulk_index_dynamically` method with an exception
+	 *
+	 * @since 5.3.0
+	 * @group post
+	 */
+	public function test_bulk_index_dynamically_with_exception() {
+		$post_id_1 = $this->ep_factory->post->create();
+		$post_id_2 = $this->ep_factory->post->create();
+
+		$this->post_with_exception = $post_id_1;
+
+		$post_indexable = new \ElasticPress\Indexable\Post\Post();
+		$posts          = [ $post_id_1, $post_id_2 ];
+
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+		$results = $post_indexable->bulk_index_dynamically( $posts );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'throw_exception' ] );
+
+		$error_item = [
+			'index' => [
+				'_id'   => $post_id_1,
+				'error' => [
+					'type'   => 'prepare_document_error',
+					'reason' => 'Something went wrong.',
+				],
+			],
+		];
+
+		$this->assertIsArray( $results );
+		$this->assertTrue( $results[0]['errors'] );
+		$this->assertContains( $error_item, $results[0]['items'] );
+	}
+
+	/**
+	 * Throw an exception for the specific post.
+	 *
+	 * @since 5.3.0
+	 * @param array $args The arguments for the post sync.
+	 * @return array The arguments for the post sync.
+	 * @throws \Exception If the post ID is the same as the post with exception.
+	 */
+	public function throw_exception( $args ) {
+		if ( $args['post_id'] === $this->post_with_exception ) {
+			throw new \Exception( 'Something went wrong.' );
+		}
+		return $args;
 	}
 }

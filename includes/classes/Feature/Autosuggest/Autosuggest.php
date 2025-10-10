@@ -457,38 +457,38 @@ class Autosuggest extends Feature {
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
-		new \WP_Query(
-			/**
-			 * Filter WP Query args of the autosuggest query template.
-			 *
-			 * If you want to display 20 posts in autosuggest:
-			 *
-			 * ```
-			 * add_filter(
-			 *     'ep_autosuggest_query_args',
-			 *     function( $args ) {
-			 *         $args['posts_per_page'] = 20;
-			 *         return $args;
-			 *     }
-			 * );
-			 * ```
-			 *
-			 * @since 4.4.0
-			 * @hook ep_autosuggest_query_args
-			 * @param {array} $args Query args
-			 * @return {array} New query args
-			 */
-			apply_filters(
-				'ep_autosuggest_query_args',
-				[
-					'post_type'            => $post_type,
-					'post_status'          => $post_status,
-					's'                    => $placeholder,
-					'ep_integrate'         => true,
-					'ep_intercept_request' => true,
-				]
-			)
+		/**
+		 * Filter WP Query args of the autosuggest query template.
+		 *
+		 * If you want to display 20 posts in autosuggest:
+		 *
+		 * ```
+		 * add_filter(
+		 *     'ep_autosuggest_query_args',
+		 *     function( $args ) {
+		 *         $args['posts_per_page'] = 20;
+		 *         return $args;
+		 *     }
+		 * );
+		 * ```
+		 *
+		 * @since 4.4.0
+		 * @hook ep_autosuggest_query_args
+		 * @param {array} $args Query args
+		 * @return {array} New query args
+		 */
+		$args = apply_filters(
+			'ep_autosuggest_query_args',
+			[
+				'post_type'            => $post_type,
+				'post_status'          => $post_status,
+				's'                    => $placeholder,
+				'ep_integrate'         => true,
+				'ep_intercept_request' => true,
+			]
 		);
+
+		new \WP_Query( $args );
 
 		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );
 
@@ -499,6 +499,7 @@ class Autosuggest extends Feature {
 		return [
 			'body'        => $this->autosuggest_query,
 			'placeholder' => $placeholder,
+			'query_vars'  => $args,
 		];
 	}
 
@@ -654,12 +655,14 @@ class Autosuggest extends Feature {
 		 */
 		do_action( 'ep_epio_pre_send_autosuggest_allowed' );
 
+		$search_query = $this->generate_search_query();
+
 		/**
 		 * The same ES query sent by autosuggest.
 		 *
 		 * Sometimes it'll be a string, sometimes it'll be already an array.
 		 */
-		$es_search_query = $this->generate_search_query()['body'];
+		$es_search_query = $search_query['body'];
 		$es_search_query = ( is_array( $es_search_query ) ) ? $es_search_query : json_decode( $es_search_query, true );
 
 		/**
@@ -683,7 +686,7 @@ class Autosuggest extends Feature {
 
 		add_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
 
-		Elasticsearch::factory()->query( $index, 'post', $es_search_query, [] );
+		Elasticsearch::factory()->query( $index, 'post', $es_search_query, $search_query['query_vars'] );
 
 		remove_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
 

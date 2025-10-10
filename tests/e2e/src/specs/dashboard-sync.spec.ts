@@ -238,5 +238,32 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 		await expect(loggedInPage.locator('.ep-sync-errors')).toContainText(
 			'No errors found in the log.',
 		);
+
+		// Activate error plugin for a specific post
+		await activatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-sync');
+
+		const responsePromise2 = loggedInPage.waitForResponse(
+			(response) => {
+				return (
+					response.url().includes('/wp-json/elasticpress/v1/sync') &&
+					response.json().then((data) => data.data.message === 'Sync complete')
+				);
+			},
+			{ timeout: getSyncTimeout() },
+		);
+		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
+		await responsePromise2;
+
+		await expect(loggedInPage.locator('.ep-sync-errors__table')).toBeVisible();
+		await expect(loggedInPage.locator('.ep-sync-errors tr')).toHaveCount(2);
+		await expect(loggedInPage.locator('.ep-sync-errors tr').locator('nth=1')).toContainText(
+			'1 (Post): [prepare_document_error] Something went wrong.',
+		);
+		await expect(loggedInPage.locator('.ep-sync-errors tr').locator('nth=1')).not.toContainText(
+			'Number of posts index errors',
+		);
+
+		await deactivatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
 	});
 });
