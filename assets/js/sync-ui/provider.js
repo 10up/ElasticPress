@@ -26,11 +26,11 @@ export const SyncSettingsProvider = ({ autoIndex, children, indexables, postType
 	const [args, setArgs] = useState({
 		include: [],
 		indexables: [],
-		lower_limit_object_id: null,
+		lower_limit_object_id: '',
 		offset: 0,
 		put_mapping: false,
 		post_type: [],
-		upper_limit_object_id: null,
+		upper_limit_object_id: '',
 	});
 
 	const [showLog, setShowLog] = useState(false);
