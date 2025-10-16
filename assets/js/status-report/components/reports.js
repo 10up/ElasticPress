@@ -164,7 +164,7 @@ export default ({ plainTextReport, reports }) => {
 					'elasticpress',
 				)}
 			</p>
-			<p>
+			<div className="ep-status-report-actions">
 				<Flex justify="start">
 					<FlexItem>
 						<Button
@@ -192,7 +192,7 @@ export default ({ plainTextReport, reports }) => {
 						</Button>
 					</FlexItem>
 				</Flex>
-			</p>
+			</div>
 
 			{Object.entries(updatedReports).map(
 				([key, { actions, groups, messages, title, isAjaxReport }]) => (
