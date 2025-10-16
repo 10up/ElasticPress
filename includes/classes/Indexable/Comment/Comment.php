@@ -1171,6 +1171,15 @@ class Comment extends Indexable {
 			}
 		}
 
+		/**
+		 * If `orderby` is 'none', WordPress will let the database decide on what should be used to order.
+		 * It will use the primary key ASC.
+		 */
+		if ( 'none' === $orderby ) {
+			$orderby = 'ID';
+			$order   = 'asc';
+		}
+
 		$orderby = $from_to[ $orderby ] ?? $orderby;
 
 		$sort[] = array(
