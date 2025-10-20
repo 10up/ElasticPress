@@ -91,7 +91,7 @@ __Added:__
 
 * Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia).
 * Selected features and groups now persist across reload. Props [@ZacharyRener](https://github.com/ZacharyRener), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia).
-* Feature fields can be dependent on other fields. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Feature fields can be dependent on other fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia).
 * Ability to create groups of fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia).
 * Ability for a feature to require multiple other features, instead of just one. Props [@ZacharyRener](https://github.com/ZacharyRener).
 * Add new widgets for Date, Meta, and Meta Range Filters. Props [@burhandodhy](https://github.com/burhandodhy).
@@ -115,6 +115,8 @@ __Changed:__
 * ElasticPress.io endpoint to fetch messages and available services. Props [@felipeelia](https://github.com/felipeelia).
 * [Autosuggest] WP_Query arguments are now passed to Elasticsearch->query() when setting allowed parameters. Props [@felipeelia](https://github.com/felipeelia).
 * Exceptions thrown during a post sync will now become error messages in sync processes. Props [@felipeelia](https://github.com/felipeelia).
+* Points the taxonomy filter URL to the facet section. Props [@burhandodhy](https://github.com/burhandodhy).
+* Bumped `react-router-dom` from 6.14.3 to 7.9.4. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Deprecated:__
 
@@ -134,6 +136,9 @@ __Fixed:__
 * Add support to handle values in array format when the comparison operator was 'IN' or 'NOT IN'. Props [@burhandodhy](https://github.com/burhandodhy).
 * Users could see other authors' private posts. Props [@burhandodhy](https://github.com/burhandodhy).
 * Undefined array key warning related to media mime types. Props [@burhandodhy](https://github.com/burhandodhy) and [@DarioBF](https://github.com/DarioBF).
+* Warning: value prop on "input" should not be null. Props [@burhandodhy](https://github.com/burhandodhy).
+* Comment query when orderby set to none. Props [@burhandodhy](https://github.com/burhandodhy).
+* JS warnings on Status Report page. Props [@burhandodhy](https://github.com/burhandodhy).
 
 __Security:__
 
