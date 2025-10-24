@@ -37,8 +37,8 @@ export default () => {
 		switch (value) {
 			case 'include':
 				offset = 0;
-				lower_limit_object_id = null;
-				upper_limit_object_id = null;
+				lower_limit_object_id = '';
+				upper_limit_object_id = '';
 				break;
 			case 'limits':
 				offset = 0;
@@ -46,8 +46,8 @@ export default () => {
 				break;
 			default:
 				include = [];
-				lower_limit_object_id = null;
-				upper_limit_object_id = null;
+				lower_limit_object_id = '';
+				upper_limit_object_id = '';
 				break;
 		}
 

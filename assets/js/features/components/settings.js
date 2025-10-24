@@ -65,9 +65,9 @@ export default ({ feature, settingsSchema }) => {
 
 		// Define the condition check function
 		const checkCondition = ([fieldKey, requiredValue]) => {
-			const actualValue = settings[feature]?.[fieldKey];
 			const defaultValue = defaultSettings[fieldKey] ?? false;
-			return actualValue === requiredValue ?? actualValue === defaultValue;
+			const actualValue = settings[feature]?.[fieldKey] || defaultValue;
+			return actualValue === requiredValue;
 		};
 
 		// Extract relationship type, default to 'AND'

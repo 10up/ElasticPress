@@ -186,10 +186,10 @@ class AdminBar {
 		 *
 		 * @since 5.3.0
 		 * @hook ep_admin_bar_should_display
-		 * @param {bool} $should_display Whether to display the admin bar status. Default true.
+		 * @param {bool} $should_display Whether to display the admin bar status.
 		 * @return {bool} New should display value
 		 */
-		return apply_filters( 'ep_admin_bar_should_display', true );
+		return apply_filters( 'ep_admin_bar_should_display', current_user_can( Utils\get_capability( 'admin-bar' ) ) );
 	}
 
 	/**

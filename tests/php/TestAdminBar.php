@@ -16,6 +16,17 @@ use ElasticPress;
 class TestAdminBar extends BaseTestCase {
 
 	/**
+	 * Setup each test.
+	 *
+	 * @since 5.3.0
+	 */
+	public function set_up() {
+		parent::set_up();
+		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+	}
+
+	/**
 	 * Test the `AdminBar::add_admin_bar_status` method.
 	 *
 	 * @since 5.3.0

@@ -77,10 +77,10 @@ class Widget extends \WP_Widget {
 	 * @since 2.5
 	 */
 	public function form( $instance ) {
-		$dashboard_url = admin_url( 'admin.php?page=elasticpress' );
+		$dashboard_url = admin_url( 'admin.php?page=elasticpress#/facets' );
 
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
-			$dashboard_url = network_admin_url( 'admin.php?page=elasticpress' );
+			$dashboard_url = network_admin_url( 'admin.php?page=elasticpress#/facets' );
 		}
 
 		$feature  = Features::factory()->get_registered_feature( 'facets' );
