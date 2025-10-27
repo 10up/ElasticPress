@@ -18,6 +18,6 @@ add_filter(
 add_filter(
 	'ep_elasticsearch_version',
 	function () {
-		return '9.2';
+		return '10.0';
 	}
 );
