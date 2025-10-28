@@ -91,6 +91,10 @@ class Features {
 				'properties'  => $properties,
 				'type'        => 'object',
 			];
+
+			if ( method_exists( $feature, 'sanitize_settings_callback' ) ) {
+				$args[ $feature->slug ]['sanitize_callback'] = [ $feature, 'sanitize_settings_callback' ];
+			}
 		}
 
 		return $args;

@@ -442,6 +442,78 @@ class TestFeatureActivation extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `ep_should_setup_feature` filter functionality
+	 *
+	 * @since 5.3.0
+	 * @group feature-activation
+	 */
+	public function test_ep_should_setup_feature_filter() {
+		$feature = new FeatureTest();
+		Features::factory()->register_feature( $feature );
+
+		// Activate the feature
+		Features::factory()->activate_feature( 'test' );
+
+		$filter_called = false;
+
+		// Add filter to prevent setup
+		$filter = function ( $should_setup, $feature_obj ) use ( &$filter_called, $feature ) {
+			if ( $feature->slug !== $feature_obj->slug ) {
+				return $should_setup;
+			}
+
+			$filter_called = true;
+			$this->assertEquals( $feature, $feature_obj );
+			return false; // Prevent setup
+		};
+		add_filter( 'ep_should_setup_feature', $filter, 10, 2 );
+
+		Features::factory()->setup_features();
+
+		$this->assertTrue( $filter_called, 'ep_should_setup_feature filter should be called' );
+		$this->assertFalse( $feature->setup_called, 'Feature setup should not be called' );
+
+		// Remove filter and test normal behavior
+		remove_filter( 'ep_should_setup_feature', $filter );
+
+		Features::factory()->setup_features();
+
+		// Test passes if no exceptions are thrown and filter was called
+		$this->assertTrue( $filter_called, 'Filter should have been called during test' );
+		$this->assertTrue( $feature->setup_called, 'Feature setup should be called' );
+	}
+
+	/**
+	 * Test the `$are_required_features_active` check in setup_features method
+	 *
+	 * @since 5.3.0
+	 * @group feature-activation
+	 */
+	public function test_required_features_active_check() {
+		// Create a feature that requires another feature
+		$dependent_feature = new DependentFeatureTest();
+		$required_feature  = new FeatureTest();
+
+		Features::factory()->register_feature( $required_feature );
+		Features::factory()->register_feature( $dependent_feature );
+
+		// Activate only the dependent feature (required feature is inactive)
+		Features::factory()->activate_feature( 'dependent_test' );
+
+		Features::factory()->setup_features();
+
+		$this->assertFalse( $dependent_feature->setup_called, 'Dependent feature should not be setup when required feature is inactive' );
+
+		// Now activate the required feature
+		Features::factory()->activate_feature( 'test' );
+		$dependent_feature->setup_called = false;
+
+		Features::factory()->setup_features();
+
+		$this->assertTrue( $dependent_feature->setup_called, 'Dependent feature should be setup when required feature is active' );
+	}
+
+	/**
 	 * Wrapper for Features::handle_feature_activation() calls in admin context.
 	 *
 	 * To avoid unnecessary updates on the `ep_feature_requirement_statuses` option,

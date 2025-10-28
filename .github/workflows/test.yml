@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        esVersion: ['7.10.1', '8.12.2']
+        esVersion: ['7.10.1', '8.12.2', '9.1.5']
         type:
          - {name: 'Single Site', command: 'test-single-site'}
          - {name: 'Multisite', command: 'test'}
