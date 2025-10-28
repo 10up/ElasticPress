@@ -366,15 +366,35 @@ class Features {
 		 */
 		do_action( 'ep_setup_features' );
 
-		foreach ( $this->registered_features as $feature_slug => $feature ) {
+		foreach ( $this->registered_features as $feature ) {
 			$feature->set_i18n_strings();
+
+			$required_features            = (array) $feature->get_required_feature();
+			$are_required_features_active = true;
+			foreach ( $required_features as $required_feature ) {
+				if ( ! $this->get_registered_feature( $required_feature )->is_active() ) {
+					$are_required_features_active = false;
+					break;
+				}
+			}
 
 			/**
 			 * 2 is the code for "not usable".
 			 *
 			 * @see FeatureRequirementsStatus
 			 */
-			if ( $feature->is_active() && 2 !== $feature->requirements_status()->code ) {
+			$should_setup = $feature->is_active() && $are_required_features_active && 2 !== $feature->requirements_status()->code;
+
+			/**
+			 * Filter whether the feature should be setup.
+			 *
+			 * @since 5.3.0
+			 * @hook ep_should_setup_feature
+			 * @param {bool} $should_setup Whether the feature should be setup.
+			 * @param {Feature} $feature The feature object.
+			 * @return {bool} New should_setup value.
+			 */
+			if ( apply_filters( 'ep_should_setup_feature', $should_setup, $feature ) ) {
 				$feature->setup();
 			}
 		}
