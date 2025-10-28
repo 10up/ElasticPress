@@ -19,17 +19,18 @@ All notable changes to this project will be documented in this file, per [the Ke
 Highlights of this version:
 
 * Full compatibility with Elementor
-* Better UX/UI in the Features Screen: Ggrouped features and conditional display of fields 
-* New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page. 
+* Better UX/UI in the Features Screen: Grouped features and conditional display of fields 
+* New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page.
 
 ### Added
 * Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4137](https://github.com/10up/ElasticPress/pull/4137), [#4154](https://github.com/10up/ElasticPress/pull/4154), and [#4207](https://github.com/10up/ElasticPress/pull/4207).
 * Selected features and groups now persist across reload. Props [@ZacharyRener](https://github.com/ZacharyRener), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia) via [#4138](https://github.com/10up/ElasticPress/pull/4138).
 * Feature fields can be dependent on other fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4141](https://github.com/10up/ElasticPress/pull/4141) and [#4215](https://github.com/10up/ElasticPress/pull/4215).
 * Ability to create groups of fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4142](https://github.com/10up/ElasticPress/pull/4142), [#4171](https://github.com/10up/ElasticPress/pull/4171), and [#4172](https://github.com/10up/ElasticPress/pull/4172).
-* Ability for a feature to require multiple other features, instead of just one. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4143](https://github.com/10up/ElasticPress/pull/4143).
+* Ability for a feature to require multiple other features, instead of just one. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4143](https://github.com/10up/ElasticPress/pull/4143) and [#4229](https://github.com/10up/ElasticPress/pull/4229).
 * Add new widgets for Date, Meta, and Meta Range Filters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4156](https://github.com/10up/ElasticPress/pull/4156).
 * Status indicator in the WordPress Admin Bar. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@tott](https://github.com/tott) via [#4199](https://github.com/10up/ElasticPress/pull/4199) and [#4219](https://github.com/10up/ElasticPress/pull/4219).
+* Add Elasticsearch 9 support. Props [@burhandodhy](https://github.com/burhandodhy) via [#4194](https://github.com/10up/ElasticPress/pull/4194).
 * Support for rand with a seed in the orderby clause. Props [@asharirfan](https://github.com/asharirfan), [@asharirfan](https://github.com/asharirfan), [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), [@tlovett1](https://github.com/tlovett1), [@mustafauysal](https://github.com/mustafauysal), and [@jgmedialtd](https://github.com/jgmedialtd) via [#1639](https://github.com/10up/ElasticPress/pull/1639).
 * Implement "OR" filter relationship in DateQuery. Props [@burhandodhy](https://github.com/burhandodhy) and [@eartahhj](https://github.com/eartahhj) via [#4165](https://github.com/10up/ElasticPress/pull/4165).
 * Add support for new WP_Query argument `ep_intercept_request`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4185](https://github.com/10up/ElasticPress/pull/4185).
