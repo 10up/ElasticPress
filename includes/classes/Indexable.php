@@ -266,7 +266,11 @@ abstract class Indexable {
 	 * @return object|boolean
 	 */
 	public function index( $object_id, $blocking = false ) {
-		$document = $this->prepare_document( $object_id );
+		try {
+			$document = $this->prepare_document( $object_id );
+		} catch ( \Throwable $th ) {
+			return false;
+		}
 
 		if ( false === $document ) {
 			return false;
@@ -331,6 +335,8 @@ abstract class Indexable {
 	public function bulk_index( $object_ids ) {
 		$body = '';
 
+		$non_es_errors = [];
+
 		foreach ( $object_ids as $object_id ) {
 			$action_args = array(
 				'index' => array(
@@ -338,7 +344,20 @@ abstract class Indexable {
 				),
 			);
 
-			$document = $this->prepare_document( $object_id );
+			try {
+				$document = $this->prepare_document( $object_id );
+			} catch ( \Throwable $th ) {
+				$non_es_errors[] = [
+					'index' => [
+						'_id'   => absint( $object_id ),
+						'error' => [
+							'type'   => 'prepare_document_error',
+							'reason' => $th->getMessage(),
+						],
+					],
+				];
+				continue;
+			}
 
 			/**
 			 * Conditionally kill indexing on a specific object
@@ -356,6 +375,11 @@ abstract class Indexable {
 		}
 
 		$result = Elasticsearch::factory()->bulk_index( $this->get_index_name(), $this->slug, $body );
+
+		if ( ! empty( $non_es_errors ) ) {
+			$result['errors'] = true;
+			$result['items']  = isset( $result['items'] ) ? array_merge( $result['items'], $non_es_errors ) : $non_es_errors;
+		}
 
 		/**
 		 * Perform actions after a bulk indexing is completed
@@ -380,6 +404,8 @@ abstract class Indexable {
 	public function bulk_index_dynamically( $object_ids ) {
 		$documents = [];
 
+		$non_es_errors = [];
+
 		foreach ( $object_ids as $object_id ) {
 			$action_args = array(
 				'index' => array(
@@ -387,7 +413,20 @@ abstract class Indexable {
 				),
 			);
 
-			$document = $this->prepare_document( $object_id );
+			try {
+				$document = $this->prepare_document( $object_id );
+			} catch ( \Throwable $th ) {
+				$non_es_errors[] = [
+					'index' => [
+						'_id'   => absint( $object_id ),
+						'error' => [
+							'type'   => 'prepare_document_error',
+							'reason' => $th->getMessage(),
+						],
+					],
+				];
+				continue;
+			}
 
 			if ( empty( $document ) ) {
 				continue;
@@ -410,12 +449,31 @@ abstract class Indexable {
 		}
 
 		if ( empty( $documents ) ) {
-			return [
-				new \WP_Error( 'ep_bulk_index_no_documents', esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ), $object_ids ),
-			];
+			return ( ! empty( $non_es_errors ) ? [
+				[
+					'errors' => true,
+					'items'  => $non_es_errors,
+				],
+			] : [
+				new \WP_Error(
+					'ep_bulk_index_no_documents',
+					esc_html__( 'It was not possible to create a body request with the document IDs provided.', 'elasticpress' ),
+					$object_ids
+				),
+			] );
 		}
 
 		$results = $this->send_bulk_index_request( $documents );
+
+		if ( ! empty( $non_es_errors ) ) {
+			$results = [
+				[
+					'errors' => true,
+					'items'  => $non_es_errors,
+				],
+				...$results,
+			];
+		}
 
 		/**
 		 * Perform actions after a dynamic bulk indexing is completed
@@ -1215,9 +1273,9 @@ abstract class Indexable {
 
 		try {
 			if ( version_compare( (string) Elasticsearch::factory()->get_elasticsearch_version(), '7.0', '<' ) ) {
-				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
+				$meta_fields = (array) $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['post']['properties']['meta']['properties'];
 			} else {
-				$meta_fields = $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
+				$meta_fields = (array) $mapping[ $this->get_index_name( $blog_id ) ]['mappings']['properties']['meta']['properties'];
 			}
 			$meta_keys = array_values( array_keys( $meta_fields ) );
 			sort( $meta_keys );

@@ -381,4 +381,22 @@ class TestFacetTypeMeta extends BaseTestCase {
 		$expected_result = sanitize_title( $test_meta );
 		$this->assertArrayHasKey( $expected_result, $selected['meta']['new_meta_key_1']['terms'] );
 	}
+
+	/**
+	 * Test the block does not register in the editor
+	 *
+	 * @since 5.3.0
+	 * @group facets
+	 */
+	public function test_block_does_not_register_in_editor() {
+		$GLOBALS['pagenow'] = 'post-new.php';
+		set_current_screen( 'post-new.php' );
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+		$facet_feature->tear_down();
+		$facet_feature->setup();
+		$facet_type = $facet_feature->types['meta'];
+
+		$this->assertFalse( has_action( 'init', [ $facet_type->block, 'register_block' ] ) );
+	}
 }

@@ -1182,6 +1182,44 @@ class TestCommands extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `sync` command when an exception is thrown
+	 *
+	 * This is not a "unit test" in the traditional sense, but it's needed so we are sure
+	 * the error message is displayed correctly when an exception is thrown.
+	 *
+	 * @since 5.3.0
+	 * @group commands
+	 */
+	public function test_error_message_when_exception_is_thrown() {
+
+		$post_id_1 = $this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		$throw_exception = function ( $args ) use ( $post_id_1 ) {
+			if ( $args['post_id'] === $post_id_1 ) {
+				throw new \Exception( 'Something went wrong.' );
+			}
+			return $args;
+		};
+		add_filter( 'ep_post_sync_args_post_prepare_meta', $throw_exception );
+
+		$this->command->sync( [], [ 'show-errors' => true ] );
+
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( $post_id_1 . ' (Post): [prepare_document_error] Something went wrong.', $output );
+
+		if ( $this->is_network_activate() ) {
+			$this->assertStringContainsString( 'Number of posts index errors on site 1: 1', $output );
+			$this->assertStringContainsString( 'Number of posts indexed on site 1: 1', $output );
+		} else {
+			$this->assertStringContainsString( 'Number of posts index errors: 1', $output );
+			$this->assertStringContainsString( 'Number of posts indexed: 1', $output );
+		}
+
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', $throw_exception );
+	}
+
+	/**
 	 * Test commands throws deprecated warning.
 	 *
 	 *  @expectedDeprecated get-indexes

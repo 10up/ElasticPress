@@ -117,7 +117,7 @@ export default () => {
 			<p>
 				{syncHistory.length
 					? __(
-							'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
+							'ElasticPress automatically syncs your content every time you create, delete, or update it. After the initial sync, manual syncs are rarely needed unless you make changes to your content programmatically, enable certain features, or change your Elasticsearch mapping via code.',
 							'elasticpress',
 						)
 					: sprintf(

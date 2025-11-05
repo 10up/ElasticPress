@@ -39,9 +39,31 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
+		global $wp_query;
+
+		$args = wp_parse_args(
+			$args,
+			[
+				'before_widget' => '',
+				'before_title'  => '',
+				'after_title'   => '',
+				'after_widget'  => '',
+			]
+		);
+
+		$instance = wp_parse_args(
+			$instance,
+			[
+				'title'  => '',
+				'facet'  => '',
+				'prefix' => '',
+				'suffix' => '',
+			]
+		);
+
 		$this->meta_field = $instance['facet'];
 		if ( empty( $this->meta_field ) ) {
-			if ( $instance['is_preview'] ) {
+			if ( ! empty( $instance['is_preview'] ) ) {
 				esc_html_e( 'Preview not available. Make sure you select a field.', 'elasticpress' );
 			}
 			return false;
@@ -57,17 +79,15 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$min_field_name = $facet_type->get_filter_name() . $this->meta_field . '_min';
 		$max_field_name = $facet_type->get_filter_name() . $this->meta_field . '_max';
 
-		if ( empty( $GLOBALS['ep_facet_aggs'][ $min_field_name ] )
-			|| empty( $GLOBALS['ep_facet_aggs'][ $max_field_name ] )
-		) {
+		$min = $feature->get_facet_aggregation( $wp_query, $min_field_name );
+		$max = $feature->get_facet_aggregation( $wp_query, $max_field_name );
+
+		if ( empty( $min ) || empty( $max ) ) {
 			if ( ! empty( $instance['is_preview'] ) ) {
 				esc_html_e( 'Could not get min and max values. Is this a numeric field?', 'elasticpress' );
 			}
 			return false;
 		}
-
-		$min = $GLOBALS['ep_facet_aggs'][ $min_field_name ];
-		$max = $GLOBALS['ep_facet_aggs'][ $max_field_name ];
 
 		$selected_min_value = null;
 		$selected_max_value = null;
@@ -89,6 +109,12 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$action_url  = wp_parse_url( $form_action );
 
 		wp_parse_str( $action_url['query'] ?? '', $filter_fields );
+
+		echo wp_kses_post( $args['before_widget'] );
+
+		if ( ! empty( $instance['title'] ) ) {
+			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
+		}
 		?>
 		<form action="<?php echo esc_url( $form_action ); ?>" class="ep-facet-meta-range">
 			<input type="hidden" data-prefix="<?php echo esc_attr( $instance['prefix'] ); ?>" data-suffix="<?php echo esc_attr( $instance['suffix'] ); ?>" name="<?php echo esc_attr( $min_field_name ); ?>" min="<?php echo absint( $min ); ?>" max="<?php echo absint( $max ); ?>" value="<?php echo esc_attr( $selected_min_value ); ?>">
@@ -99,6 +125,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 			<?php } ?>
 		</form>
 		<?php
+
+		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**

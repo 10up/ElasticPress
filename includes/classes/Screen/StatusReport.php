@@ -266,7 +266,7 @@ class StatusReport {
 	public function admin_menu_count() {
 		global $menu, $submenu;
 
-		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages();
+		$messages = \ElasticPress\get_container()->get( '\ElasticPress\ElasticPressIo' )->get_endpoint_messages();
 
 		if ( empty( $messages ) ) {
 			return;

@@ -2649,4 +2649,44 @@ class TestComment extends BaseTestCase {
 		$index_settings = $settings[ $index_name ]['settings'];
 		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
+
+	/**
+	 * Test comment query with orderby none.
+	 *
+	 * @since 5.3.0
+	 * @group comment
+	 */
+	public function test_comment_query_orderby_none() {
+		$post_id = $this->ep_factory->post->create();
+
+		$comment_1_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+				'comment_content' => 'Test comment 1',
+			]
+		);
+
+		$comment_2_id = $this->ep_factory->comment->create(
+			[
+				'comment_post_ID' => $post_id,
+				'comment_content' => 'Test comment 2',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$comments_query = new \WP_Comment_Query(
+			[
+				'ep_integrate' => true,
+				'orderby'      => 'none',
+			]
+		);
+
+		$this->assertTrue( $comments_query->elasticsearch_success );
+		$this->assertEquals( 2, $comments_query->found_comments );
+
+		$comments = $comments_query->get_comments();
+		$this->assertEquals( $comment_1_id, $comments[0]->comment_ID );
+		$this->assertEquals( $comment_2_id, $comments[1]->comment_ID );
+	}
 }

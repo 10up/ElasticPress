@@ -138,7 +138,6 @@ return array(
 					'language' => apply_filters( 'ep_analyzer_language', 'english', 'filter_ewp_snowball' ),
 				),
 				'edge_ngram'     => array(
-					'side'     => 'front',
 					'max_gram' => 10,
 					'min_gram' => 3,
 					'type'     => 'edge_ngram',
@@ -460,6 +459,9 @@ return array(
 						'type' => 'long',
 					),
 					'src'    => array(
+						'type' => 'text',
+					),
+					'srcset' => array(
 						'type' => 'text',
 					),
 					'width'  => array(

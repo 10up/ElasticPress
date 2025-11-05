@@ -30,11 +30,6 @@ class SettingsSchemaFeature extends \ElasticPress\Feature {
 	public function setup() {}
 
 	/**
-	 * Output feature box long text
-	 */
-	public function output_feature_box_long() {}
-
-	/**
 	 * Set the `settings_schema` attribute
 	 */
 	protected function set_settings_schema() {
