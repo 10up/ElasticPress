@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.3.0] - 2025-XX-XX
+## [5.3.0] - 2025-11-05
 
 Highlights of this version:
 

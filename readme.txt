@@ -79,7 +79,7 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
-= 5.3.0 - 2025-XX-XX =
+= 5.3.0 - 2025-11-05 =
 
 Highlights of this version:
 
