@@ -144,7 +144,7 @@ __Fixed:__
 __Security:__
 
 * Bumped `http-proxy-middleware` from 2.0.7 to 2.0.9. Props [@dependabot](https://github.com/dependabot).
-* Bumped `tar-fs` from 3.0.8 to 3.0.9. Props [@dependabot](https://github.com/dependabot).
+* Bumped `tar-fs` from 3.0.8 to 3.1.1. Props [@dependabot](https://github.com/dependabot).
 * Bumped `compression` from 1.7.5 to 1.8.1. Props [@dependabot](https://github.com/dependabot).
 * Bumped `form-data` from 4.0.1 to 4.0.4. Props [@dependabot](https://github.com/dependabot).
 * Overwrite package `@babel/runtime` coming from core packages due to a vulnerability. Props [@hugosolar](https://github.com/hugosolar).

@@ -73,7 +73,7 @@ Highlights of this version:
 
 ### Security
 * Bumped `http-proxy-middleware` from 2.0.7 to 2.0.9. Props [@dependabot](https://github.com/dependabot) via [#4135](https://github.com/10up/ElasticPress/pull/4135).
-* Bumped `tar-fs` from 3.0.8 to 3.0.9. Props [@dependabot](https://github.com/dependabot) via [#4160](https://github.com/10up/ElasticPress/pull/4160).
+* Bumped `tar-fs` from 3.0.8 to 3.1.1. Props [@dependabot](https://github.com/dependabot) via [#4160](https://github.com/10up/ElasticPress/pull/4160) and [#4225](https://github.com/10up/ElasticPress/pull/4225).
 * Bumped `compression` from 1.7.5 to 1.8.1. Props [@dependabot](https://github.com/dependabot) via [#4175](https://github.com/10up/ElasticPress/pull/4175).
 * Bumped `form-data` from 4.0.1 to 4.0.4. Props [@dependabot](https://github.com/dependabot) via [#4178](https://github.com/10up/ElasticPress/pull/4178).
 * Overwrite package `@babel/runtime` coming from core packages due to a vulnerability. Props [@hugosolar](https://github.com/hugosolar) via [#4177](https://github.com/10up/ElasticPress/pull/4177).
