@@ -326,11 +326,12 @@ function maybe_notice( $force = false ) {
 	$notices = AdminNotices::factory()->get_notices();
 
 	foreach ( $notices as $notice_key => $notice ) {
+		$class = 'notice notice-' . $notice['type'];
+		if ( $notice['dismiss'] ) {
+			$class .= ' is-dismissible';
+		}
 		?>
-		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> <?php
-		if ( $notice['dismiss'] ) :
-			?>
-			is-dismissible<?php endif; ?>">
+		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $class ); ?>">
 			<p>
 				<?php echo wp_kses( $notice['html'], 'ep-html' ); ?>
 			</p>
