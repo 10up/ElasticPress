@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.3.0\n"
+"Project-Id-Version: ElasticPress 5.3.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-11-05T14:17:48+00:00\n"
+"POT-Creation-Date: 2025-11-06T14:03:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -2034,7 +2034,7 @@ msgid "Network Active"
 msgstr ""
 
 #: includes/classes/StatusReport/ElasticPress.php:79
-#: includes/dashboard.php:650
+#: includes/dashboard.php:651
 #: includes/partials/settings-page.php:34
 #: assets/js/blocks/facets/common/edit.js:87
 #: assets/js/blocks/facets/date/edit.js:23
@@ -2308,49 +2308,47 @@ msgstr ""
 msgid "Dashboard"
 msgstr ""
 
-#: includes/dashboard.php:640
+#: includes/dashboard.php:641
 msgid "ElasticPress Features"
 msgstr ""
 
-#: includes/dashboard.php:641
+#: includes/dashboard.php:642
 #: assets/js/features/index.js:34
-#: dist/js/features-script.js:1
 msgid "Features"
 msgstr ""
 
-#: includes/dashboard.php:649
+#: includes/dashboard.php:650
 msgid "ElasticPress Settings"
 msgstr ""
 
-#: includes/dashboard.php:658
 #: includes/dashboard.php:659
+#: includes/dashboard.php:660
 #: assets/js/features/apps/features.js:185
 #: assets/js/synonyms/apps/synonyms-settings.js:61
-#: dist/js/features-script.js:1
 #: dist/js/synonyms-script.js:1
 msgid "Sync"
 msgstr ""
 
-#: includes/dashboard.php:667
+#: includes/dashboard.php:668
 msgid "ElasticPress Index Health"
 msgstr ""
 
-#: includes/dashboard.php:668
+#: includes/dashboard.php:669
 #: includes/partials/stats-page.php:35
 msgid "Index Health"
 msgstr ""
 
-#: includes/dashboard.php:676
+#: includes/dashboard.php:677
 msgid "ElasticPress Status Report"
 msgstr ""
 
-#: includes/dashboard.php:677
+#: includes/dashboard.php:678
 #: assets/js/status-report/index.js:21
 #: dist/js/status-report-script.js:1
 msgid "Status Report"
 msgstr ""
 
-#: includes/dashboard.php:875
+#: includes/dashboard.php:876
 msgid "ElasticPress Indexing"
 msgstr ""
 
@@ -2660,62 +2658,50 @@ msgid "It looks like you’re trying to use ElasticPress’s advanced features o
 msgstr ""
 
 #: assets/js/features/apps/features.js:157
-#: dist/js/features-script.js:1
 msgid "Could not save feature settings. Please try again."
 msgstr ""
 
 #: assets/js/features/apps/features.js:165
-#: dist/js/features-script.js:1
 msgid "View sync status"
 msgstr ""
 
 #: assets/js/features/apps/features.js:172
-#: dist/js/features-script.js:1
 msgid "Cannot save settings while a sync is in progress."
 msgstr ""
 
 #: assets/js/features/apps/features.js:177
-#: dist/js/features-script.js:1
 msgid "Changes to feature settings discarded."
 msgstr ""
 
 #: assets/js/features/apps/features.js:192
-#: dist/js/features-script.js:1
 msgid "If you choose to sync later some settings changes may not take effect until the sync is performed. Save and sync later?"
 msgstr ""
 
 #: assets/js/features/apps/features.js:200
-#: dist/js/features-script.js:1
 msgid "Saving these settings will begin re-syncing your content. Save and sync now?"
 msgstr ""
 
 #: assets/js/features/apps/features.js:208
-#: dist/js/features-script.js:1
 msgid "Feature settings saved. Starting sync…"
 msgstr ""
 
 #: assets/js/features/apps/features.js:213
-#: dist/js/features-script.js:1
 msgid "Feature settings saved."
 msgstr ""
 
 #: assets/js/features/apps/features.js:256
-#: dist/js/features-script.js:1
 msgid "Other"
 msgstr ""
 
 #: assets/js/features/apps/features.js:279
-#: dist/js/features-script.js:1
 msgid "ElasticPress: Could not save feature settings."
 msgstr ""
 
 #: assets/js/features/apps/features.js:390
-#: dist/js/features-script.js:1
 msgid "Select a feature above."
 msgstr ""
 
 #: assets/js/features/apps/features.js:410
-#: dist/js/features-script.js:1
 msgid "Save and sync now"
 msgstr ""
 
@@ -2723,30 +2709,25 @@ msgstr ""
 #: assets/js/synonyms/apps/synonyms-settings.js:174
 #: assets/js/synonyms/components/common/edit-panel.js:101
 #: assets/js/weighting/apps/weighting.js:59
-#: dist/js/features-script.js:1
 #: dist/js/synonyms-script.js:1
 #: dist/js/weighting-script.js:1
 msgid "Save changes"
 msgstr ""
 
 #: assets/js/features/apps/features.js:423
-#: dist/js/features-script.js:1
 msgid "Save and sync later"
 msgstr ""
 
 #: assets/js/features/apps/features.js:430
-#: dist/js/features-script.js:1
 msgid "Discard changes"
 msgstr ""
 
 #: assets/js/features/apps/features.js:475
-#: dist/js/features-script.js:1
 msgid "No features available."
 msgstr ""
 
 #. translators: %s: feature list
 #: assets/js/features/components/control.js:96
-#: dist/js/features-script.js:1
 msgid "The %s feature must be enabled to use this feature."
 msgid_plural "The %s features must be enabled to use this feature."
 msgstr[0] ""
@@ -2754,19 +2735,16 @@ msgstr[1] ""
 
 #. translators: %s: feature list
 #: assets/js/features/components/control.js:103
-#: dist/js/features-script.js:1
 msgid "The %s feature must be enabled to use the following setting."
 msgid_plural "The %s features must be enabled to use the following setting."
 msgstr[0] ""
 msgstr[1] ""
 
 #: assets/js/features/components/control.js:115
-#: dist/js/features-script.js:1
 msgid "Enabling this feature requires re-syncing your content."
 msgstr ""
 
 #: assets/js/features/components/control.js:116
-#: dist/js/features-script.js:1
 msgid "A change to following setting requires re-syncing your content."
 msgstr ""
 
@@ -2774,13 +2752,11 @@ msgstr ""
 #. translators: %1$s: comma-separated list of feature names, %2$s: last feature name
 #: assets/js/features/components/control.js:167
 #: assets/js/features/components/control.js:174
-#: dist/js/features-script.js:1
 msgid "%1$s and %2$s"
 msgstr ""
 
 #: assets/js/features/components/control.js:175
 #: assets/js/instant-results/components/facets/taxonomy-terms-facet.js:43
-#: dist/js/features-script.js:1
 #: dist/js/instant-results-script.js:1
 msgid ", "
 msgstr ""
@@ -2790,7 +2766,6 @@ msgid "Unavailable"
 msgstr ""
 
 #: assets/js/features/index.js:46
-#: dist/js/features-script.js:1
 msgid "ElasticPress Features add functionality to enhance search and queries on your site. You may choose to activate some or all of these Features depending on your needs. You can learn more about each Feature <a>here</a>."
 msgstr ""
 
