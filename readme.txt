@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 6.8
-Stable tag:   5.3.0
+Stable tag:   5.3.1
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,12 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.3.1 - 2025-11-06 =
+
+__Fixed:__
+
+* Compatibility with PHP 7.4. Props [@realrellek](https://github.com/realrellek) and [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.0 - 2025-11-05 =
 
