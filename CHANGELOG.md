@@ -14,6 +14,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.1] - 2025-11-06
+
+### Fixed
+* Compatibility with PHP 7.4. Props [@realrellek](https://github.com/realrellek) and [@felipeelia](https://github.com/felipeelia) via [#4232](https://github.com/10up/ElasticPress/pull/4232).
+
 ## [5.3.0] - 2025-11-05
 
 Highlights of this version:
