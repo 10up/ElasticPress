@@ -79,6 +79,12 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 5.3.1 - 2025-11-06 =
+
+__Fixed:__
+
+* Compatibility with PHP 7.4. Props [@realrellek](https://github.com/realrellek) and [@felipeelia](https://github.com/felipeelia).
+
 = 5.3.0 - 2025-11-05 =
 
 Highlights of this version:
