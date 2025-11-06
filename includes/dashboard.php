@@ -331,7 +331,7 @@ function maybe_notice( $force = false ) {
 			$class .= ' is-dismissible';
 		}
 		?>
-		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="notice notice-<?php echo esc_attr( $class ); ?>">
+		<div data-ep-notice="<?php echo esc_attr( $notice_key ); ?>" class="<?php echo esc_attr( $class ); ?>">
 			<p>
 				<?php echo wp_kses( $notice['html'], 'ep-html' ); ?>
 			</p>
