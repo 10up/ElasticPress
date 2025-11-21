@@ -79,6 +79,13 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 5.3.2 - 2025-11-XX =
+
+__Added__:
+
+* Notice about keeping the sync page open during the sync process. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott).
+
+
 = 5.3.1 - 2025-11-06 =
 
 __Fixed:__
