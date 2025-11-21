@@ -686,6 +686,7 @@ class Autosuggest extends Feature {
 
 		add_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
 
+		$search_query['query_vars']['ep_intercept_request'] = false;
 		Elasticsearch::factory()->query( $index, 'post', $es_search_query, $search_query['query_vars'] );
 
 		remove_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
