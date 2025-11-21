@@ -2,7 +2,8 @@
  * WordPress dependencies.
  */
 import { Panel, PanelBody } from '@wordpress/components';
-import { useEffect, useState, WPElement } from '@wordpress/element';
+import { RawHTML, useEffect, useState, WPElement } from '@wordpress/element';
+import { safeHTML } from '@wordpress/dom';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -130,6 +131,16 @@ export default () => {
 								? __('on ElasticPress.io', 'elasticpress')
 								: __('in Elasticsearch', 'elasticpress'),
 						)}
+			</p>
+			<p>
+				<RawHTML>
+					{safeHTML(
+						__(
+							'<b>ATTENTION:</b> Keep this screen open until the sync is complete.',
+							'elasticpress',
+						),
+					)}
+				</RawHTML>
 			</p>
 			<Panel className="ep-sync-panel">
 				<PanelBody className="ep-sync-panel__controls">
