@@ -2,8 +2,7 @@
  * WordPress dependencies.
  */
 import { Panel, PanelBody } from '@wordpress/components';
-import { RawHTML, useEffect, useState, WPElement } from '@wordpress/element';
-import { safeHTML } from '@wordpress/dom';
+import { useEffect, useState, WPElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
@@ -133,14 +132,12 @@ export default () => {
 						)}
 			</p>
 			<p>
-				<RawHTML>
-					{safeHTML(
-						__(
-							'<b>ATTENTION:</b> Keep this screen open until the sync is complete.',
-							'elasticpress',
-						),
+				<b>
+					{__(
+						'The sync will pause if you close this window. Please keep it open until completion.',
+						'elasticpress',
 					)}
-				</RawHTML>
+				</b>
 			</p>
 			<Panel className="ep-sync-panel">
 				<PanelBody className="ep-sync-panel__controls">
