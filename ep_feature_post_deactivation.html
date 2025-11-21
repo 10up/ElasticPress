@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Filter: ep_get_hits_from_query - 10up ElasticPress Hook Docs</title>
+    <title>Action: ep_feature_post_deactivation - 10up ElasticPress Hook Docs</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -21,7 +21,7 @@
 <div id="main">
 
 	
-    <h1 class="page-title">Filter: ep_get_hits_from_query</h1>
+    <h1 class="page-title">Action: ep_feature_post_deactivation</h1>
 	
 
     
@@ -43,14 +43,14 @@
 
     
 
-    <h4 class="name" id="ep_get_hits_from_query">apply_filters( 'ep_get_hits_from_query', <span class="signature">$hits, $response )</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="ep_feature_post_deactivation">do_action( 'ep_feature_post_deactivation', <span class="signature">$slug, $feature )</span><span class="type-signature"></span></h4>
 
     
 
 
 
 <div class="description">
-    <p>Filter Elasticsearch allows to flatten hits, if searched hits are come within aggregations.</p>
+    <p>Fires after feature is deactivated</p>
 </div>
 
 
@@ -84,13 +84,13 @@
 
         <tr>
             
-                <td class="name"><code>$hits</code></td>
+                <td class="name"><code>$slug</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">array</span>
+<span class="param-type">string</span>
 
 
             
@@ -100,20 +100,20 @@
 
             
 
-            <td class="description last"><p>from Elasticsearch</p></td>
+            <td class="description last"><p>Feature slug</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>$response</code></td>
+                <td class="name"><code>$feature</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">response</span>
+<span class="param-type">Feature</span>
 
 
             
@@ -123,7 +123,7 @@
 
             
 
-            <td class="description last"><p>Raw response from Elasticsearch</p></td>
+            <td class="description last"><p>Current feature</p></td>
         </tr>
 
     
@@ -139,6 +139,9 @@
 
     
 
+    
+    <dt class="tag-since">Since:</dt>
+    <dd class="tag-since"><ul class="dummy"><li>5.3.2</li></ul></dd>
     
 
     
@@ -164,20 +167,13 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="includes_classes_Elasticsearch.php.html">includes/classes/Elasticsearch.php</a>, <a href="includes_classes_Elasticsearch.php.html#line535">line 535</a>
+        <a href="includes_classes_Feature.php.html">includes/classes/Feature.php</a>, <a href="includes_classes_Feature.php.html#line300">line 300</a>
     </li></ul></dd>
     
 
     
 
     
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html">https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html</a></li>
-        </ul>
-    </dd>
-    
 
     
 </dl>
@@ -194,28 +190,6 @@
 
 
 
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>hits</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">array</span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 
