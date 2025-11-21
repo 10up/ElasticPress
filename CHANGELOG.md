@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Deprecated
 ### Removed
 ### Fixed
+* Media search not working in the admin dashboard. Props [@burhandodhy](https://github.com/burhandodhy), [@ognjanovic](https://github.com/ognjanovic), and [@maciejmackowiak](https://github.com/maciejmackowiak) via [#4239](https://github.com/10up/ElasticPress/pull/4239).
+
 ### Security
 ### Developer
 

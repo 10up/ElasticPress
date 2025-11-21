@@ -81,9 +81,13 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 = 5.3.2 - 2025-11-XX =
 
-__Added__:
+__Added:__
 
 * Notice about keeping the sync page open during the sync process. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott).
+
+__Fixed:__
+
+* Media search not working in the admin dashboard. Props [@burhandodhy](https://github.com/burhandodhy), [@ognjanovic](https://github.com/ognjanovic), and [@maciejmackowiak](https://github.com/maciejmackowiak).
 
 
 = 5.3.1 - 2025-11-06 =

@@ -260,6 +260,8 @@ Thank you to all the people who have already contributed to this repository via 
 [Scott Buckel (@scottbuckel)](https://github.com/scottbuckel),
 [@jzzaj](https://github.com/jzzaj),
 [@DarioBF](https://github.com/DarioBF),
+[@ognjanovic](https://github.com/ognjanovic),
+[Maciej Maćkowiak (@maciejmackowiak)](https://github.com/maciejmackowiak),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 
