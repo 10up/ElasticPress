@@ -622,6 +622,18 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
+	 * A WP-CLI wrapper to run `Autosuggest::post_deactivation()`.
+	 *
+	 * @subcommand epio-reset-autosuggest
+	 * @since      5.3.2
+	 */
+	public function epio_reset_autosuggest() {
+		Features::factory()->get_registered_feature( 'autosuggest' )->post_deactivation();
+
+		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
+	}
+
+	/**
 	 * Helper method for creating the network alias for an indexable
 	 *
 	 * @param  Indexable $indexable Instance of indexable.

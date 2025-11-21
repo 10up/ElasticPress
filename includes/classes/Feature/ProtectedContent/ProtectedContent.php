@@ -464,8 +464,9 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
-		$post_types = (array) $args['post_type'];
-
+		$post_statuses    = ! empty( $args['post_status'] ) ? $args['post_status'] : [];
+		$post_statuses    = is_string( $post_statuses ) ? explode( ',', $post_statuses ) : $post_statuses;
+		$post_types       = ! empty( $args['post_type'] ) ? (array) $args['post_type'] : [];
 		$valid_post_types = array_filter( $post_types, 'post_type_exists' );
 
 		$base_statuses = array_merge(
@@ -476,8 +477,9 @@ class ProtectedContent extends Feature {
 					'show_in_admin_all_list' => true,
 				]
 			),
-			! empty( $args['post_status'] ) ? (array) $args['post_status'] : []
+			$post_statuses
 		);
+		$base_statuses = array_unique( $base_statuses );
 
 		$post_types_with_capability    = [];
 		$post_types_without_capability = [];
@@ -502,6 +504,7 @@ class ProtectedContent extends Feature {
 
 		if ( ! empty( $post_types_with_capability ) ) {
 			$all_statuses = array_merge( $base_statuses, get_post_stati( [ 'private' => true ] ) );
+			$all_statuses = array_unique( $all_statuses );
 
 			$should_clauses[] = [
 				'bool' => [

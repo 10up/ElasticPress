@@ -623,4 +623,61 @@ class TestProtectedContent extends BaseTestCase {
 		$this->assertContains( 'pending', $statuses );
 		$this->assertContains( 'private', $statuses );
 	}
+
+	/**
+	 * Tests post statuses for admin with multiple statuses.
+	 *
+	 * @since 5.3.2
+	 * @group protected-content
+	 */
+	public function test_post_statuses_for_admin_with_multiple_statuses() {
+		set_current_screen( 'edit.php' );
+		$this->assertTrue( is_admin() );
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$post_1_id = $this->ep_factory->post->create(
+			[
+				'post_status' => 'inherit',
+			]
+		);
+		$post_2_id = $this->ep_factory->post->create(
+			[
+				'post_status' => 'private',
+			]
+		);
+		$this->ep_factory->post->create(
+			[
+				'post_status' => 'draft',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'post_status'  => 'inherit,private',
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $post_1_id, $query->posts[0]->ID );
+		$this->assertEquals( $post_2_id, $query->posts[1]->ID );
+
+		$query = new \WP_Query(
+			[
+				'post_status'  => [ 'inherit', 'private' ],
+				'ep_integrate' => true,
+				'orderby'      => 'date',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 2, $query->found_posts );
+		$this->assertEquals( $post_1_id, $query->posts[0]->ID );
+		$this->assertEquals( $post_2_id, $query->posts[1]->ID );
+	}
 }

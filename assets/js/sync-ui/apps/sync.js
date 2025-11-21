@@ -131,6 +131,14 @@ export default () => {
 								: __('in Elasticsearch', 'elasticpress'),
 						)}
 			</p>
+			<p>
+				<b>
+					{__(
+						'The sync will pause if you close this window. Please keep it open until completion.',
+						'elasticpress',
+					)}
+				</b>
+			</p>
 			<Panel className="ep-sync-panel">
 				<PanelBody className="ep-sync-panel__controls">
 					{isSyncing || isComplete ? <Progress /> : null}
