@@ -19,14 +19,9 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Added
 * Notice about keeping the sync page open during the sync process. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#4240](https://github.com/10up/ElasticPress/pull/4240).
 
-### Changed
-### Deprecated
-### Removed
 ### Fixed
 * Media search not working in the admin dashboard. Props [@burhandodhy](https://github.com/burhandodhy), [@ognjanovic](https://github.com/ognjanovic), and [@maciejmackowiak](https://github.com/maciejmackowiak) via [#4239](https://github.com/10up/ElasticPress/pull/4239).
-
-### Security
-### Developer
+* [Autosuggest] Setting allowed values. Props [@felipeelia](https://github.com/felipeelia) via [#4238](https://github.com/10up/ElasticPress/pull/4238).
 
 ## [5.3.1] - 2025-11-06
 

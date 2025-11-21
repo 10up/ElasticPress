@@ -88,7 +88,7 @@ __Added:__
 __Fixed:__
 
 * Media search not working in the admin dashboard. Props [@burhandodhy](https://github.com/burhandodhy), [@ognjanovic](https://github.com/ognjanovic), and [@maciejmackowiak](https://github.com/maciejmackowiak).
-
+* [Autosuggest] Setting allowed values. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.1 - 2025-11-06 =
 
