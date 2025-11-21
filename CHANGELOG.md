@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.3.2] - 2025-11-XX
+## [5.3.2] - 2025-11-21
 
 ### Added
 * Notice about keeping the sync page open during the sync process. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#4240](https://github.com/10up/ElasticPress/pull/4240).
