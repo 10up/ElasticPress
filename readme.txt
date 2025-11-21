@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 6.8
-Stable tag:   5.3.1
+Stable tag:   5.3.2
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -78,6 +78,17 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 5. Instant Results modal
 
 == Changelog ==
+
+= 5.3.2 - 2025-11-21 =
+
+__Added:__
+
+* Notice about keeping the sync page open during the sync process. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott).
+
+__Fixed:__
+
+* Media search not working in the admin dashboard. Props [@burhandodhy](https://github.com/burhandodhy), [@ognjanovic](https://github.com/ognjanovic), and [@maciejmackowiak](https://github.com/maciejmackowiak).
+* [Autosuggest] Setting allowed values. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.1 - 2025-11-06 =
 

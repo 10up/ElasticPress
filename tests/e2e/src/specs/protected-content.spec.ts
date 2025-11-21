@@ -69,6 +69,26 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 		await expect(results.hits.total.value).toBe(1);
 	});
 
+	test('Can use Elasticsearch in the Media Library Admin Screen', async ({ loggedInPage }) => {
+		await maybeEnableFeature('protected_content');
+		await goToAdminPage(loggedInPage, 'upload.php?mode=list');
+		await expect(
+			loggedInPage.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress'),
+		).toContainText('Time Taken');
+
+		// Check there are some rows in the list
+		const initialRows = loggedInPage.locator('#the-list tr');
+		await expect(initialRows.count()).resolves.toBeGreaterThan(0);
+
+		await loggedInPage.locator('#media-search-input').fill('woocommerce-placeholder');
+		await loggedInPage.locator('#media-search-input').press('Enter');
+
+		// Wait for search results and verify exactly 1 row
+		await loggedInPage.waitForLoadState('networkidle');
+		const rows = loggedInPage.locator('#the-list tr');
+		await expect(rows).toHaveCount(1);
+	});
+
 	test('Can sync autosaved drafts', async ({ loggedInPage }) => {
 		await maybeEnableFeature('protected_content');
 

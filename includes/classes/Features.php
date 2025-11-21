@@ -214,6 +214,9 @@ class Features {
 
 			$feature->post_activation();
 		}
+		if ( $was_active && ! $is_active && method_exists( $feature, 'post_deactivation' ) ) {
+			$feature->post_deactivation();
+		}
 
 		/**
 		 * If the feature has a setting that requires reindexing, return
