@@ -792,6 +792,24 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Send a request to EP.io to reset the allowed parameters for autosuggest.
+	 *
+	 * @since 5.3.2
+	 */
+	public function post_deactivation() {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
+		add_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
+
+		Elasticsearch::factory()->query( $index, 'post', [], [] );
+
+		remove_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
+
+		// this action is documented in Feature.php
+		do_action( 'ep_feature_post_deactivation', $this->slug, $this );
+	}
+
+	/**
 	 * Return true, so EP knows we want to intercept the remote request
 	 *
 	 * As we add and remove this function from `ep_intercept_remote_request`,

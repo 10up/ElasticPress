@@ -292,6 +292,23 @@ abstract class Feature {
 	}
 
 	/**
+	 * To be run after feature deactivation
+	 *
+	 * @since 5.3.2
+	 */
+	public function post_deactivation() {
+		/**
+		 * Fires after feature is deactivated
+		 *
+		 * @hook ep_feature_post_deactivation
+		 * @param {string} $slug Feature slug
+		 * @param {Feature} $feature Current feature
+		 * @since 5.3.2
+		 */
+		do_action( 'ep_feature_post_deactivation', $this->slug, $this );
+	}
+
+	/**
 	 * Returns the feature title.
 	 *
 	 * @since 4.4.1
