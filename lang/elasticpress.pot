@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ElasticPress 5.3.1\n"
+"Project-Id-Version: ElasticPress 5.3.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elasticpress\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-11-06T14:03:59+00:00\n"
+"POT-Creation-Date: 2025-11-21T17:12:42+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.8.1\n"
 "X-Domain: elasticpress\n"
@@ -308,10 +308,11 @@ msgstr ""
 
 #: includes/classes/Command.php:595
 #: includes/classes/Command.php:621
-#: includes/classes/Command.php:1174
-#: includes/classes/Command.php:1232
-#: includes/classes/Command.php:1514
+#: includes/classes/Command.php:633
+#: includes/classes/Command.php:1186
+#: includes/classes/Command.php:1244
 #: includes/classes/Command.php:1526
+#: includes/classes/Command.php:1538
 msgid "Done."
 msgstr ""
 
@@ -324,109 +325,109 @@ msgid "Autosuggest is not enabled."
 msgstr ""
 
 #. translators: ElasticPress.io or Elasticsearch
-#: includes/classes/Command.php:733
+#: includes/classes/Command.php:745
 msgid "Syncing with the --setup option will delete your existing index in %s. Are you sure you want to delete your Elasticsearch index"
 msgstr ""
 
-#: includes/classes/Command.php:740
+#: includes/classes/Command.php:752
 msgid "Are you sure you want to stop any other ongoing sync?"
 msgstr ""
 
-#: includes/classes/Command.php:744
+#: includes/classes/Command.php:756
 msgid "Function pcntl_signal not available. Make sure to run `wp elasticpress clear-sync` in case the process is killed."
 msgstr ""
 
-#: includes/classes/Command.php:862
+#: includes/classes/Command.php:874
 msgid "Total time elapsed: "
 msgstr ""
 
-#: includes/classes/Command.php:866
+#: includes/classes/Command.php:878
 msgid "Done!"
 msgstr ""
 
-#: includes/classes/Command.php:892
+#: includes/classes/Command.php:904
 msgid "Failed to return status."
 msgstr ""
 
-#: includes/classes/Command.php:935
+#: includes/classes/Command.php:947
 msgid "Failed to return stats."
 msgstr ""
 
-#: includes/classes/Command.php:962
+#: includes/classes/Command.php:974
 msgid "Elasticsearch host is not set."
 msgstr ""
 
-#: includes/classes/Command.php:964
+#: includes/classes/Command.php:976
 msgid "Could not connect to Elasticsearch."
 msgstr ""
 
-#: includes/classes/Command.php:975
+#: includes/classes/Command.php:987
 msgid "An index is already occurring. Try again later."
 msgstr ""
 
-#: includes/classes/Command.php:1019
+#: includes/classes/Command.php:1031
 msgid "Sync cleared."
 msgstr ""
 
-#: includes/classes/Command.php:1164
+#: includes/classes/Command.php:1176
 msgid "There is no indexing operation running."
 msgstr ""
 
-#: includes/classes/Command.php:1166
+#: includes/classes/Command.php:1178
 msgid "Stopping indexing…"
 msgstr ""
 
-#: includes/classes/Command.php:1212
+#: includes/classes/Command.php:1224
 msgid "This command expects a version number or the --default flag."
 msgstr ""
 
-#: includes/classes/Command.php:1335
+#: includes/classes/Command.php:1347
 msgid "Time elapsed: "
 msgstr ""
 
-#: includes/classes/Command.php:1341
+#: includes/classes/Command.php:1353
 msgid "Memory Usage: "
 msgstr ""
 
-#: includes/classes/Command.php:1439
+#: includes/classes/Command.php:1451
 msgid "Are you sure you want to delete all ElasticPress settings?"
 msgstr ""
 
-#: includes/classes/Command.php:1444
+#: includes/classes/Command.php:1456
 msgid "Settings deleted."
 msgstr ""
 
 #. translators: list of active indexables slugs
-#: includes/classes/Command.php:1583
+#: includes/classes/Command.php:1595
 msgid "Indexable not found or inactive. Active indexables are: %l"
 msgstr ""
 
-#: includes/classes/Command.php:1593
+#: includes/classes/Command.php:1605
 msgid "Not found"
 msgstr ""
 
 #. translators: URL of the request
-#: includes/classes/Command.php:1618
+#: includes/classes/Command.php:1630
 msgid "URL: %s"
 msgstr ""
 
 #. translators: Request arguments (outputted with print_r())
-#: includes/classes/Command.php:1625
+#: includes/classes/Command.php:1637
 msgid "Request Args: %s"
 msgstr ""
 
 #. translators: HTTP transport used
-#: includes/classes/Command.php:1632
+#: includes/classes/Command.php:1644
 msgid "Transport: %s"
 msgstr ""
 
 #. translators: Context under which the http_api_debug hook is fired
-#: includes/classes/Command.php:1639
+#: includes/classes/Command.php:1651
 msgid "Context: %s"
 msgstr ""
 
 #. translators: HTTP response (outputted with print_r())
-#: includes/classes/Command.php:1646
+#: includes/classes/Command.php:1658
 msgid "Response: %s"
 msgstr ""
 
@@ -513,7 +514,7 @@ msgstr ""
 msgid "We did not recognize this error. Please consider opening a <a href=\"%s\">GitHub Issue</a> so we can add it to our list of supported errors."
 msgstr ""
 
-#: includes/classes/Feature.php:431
+#: includes/classes/Feature.php:448
 msgid "Enable"
 msgstr ""
 
@@ -571,45 +572,45 @@ msgstr ""
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your host is properly secured. Autosuggest requires a publicly accessible endpoint, which can expose private content and allow data modification if improperly configured."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:741
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:742
 msgid "Connection"
 msgstr ""
 
 #. translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; 5: <a> tag (Site Health Debug Section); 6. </a>;
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:750
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:831
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:751
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:850
 msgid "You are directly connected to %1$sElasticPress.io%2$s, ensuring the most performant Autosuggest experience. %3$sLearn more about what this means%4$s or %5$sclick here for debug information%6$s."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:806
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:825
 msgid "Use the WP_Query argument `ep_intercept_request` instead."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:852
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:871
 msgid "Input additional selectors where you would like to include autosuggest, separated by a comma. Example: <code>.custom-selector, #custom-id, input[type=\"text\"]</code>"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:854
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:873
 msgid "Additional selectors"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:860
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:879
 msgid "Enable to fire a gtag tracking event when an autosuggest result is clicked."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:861
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:880
 msgid "Trigger Google Analytics events"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:873
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:892
 msgid "A valid URL starting with <code>http://</code> or <code>https://</code>. This address will be exposed to the public."
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:875
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:894
 msgid "Endpoint URL"
 msgstr ""
 
-#: includes/classes/Feature/Autosuggest/Autosuggest.php:889
+#: includes/classes/Feature/Autosuggest/Autosuggest.php:908
 msgid "This method should not be called anymore, as autosuggest requests are not sent regularly anymore."
 msgstr ""
 
@@ -1089,11 +1090,11 @@ msgstr ""
 msgid "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:558
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:561
 msgid "Enable to use WordPress default sort for searches inside the WP Dashboard."
 msgstr ""
 
-#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:559
+#: includes/classes/Feature/ProtectedContent/ProtectedContent.php:562
 msgid "Use default WordPress sort on the WP Dashboard"
 msgstr ""
 
@@ -2066,30 +2067,30 @@ msgid "Timeouts"
 msgstr ""
 
 #: includes/classes/StatusReport/ElasticPressIo.php:60
-#: includes/classes/StatusReport/ElasticPressIo.php:65
+#: includes/classes/StatusReport/ElasticPressIo.php:77
 msgid "Allowed Autosuggest Parameters"
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:66
-msgid "Allowed autosuggest parameters info not available."
-msgstr ""
-
-#: includes/classes/StatusReport/ElasticPressIo.php:86
-#: includes/classes/StatusReport/ElasticPressIo.php:87
-#: includes/classes/StatusReport/ElasticPressIo.php:88
-msgid "%l"
-msgstr ""
-
 #. translators: %s: URL
-#: includes/classes/StatusReport/ElasticPressIo.php:106
+#: includes/classes/StatusReport/ElasticPressIo.php:68
 msgid "If you need to reset the allowed parameters, you can do so by saving your Search Fields & Weighting settings or by visiting <a href=\"%s\">this URL</a>."
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:130
+#: includes/classes/StatusReport/ElasticPressIo.php:78
+msgid "Allowed autosuggest parameters info not available."
+msgstr ""
+
+#: includes/classes/StatusReport/ElasticPressIo.php:100
+#: includes/classes/StatusReport/ElasticPressIo.php:101
+#: includes/classes/StatusReport/ElasticPressIo.php:102
+msgid "%l"
+msgstr ""
+
+#: includes/classes/StatusReport/ElasticPressIo.php:135
 msgid "Instant Results Template"
 msgstr ""
 
-#: includes/classes/StatusReport/ElasticPressIo.php:171
+#: includes/classes/StatusReport/ElasticPressIo.php:176
 msgid "Orders Search Template"
 msgstr ""
 
@@ -3062,12 +3063,17 @@ msgstr ""
 msgid "in Elasticsearch"
 msgstr ""
 
-#: assets/js/sync-ui/apps/sync.js:148
+#: assets/js/sync-ui/apps/sync.js:136
+#: dist/js/sync-script.js:1
+msgid "The sync will pause if you close this window. Please keep it open until completion."
+msgstr ""
+
+#: assets/js/sync-ui/apps/sync.js:156
 #: dist/js/sync-script.js:1
 msgid "Advanced options"
 msgstr ""
 
-#: assets/js/sync-ui/apps/sync.js:153
+#: assets/js/sync-ui/apps/sync.js:161
 #: dist/js/sync-script.js:1
 msgid "Sync history"
 msgstr ""
