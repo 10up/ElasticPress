@@ -14,6 +14,16 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.2] - 2025-11-XX
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+### Developer
+
 ## [5.3.1] - 2025-11-06
 
 ### Fixed
@@ -2300,6 +2310,8 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
+[5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
 [5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0
 [5.2.0]: https://github.com/10up/ElasticPress/compare/5.1.4...5.2.0
 [5.1.4]: https://github.com/10up/ElasticPress/compare/5.1.3...5.1.4
