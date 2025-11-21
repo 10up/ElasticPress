@@ -464,8 +464,9 @@ class ProtectedContent extends Feature {
 	 * @return array
 	 */
 	public function filter_private_posts_for_current_user( $formatted_args, $args ): array {
-		$post_types       = (array) $args['post_type'];
-		$post_statuses    = (array) ( is_string( $args['post_status'] ) ? explode( ',', $args['post_status'] ) : $args['post_status'] );
+		$post_statuses    = ! empty( $args['post_status'] ) ? $args['post_status'] : [];
+		$post_statuses    = is_string( $post_statuses ) ? explode( ',', $post_statuses ) : $post_statuses;
+		$post_types       = ! empty( $args['post_type'] ) ? (array) $args['post_type'] : [];
 		$valid_post_types = array_filter( $post_types, 'post_type_exists' );
 
 		$base_statuses = array_merge(
