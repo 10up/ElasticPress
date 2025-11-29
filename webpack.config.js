@@ -7,6 +7,9 @@ module.exports = {
 		...defaultConfig.output,
 		filename: 'js/[name].js',
 	},
+
+	devtool: 'source-map',
+
 	optimization: {
 		...defaultConfig.optimization,
 		minimizer: [
