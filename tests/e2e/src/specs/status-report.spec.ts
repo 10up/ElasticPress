@@ -67,7 +67,7 @@ test.describe('Status Report', { tag: '@group1' }, () => {
             "message": "Testing message"
         }
     ],
-    "avaiableServices": {
+    "availableServices": {
         "vectorEmbeddings": false
     }
 }`,

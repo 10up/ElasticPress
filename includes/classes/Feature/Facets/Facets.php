@@ -694,7 +694,7 @@ class Facets extends Feature {
 	}
 
 	/**
-	 * Utilitary function to retrieve the match type selected by the user.
+	 * Utility function to retrieve the match type selected by the user.
 	 *
 	 * @since 4.4.0
 	 * @return string

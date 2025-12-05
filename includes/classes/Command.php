@@ -1286,7 +1286,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Utilitary function to render Stats for a given index.
+	 * Utility function to render Stats for a given index.
 	 *
 	 * @since 3.5.6
 	 * @param string $current_index The index name.

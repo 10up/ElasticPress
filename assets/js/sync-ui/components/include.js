@@ -31,7 +31,7 @@ export default () => {
 	};
 
 	/**
-	 * Santitize IDs entered into the include field.
+	 * Sanitize IDs entered into the include field.
 	 *
 	 * The FormTokenField component requires string values, so return an empty
 	 * string for non-numerical values.
