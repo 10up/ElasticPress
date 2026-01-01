@@ -626,6 +626,14 @@ class InstantResults extends Feature {
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			if ( is_string( $taxonomy ) ) {
+				$slug     = $taxonomy;
+				$taxonomy = get_taxonomy( $slug );
+			}
+
+			if ( ! ( $taxonomy instanceof \WP_Taxonomy ) ) {
+				continue;
+			}
 			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 
