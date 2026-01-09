@@ -449,7 +449,17 @@ function action_admin_enqueue_dashboard_scripts() {
 		wp_localize_script( 'ep_admin_sites_scripts', 'epsa', $data );
 	}
 
-	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ], true ) ) {
+	$general_ep_screens = [ 'dashboard', 'settings', 'install', 'health', 'weighting', 'synonyms', 'sync', 'status-report' ];
+	/**
+	 * Filter the query logger object
+	 *
+	 * @since 5.3.3
+	 * @hook elasticpress_general_ep_screens
+	 * @param {array} $general_ep_screens The general ElasticPress screens.
+	 * @return {array} The filtered general ElasticPress screens.
+	 */
+	$general_ep_screens = apply_filters( 'elasticpress_general_ep_screens', $general_ep_screens );
+	if ( in_array( Screen::factory()->get_current_screen(), $general_ep_screens, true ) ) {
 		wp_enqueue_style(
 			'ep_admin_styles',
 			EP_URL . 'dist/css/dashboard-styles.css',
@@ -465,57 +475,6 @@ function action_admin_enqueue_dashboard_scripts() {
 		);
 
 		wp_set_script_translations( 'ep_admin_script', 'elasticpress' );
-	}
-
-	if ( 'weighting' === Screen::factory()->get_current_screen() ) {
-
-		wp_enqueue_style(
-			'ep_weighting_styles',
-			EP_URL . 'dist/css/weighting-script.css',
-			[ 'wp-components', 'wp-edit-post' ],
-			Utils\get_asset_info( 'weighting-script', 'version' )
-		);
-
-		wp_enqueue_script(
-			'ep_weighting_script',
-			EP_URL . 'dist/js/weighting-script.js',
-			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
-			Utils\get_asset_info( 'weighting-script', 'version' ),
-			true
-		);
-
-		$weighting = Features::factory()->get_registered_feature( 'search' )->weighting;
-
-		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
-		$meta_mode               = $weighting->get_meta_mode();
-		$weightable_fields       = $weighting->get_weightable_fields();
-		$weighting_configuration = $weighting->get_weighting_configuration_with_defaults();
-
-		/**
-		 * Filter weighting dashboard options.
-		 *
-		 * @hook ep_weighting_options
-		 * @param  {array} $data Weighting dashboard options
-		 * @return  {array} New options array
-		 * @since 5.1.0
-		 */
-		$data = apply_filters(
-			'ep_weighting_options',
-			[
-				'apiUrl'                 => $api_url,
-				'metaMode'               => $meta_mode,
-				'weightableFields'       => $weightable_fields,
-				'weightingConfiguration' => $weighting_configuration,
-			]
-		);
-
-		wp_localize_script(
-			'ep_weighting_script',
-			'epWeighting',
-			$data
-		);
-
-		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
 	}
 
 	if ( in_array( Screen::factory()->get_current_screen(), [ 'dashboard', 'install' ], true ) ) {
