@@ -430,7 +430,10 @@ export async function publishPost(
 		await page.waitForSelector('.components-snackbar');
 
 		if (viewPost) {
-			const postHref = (await page.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")').getAttribute('href')) ?? '';
+			const postHref =
+				(await page
+					.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")')
+					.getAttribute('href')) ?? '';
 			await page.goto(postHref);
 		}
 	}
