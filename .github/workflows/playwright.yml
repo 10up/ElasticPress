@@ -109,7 +109,7 @@ jobs:
       with:
         name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
-        path: ${{ github.workspace }}/playwright-report/
+        path: ${{ env.WORKING_DIR }}/tests/e2e/playwright-report/
 
     - name: Stop Elasticsearch
       if: matrix.esVersion != 'EP.io'
