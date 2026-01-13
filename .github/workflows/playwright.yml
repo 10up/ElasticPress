@@ -1,0 +1,132 @@
+name: E2e Tests
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  CI: true
+  COMPOSER_VERSION: "2"
+  COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  NODE_VERSION: "20"
+  NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+
+on:
+  push:
+    branches:
+      - develop
+      - trunk
+  pull_request:
+    branches:
+      - develop
+      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+
+jobs:
+  e2e_local:
+    name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testGroup: ['@group1', '@group2', '@paidPlugins']
+        esVersion: ['7.10.1', '8.12.2', '9.1.5', 'EP.io']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: ''}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0'}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Prepare npm cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.NODE_CACHE }}
+        key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          npm-${{ env.NODE_VERSION }}-
+    - name: Prepare composer cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.COMPOSER_CACHE }}
+        key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          composer-${{ env.COMPOSER_VERSION }}-
+
+    - name: Set PHP version
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: :php-psr
+        tools: cs2pr
+        coverage: none
+
+    - name: composer install
+      run: composer install
+
+    - name: "Install node v${{ env.NODE_VERSION }}"
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm ci --include=dev
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+
+    - name: Set up WP environment with Elasticsearch
+      run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Set up WP environment with Elasticsearch (EP.io)
+      run: |
+        npm run env start
+        npm run env:install-tests-cli
+      if: matrix.esVersion == 'EP.io'
+
+    - name: Check ES response
+      run: curl --connect-timeout 5 --max-time 10 --retry 5 --retry-max-time 40 --retry-all-errors http://localhost:8890
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Build asset
+      run: npm run build
+
+    - name: Set up database
+      run: npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      if: matrix.esVersion != 'EP.io'
+
+    - name: Set up database (EP.io)
+      run: npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      if: matrix.esVersion == 'EP.io'
+
+    - name: Run Playwright tests
+      run: npm run playwright:test -- --grep ${{ matrix.testGroup }}
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
+        retention-days: 2
+        path: ${{ github.workspace }}/playwright-report/
+
+    - name: Stop Elasticsearch
+      if: matrix.esVersion != 'EP.io'
+      run: cd bin/es-docker/ && docker compose down
+
+    - name: Delete Elasticsearch indices
+      if: ${{ !cancelled() && matrix.esVersion == 'EP.io' }}
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress-tests delete-all-indices"
+
+    - name: Test plugin uninstall
+      if: always()
+      run: |
+        PLUGIN_NAME=$(basename "$PWD")
+        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
+        ./bin/wp-env-cli tests-wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
+        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"

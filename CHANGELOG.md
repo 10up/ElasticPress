@@ -14,6 +14,138 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.2] - 2025-11-21
+
+### Added
+* Notice about keeping the sync page open during the sync process. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#4240](https://github.com/10up/ElasticPress/pull/4240).
+
+### Fixed
+* Media search not working in the admin dashboard. Props [@burhandodhy](https://github.com/burhandodhy), [@ognjanovic](https://github.com/ognjanovic), and [@maciejmackowiak](https://github.com/maciejmackowiak) via [#4239](https://github.com/10up/ElasticPress/pull/4239).
+* [Autosuggest] Setting allowed values. Props [@felipeelia](https://github.com/felipeelia) via [#4238](https://github.com/10up/ElasticPress/pull/4238).
+
+## [5.3.1] - 2025-11-06
+
+### Fixed
+* Compatibility with PHP 7.4. Props [@realrellek](https://github.com/realrellek) and [@felipeelia](https://github.com/felipeelia) via [#4232](https://github.com/10up/ElasticPress/pull/4232).
+
+## [5.3.0] - 2025-11-05
+
+Highlights of this version:
+
+* Improved compatibility with Elementor
+* Better UX/UI in the Features Screen: Grouped features and conditional display of fields 
+* New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page.
+
+### Added
+* Grouped features. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4137](https://github.com/10up/ElasticPress/pull/4137), [#4154](https://github.com/10up/ElasticPress/pull/4154), and [#4207](https://github.com/10up/ElasticPress/pull/4207).
+* Selected features and groups now persist across reload. Props [@ZacharyRener](https://github.com/ZacharyRener), [@burhandodhy](https://github.com/burhandodhy), and [@felipeelia](https://github.com/felipeelia) via [#4138](https://github.com/10up/ElasticPress/pull/4138).
+* Feature fields can be dependent on other fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4141](https://github.com/10up/ElasticPress/pull/4141) and [#4215](https://github.com/10up/ElasticPress/pull/4215).
+* Ability to create groups of fields. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4142](https://github.com/10up/ElasticPress/pull/4142), [#4171](https://github.com/10up/ElasticPress/pull/4171), and [#4172](https://github.com/10up/ElasticPress/pull/4172).
+* Ability for a feature to require multiple other features, instead of just one. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@felipeelia](https://github.com/felipeelia) via [#4143](https://github.com/10up/ElasticPress/pull/4143) and [#4229](https://github.com/10up/ElasticPress/pull/4229).
+* Add new widgets for Date, Meta, and Meta Range Filters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4156](https://github.com/10up/ElasticPress/pull/4156).
+* Status indicator in the WordPress Admin Bar. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@tott](https://github.com/tott) via [#4199](https://github.com/10up/ElasticPress/pull/4199) and [#4219](https://github.com/10up/ElasticPress/pull/4219).
+* Add Elasticsearch 9 support. Props [@burhandodhy](https://github.com/burhandodhy) via [#4194](https://github.com/10up/ElasticPress/pull/4194).
+* Support for rand with a seed in the orderby clause. Props [@asharirfan](https://github.com/asharirfan), [@asharirfan](https://github.com/asharirfan), [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), [@tlovett1](https://github.com/tlovett1), [@mustafauysal](https://github.com/mustafauysal), and [@jgmedialtd](https://github.com/jgmedialtd) via [#1639](https://github.com/10up/ElasticPress/pull/1639).
+* Implement "OR" filter relationship in DateQuery. Props [@burhandodhy](https://github.com/burhandodhy) and [@eartahhj](https://github.com/eartahhj) via [#4165](https://github.com/10up/ElasticPress/pull/4165).
+* Add support for new WP_Query argument `ep_intercept_request`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4185](https://github.com/10up/ElasticPress/pull/4185).
+* New ElasticPressIoTemplateManager class. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4189](https://github.com/10up/ElasticPress/pull/4189).
+* Support for painless scripts in the ES queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@scottbuckel](https://github.com/scottbuckel) via [#4181](https://github.com/10up/ElasticPress/pull/4181).
+* Support to set an array value in the `orderby_meta_mapping` filters. Props [@burhandodhy](https://github.com/burhandodhy) and [@jzzaj](https://github.com/jzzaj) via [#4188](https://github.com/10up/ElasticPress/pull/4188).
+* New `ep_skip_search_exclusions` WP_Query argument. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4184](https://github.com/10up/ElasticPress/pull/4184).
+* [Autosuggest] Added link in Status Report to send allowed parameters directly. Props [@felipeelia](https://github.com/felipeelia), [@burhandodhy](https://github.com/burhandodhy), and [@tott](https://github.com/tott) via [#4199](https://github.com/10up/ElasticPress/pull/4199).
+* New `ep_get_query_log` filter. Props [@felipeelia](https://github.com/felipeelia) via [#4209](https://github.com/10up/ElasticPress/pull/4209).
+
+### Changed
+* Index `srcset` for post thumbnails. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#3693](https://github.com/10up/ElasticPress/pull/3693).
+* Menu SVG icon with default WP color. Props [@LenVan](https://github.com/LenVan) via [#4167](https://github.com/10up/ElasticPress/pull/4167).
+* Aggregation data stored at query level instead of a global variable. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4182](https://github.com/10up/ElasticPress/pull/4182).
+* Text explaining when a manual sync may be required. Props [@felipeelia](https://github.com/felipeelia) and [@anjulahettige](https://github.com/anjulahettige) via [#4203](https://github.com/10up/ElasticPress/pull/4203).
+* ElasticPress.io endpoint to fetch messages and available services. Props [@felipeelia](https://github.com/felipeelia) via [#4124](https://github.com/10up/ElasticPress/pull/4124).
+* [Autosuggest] WP_Query arguments are now passed to Elasticsearch->query() when setting allowed parameters. Props [@felipeelia](https://github.com/felipeelia) via [#4204](https://github.com/10up/ElasticPress/pull/4204).
+* Exceptions thrown during a post sync will now become error messages in sync processes. Props [@felipeelia](https://github.com/felipeelia) via [#4210](https://github.com/10up/ElasticPress/pull/4210).
+* Points the taxonomy filter URL to the facet section. Props [@burhandodhy](https://github.com/burhandodhy) via [#4217](https://github.com/10up/ElasticPress/pull/4217).
+* Bumped `react-router-dom` from 6.14.3 to 7.9.4. Props [@burhandodhy](https://github.com/burhandodhy) via [#4214](https://github.com/10up/ElasticPress/pull/4214).
+
+### Deprecated
+* Remove deprecated side param from edge_ngram filter for ES 8.16.x compatibility. Props [@rebeccahum](https://github.com/rebeccahum) via [#4155](https://github.com/10up/ElasticPress/pull/4155) and [#4173](https://github.com/10up/ElasticPress/pull/4173).
+* The `ep_bypass_exclusion_from_search` filter (replaced by the new `ep_skip_search_exclusions` WP_Query argument). Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4184](https://github.com/10up/ElasticPress/pull/4184).
+
+### Removed
+* Old feature settings code. Props [@burhandodhy](https://github.com/burhandodhy) and [@JakePT](https://github.com/JakePT) via [#4187](https://github.com/10up/ElasticPress/pull/4187).
+
+### Fixed
+* Autosuggest doesn't work if the placeholder is changed via a `ep_autosuggest_query_placeholder` filter. Props [@fabianmarz](https://github.com/fabianmarz) and [@burhandodhy](https://github.com/burhandodhy) via [#1619](https://github.com/10up/ElasticPress/pull/1619).
+* Link to compatibility documentation in admin notices. Props [@dilipbheda](https://github.com/dilipbheda) via [#4126](https://github.com/10up/ElasticPress/pull/4126).
+* [Metadata Range filter] Warning `Undefined array key "is_preview"`. Props [@burhandodhy](https://github.com/burhandodhy) via [#4157](https://github.com/10up/ElasticPress/pull/4157).
+* 'Filter by Taxonomy' widget does not appear in Elementor. Props [@burhandodhy](https://github.com/burhandodhy) via [#4152](https://github.com/10up/ElasticPress/pull/4152).
+* Add support to handle values in array format when the comparison operator was 'IN' or 'NOT IN'. Props [@burhandodhy](https://github.com/burhandodhy) via [#4168](https://github.com/10up/ElasticPress/pull/4168).
+* Users could see other authors' private posts. Props [@burhandodhy](https://github.com/burhandodhy) via [#4169](https://github.com/10up/ElasticPress/pull/4169).
+* Undefined array key warning related to media mime types. Props [@burhandodhy](https://github.com/burhandodhy) and [@DarioBF](https://github.com/DarioBF) via [#4208](https://github.com/10up/ElasticPress/pull/4208).
+* Warning: value prop on "input" should not be null. Props [@burhandodhy](https://github.com/burhandodhy) via [#4216](https://github.com/10up/ElasticPress/pull/4216) and [#4221](https://github.com/10up/ElasticPress/pull/4221).
+* Comment query when orderby set to none. Props [@burhandodhy](https://github.com/burhandodhy) via [#4220](https://github.com/10up/ElasticPress/pull/4220).
+* JS warnings on Status Report page. Props [@burhandodhy](https://github.com/burhandodhy) via [#4218](https://github.com/10up/ElasticPress/pull/4218).
+
+### Security
+* Bumped `http-proxy-middleware` from 2.0.7 to 2.0.9. Props [@dependabot](https://github.com/dependabot) via [#4135](https://github.com/10up/ElasticPress/pull/4135).
+* Bumped `tar-fs` from 3.0.8 to 3.1.1. Props [@dependabot](https://github.com/dependabot) via [#4160](https://github.com/10up/ElasticPress/pull/4160) and [#4225](https://github.com/10up/ElasticPress/pull/4225).
+* Bumped `compression` from 1.7.5 to 1.8.1. Props [@dependabot](https://github.com/dependabot) via [#4175](https://github.com/10up/ElasticPress/pull/4175).
+* Bumped `form-data` from 4.0.1 to 4.0.4. Props [@dependabot](https://github.com/dependabot) via [#4178](https://github.com/10up/ElasticPress/pull/4178).
+* Overwrite package `@babel/runtime` coming from core packages due to a vulnerability. Props [@hugosolar](https://github.com/hugosolar) via [#4177](https://github.com/10up/ElasticPress/pull/4177).
+
+### Developer
+* Fixed e2e tests on WP 6.8. Props [@felipeelia](https://github.com/felipeelia) via [#4125](https://github.com/10up/ElasticPress/pull/4125).
+* Migrated e2e tests from Cypress to Playwright. Props [@felipeelia](https://github.com/felipeelia) via [#4134](https://github.com/10up/ElasticPress/pull/4134).
+
+## [5.2.0] - 2025-04-10
+
+This version bumps the minimum WordPress version to 6.2+.
+
+### Added
+* New ACF Repeater Field Compatibility feature. Props [@felipeelia](https://github.com/felipeelia) via [#4075](https://github.com/10up/ElasticPress/pull/4075).
+* Add new filter `ep.InstantResults.filter.taxonomy.terms`. Props [@burhandodhy](https://github.com/burhandodhy) and [@syedc](https://github.com/syedc) via [#4067](https://github.com/10up/ElasticPress/pull/4067).
+* Support to "number" fields in the Features Settings API. Props [@felipeelia](https://github.com/felipeelia) via [#4072](https://github.com/10up/ElasticPress/pull/4072).
+* Add `include`, `exclude`, `upper-limit-object-id`, and `lower-limit-object-id` support for the term and comment indexable. Props [@burhandodhy](https://github.com/burhandodhy) via [#4074](https://github.com/10up/ElasticPress/pull/4074), [#4102](https://github.com/10up/ElasticPress/pull/4102), and [#4099](https://github.com/10up/ElasticPress/pull/4099).
+* Ability to display results on focus back + cached autosuggest results on same query. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#4064](https://github.com/10up/ElasticPress/pull/4064).
+* Document status displayed in the admin bar. Props [@felipeelia](https://github.com/felipeelia), [@tott](https://github.com/tott), and [@burhandodhy](https://github.com/burhandodhy) via [#4096](https://github.com/10up/ElasticPress/pull/4096) and [#4100](https://github.com/10up/ElasticPress/pull/4100).
+
+### Changed
+* Minimum required version of WordPress (from 6.0 to 6.2). Props [@felipeelia](https://github.com/felipeelia) via [#4082](https://github.com/10up/ElasticPress/pull/4082).
+* `ElasticPress\Feature\RelatedPosts::get_related_query()`, `ElasticPress\Feature\RelatedPosts::find_related()` parameter name change to `$post_return`. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
+* The `ep_remote_request` action to also run on non-blocking requests. Props [@felipeelia](https://github.com/felipeelia) via [#4093](https://github.com/10up/ElasticPress/pull/4093).
+* Potentially resource intensive status reports are loaded on demand with AJAX. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@felipeelia](https://github.com/felipeelia), and [@archon810](https://github.com/archon810) via [#4095](https://github.com/10up/ElasticPress/pull/4095).
+* If a feature doesn't have all its requirements fulfilled, prevent it to run its setup method. Props [@felipeelia](https://github.com/felipeelia) via [#4107](https://github.com/10up/ElasticPress/pull/4107).
+
+### Fixed
+* PHP warning: Attempt to read property "base" on null. Props [@burhandodhy](https://github.com/burhandodhy) and [@yarovikov](https://github.com/yarovikov) via [#4060](https://github.com/10up/ElasticPress/pull/4060).
+* Notice not displayed while updating a term. Props [@burhandodhy](https://github.com/burhandodhy) and [@MARQAS](https://github.com/MARQAS) via [#4070](https://github.com/10up/ElasticPress/pull/4070).
+* PHP Notice: Function _load_textdomain_just_in_time was called incorrectly. Props [@burhandodhy](https://github.com/burhandodhy) via [#4065](https://github.com/10up/ElasticPress/pull/4065).
+* PHP 8.4: Implicitly marking parameter $woocommerce as nullable is deprecated. Props [@BrookeDot](https://github.com/BrookeDot) via [#4087](https://github.com/10up/ElasticPress/pull/4087).
+* WP-CLI sync timer resetting after 16 minutes. Props [@felipeelia](https://github.com/felipeelia) and [@columbian-chris](https://github.com/columbian-chris) via [#4094](https://github.com/10up/ElasticPress/pull/4094).
+* Cannot get outside of autosuggest list pressing up on first item. Props [@oscarssanchezz](https://github.com/oscarssanchezz), [@JakePT](https://github.com/JakePT), and [@felipeelia](https://github.com/felipeelia) via [#4064](https://github.com/10up/ElasticPress/pull/4064).
+* Prevent other code from modifying the ORDERBY clause in Post and Term indexable queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#4101](https://github.com/10up/ElasticPress/pull/4101).
+* Date Query returns no result when the before and after range is the same and inclusive is set to true. Props [@burhandodhy](https://github.com/burhandodhy) and [@ErikBrendel](https://github.com/ErikBrendel) via [#4103](https://github.com/10up/ElasticPress/pull/4103).
+* Warning for undefined "post_type" array key. Props [@econscript](https://github.com/econscript) via [#4106](https://github.com/10up/ElasticPress/pull/4106).
+* Delete a post from the index if it had a password added. Props [@felipeelia](https://github.com/felipeelia) and [@dtakken](https://github.com/dtakken) via [#4108](https://github.com/10up/ElasticPress/pull/4108).
+* [Synonyms] Linebreaks being wrongly replaced in Windows Systems. Props [@nymwo](https://github.com/nymwo) via [#4056](https://github.com/10up/ElasticPress/pull/4056).
+* Deprecated `36px default size is deprecated` warnings. Props [@burhandodhy](https://github.com/burhandodhy) via [#4109](https://github.com/10up/ElasticPress/pull/4109).
+* The Sync Complete message being displayed when the log is cleared. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#4114](https://github.com/10up/ElasticPress/pull/4114).
+* Selecting a value in the date filter not redirecting users back to page 1. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#4119](https://github.com/10up/ElasticPress/pull/4119).
+* Discard Changes button coming back when saving the feature twice. Props [@felipeelia](https://github.com/felipeelia) and [@burhandodhy](https://github.com/burhandodhy) via [#4120](https://github.com/10up/ElasticPress/pull/4120).
+* WooCommerce Orders Incompatibility not appearing when plugin is activated network wide. Props [@burhandodhy](https://github.com/burhandodhy) via [#4121](https://github.com/10up/ElasticPress/pull/4121).
+
+### Security
+* Bumped `serialize-javascript` from 6.0.1 to 6.0.2, `jsdoc` from 3.6.11 to 4.0.4, and `taffydb`. Props [@dependabot](https://github.com/dependabot) via [#4078](https://github.com/10up/ElasticPress/pull/4078).
+* Bumped `tar-fs` from from 3.0.6 to 3.0.8. Props [@dependabot](https://github.com/dependabot) via [#4117](https://github.com/10up/ElasticPress/pull/4117).
+
+### Developer
+* Trufflehog GitHub Action to detect secrets leak. Props [@felipeelia](https://github.com/felipeelia) and [@tott](https://github.com/tott) via [#4052](https://github.com/10up/ElasticPress/pull/4052).
+* Install Unit Tests without relying on SVN. Props [@felipeelia](https://github.com/felipeelia) via [#4058](https://github.com/10up/ElasticPress/pull/4058).
+* Remove the setup step from the `build-with-vendor-prefixed.yml` and standardize the use of Node Version. Props [@burhandodhy](https://github.com/burhandodhy) via [#4062](https://github.com/10up/ElasticPress/pull/4062).
+* Fixed E2E tests. Props [@burhandodhy](https://github.com/burhandodhy) via [#4069](https://github.com/10up/ElasticPress/pull/4069).
+* PHP, JS and Style lint fixes. Props [@oscarssanchez](https://github.com/oscarssanchezz) and [@felipeelia](https://github.com/felipeelia) via [#4061](https://github.com/10up/ElasticPress/pull/4061).
+* Several node and composer packages updated. Props [@felipeelia](https://github.com/felipeelia) via [#4079](https://github.com/10up/ElasticPress/pull/4079) and [#4083](https://github.com/10up/ElasticPress/pull/4083).
+* Updated the chart.js library. Props [@felipeelia](https://github.com/felipeelia) via [#4081](https://github.com/10up/ElasticPress/pull/4081).
+
 ## [5.1.4] - 2024-12-12
 
 ### Added
@@ -2177,6 +2309,10 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
+[5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
+[5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0
+[5.2.0]: https://github.com/10up/ElasticPress/compare/5.1.4...5.2.0
 [5.1.4]: https://github.com/10up/ElasticPress/compare/5.1.3...5.1.4
 [5.1.3]: https://github.com/10up/ElasticPress/compare/5.1.2...5.1.3
 [5.1.2]: https://github.com/10up/ElasticPress/compare/5.1.1...5.1.2
@@ -2230,6 +2366,9 @@ This is a bug fix release with some filter additions.
 [3.2.2]: https://github.com/10up/ElasticPress/compare/3.2.1...3.2.2
 [3.2.1]: https://github.com/10up/ElasticPress/compare/3.2...3.2.1
 [3.2.0]: https://github.com/10up/ElasticPress/compare/3.1.1...3.2
+[3.1.4]: https://github.com/10up/ElasticPress/compare/3.1.3...3.1.4
+[3.1.3]: https://github.com/10up/ElasticPress/compare/3.1.2...3.1.3
+[3.1.2]: https://github.com/10up/ElasticPress/compare/3.1.1...3.1.2
 [3.1.1]: https://github.com/10up/ElasticPress/compare/3.1...3.1.1
 [3.1.0]: https://github.com/10up/ElasticPress/compare/3.0.3...3.1
 [3.0.3]: https://github.com/10up/ElasticPress/compare/3.0.2...3.0.3

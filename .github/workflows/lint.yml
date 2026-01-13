@@ -82,4 +82,7 @@ jobs:
       run: composer install
 
     - name: PHPCS check
-      run: './vendor/bin/phpcs . -q --report=checkstyle --runtime-set testVersion 7.4- | cs2pr'
+      run: './vendor/bin/phpcs . -q --ignore=tests/* --report=checkstyle --runtime-set testVersion 7.4- | cs2pr'
+
+    - name: PHPCS check tests
+      run: './vendor/bin/phpcs tests/. -q --report=checkstyle --runtime-set testVersion 8.2- | cs2pr'

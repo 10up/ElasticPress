@@ -122,4 +122,36 @@ abstract class FacetType {
 			)
 		);
 	}
+
+	/**
+	 * Get all meta fields selected in all elementor widgets.
+	 *
+	 * @param string $widget_name The widget name, e.g., `wp-widget-ep-facet-meta`
+	 * @return array
+	 */
+	protected function elementor_template_meta_fields( string $widget_name ): array {
+		$elementor_utils = \ElasticPress\get_container()->get( '\ElasticPress\ElementorUtils' );
+		$ep_widgets      = $elementor_utils->get_specific_widget_in_all_templates( $widget_name );
+
+		// Early return if no widgets found
+		if ( empty( $ep_widgets ) ) {
+			return [];
+		}
+
+		$meta_fields = [];
+		foreach ( $ep_widgets as $widget ) {
+			if ( $widget['widgetType'] !== $widget_name ) {
+				continue;
+			}
+
+			// Skip if facet setting is empty
+			if ( empty( $widget['settings']['wp']['facet'] ) ) {
+				continue;
+			}
+
+			$meta_fields[] = $widget['settings']['wp']['facet'];
+		}
+
+		return array_filter( $meta_fields );
+	}
 }

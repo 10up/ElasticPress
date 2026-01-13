@@ -3,7 +3,7 @@
  * Plugin Name:       ElasticPress
  * Plugin URI:        https://github.com/10up/ElasticPress
  * Description:       A fast and flexible search and query engine for WordPress.
- * Version:           5.1.4
+ * Version:           5.3.2
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            10up
@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '5.1.4' );
+define( 'EP_VERSION', '5.3.2' );
 
 define( 'EP_PHP_VERSION_MIN', '7.4' );
 
@@ -106,7 +106,7 @@ spl_autoload_register(
  *
  * @since  2.2
  */
-define( 'EP_ES_VERSION_MAX', '8.99' );
+define( 'EP_ES_VERSION_MAX', '9.999' );
 define( 'EP_ES_VERSION_MIN', '5.2' );
 
 require_once __DIR__ . '/includes/compat.php';
@@ -220,7 +220,10 @@ function register_indexable_posts() {
 	$query_logger = apply_filters( 'ep_query_logger', new \ElasticPress\QueryLogger() );
 	get_container()->set( '\ElasticPress\QueryLogger', $query_logger, true );
 
+	get_container()->set( '\ElasticPress\AdminBar', new \ElasticPress\AdminBar(), true );
 	get_container()->set( '\ElasticPress\BlockTemplateUtils', new \ElasticPress\BlockTemplateUtils(), true );
+	get_container()->set( '\ElasticPress\ElasticPressIo', new \ElasticPress\ElasticPressIo() );
+	get_container()->set( '\ElasticPress\ElementorUtils', new \ElasticPress\ElementorUtils(), true );
 }
 add_action( 'plugins_loaded', __NAMESPACE__ . '\register_indexable_posts' );
 

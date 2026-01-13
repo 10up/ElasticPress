@@ -10,8 +10,6 @@ namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Feature;
 use ElasticPress\FeatureRequirementsStatus;
-use ElasticPress\Indexables;
-use ElasticPress\IndexHelper;
 use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -53,6 +51,8 @@ class WooCommerce extends Feature {
 	 */
 	public function __construct() {
 		$this->slug = 'woocommerce';
+
+		$this->group = 'woocommerce';
 
 		$this->requires_install_reindex = true;
 
@@ -170,17 +170,6 @@ class WooCommerce extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Most caching and performance tools can’t keep up with the nearly infinite ways your visitors might filter or navigate your products. No matter how many products, filters, or customers you have, ElasticPress will keep your online store performing quickly. If used in combination with the Protected Content feature, ElasticPress will also accelerate order searches and back end product management.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Determine WC feature reqs status
 	 *
 	 * @since  2.2
@@ -275,20 +264,6 @@ class WooCommerce extends Feature {
 		 * @return {array} $settings_schema
 		 */
 		$this->settings_schema = apply_filters( 'ep_woocommerce_settings_schema', $this->settings_schema );
-	}
-
-	/**
-	 * DEPRECATED. Dashboard WooCommerce settings
-	 *
-	 * @since 4.5.0
-	 * @deprecated 5.1.0
-	 */
-	public function output_feature_box_settings() {
-		_doing_it_wrong(
-			__METHOD__,
-			esc_html__( 'Settings are now generated via the set_settings_schema() method.', 'elasticpress' ),
-			'5.0.0'
-		);
 	}
 
 	/**

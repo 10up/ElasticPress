@@ -117,7 +117,7 @@ export default () => {
 			<p>
 				{syncHistory.length
 					? __(
-							'If you are missing data in your search results or have recently added custom content types to your site, you should run a sync to reflect these changes.',
+							'ElasticPress automatically syncs your content every time you create, delete, or update it. After the initial sync, manual syncs are rarely needed unless you make changes to your content programmatically, enable certain features, or change your Elasticsearch mapping via code.',
 							'elasticpress',
 						)
 					: sprintf(
@@ -130,6 +130,14 @@ export default () => {
 								? __('on ElasticPress.io', 'elasticpress')
 								: __('in Elasticsearch', 'elasticpress'),
 						)}
+			</p>
+			<p>
+				<b>
+					{__(
+						'The sync will pause if you close this window. Please keep it open until completion.',
+						'elasticpress',
+					)}
+				</b>
 			</p>
 			<Panel className="ep-sync-panel">
 				<PanelBody className="ep-sync-panel__controls">

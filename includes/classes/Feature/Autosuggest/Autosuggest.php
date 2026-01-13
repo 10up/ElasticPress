@@ -40,6 +40,8 @@ class Autosuggest extends Feature {
 	public function __construct() {
 		$this->slug = 'autosuggest';
 
+		$this->group = 'live-search';
+
 		$this->requires_install_reindex = true;
 
 		$this->default_settings = [
@@ -72,17 +74,6 @@ class Autosuggest extends Feature {
 	}
 
 	/**
-	 * Output feature box long
-	 *
-	 * @since 2.4
-	 */
-	public function output_feature_box_long() {
-		?>
-		<p><?php esc_html_e( 'Input fields of type "search" or with the CSS class "search-field" or "ep-autosuggest" will be enhanced with autosuggest functionality. As text is entered into the search field, suggested content will appear below it, based on top search results for the text. Suggestions link directly to the content.', 'elasticpress' ); ?></p>
-		<?php
-	}
-
-	/**
 	 * Setup feature functionality
 	 *
 	 * @since  2.4
@@ -96,56 +87,6 @@ class Autosuggest extends Feature {
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_autosuggest_public_request' ] );
 		add_filter( 'wp', [ $this, 'epio_send_autosuggest_allowed' ] );
 		add_filter( 'ep_pre_sync_index', [ $this, 'epio_send_autosuggest_public_request' ] );
-	}
-
-	/**
-	 * Display decaying settings on dashboard.
-	 *
-	 * @since 2.4
-	 */
-	public function output_feature_box_settings() {
-		$settings = $this->get_settings();
-		?>
-		<div class="field">
-			<div class="field-name status"><label for="feature_autosuggest_selector"><?php esc_html_e( 'Autosuggest Selector', 'elasticpress' ); ?></label></div>
-			<div class="input-wrap">
-				<input value="<?php echo empty( $settings['autosuggest_selector'] ) ? '.ep-autosuggest' : esc_attr( $settings['autosuggest_selector'] ); ?>" type="text" name="settings[autosuggest_selector]" id="feature_autosuggest_selector">
-				<p class="field-description"><?php esc_html_e( 'Input additional selectors where you would like to include autosuggest separated by a comma. Example: .custom-selector, #custom-id, input[type="text"]', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-
-		<div class="field">
-			<div class="field-name status"><?php esc_html_e( 'Google Analytics Events', 'elasticpress' ); ?></div>
-			<div class="input-wrap">
-				<label><input name="settings[trigger_ga_event]" <?php checked( (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-				<label><input name="settings[trigger_ga_event]" <?php checked( ! (bool) $settings['trigger_ga_event'] ); ?> type="radio" value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
-				<p class="field-description"><?php esc_html_e( 'When enabled, a gtag tracking event is fired when an autosuggest result is clicked.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-		<?php
-
-		if ( Utils\is_epio() ) {
-			$this->epio_allowed_parameters();
-			return;
-		}
-
-		$endpoint_url = ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) ? EP_AUTOSUGGEST_ENDPOINT : $settings['endpoint_url'];
-		?>
-
-		<div class="field">
-			<div class="field-name status"><label for="feature_autosuggest_endpoint_url"><?php esc_html_e( 'Endpoint URL', 'elasticpress' ); ?></label></div>
-			<div class="input-wrap">
-				<input <?php disabled( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ); ?> value="<?php echo esc_url( $endpoint_url ); ?>" type="text" name="settings[endpoint_url]" id="feature_autosuggest_endpoint_url">
-
-				<?php if ( defined( 'EP_AUTOSUGGEST_ENDPOINT' ) && EP_AUTOSUGGEST_ENDPOINT ) : ?>
-					<p class="field-description"><?php esc_html_e( 'Your autosuggest endpoint is set in wp-config.php', 'elasticpress' ); ?></p>
-				<?php endif; ?>
-
-				<p class="field-description"><?php esc_html_e( 'This address will be exposed to the public.', 'elasticpress' ); ?></p>
-			</div>
-		</div>
-
-		<?php
 	}
 
 	/**
@@ -510,44 +451,44 @@ class Autosuggest extends Feature {
 		 */
 		$post_status = apply_filters( 'ep_term_suggest_post_status', array_values( $post_status ) );
 
-		add_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
 		add_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
 		add_filter( 'ep_do_intercept_request', [ $features->get_registered_feature( $this->slug ), 'intercept_search_request' ], 10, 2 );
 
 		add_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100, 1 ); // after ES Query to ensure we are not falling back to DB in any case
 
-		new \WP_Query(
-			/**
-			 * Filter WP Query args of the autosuggest query template.
-			 *
-			 * If you want to display 20 posts in autosuggest:
-			 *
-			 * ```
-			 * add_filter(
-			 *     'ep_autosuggest_query_args',
-			 *     function( $args ) {
-			 *         $args['posts_per_page'] = 20;
-			 *         return $args;
-			 *     }
-			 * );
-			 * ```
-			 *
-			 * @since 4.4.0
-			 * @hook ep_autosuggest_query_args
-			 * @param {array} $args Query args
-			 * @return {array} New query args
-			 */
-			apply_filters(
-				'ep_autosuggest_query_args',
-				[
-					'post_type'    => $post_type,
-					'post_status'  => $post_status,
-					's'            => $placeholder,
-					'ep_integrate' => true,
-				]
-			)
+		/**
+		 * Filter WP Query args of the autosuggest query template.
+		 *
+		 * If you want to display 20 posts in autosuggest:
+		 *
+		 * ```
+		 * add_filter(
+		 *     'ep_autosuggest_query_args',
+		 *     function( $args ) {
+		 *         $args['posts_per_page'] = 20;
+		 *         return $args;
+		 *     }
+		 * );
+		 * ```
+		 *
+		 * @since 4.4.0
+		 * @hook ep_autosuggest_query_args
+		 * @param {array} $args Query args
+		 * @return {array} New query args
+		 */
+		$args = apply_filters(
+			'ep_autosuggest_query_args',
+			[
+				'post_type'            => $post_type,
+				'post_status'          => $post_status,
+				's'                    => $placeholder,
+				'ep_integrate'         => true,
+				'ep_intercept_request' => true,
+			]
 		);
+
+		new \WP_Query( $args );
 
 		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );
 
@@ -555,11 +496,10 @@ class Autosuggest extends Feature {
 
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
-		remove_filter( 'ep_intercept_remote_request', [ $this, 'intercept_remote_request' ] );
-
 		return [
 			'body'        => $this->autosuggest_query,
 			'placeholder' => $placeholder,
+			'query_vars'  => $args,
 		];
 	}
 
@@ -651,15 +591,7 @@ class Autosuggest extends Feature {
 			return;
 		}
 
-		$url = add_query_arg(
-			[
-				's'                       => 'search test',
-				'ep_epio_set_autosuggest' => 1,
-				'ep_epio_nonce'           => wp_create_nonce( 'ep-epio-set-autosuggest' ),
-				'nocache'                 => time(), // Here just to avoid the request hitting a CDN.
-			],
-			home_url( '/' )
-		);
+		$url = $this->get_epio_public_request_url();
 
 		// Pass the same cookies, so the same authenticated user is used (and we can check the nonce).
 		$cookies = [];
@@ -686,6 +618,24 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Get the public request URL that saves the autosuggest allowed parameters.
+	 *
+	 * @since 5.3.0
+	 * @return string
+	 */
+	public function get_epio_public_request_url(): string {
+		return add_query_arg(
+			[
+				's'                       => 'search test',
+				'ep_epio_set_autosuggest' => 1,
+				'ep_epio_nonce'           => wp_create_nonce( 'ep-epio-set-autosuggest' ),
+				'nocache'                 => time(), // Here just to avoid the request hitting a CDN.
+			],
+			home_url( '/' )
+		);
+	}
+
+	/**
 	 * Send the allowed parameters for autosuggest to ElasticPress.io.
 	 */
 	public function epio_send_autosuggest_allowed() {
@@ -705,12 +655,14 @@ class Autosuggest extends Feature {
 		 */
 		do_action( 'ep_epio_pre_send_autosuggest_allowed' );
 
+		$search_query = $this->generate_search_query();
+
 		/**
 		 * The same ES query sent by autosuggest.
 		 *
 		 * Sometimes it'll be a string, sometimes it'll be already an array.
 		 */
-		$es_search_query = $this->generate_search_query()['body'];
+		$es_search_query = $search_query['body'];
 		$es_search_query = ( is_array( $es_search_query ) ) ? $es_search_query : json_decode( $es_search_query, true );
 
 		/**
@@ -734,7 +686,8 @@ class Autosuggest extends Feature {
 
 		add_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
 
-		Elasticsearch::factory()->query( $index, 'post', $es_search_query, [] );
+		$search_query['query_vars']['ep_intercept_request'] = false;
+		Elasticsearch::factory()->query( $index, 'post', $es_search_query, $search_query['query_vars'] );
 
 		remove_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
 
@@ -839,6 +792,24 @@ class Autosuggest extends Feature {
 	}
 
 	/**
+	 * Send a request to EP.io to reset the allowed parameters for autosuggest.
+	 *
+	 * @since 5.3.2
+	 */
+	public function post_deactivation() {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+
+		add_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
+
+		Elasticsearch::factory()->query( $index, 'post', [], [] );
+
+		remove_filter( 'ep_format_request_headers', [ $this, 'add_ep_set_autosuggest_header' ] );
+
+		// this action is documented in Feature.php
+		do_action( 'ep_feature_post_deactivation', $this->slug, $this );
+	}
+
+	/**
 	 * Return true, so EP knows we want to intercept the remote request
 	 *
 	 * As we add and remove this function from `ep_intercept_remote_request`,
@@ -849,6 +820,12 @@ class Autosuggest extends Feature {
 	 * @return true
 	 */
 	public function intercept_remote_request() {
+		_doing_it_wrong(
+			__METHOD__,
+			esc_html__( 'Use the WP_Query argument `ep_intercept_request` instead.', 'elasticpress' ),
+			'ElasticPress 5.3.0'
+		);
+
 		return true;
 	}
 
@@ -928,7 +905,7 @@ class Autosuggest extends Feature {
 	public function delete_cached_query() {
 		_doing_it_wrong(
 			__METHOD__,
-			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.' ),
+			esc_html__( 'This method should not be called anymore, as autosuggest requests are not sent regularly anymore.', 'elasticpress' ),
 			'ElasticPress 4.7.0'
 		);
 	}

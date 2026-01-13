@@ -14,6 +14,13 @@ use ElasticPress;
  */
 class FeatureTest extends ElasticPress\Feature {
 	/**
+	 * Track if setup was called
+	 *
+	 * @var bool
+	 */
+	public $setup_called = false;
+
+	/**
 	 * Create feature test class
 	 */
 	public function __construct() {
@@ -40,17 +47,9 @@ class FeatureTest extends ElasticPress\Feature {
 	/**
 	 * Do nothing
 	 */
-	public function output_feature_box_long() { }
-
-	/**
-	 * Do nothing
-	 */
-	public function output_feature_box_summary() { }
-
-	/**
-	 * Do nothing
-	 */
-	public function setup() { }
+	public function setup() {
+		$this->setup_called = true;
+	}
 
 	/**
 	 * Set settings schema

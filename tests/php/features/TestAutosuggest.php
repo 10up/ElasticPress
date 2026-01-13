@@ -75,40 +75,6 @@ class TestAutosuggest extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `output_feature_box_summary` method
-	 */
-	public function testBoxSummary() {
-		ob_start();
-		$this->get_feature()->output_feature_box_summary();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'As text is entered into the search field, suggested content will appear below it', $output );
-	}
-
-	/**
-	 * Test the `output_feature_box_long` method
-	 */
-	public function testBoxLong() {
-		ob_start();
-		$this->get_feature()->output_feature_box_long();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'Input fields of type &quot;search&quot;', $output );
-	}
-
-	/**
-	 * Test the `output_feature_box_settings` method
-	 */
-	public function testOutputFeatureBoxSettings() {
-		ob_start();
-		$this->get_feature()->output_feature_box_settings();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'Autosuggest Selector', $output );
-		$this->assertStringContainsString( 'Google Analytics Events', $output );
-	}
-
-	/**
 	 * Test the mapping change in ES 5 method
 	 */
 	public function testMappingES5() {
@@ -153,7 +119,7 @@ class TestAutosuggest extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `output_feature_box_settings` method
+	 * Test the `set_fuzziness` method
 	 */
 	public function testSetFuzziness() {
 		set_current_screen( 'edit.php' );
@@ -516,5 +482,17 @@ class TestAutosuggest extends BaseTestCase {
 		);
 
 		$this->assertTrue( $query->elasticsearch_success );
+	}
+
+	/**
+	 * Test the `intercept_remote_request` method throws a warning.
+	 *
+	 * @group autosuggest
+	 * @since 5.3.0
+	 *
+	 * @expectedIncorrectUsage ElasticPress\Feature\Autosuggest\Autosuggest::intercept_remote_request
+	 */
+	public function test_intercept_remote_request_method_throws_warning() {
+		$this->assertTrue( $this->get_feature()->intercept_remote_request() );
 	}
 }

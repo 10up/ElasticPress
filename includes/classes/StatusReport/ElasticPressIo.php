@@ -60,10 +60,24 @@ class ElasticPressIo extends Report {
 		$title          = __( 'Allowed Autosuggest Parameters', 'elasticpress' );
 		$allowed_params = $autosuggest_feature->epio_autosuggest_set_and_get();
 
+		$reset_url = [
+			'label' => 'Reset URL',
+			'value' => wp_kses_post(
+				sprintf(
+					/* translators: %s: URL */
+					__( 'If you need to reset the allowed parameters, you can do so by saving your Search Fields & Weighting settings or by visiting <a href="%s">this URL</a>.', 'elasticpress' ),
+					$autosuggest_feature->get_epio_public_request_url()
+				)
+			),
+		];
+
 		if ( empty( $allowed_params ) ) {
-			$fields['not_available'] = [
-				'label' => __( 'Allowed Autosuggest Parameters', 'elasticpress' ),
-				'value' => __( 'Allowed autosuggest parameters info not available.', 'elasticpress' ),
+			$fields = [
+				'not_available' => [
+					'label' => __( 'Allowed Autosuggest Parameters', 'elasticpress' ),
+					'value' => __( 'Allowed autosuggest parameters info not available.', 'elasticpress' ),
+				],
+				'url'           => $reset_url,
 			];
 
 			return [
@@ -97,6 +111,8 @@ class ElasticPressIo extends Report {
 				'value' => $value,
 			];
 		}
+
+		$formatted_fields['url'] = $reset_url;
 
 		return [
 			'title'  => $title,
@@ -220,7 +236,7 @@ class ElasticPressIo extends Report {
 	 * @since 4.5.0
 	 */
 	public function get_messages(): array {
-		$messages = \ElasticPress\ElasticPressIo::factory()->get_endpoint_messages( true );
+		$messages = \ElasticPress\get_container()->get( '\ElasticPress\ElasticPressIo' )->get_endpoint_messages( true );
 		$messages = array_values( $messages );
 
 		return $messages;

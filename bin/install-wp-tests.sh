@@ -79,7 +79,7 @@ install_wp() {
 		rm -rf $TMPDIR/wordpress-trunk/*
         check_git_installed
 		git clone --depth 1 --branch master https://github.com/wordpress/wordpress $TMPDIR/wordpress-trunk/wordpress
-		rm -r $TMPDIR/wordpress-trunk/wordpress/.git
+		rm -rf $TMPDIR/wordpress-trunk/wordpress/.git
 		mv $TMPDIR/wordpress-trunk/wordpress/* $WP_CORE_DIR
 	else
 		if [ $WP_VERSION == 'latest' ]; then
@@ -125,10 +125,10 @@ install_test_suite() {
 		rm -rf $WP_TESTS_DIR/{includes,data}
         check_git_installed
 		git clone --depth 1 --branch $WP_BRANCH https://github.com/wordpress/wordpress-develop $TMPDIR/wordpress-develop
-		rm -r $TMPDIR/wordpress-develop/.git
+		rm -rf $TMPDIR/wordpress-develop/.git
 		mv $TMPDIR/wordpress-develop/tests/phpunit/includes/ $WP_TESTS_DIR/includes
 		mv $TMPDIR/wordpress-develop/tests/phpunit/data/ $WP_TESTS_DIR/data
-		rm -r $TMPDIR/wordpress-develop
+		rm -rf $TMPDIR/wordpress-develop
 	fi
 
 	if [ ! -f wp-tests-config.php ]; then

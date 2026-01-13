@@ -519,7 +519,7 @@ class AdminNotices {
 			return false;
 		}
 
-		$doc_url = 'https://10up.github.io/ElasticPress/tutorial-compatibility.html';
+		$doc_url = 'https://www.elasticpress.io/resources/articles/compatibility/';
 		$html    = sprintf(
 			/* translators: Document page URL */
 			__( 'Your server software is not supported. To learn more about server compatibility please <a href="%s">visit our documentation</a>.', 'elasticpress' ),
@@ -898,7 +898,8 @@ class AdminNotices {
 
 		$index_name     = $post_indexable->get_index_name();
 		$es_field_limit = Elasticsearch::factory()->get_index_total_fields_limit( $index_name );
-		$es_field_limit = $es_field_limit ?? apply_filters( 'ep_total_field_limit', 5000 );
+		$es_field_limit = $es_field_limit ? $es_field_limit : 5000;
+		$es_field_limit = apply_filters( 'ep_total_field_limit', $es_field_limit );
 
 		$predicted_es_field_count = $count_fields_db * 8;
 

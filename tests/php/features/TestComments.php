@@ -80,34 +80,6 @@ class TestComments extends BaseTestCase {
 	}
 
 	/**
-	 * Test Comment Feature box summary
-	 *
-	 * @since  3.6.0
-	 * @group comments
-	 */
-	public function testBoxSummary() {
-		ob_start();
-		$this->get_feature()->output_feature_box_summary();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'This feature is only needed if you are using <code>WP_Comment_Query</code> directly.', $output );
-	}
-
-	/**
-	 * Test Comment Feature box long text
-	 *
-	 * @since  3.6.0
-	 * @group comments
-	 */
-	public function testBoxLong() {
-		ob_start();
-		$this->get_feature()->output_feature_box_long();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'This feature will empower your website to overcome traditional WordPress comment search and query limitations that can present themselves at scale.', $output );
-	}
-
-	/**
 	 * Test enable integration
 	 *
 	 * @since  3.6.0

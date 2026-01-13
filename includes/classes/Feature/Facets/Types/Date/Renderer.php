@@ -33,6 +33,24 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 	 * @param array $instance Instance settings
 	 */
 	public function render( $args, $instance ) {
+		$args = wp_parse_args(
+			$args,
+			[
+				'before_widget' => '',
+				'before_title'  => '',
+				'after_title'   => '',
+				'after_widget'  => '',
+			]
+		);
+
+		$instance = wp_parse_args(
+			$instance,
+			[
+				'title'             => '',
+				'displayCustomDate' => false,
+			]
+		);
+
 		$this->display_custom_date = $instance['displayCustomDate'];
 		$feature                   = Features::factory()->get_registered_feature( 'facets' );
 
@@ -42,6 +60,12 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$applied_dates    = isset( $selected_filters[ $facet_type->get_filter_type() ]['terms'] ) ? array_keys( $selected_filters[ $facet_type->get_filter_type() ]['terms'] ) : [];
 
 		$action = $feature->build_query_url( $selected_filters );
+
+		echo wp_kses_post( $args['before_widget'] );
+
+		if ( ! empty( $instance['title'] ) ) {
+			echo wp_kses_post( $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'] );
+		}
 		?>
 
 		<form class="ep-facet-date-form" action="<?php echo esc_url( $action ); ?>" method="GET">
@@ -91,6 +115,8 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		// Enqueue Script & Styles
 		wp_enqueue_script( 'elasticpress-facets' );
 		wp_enqueue_style( 'elasticpress-facets' );
+
+		echo wp_kses_post( $args['after_widget'] );
 	}
 
 	/**

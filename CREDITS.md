@@ -245,6 +245,23 @@ Thank you to all the people who have already contributed to this repository via 
 [Arturo Monge (@arturomonge)](https://github.com/arturomonge),
 [Majix (@majiix)](https://github.com/majiix),
 [Maarten Hunink (@maartenhunink)](https://github.com/maartenhunink),
+[Alexandr (@yarovikov)](https://github.com/yarovikov),
+[@syedc](https://github.com/syedc),
+[Brooke. (@BrookeDot)](https://github.com/BrookeDot),
+[@oscarssanchezz](https://github.com/oscarssanchezz),
+[Erik Brendel (@ErikBrendel)](https://github.com/ErikBrendel),
+[Evan Connolly (@econscript)](https://github.com/econscript),
+[Dik Takken (@dtakken)](https://github.com/dtakken),
+[@nymwo](https://github.com/nymwo),
+[Dilip Bheda (@dilipbheda)](https://github.com/dilipbheda),
+[Zach (@ZacharyRener)](https://github.com/ZacharyRener),
+[Christian (@eartahhj)](https://github.com/eartahhj),
+[Vania from TigriWeb (@LenVan)](https://github.com/LenVan),
+[Scott Buckel (@scottbuckel)](https://github.com/scottbuckel),
+[@jzzaj](https://github.com/jzzaj),
+[@DarioBF](https://github.com/DarioBF),
+[@ognjanovic](https://github.com/ognjanovic),
+[Maciej Maćkowiak (@maciejmackowiak)](https://github.com/maciejmackowiak),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

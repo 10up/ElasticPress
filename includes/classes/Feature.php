@@ -127,10 +127,10 @@ abstract class Feature {
 	protected $settings_schema = [];
 
 	/**
-	 * The slug of a feature that is required to be active.
+	 * The slug, or array of slugs, of a feature that is required to be active.
 	 *
 	 * @since 5.0.0
-	 * @var false|string
+	 * @var false|string|array
 	 */
 	protected $requires_feature = false;
 
@@ -143,29 +143,27 @@ abstract class Feature {
 	protected $is_powered_by_epio = false;
 
 	/**
+	 * The name of a group that a feature may belong to.
+	 *
+	 * @since 5.3.0
+	 * @var false|string
+	 */
+	public $group = false;
+
+	/**
+	 * Field groups available to a feature
+	 *
+	 * @since 5.3.0
+	 * @var array
+	 */
+	protected $field_group_map = [];
+
+	/**
 	 * Run on every page load for feature to set itself up
 	 *
 	 * @since  2.1
 	 */
 	abstract public function setup();
-
-	/**
-	 * Output feature box summary
-	 *
-	 * @since 2.1
-	 */
-	public function output_feature_box_summary() {
-		if ( $this->summary ) {
-			echo wp_kses_post( $this->summary );
-		}
-	}
-
-	/**
-	 * Implement to output feature box long text
-	 *
-	 * @since  3.0
-	 */
-	public function output_feature_box_long() {}
 
 	/**
 	 * Create feature
@@ -294,147 +292,20 @@ abstract class Feature {
 	}
 
 	/**
-	 * Outputs feature box
+	 * To be run after feature deactivation
 	 *
-	 * @since  2.1
+	 * @since 5.3.2
 	 */
-	public function output_feature_box() {
-		$this->output_feature_box_summary();
-
+	public function post_deactivation() {
 		/**
-		 * Fires before feature box summary is shown
+		 * Fires after feature is deactivated
 		 *
-		 * @hook ep_feature_box_summary
-		 * @param  {string} $slug Feature slug
+		 * @hook ep_feature_post_deactivation
+		 * @param {string} $slug Feature slug
 		 * @param {Feature} $feature Current feature
-		 * @since  2.1
+		 * @since 5.3.2
 		 */
-		do_action( 'ep_feature_box_summary', $this->slug, $this );
-		?>
-
-		<button aria-expanded="false" class="learn-more button button-secondary button-small" type="button"><?php esc_html_e( 'Learn more', 'elasticpress' ); ?></button>
-
-		<div class="long">
-			<?php $this->output_feature_box_long(); ?>
-
-			<p><button aria-expanded="true" class="collapse button button-secondary button-small" type="button"><?php esc_html_e( 'Collapse', 'elasticpress' ); ?></button></p>
-
-			<?php
-			/**
-			 * Fires after feature long description
-			 *
-			 * @hook ep_feature_box_long
-			 * @param  {string} $slug Feature slug
-			 * @param {Feature} $feature Current feature
-			 * @since  2.1
-			 */
-			do_action( 'ep_feature_box_long', $this->slug, $this );
-			?>
-
-		</div>
-		<?php
-	}
-
-	/**
-	 * Output extra feature box settings.
-	 *
-	 * By default this does nothing. Override to add additional settings.
-	 *
-	 * @since  3.0
-	 */
-	public function output_feature_box_settings() {
-		/**
-		 * Optionally override
-		 */
-	}
-
-	/**
-	 * Output feature settings
-	 *
-	 * @since  3.0
-	 */
-	public function output_settings_box() {
-		$requirements_status = $this->requirements_status();
-		$sync_url            = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK )
-			? network_admin_url( 'admin.php?page=elasticpress-sync' )
-			: admin_url( 'admin.php?page=elasticpress-sync' );
-		?>
-
-		<form>
-			<?php
-			if ( ! empty( $requirements_status->message ) ) :
-				$messages = (array) $requirements_status->message;
-				?>
-				<?php foreach ( $messages as $message ) : ?>
-					<div class="requirements-status-notice">
-						<?php echo wp_kses_post( $message ); ?>
-					</div>
-				<?php endforeach; ?>
-			<?php endif; ?>
-
-			<?php if ( $this->requires_install_reindex || $this->setting_requires_install_reindex ) : ?>
-				<div class="requirements-status-notice requirements-status-notice--reindex" role="status">
-					<?php esc_html_e( 'Enabling this feature will require re-syncing your content.', 'elasticpress' ); ?>
-				</div>
-			<?php endif; ?>
-
-			<div class="requirements-status-notice requirements-status-notice--syncing" role="alert">
-				<?php
-				printf(
-					'%1$s <a href="%2$s">%3$s</a>',
-					esc_html__( 'Settings not saved. Cannot save settings while a sync is in progress.', 'elasticpress' ),
-					esc_url( $sync_url ),
-					esc_html__( 'View sync status.', 'elasticpress' )
-				);
-				?>
-			</div>
-
-			<h3><?php esc_html_e( 'Settings', 'elasticpress' ); ?></h3>
-
-			<div class="feature-fields">
-				<div class="field js-toggle-feature">
-					<div class="field-name status"><?php esc_html_e( 'Status', 'elasticpress' ); ?></div>
-					<div class="input-wrap <?php if ( 2 === $requirements_status->code ) : ?>disabled<?php endif; ?>">
-						<label><input name="settings[active]" <?php disabled( 2 === $requirements_status->code ); ?> type="radio" <?php checked( $this->is_active() ); ?> value="1"><?php esc_html_e( 'Enabled', 'elasticpress' ); ?></label><br>
-						<label><input name="settings[active]" <?php disabled( 2 === $requirements_status->code ); ?> type="radio" <?php checked( ! $this->is_active() ); ?> value="0"><?php esc_html_e( 'Disabled', 'elasticpress' ); ?></label>
-					</div>
-				</div>
-
-				<?php
-				$this->output_feature_box_settings();
-				?>
-			</div>
-
-			<div class="action-wrap">
-				<span class="no-dash-sync">
-					<?php esc_html_e( 'Setting adjustments to this feature require a re-sync. Use WP-CLI.', 'elasticpress' ); ?>
-				</span>
-
-				<input type="hidden" name="action" value="ep_save_feature">
-				<input type="hidden" name="feature" value="<?php echo esc_attr( $this->slug ); ?>">
-				<input type="hidden" name="requires_reindex" value="<?php echo $this->requires_install_reindex ? '1' : '0'; ?>">
-				<input type="hidden" name="was_active" value="<?php echo $this->is_active() ? '1' : '0'; ?>">
-				<input type="hidden" name="setting_requires_reindex" value="<?php echo esc_attr( $this->setting_requires_install_reindex ); ?>">
-				<input type="hidden" name="setting_requires_reindex_was" value="<?php echo esc_attr( $this->get_reindex_setting() ); ?>">
-				<?php wp_nonce_field( 'ep_dashboard_nonce', 'nonce' ); ?>
-
-				<button name="submit" <?php disabled( 2 === $requirements_status->code || ( $this->requires_install_reindex && defined( 'EP_DASHBOARD_SYNC' ) && ! EP_DASHBOARD_SYNC ) ); ?> class="button button-primary" type="submit">
-					<?php esc_html_e( 'Save', 'elasticpress' ); ?>
-				</button>
-			</div>
-		</form>
-
-		<?php
-	}
-
-	/**
-	 * Returns the ElasticPress.io logo.
-	 *
-	 * @since 4.4.1
-	 * @return string
-	 */
-	public function get_epio_logo(): string {
-		return sprintf( '<img class="feature-epio-logo" alt="ElasticPress.io logo" src="%s" width="110" height="20">', esc_url( plugins_url( '/images/logo-elasticpress-io.svg', EP_FILE ) ) );
+		do_action( 'ep_feature_post_deactivation', $this->slug, $this );
 	}
 
 	/**
@@ -551,6 +422,9 @@ abstract class Feature {
 			'reqStatusCode'     => $requirements_status->code,
 			'reqStatusMessages' => (array) $requirements_status->message,
 			'settingsSchema'    => $this->get_settings_schema(),
+			'group'             => $this->group,
+			'requiredFeature'   => $this->get_required_feature(),
+			'fieldGroups'       => $this->get_field_group_map(),
 		];
 
 		return $feature_desc;
@@ -572,7 +446,7 @@ abstract class Feature {
 			'default'          => false,
 			'key'              => 'active',
 			'label'            => __( 'Enable', 'elasticpress' ),
-			'requires_feature' => $this->requires_feature,
+			'requires_feature' => $this->get_required_feature(),
 			'requires_sync'    => $this->requires_install_reindex,
 			'type'             => 'toggle',
 		];
@@ -630,5 +504,43 @@ abstract class Feature {
 	 * @since 5.2.0
 	 */
 	public function set_i18n_strings(): void {
+	}
+
+	/**
+	 * Get all features required by this feature
+	 *
+	 * @since 5.3.0
+	 * @return array List of required feature slugs
+	 */
+	public function get_required_feature() {
+		return $this->requires_feature ? array_unique( (array) $this->requires_feature ) : [];
+	}
+
+	/**
+	 * Get the field group map for the feature.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	public function get_field_group_map(): array {
+		/**
+		 * Filter available field groups.
+		 *
+		 * @hook ep_feature_field_groups
+		 * @since 5.3.0
+		 * @param  {array} $field_groups Current field groups
+		 * @return {array} New field groups
+		 */
+		return apply_filters( 'ep_feature_field_groups', $this->field_group_map );
+	}
+
+	/**
+	 * Get the feature slug.
+	 *
+	 * @since 5.3.0
+	 * @return string Feature slug.
+	 */
+	public function get_feature_slug(): string {
+		return $this->slug;
 	}
 }
