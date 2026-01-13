@@ -104,12 +104,12 @@ jobs:
       run: npm run playwright:test -- --grep ${{ matrix.testGroup }}
 
     - name: Make artifacts available
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: failure()
       with:
         name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
-        path: ${{ github.workspace }}/playwright-report/
+        path: tests/e2e/playwright-report/
 
     - name: Stop Elasticsearch
       if: matrix.esVersion != 'EP.io'

@@ -37,6 +37,7 @@ class Weighting {
 		add_filter( 'ep_formatted_args', [ $this, 'do_weighting' ], 20, 2 ); // After date decay, etc are injected
 		add_filter( 'ep_query_weighting_fields', [ $this, 'adjust_weight_for_cross_fields' ], 10, 5 );
 		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
 	/**
@@ -424,6 +425,64 @@ class Weighting {
 				},
 			]
 		);
+	}
+
+	/**
+	 * Enqueue scripts and styles.
+	 *
+	 * @since 5.3.3
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( 'weighting' !== \ElasticPress\Screen::factory()->get_current_screen() ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'ep_weighting_styles',
+			EP_URL . 'dist/css/weighting-script.css',
+			[ 'wp-components', 'wp-edit-post' ],
+			Utils\get_asset_info( 'weighting-script', 'version' )
+		);
+
+		wp_enqueue_script(
+			'ep_weighting_script',
+			EP_URL . 'dist/js/weighting-script.js',
+			Utils\get_asset_info( 'weighting-script', 'dependencies' ),
+			Utils\get_asset_info( 'weighting-script', 'version' ),
+			true
+		);
+
+		$api_url                 = esc_url_raw( rest_url( 'elasticpress/v1/weighting' ) );
+		$meta_mode               = $this->get_meta_mode();
+		$weightable_fields       = $this->get_weightable_fields();
+		$weighting_configuration = $this->get_weighting_configuration_with_defaults();
+
+		/**
+		 * Filter weighting dashboard options.
+		 *
+		 * @hook ep_weighting_options
+		 * @param  {array} $data Weighting dashboard options
+		 * @return  {array} New options array
+		 * @since 5.1.0
+		 */
+		$data = apply_filters(
+			'ep_weighting_options',
+			[
+				'apiUrl'                 => $api_url,
+				'metaMode'               => $meta_mode,
+				'weightableFields'       => $weightable_fields,
+				'weightingConfiguration' => $weighting_configuration,
+			]
+		);
+
+		wp_localize_script(
+			'ep_weighting_script',
+			'epWeighting',
+			$data
+		);
+
+		wp_set_script_translations( 'ep_weighting_script', 'elasticpress' );
 	}
 
 	/**
