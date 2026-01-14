@@ -87,21 +87,11 @@ class ElasticPress extends Report {
 	 * @return array
 	 */
 	protected function get_timeouts() {
-		$default_request_timeout   = 5;
-		$fields['request_timeout'] = [
-			'label' => sprintf(
-				/* translators: default time */
-				__( 'Default Requests Timeout (default: %s)', 'elasticpress' ),
-				$default_request_timeout
-			),
-			'value' => apply_filters( 'http_request_timeout', $default_request_timeout, Utils\get_host() ),
-		];
-
 		$default_index_document_timeout   = 15;
 		$fields['index_document_timeout'] = [
 			'label' => sprintf(
 				/* translators: default time */
-				__( 'Index Document Request Timeout (default: %s)', 'elasticpress' ),
+				__( 'Single Document Sync Requests Timeout (default: %s)', 'elasticpress' ),
 				$default_index_document_timeout
 			),
 			'value' => apply_filters( 'ep_index_document_timeout', $default_index_document_timeout ),
@@ -111,10 +101,20 @@ class ElasticPress extends Report {
 		$fields['bulk_request_timeout'] = [
 			'label' => sprintf(
 				/* translators: default time */
-				__( 'Default Bulk Requests Timeout (default: %s)', 'elasticpress' ),
+				__( 'Multiple Document Sync Requests Timeout (default: %s)', 'elasticpress' ),
 				$default_bulk_request_timeout
 			),
 			'value' => apply_filters( 'bulk_request_timeout', $default_bulk_request_timeout ),
+		];
+
+		$default_request_timeout   = 5;
+		$fields['request_timeout'] = [
+			'label' => sprintf(
+				/* translators: default time */
+				__( 'Other HTTP Requests Timeout (default: %s)', 'elasticpress' ),
+				$default_request_timeout
+			),
+			'value' => apply_filters( 'http_request_timeout', $default_request_timeout, Utils\get_host() ),
 		];
 
 		return [
