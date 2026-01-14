@@ -490,7 +490,7 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 						'value' => 15,
 					),
 					'bulk_request_timeout'   => array(
-						'label' => 'Default Requests Timeout (default: 30)',
+						'label' => 'Default Bulk Requests Timeout (default: 30)',
 						'value' => 30,
 					),
 				),

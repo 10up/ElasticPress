@@ -111,7 +111,7 @@ class ElasticPress extends Report {
 		$fields['bulk_request_timeout'] = [
 			'label' => sprintf(
 				/* translators: default time */
-				__( 'Default Requests Timeout (default: %s)', 'elasticpress' ),
+				__( 'Default Bulk Requests Timeout (default: %s)', 'elasticpress' ),
 				$default_bulk_request_timeout
 			),
 			'value' => apply_filters( 'bulk_request_timeout', $default_bulk_request_timeout ),
