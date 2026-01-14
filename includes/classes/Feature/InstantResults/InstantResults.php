@@ -943,12 +943,14 @@ class InstantResults extends Feature {
 			return;
 		}
 
-		$sites = Utils\get_sites( 0, true );
+		$original_blog_index = $this->index;
+		$sites               = Utils\get_sites( 0, true );
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 			$this->index = Indexables::factory()->get( 'post' )->get_index_name();
 			$this->epio_save_search_template();
 			restore_current_blog();
 		}
+		$this->index = $original_blog_index;
 	}
 }
