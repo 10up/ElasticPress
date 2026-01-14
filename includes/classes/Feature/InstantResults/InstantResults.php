@@ -75,8 +75,6 @@ class InstantResults extends Feature {
 
 		$this->host = trailingslashit( Utils\get_host() );
 
-		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
-
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
@@ -214,6 +212,7 @@ class InstantResults extends Feature {
 
 		wp_set_script_translations( 'elasticpress-instant-results', 'elasticpress' );
 
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
 		/**
 		 * The search API endpoint.
 		 *
@@ -222,7 +221,7 @@ class InstantResults extends Feature {
 		 * @param {string} $endpoint Endpoint path.
 		 * @param {string} $index Elasticsearch index.
 		 */
-		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$this->index}", $this->index );
+		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$index}", $index );
 
 		wp_localize_script(
 			'elasticpress-instant-results',
@@ -253,6 +252,7 @@ class InstantResults extends Feature {
 	 * @return string Instant Results search template endpoint.
 	 */
 	public function get_template_endpoint(): string {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
 		/**
 		 * Filters the search template API endpoint.
 		 *
@@ -262,7 +262,7 @@ class InstantResults extends Feature {
 		 * @param {string} $index Elasticsearch index.
 		 * @returns {string} Search template API endpoint.
 		 */
-		return apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+		return apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$index}/template/", $index );
 	}
 
 	/**
@@ -943,14 +943,12 @@ class InstantResults extends Feature {
 			return;
 		}
 
-		$original_blog_index = $this->index;
-		$sites               = Utils\get_sites( 0, true );
+		$sites = Utils\get_sites( 0, true );
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
 			$this->index = Indexables::factory()->get( 'post' )->get_index_name();
 			$this->epio_save_search_template();
 			restore_current_blog();
 		}
-		$this->index = $original_blog_index;
 	}
 }
