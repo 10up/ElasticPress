@@ -8,6 +8,7 @@
 
 namespace ElasticPressTest;
 
+use ElasticPress\Indexables;
 /**
  * Instants Results test class.
  */
@@ -124,7 +125,8 @@ class TestInstantResults extends BaseTestCase {
 	 */
 	public function test_template_endpoint() {
 		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
-		$this->assertSame( 'api/v1/search/posts/exampleorg-post-1/template/', $feature->get_template_endpoint() );
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
+		$this->assertSame( "api/v1/search/posts/{$index}/template/", $feature->get_template_endpoint() );
 	}
 
 	/**
