@@ -925,6 +925,7 @@ class InstantResults extends Feature {
 	 *
 	 * @param array $args Sync arguments containing network_wide flag.
 	 * @return void
+	 * @since 5.3.3
 	 */
 	public function on_sync_complete( array $args ): void {
 		$network_wide = isset( $args['network_wide'] ) && ! is_null( $args['network_wide'] );
@@ -936,6 +937,7 @@ class InstantResults extends Feature {
 	 *
 	 * @param bool $network_wide Whether to save templates for all sites in the network.
 	 * @return void
+	 * @since 5.3.3
 	 */
 	public function epio_save_site_search_template( bool $network_wide = false ): void {
 		if ( ! $network_wide ) {

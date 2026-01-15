@@ -1324,6 +1324,7 @@ class TestCommands extends BaseTestCase {
 	 * Test put-search-template command saves the search template for all sites.
 	 *
 	 * @group skip-on-single-site
+	 * @since 5.3.3
 	 */
 	public function test_put_search_template_with_network_wide_flag() {
 		$this->factory->blog->create_many( 2 );
