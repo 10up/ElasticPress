@@ -93,11 +93,21 @@ jobs:
       run: npm run build
 
     - name: Set up database
-      run: npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      run: |
+        if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
+          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+        else
+          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+        fi
       if: matrix.esVersion != 'EP.io'
 
     - name: Set up database (EP.io)
-      run: npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+      run: |
+        if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+        else
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+        fi
       if: matrix.esVersion == 'EP.io'
 
     - name: Run Playwright tests
