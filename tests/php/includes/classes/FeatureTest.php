@@ -39,7 +39,7 @@ class FeatureTest extends ElasticPress\Feature {
 	public function requirements_status() {
 		$on = get_site_option( 'ep_test_feature_on', 0 );
 
-		$status = new ElasticPress\FeatureRequirementsStatus( $on );
+		$status = new ElasticPress\FeatureRequirementsStatus( $on, null, $this );
 
 		return $status;
 	}

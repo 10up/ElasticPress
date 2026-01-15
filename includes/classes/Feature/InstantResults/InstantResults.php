@@ -122,7 +122,7 @@ class InstantResults extends Feature {
 	 * @return array $status Status array
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 2 );
+		$status = new FeatureRequirementsStatus( 2, null, $this );
 
 		$status->message = [];
 
