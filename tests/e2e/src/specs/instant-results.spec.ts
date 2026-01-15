@@ -36,6 +36,9 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		await page.keyboard.press('ArrowDown');
 		await page.keyboard.press('Enter');
 		await page.keyboard.press('Escape');
+
+		// Wait 1 second to make sure the filter is added
+		await page.waitForTimeout(1000);
 	};
 
 	const searchFor = async (page: Page, searchTerm: string) => {
