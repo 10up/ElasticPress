@@ -98,14 +98,15 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 	});
 
 	test('Can not see any password protected post', async ({ loggedInPage, page }) => {
+		// Reset features. If the Facets/Filters are enabled, the password protected post will not be visible in the homepage.
+		await setDefaultFeatureSettings();
+
 		const postTitle = `Password Protected ${Date.now()}`;
 		await publishPost(loggedInPage, {
 			title: postTitle,
 			password: 'password',
 		});
 
-		// Reset features. If the Facets/Filters are enabled, the password protected post will not be visible in the homepage.
-		await setDefaultFeatureSettings();
 		await page.goto('/');
 		await expect(
 			page.locator('.site-content article h2', { hasText: postTitle }),

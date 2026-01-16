@@ -97,7 +97,22 @@ fi
 
 if [ ! -z $ACF_PRO_LICENSE_KEY ]; then
 	./bin/wp-env-cli tests-wordpress "composer --working-dir=./wp-content config http-basic.connect.advancedcustomfields.com ${ACF_PRO_LICENSE_KEY} https://elasticpress.test"
-	./bin/wp-env-cli tests-wordpress "composer --working-dir=./wp-content install"
+	MAX_RETRIES=3
+	RETRY_COUNT=0
+	while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+		if ./bin/wp-env-cli tests-wordpress "composer --working-dir=./wp-content install"; then
+			break
+		fi
+		RETRY_COUNT=$((RETRY_COUNT + 1))
+		if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+			echo "Composer install failed, retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+			sleep 1
+		fi
+	done
+	if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+		echo "Composer install failed after $MAX_RETRIES attempts"
+		exit 1
+	fi
 	./bin/wp-env-cli tests-wordpress "rm wp-content/auth.json"
 	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate advanced-custom-fields-pro"
 	./bin/wp-env-cli tests-wordpress "wp --allow-root config set ACF_PRO_LICENSE ${ACF_PRO_LICENSE_KEY}"
@@ -106,6 +121,7 @@ fi
 ./bin/wp-env-cli tests-wordpress "wp --allow-root core multisite-convert"
 
 SITES_COUNT=$(./bin/wp-env-cli tests-wordpress "wp --allow-root site list --format=count")
+echo "SITES_COUNT: $SITES_COUNT"
 if [ $SITES_COUNT -eq 1 ]; then
 	./bin/wp-env-cli tests-wordpress "wp --allow-root site create --slug=second-site --title='Second Site'"
 	./bin/wp-env-cli tests-wordpress "wp --allow-root search-replace localhost/ localhost:8889/ --all-tables"
@@ -115,6 +131,7 @@ fi
 ./bin/wp-env-cli tests-wordpress "wp --allow-root option set home 'http://localhost:8889'"
 ./bin/wp-env-cli tests-wordpress "wp --allow-root option set siteurl 'http://localhost:8889'"
 
+./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate wordpress-importer"
 ./bin/wp-env-cli tests-wordpress "wp --allow-root import /var/www/html/wp-content/uploads/content-example.xml --authors=create"
 
 ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate woocommerce elasticpress-proxy"

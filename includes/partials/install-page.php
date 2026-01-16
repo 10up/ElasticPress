@@ -10,6 +10,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+$install_status = \ElasticPress\Installer::factory()->get_install_status();
+
 if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 	$setup_url     = admin_url( 'network/admin.php?page=elasticpress-settings' );
 	$dashboard_url = admin_url( 'network/admin.php?page=elasticpress' );
