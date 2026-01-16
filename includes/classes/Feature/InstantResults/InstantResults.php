@@ -631,9 +631,21 @@ class InstantResults extends Feature {
 				$taxonomy = get_taxonomy( $slug );
 			}
 
-			if ( ! ( $taxonomy instanceof \WP_Taxonomy ) ) {
-				continue;
-			}
+				if ( ! ( $taxonomy instanceof \WP_Taxonomy ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						sprintf(
+							/* translators: %s is a taxonomy slug. */
+							esc_html__(
+								'Invalid taxonomy "%s" returned via ep_facet_include_taxonomies filter',
+								'elasticpress'
+							),
+							$slug
+						),
+						'ElasticPress 5.3.2'
+					);
+					continue;
+				}
 			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 

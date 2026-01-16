@@ -220,4 +220,60 @@ class TestInstantResults extends BaseTestCase {
 		);
 		$feature->after_update_feature( 'instant-results', [], [ 'active' => false ] );
 	}
+		/**
+	 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
+	 * are skipped and logged via _doing_it_wrong().
+	 *
+	 * @group instant-results
+	 * @since 5.3.2
+	 */
+	public function test_invalid_taxonomy_from_facet_filter_triggers_doing_it_wrong_and_is_skipped() {
+		$this->setExpectedIncorrectUsage(
+			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets'
+		);
+
+		add_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+
+		$calls = [];
+
+		$listener = function ( $function_name, $message, $version ) use ( &$calls ) {
+			$calls[] = [
+				'function' => $function_name,
+				'message'  => $message,
+				'version'  => $version,
+			];
+		};
+
+		add_action( 'doing_it_wrong_run', $listener, 10, 3 );
+
+		$taxonomy_filter = function ( $taxonomies ) {
+			$taxonomies['not-a-real-taxonomy'] = 'not-a-real-taxonomy';
+			return $taxonomies;
+		};
+
+		add_filter( 'ep_facet_include_taxonomies', $taxonomy_filter, 1, 1 );
+
+		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+		$facets  = $feature->get_facets();
+
+		$this->assertArrayNotHasKey( 'tax-not-a-real-taxonomy', $facets );
+
+		$this->assertNotEmpty( $calls );
+		$this->assertSame( 'ElasticPress 5.3.2', $calls[0]['version'] );
+		$this->assertSame(
+			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets',
+			$calls[0]['function']
+		);
+
+		$message = html_entity_decode( $calls[0]['message'] );
+
+		$this->assertStringContainsString( 'not-a-real-taxonomy', $message );
+		$this->assertStringContainsString( 'Invalid taxonomy', $message );
+		$this->assertStringContainsString( 'returned via ep_facet_include_taxonomies', $message );
+
+		remove_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+		remove_action( 'doing_it_wrong_run', $listener, 10 );
+		remove_filter( 'ep_facet_include_taxonomies', $taxonomy_filter, 1 );
+	}
+
 }
