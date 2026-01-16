@@ -61,7 +61,7 @@ class TestDidYouMean extends BaseTestCase {
 		$status   = $instance->requirements_status();
 
 		$this->assertEquals( 1, $status->get_code() );
-		$this->assertEquals( null, $status->get_message() );
+		$this->assertEquals( [], $status->get_message() );
 	}
 
 	/**
