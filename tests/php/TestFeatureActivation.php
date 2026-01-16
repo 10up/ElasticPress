@@ -86,16 +86,16 @@ class TestFeatureActivation extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['search']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['search']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['search']->requirements_status()->get_code() );
 
 		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['protected_content']->is_active() );
-		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['protected_content']->requirements_status()->code );
+		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['protected_content']->requirements_status()->get_code() );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['woocommerce']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['woocommerce']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['woocommerce']->requirements_status()->get_code() );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['related_posts']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['related_posts']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['related_posts']->requirements_status()->get_code() );
 	}
 
 	/**
@@ -137,7 +137,7 @@ class TestFeatureActivation extends BaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 	}
 
 	/**
@@ -161,7 +161,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 
 		update_site_option( 'ep_test_feature_on', 2 );
@@ -171,7 +171,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 2, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 2, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 2, $requirements_statuses['test'] );
 	}
 
@@ -200,7 +200,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( false, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 2, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 2, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 2, $requirements_statuses['test'] );
 
 		update_site_option( 'ep_test_feature_on', 0 );
@@ -210,7 +210,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 	}
 
@@ -237,7 +237,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 0, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 0, $requirements_statuses['test'] );
 
 		update_site_option( 'ep_test_feature_on', 1 );
@@ -247,7 +247,7 @@ class TestFeatureActivation extends BaseTestCase {
 		$requirements_statuses = get_site_option( 'ep_feature_requirement_statuses' );
 
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
-		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->code );
+		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 1, $requirements_statuses['test'] );
 	}
 

@@ -12,11 +12,12 @@ namespace ElasticPress;
 
 use WP_CLI_Command;
 use WP_CLI;
-use ElasticPress\Features;
-use ElasticPress\Utils;
-use ElasticPress\Elasticsearch;
-use ElasticPress\Indexables;
 use ElasticPress\Command\Utility;
+use ElasticPress\Elasticsearch;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -105,12 +106,12 @@ class Command extends WP_CLI_Command {
 
 		$status = $feature->requirements_status();
 
-		if ( 2 === $status->code ) {
+		if ( FeatureRequirementsStatus::FORCE_DISABLED === $status->get_code() ) {
 			/* translators: Error message */
-			WP_CLI::error( sprintf( esc_html__( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
-		} elseif ( 1 === $status->code ) {
+			WP_CLI::error( sprintf( esc_html__( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->get_message() ) ) );
+		} elseif ( FeatureRequirementsStatus::MANUALLY_ENABLED === $status->get_code() && ! empty( $status->get_message() ) ) {
 			/* translators: Warning message */
-			WP_CLI::warning( sprintf( esc_html__( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
+			WP_CLI::warning( sprintf( esc_html__( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->get_message() ) ) );
 		}
 
 		Features::factory()->activate_feature( $feature->slug );

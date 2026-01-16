@@ -100,7 +100,7 @@ class Synonyms {
 	 * @return bool
 	 */
 	public function setup() {
-		if ( (bool) $this->requirements_status()->code ) {
+		if ( (bool) $this->requirements_status()->get_code() ) {
 			return false;
 		}
 

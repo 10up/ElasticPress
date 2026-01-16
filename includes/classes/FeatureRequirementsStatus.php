@@ -16,6 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Just an easy way to represent a feature requirements status
  */
 class FeatureRequirementsStatus {
+	const AUTO_ENABLED         = 0;
+	const MANUALLY_ENABLED     = 1;
+	const FORCE_DISABLED       = 2;
+	const TEMPORARILY_DISABLED = 3;
+
 	/**
 	 * Returns the status of a feature
 	 *
@@ -93,7 +98,7 @@ class FeatureRequirementsStatus {
 		 * @since  5.3.3
 		 * @return int The code to display
 		 */
-		return apply_filters( 'ep_feature_requirements_status_code', $this->code, $this );
+		return apply_filters( 'ep_feature_requirements_status_code', (int) $this->code, $this );
 	}
 
 	/**

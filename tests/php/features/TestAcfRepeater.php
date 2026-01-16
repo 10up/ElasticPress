@@ -47,15 +47,15 @@ class TestAcfRepeater extends BaseTestCase {
 	public function test_requirements_status() {
 		$requirement_status = $this->feature->requirements_status();
 
-		$this->assertSame( 2, $requirement_status->code );
-		$this->assertSame( 'ACF Pro not installed.', $requirement_status->message );
+		$this->assertSame( 2, $requirement_status->get_code() );
+		$this->assertSame( 'ACF Pro not installed.', $requirement_status->get_message() );
 
 		$this->setup_mock_functions();
 
 		$requirement_status = $this->feature->requirements_status();
 
-		$this->assertSame( 0, $requirement_status->code );
-		$this->assertNull( $requirement_status->message );
+		$this->assertSame( 0, $requirement_status->get_code() );
+		$this->assertNull( $requirement_status->get_message() );
 	}
 
 	/**

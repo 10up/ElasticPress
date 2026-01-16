@@ -60,8 +60,8 @@ class TestDidYouMean extends BaseTestCase {
 		$instance = new ElasticPress\Feature\DidYouMean\DidYouMean();
 		$status   = $instance->requirements_status();
 
-		$this->assertEquals( 1, $status->code );
-		$this->assertEquals( null, $status->message );
+		$this->assertEquals( 1, $status->get_code() );
+		$this->assertEquals( null, $status->get_message() );
 	}
 
 	/**
