@@ -85,4 +85,31 @@ class FeatureTest extends ElasticPress\Feature {
 			],
 		];
 	}
+
+	/**
+	 * Pre-handle feature activation
+	 *
+	 * Changes the status code of FeatureTestB to 3
+	 *
+	 * @since 5.3.3
+	 * @return void
+	 */
+	public function pre_handle_feature_activation() {
+		add_filter( 'ep_feature_requirements_status_code', [ $this, 'change_feature_b_code' ], 10, 2 );
+	}
+
+	/**
+	 * Change the status code of FeatureTestB to 3
+	 *
+	 * @since 5.3.3
+	 * @param int                       $code   The status code
+	 * @param FeatureRequirementsStatus $status The feature requirements status
+	 * @return int The new status code
+	 */
+	public function change_feature_b_code( $code, $status ) {
+		if ( $status->get_feature()->slug === 'test-b' ) {
+			return 3;
+		}
+		return $code;
+	}
 }

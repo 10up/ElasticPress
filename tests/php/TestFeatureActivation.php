@@ -252,6 +252,45 @@ class TestFeatureActivation extends BaseTestCase {
 	}
 
 	/**
+	 * Test that the pre_handle_feature_activation method is called
+	 *
+	 * @since 5.3.3
+	 * @group feature-activation
+	 */
+	public function test_pre_handle_feature_activation_called() {
+		Features::factory()->register_feature( new FeatureTestB() );
+
+		$this->handle_feature_activation();
+
+		$requirement_statuses = \ElasticPress\Utils\get_option( 'ep_feature_requirement_statuses', false );
+		$this->assertEquals( 1, $requirement_statuses['test-b'] );
+
+		// FeatureTest sets FeatureTestB status code to 3
+		Features::factory()->register_feature( new FeatureTest() );
+		$this->handle_feature_activation();
+
+		$requirement_statuses = \ElasticPress\Utils\get_option( 'ep_feature_requirement_statuses', false );
+		$this->assertEquals( 3, $requirement_statuses['test-b'] );
+	}
+
+	/**
+	 * Test that a temporarily disabled feature is not setup
+	 *
+	 * @since 5.3.3
+	 * @group feature-activation
+	 */
+	public function test_temporary_disabled_feature_is_not_setup() {
+		$feature = new FeatureTestB( 3 );
+		Features::factory()->register_feature( $feature );
+		Features::factory()->activate_feature( 'test-b' );
+
+		$this->handle_feature_activation();
+		ElasticPress\Features::factory()->setup_features();
+
+		$this->assertFalse( $feature->setup_called );
+	}
+
+	/**
 	 * Test the `get_settings` method
 	 *
 	 * @since 4.5.0
