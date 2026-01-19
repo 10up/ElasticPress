@@ -102,12 +102,13 @@ class FeatureTest extends ElasticPress\Feature {
 	 * Change the status code of FeatureTestB to 3
 	 *
 	 * @since 5.3.3
-	 * @param int                       $code   The status code
-	 * @param FeatureRequirementsStatus $status The feature requirements status
+	 * @param int                                     $code   The status code
+	 * @param \ElasticPress\FeatureRequirementsStatus $status The feature requirements status
 	 * @return int The new status code
 	 */
 	public function change_feature_b_code( $code, $status ) {
-		if ( $status->get_feature()->slug === 'test-b' ) {
+		$feature = $status->get_feature();
+		if ( ! empty( $feature->slug ) && 'test-b' === $feature->slug ) {
 			return 3;
 		}
 		return $code;
