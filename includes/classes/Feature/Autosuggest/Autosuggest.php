@@ -564,7 +564,7 @@ class Autosuggest extends Feature {
 	 * @since 2.4
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 0, null, $this );
 
 		$status->message = [];
 

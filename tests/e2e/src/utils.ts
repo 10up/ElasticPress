@@ -649,6 +649,7 @@ export async function setDefaultFeatureSettings() {
 		}
 
 		update_option( 'ep_feature_settings', $features );
+		update_option( 'ep_feature_settings_draft', $features );
 
 		$index_names = \\ElasticPress\\Elasticsearch::factory()->get_index_names( 'active' );
 		echo wp_json_encode(
