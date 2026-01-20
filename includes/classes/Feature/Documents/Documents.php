@@ -304,7 +304,7 @@ class Documents extends Feature {
 	 * @return mixed
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 1, null, $this );
 
 		if ( empty( Elasticsearch::factory()->get_elasticsearch_version( false ) ) ) {
 			return $status;

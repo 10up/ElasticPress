@@ -72,7 +72,7 @@ class TestInstantResults extends BaseTestCase {
 
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
 		// Check if status is one for the elasticpress.io
-		$this->assertSame( 1, $status->code );
+		$this->assertSame( 1, $status->get_code() );
 
 		remove_filter( 'ep_host', $host_url );
 
@@ -84,15 +84,15 @@ class TestInstantResults extends BaseTestCase {
 
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
 
-		$this->assertSame( 1, $status->code );
-		$this->assertSame( 'You are using a custom proxy. Make sure you implement all security measures needed.', $status->message[0] );
+		$this->assertSame( 1, $status->get_code() );
+		$this->assertSame( 'You are using a custom proxy. Make sure you implement all security measures needed.', $status->get_message()[0] );
 
 		remove_filter( 'ep_instant_results_available', $proxy_status );
 
 		// Check if Instant Results is not available.
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
-		$this->assertSame( 2, $status->code );
-		$this->assertSame( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", $status->message[0] );
+		$this->assertSame( 2, $status->get_code() );
+		$this->assertSame( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", $status->get_message()[0] );
 	}
 
 	/**

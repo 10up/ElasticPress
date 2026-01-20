@@ -213,7 +213,7 @@ class DidYouMean extends Feature {
 	 * Requires the search feature to be activated
 	 */
 	public function requirements_status(): FeatureRequirementsStatus {
-		return new FeatureRequirementsStatus( 1 );
+		return new FeatureRequirementsStatus( 1, null, $this );
 	}
 
 	/**

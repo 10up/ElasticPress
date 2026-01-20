@@ -1,12 +1,19 @@
 import { test, expect } from '../fixtures.js';
-import { goToAdminPage, wpCli, maybeDisableFeature } from '../utils.js';
+import {
+	activatePlugin,
+	goToAdminPage,
+	wpCli,
+	maybeDisableFeature,
+	setDefaultFeatureSettings,
+	deactivatePlugin,
+} from '../utils.js';
 
 /**
  * Test suite for the feature selection interface in ElasticPress settings.
  *
  * @module FeatureInterface
  */
-test.describe('Feature Grouping and Persistence', { tag: '@group1' }, () => {
+test.describe('Features Interface', { tag: '@group1' }, () => {
 	test('Renders group tabs, persists across reloads, and supports field dependency', async ({
 		loggedInPage,
 	}) => {
@@ -108,27 +115,65 @@ test.describe('Feature Grouping and Persistence', { tag: '@group1' }, () => {
 			}),
 		).toBeVisible();
 	});
-});
 
-test.describe('Multiple Required Features', () => {
-	test.afterAll(async () => {
-		await wpCli('plugin deactivate multiple-required-features');
+	test.describe('Multiple Required Features', () => {
+		test.afterAll(async () => {
+			await wpCli('plugin deactivate multiple-required-features');
+		});
+
+		test('supports multiple required features', async ({ loggedInPage }) => {
+			await wpCli('plugin activate multiple-required-features');
+			await maybeDisableFeature('facets');
+			await maybeDisableFeature('documents');
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+
+			await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Related Posts' }).click();
+
+			await expect(
+				loggedInPage.locator('.components-notice.is-error').filter({
+					hasText:
+						'The Filters and Documents features must be enabled to use this feature.',
+				}),
+			).toBeVisible();
+		});
 	});
 
-	test('supports multiple required features', async ({ loggedInPage }) => {
-		await wpCli('plugin activate multiple-required-features');
-		await maybeDisableFeature('facets');
-		await maybeDisableFeature('documents');
+	test('Temporarily disable a feature', async ({ loggedInPage }) => {
+		// Regular workflow: Autosuggest is enabled
+		await deactivatePlugin(loggedInPage, 'temporarily-disable-autosuggest', 'wpCli');
+		await setDefaultFeatureSettings();
 
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Autosuggest' }).click();
 
-		await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
-		await loggedInPage.getByRole('button', { name: 'Related Posts' }).click();
+		await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeEnabled();
+		await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeChecked();
 
+		// Temporarily disable Autosuggest
+		await activatePlugin(loggedInPage, 'temporarily-disable-autosuggest', 'wpCli');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Autosuggest' }).click();
+
+		await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeDisabled();
+		await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).not.toBeChecked();
 		await expect(
-			loggedInPage.locator('.components-notice.is-error').filter({
-				hasText: 'The Filters and Documents features must be enabled to use this feature.',
-			}),
-		).toBeVisible();
+			loggedInPage.getByRole('checkbox', { name: 'Trigger Google Analytics' }),
+		).toBeDisabled();
+
+		// If the test plugin is disabled, Autosuggest should be enabled again
+		await deactivatePlugin(loggedInPage, 'temporarily-disable-autosuggest', 'wpCli');
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+		await loggedInPage.getByRole('button', { name: 'Autosuggest' }).click();
+
+		await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeEnabled();
+		await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeChecked();
+		await expect(
+			loggedInPage.getByRole('checkbox', { name: 'Trigger Google Analytics' }),
+		).not.toBeDisabled();
 	});
 });
