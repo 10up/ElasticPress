@@ -31,7 +31,5 @@ jobs:
       - run: npm test --if-present
         working-directory: tests/e2e
 
-      - run: npm publish --access public
+      - run: npm publish
         working-directory: tests/e2e
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
