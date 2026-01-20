@@ -5,7 +5,11 @@ on:
     branches:
       - develop
       - trunk
-      - chore/e2e-playwright
+      - chore/bump-playwright-utils-version
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
 
 jobs:
   publish:
