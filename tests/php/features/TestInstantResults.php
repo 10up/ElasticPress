@@ -221,12 +221,12 @@ class TestInstantResults extends BaseTestCase {
 		$feature->after_update_feature( 'instant-results', [], [ 'active' => false ] );
 	}
 		/**
-	 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
-	 * are skipped and logged via _doing_it_wrong().
-	 *
-	 * @group instant-results
-	 * @since 5.3.2
-	 */
+		 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
+		 * are skipped and logged via _doing_it_wrong().
+		 *
+		 * @group instant-results
+		 * @since 5.3.3
+		 */
 	public function test_invalid_taxonomy_from_facet_filter_triggers_doing_it_wrong_and_is_skipped() {
 		$this->setExpectedIncorrectUsage(
 			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets'
@@ -259,7 +259,7 @@ class TestInstantResults extends BaseTestCase {
 		$this->assertArrayNotHasKey( 'tax-not-a-real-taxonomy', $facets );
 
 		$this->assertNotEmpty( $calls );
-		$this->assertSame( 'ElasticPress 5.3.2', $calls[0]['version'] );
+		$this->assertSame( 'ElasticPress 5.3.3', $calls[0]['version'] );
 		$this->assertSame(
 			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets',
 			$calls[0]['function']
@@ -275,5 +275,4 @@ class TestInstantResults extends BaseTestCase {
 		remove_action( 'doing_it_wrong_run', $listener, 10 );
 		remove_filter( 'ep_facet_include_taxonomies', $taxonomy_filter, 1 );
 	}
-
 }
