@@ -9765,8 +9765,8 @@ class TestPost extends BaseTestCase {
 			$this->assertContains( 'ep_asciifolding', $default_search_filter_keys );
 
 		} else {
-			$this->assertContains( 'ep_asciifolding', $index_settings['index']['analysis']['analyzer']['default']['filter'] );
-			$this->assertContains( 'ep_asciifolding', $index_settings['index']['analysis']['analyzer']['default_search']['filter'] );
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
 		}
 	}
 
