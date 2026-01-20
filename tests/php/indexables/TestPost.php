@@ -9747,8 +9747,27 @@ class TestPost extends BaseTestCase {
 		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
 		$index_settings = $settings[ $index_name ]['settings'];
 
-		$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
-		$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
+		$es_version = ElasticPress\Elasticsearch::factory()->get_elasticsearch_version();
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
+			// ES5 format: flattened keys like 'index.analysis.analyzer.default.filter.0', '.1', etc.
+			$default_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_filter_keys );
+
+			$default_search_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default_search.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_search_filter_keys );
+
+		} else {
+			$this->assertContains( 'ep_asciifolding', $index_settings['index']['analysis']['analyzer']['default']['filter'] );
+			$this->assertContains( 'ep_asciifolding', $index_settings['index']['analysis']['analyzer']['default_search']['filter'] );
+		}
 	}
 
 	/**
