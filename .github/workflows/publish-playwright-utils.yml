@@ -26,6 +26,9 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
+      - name: Install npm
+        run: npm install -g npm@latest
+
       - run: npm ci
 
       - run: npm test --if-present
