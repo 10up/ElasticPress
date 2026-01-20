@@ -1545,11 +1545,16 @@ class Command extends WP_CLI_Command {
 	 * : Delete the template for all sites in the network if plugin is network activated. Otherwise, delete the template for the current site only.
 	 *
 	 * @since 4.5.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 * @subcommand delete-search-template
 	 */
-	public function delete_search_template() {
+	public function delete_search_template( $args, $assoc_args ) {
+		$network_wide    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network-wide', false );
 		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
-		$instant_results->epio_delete_search_template();
+
+		$instant_results->epio_delete_site_search_template( $network_wide );
+
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 

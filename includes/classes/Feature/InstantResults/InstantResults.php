@@ -948,8 +948,28 @@ class InstantResults extends Feature {
 		$sites = Utils\get_sites( 0, true );
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site['blog_id'] );
-			$this->index = Indexables::factory()->get( 'post' )->get_index_name();
 			$this->epio_save_search_template();
+			restore_current_blog();
+		}
+	}
+
+	/**
+	 * Delete the search template for the current site or all network sites.
+	 *
+	 * @param bool $network_wide Whether to delete templates for all sites in the network.
+	 * @return void
+	 * @since 5.3.3
+	 */
+	public function epio_delete_site_search_template( bool $network_wide = false ): void {
+		if ( ! $network_wide ) {
+			$this->epio_delete_search_template();
+			return;
+		}
+
+		$sites = Utils\get_sites( 0, true );
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+			$this->epio_delete_search_template();
 			restore_current_blog();
 		}
 	}
