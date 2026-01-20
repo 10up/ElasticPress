@@ -258,10 +258,9 @@ class TestFeatureActivation extends BaseTestCase {
 	 * @group feature-activation
 	 */
 	public function test_pre_handle_feature_activation_called() {
-		delete_site_option( 'ep_feature_requirement_statuses' );
-		delete_site_option( 'ep_feature_settings' );
-
-		Features::factory()->register_feature( new FeatureTestB() );
+		$features_factory = Features::factory();
+		unset( $features_factory->registered_features['test'] );
+		$features_factory->register_feature( new FeatureTestB() );
 
 		$this->handle_feature_activation();
 
