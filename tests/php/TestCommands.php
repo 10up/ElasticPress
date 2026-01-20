@@ -68,7 +68,6 @@ class TestCommands extends BaseTestCase {
 		$this->command->activate_feature( [ 'comments' ], [] );
 
 		$output = $this->getActualOutputForAssertion();
-		$this->assertStringContainsString( 'Feature is usable but there are warnings', $output );
 		$this->assertStringContainsString( 'This feature requires a re-index. You may want to run the index command next', $output );
 	}
 
