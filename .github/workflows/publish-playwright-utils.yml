@@ -26,13 +26,15 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org
 
-      - name: Install npm
-        run: npm install -g npm@latest
-
       - run: npm ci
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
 
       - run: npm test --if-present
         working-directory: tests/e2e
 
-      - run: npm publish
+      - run: npm publish --access public
         working-directory: tests/e2e
