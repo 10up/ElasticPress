@@ -7,6 +7,7 @@ import {
 	setDefaultFeatureSettings,
 	setPerIndexCycle,
 	wpCli,
+	wpCliEval,
 } from '../utils.js';
 
 const indexNames = process.env?.EP_INDEX_NAMES || [];
@@ -265,5 +266,25 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 		);
 
 		await deactivatePlugin(loggedInPage, 'sync-error-specific-post', 'wpCli');
+	});
+
+	test('Can sync via Dashboard successfully even when a shortcode outputs content', async ({
+		loggedInPage,
+	}) => {
+		await wpCliEval(`
+			wp_insert_post([
+				'post_title'   => 'Test Post with Echo Shortcode',
+				'post_content' => '[echo-shortcode]',
+				'post_status'  => 'publish',
+			]);
+		`);
+
+		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-sync');
+		await loggedInPage.getByRole('button', { name: 'Start sync' }).click();
+
+		await expect(loggedInPage.locator('.ep-sync-progress strong')).toContainText(
+			'Sync complete',
+			{ timeout: getSyncTimeout() },
+		);
 	});
 });

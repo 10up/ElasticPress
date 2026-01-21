@@ -45,7 +45,7 @@ export default ({ feature }) => {
 				<Notice
 					isDismissible={false}
 					key={i} // eslint-disable-line react/no-array-index-key
-					status={reqStatusCode === 2 ? 'error' : 'warning'}
+					status={[2, 3].includes(reqStatusCode) ? 'error' : 'warning'}
 				>
 					{/* eslint-disable-next-line react/no-danger */}
 					<span dangerouslySetInnerHTML={{ __html: safeHTML(m) }} />
