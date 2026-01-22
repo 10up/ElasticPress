@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Indexables;
+use Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -28,7 +29,7 @@ class OrdersHPOS {
 	/**
 	 * Class constructor
 	 *
-	 * @param Orders $orders Orders object instance
+	 * @param Orders $orders Orders object instance.
 	 */
 	public function __construct( Orders $orders ) {
 		$this->orders = $orders;
@@ -36,8 +37,10 @@ class OrdersHPOS {
 
 	/**
 	 * Setup order HPOS related hooks
+	 *
+	 * @return void
 	 */
-	public function setup() {
+	public function setup(): void {
 		add_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
@@ -47,8 +50,10 @@ class OrdersHPOS {
 
 	/**
 	 * Unsetup order HPOS related hooks
+	 *
+	 * @return void
 	 */
-	public function tear_down() {
+	public function tear_down(): void {
 		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
@@ -61,7 +66,7 @@ class OrdersHPOS {
 	 *
 	 * @param int $order_id Order ID.
 	 */
-	public function sync_order( $order_id ) {
+	public function sync_order( $order_id ): void {
 		Indexables::factory()->get( 'post' )->sync_manager->add_to_queue( $order_id );
 	}
 
@@ -83,7 +88,8 @@ class OrdersHPOS {
 		$order          = wc_get_order( $post_id );
 
 		$post_args['post_type']     = $order->get_type();
-		$post_args['post_status']   = $order->get_status( 'edit' );
+		// @todo: check if this is correct
+		$post_args['post_status']   = 'wc-' . $order->get_status( 'edit' );
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
 		$post_args['post_date']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
 		$post_args['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
@@ -92,9 +98,9 @@ class OrdersHPOS {
 
 		$post_order = new \WP_Post( (object) $post_args );
 
-		add_filter( 'ep_prepare_meta_data', [ $this, 'prepare_meta_data' ], 10, 2 );
+		add_filter( 'ep_prepared_post_meta', [ $this, 'prepare_meta_data' ], 10, 2 );
 		$post_args['meta'] = $post_indexable->prepare_meta_types( $post_indexable->prepare_meta( $post_order ) );
-		remove_filter( 'ep_prepare_meta_data', [ $this, 'prepare_meta_data' ] );
+		remove_filter( 'ep_prepared_post_meta', [ $this, 'prepare_meta_data' ] );
 
 		return $post_args;
 	}
@@ -210,12 +216,13 @@ class OrdersHPOS {
 	/**
 	 * Intercept WooCommerce orders query
 	 *
-	 * @param array $order_data Order data.
-	 * @param array $query      Query arguments.
-	 * @return array
+	 * @param array|null       $order_data Order data or null.
+	 * @param OrdersTableQuery $query      The OrdersTableQuery object.
+	 * @return array|null Order data array or null to continue with default query.
 	 */
-	public function maybe_intercept_wc_orders_query( $order_data, $query ) {
+	public function maybe_intercept_wc_orders_query( $order_data, OrdersTableQuery $query ) {
 		$orders_query = new OrdersHPOSQuery( $query );
-		return $orders_query->get_orders();
+		$result       = $orders_query->query();
+		return $result;
 	}
 }
