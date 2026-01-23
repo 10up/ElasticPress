@@ -27,6 +27,13 @@ class OrdersHPOS {
 	protected $orders;
 
 	/**
+	 * Order IDs from the last Elasticsearch query.
+	 *
+	 * @var array
+	 */
+	protected $elasticsearch_order_ids = [];
+
+	/**
 	 * Class constructor
 	 *
 	 * @param Orders $orders Orders object instance.
@@ -46,6 +53,7 @@ class OrdersHPOS {
 		add_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
 		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
+		add_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ] );
 	}
 
 	/**
@@ -59,6 +67,7 @@ class OrdersHPOS {
 		remove_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ] );
 		remove_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ] );
+		remove_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ] );
 	}
 
 	/**
@@ -87,7 +96,7 @@ class OrdersHPOS {
 		$post_indexable = Indexables::factory()->get( 'post' );
 		$order          = wc_get_order( $post_id );
 
-		$post_args['post_type']     = $order->get_type();
+		$post_args['post_type'] = $order->get_type();
 		// @todo: check if this is correct
 		$post_args['post_status']   = 'wc-' . $order->get_status( 'edit' );
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
@@ -116,8 +125,19 @@ class OrdersHPOS {
 	 * @return array
 	 */
 	public function prepare_meta_data( $order_meta, $order_post ) {
+		$order = wc_get_order( $order_post->ID );
+
+		if ( ! $order ) {
+			return $order_meta;
+		}
+
+		// Handle refund orders differently.
+		if ( 'shop_order_refund' === $order->get_type() ) {
+
+			return $this->prepare_refund_meta_data( $order );
+		}
+
 		$data_store = new \WC_Order_Data_Store_CPT();
-		$order      = wc_get_order( $order_post->ID );
 
 		$meta_data         = [];
 		$meta_key_to_props = [
@@ -214,6 +234,38 @@ class OrdersHPOS {
 	}
 
 	/**
+	 * Get meta data from a refund order as it would be stored in the post_meta table.
+	 *
+	 * This method handles refund-specific properties that differ from regular orders.
+	 *
+	 * @param \WC_Order_Refund $refund Refund order object
+	 * @return array
+	 */
+	protected function prepare_refund_meta_data( $refund ) {
+		$meta_data         = [];
+		$meta_key_to_props = [
+			'_refund_amount'    => 'amount',
+			'_refunded_by'      => 'refunded_by',
+			'_refunded_payment' => 'refunded_payment',
+			'_refund_reason'    => 'reason',
+		];
+
+		foreach ( $meta_key_to_props as $meta_key => $prop ) {
+			$value = $refund->{"get_$prop"}( 'edit' );
+			$value = is_string( $value ) ? wp_slash( $value ) : $value;
+
+			// Handle boolean values for refunded_payment.
+			if ( 'refunded_payment' === $prop && is_bool( $value ) ) {
+				$value = wc_bool_to_string( $value );
+			}
+
+			$meta_data[ $meta_key ] = [ $value ];
+		}
+
+		return $meta_data;
+	}
+
+	/**
 	 * Intercept WooCommerce orders query
 	 *
 	 * @param array|null       $order_data Order data or null.
@@ -223,6 +275,43 @@ class OrdersHPOS {
 	public function maybe_intercept_wc_orders_query( $order_data, OrdersTableQuery $query ) {
 		$orders_query = new OrdersHPOSQuery( $query );
 		$result       = $orders_query->query();
+
+		// Store order IDs from Elasticsearch.
+		if ( null !== $result && ! empty( $result[0] ) ) {
+			$this->elasticsearch_order_ids = $result[0];
+		}
+
 		return $result;
+	}
+
+	/**
+	 * Add elasticsearch property to order objects similar how format_hits_as_posts has.
+	 *
+	 * @param array $orders Array of WC_Order objects.
+	 * @return array Modified array of orders with elasticsearch_success property.
+	 */
+	public function add_elasticsearch_success_to_orders( $orders ) {
+		if ( empty( $this->elasticsearch_order_ids ) ) {
+			return $orders;
+		}
+
+		foreach ( $orders as $order ) {
+			// Handle both WC_Order and WC_Order_Refund
+			if ( ! $order instanceof \WC_Abstract_Order ) {
+				continue;
+			}
+
+			$order_id = $order->get_id();
+
+			// Add elasticsearch property if this order came from ES
+			if ( in_array( $order_id, $this->elasticsearch_order_ids, true ) ) {
+				$order->elasticsearch = true;
+			}
+		}
+
+		// Clear the order IDs after processing
+		$this->elasticsearch_order_ids = [];
+
+		return $orders;
 	}
 }

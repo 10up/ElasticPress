@@ -52,7 +52,7 @@ class Orders {
 		add_filter( 'ep_pc_skip_post_content_cleanup', [ $this, 'keep_order_fields' ], 20, 2 );
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
-		// add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
 		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
 
 		if ( $this->is_hpos_enabled() ) {

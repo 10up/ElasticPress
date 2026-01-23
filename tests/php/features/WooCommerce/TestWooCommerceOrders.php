@@ -31,6 +31,13 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
+
+		$this->setup_test_post_type();
+
 		$this->orders = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' )->orders;
 	}
 
@@ -388,10 +395,125 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @since 5.3.0
 	 */
 	protected function enable_hpos() {
-		$option_name  = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_value = function () {
-			return 'yes';
-		};
-		add_filter( 'pre_option_' . $option_name, $change_value );
+		$option_name = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		add_filter(
+			'pre_option_' . $option_name,
+			function () {
+				return 'yes';
+			}
+		);
+	}
+
+	/**
+	 * Test if order refunds are indexed correctly.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_order_refund_is_indexed() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$refund_order = new \WC_Order_Refund();
+
+		$refund_order->set_parent_id( $shop_order_id_1 );
+		$refund_order->set_amount( 20 );
+		$refund_order->set_reason( 'Full refund example' );
+		$refund_order->set_refunded_by( get_current_user_id() );
+		$refund_order->set_status( 'completed' );
+
+		$refund_order->save();
+		$refund_order_id = $refund_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund_order_id, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'post_type' => [ 'shop_order_refund' ],
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertEquals( $refund_order_id, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_parent_id() );
+		$this->assertEquals( 20, $orders[0]->get_amount() );
+		$this->assertEquals( 'Full refund example', $orders[0]->get_reason() );
+		$this->assertEquals( get_current_user_id(), $orders[0]->get_refunded_by() );
+		$this->assertEquals( 'completed', $orders[0]->get_status() );
+		$this->assertCount( 1, $orders );
+	}
+
+	/**
+	 * Test simple HPOS search
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_order_search() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [] );
+
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+		$this->assertCount( 1, $orders );
+	}
+
+	/**
+	 * Test simple HPOS search with post type filter
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_order_search_with_post_type() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$refund_order = new \WC_Order_Refund();
+		$refund_order->set_parent_id( $shop_order_id_1 );
+		$refund_order->save();
+		$refund_order_id = $refund_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund_order_id, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'post_type' => [ 'shop_order_refund' ],
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertEquals( $refund_order_id, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_parent_id() );
+		$this->assertCount( 1, $orders );
 	}
 }

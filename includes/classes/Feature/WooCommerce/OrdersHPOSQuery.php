@@ -63,8 +63,6 @@ class OrdersHPOSQuery {
 	 */
 	public function query() {
 		$wp_query = new \WP_Query( $this->wp_query_args );
-
-		// Check if ES query was successful.
 		if ( isset( $wp_query->elasticsearch_success ) && false === $wp_query->elasticsearch_success ) {
 			return null;
 		}
@@ -83,20 +81,20 @@ class OrdersHPOSQuery {
 	 */
 	protected function translate_args(): array {
 		$args = [
-			'ep_integrate'       => true,
-			'post_type'          => $this->get_post_type(),
-			'post_status'        => $this->get_post_status(),
-			'posts_per_page'     => $this->get_limit(),
-			'paged'              => $this->get_page(),
-			'orderby'            => $this->get_orderby(),
-			'order'              => $this->get_order(),
-			'fields'             => 'ids', // HPOS always returns IDs
+			'ep_integrate'   => true,
+			'post_type'      => $this->get_post_type(),
+			'post_status'    => $this->get_post_status(),
+			'posts_per_page' => $this->get_limit(),
+			'paged'          => $this->get_page(),
+			'orderby'        => $this->get_orderby(),
+			'order'          => $this->get_order(),
+			'fields'         => 'ids', // HPOS always returns IDs
 		];
 
 		// Handle search.
 		$search = $this->hpos_query->get( 's' );
 		if ( ! empty( $search ) ) {
-			$args['s'] = sanitize_text_field( $search );
+			$args['s']             = sanitize_text_field( $search );
 			$args['search_fields'] = $this->get_search_fields();
 		}
 
@@ -216,7 +214,7 @@ class OrdersHPOSQuery {
 		if ( is_array( $orderby ) ) {
 			$translated = [];
 			foreach ( $orderby as $key => $order ) {
-				$mapped_key = $mapping[ $key ] ?? $key;
+				$mapped_key                = $mapping[ $key ] ?? $key;
 				$translated[ $mapped_key ] = $order;
 			}
 			return $translated;
@@ -267,7 +265,6 @@ class OrdersHPOSQuery {
 	 * Mirrors WooCommerce's OrdersTableSearchQuery search filter logic.
 	 *
 	 * @param string $search_filter The search filter (order_id, transaction_id, customer_email, customers, products, all).
-	 * @param string $search_term   The search term.
 	 * @return array Search fields for ElasticPress.
 	 */
 	protected function get_fields_for_search_filter( string $search_filter ): array {
@@ -364,9 +361,9 @@ class OrdersHPOSQuery {
 
 		// Handle date shorthand parameters.
 		$date_params = [
-			'date_created'       => 'post_date',
-			'date_modified'      => 'post_modified',
-			'date_updated'       => 'post_modified',
+			'date_created'  => 'post_date',
+			'date_modified' => 'post_modified',
+			'date_updated'  => 'post_modified',
 		];
 
 		foreach ( $date_params as $hpos_key => $wp_column ) {
@@ -378,7 +375,7 @@ class OrdersHPOSQuery {
 			$parsed = $this->parse_date_shorthand( $value );
 			if ( ! empty( $parsed ) ) {
 				$parsed['column'] = $wp_column;
-				$date_query[] = $parsed;
+				$date_query[]     = $parsed;
 			}
 		}
 

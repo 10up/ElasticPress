@@ -5563,15 +5563,15 @@
         },
         {
             "name": "wpackagist-plugin/woocommerce",
-            "version": "9.6.1",
+            "version": "10.4.3",
             "source": {
                 "type": "svn",
                 "url": "https://plugins.svn.wordpress.org/woocommerce/",
-                "reference": "tags/9.6.1"
+                "reference": "tags/10.4.3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.wordpress.org/plugin/woocommerce.9.6.1.zip"
+                "url": "https://downloads.wordpress.org/plugin/woocommerce.10.4.3.zip"
             },
             "require": {
                 "composer/installers": "^1.0 || ^2.0"
@@ -5661,6 +5661,6 @@
     "platform": {
         "php": ">=7.4"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }
