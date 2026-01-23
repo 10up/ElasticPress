@@ -80,13 +80,13 @@ class InstantResults extends Feature {
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'highlight_tag' => 'mark',
-			'facets' => 'post_type,tax-category,tax-post_tag',
-			'match_type' => 'all',
-			'term_count' => '1',
+			'highlight_tag'       => 'mark',
+			'facets'              => 'post_type,tax-category,tax-post_tag',
+			'match_type'          => 'all',
+			'term_count'          => '1',
 			'numbered_pagination' => '0',
-			'per_page' => get_option( 'posts_per_page', 6 ),
-			'search_behavior' => '0',
+			'per_page'            => get_option( 'posts_per_page', 6 ),
+			'search_behavior'     => '0',
 		];
 
 		$this->settings = $this->get_settings();
