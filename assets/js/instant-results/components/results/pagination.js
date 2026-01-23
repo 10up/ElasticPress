@@ -52,33 +52,39 @@ const Pagination = ({ offset, onNext, onPage = {}, onPrevious, perPage, total })
 	};
 
 	const getPages = (currentPage) => {
-		const maxVisiblePages = 10;
+		const firstBlock = 5;
+		const lastBlock = 5;
 
-		if (totalPages <= maxVisiblePages) {
+		if (totalPages <= firstBlock + 1) {
 			return getPageRange(1, totalPages);
 		}
 
-		const windowSize = maxVisiblePages - 2;
-		const halfWindow = Math.floor(windowSize / 2);
-		const maxStart = totalPages - windowSize;
-		const start = Math.max(2, Math.min(currentPage - halfWindow, maxStart));
-		const end = Math.min(totalPages - 1, start + windowSize - 1);
-
-		const pages = [createPageItem(1)];
-
-		if (start > 2) {
-			pages.push(createEllipsisItem('start'));
+		if (currentPage <= firstBlock - 1) {
+			return [
+				...getPageRange(1, firstBlock),
+				createEllipsisItem('end'),
+				createPageItem(totalPages),
+			];
 		}
 
-		pages.push(...getPageRange(start, end));
-
-		if (end < totalPages - 1) {
-			pages.push(createEllipsisItem('end'));
+		if (currentPage >= totalPages - (lastBlock - 2)) {
+			return [
+				createPageItem(1),
+				createEllipsisItem('start'),
+				...getPageRange(totalPages - (lastBlock - 1), totalPages),
+			];
 		}
 
-		pages.push(createPageItem(totalPages));
+		const middleStart = currentPage - 1;
+		const middleEnd = currentPage + 1;
 
-		return pages;
+		return [
+			createPageItem(1),
+			createEllipsisItem('start'),
+			...getPageRange(middleStart, middleEnd),
+			createEllipsisItem('end'),
+			createPageItem(totalPages),
+		];
 	};
 
 	const renderCount = (currentPage) => (
