@@ -38,7 +38,7 @@ export const FeatureSettingsProvider = ({
 	children,
 	defaultSettings,
 	epioLogoUrl,
-	features,
+	features: initialFeatures,
 	indexMeta,
 	syncedSettings,
 }) => {
@@ -46,6 +46,7 @@ export const FeatureSettingsProvider = ({
 	const [isSyncing, setIsSyncing] = useState(!!indexMeta);
 	const [settings, setSettings] = useState({ ...defaultSettings });
 	const [savedSettings, setSavedSettings] = useState({ ...syncedSettings });
+	const [features, setFeatures] = useState(initialFeatures);
 
 	/**
 	 * Get a feature's data by its slug.
@@ -168,6 +169,10 @@ export const FeatureSettingsProvider = ({
 			});
 
 			setSavedSettings(response.data);
+
+			if (response.features) {
+				setFeatures(response.features);
+			}
 		} finally {
 			setIsBusy(false);
 		}
