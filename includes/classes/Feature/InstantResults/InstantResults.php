@@ -80,11 +80,12 @@ class InstantResults extends Feature {
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'highlight_tag'   => 'mark',
-			'facets'          => 'post_type,tax-category,tax-post_tag',
-			'match_type'      => 'all',
-			'term_count'      => '1',
-			'per_page'        => get_option( 'posts_per_page', 6 ),
+			'highlight_tag' => 'mark',
+			'facets' => 'post_type,tax-category,tax-post_tag',
+			'match_type' => 'all',
+			'term_count' => '1',
+			'numbered_pagination' => '0',
+			'per_page' => get_option( 'posts_per_page', 6 ),
 			'search_behavior' => '0',
 		];
 
@@ -240,6 +241,7 @@ class InstantResults extends Feature {
 				'paramPrefix'         => 'ep-',
 				'postTypeLabels'      => $this->get_post_type_labels(),
 				'termCount'           => $this->settings['term_count'],
+				'numberedPagination'  => $this->settings['numbered_pagination'],
 				'requestIdBase'       => Utils\get_request_id_base(),
 				'showSuggestions'     => \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active(),
 				'suggestionsBehavior' => $this->settings['search_behavior'],
@@ -893,6 +895,13 @@ class InstantResults extends Feature {
 				'help'    => __( 'Enable to show the number of matching results next to filter options.', 'elasticpress' ),
 				'key'     => 'term_count',
 				'label'   => __( 'Show filter counts', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
+				'default' => '0',
+				'help'    => __( 'Enable to show numbered pagination links instead of previous/next buttons.', 'elasticpress' ),
+				'key'     => 'numbered_pagination',
+				'label'   => __( 'Numbered pagination', 'elasticpress' ),
 				'type'    => 'checkbox',
 			],
 			[
