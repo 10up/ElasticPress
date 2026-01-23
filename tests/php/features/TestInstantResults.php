@@ -52,7 +52,7 @@ class TestInstantResults extends BaseTestCase {
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
 		$this->assertSame(
-			[ 'active', 'highlight_tag', 'facets', 'match_type', 'term_count', 'per_page', 'search_behavior' ],
+			[ 'active', 'highlight_tag', 'facets', 'match_type', 'term_count', 'numbered_pagination', 'per_page', 'search_behavior' ],
 			$settings_keys
 		);
 	}
