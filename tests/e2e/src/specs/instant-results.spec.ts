@@ -625,5 +625,64 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			 */
 			await expect(loggedInPage.locator('#ep-sort').first()).toHaveValue('date_desc');
 		});
+
+		test('Can use numbered pagination when enabled', async ({ loggedInPage }) => {
+			await maybeEnableFeature('instant-results');
+
+			const perPageRaw = await wpCliEval("echo get_option( 'posts_per_page' );");
+			const perPage = parseInt(perPageRaw.toString(), 10);
+
+			await wpCliEval("update_option( 'posts_per_page', 2 );");
+			await wpCliEval(`
+				for ( $i = 1; $i <= 6; $i++ ) {
+					wp_insert_post(
+						[
+							'post_title'   => 'Pagination Test ' . $i,
+							'post_content' => 'Pagination test content ' . $i,
+							'post_status'  => 'publish',
+						]
+					);
+				}
+			`);
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			const apiResponsePromise = loggedInPage.waitForResponse(
+				'**/wp-json/elasticpress/v1/features*',
+			);
+			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+			await loggedInPage.getByRole('checkbox', { name: 'Numbered pagination' }).check();
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await apiResponsePromise;
+
+			await loggedInPage.goto('/');
+			const responsePromise = instantResultRequestPromise(loggedInPage, 'search=pagination');
+			await searchFor(loggedInPage, 'pagination');
+			await responsePromise;
+
+			const pagination = loggedInPage.locator('.ep-search-pagination');
+
+			await expect(pagination.locator('.ep-search-pagination__list')).toBeVisible();
+			await expect(pagination.getByText('1', { exact: true })).toBeVisible();
+			await expect(pagination.getByText('2', { exact: true })).toBeVisible();
+			await expect(pagination.getByText('Previous', { exact: true })).toHaveCount(0);
+			await expect(pagination.getByText('Next', { exact: true })).toHaveCount(0);
+
+			const pageTwoResponse = instantResultRequestPromise(loggedInPage, 'offset=2');
+			await pagination.getByRole('button', { name: 'Page 2' }).click();
+			await pageTwoResponse;
+			await expect(loggedInPage).toHaveURL(/.*ep-offset=2/);
+
+			await wpCliEval(`update_option( 'posts_per_page', ${perPage} );`);
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			const apiResponsePromise2 = loggedInPage.waitForResponse(
+				'**/wp-json/elasticpress/v1/features*',
+			);
+			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+			await loggedInPage.getByRole('checkbox', { name: 'Numbered pagination' }).uncheck();
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await apiResponsePromise2;
+		});
 	});
 });
