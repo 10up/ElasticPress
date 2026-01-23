@@ -629,12 +629,8 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		test('Can use numbered pagination when enabled', async ({ loggedInPage }) => {
 			await maybeEnableFeature('instant-results');
 
-			const perPageRaw = await wpCliEval("echo get_option( 'posts_per_page' );");
-			const perPage = parseInt(perPageRaw.toString(), 10);
-
-			await wpCliEval("update_option( 'posts_per_page', 2 );");
 			await wpCliEval(`
-				for ( $i = 1; $i <= 6; $i++ ) {
+				for ( $i = 1; $i <= 12; $i++ ) {
 					wp_insert_post(
 						[
 							'post_title'   => 'Pagination Test ' . $i,
@@ -644,6 +640,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 					);
 				}
 			`);
+			await wpCli('wp elasticpress sync');
 
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 			const apiResponsePromise = loggedInPage.waitForResponse(
@@ -655,10 +652,20 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 			await apiResponsePromise;
 
+			const perPageRaw = await wpCliEval(`
+				$settings = get_option( 'ep_feature_settings', [] );
+				echo $settings['instant-results']['per_page'] ?? '';
+			`);
+			const perPage = parseInt(perPageRaw.toString(), 10);
+			if (!perPage) {
+				throw new Error('Instant Results per_page setting not found.');
+			}
+
 			await loggedInPage.goto('/');
-			const responsePromise = instantResultRequestPromise(loggedInPage, 'search=pagination');
+			const responsePromise = instantResultRequestPromise(loggedInPage, 'offset=0');
 			await searchFor(loggedInPage, 'pagination');
 			await responsePromise;
+			await expect(loggedInPage).toHaveURL(/.*ep-offset=0/);
 
 			const pagination = loggedInPage.locator('.ep-search-pagination');
 
@@ -668,12 +675,10 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			await expect(pagination.getByText('Previous', { exact: true })).toHaveCount(0);
 			await expect(pagination.getByText('Next', { exact: true })).toHaveCount(0);
 
-			const pageTwoResponse = instantResultRequestPromise(loggedInPage, 'offset=2');
+			const pageTwoResponse = instantResultRequestPromise(loggedInPage, `offset=${perPage}`);
 			await pagination.getByRole('button', { name: 'Page 2' }).click();
 			await pageTwoResponse;
-			await expect(loggedInPage).toHaveURL(/.*ep-offset=2/);
-
-			await wpCliEval(`update_option( 'posts_per_page', ${perPage} );`);
+			await expect(loggedInPage).toHaveURL(new RegExp(`ep-offset=${perPage}`));
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 			const apiResponsePromise2 = loggedInPage.waitForResponse(
 				'**/wp-json/elasticpress/v1/features*',
