@@ -96,7 +96,8 @@ class OrdersHPOS {
 		$post_indexable = Indexables::factory()->get( 'post' );
 		$order          = wc_get_order( $post_id );
 
-		$post_args['post_type'] = $order->get_type();
+		$post_args['post_status']   = $this->sanitize_order_status( $order->get_status( 'edit' ) );
+		$post_args['post_type']     = $order->get_type();
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
 		$post_args['post_date']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
 		$post_args['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
@@ -305,5 +306,18 @@ class OrdersHPOS {
 		$this->elasticsearch_order_ids = [];
 
 		return $orders;
+	}
+
+	/**
+	 * Sanitize order status. We need to add the 'wc-' prefix to the status if it doesn't have it.
+	 *
+	 * @param string $order_status Order status.
+	 * @return string Sanitized order status.
+	 */
+	protected function sanitize_order_status( $order_status ) {
+		if ( 'wc-' === substr( $order_status, 0, 3 ) ) {
+			return $order_status;
+		}
+		return sprintf( 'wc-%s', $order_status );
 	}
 }
