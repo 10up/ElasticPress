@@ -200,11 +200,6 @@ class OrdersHPOSQuery {
 			'date_created'  => 'date',
 			'modified'      => 'modified',
 			'date_modified' => 'modified',
-			'parent'        => 'parent',
-			'total'         => 'meta_value_num',
-			'order_total'   => 'meta_value_num',
-			'include'       => 'post__in',
-			'post__in'      => 'post__in',
 		];
 
 		if ( is_string( $orderby ) && isset( $mapping[ $orderby ] ) ) {

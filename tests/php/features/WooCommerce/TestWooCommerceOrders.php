@@ -9,6 +9,7 @@
 namespace ElasticPressTest;
 
 use ElasticPress;
+use Automattic\WooCommerce\Enums\OrderStatus;
 
 require_once __DIR__ . '/WooCommerceBaseTestCase.php';
 
@@ -405,12 +406,12 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Test if order refunds are indexed correctly.
+	 * Test if Order and Order Refunds index correctly
 	 *
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function test_hpos_order_refund_is_indexed() {
+	public function test_hpos_data_is_indexed() {
 		$this->enable_hpos();
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -480,12 +481,12 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Test simple HPOS search with post type filter
+	 * Test HPOS search with post type filter.
 	 *
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
-	public function test_hpos_order_search_with_post_type() {
+	public function test_hpos_search_with_post_type() {
 		$this->enable_hpos();
 
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
@@ -515,5 +516,246 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertEquals( $refund_order_id, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_parent_id() );
 		$this->assertCount( 1, $orders );
+
+		// Test if all the orders are returned.
+		$orders = wc_get_orders( [] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 2, $orders );
+	}
+
+	/**
+	 * Test HPOS query filter by status.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_filter_by_status() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_status( OrderStatus::COMPLETED );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_status( OrderStatus::PENDING );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		$shop_order_3 = new \WC_Order();
+		$shop_order_3->set_status( OrderStatus::ON_HOLD );
+		$shop_order_3->save();
+		$shop_order_id_3 = $shop_order_3->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_3, true );
+
+		$shop_order_4 = new \WC_Order();
+		$shop_order_4->set_status( OrderStatus::PROCESSING );
+		$shop_order_4->save();
+		$shop_order_id_4 = $shop_order_4->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_4, true );
+
+		$shop_order_5 = new \WC_Order();
+		$shop_order_5->set_status( OrderStatus::CHECKOUT_DRAFT );
+		$shop_order_5->save();
+		$shop_order_id_5 = $shop_order_5->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_5, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Return All the orders
+		$orders = wc_get_orders( [] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 5, $orders );
+
+		// Return only the orders with the status "completed"
+		$orders = wc_get_orders( [ 'status' => OrderStatus::COMPLETED ] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+
+		// Return only the orders with the status "pending"
+		$orders = wc_get_orders( [ 'status' => OrderStatus::PENDING ] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+
+		// Return only the orders with the status "on-hold"
+		$orders = wc_get_orders( [ 'status' => OrderStatus::ON_HOLD ] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+
+		// Return only the orders with the status "processing"
+		$orders = wc_get_orders( [ 'status' => OrderStatus::PROCESSING ] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+
+		// Return only the orders with the status "checkout-draft"
+		$orders = wc_get_orders( [ 'status' => OrderStatus::CHECKOUT_DRAFT ] );
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+	}
+
+	/**
+	 * Test HPOS limit.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_order_limit() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'limit' => 1,
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS paged.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_paged() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		$shop_order_3 = new \WC_Order();
+		$shop_order_3->save();
+		$shop_order_id_3 = $shop_order_3->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_3, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'paged' => 2,
+				'limit' => 1,
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'paged' => 3,
+				'limit' => 1,
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_3, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS order by date. By default, the orders are ordered by date in Descending order.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_order_by_date() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'orderby' => 'date',
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_1, $orders[1]->get_id() );
+	}
+
+	/**
+	 * Test HPOS order by date in Ascending order.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_order_by_date_asc() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'orderby' => 'date',
+				'order'   => 'ASC',
+
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
 	}
 }
