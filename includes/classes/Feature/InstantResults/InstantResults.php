@@ -642,8 +642,8 @@ class InstantResults extends Feature {
 				'type'       => 'taxonomy',
 				'post_types' => $post_types,
 				'labels'     => array(
-					'admin'    => $admin_label,
-					'frontend' => $labels->singular_name,
+					'admin'    => wp_specialchars_decode( $admin_label ),
+					'frontend' => wp_specialchars_decode( $labels->singular_name ),
 				),
 				'aggs'       => array(
 					$name => array(
