@@ -494,7 +494,7 @@ class Orders {
 	/**
 	 * Whether WooCommerce HPOS is enabled or not
 	 *
-	 * @since 5.3.0
+	 * @since 5.4.0
 	 * @return boolean Whether WooCommerce HPOS is enabled or not
 	 */
 	public function is_hpos_enabled(): bool {

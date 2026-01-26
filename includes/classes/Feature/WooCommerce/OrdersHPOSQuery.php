@@ -44,13 +44,12 @@ class OrdersHPOSQuery {
 	 */
 	protected $wp_query_args = [];
 
-
 	/**
-	 * Constructor for the OrdersHPOS_Query class.
+	 * Constructor.
 	 *
-	 * @param OrdersTableQuery $hpos_query The WooCommerce OrdersTableQuery object.
+	 * @param \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $hpos_query The HPOS query object.
 	 */
-	public function __construct( OrdersTableQuery $hpos_query ) {
+	public function __construct( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $hpos_query ) {
 		$this->hpos_query    = $hpos_query;
 		$this->query_args    = $hpos_query->get_query_args();
 		$this->wp_query_args = $this->translate_args();
@@ -128,7 +127,7 @@ class OrdersHPOSQuery {
 		 * Filter translated WP_Query args for HPOS queries.
 		 *
 		 * @hook ep_woocommerce_hpos_query_args
-		 * @since 5.3.0
+		 * @since 5.4.0
 		 * @param {array} $args        WP_Query compatible arguments.
 		 * @param {array} $query_args  Original HPOS query arguments.
 		 * @return {array} New args.
@@ -192,7 +191,6 @@ class OrdersHPOSQuery {
 	protected function get_orderby() {
 		$orderby = $this->hpos_query->get( 'orderby' );
 
-		// @todo: check if this is correct
 		$mapping = [
 			'ID'            => 'ID',
 			'id'            => 'ID',
@@ -230,9 +228,6 @@ class OrdersHPOSQuery {
 	/**
 	 * Gets search fields for the query.
 	 *
-	 * Translates HPOS search_filter parameter to ElasticPress search_fields.
-	 * This mirrors WooCommerce's OrdersTableSearchQuery::generate_where_for_search_filter() logic.
-	 *
 	 * @return array Search fields configuration.
 	 */
 	protected function get_search_fields(): array {
@@ -256,8 +251,6 @@ class OrdersHPOSQuery {
 
 	/**
 	 * Gets search fields based on HPOS search filter.
-	 *
-	 * Mirrors WooCommerce's OrdersTableSearchQuery search filter logic.
 	 *
 	 * @param string $search_filter The search filter (order_id, transaction_id, customer_email, customers, products, all).
 	 * @return array Search fields for ElasticPress.
