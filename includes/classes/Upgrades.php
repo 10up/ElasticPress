@@ -309,7 +309,7 @@ class Upgrades {
 
 		$feature_status   = $instant_results->requirements_status();
 		$appended_message = '';
-		if ( 1 >= $feature_status->code ) {
+		if ( 1 >= $feature_status->get_code() ) {
 			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
 				$features_url = admin_url( 'network/admin.php?page=elasticpress' );
 			} else {

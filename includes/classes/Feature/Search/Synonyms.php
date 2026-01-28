@@ -83,13 +83,15 @@ class Synonyms {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
+		$status = new FeatureRequirementsStatus( 0, null, $this );
 		$search = $this->get_search_feature();
 
 		if ( ! $search->is_active() ) {
-			return new FeatureRequirementsStatus( 2, esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' ) );
+			$status->code    = 2;
+			$status->message = esc_html__( 'This feature requires the "Post Search" feature to be enabled', 'elasticpress' );
 		}
 
-		return new FeatureRequirementsStatus( 0 );
+		return $status;
 	}
 
 	/**
@@ -98,7 +100,7 @@ class Synonyms {
 	 * @return bool
 	 */
 	public function setup() {
-		if ( (bool) $this->requirements_status()->code ) {
+		if ( (bool) $this->requirements_status()->get_code() ) {
 			return false;
 		}
 

@@ -573,7 +573,7 @@ class Weighting {
 			}
 
 			foreach ( $fieldset['fields'] as $key => $field ) {
-				if ( isset( $weights[ $field ] ) && false !== $weights[ $field ]['enabled'] ) {
+				if ( isset( $weights[ $field ]['enabled'] ) && false !== $weights[ $field ]['enabled'] ) {
 					$weight = (int) $weights[ $field ]['weight'];
 
 					if ( 0 !== $weight ) {
@@ -675,7 +675,7 @@ class Weighting {
 
 		$found_enabled = false;
 		foreach ( $fields as $field ) {
-			if ( filter_var( $field['enabled'], FILTER_VALIDATE_BOOLEAN ) ) {
+			if ( isset( $field['enabled'] ) && filter_var( $field['enabled'], FILTER_VALIDATE_BOOLEAN ) ) {
 				$found_enabled = true;
 				break;
 			}

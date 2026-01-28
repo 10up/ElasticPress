@@ -6,6 +6,8 @@
  * @package elasticpress
  */
 
+use ElasticPress\FeatureRequirementsStatus;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
@@ -87,10 +89,10 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 								<?php
 								$features = \ElasticPress\Features::factory()->registered_features;
 								foreach ( $features as $feature ) {
-									$feature_status_code  = (int) $feature->requirements_status()->code;
+									$feature_status_code  = (int) $feature->requirements_status()->get_code();
 									$activation_available = $feature->available_during_installation;
 
-									if ( 2 === $feature_status_code ) {
+									if ( in_array( $feature_status_code, [ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ], true ) ) {
 										continue;
 									}
 
@@ -98,7 +100,7 @@ $skip_index_url = remove_query_arg( 'ep-skip-features', $skip_install_url );
 										continue;
 									}
 
-									$should_be_checked = 0 === $feature_status_code || $feature->is_active();
+									$should_be_checked = FeatureRequirementsStatus::AUTO_ENABLED === $feature_status_code || $feature->is_active();
 									?>
 									<li>
 										<label>

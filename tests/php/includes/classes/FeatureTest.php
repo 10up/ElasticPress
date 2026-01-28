@@ -39,7 +39,7 @@ class FeatureTest extends ElasticPress\Feature {
 	public function requirements_status() {
 		$on = get_site_option( 'ep_test_feature_on', 0 );
 
-		$status = new ElasticPress\FeatureRequirementsStatus( $on );
+		$status = new ElasticPress\FeatureRequirementsStatus( $on, null, $this );
 
 		return $status;
 	}
@@ -84,5 +84,33 @@ class FeatureTest extends ElasticPress\Feature {
 				'requires_feature' => 'search',
 			],
 		];
+	}
+
+	/**
+	 * Pre-handle feature activation
+	 *
+	 * Changes the status code of FeatureTestB to 3
+	 *
+	 * @since 5.3.3
+	 * @return void
+	 */
+	public function pre_handle_feature_activation() {
+		add_filter( 'ep_feature_requirements_status_code', [ $this, 'change_feature_b_code' ], 10, 2 );
+	}
+
+	/**
+	 * Change the status code of FeatureTestB to 3
+	 *
+	 * @since 5.3.3
+	 * @param int                                     $code   The status code
+	 * @param \ElasticPress\FeatureRequirementsStatus $status The feature requirements status
+	 * @return int The new status code
+	 */
+	public function change_feature_b_code( $code, $status ) {
+		$feature = $status->get_feature();
+		if ( ! empty( $feature->slug ) && 'test-b' === $feature->slug ) {
+			return 3;
+		}
+		return $code;
 	}
 }
