@@ -220,13 +220,14 @@ class TestInstantResults extends BaseTestCase {
 		);
 		$feature->after_update_feature( 'instant-results', [], [ 'active' => false ] );
 	}
-		/**
-		 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
-		 * are skipped and logged via _doing_it_wrong().
-		 *
-		 * @group instant-results
-		 * @since 5.3.3
-		 */
+
+	/**
+	 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
+	 * are skipped and logged via _doing_it_wrong().
+	 *
+	 * @group instant-results
+	 * @since 5.3.3
+	 */
 	public function test_invalid_taxonomy_from_facet_filter_triggers_doing_it_wrong_and_is_skipped() {
 		$this->setExpectedIncorrectUsage(
 			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets'
