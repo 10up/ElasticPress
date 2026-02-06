@@ -9737,6 +9737,75 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `ep_asciifolding` filter
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_mapping_ep_asciifolding_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'post' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$es_version = ElasticPress\Elasticsearch::factory()->get_elasticsearch_version();
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
+			// ES5 format: flattened keys like 'index.analysis.analyzer.default.filter.0', '.1', etc.
+			$default_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_filter_keys );
+
+			$default_search_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default_search.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_search_filter_keys );
+
+		} else {
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
+		}
+	}
+
+	/**
+	 * Test the post returns correct with accented characters
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_search_handles_accented_characters_correctly() {
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_title' => 'Coöperàtîôn' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_title' => 'Fiancéé' ] );
+
+		// disable fuzziness
+		add_filter( 'ep_fuzziness', '__return_zero' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'coöperàtîôn',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id_1, $query->posts[0]->ID );
+
+		$query = new \WP_Query(
+			[
+				's' => 'fiancee',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id_2, $query->posts[0]->ID );
+	}
+
+	/**
 	 * Test if aggregations are set
 	 *
 	 * @since 5.1.0

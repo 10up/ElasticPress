@@ -49,7 +49,7 @@ return array(
 				'default'          => array(
 					'tokenizer'   => 'standard',
 					/* This filter is documented in includes/mappings/post/7-0.php */
-					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					'filter'      => apply_filters( 'ep_default_analyzer_filters', array( 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball', 'ep_asciifolding' ) ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'char_filter' => apply_filters( 'ep_default_analyzer_char_filters', array( 'html_strip' ) ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
@@ -58,7 +58,7 @@ return array(
 				'default_search'   => array(
 					'tokenizer'   => 'standard',
 					/* This filter is documented in includes/mappings/post/7-0.php */
-					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'standard', 'lowercase', 'ep_stop', 'ewp_snowball' ) ),
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', array( 'standard', 'lowercase', 'ep_stop', 'ewp_snowball', 'ep_asciifolding' ) ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', array( 'html_strip' ) ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
@@ -101,6 +101,10 @@ return array(
 					'ignore_case' => true,
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
+				],
+				'ep_asciifolding'    => [
+					'type'              => 'asciifolding',
+					'preserve_original' => true,
 				],
 			),
 			'normalizer' => array(
