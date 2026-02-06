@@ -1899,4 +1899,20 @@ class TestTerm extends BaseTestCase {
 		$index_settings = $settings[ $index_name ]['settings'];
 		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
 	}
+
+	/**
+	 * Test the `ep_asciifolding` filter
+	 *
+	 * @since 5.3.3
+	 * @group term
+	 */
+	public function test_mapping_ep_asciifolding_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'term' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
+	}
 }
