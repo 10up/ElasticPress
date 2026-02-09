@@ -62,9 +62,8 @@ const Control = ({
 	 * Get missing required features.
 	 */
 	const missingRequiredFeatures = requiredFeaturesList
-		.filter((featureSlug) => settings[featureSlug]?.active !== true)
 		.map((featureSlug) => getFeature(featureSlug))
-		.filter(Boolean);
+		.filter((feature) => !feature.isAvailable || settings[feature.slug]?.active !== true);
 
 	/**
 	 * Help text formatted to allow safe HTML.
