@@ -148,7 +148,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Rinat K (@rinatkhaziev)](https://github.com/rinatkhaziev),
 [Rebecca Hum (@rebeccahum)](https://github.com/rebeccahum),
 [Karol (@karols0)](https://github.com/karols0),
-[Tom J Nowell (@tomjn)](https://github.com/tomjn),
+[Tom J Nowell (@'tomj'n)](https://github.com/tomjn),
 [(@juansanchezfernandes)](https://github.com/juansanchezfernandes),
 [Thorsten Frommen (@tfrommen)](https://github.com/tfrommen),
 [Yoli (@yolih)](https://github.com/yolih),
@@ -262,6 +262,9 @@ Thank you to all the people who have already contributed to this repository via 
 [@DarioBF](https://github.com/DarioBF),
 [@ognjanovic](https://github.com/ognjanovic),
 [Maciej Maćkowiak (@maciejmackowiak)](https://github.com/maciejmackowiak),
+[Laraib Tahir (@laraib15)](https://github.com/laraib15),
+[@wparslans](https://github.com/wparslans),
+[Brent Wilson (@BWBama85)](https://github.com/BWBama85),
 and
 [@qazaqstan2025](https://github.com/qazaqstan2025).
 

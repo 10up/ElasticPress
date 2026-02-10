@@ -14,6 +14,32 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.3] - 2026-XX-XX
+
+### Added
+* Numbered pagination option for Instant Results. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4274](https://github.com/10up/ElasticPress/pull/4274).
+* New elasticpress_general_ep_screens filter. Props [@felipeelia](https://github.com/felipeelia) via [#4256](https://github.com/10up/ElasticPress/pull/4256).
+* New ep_feature_requirements_status_* filters and a new "Temporarily disabled" feature status (in code). Props [@felipeelia](https://github.com/felipeelia) via [#4265](https://github.com/10up/ElasticPress/pull/4265).
+
+### Changed
+### Deprecated
+### Removed
+### Fixed
+* Keep the sync running when code outputs directly in the post content. Props [@burhandodhy](https://github.com/burhandodhy), [@tomjn](https://github.com/tomjn), and [@felipeelia](https://github.com/felipeelia) via [#4266](https://github.com/10up/ElasticPress/pull/4266).
+* Prevent saving Custom Results while posts are loading. Props [@burhandodhy](https://github.com/burhandodhy) via [#4260](https://github.com/10up/ElasticPress/pull/4260).
+* Update label for bulk request timeout in ElasticPress status report. Props [@burhandodhy](https://github.com/burhandodhy) via [#4259](https://github.com/10up/ElasticPress/pull/4259).
+* Undefined array key warnings in Weighting.php. Props [@burhandodhy](https://github.com/burhandodhy) and [@BWBama85](https://github.com/BWBama85) via [#4270](https://github.com/10up/ElasticPress/pull/4270).
+* Ensure the Sync creates the Instant Results templates for all the sites. Props [@burhandodhy](https://github.com/burhandodhy) and [@anjulahettige](https://github.com/anjulahettige) via [#4258](https://github.com/10up/ElasticPress/pull/4258).
+* Ensure that WordPress caches the meta and term queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@maciejmackowiak](https://github.com/maciejmackowiak) via [#4268](https://github.com/10up/ElasticPress/pull/4268).
+* An issue where posts were not returned correctly when the search term contained accented characters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4263](https://github.com/10up/ElasticPress/pull/4263).
+* Prevent fatal error in Instant Results facets when `ep_facet_include_taxonomies` returns non-WP_Taxonomy values. Props [@laraib15](https://github.com/laraib15) via [#4255](https://github.com/10up/ElasticPress/pull/4255).
+* Instant Results displayed special characters as HTML encoded text. Props [@burhandodhy](https://github.com/burhandodhy) and [@wparslans](https://github.com/wparslans) via [#4276](https://github.com/10up/ElasticPress/pull/4276).
+# Only consider a feature active if not disabled by code. Props [@felipeelia](https://github.com/felipeelia) via [#4272](https://github.com/10up/ElasticPress/pull/4272).
+
+### Security
+### Developer
+* Fix e2e tests. Props [@felipeelia](https://github.com/felipeelia) via [#4262](https://github.com/10up/ElasticPress/pull/4262).
+
 ## [5.3.2] - 2025-11-21
 
 ### Added
@@ -33,7 +59,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 Highlights of this version:
 
 * Improved compatibility with Elementor
-* Better UX/UI in the Features Screen: Grouped features and conditional display of fields 
+* Better UX/UI in the Features Screen: Grouped features and conditional display of fields
 * New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page.
 
 ### Added
@@ -2309,6 +2335,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.3
 [5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
 [5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
 [5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0
