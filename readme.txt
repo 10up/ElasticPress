@@ -2,7 +2,7 @@
 Contributors: 10up, tlovett1, vhauri, tott, felipeelia, oscarssanchez, cmmarslender
 Tags:         performance, search, elasticsearch, fuzzy, related posts
 Tested up to: 6.8
-Stable tag:   5.3.2
+Stable tag:   5.3.3
 License:      GPLv2 or later
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,7 +101,7 @@ __Fixed:__
 Highlights of this version:
 
 * Improved compatibility with Elementor
-* Better UX/UI in the Features Screen: Grouped features and conditional display of fields 
+* Better UX/UI in the Features Screen: Grouped features and conditional display of fields
 * New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page.
 
 __Added:__
