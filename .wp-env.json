@@ -46,7 +46,8 @@
         "wp-content/plugins/unsupported-elasticsearch-version.php": "./tests/e2e/src/wordpress-files/test-plugins/unsupported-elasticsearch-version.php",
         "wp-content/plugins/multiple-required-features.php": "./tests/e2e/src/wordpress-files/test-plugins/multiple-required-features.php",
         "wp-content/uploads/content-example.xml": "./tests/e2e/src/wordpress-files/test-docs/content-example.xml",
-        "wp-content/plugins/echo-shortcode.php": "./tests/e2e/src/wordpress-files/test-plugins/echo-shortcode.php"
+        "wp-content/plugins/echo-shortcode.php": "./tests/e2e/src/wordpress-files/test-plugins/echo-shortcode.php",
+		"wp-content/plugins/simulate-instant-results-conflict.php": "./tests/e2e/src/wordpress-files/test-plugins/simulate-instant-results-conflict.php"
       }
     }
   }

@@ -4,8 +4,10 @@ import {
 	goToAdminPage,
 	wpCli,
 	maybeDisableFeature,
+	maybeEnableFeature,
 	setDefaultFeatureSettings,
 	deactivatePlugin,
+	updateFeatures,
 } from '../utils.js';
 
 /**
@@ -175,5 +177,67 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		await expect(
 			loggedInPage.getByRole('checkbox', { name: 'Trigger Google Analytics' }),
 		).not.toBeDisabled();
+	});
+
+	test.describe('Feature Dependency Updates', () => {
+		test.afterEach(async ({ loggedInPage }) => {
+			await deactivatePlugin(loggedInPage, 'simulate-instant-results-conflict', 'wpCli');
+		});
+
+		test('Feature dependencies update immediately and after save', async ({ loggedInPage }) => {
+			// Track initial state for cleanup
+			const featuresList = await wpCli('elasticpress list-features', true);
+			const instantResultsWasEnabled = featuresList?.toString().includes('instant-results');
+			const didYouMeanWasEnabled = featuresList?.toString().includes('did-you-mean');
+
+			// Setup: Enable features, activate conflict plugin, disable conflicting setting
+			await maybeEnableFeature('instant-results');
+			await maybeEnableFeature('did-you-mean');
+			await activatePlugin(loggedInPage, 'simulate-instant-results-conflict', 'wpCli');
+			await updateFeatures('did-you-mean', {
+				active: true,
+				conflicting_setting: false,
+			});
+
+			// Navigate to settings and verify Instant Results is enabled initially
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeEnabled();
+			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeChecked();
+
+			// Enable conflicting setting in Did You Mean
+			await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Did You Mean' }).click();
+			await loggedInPage.getByLabel('Conflicting Setting').setChecked(true);
+
+			// Save changes and wait for completion
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await loggedInPage.waitForLoadState('networkidle');
+
+			// Verify Instant Results is now disabled with error message
+			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeDisabled();
+			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).not.toBeChecked();
+			await expect(
+				loggedInPage.locator('.components-notice.is-error').filter({
+					hasText:
+						'This feature is temporarily disabled because it is incompatible with the Conflicting Setting enabled in Did You Mean.',
+				}),
+			).toBeVisible();
+
+			// Cleanup: Restore original state
+			await updateFeatures('did-you-mean', {
+				active: didYouMeanWasEnabled,
+				conflicting_setting: false,
+			});
+			if (!instantResultsWasEnabled) {
+				await maybeDisableFeature('instant-results');
+			}
+			if (!didYouMeanWasEnabled) {
+				await maybeDisableFeature('did-you-mean');
+			}
+		});
 	});
 });
