@@ -199,6 +199,16 @@ export const ApiSearchProvider = ({
 	};
 
 	/**
+	 * Set the result offset.
+	 *
+	 * @param {number} offset Result offset.
+	 * @returns {void}
+	 */
+	const setOffset = (offset) => {
+		dispatch({ type: 'SET_OFFSET', offset });
+	};
+
+	/**
 	 * Set search args from popped history state.
 	 *
 	 * @param {object} args Search args.
@@ -366,6 +376,7 @@ export const ApiSearchProvider = ({
 		search,
 		searchFor,
 		setResults,
+		setOffset,
 		nextPage,
 		previousPage,
 		totalResults,

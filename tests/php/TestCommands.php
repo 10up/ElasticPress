@@ -1318,4 +1318,76 @@ class TestCommands extends BaseTestCase {
 		$output = $this->getActualOutputForAssertion();
 		$this->assertStringContainsString( 'This command is deprecated. Please use stop-sync instead.', $output );
 	}
+
+	/**
+	 * Test put-search-template command saves the search template for all sites.
+	 *
+	 * @group skip-on-single-site
+	 * @since 5.3.3
+	 */
+	public function test_put_search_template_with_network_wide_flag() {
+		$this->factory->blog->create_many( 2 );
+
+		$sites          = ElasticPress\Utils\get_sites();
+		$called_indices = 0;
+
+		add_filter( 'ep_intercept_remote_request', '__return_true' );
+		add_filter(
+			'ep_do_intercept_request',
+			function ( $response, $query ) use ( &$called_indices ) {
+				if ( str_contains( $query['url'], 'api/v1/search/posts/' ) ) {
+					$called_indices++;
+				}
+
+				return [
+					'body'     => '{}',
+					'response' => [ 'code' => 200 ],
+				];
+			},
+			10,
+			2
+		);
+
+		$this->command->put_search_template( [], [ 'network-wide' => true ] );
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done.', $output );
+
+		$this->assertEquals( count( $sites ), $called_indices );
+	}
+
+	/**
+	 * Test delete-search-template command deletes the search template for all sites.
+	 *
+	 * @group skip-on-single-site
+	 * @since 5.3.3
+	 */
+	public function test_delete_search_template_with_network_wide_flag() {
+		$this->factory->blog->create_many( 2 );
+
+		$sites          = ElasticPress\Utils\get_sites();
+		$called_indices = 0;
+
+		add_filter( 'ep_intercept_remote_request', '__return_true' );
+		add_filter(
+			'ep_do_intercept_request',
+			function ( $response, $query ) use ( &$called_indices ) {
+				if ( 'DELETE' === $query['args']['method'] && str_contains( $query['url'], 'api/v1/search/posts/' ) ) {
+					$called_indices++;
+				}
+
+				return [
+					'body'     => '{}',
+					'response' => [ 'code' => 200 ],
+				];
+			},
+			10,
+			2
+		);
+
+		$this->command->delete_search_template( [], [ 'network-wide' => true ] );
+		$output = $this->getActualOutputForAssertion();
+		$this->assertStringContainsString( 'Done', $output );
+
+		$this->assertEquals( count( $sites ), $called_indices );
+	}
 }
