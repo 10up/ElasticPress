@@ -833,6 +833,20 @@ class AdminNotices {
 		 */
 		$notices = apply_filters( 'ep_admin_notices', $this->notices );
 
+		if ( ! is_array( $notices ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: %s: Detected variable type. */
+					esc_html__( 'Callbacks of filter hook `ep_admin_notices` must return value of type array, %s detected.', 'elasticpress' ),
+					esc_html( gettype( $notices ) )
+				),
+				'5.3.3'
+			);
+
+			$notices = array();
+		}
+
 		// If the plugin is network-activated and not in the network admin, return the notices whose scope is site.
 		if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK && ! is_network_admin() ) {
 			$notices = array_filter(
