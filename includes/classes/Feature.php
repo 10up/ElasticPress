@@ -243,7 +243,11 @@ abstract class Feature {
 		$active = false;
 
 		if ( ! empty( $feature_settings[ $this->slug ] ) && $feature_settings[ $this->slug ]['active'] ) {
-			$active = true;
+			$active = ! in_array(
+				$this->requirements_status()->get_code(),
+				[ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ],
+				true
+			);
 		}
 
 		/**

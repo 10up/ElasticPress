@@ -9,6 +9,7 @@ namespace ElasticPressTest;
 
 use ElasticPress;
 use ElasticPress\Features;
+use ElasticPress\FeatureRequirementsStatus;
 use ElasticPress\REST\Features as FeaturesRest;
 
 /**
@@ -249,6 +250,25 @@ class TestFeatureActivation extends BaseTestCase {
 		$this->assertEquals( true, ElasticPress\Features::factory()->registered_features['test']->is_active() );
 		$this->assertEquals( 1, ElasticPress\Features::factory()->registered_features['test']->requirements_status()->get_code() );
 		$this->assertEquals( 1, $requirements_statuses['test'] );
+	}
+
+	/**
+	 * Test that a feature is not active if it's force disabled or temporarily disabled
+	 *
+	 * @since 5.3.3
+	 * @group feature-activation
+	 */
+	public function test_feature_is_active_only_if_not_disabled() {
+		foreach ( [ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ] as $code ) {
+			$feature = new FeatureTestB( $code );
+			Features::factory()->register_feature( $feature );
+			Features::factory()->activate_feature( 'test-b' );
+
+			$this->handle_feature_activation();
+			ElasticPress\Features::factory()->setup_features();
+
+			$this->assertFalse( $feature->is_active() );
+		}
 	}
 
 	/**

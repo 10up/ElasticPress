@@ -626,6 +626,27 @@ class InstantResults extends Feature {
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			if ( is_string( $taxonomy ) ) {
+				$slug     = $taxonomy;
+				$taxonomy = get_taxonomy( $slug );
+			}
+
+			if ( ! ( $taxonomy instanceof \WP_Taxonomy ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+					/* translators: %s is a taxonomy slug. */
+						esc_html__(
+							'Invalid taxonomy "%s" returned via ep_facet_include_taxonomies filter',
+							'elasticpress'
+						),
+						esc_html( $slug )
+					),
+					'ElasticPress 5.3.3'
+				);
+				continue;
+			}
+
 			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 
@@ -644,8 +665,8 @@ class InstantResults extends Feature {
 				'type'       => 'taxonomy',
 				'post_types' => $post_types,
 				'labels'     => array(
-					'admin'    => $admin_label,
-					'frontend' => $labels->singular_name,
+					'admin'    => wp_specialchars_decode( $admin_label, ENT_QUOTES ),
+					'frontend' => wp_specialchars_decode( $labels->singular_name, ENT_QUOTES ),
 				),
 				'aggs'       => array(
 					$name => array(
