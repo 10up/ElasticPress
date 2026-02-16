@@ -1,0 +1,10 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "elasticpress/did-you-mean",
+	"title": "Did You Mean",
+	"category": "elasticpress",
+	"description": "Display ElasticPress spelling suggestions for search queries.",
+	"textdomain": "elasticpress",
+	"editorScript": "ep-did-you-mean-block-script"
+}

@@ -70,6 +70,7 @@
       "comments-script": "./assets/js/comments.js",
       "comments-block-script": "./assets/js/blocks/comments/index.js",
       "dashboard-script": "./assets/js/dashboard.js",
+      "did-you-mean-block-script": "./assets/js/blocks/did-you-mean/index.js",
       "facets-script": "./assets/js/facets.js",
       "facets-block-script": "./assets/js/blocks/facets/taxonomy/index.js",
       "facets-date-block-script": "./assets/js/blocks/facets/date/index.js",

@@ -8,7 +8,7 @@
 
 namespace ElasticPress\Feature\DidYouMean;
 
-use ElasticPress\{Elasticsearch, Feature, FeatureRequirementsStatus, Features };
+use ElasticPress\{Elasticsearch, Feature, FeatureRequirementsStatus, Utils };
 
 /**
  * Did You Mean feature class.
@@ -61,6 +61,91 @@ class DidYouMean extends Feature {
 		add_filter( 'ep_integrate_search_queries', [ $this, 'set_ep_suggestion' ], 10, 2 );
 		add_action( 'template_redirect', [ $this, 'automatically_redirect_user' ] );
 		add_action( 'ep_suggestions', [ $this, 'the_output' ] );
+
+		if ( $this->is_block_enabled_in_editor() ) {
+			add_action( 'init', [ $this, 'register_block' ] );
+		}
+	}
+
+	/**
+	 * Check if Did You Mean block should be enabled in the editor.
+	 *
+	 * @since 5.4.0
+	 * @return bool
+	 */
+	protected function is_block_enabled_in_editor(): bool {
+		global $pagenow;
+
+		$in_editor = in_array( $pagenow, [ 'post-new.php', 'post.php' ], true );
+
+		/**
+		 * Filter if Did You Mean block should be enabled in the post editor.
+		 *
+		 * @since 5.4.0
+		 * @hook ep_did_you_mean_enabled_in_editor
+		 * @param {bool} $enabled If enabled or not.
+		 * @return {bool} If enabled or not.
+		 */
+		return ! ( $in_editor && ! apply_filters( 'ep_did_you_mean_enabled_in_editor', false ) );
+	}
+
+	/**
+	 * Register Did You Mean block.
+	 *
+	 * @return void
+	 * @since 5.4.0
+	 */
+	public function register_block(): void {
+		/**
+		 * Registering it here so translation works
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/54797#comment:20
+		 */
+		wp_register_script(
+			'ep-did-you-mean-block-script',
+			EP_URL . 'dist/js/did-you-mean-block-script.js',
+			Utils\get_asset_info( 'did-you-mean-block-script', 'dependencies' ),
+			Utils\get_asset_info( 'did-you-mean-block-script', 'version' ),
+			true
+		);
+
+		wp_set_script_translations( 'ep-did-you-mean-block-script', 'elasticpress' );
+
+		register_block_type_from_metadata(
+			EP_PATH . 'assets/js/blocks/did-you-mean',
+			[
+				'render_callback' => [ $this, 'render_block' ],
+			]
+		);
+	}
+
+	/**
+	 * Render Did You Mean block.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string
+	 * @since 5.4.0
+	 */
+	public function render_block( array $attributes = [] ): string {
+		ob_start();
+		do_action( 'ep_suggestions' );
+		$output = ob_get_clean();
+
+		if ( empty( $output ) ) {
+			return '';
+		}
+
+		$wrapper_attributes = get_block_wrapper_attributes(
+			[
+				'class' => 'wp-block-elasticpress-did-you-mean',
+			]
+		);
+
+		return sprintf(
+			'<div %1$s>%2$s</div>',
+			wp_kses_data( $wrapper_attributes ),
+			wp_kses_post( $output )
+		);
 	}
 
 	/**

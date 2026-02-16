@@ -381,6 +381,61 @@ class TestDidYouMean extends BaseTestCase {
 	}
 
 	/**
+	 * Test Did You Mean block rendering.
+	 */
+	public function testRenderBlock() {
+		global $wp_the_query, $wp_query;
+
+		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'teet',
+			]
+		);
+
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$feature = ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' );
+		$feature->register_block();
+
+		$blocks = parse_blocks( '<!-- wp:elasticpress/did-you-mean /-->' );
+		$output = render_block( $blocks[0] );
+
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">test</a>?</span>', get_search_link( 'test' ) );
+
+		$this->assertStringContainsString( 'wp-block-elasticpress-did-you-mean', $output );
+		$this->assertStringContainsString( $expected, $output );
+	}
+
+	/**
+	 * Test Did You Mean block rendering when no suggestion is available.
+	 */
+	public function testRenderBlockWithoutSuggestion() {
+		global $wp_the_query, $wp_query;
+
+		$this->ep_factory->post->create( [ 'post_content' => 'Test post' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'test',
+			]
+		);
+
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$output = ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->render_block();
+
+		$this->assertSame( '', $output );
+	}
+
+	/**
 	 * Test maybe_sanitize_suggestion method.
 	 */
 	public function testSuggestionRemovedFromListIfScoreIsLowerThanThreshold() {
