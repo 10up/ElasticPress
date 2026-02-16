@@ -84,6 +84,7 @@ class OrdersAutosuggest {
 		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
+		add_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ], 10, 3 );
 	}
 
 	/**
@@ -104,6 +105,7 @@ class OrdersAutosuggest {
 		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
 		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
+		remove_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ] );
 	}
 
 	/**
@@ -564,6 +566,22 @@ class OrdersAutosuggest {
 		];
 
 		return $settings_schema;
+	}
+
+	/**
+	 * Short-circuit the sync for password protected orders.
+	 *
+	 * @param null|bool $new_skip Short-circuit flag
+	 * @param bool      $skip     Current value of $skip
+	 * @param int       $object_id The object ID
+	 * @return null|bool
+	 */
+	public function sync_password_protected_orders( $new_skip, bool $skip, $object_id ) {
+		if ( 'shop_order' === get_post_type( $object_id ) ) {
+			return $skip;
+		}
+
+		return $new_skip;
 	}
 
 	/**
