@@ -350,12 +350,14 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		$feature    = Features::factory()->get_registered_feature( 'facets' );
 		$facet_name = $this->get_filter_name() . $meta_field;
 
+		// If aggregation data is already on this query, reuse it and skip a fallback query.
 		$facet_aggregation = $feature->get_facet_aggregation( $query, $facet_name );
 
 		if ( false !== $facet_aggregation ) {
 			return $facet_aggregation;
 		}
 
+		// Track attempted fields on this query so one miss does not trigger repeated fallback queries.
 		$attempted_fields = (array) $query->get( 'ep_meta_runtime_agg_fields_attempted', [] );
 
 		if ( in_array( $meta_field, $attempted_fields, true ) ) {
@@ -366,12 +368,14 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$query->set( 'ep_meta_runtime_agg_fields_attempted', array_values( array_unique( $attempted_fields ) ) );
 
+		// Run a second query in the same context so late-rendered blocks can still get this field's counts.
 		$runtime_aggregations = $this->query_runtime_aggregations( $query, [ $meta_field ] );
 
 		if ( empty( $runtime_aggregations[ $facet_name ] ) || ! is_array( $runtime_aggregations[ $facet_name ] ) ) {
 			return false;
 		}
 
+		// Save recovered aggregation data on the original query so renderers read one source of truth.
 		$current_aggregations = $feature->get_query_aggregations( $query );
 
 		if ( ! is_array( $current_aggregations ) ) {
@@ -392,6 +396,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 	 * @return array
 	 */
 	protected function query_runtime_aggregations( WP_Query $query, array $meta_fields ): array {
+		// Normalize input so facet keys are built from non-empty, unique field names.
 		$meta_fields = array_values( array_unique( array_filter( $meta_fields ) ) );
 
 		if ( empty( $meta_fields ) ) {
@@ -400,6 +405,7 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 
 		$feature = Features::factory()->get_registered_feature( 'facets' );
 
+		// Include selected meta fields so fallback counts reflect currently selected facet filters.
 		$selected_meta_fields = [];
 		$selected_filters     = (array) $feature->get_selected();
 
@@ -413,34 +419,33 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 			return array_values( array_unique( array_merge( (array) $fields, $runtime_fields ) ) );
 		};
 
+		// Inject runtime fields so normal facet aggregation building includes them.
 		add_filter( 'ep_facet_meta_fields', $add_meta_fields );
 
 		$query_args = $query->query_vars;
+
+		// Remove internal guard state from the cloned query arguments.
 		unset( $query_args['ep_meta_runtime_agg_fields_attempted'] );
 
+		// Force facetable flags because Facets::is_facetable() decides whether aggregations are attached.
 		$query_args = wp_parse_args(
 			$query_args,
 			[
-				'ep_is_facetable'        => true,
-				'ep_integrate'           => true,
-				'posts_per_page'         => 1,
-				'no_found_rows'          => true,
-				'cache_results'          => false,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'update_menu_item_cache' => false,
-				'lazy_load_term_meta'    => false,
-				'ignore_sticky_posts'    => true,
-				'suppress_filters'       => false,
+				'ep_is_facetable'  => true,
+				'ep_integrate'     => true,
+				// Keep query filters enabled; suppressing them can change which posts are included in facet counts.
+				'suppress_filters' => false,
 			]
 		);
 
 		try {
 			$runtime_query = new WP_Query( $query_args );
 		} finally {
+			// Always remove temporary filters to restore global state.
 			remove_filter( 'ep_facet_meta_fields', $add_meta_fields );
 		}
 
+		// Return only requested fields. Any extra selected fields were included only for context.
 		$aggregations = $feature->get_query_aggregations( $runtime_query );
 
 		if ( ! is_array( $aggregations ) ) {

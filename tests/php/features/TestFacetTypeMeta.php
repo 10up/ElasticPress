@@ -318,6 +318,77 @@ class TestFacetTypeMeta extends BaseTestCase {
 	}
 
 	/**
+	 * Test that meta facet aggregations can be recovered at runtime when the
+	 * main facetable query did not include that meta field aggregation.
+	 *
+	 * This verifies the fallback path used by the renderer to avoid empty
+	 * (zero-count) facet items when aggregation data is missing.
+	 *
+	 * @since 5.3.1
+	 * @group facets
+	 */
+	public function testGetFacetAggregationForFieldRuntimeFallback() {
+		$meta_field = 'runtime_meta_' . wp_generate_password( 8, false, false );
+
+		$allow_meta_key = function ( $allowed_meta_keys ) use ( $meta_field ) {
+			return array_merge( $allowed_meta_keys, [ $meta_field ] );
+		};
+		add_filter( 'ep_prepare_meta_allowed_keys', $allow_meta_key );
+
+		try {
+			$this->ep_factory->post->create_many(
+				2,
+				[
+					'meta_input' => [
+						$meta_field => 'alpha',
+					],
+				]
+			);
+
+			$this->ep_factory->post->create(
+				[
+					'meta_input' => [
+						$meta_field => 'beta',
+					],
+				]
+			);
+
+			\ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			$query = new \WP_Query(
+				[
+					'ep_is_facetable' => true,
+					'post_type'       => 'post',
+				]
+			);
+
+			// Confirm this query was served by Elasticsearch and can hold facet aggs.
+			$this->assertTrue( $query->elasticsearch_success );
+
+			$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+			$facet_type    = $facet_feature->types['meta'];
+			$facet_name    = $facet_type->get_filter_name() . $meta_field;
+
+			// The requested meta field is intentionally missing before fallback runs.
+			$this->assertFalse( $facet_feature->get_facet_aggregation( $query, $facet_name ) );
+
+			$aggregation = $facet_type->get_facet_aggregation_for_field( $query, $meta_field );
+
+			// Fallback returns real counts for the requested field.
+			$this->assertIsArray( $aggregation );
+			$this->assertArrayHasKey( 'alpha', $aggregation );
+			$this->assertArrayHasKey( 'beta', $aggregation );
+			$this->assertSame( 2, $aggregation['alpha'] );
+			$this->assertSame( 1, $aggregation['beta'] );
+
+			// Fallback result is merged back into the original query aggregation cache.
+			$this->assertSame( $aggregation, $facet_feature->get_facet_aggregation( $query, $facet_name ) );
+		} finally {
+			remove_filter( 'ep_prepare_meta_allowed_keys', $allow_meta_key );
+		}
+	}
+
+	/**
 	 * Test get_facets_meta_fields
 	 *
 	 * @since 4.3.0
