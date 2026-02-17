@@ -950,4 +950,80 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
 	}
+
+	/**
+	 * Test HPOS date query.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_date_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'date_created' => '2026-01-01 12:00:00...2026-01-02 12:00:00',
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_1, $orders[1]->get_id() );
+	}
+
+	/**
+	 * Test HPOS search query.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_search_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_billing_first_name( 'John' );
+		$shop_order_1->set_billing_last_name( 'Doe' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_billing_first_name( 'Example' );
+		$shop_order_2->set_billing_last_name( 'Customer' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'search' => 'john',
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
 }

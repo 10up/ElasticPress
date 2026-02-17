@@ -91,7 +91,7 @@ class OrdersHPOSQuery {
 		];
 
 		// Handle search.
-		$search = $this->hpos_query->get( 's' );
+		$search = $this->hpos_query->get( 'search' );
 		if ( ! empty( $search ) ) {
 			$args['s']             = sanitize_text_field( $search );
 			$args['search_fields'] = $this->get_search_fields();
@@ -231,7 +231,7 @@ class OrdersHPOSQuery {
 	 * @return array Search fields configuration.
 	 */
 	protected function get_search_fields(): array {
-		$search_filter = $this->hpos_query->get( 'search_filter' );
+		$search_filter = $this->hpos_query->get( 'search_filter' ) ?? 'all';
 
 		// Handle specific search filters.
 		$search_fields = $this->get_fields_for_search_filter( $search_filter );
