@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\Facets\Types\Meta;
 
 use ElasticPress\Features;
+use WP_Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -331,6 +332,129 @@ class FacetType extends \ElasticPress\Feature\Facets\FacetType {
 		 * @return {string} The array of meta field keys
 		 */
 		return apply_filters( 'ep_facet_meta_fields', $facets_meta_fields );
+	}
+
+	/**
+	 * Get aggregation data for a specific meta field.
+	 *
+	 * If the main query does not have aggregation data for the requested field,
+	 * run a facetable fallback query that requests this field and merge the
+	 * aggregation result back into the original query object.
+	 *
+	 * @since 5.3.3
+	 * @param WP_Query $query      Query object.
+	 * @param string   $meta_field Meta field key.
+	 * @return array|false
+	 */
+	public function get_facet_aggregation_for_field( WP_Query $query, string $meta_field ) {
+		$feature    = Features::factory()->get_registered_feature( 'facets' );
+		$facet_name = $this->get_filter_name() . $meta_field;
+
+		$facet_aggregation = $feature->get_facet_aggregation( $query, $facet_name );
+
+		if ( false !== $facet_aggregation ) {
+			return $facet_aggregation;
+		}
+
+		$attempted_fields = (array) $query->get( 'ep_meta_runtime_agg_fields_attempted', [] );
+
+		if ( in_array( $meta_field, $attempted_fields, true ) ) {
+			return false;
+		}
+
+		$attempted_fields[] = $meta_field;
+
+		$query->set( 'ep_meta_runtime_agg_fields_attempted', array_values( array_unique( $attempted_fields ) ) );
+
+		$runtime_aggregations = $this->query_runtime_aggregations( $query, [ $meta_field ] );
+
+		if ( empty( $runtime_aggregations[ $facet_name ] ) || ! is_array( $runtime_aggregations[ $facet_name ] ) ) {
+			return false;
+		}
+
+		$current_aggregations = $feature->get_query_aggregations( $query );
+
+		if ( ! is_array( $current_aggregations ) ) {
+			$current_aggregations = [];
+		}
+
+		$feature->set_query_aggregations( $query, array_merge( $current_aggregations, $runtime_aggregations ) );
+
+		return $runtime_aggregations[ $facet_name ];
+	}
+
+	/**
+	 * Run a facetable query and return aggregations for selected meta fields.
+	 *
+	 * @since 5.3.3
+	 * @param WP_Query $query       Query object.
+	 * @param array    $meta_fields Meta fields.
+	 * @return array
+	 */
+	protected function query_runtime_aggregations( WP_Query $query, array $meta_fields ): array {
+		$meta_fields = array_values( array_unique( array_filter( $meta_fields ) ) );
+
+		if ( empty( $meta_fields ) ) {
+			return [];
+		}
+
+		$feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$selected_meta_fields = [];
+		$selected_filters     = (array) $feature->get_selected();
+
+		if ( ! empty( $selected_filters[ $this->get_filter_type() ] ) && is_array( $selected_filters[ $this->get_filter_type() ] ) ) {
+			$selected_meta_fields = array_keys( $selected_filters[ $this->get_filter_type() ] );
+		}
+
+		$runtime_fields = array_values( array_unique( array_merge( $meta_fields, $selected_meta_fields ) ) );
+
+		$add_meta_fields = function ( $fields ) use ( $runtime_fields ) {
+			return array_values( array_unique( array_merge( (array) $fields, $runtime_fields ) ) );
+		};
+
+		add_filter( 'ep_facet_meta_fields', $add_meta_fields );
+
+		$query_args = $query->query_vars;
+		unset( $query_args['ep_meta_runtime_agg_fields_attempted'] );
+
+		$query_args = wp_parse_args(
+			$query_args,
+			[
+				'ep_is_facetable'        => true,
+				'ep_integrate'           => true,
+				'posts_per_page'         => 1,
+				'no_found_rows'          => true,
+				'cache_results'          => false,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'update_menu_item_cache' => false,
+				'lazy_load_term_meta'    => false,
+				'ignore_sticky_posts'    => true,
+				'suppress_filters'       => false,
+			]
+		);
+
+		try {
+			$runtime_query = new WP_Query( $query_args );
+		} finally {
+			remove_filter( 'ep_facet_meta_fields', $add_meta_fields );
+		}
+
+		$aggregations = $feature->get_query_aggregations( $runtime_query );
+
+		if ( ! is_array( $aggregations ) ) {
+			return [];
+		}
+
+		$facet_names = array_map(
+			function ( $field ) {
+				return $this->get_filter_name() . $field;
+			},
+			$meta_fields
+		);
+
+		return array_intersect_key( $aggregations, array_flip( $facet_names ) );
 	}
 
 	/**
