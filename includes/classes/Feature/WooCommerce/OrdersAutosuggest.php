@@ -576,9 +576,9 @@ class OrdersAutosuggest {
 	 * @param int       $object_id The object ID
 	 * @return null|bool
 	 */
-	public function sync_password_protected_orders( $new_skip, bool $skip, $object_id ) {
+	public function sync_password_protected_orders( $new_skip, $skip, $object_id ) {
 		if ( 'shop_order' === get_post_type( $object_id ) ) {
-			return $skip;
+			return (bool) $skip;
 		}
 
 		return $new_skip;

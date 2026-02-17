@@ -1207,14 +1207,7 @@ class IndexHelper {
 			'ep_' . $indexable->slug . '_sync_kill'
 		);
 
-		/**
-		 * Conditionally kill indexing for an object
-		 *
-		 * @hook ep_{indexable_slug}_sync_kill
-		 * @param  {bool} $kill True means dont sync
-		 * @param  {int} $object_id Object ID
-		 * @return {bool} New value
-		 */
+		/** This filter is documented in includes/classes/Indexable.php */
 		$ep_indexable_sync_kill = apply_filters( 'ep_' . $indexable->slug . '_sync_kill', false, $indexable_object->ID );
 
 		return $ep_item_sync_kill || $ep_indexable_sync_kill || $ep_indexable_index_kill;
