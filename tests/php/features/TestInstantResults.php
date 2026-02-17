@@ -8,6 +8,7 @@
 
 namespace ElasticPressTest;
 
+use ElasticPress\Indexables;
 /**
  * Instants Results test class.
  */
@@ -52,7 +53,7 @@ class TestInstantResults extends BaseTestCase {
 		$settings_keys = wp_list_pluck( $settings_schema, 'key' );
 
 		$this->assertSame(
-			[ 'active', 'highlight_tag', 'facets', 'match_type', 'term_count', 'per_page', 'search_behavior' ],
+			[ 'active', 'highlight_tag', 'facets', 'match_type', 'term_count', 'numbered_pagination', 'per_page', 'search_behavior' ],
 			$settings_keys
 		);
 	}
@@ -71,7 +72,7 @@ class TestInstantResults extends BaseTestCase {
 
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
 		// Check if status is one for the elasticpress.io
-		$this->assertSame( 1, $status->code );
+		$this->assertSame( 1, $status->get_code() );
 
 		remove_filter( 'ep_host', $host_url );
 
@@ -83,15 +84,15 @@ class TestInstantResults extends BaseTestCase {
 
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
 
-		$this->assertSame( 1, $status->code );
-		$this->assertSame( 'You are using a custom proxy. Make sure you implement all security measures needed.', $status->message[0] );
+		$this->assertSame( 1, $status->get_code() );
+		$this->assertSame( 'You are using a custom proxy. Make sure you implement all security measures needed.', $status->get_message()[0] );
 
 		remove_filter( 'ep_instant_results_available', $proxy_status );
 
 		// Check if Instant Results is not available.
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
-		$this->assertSame( 2, $status->code );
-		$this->assertSame( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", $status->message[0] );
+		$this->assertSame( 2, $status->get_code() );
+		$this->assertSame( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", $status->get_message()[0] );
 	}
 
 	/**
@@ -124,7 +125,8 @@ class TestInstantResults extends BaseTestCase {
 	 */
 	public function test_template_endpoint() {
 		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
-		$this->assertSame( 'api/v1/search/posts/exampleorg-post-1/template/', $feature->get_template_endpoint() );
+		$index   = Indexables::factory()->get( 'post' )->get_index_name();
+		$this->assertSame( "api/v1/search/posts/{$index}/template/", $feature->get_template_endpoint() );
 	}
 
 	/**
@@ -217,5 +219,61 @@ class TestInstantResults extends BaseTestCase {
 			}
 		);
 		$feature->after_update_feature( 'instant-results', [], [ 'active' => false ] );
+	}
+
+	/**
+	 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
+	 * are skipped and logged via _doing_it_wrong().
+	 *
+	 * @group instant-results
+	 * @since 5.3.3
+	 */
+	public function test_invalid_taxonomy_from_facet_filter_triggers_doing_it_wrong_and_is_skipped() {
+		$this->setExpectedIncorrectUsage(
+			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets'
+		);
+
+		add_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+
+		$calls = [];
+
+		$listener = function ( $function_name, $message, $version ) use ( &$calls ) {
+			$calls[] = [
+				'function' => $function_name,
+				'message'  => $message,
+				'version'  => $version,
+			];
+		};
+
+		add_action( 'doing_it_wrong_run', $listener, 10, 3 );
+
+		$taxonomy_filter = function ( $taxonomies ) {
+			$taxonomies['not-a-real-taxonomy'] = 'not-a-real-taxonomy';
+			return $taxonomies;
+		};
+
+		add_filter( 'ep_facet_include_taxonomies', $taxonomy_filter, 1, 1 );
+
+		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+		$facets  = $feature->get_facets();
+
+		$this->assertArrayNotHasKey( 'tax-not-a-real-taxonomy', $facets );
+
+		$this->assertNotEmpty( $calls );
+		$this->assertSame( 'ElasticPress 5.3.3', $calls[0]['version'] );
+		$this->assertSame(
+			\ElasticPress\Feature\InstantResults\InstantResults::class . '::get_facets',
+			$calls[0]['function']
+		);
+
+		$message = html_entity_decode( $calls[0]['message'] );
+
+		$this->assertStringContainsString( 'not-a-real-taxonomy', $message );
+		$this->assertStringContainsString( 'Invalid taxonomy', $message );
+		$this->assertStringContainsString( 'returned via ep_facet_include_taxonomies', $message );
+
+		remove_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+		remove_action( 'doing_it_wrong_run', $listener, 10 );
+		remove_filter( 'ep_facet_include_taxonomies', $taxonomy_filter, 1 );
 	}
 }

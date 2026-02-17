@@ -23,6 +23,7 @@ export default () => {
 		args: { offset, per_page, highlight },
 		nextPage,
 		previousPage,
+		setOffset,
 		searchResults,
 		searchTerm,
 		totalResults,
@@ -45,6 +46,15 @@ export default () => {
 	 */
 	const onPrevious = () => {
 		previousPage();
+	};
+
+	/**
+	 * Handle clicking a page number.
+	 *
+	 * @param {number} page Page number.
+	 */
+	const onPage = (page) => {
+		setOffset((page - 1) * per_page);
 	};
 
 	/**
@@ -103,6 +113,7 @@ export default () => {
 			<Pagination
 				offset={offset}
 				onNext={onNext}
+				onPage={onPage}
 				onPrevious={onPrevious}
 				perPage={per_page}
 				total={totalResults}
