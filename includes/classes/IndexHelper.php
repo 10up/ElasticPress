@@ -953,9 +953,10 @@ class IndexHelper {
 		 * Fires after executing a reindex
 		 *
 		 * @since 4.0.0
+		 * @param array $args Sync arguments.
 		 * @hook ep_after_sync_index
 		 */
-		do_action( 'ep_after_sync_index' );
+		do_action( 'ep_after_sync_index', $this->args );
 
 		/**
 		 * Fires after executing a reindex

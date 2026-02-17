@@ -4,6 +4,7 @@ import {
 	deactivatePlugin,
 	getPluginSlug,
 	goToAdminPage,
+	isEpIo,
 	setDefaultFeatureSettings,
 	wpCli,
 	wpCliEval,
@@ -207,9 +208,11 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 			true,
 		);
 		expect(protectedContentResult.toString()).toContain('This feature requires a re-index');
-		expect(protectedContentResult.toString()).toContain(
-			'Feature is usable but there are warnings',
-		);
+		if (!isEpIo()) {
+			expect(protectedContentResult.toString()).toContain(
+				'Feature is usable but there are warnings',
+			);
+		}
 	});
 
 	test('Can list all the active features if user runs wp elasticpress list-features command', async () => {

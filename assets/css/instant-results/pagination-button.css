@@ -3,4 +3,12 @@
 	&[disabled] {
 		visibility: hidden;
 	}
+
+	.is-numbered & {
+
+		&.is-current {
+			font-weight: 600;
+		}
+	}
 }
+
