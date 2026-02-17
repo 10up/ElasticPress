@@ -344,7 +344,7 @@ class OrdersHPOSQuery {
 	 *
 	 * @return array Date query array.
 	 */
-	protected function build_date_query(): array {
+	protected function build_date_query() {
 		$date_query = [];
 
 		// Handle date shorthand parameters.
@@ -355,7 +355,7 @@ class OrdersHPOSQuery {
 		];
 
 		foreach ( $date_params as $hpos_key => $wp_column ) {
-			$value = $this->query_args[ $hpos_key ] ?? null;
+			$value = $this->hpos_query->get( $hpos_key );
 			if ( empty( $value ) ) {
 				continue;
 			}
@@ -452,22 +452,22 @@ class OrdersHPOSQuery {
 
 		$clauses = [];
 
-		// Build _customer_user clause for IDs.
+		// Build _customer_user clause for ID (single value).
 		if ( ! empty( $ids ) ) {
 			$clauses[] = [
 				'key'     => '_customer_user',
-				'value'   => count( $ids ) === 1 ? $ids[0] : $ids,
-				'compare' => count( $ids ) === 1 ? '=' : 'IN',
+				'value'   => $ids[0],
+				'compare' => '=',
 				'type'    => 'NUMERIC',
 			];
 		}
 
-		// Build _billing_email clause for emails.
+		// Build _billing_email clause for email (single value).
 		if ( ! empty( $emails ) ) {
 			$clauses[] = [
 				'key'     => '_billing_email',
-				'value'   => count( $emails ) === 1 ? $emails[0] : $emails,
-				'compare' => count( $emails ) === 1 ? '=' : 'IN',
+				'value'   => $emails[0],
+				'compare' => '=',
 			];
 		}
 

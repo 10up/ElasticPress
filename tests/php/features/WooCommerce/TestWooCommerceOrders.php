@@ -758,4 +758,196 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
 	}
+
+	/**
+	 * Test HPOS created via query.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_created_via_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_created_via( 'web' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_created_via( 'api' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'created_via' => 'web',
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'created_via' => 'api',
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'created_via' => [ 'web', 'api' ],
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
+	}
+
+	/**
+	 * Test HPOS customer email query.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_customer_email_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_billing_email( 'test@example.com' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'customer_email' => 'test@example.com',
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS customer ID query.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_customer_id_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_customer_id( 1 );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'customer_id' => 1,
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS customer query.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_customer_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_billing_email( 'test1@example.com' );
+		$shop_order_1->set_customer_id( 1 );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_billing_email( 'test2@example.com' );
+		$shop_order_2->set_customer_id( 2 );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		// Search by customer ID and email
+		$orders = wc_get_orders(
+			array(
+				'customer' => array(
+					array( 1, 'test1@example.com' ),
+				),
+			)
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		// Search by invalid combination.
+		$orders = wc_get_orders(
+			array(
+				'customer' => array(
+					array( 1, 'test2@example.com' ),
+				),
+			)
+		);
+		$this->assertCount( 0, $orders );
+
+		// Search by only customer ID.
+		$orders = wc_get_orders(
+			array(
+				'customer' => array(
+					array( 1 ),
+				),
+			)
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		// Search by only emails and OR relation.
+		$orders = wc_get_orders(
+			array(
+				'customer' => array(
+					array( null, 'test1@example.com' ),
+					array( null, 'test2@example.com' ),
+				),
+			)
+		);
+		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
+	}
 }
