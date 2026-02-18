@@ -158,6 +158,27 @@ class DidYouMean extends Feature {
 	 * @param array $wp_query       WP_Query object
 	 */
 	public function add_query_args( $formatted_args, $args, $wp_query ): array {
+		if ( ! empty( $args['ep_did_you_mean_exact_check'] ) || ( isset( $args['ep_suggestion'] ) && false === $args['ep_suggestion'] ) ) {
+			return $formatted_args;
+		}
+
+		/**
+		 * Filter whether Did You Mean should be skipped when an exact match exists in the current search scope.
+		 *
+		 * @since 5.3.0
+		 * @hook ep_did_you_mean_skip_for_exact_match
+		 * @param {bool}     $skip          Whether to skip Did You Mean for exact matches.
+		 * @param {WP_Query} $wp_query      WP_Query object.
+		 * @param {array}    $args          WP_Query arguments.
+		 * @param {array}    $formatted_args Formatted Elasticsearch query.
+		 * @return {bool} New value.
+		 */
+		$skip_for_exact_match = apply_filters( 'ep_did_you_mean_skip_for_exact_match', false, $wp_query, $args, $formatted_args );
+
+		if ( ! $skip_for_exact_match && $this->has_exact_match_in_search_scope( $wp_query ) ) {
+			return $formatted_args;
+		}
+
 		$search_analyzer = [
 			'phrase' => [
 				'field'            => 'post_content.shingle',
@@ -268,6 +289,67 @@ class DidYouMean extends Feature {
 	public function get_suggested_term( $query ) {
 		$options = $query->suggested_terms['options'] ?? [];
 		return ! empty( $options ) ? $options[0]['text'] : false;
+	}
+
+	/**
+	 * Whether the current search term has an exact match in the current search scope.
+	 *
+	 * @param WP_Query $query WP_Query object.
+	 * @return bool
+	 */
+	protected function has_exact_match_in_search_scope( $query ): bool {
+		$search_term = trim( (string) ( $query->query_vars['s'] ?? '' ) );
+
+		if ( '' === $search_term ) {
+			return false;
+		}
+
+		$query_args                                = $query->query_vars;
+		$query_args['s']                           = $search_term;
+		$query_args['ep_did_you_mean_exact_check'] = true;
+		$query_args['ep_integrate']                = true;
+		$query_args['posts_per_page']              = 1;
+		$query_args['no_found_rows']               = false;
+		$query_args['fields']                      = 'ids';
+
+		$exact_match_query_filter = function ( $query_clause, $query_vars ) {
+			if ( empty( $query_vars['ep_did_you_mean_exact_check'] ) ) {
+				return $query_clause;
+			}
+
+			return $this->remove_fuzziness_from_query( $query_clause );
+		};
+
+		add_filter( 'ep_post_formatted_args_query', $exact_match_query_filter, 20, 4 );
+		$exact_match_query = new \WP_Query( $query_args );
+		remove_filter( 'ep_post_formatted_args_query', $exact_match_query_filter, 20 );
+
+		if ( empty( $exact_match_query->elasticsearch_success ) ) {
+			return false;
+		}
+
+		return ! empty( $exact_match_query->found_posts );
+	}
+
+	/**
+	 * Remove fuzziness from the query tree so exact-check queries follow the same field scope as regular search.
+	 *
+	 * @param array $query_clause Elasticsearch query clause.
+	 * @return array
+	 */
+	protected function remove_fuzziness_from_query( array $query_clause ): array {
+		foreach ( $query_clause as $key => $value ) {
+			if ( 'fuzziness' === $key ) {
+				unset( $query_clause[ $key ] );
+				continue;
+			}
+
+			if ( is_array( $value ) ) {
+				$query_clause[ $key ] = $this->remove_fuzziness_from_query( $value );
+			}
+		}
+
+		return $query_clause;
 	}
 
 	/**
