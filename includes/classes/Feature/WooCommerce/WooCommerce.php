@@ -176,7 +176,7 @@ class WooCommerce extends Feature {
 	 * @return EP_Feature_Requirements_Status
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 0, null, $this );
 
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			$status->code    = 2;

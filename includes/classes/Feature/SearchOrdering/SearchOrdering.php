@@ -192,7 +192,7 @@ class SearchOrdering extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status(): FeatureRequirementsStatus {
-		return new FeatureRequirementsStatus( 0 );
+		return new FeatureRequirementsStatus( 0, null, $this );
 	}
 
 	/**

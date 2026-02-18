@@ -549,8 +549,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $private_post_1_id, $query->posts[1]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $private_post_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		$query = new \WP_Query(
 			[
@@ -561,9 +563,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
-		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $public_page_1_id, $private_post_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		wp_set_current_user( $author_2_id );
 
@@ -576,9 +579,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
-		$this->assertEquals( $private_page_1_id, $query->posts[2]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $public_page_1_id, $private_page_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		// Admin can see all posts.
 		wp_set_current_user( $admin_id );
@@ -592,10 +596,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
-		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
-		$this->assertEquals( $private_page_1_id, $query->posts[3]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $public_page_1_id, $private_post_1_id, $private_page_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 	}
 
 	/**

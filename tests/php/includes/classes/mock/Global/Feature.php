@@ -41,7 +41,7 @@ class GlobalFeature extends \ElasticPress\Feature {
 	 * Determine feature reqs status
 	 */
 	public function requirements_status() {
-		return new \ElasticPress\FeatureRequirementsStatus( 1 );
+		return new \ElasticPress\FeatureRequirementsStatus( 1, null, $this );
 	}
 }
 
