@@ -121,6 +121,125 @@ class TestDidYouMean extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that get_suggestion method does not render output when the search term has an exact content match.
+	 */
+	public function testGetSearchSuggestionMethodReturnsFalseWhenSearchTermHasExactContentMatch() {
+		$this->ep_factory->post->create( [ 'post_content' => 'Blue shirt in stock' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$mock_suggestion_callback = function ( $response ) {
+			if ( isset( $response['suggest']['ep_suggestion'][0]['options'] ) ) {
+				$response['suggest']['ep_suggestion'][0]['options'] = [
+					[
+						'text'  => 'shift',
+						'score' => 0.6,
+					],
+				];
+			}
+
+			return $response;
+		};
+		add_filter( 'ep_es_query_results', $mock_suggestion_callback );
+
+		$query = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertGreaterThan( 0, $query->found_posts );
+		$this->assertEmpty( $query->suggested_terms );
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+
+		remove_filter( 'ep_es_query_results', $mock_suggestion_callback );
+	}
+
+	/**
+	 * Tests that get_suggestion method does not render output when the search term has an exact title match.
+	 */
+	public function testGetSearchSuggestionMethodReturnsFalseWhenSearchTermHasExactTitleMatch() {
+		$this->ep_factory->post->create(
+			[
+				'post_title'   => 'Blue shirt available now',
+				'post_content' => 'No direct keyword in this body.',
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$mock_suggestion_callback = function ( $response ) {
+			if ( isset( $response['suggest']['ep_suggestion'][0]['options'] ) ) {
+				$response['suggest']['ep_suggestion'][0]['options'] = [
+					[
+						'text'  => 'shift',
+						'score' => 0.6,
+					],
+				];
+			}
+
+			return $response;
+		};
+		add_filter( 'ep_es_query_results', $mock_suggestion_callback );
+
+		$query = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertGreaterThan( 0, $query->found_posts );
+		$this->assertEmpty( $query->suggested_terms );
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+
+		remove_filter( 'ep_es_query_results', $mock_suggestion_callback );
+	}
+
+	/**
+	 * Tests that exact-match suppression can be disabled through filter for liberal suggestion behavior.
+	 */
+	public function testGetSearchSuggestionMethodCanSkipExactMatchSuppression() {
+		$this->ep_factory->post->create( [ 'post_content' => 'Blue shirt in stock' ] );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$mock_suggestion_callback = function ( $response ) {
+			$response['suggest']['ep_suggestion'][0]['options'] = [
+				[
+					'text'  => 'shift',
+					'score' => 0.6,
+				],
+			];
+
+			return $response;
+		};
+
+		$skip_exact_match_filter = function () {
+			return false;
+		};
+
+		add_filter( 'ep_es_query_results', $mock_suggestion_callback );
+		add_filter( 'ep_did_you_mean_skip_for_exact_match', $skip_exact_match_filter );
+
+		$query = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertGreaterThan( 0, $query->found_posts );
+		$suggestion = ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query );
+		$this->assertNotFalse( $suggestion );
+		$this->assertStringContainsString( '>shift</a>?', $suggestion );
+
+		remove_filter( 'ep_es_query_results', $mock_suggestion_callback );
+		remove_filter( 'ep_did_you_mean_skip_for_exact_match', $skip_exact_match_filter );
+	}
+
+	/**
 	 * Tests that get_suggestion method returns suggestion only for main query.
 	 */
 	public function testGetSearchSuggestionMethodReturnsSuggestionForMainQuery() {
@@ -242,6 +361,7 @@ class TestDidYouMean extends BaseTestCase {
 				'field' => 'post_content',
 			],
 		];
+		$assertion_ran   = false;
 
 		add_filter(
 			'ep_search_suggestion_analyzer',
@@ -252,8 +372,12 @@ class TestDidYouMean extends BaseTestCase {
 
 		add_filter(
 			'ep_query_request_args',
-			function ( $request_args, $path, $index, $type, $query ) use ( $search_analyzer ) {
-				$this->assertEquals( $search_analyzer, $query['suggest']['ep_suggestion'] );
+			function ( $request_args, $path, $index, $type, $query ) use ( $search_analyzer, &$assertion_ran ) {
+				if ( isset( $query['suggest']['ep_suggestion'] ) ) {
+					$this->assertEquals( $search_analyzer, $query['suggest']['ep_suggestion'] );
+					$assertion_ran = true;
+				}
+
 				return $request_args;
 			},
 			10,
@@ -268,6 +392,7 @@ class TestDidYouMean extends BaseTestCase {
 
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 'Test post', $query->posts[0]->post_content );
+		$this->assertTrue( $assertion_ran );
 	}
 
 	/**

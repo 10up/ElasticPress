@@ -165,7 +165,7 @@ class DidYouMean extends Feature {
 		/**
 		 * Filter whether Did You Mean should be skipped when an exact match exists in the current search scope.
 		 *
-		 * @since 5.3.0
+		 * @since 5.4.0
 		 * @hook ep_did_you_mean_skip_for_exact_match
 		 * @param {bool}     $skip          Whether to skip Did You Mean for exact matches.
 		 * @param {WP_Query} $wp_query      WP_Query object.
