@@ -429,6 +429,8 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @since 4.5.1
 	 */
 	public function testElasticPressIoReport() {
+		add_filter( 'ep_instant_results_available', '__return_true' );
+
 		\ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
 		\ElasticPress\Features::factory()->activate_feature( 'instant-results' );
 
