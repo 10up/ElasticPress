@@ -930,3 +930,28 @@ function is_top_level_admin_context() {
 	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 	return $is_network ? is_network_admin() : is_admin();
 }
+
+/**
+ * Safely resolve the post type(s) for a taxonomy query.
+ *
+ * Guards against null queried objects, missing taxonomy properties,
+ * and deregistered taxonomies that would otherwise cause fatal errors
+ * when chaining get_queried_object()->taxonomy through get_taxonomy().
+ *
+ * @since 5.3.3
+ *
+ * @param \WP_Query|null $query Optional. WP_Query instance. Defaults to the global query.
+ * @return array|string Post type array on success, empty string on failure.
+ */
+function get_post_type_for_tax_query( $query = null ) {
+	$is_tax         = $query instanceof \WP_Query ? $query->is_tax() : is_tax();
+	$queried_object = $query instanceof \WP_Query ? $query->get_queried_object() : get_queried_object();
+
+	if ( ! $is_tax || ! $queried_object || ! isset( $queried_object->taxonomy ) ) {
+		return '';
+	}
+
+	$taxonomy_object = get_taxonomy( $queried_object->taxonomy );
+
+	return $taxonomy_object ? $taxonomy_object->object_type : '';
+}

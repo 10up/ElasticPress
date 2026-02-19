@@ -72,10 +72,9 @@ class Renderer extends \ElasticPress\Feature\Facets\Renderer {
 		$this->display_count = $instance['displayCount'];
 
 		if ( ! is_search() ) {
+			$post_type = Utils\get_post_type_for_tax_query();
 
-			if ( is_tax() ) {
-				$post_type = get_taxonomy( get_queried_object()->taxonomy )->object_type;
-			} else {
+			if ( empty( $post_type ) ) {
 				$post_type = $wp_query->get( 'post_type' ) ? $wp_query->get( 'post_type' ) : 'post';
 			}
 
