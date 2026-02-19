@@ -636,6 +636,6 @@ class TestUtils extends BaseTestCase {
 		$query->is_tax         = true;
 		$query->queried_object = new \stdClass();
 
-		$this->assertSame( '', Utils\get_post_type_for_tax_query( $query ) );
+		$this->assertNull( Utils\get_post_type_for_tax_query( $query ) );
 	}
 }
