@@ -480,6 +480,11 @@ class Orders {
 			return;
 		}
 
+		// bail if HPOS is enabled
+		if ( $this->is_hpos_enabled() ) {
+			return;
+		}
+
 		$query->set( 'ep_integrate', true );
 
 		/**

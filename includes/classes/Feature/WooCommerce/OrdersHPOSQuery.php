@@ -91,7 +91,7 @@ class OrdersHPOSQuery {
 		];
 
 		// Handle search.
-		$search = $this->hpos_query->get( 'search' );
+		$search = $this->hpos_query->get( 's' );
 		if ( ! empty( $search ) ) {
 			$args['s']             = sanitize_text_field( $search );
 			$args['search_fields'] = $this->get_search_fields();
@@ -256,7 +256,6 @@ class OrdersHPOSQuery {
 	 * @return array Search fields for ElasticPress.
 	 */
 	protected function get_fields_for_search_filter( string $search_filter ): array {
-
 		switch ( $search_filter ) {
 			case 'order_id':
 				return [ 'ID' ];
@@ -272,30 +271,10 @@ class OrdersHPOSQuery {
 				];
 
 			case 'customers':
-				// Search in all customer/address meta fields. WooCommerce does search from _billing_address_index and _shipping_address_index fields.
 				return [
 					'meta' => [
-						'_billing_first_name',
-						'_billing_last_name',
-						'_billing_company',
-						'_billing_address_1',
-						'_billing_address_2',
-						'_billing_city',
-						'_billing_state',
-						'_billing_postcode',
-						'_billing_country',
-						'_billing_email',
-						'_billing_phone',
-						'_shipping_first_name',
-						'_shipping_last_name',
-						'_shipping_company',
-						'_shipping_address_1',
-						'_shipping_address_2',
-						'_shipping_city',
-						'_shipping_state',
-						'_shipping_postcode',
-						'_shipping_country',
-						'_shipping_phone',
+						'_billing_address_index',
+						'_shipping_address_index',
 					],
 				];
 
@@ -307,31 +286,13 @@ class OrdersHPOSQuery {
 
 			case 'all':
 			default:
-				// Search all fields - combine all filters.
-				$fields = [ 'post_title', 'post_content', 'post_excerpt' ];
+				$fields = [ 'ID' ];
 
 				// Include all searchable meta fields.
 				$fields['meta'] = [
 					'_order_key',
-					'_billing_company',
-					'_billing_address_1',
-					'_billing_address_2',
-					'_billing_city',
-					'_billing_postcode',
-					'_billing_country',
-					'_billing_state',
-					'_billing_email',
-					'_billing_phone',
-					'_shipping_address_1',
-					'_shipping_address_2',
-					'_shipping_city',
-					'_shipping_postcode',
-					'_shipping_country',
-					'_shipping_state',
-					'_billing_last_name',
-					'_billing_first_name',
-					'_shipping_first_name',
-					'_shipping_last_name',
+					'_billing_address_index',
+					'_shipping_address_index',
 					'_items',
 				];
 
@@ -451,22 +412,19 @@ class OrdersHPOSQuery {
 		}
 
 		$clauses = [];
-
-		// Build _customer_user clause for ID (single value).
 		if ( ! empty( $ids ) ) {
 			$clauses[] = [
 				'key'     => '_customer_user',
-				'value'   => $ids[0],
+				'value'   => $ids,
 				'compare' => '=',
 				'type'    => 'NUMERIC',
 			];
 		}
 
-		// Build _billing_email clause for email (single value).
 		if ( ! empty( $emails ) ) {
 			$clauses[] = [
 				'key'     => '_billing_email',
-				'value'   => $emails[0],
+				'value'   => $emails,
 				'compare' => '=',
 			];
 		}

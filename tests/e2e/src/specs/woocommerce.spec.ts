@@ -540,4 +540,154 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
 		});
 	});
+
+	test.describe('Orders HPOS', () => {
+		test.beforeAll(async () => {
+			await wpCli('plugin activate woocommerce');
+			await maybeEnableFeature('woocommerce');
+			await maybeEnableFeature('protected_content');
+		});
+
+		test('Can fetch orders from Elasticsearch', async ({ loggedInPage }) => {
+			await wpCli('wc hpos sync');
+			await wpCli('wc hpos enable');
+
+			await wpCli('elasticpress sync --setup --yes');
+
+			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+		});
+
+		test('Can search orders from ElasticPress in WP Dashboard', async ({ loggedInPage }) => {
+			await wpCli('elasticpress sync --setup --yes');
+
+			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+
+			const checkAllOrders = async () => {
+				const allOrders = await loggedInPage.locator('.order_number .order-view').all();
+				for await (const order of allOrders) {
+					await expect(order).toContainText(`${userData.firstName} ${userData.lastName}`);
+				}
+			};
+
+			// Search order by user's name
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage
+				.locator('#orders-search-input-search-input')
+				.fill(`${userData.firstName} ${userData.lastName}`);
+			await loggedInPage.locator('#order-search-filter').selectOption('customers');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+			await checkAllOrders();
+
+			// Search order by user's email
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage.locator('#orders-search-input-search-input').fill(userData.email);
+			await loggedInPage.locator('#order-search-filter').selectOption('customer_email');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+			await checkAllOrders();
+
+			// Search order by product
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage
+				.locator('#orders-search-input-search-input')
+				.fill('fantastic-silk-knife');
+			await loggedInPage.locator('#order-search-filter').selectOption('products');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+			await checkAllOrders();
+
+			// Search order by order ID
+			await loggedInPage.locator('#orders-search-input-search-input').clear();
+			await loggedInPage.locator('#orders-search-input-search-input').fill('1988');
+			await loggedInPage.locator('#order-search-filter').selectOption('order_id');
+			await loggedInPage.locator('#orders-search-input-search-input').press('Enter');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+
+			const allOrders = await loggedInPage.locator('.order_number .order-view').all();
+			for await (const order of allOrders) {
+				await expect(order).toContainText('1988');
+			}
+		});
+
+		test('Can fetch orders from Elasticsearch when Date filter is applied', async ({
+			loggedInPage,
+		}) => {
+			await wpCli('elasticpress sync --setup --yes');
+
+			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+
+			await loggedInPage.locator('#filter-by-date').selectOption({ index: 1 });
+			await loggedInPage.locator('#filter-by-date').press('Enter');
+
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+
+			const allOrders = await loggedInPage.locator('.order_number .order-view').all();
+			for await (const order of allOrders) {
+				await expect(order).toContainText(`${userData.firstName} ${userData.lastName}`);
+			}
+		});
+
+		test('Can fetch orders from Elasticsearch when Sales Channel filter is applied', async ({
+			loggedInPage,
+		}) => {
+			await wpCli('elasticpress sync --setup --yes');
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders&action=new');
+			await loggedInPage.locator('.order_actions.submitbox .save_order').click();
+
+			// Grab the id query string from the url
+			const url = new URL(loggedInPage.url());
+			const id = url.searchParams.get('id');
+
+			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+
+			await loggedInPage.locator('#filter-by-created-via').selectOption('admin');
+			await loggedInPage.locator('#filter-by-created-via').press('Enter');
+
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+
+			const allOrders = await loggedInPage.locator('.order_number .order-view').all();
+			for await (const order of allOrders) {
+				await expect(order).toContainText(id);
+			}
+		});
+	});
 });

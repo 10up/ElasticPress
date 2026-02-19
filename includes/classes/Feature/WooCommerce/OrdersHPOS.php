@@ -225,6 +225,9 @@ class OrdersHPOS {
 			}
 		}
 
+		$meta_data['_billing_address_index']  = $order->get_meta( '_billing_address_index', true );
+		$meta_data['_shipping_address_index'] = $order->get_meta( '_shipping_address_index', true );
+
 		return $meta_data;
 	}
 
