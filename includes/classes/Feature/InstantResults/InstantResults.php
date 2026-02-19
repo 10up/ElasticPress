@@ -75,17 +75,16 @@ class InstantResults extends Feature {
 
 		$this->host = trailingslashit( Utils\get_host() );
 
-		$this->index = Indexables::factory()->get( 'post' )->get_index_name();
-
 		$this->is_woocommerce = function_exists( 'WC' );
 
 		$this->default_settings = [
-			'highlight_tag'   => 'mark',
-			'facets'          => 'post_type,tax-category,tax-post_tag',
-			'match_type'      => 'all',
-			'term_count'      => '1',
-			'per_page'        => get_option( 'posts_per_page', 6 ),
-			'search_behavior' => '0',
+			'highlight_tag'       => 'mark',
+			'facets'              => 'post_type,tax-category,tax-post_tag',
+			'match_type'          => 'all',
+			'term_count'          => '1',
+			'numbered_pagination' => '0',
+			'per_page'            => get_option( 'posts_per_page', 6 ),
+			'search_behavior'     => '0',
 		];
 
 		$this->settings = $this->get_settings();
@@ -122,7 +121,7 @@ class InstantResults extends Feature {
 	 * @return array $status Status array
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 2 );
+		$status = new FeatureRequirementsStatus( 2, null, $this );
 
 		$status->message = [];
 
@@ -175,7 +174,7 @@ class InstantResults extends Feature {
 		add_filter( 'ep_formatted_args', [ $this, 'maybe_apply_aggs_args' ], 10, 3 );
 		add_filter( 'ep_post_mapping', [ $this, 'add_mapping_properties' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'add_post_sync_args' ], 10, 2 );
-		add_filter( 'ep_after_sync_index', [ $this, 'epio_save_search_template' ] );
+		add_action( 'ep_after_sync_index', [ $this, 'on_sync_complete' ] );
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_save_search_template' ] );
 		add_action( 'pre_get_posts', [ $this, 'maybe_apply_product_visibility' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
@@ -214,6 +213,7 @@ class InstantResults extends Feature {
 
 		wp_set_script_translations( 'elasticpress-instant-results', 'elasticpress' );
 
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
 		/**
 		 * The search API endpoint.
 		 *
@@ -222,7 +222,7 @@ class InstantResults extends Feature {
 		 * @param {string} $endpoint Endpoint path.
 		 * @param {string} $index Elasticsearch index.
 		 */
-		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$this->index}", $this->index );
+		$api_endpoint = apply_filters( 'ep_instant_results_search_endpoint', "api/v1/search/posts/{$index}", $index );
 
 		wp_localize_script(
 			'elasticpress-instant-results',
@@ -240,6 +240,7 @@ class InstantResults extends Feature {
 				'paramPrefix'         => 'ep-',
 				'postTypeLabels'      => $this->get_post_type_labels(),
 				'termCount'           => $this->settings['term_count'],
+				'numberedPagination'  => $this->settings['numbered_pagination'],
 				'requestIdBase'       => Utils\get_request_id_base(),
 				'showSuggestions'     => \ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->is_active(),
 				'suggestionsBehavior' => $this->settings['search_behavior'],
@@ -253,6 +254,7 @@ class InstantResults extends Feature {
 	 * @return string Instant Results search template endpoint.
 	 */
 	public function get_template_endpoint(): string {
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
 		/**
 		 * Filters the search template API endpoint.
 		 *
@@ -262,7 +264,7 @@ class InstantResults extends Feature {
 		 * @param {string} $index Elasticsearch index.
 		 * @returns {string} Search template API endpoint.
 		 */
-		return apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$this->index}/template/", $this->index );
+		return apply_filters( 'ep_instant_results_template_endpoint', "api/v1/search/posts/{$index}/template/", $index );
 	}
 
 	/**
@@ -624,6 +626,27 @@ class InstantResults extends Feature {
 		$taxonomies = apply_filters( 'ep_facet_include_taxonomies', $taxonomies );
 
 		foreach ( $taxonomies as $slug => $taxonomy ) {
+			if ( is_string( $taxonomy ) ) {
+				$slug     = $taxonomy;
+				$taxonomy = get_taxonomy( $slug );
+			}
+
+			if ( ! ( $taxonomy instanceof \WP_Taxonomy ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+					/* translators: %s is a taxonomy slug. */
+						esc_html__(
+							'Invalid taxonomy "%s" returned via ep_facet_include_taxonomies filter',
+							'elasticpress'
+						),
+						esc_html( $slug )
+					),
+					'ElasticPress 5.3.3'
+				);
+				continue;
+			}
+
 			$name   = 'tax-' . $slug;
 			$labels = get_taxonomy_labels( $taxonomy );
 
@@ -642,8 +665,8 @@ class InstantResults extends Feature {
 				'type'       => 'taxonomy',
 				'post_types' => $post_types,
 				'labels'     => array(
-					'admin'    => $admin_label,
-					'frontend' => $labels->singular_name,
+					'admin'    => wp_specialchars_decode( $admin_label, ENT_QUOTES ),
+					'frontend' => wp_specialchars_decode( $labels->singular_name, ENT_QUOTES ),
 				),
 				'aggs'       => array(
 					$name => array(
@@ -896,6 +919,13 @@ class InstantResults extends Feature {
 				'type'    => 'checkbox',
 			],
 			[
+				'default' => '0',
+				'help'    => __( 'Enable to show numbered pagination links instead of previous/next buttons.', 'elasticpress' ),
+				'key'     => 'numbered_pagination',
+				'label'   => __( 'Numbered pagination', 'elasticpress' ),
+				'type'    => 'checkbox',
+			],
+			[
 				'default' => get_option( 'posts_per_page', 6 ),
 				'key'     => 'per_page',
 				'type'    => 'hidden',
@@ -918,5 +948,59 @@ class InstantResults extends Feature {
 				'type'             => 'radio',
 			],
 		];
+	}
+
+	/**
+	 * Callback for ep_after_sync_index to save search templates.
+	 *
+	 * @param array $args Sync arguments containing network_wide flag.
+	 * @return void
+	 * @since 5.3.3
+	 */
+	public function on_sync_complete( array $args ): void {
+		$network_wide = isset( $args['network_wide'] ) && ! is_null( $args['network_wide'] );
+		$this->epio_save_site_search_template( $network_wide );
+	}
+
+	/**
+	 * Save the search template for the current site or all network sites.
+	 *
+	 * @param bool $network_wide Whether to save templates for all sites in the network.
+	 * @return void
+	 * @since 5.3.3
+	 */
+	public function epio_save_site_search_template( bool $network_wide = false ): void {
+		if ( ! $network_wide ) {
+			$this->epio_save_search_template();
+			return;
+		}
+
+		$sites = Utils\get_sites( 0, true );
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+			$this->epio_save_search_template();
+			restore_current_blog();
+		}
+	}
+
+	/**
+	 * Delete the search template for the current site or all network sites.
+	 *
+	 * @param bool $network_wide Whether to delete templates for all sites in the network.
+	 * @return void
+	 * @since 5.3.3
+	 */
+	public function epio_delete_site_search_template( bool $network_wide = false ): void {
+		if ( ! $network_wide ) {
+			$this->epio_delete_search_template();
+			return;
+		}
+
+		$sites = Utils\get_sites( 0, true );
+		foreach ( $sites as $site ) {
+			switch_to_blog( $site['blog_id'] );
+			$this->epio_delete_search_template();
+			restore_current_blog();
+		}
 	}
 }

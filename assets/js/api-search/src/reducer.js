@@ -89,6 +89,11 @@ export default (state, action) => {
 			newState.args.offset = Math.max(newState.args.offset - newState.args.per_page, 0);
 			break;
 		}
+		case 'SET_OFFSET': {
+			const offset = Number.isFinite(action.offset) ? action.offset : 0;
+			newState.args.offset = Math.max(offset, 0);
+			break;
+		}
 		case 'POP_STATE': {
 			const { isOn, args } = action.args;
 

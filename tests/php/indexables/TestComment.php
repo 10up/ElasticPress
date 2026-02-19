@@ -2651,6 +2651,22 @@ class TestComment extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `ep_asciifolding` filter
+	 *
+	 * @since 5.3.3
+	 * @group comment
+	 */
+	public function test_mapping_ep_asciifolding_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'comment' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
+		$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
+	}
+
+	/**
 	 * Test comment query with orderby none.
 	 *
 	 * @since 5.3.0
