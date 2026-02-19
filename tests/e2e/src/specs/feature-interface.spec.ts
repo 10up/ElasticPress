@@ -8,6 +8,7 @@ import {
 	setDefaultFeatureSettings,
 	deactivatePlugin,
 	updateFeatures,
+	isEpIo,
 } from '../utils.js';
 
 /**
@@ -190,36 +191,95 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			const instantResultsWasEnabled = featuresList?.toString().includes('instant-results');
 			const didYouMeanWasEnabled = featuresList?.toString().includes('did-you-mean');
 
-			// Setup: Enable features, activate conflict plugin, disable conflicting setting
+			// Check if proxy plugin needs to be activated
+			const needsProxy = !isEpIo();
+
+			// Setup: Activate proxy plugin first if needed (before enabling features)
+			if (needsProxy) {
+				await wpCli('plugin activate elasticpress-proxy', true);
+			}
+
+			// Enable features and activate conflict plugin
 			await maybeEnableFeature('instant-results');
 			await maybeEnableFeature('did-you-mean');
 			await activatePlugin(loggedInPage, 'simulate-instant-results-conflict', 'wpCli');
+
 			await updateFeatures('did-you-mean', {
 				active: true,
 				conflicting_setting: false,
 			});
 
+			// Verify features are actually enabled via WP-CLI
+			const featuresCheck = await wpCli('elasticpress list-features', true);
+			if (!featuresCheck?.toString().includes('instant-results')) {
+				throw new Error('Instant Results feature failed to activate');
+			}
+
 			// Navigate to settings and verify Instant Results is enabled initially
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+
+			// Wait for settings form to be fully loaded
+			await expect(loggedInPage.locator('.ep-settings-page form')).toBeVisible();
+
+			// Wait for epDashboard to be available (React app fully initialized)
+			await loggedInPage.waitForFunction(() => {
+				return !!(window as any).epDashboard && !!(window as any).epDashboard.features;
+			});
+
 			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
 			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
-			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeEnabled();
-			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeChecked();
+
+			// Wait for the feature panel to be visible before checking checkbox state
+			await expect(loggedInPage.locator('div[id*="instant-results-view"]')).toBeVisible();
+
+			// Wait for React to finish rendering and state to stabilize
+			await loggedInPage.waitForTimeout(500);
+
+			const enableCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Enable',
+			});
+
+			// Wait for checkbox to be fully initialized and in the correct state
+			await expect(enableCheckbox).toBeEnabled({ timeout: 10000 });
+			await expect(enableCheckbox).toBeChecked({ timeout: 10000 });
 
 			// Enable conflicting setting in Did You Mean
 			await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
 			await loggedInPage.getByRole('button', { name: 'Did You Mean' }).click();
+
+			// Wait for Did You Mean panel to be visible
+			await expect(loggedInPage.locator('div[id*="did-you-mean-view"]')).toBeVisible();
+
 			await loggedInPage.getByLabel('Conflicting Setting').setChecked(true);
 
 			// Save changes and wait for completion
-			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
-			await loggedInPage.waitForLoadState('networkidle');
+			const saveButton = loggedInPage.getByRole('button', {
+				name: 'Save changes',
+			});
+			await saveButton.click();
+
+			// Wait for the save operation to complete by checking for success notice
+			await expect(
+				loggedInPage.locator('.components-snackbar').filter({
+					hasText: 'Feature settings saved',
+				}),
+			).toBeVisible({ timeout: 10000 });
 
 			// Verify Instant Results is now disabled with error message
 			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
 			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
-			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).toBeDisabled();
-			await expect(loggedInPage.getByRole('checkbox', { name: 'Enable' })).not.toBeChecked();
+
+			// Wait for Instant Results panel to be visible again
+			await expect(loggedInPage.locator('div[id*="instant-results-view"]')).toBeVisible();
+
+			// Wait for React to finish rendering and state to stabilize
+			await loggedInPage.waitForTimeout(500);
+
+			const disabledCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Enable',
+			});
+			await expect(disabledCheckbox).toBeDisabled({ timeout: 10000 });
+			await expect(disabledCheckbox).not.toBeChecked({ timeout: 10000 });
 			await expect(
 				loggedInPage.locator('.components-notice.is-error').filter({
 					hasText:
@@ -237,6 +297,11 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			}
 			if (!didYouMeanWasEnabled) {
 				await maybeDisableFeature('did-you-mean');
+			}
+
+			// Deactivate proxy plugin if we activated it
+			if (needsProxy) {
+				await wpCli('plugin deactivate elasticpress-proxy', true);
 			}
 		});
 	});
