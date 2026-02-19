@@ -944,10 +944,13 @@ function is_top_level_admin_context() {
  * @return array|string Post type array on success, empty string on failure.
  */
 function get_post_type_for_tax_query( $query = null ) {
-	$is_tax         = $query instanceof \WP_Query ? $query->is_tax() : is_tax();
-	$queried_object = $query instanceof \WP_Query ? $query->get_queried_object() : get_queried_object();
+	$is_tax = $query instanceof \WP_Query ? $query->is_tax() : is_tax();
+	if ( ! $is_tax ) {
+		return '';
+	}
 
-	if ( ! $is_tax || ! $queried_object || ! isset( $queried_object->taxonomy ) ) {
+	$queried_object = $query instanceof \WP_Query ? $query->get_queried_object() : get_queried_object();
+	if ( ! $queried_object || ! isset( $queried_object->taxonomy ) ) {
 		return '';
 	}
 
