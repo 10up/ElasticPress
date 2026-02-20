@@ -941,7 +941,7 @@ function is_top_level_admin_context() {
  * Returns null when the query is not a taxonomy query, allowing callers
  * to distinguish "not a tax query" from "tax query that failed to resolve."
  *
- * @since 5.3.0
+ * @since 5.3.3
  *
  * @param \WP_Query|null $query Optional. WP_Query instance. Defaults to the global query.
  * @return array|null Post type array on success, null otherwise.
