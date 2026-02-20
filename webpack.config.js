@@ -1,6 +1,8 @@
 const defaultConfig = require('10up-toolkit/config/webpack.config');
 const TerserPlugin = require('terser-webpack-plugin');
 
+const isDev = process.env.NODE_ENV === 'development';
+
 module.exports = {
 	...defaultConfig,
 	output: {
@@ -8,7 +10,7 @@ module.exports = {
 		filename: 'js/[name].js',
 	},
 
-	devtool: 'source-map',
+	devtool: isDev ? 'source-map' : false,
 
 	optimization: {
 		...defaultConfig.optimization,
