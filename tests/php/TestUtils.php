@@ -625,17 +625,17 @@ class TestUtils extends BaseTestCase {
 	}
 
 	/**
-	 * Test get_post_type_for_tax_query does not error when is_tax is true
+	 * Test get_post_types_for_tax_query does not error when is_tax is true
 	 * but the queried object is invalid.
 	 *
 	 * @since 5.3.3
 	 * @group utils
 	 */
-	public function test_get_post_type_for_tax_query_invalid_queried_object() {
+	public function test_get_post_types_for_tax_query_invalid_queried_object() {
 		$query                 = new \WP_Query();
 		$query->is_tax         = true;
 		$query->queried_object = new \stdClass();
 
-		$this->assertNull( Utils\get_post_type_for_tax_query( $query ) );
+		$this->assertSame( [], Utils\get_post_types_for_tax_query( $query ) );
 	}
 }

@@ -935,29 +935,34 @@ function is_top_level_admin_context() {
  * Safely resolve the post type(s) for a taxonomy query.
  *
  * Guards against null queried objects, missing taxonomy properties,
- * and deregistered taxonomies that would otherwise cause fatal errors
- * when chaining get_queried_object()->taxonomy through get_taxonomy().
- *
- * Returns null when the query is not a taxonomy query, allowing callers
- * to distinguish "not a tax query" from "tax query that failed to resolve."
+ * deregistered taxonomies, and non-post-type object types that would
+ * otherwise cause unexpected behavior when chaining
+ * get_queried_object()->taxonomy through get_taxonomy().
  *
  * @since 5.3.3
  *
  * @param \WP_Query|null $query Optional. WP_Query instance. Defaults to the global query.
- * @return array|null Post type array on success, null otherwise.
+ * @return array Registered post type names on success, empty array otherwise.
  */
-function get_post_type_for_tax_query( $query = null ) {
-	$is_tax = $query instanceof \WP_Query ? $query->is_tax() : is_tax();
-	if ( ! $is_tax ) {
-		return null;
+function get_post_types_for_tax_query( ?\WP_Query $query = null ): array {
+	if ( null === $query ) {
+		global $wp_query;
+		$query = $wp_query;
 	}
 
-	$queried_object = $query instanceof \WP_Query ? $query->get_queried_object() : get_queried_object();
+	if ( ! $query instanceof \WP_Query || ! $query->is_tax() ) {
+		return [];
+	}
+
+	$queried_object = $query->get_queried_object();
 	if ( ! $queried_object || ! isset( $queried_object->taxonomy ) ) {
-		return null;
+		return [];
 	}
 
 	$taxonomy_object = get_taxonomy( $queried_object->taxonomy );
+	if ( ! $taxonomy_object || ! is_array( $taxonomy_object->object_type ) ) {
+		return [];
+	}
 
-	return $taxonomy_object ? $taxonomy_object->object_type : null;
+	return array_values( array_filter( $taxonomy_object->object_type, 'post_type_exists' ) );
 }
