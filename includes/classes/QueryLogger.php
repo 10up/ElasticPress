@@ -214,7 +214,7 @@ class QueryLogger {
 	 * @param array $notices Current EP notices
 	 * @return array
 	 */
-	public function maybe_add_notice( array $notices ): array {
+	public function maybe_add_notice( $notices ) {
 		if ( ! current_user_can( Utils\get_capability() ) ) {
 			return $notices;
 		}
