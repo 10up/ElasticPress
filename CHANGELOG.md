@@ -2196,7 +2196,7 @@ This is a bug fix release with some filter additions.
 - _boost from mapping. _boost is deprecated by Elasticsearch.
 
 ### Fixed
-- We don't want to add the like_text query unless we have a non empty search string. This mimcs the behavior of MySQL or WP which will return everything if s is empty.
+- We don't want to add the like_text query unless we have a non empty search string. This mimics the behavior of MySQL or WP which will return everything if s is empty.
 
 ## [1.1] - 2014-10-27
 ### Added

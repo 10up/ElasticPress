@@ -461,7 +461,7 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$not_so_good_match_id = $this->ep_factory->post->create(
 			[
-				'post_title' => 'not so good match - beautiful',
+				'post_title' => 'not so good match - beautful',
 				'post_date'  => '2022-12-31 23:59:59',
 			]
 		);

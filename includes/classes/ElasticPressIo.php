@@ -106,7 +106,7 @@ class ElasticPressIo {
 
 		$endpoint_status = $this->get_endpoint_status( $skip_cache );
 
-		return $endpoint_status['availableServices'] ?? [];
+		return $endpoint_status['avaiableServices'] ?? [];
 	}
 
 	/**
