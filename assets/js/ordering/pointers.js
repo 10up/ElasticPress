@@ -20,6 +20,8 @@ apiFetch.use(apiFetch.createRootURLMiddleware(window.epOrdering.restApiRoot));
 export class Pointers extends Component {
 	titleInput = null;
 
+	publishButton = null;
+
 	debouncedDefaultResults = debounce(() => {
 		this.getDefaultResults();
 	}, 200);
@@ -55,6 +57,7 @@ export class Pointers extends Component {
 
 		// We need to know the title of the page and react to changes since this is the query we search for
 		this.titleInput = document.getElementById('title');
+		this.publishButton = document.getElementById('publish');
 
 		this.state = {
 			pointers: window.epOrdering.pointers,
@@ -75,11 +78,27 @@ export class Pointers extends Component {
 		if (title?.length > 0) {
 			this.getDefaultResults();
 		}
+
+		this.updatePublishButtonState();
+	}
+
+	componentDidUpdate() {
+		this.updatePublishButtonState();
 	}
 
 	componentWillUnmount() {
 		this.titleInput.removeEventListener('keyup', this.debouncedHandleTitleChange);
 	}
+
+	/**
+	 * Updates the publish button disabled state based on loading status.
+	 */
+	updatePublishButtonState = () => {
+		const { title, defaultResults } = this.state;
+		const isLoading = title.length === 0 || !defaultResults[title];
+
+		this.publishButton.disabled = isLoading;
+	};
 
 	handleTitleChange = () => {
 		this.setState({ title: this.titleInput.value });

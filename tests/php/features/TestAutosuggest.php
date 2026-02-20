@@ -268,8 +268,8 @@ class TestAutosuggest extends BaseTestCase {
 	public function testRequirementsStatus() {
 		$status = $this->get_feature()->requirements_status();
 
-		$this->assertEquals( 1, $status->code );
-		$this->assertEquals( 2, count( $status->message ) );
+		$this->assertEquals( 1, $status->get_code() );
+		$this->assertEquals( 2, count( $status->get_message() ) );
 	}
 
 	/**

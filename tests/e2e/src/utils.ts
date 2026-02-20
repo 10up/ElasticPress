@@ -403,11 +403,11 @@ export async function publishPost(
 		await page.locator('.editor-post-text-editor').fill(newPostData.content);
 
 		// Return to visual editor
-		changeMode(page);
+		await changeMode(page);
 	} else {
 		// Return to visual editor
 		if (isInCodeEditorMode) {
-			changeMode(page);
+			await changeMode(page);
 		}
 		await editorFrame
 			.locator('h1.editor-post-title__input, #post-title-0')
@@ -430,9 +430,11 @@ export async function publishPost(
 		await page.waitForSelector('.components-snackbar');
 
 		if (viewPost) {
-			await page
-				.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")')
-				.click();
+			const postHref =
+				(await page
+					.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")')
+					.getAttribute('href')) ?? '';
+			await page.goto(postHref);
 		}
 	}
 
@@ -647,6 +649,7 @@ export async function setDefaultFeatureSettings() {
 		}
 
 		update_option( 'ep_feature_settings', $features );
+		update_option( 'ep_feature_settings_draft', $features );
 
 		$index_names = \\ElasticPress\\Elasticsearch::factory()->get_index_names( 'active' );
 		echo wp_json_encode(

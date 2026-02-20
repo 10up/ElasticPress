@@ -132,7 +132,7 @@ class Comments extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 1, null, $this );
 
 		return $status;
 	}

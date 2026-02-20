@@ -131,7 +131,7 @@ class TestComments extends BaseTestCase {
 	public function testRequirementsStatus() {
 		$status = $this->get_feature()->requirements_status();
 
-		$this->assertEquals( 1, $status->code );
+		$this->assertEquals( 1, $status->get_code() );
 	}
 
 	/**
