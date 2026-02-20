@@ -1092,7 +1092,7 @@ class IndexHelper {
 	}
 
 	/**
-	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * Utility function to check if the indexable is being fully reindexed, i.e.,
 	 * the index was deleted, a new mapping was sent and content is being reindexed.
 	 *
 	 * @param string   $indexable_slug Indexable slug.
@@ -1326,7 +1326,7 @@ class IndexHelper {
 	}
 
 	/**
-	 * Utilitary function to delete the index meta option.
+	 * Utility function to delete the index meta option.
 	 *
 	 * @since 4.0.0
 	 */
@@ -1339,7 +1339,7 @@ class IndexHelper {
 	}
 
 	/**
-	 * Utilitary function to get the index meta option.
+	 * Utility function to get the index meta option.
 	 *
 	 * @return array
 	 * @since 4.0.0

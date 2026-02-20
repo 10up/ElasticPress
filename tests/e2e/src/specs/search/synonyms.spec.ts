@@ -418,7 +418,7 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		await expect(loggedInPage.locator('article h2', { hasText: 'Banner' })).toBeVisible();
 
 		/**
-		 * In the advanced editor, replacements hould be represented as
+		 * In the advanced editor, replacements should be represented as
 		 * expected.
 		 */
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-synonyms');

@@ -8992,7 +8992,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test exclude from search filter doesn't apply for admin quries.
+	 * Test exclude from search filter doesn't apply for admin queries.
 	 *
 	 * @since 4.4.0
 	 */
@@ -9265,7 +9265,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Utilitary function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
+	 * Utility function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
 	 *
 	 * @return void
 	 */

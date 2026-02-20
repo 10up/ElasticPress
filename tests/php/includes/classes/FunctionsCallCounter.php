@@ -1,6 +1,6 @@
 <?php
 /**
- * Utilitary class to count how many times a regular function was called
+ * Utility class to count how many times a regular function was called
  *
  * @since 5.3.0
  * @package elasticpress

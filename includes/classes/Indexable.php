@@ -1175,7 +1175,7 @@ abstract class Indexable {
 	}
 
 	/**
-	 * Utilitary function to check if the indexable is being fully reindexed, i.e.,
+	 * Utility function to check if the indexable is being fully reindexed, i.e.,
 	 * the index was deleted, a new mapping was sent and content is being reindexed.
 	 *
 	 * @param int|null $blog_id Blog ID
