@@ -233,6 +233,7 @@ class InstantResults extends Feature {
 				'argsSchema'          => $this->get_args_schema(),
 				'currencyCode'        => $this->is_woocommerce ? get_woocommerce_currency() : false,
 				'excludedPostTypes'   => $this->get_excluded_post_types(),
+				'excludedTermIds'     => $this->get_excluded_term_ids(),
 				'facets'              => $this->get_facets_for_frontend(),
 				'highlightTag'        => $this->settings['highlight_tag'],
 				'isWooCommerce'       => $this->is_woocommerce,
@@ -611,6 +612,28 @@ class InstantResults extends Feature {
 		 * @return {string[]} Filtered exclusions.
 		 */
 		return apply_filters( 'ep_instant_results_excluded_post_types', [] );
+	}
+
+	/**
+	 * Get term IDs to exclude from all Instant Results taxonomy filters.
+	 *
+	 * @since 5.4.0
+	 * @return int[] Term IDs to exclude.
+	 */
+	public function get_excluded_term_ids() {
+		/**
+		 * Filter term IDs to exclude from all Instant Results taxonomy filters.
+		 *
+		 * Excluded terms are hidden from every taxonomy facet
+		 * (Category, Tag, etc.) but posts associated with those
+		 * terms still appear in search results.
+		 *
+		 * @hook ep_instant_results_excluded_term_ids
+		 * @since 5.4.0
+		 * @param {int[]} $excluded Term IDs to exclude (e.g., [1, 120]).
+		 * @return {int[]} Filtered exclusions.
+		 */
+		return apply_filters( 'ep_instant_results_excluded_term_ids', [] );
 	}
 
 	/**
