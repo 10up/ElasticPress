@@ -232,6 +232,7 @@ class InstantResults extends Feature {
 				'apiHost'             => ( 0 !== strpos( $api_endpoint, 'http' ) ) ? esc_url_raw( $this->host ) : '',
 				'argsSchema'          => $this->get_args_schema(),
 				'currencyCode'        => $this->is_woocommerce ? get_woocommerce_currency() : false,
+				'excludedPostTypes'   => $this->get_excluded_post_types(),
 				'facets'              => $this->get_facets_for_frontend(),
 				'highlightTag'        => $this->settings['highlight_tag'],
 				'isWooCommerce'       => $this->is_woocommerce,
@@ -278,7 +279,10 @@ class InstantResults extends Feature {
 	 * @return string The search template as JSON.
 	 */
 	public function get_search_template(): string {
-		$post_types    = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+		$post_types          = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
+		$excluded_post_types = $this->get_excluded_post_types();
+		$post_types          = array_values( array_diff( $post_types, $excluded_post_types ) );
+
 		$post_statuses = get_post_stati(
 			[
 				'public'              => true,
@@ -582,6 +586,31 @@ class InstantResults extends Feature {
 		}
 
 		return $labels;
+	}
+
+	/**
+	 * Get post type slugs to exclude from the Instant Results post type filter.
+	 *
+	 * @since 5.4.0
+	 * @return array Array of post type slugs to exclude.
+	 */
+	public function get_excluded_post_types() {
+		/**
+		 * Filter post type slugs to exclude from Instant Results.
+		 *
+		 * Excluded post types are hidden from the Post Type facet and
+		 * removed from the search template so their content does not
+		 * appear in results. The search template is generated and
+		 * uploaded to Elasticsearch when Instant Results settings are
+		 * saved, so after changing this filter, re-save the Instant
+		 * Results or Weighting settings to regenerate the template.
+		 *
+		 * @hook ep_instant_results_excluded_post_types
+		 * @since 5.4.0
+		 * @param {string[]} $excluded Post type slugs to exclude (e.g., ['page']).
+		 * @return {string[]} Filtered exclusions.
+		 */
+		return apply_filters( 'ep_instant_results_excluded_post_types', [] );
 	}
 
 	/**
