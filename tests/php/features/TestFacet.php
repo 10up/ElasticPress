@@ -608,7 +608,7 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
-	 * Utilitary function for the testGetSelected test.
+	 * Utility function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.
 	 *
