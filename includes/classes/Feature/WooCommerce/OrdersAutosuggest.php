@@ -571,6 +571,7 @@ class OrdersAutosuggest {
 	/**
 	 * Short-circuit the sync for password protected orders.
 	 *
+	 * @since 5.3.3
 	 * @param null|bool $new_skip Short-circuit flag
 	 * @param bool      $skip     Current value of $skip
 	 * @param int       $object_id The object ID
