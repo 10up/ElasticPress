@@ -286,7 +286,7 @@ abstract class Indexable {
 		 * @since  3.0
 		 * @return {bool}  New kill value
 		 */
-		if ( apply_filters_deprecated( 'ep_' . $this->slug . '_index_kill', [ false, $object_id ], '5.3.3', 'ep_' . $this->slug . '_sync_kill' ) ) {
+		if ( apply_filters_deprecated( 'ep_' . $this->slug . '_index_kill', [ false, $object_id ], 'ElasticPress 5.3.3', 'ep_' . $this->slug . '_sync_kill' ) ) {
 			return false;
 		}
 
