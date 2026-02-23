@@ -598,6 +598,43 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 					'wpCli',
 				);
 			});
+
+			test('Is possible to search with taxonomies and tags in search form', async ({
+				loggedInPage,
+			}) => {
+				await maybeEnableFeature('instant-results');
+				await activatePlugin(loggedInPage, 'custom-search-form', 'wpCli');
+
+				await publishPost(
+					loggedInPage,
+					{
+						title: 'Custom Search Form Page',
+						content: '[ep_custom_search_form]',
+					},
+					true,
+				);
+
+				await expect(loggedInPage.locator('form.searchform')).toBeVisible();
+				await expect(loggedInPage.locator('form.searchform input[name="s"]')).toBeVisible();
+				await expect(
+					loggedInPage.locator('form.searchform .search-tags-checkboxes'),
+				).toBeVisible();
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=');
+
+				await loggedInPage.locator('#cat').selectOption({ label: 'aciform' });
+				await loggedInPage.locator('form.searchform').getByLabel('edge case').check();
+				await loggedInPage.locator('form.searchform').getByLabel('categories').check();
+				await loggedInPage.locator('#searchform #s').click();
+				await loggedInPage.keyboard.press('Enter');
+
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
+				await responsePromise;
+
+				await expect(loggedInPage.locator('.ep-search-tokens')).toContainText('aciform');
+				await expect(loggedInPage.locator('.ep-search-tokens')).toContainText('edge case');
+				await expect(loggedInPage.locator('.ep-search-tokens')).toContainText('categories');
+			});
 		});
 
 		test('Is possible to filter the arguments schema', async ({ loggedInPage }) => {

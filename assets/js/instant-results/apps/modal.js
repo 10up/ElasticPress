@@ -8,8 +8,8 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies.
  */
 import { useApiSearch } from '../../api-search';
-import { facets } from '../config';
-import { getPostTypesFromForm } from '../utilities';
+import { argsSchema, facets } from '../config';
+import { getArgsFromForm } from '../utilities';
 import Modal from '../components/common/modal';
 import Layout from '../components/layout';
 
@@ -59,11 +59,10 @@ export default () => {
 				return;
 			}
 
-			const { value } = inputRef.current;
-			const post_type = getPostTypesFromForm(inputRef.current.form);
+			const args = getArgsFromForm(inputRef.current.form, argsSchema);
 			const updateDefaults = !facets.some((f) => f.name === 'post_type');
 
-			search({ post_type, search: value, updateDefaults });
+			search({ ...args, updateDefaults });
 		},
 		[inputRef, search],
 	);
