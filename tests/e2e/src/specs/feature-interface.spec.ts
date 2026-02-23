@@ -7,8 +7,6 @@ import {
 	maybeEnableFeature,
 	setDefaultFeatureSettings,
 	deactivatePlugin,
-	updateFeatures,
-	isEpIo,
 } from '../utils.js';
 
 /**
@@ -180,128 +178,112 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		).not.toBeDisabled();
 	});
 
-	test.describe('Feature Dependency Updates', () => {
+	test.describe('Settings Schema Updates on Save', () => {
 		test.afterEach(async ({ loggedInPage }) => {
-			await deactivatePlugin(loggedInPage, 'simulate-instant-results-conflict', 'wpCli');
+			await deactivatePlugin(loggedInPage, 'simulate-setting-dependency', 'wpCli');
+			await maybeDisableFeature('test_conditional_settings');
 		});
 
-		test('Feature dependencies update immediately and after save', async ({ loggedInPage }) => {
-			// Track initial state for cleanup
+		test('Feature settings schema updates without page refresh when dependency changes', async ({
+			loggedInPage,
+		}) => {
+			// Track initial Post Search state for cleanup
 			const featuresList = await wpCli('elasticpress list-features', true);
-			const instantResultsWasEnabled = featuresList?.toString().includes('instant-results');
-			const didYouMeanWasEnabled = featuresList?.toString().includes('did-you-mean');
+			const searchWasEnabled = featuresList?.toString().includes('search');
 
-			// Check if proxy plugin needs to be activated
-			const needsProxy = !isEpIo();
+			await activatePlugin(loggedInPage, 'simulate-setting-dependency', 'wpCli');
+			await maybeEnableFeature('test_conditional_settings');
 
-			// Setup: Activate proxy plugin first if needed (before enabling features)
-			if (needsProxy) {
-				await wpCli('plugin activate elasticpress-proxy', true);
-			}
+			// Start with Post Search disabled so conditional options are hidden
+			await maybeDisableFeature('search');
 
-			// Enable features and activate conflict plugin
-			await maybeEnableFeature('instant-results');
-			await maybeEnableFeature('did-you-mean');
-			await activatePlugin(loggedInPage, 'simulate-instant-results-conflict', 'wpCli');
-
-			await updateFeatures('did-you-mean', {
-				active: true,
-				conflicting_setting: false,
-			});
-
-			// Verify features are actually enabled via WP-CLI
-			const featuresCheck = await wpCli('elasticpress list-features', true);
-			if (!featuresCheck?.toString().includes('instant-results')) {
-				throw new Error('Instant Results feature failed to activate');
-			}
-
-			// Navigate to settings and verify Instant Results is enabled initially
+			// Navigate to the settings page
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
-
-			// Wait for settings form to be fully loaded
 			await expect(loggedInPage.locator('.ep-settings-page form')).toBeVisible();
-
-			// Wait for epDashboard to be available (React app fully initialized)
 			await loggedInPage.waitForFunction(() => {
 				return !!(window as any).epDashboard && !!(window as any).epDashboard.features;
 			});
 
-			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
-			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
-
-			// Wait for the feature panel to be visible before checking checkbox state
-			await expect(loggedInPage.locator('div[id*="instant-results-view"]')).toBeVisible();
-
-			// Wait for React to finish rendering and state to stabilize
+			// Navigate to the Test Conditional Settings panel
+			await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
+			await expect(
+				loggedInPage.locator('div[id*="test_conditional_settings-view"]'),
+			).toBeVisible();
 			await loggedInPage.waitForTimeout(500);
 
-			const enableCheckbox = loggedInPage.getByRole('checkbox', {
-				name: 'Enable',
-			});
+			// Verify only the base options are visible (Post Search is not active)
+			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Advanced (requires Post Search)'),
+			).not.toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Expert (requires Post Search)'),
+			).not.toBeVisible();
 
-			// Wait for checkbox to be fully initialized and in the correct state
-			await expect(enableCheckbox).toBeEnabled({ timeout: 10000 });
-			await expect(enableCheckbox).toBeChecked({ timeout: 10000 });
+			// Navigate to Post Search and enable it
+			await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
+			await expect(loggedInPage.locator('div[id*="search-view"]')).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+			await loggedInPage.getByRole('checkbox', { name: 'Enable' }).setChecked(true);
 
-			// Enable conflicting setting in Did You Mean
-			await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
-			await loggedInPage.getByRole('button', { name: 'Did You Mean' }).click();
-
-			// Wait for Did You Mean panel to be visible
-			await expect(loggedInPage.locator('div[id*="did-you-mean-view"]')).toBeVisible();
-
-			await loggedInPage.getByLabel('Conflicting Setting').setChecked(true);
-
-			// Save changes and wait for completion
-			const saveButton = loggedInPage.getByRole('button', {
-				name: 'Save changes',
-			});
+			// Save and wait for the save operation to complete
+			const saveButton = loggedInPage.getByRole('button', { name: 'Save changes' });
 			await saveButton.click();
-
-			// Wait for the save operation to complete by checking for success notice
 			await expect(
 				loggedInPage.locator('.components-snackbar').filter({
 					hasText: 'Feature settings saved',
 				}),
 			).toBeVisible({ timeout: 10000 });
 
-			// Verify Instant Results is now disabled with error message
-			await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
-			await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
-
-			// Wait for Instant Results panel to be visible again
-			await expect(loggedInPage.locator('div[id*="instant-results-view"]')).toBeVisible();
-
-			// Wait for React to finish rendering and state to stabilize
+			// Navigate back to the Test Conditional Settings (no page refresh)
+			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
+			await expect(
+				loggedInPage.locator('div[id*="test_conditional_settings-view"]'),
+			).toBeVisible();
 			await loggedInPage.waitForTimeout(500);
 
-			const disabledCheckbox = loggedInPage.getByRole('checkbox', {
-				name: 'Enable',
-			});
-			await expect(disabledCheckbox).toBeDisabled({ timeout: 10000 });
-			await expect(disabledCheckbox).not.toBeChecked({ timeout: 10000 });
+			// Verify the conditional options now appear
+			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Advanced (requires Post Search)')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Expert (requires Post Search)')).toBeVisible();
+
+			// Now disable Post Search and verify the options disappear
+			await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
+			await expect(loggedInPage.locator('div[id*="search-view"]')).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+			await loggedInPage.getByRole('checkbox', { name: 'Enable' }).setChecked(false);
+
+			// Save and wait for the save operation to complete
+			await saveButton.click();
 			await expect(
-				loggedInPage.locator('.components-notice.is-error').filter({
-					hasText:
-						'This feature is temporarily disabled because it is incompatible with the Conflicting Setting enabled in Did You Mean.',
+				loggedInPage.locator('.components-snackbar').filter({
+					hasText: 'Feature settings saved',
 				}),
+			).toBeVisible({ timeout: 10000 });
+
+			// Navigate back to the Test Conditional Settings (no page refresh)
+			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
+			await expect(
+				loggedInPage.locator('div[id*="test_conditional_settings-view"]'),
 			).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
 
-			// Cleanup: Restore original state
-			await updateFeatures('did-you-mean', {
-				active: didYouMeanWasEnabled,
-				conflicting_setting: false,
-			});
-			if (!instantResultsWasEnabled) {
-				await maybeDisableFeature('instant-results');
-			}
-			if (!didYouMeanWasEnabled) {
-				await maybeDisableFeature('did-you-mean');
-			}
+			// Verify the conditional options are gone again
+			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Advanced (requires Post Search)'),
+			).not.toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Expert (requires Post Search)'),
+			).not.toBeVisible();
 
-			// Deactivate proxy plugin if we activated it
-			if (needsProxy) {
-				await wpCli('plugin deactivate elasticpress-proxy', true);
+			// Cleanup: Restore Post Search to its original state
+			if (searchWasEnabled) {
+				await maybeEnableFeature('search');
 			}
 		});
 	});
