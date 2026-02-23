@@ -945,8 +945,9 @@ function is_top_level_admin_context() {
  * @return array Registered post type names on success, empty array otherwise.
  */
 function get_post_types_for_tax_query( ?\WP_Query $query = null ): array {
+	global $wp_query;
+
 	if ( null === $query ) {
-		global $wp_query;
 		$query = $wp_query;
 	}
 
