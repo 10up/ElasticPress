@@ -1187,7 +1187,7 @@ class IndexHelper {
 		$ep_item_sync_kill = apply_filters_deprecated(
 			'ep_item_sync_kill',
 			[ false, $indexable_object, $indexable ],
-			'5.3.3',
+			'ElasticPress 5.3.3',
 			'ep_' . $indexable->slug . '_sync_kill'
 		);
 
