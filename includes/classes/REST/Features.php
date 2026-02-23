@@ -221,8 +221,13 @@ class Features {
 		}
 
 		$features_objects = FeaturesStore::factory()->registered_features;
-		$features_data    = array_map( fn( $feature ) => $feature->get_json(), $features_objects );
-		$features_data    = array_values( $features_data );
+
+		foreach ( $features_objects as $feature ) {
+			$feature->reset_settings_schema();
+		}
+
+		$features_data = array_map( fn( $feature ) => $feature->get_json(), $features_objects );
+		$features_data = array_values( $features_data );
 
 		return [
 			'data'     => $current_settings,

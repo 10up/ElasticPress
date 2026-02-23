@@ -68,11 +68,25 @@ class SearchAlgorithms {
 	 * @return array
 	 */
 	public function get_all( $slug_only = false ) {
+		/**
+		 * Filters the list of registered search algorithms.
+		 *
+		 * Allows other features or plugins to conditionally remove
+		 * search algorithms from the available list, for example when
+		 * a feature that provides certain algorithms is not active.
+		 *
+		 * @since 5.3.3
+		 * @hook ep_search_algorithms
+		 * @param {array} $search_algorithms Associative array of SearchAlgorithm instances keyed by slug.
+		 * @return {array} Filtered array of SearchAlgorithm instances.
+		 */
+		$search_algorithms = apply_filters( 'ep_search_algorithms', $this->registered_search_algorithms );
+
 		if ( $slug_only ) {
-			return array_keys( $this->registered_search_algorithms );
+			return array_keys( $search_algorithms );
 		}
 
-		return $this->registered_search_algorithms;
+		return $search_algorithms;
 	}
 
 	/**
