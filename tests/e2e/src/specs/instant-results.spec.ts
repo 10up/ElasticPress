@@ -605,6 +605,19 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await maybeEnableFeature('instant-results');
 				await activatePlugin(loggedInPage, 'custom-search-form', 'wpCli');
 
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, '(category)');
+				await addInstantResultFilter(loggedInPage, '(post_tag)');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
 				await publishPost(
 					loggedInPage,
 					{
