@@ -26,12 +26,20 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		});
 	};
 
-	const addInstantResultFilter = async (page: Page, filterName: string) => {
+	const addInstantResultFilter = async (
+		page: Page,
+		filterName: string,
+		options?: { keepExisting?: boolean },
+	) => {
 		await page.locator('.components-form-token-field__input').focus();
-		await page.keyboard.press('Backspace');
-		await page.keyboard.press('Backspace');
-		await page.keyboard.press('Backspace');
-		await page.keyboard.press('Backspace');
+
+		if (!options?.keepExisting) {
+			await page.keyboard.press('Backspace');
+			await page.keyboard.press('Backspace');
+			await page.keyboard.press('Backspace');
+			await page.keyboard.press('Backspace');
+		}
+
 		await page.locator('.components-form-token-field__input').fill(filterName);
 		await page.keyboard.press('ArrowDown');
 		await page.keyboard.press('Enter');
@@ -613,7 +621,9 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
 				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
 				await addInstantResultFilter(loggedInPage, '(category)');
-				await addInstantResultFilter(loggedInPage, '(post_tag)');
+				await addInstantResultFilter(loggedInPage, '(post_tag)', {
+					keepExisting: true,
+				});
 				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 
 				await apiResponsePromise;
