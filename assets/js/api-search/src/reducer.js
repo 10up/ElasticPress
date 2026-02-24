@@ -34,7 +34,7 @@ export default (state, action) => {
 			newState.args = { ...newState.args, ...args, offset: 0 };
 			newState.isOn = true;
 
-			if (updateDefaults && args.post_type.length) {
+			if (updateDefaults && args.post_type?.length) {
 				newState.argsSchema.post_type.default = args.post_type;
 			}
 
