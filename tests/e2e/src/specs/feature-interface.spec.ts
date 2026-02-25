@@ -181,16 +181,12 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 	test.describe('Settings Schema Updates on Save', () => {
 		test.afterEach(async ({ loggedInPage }) => {
 			await deactivatePlugin(loggedInPage, 'simulate-setting-dependency', 'wpCli');
-			await maybeDisableFeature('test_conditional_settings');
+			await setDefaultFeatureSettings();
 		});
 
 		test('Feature settings schema updates without page refresh when dependency changes', async ({
 			loggedInPage,
 		}) => {
-			// Track initial Post Search state for cleanup
-			const featuresList = await wpCli('elasticpress list-features', true);
-			const searchWasEnabled = featuresList?.toString().includes('search');
-
 			await activatePlugin(loggedInPage, 'simulate-setting-dependency', 'wpCli');
 			await maybeEnableFeature('test_conditional_settings');
 
@@ -280,11 +276,6 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			await expect(
 				loggedInPage.getByLabel('Expert (requires Post Search)'),
 			).not.toBeVisible();
-
-			// Cleanup: Restore Post Search to its original state
-			if (searchWasEnabled) {
-				await maybeEnableFeature('search');
-			}
 		});
 	});
 });
