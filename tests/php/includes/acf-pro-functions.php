@@ -25,7 +25,7 @@ function acf_get_field_groups( $args = [] ) {
 }
 
 /**
- * Mock versino of acf_render_field_setting
+ * Mock version of acf_render_field_setting
  *
  * @return void
  */

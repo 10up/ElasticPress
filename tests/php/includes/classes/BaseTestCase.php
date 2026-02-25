@@ -124,7 +124,7 @@ class BaseTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Utilitary function to check if EP is network activated or not.
+	 * Utility function to check if EP is network activated or not.
 	 *
 	 * @return boolean
 	 */
