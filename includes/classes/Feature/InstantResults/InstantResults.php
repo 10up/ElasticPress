@@ -170,6 +170,11 @@ class InstantResults extends Feature {
 	 * @return void
 	 */
 	public function setup() {
+		// Activate the post indexable so query integration hooks are registered.
+		// Without this, get_search_template() falls back to MySQL when the
+		// Post Search feature is disabled, resulting in an empty template.
+		Indexables::factory()->activate( 'post' );
+
 		add_filter( 'ep_after_update_feature', [ $this, 'after_update_feature' ], 10, 3 );
 		add_filter( 'ep_formatted_args', [ $this, 'maybe_apply_aggs_args' ], 10, 3 );
 		add_filter( 'ep_post_mapping', [ $this, 'add_mapping_properties' ] );
