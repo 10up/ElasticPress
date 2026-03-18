@@ -279,13 +279,27 @@ abstract class Indexable {
 		/**
 		 * Conditionally kill indexing on a specific object
 		 *
+		 * @deprecated 5.3.3 Use ep_{indexable_slug}_sync_kill instead
 		 * @hook ep_{indexable_slug}_index_kill
 		 * @param  {bool} $kill True to not index
 		 * @param {int} $object_id Id of object to index
 		 * @since  3.0
 		 * @return {bool}  New kill value
 		 */
-		if ( apply_filters( 'ep_' . $this->slug . '_index_kill', false, $object_id ) ) {
+		if ( apply_filters_deprecated( 'ep_' . $this->slug . '_index_kill', [ false, $object_id ], 'ElasticPress 5.3.3', 'ep_' . $this->slug . '_sync_kill' ) ) {
+			return false;
+		}
+
+		/**
+		 * Conditionally kill indexing for an object.
+		 *
+		 * @hook ep_{$this->slug}_sync_kill
+		 * @param  {bool} $kill True means dont sync
+		 * @param  {int} $object_id Object ID
+		 * @return {bool} New value
+		 */
+		$ep_indexable_sync_kill = apply_filters( 'ep_' . $this->slug . '_sync_kill', false, $object_id );
+		if ( $ep_indexable_sync_kill ) {
 			return false;
 		}
 
