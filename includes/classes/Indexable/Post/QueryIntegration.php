@@ -243,11 +243,13 @@ class QueryIntegration {
 		}
 
 		/**
-		 * If not search and not set default to post. If not set and is search, use searchable post types
+		 * If not search and not set, default to post. If not set and is search, use searchable post types.
 		 */
 		if ( empty( $query_vars['post_type'] ) ) {
-			if ( $query->is_tax() && $query->get_queried_object() ) {
-				$query_vars['post_type'] = get_taxonomy( $query->get_queried_object()->taxonomy )->object_type;
+			$tax_post_type = Utils\get_post_types_for_tax_query( $query );
+
+			if ( ! empty( $tax_post_type ) ) {
+				$query_vars['post_type'] = $tax_post_type;
 			} elseif ( empty( $query_vars['s'] ) ) {
 				$query_vars['post_type'] = 'post';
 			} else {
