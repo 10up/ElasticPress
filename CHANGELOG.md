@@ -14,6 +14,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.2.1] - 2026-03-XX
+
+### Changed
+* Method of verifying ElasticPress.io environments. Props [@felipeelia](https://github.com/felipeelia) via [#4300](https://github.com/10up/ElasticPress/pull/4300).
+
 ## [5.3.2] - 2025-11-21
 
 ### Added
@@ -33,7 +38,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 Highlights of this version:
 
 * Improved compatibility with Elementor
-* Better UX/UI in the Features Screen: Grouped features and conditional display of fields 
+* Better UX/UI in the Features Screen: Grouped features and conditional display of fields
 * New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page.
 
 ### Added
@@ -2309,6 +2314,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.2.1]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.2.1
 [5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
 [5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
 [5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0
