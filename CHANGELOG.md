@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.3.2.1] - 2026-03-XX
+## [5.3.2.1] - 2026-03-26
 
 ### Changed
 * Method of verifying ElasticPress.io environments. Props [@felipeelia](https://github.com/felipeelia) via [#4300](https://github.com/10up/ElasticPress/pull/4300).
