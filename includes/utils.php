@@ -185,7 +185,9 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
+	$has_url     = filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
+	$has_env_var = '1' === getenv( 'IS_EPIO_ENVIRONMENT' );
+	return $has_url || $has_env_var;
 }
 
 /**

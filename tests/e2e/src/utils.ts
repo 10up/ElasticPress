@@ -340,7 +340,7 @@ export async function setPostPassword(
 			(passwordCheckboxIsChecked && password === '') ||
 			(!passwordCheckboxIsChecked && password !== '')
 		) {
-			await passwordCheckbox.setChecked(password !== '');
+			await passwordCheckbox.setChecked(password !== '', { force: true });
 		}
 
 		if (password !== '') {
@@ -644,7 +644,7 @@ export async function setDefaultFeatureSettings() {
 			$host            = str_replace( 'host.docker.internal', 'localhost', $host );
 			$index_name      = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
 			$as_endpoint_url = $host . $index_name . '/_search';
-			
+
 			$features['autosuggest']['endpoint_url'] = $as_endpoint_url;
 		}
 
