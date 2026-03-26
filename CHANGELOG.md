@@ -14,6 +14,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.2.2] - 2026-03-26
+
+### Fixed
+* Deployment to WordPress.org. Props [@felipeelia](https://github.com/felipeelia) via [#4301](https://github.com/10up/ElasticPress/pull/4301).
+
 ## [5.3.2.1] - 2026-03-26
 
 ### Changed
@@ -2314,6 +2319,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.2.2]: https://github.com/10up/ElasticPress/compare/5.3.2.1...5.3.2.2
 [5.3.2.1]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.2.1
 [5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
 [5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
