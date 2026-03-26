@@ -37,7 +37,7 @@ jobs:
         npm run build
 
     - name: Setup
-      run: 'echo "VERSION=$(grep -Po ''\"version\": \"[0-9\\.]+\"'' package.json | grep -Po ''[0-9\\.]+'')" >> $GITHUB_ENV'
+      run: 'echo "VERSION=$(grep -Po ''"version": "\K\d+(?:\.\d+){2,3}(?:-[0-9A-Za-z._]+)?(?=")'' package.json)" >> $GITHUB_ENV'
 
     - name: Tag
       run: |
