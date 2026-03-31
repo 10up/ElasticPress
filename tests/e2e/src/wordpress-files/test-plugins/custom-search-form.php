@@ -27,8 +27,6 @@ function ep_custom_search_form_shortcode() {
 				'name'            => 'cat',
 			],
 		);
-		?>
-		<?php
 		$tag_terms = get_terms(
 			[
 				'taxonomy'   => 'post_tag',
