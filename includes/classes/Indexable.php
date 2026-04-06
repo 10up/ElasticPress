@@ -563,9 +563,9 @@ abstract class Indexable {
 
 		$results = [];
 
-		$body = [];
+		$body              = [];
 		$current_body_size = 0;
-		$requests = 0;
+		$requests          = 0;
 
 		/*
 		 * This script will use two main arrays: $body and $documents, being $body the
@@ -574,8 +574,8 @@ abstract class Indexable {
 		 * a buffer as small as possible.
 		 */
 		do {
-			$next_document = array_shift( $documents );
-			$next_document_size = mb_strlen( $next_document );
+			$next_document          = array_shift( $documents );
+			$next_document_size     = mb_strlen( $next_document );
 			$has_buffered_documents = count( $body ) > 0;
 
 			// If the next document alone takes the entire current buffer size,
@@ -596,7 +596,7 @@ abstract class Indexable {
 					continue;
 				}
 
-				$body[] = $next_document;
+				$body[]             = $next_document;
 				$current_body_size += $next_document_size;
 
 				$can_add_more_documents = ( $current_body_size < $current_buffer_size && ! empty( $documents ) );
@@ -606,7 +606,7 @@ abstract class Indexable {
 
 				if ( $current_body_size > $max_buffer_size ) {
 					// The last document added to body made it too big, so let's give it back.
-					$removed_document = array_pop( $body );
+					$removed_document   = array_pop( $body );
 					$current_body_size -= mb_strlen( $removed_document );
 					array_unshift( $documents, $removed_document );
 				}
@@ -649,9 +649,9 @@ abstract class Indexable {
 				}
 
 				if ( count( $body ) === 1 ) {
-					$max_buffer_size = min( $max_buffer_size, $current_body_size );
-					$results[]       = $result;
-					$body            = [];
+					$max_buffer_size   = min( $max_buffer_size, $current_body_size );
+					$results[]         = $result;
+					$body              = [];
 					$current_body_size = 0;
 					continue;
 				}
@@ -663,7 +663,7 @@ abstract class Indexable {
 				}
 
 				// We have a too big buffer. Remove one doc from the body, and set both max and current as its size.
-				$removed_document = array_pop( $body );
+				$removed_document   = array_pop( $body );
 				$current_body_size -= mb_strlen( $removed_document );
 				array_unshift( $documents, $removed_document );
 
@@ -682,7 +682,7 @@ abstract class Indexable {
 
 			$results[] = $result;
 
-			$body = [];
+			$body              = [];
 			$current_body_size = 0;
 		} while ( ! empty( $documents ) );
 
