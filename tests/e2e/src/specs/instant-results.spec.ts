@@ -26,12 +26,20 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		});
 	};
 
-	const addInstantResultFilter = async (page: Page, filterName: string) => {
+	const addInstantResultFilter = async (
+		page: Page,
+		filterName: string,
+		options?: { keepExisting?: boolean },
+	) => {
 		await page.locator('.components-form-token-field__input').focus();
-		await page.keyboard.press('Backspace');
-		await page.keyboard.press('Backspace');
-		await page.keyboard.press('Backspace');
-		await page.keyboard.press('Backspace');
+
+		if (!options?.keepExisting) {
+			await page.keyboard.press('Backspace');
+			await page.keyboard.press('Backspace');
+			await page.keyboard.press('Backspace');
+			await page.keyboard.press('Backspace');
+		}
+
 		await page.locator('.components-form-token-field__input').fill(filterName);
 		await page.keyboard.press('ArrowDown');
 		await page.keyboard.press('Enter');
@@ -597,6 +605,58 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 					'filter-instant-results-category-terms',
 					'wpCli',
 				);
+			});
+
+			test('Is possible to search with taxonomies and tags in search form', async ({
+				loggedInPage,
+			}) => {
+				await maybeEnableFeature('instant-results');
+				await activatePlugin(loggedInPage, 'custom-search-form', 'wpCli');
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, '(category)');
+				await addInstantResultFilter(loggedInPage, '(post_tag)', {
+					keepExisting: true,
+				});
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
+				await publishPost(
+					loggedInPage,
+					{
+						title: 'Custom Search Form Page',
+						content: '[ep_custom_search_form]',
+					},
+					true,
+				);
+
+				await expect(loggedInPage.locator('form.searchform')).toBeVisible();
+				await expect(loggedInPage.locator('form.searchform input[name="s"]')).toBeVisible();
+				await expect(
+					loggedInPage.locator('form.searchform .search-tags-checkboxes'),
+				).toBeVisible();
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=');
+
+				await loggedInPage.locator('#cat').selectOption({ label: 'aciform' });
+				await loggedInPage.locator('form.searchform').getByLabel('edge case').check();
+				await loggedInPage.locator('form.searchform').getByLabel('categories').check();
+				await loggedInPage.locator('#searchform #s').click();
+				await loggedInPage.keyboard.press('Enter');
+
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
+				await responsePromise;
+
+				await expect(loggedInPage.locator('.ep-search-tokens')).toContainText('aciform');
+				await expect(loggedInPage.locator('.ep-search-tokens')).toContainText('edge case');
+				await expect(loggedInPage.locator('.ep-search-tokens')).toContainText('categories');
 			});
 		});
 
