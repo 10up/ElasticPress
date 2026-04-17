@@ -193,7 +193,7 @@ abstract class Feature {
 		/**
 		 * Filter feature requirement status
 		 *
-		 * @hook ep_{indexable_slug}_index_kill
+		 * @hook ep_feature_requirements_status
 		 * @param  {FeatureRequirementStatus} $status Current feature requirement status
 		 * @param {Feature} $feature Current feature
 		 * @since  2.2
