@@ -69,7 +69,7 @@ class SearchAlgorithms {
 	 */
 	public function get_all( $slug_only = false ) {
 		if ( $slug_only ) {
-			return array_keys( $search_algorithms );
+			return array_keys( $this->registered_search_algorithms );
 		}
 
 		return $this->registered_search_algorithms;
