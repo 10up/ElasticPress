@@ -184,6 +184,11 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			await setDefaultFeatureSettings();
 		});
 
+		test.afterAll(async () => {
+			await wpCli('plugin deactivate simulate-setting-dependency', true);
+			await setDefaultFeatureSettings();
+		});
+
 		test('Feature settings schema updates without page refresh when dependency changes', async ({
 			loggedInPage,
 		}) => {
@@ -246,6 +251,15 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			await expect(loggedInPage.getByLabel('Advanced (requires Post Search)')).toBeVisible();
 			await expect(loggedInPage.getByLabel('Expert (requires Post Search)')).toBeVisible();
 
+			// Select a conditional option that only exists while Post Search is active
+			await loggedInPage.getByLabel('Advanced (requires Post Search)').check();
+			await saveButton.click();
+			await expect(
+				loggedInPage.locator('.components-snackbar').filter({
+					hasText: 'Feature settings saved',
+				}),
+			).toBeVisible({ timeout: 10000 });
+
 			// Now disable Post Search and verify the options disappear
 			await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
 			await expect(loggedInPage.locator('div[id*="search-view"]')).toBeVisible();
@@ -267,7 +281,7 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			).toBeVisible();
 			await loggedInPage.waitForTimeout(500);
 
-			// Verify the conditional options are gone again
+			// Verify the conditional options are gone again (schema refresh)
 			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
 			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
 			await expect(
@@ -276,6 +290,10 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			await expect(
 				loggedInPage.getByLabel('Expert (requires Post Search)'),
 			).not.toBeVisible();
+
+			// Verify the previously-selected `advanced` value was normalized
+			await expect(loggedInPage.getByLabel('Basic')).toBeChecked();
+			await expect(loggedInPage.getByLabel('Standard')).not.toBeChecked();
 		});
 	});
 });

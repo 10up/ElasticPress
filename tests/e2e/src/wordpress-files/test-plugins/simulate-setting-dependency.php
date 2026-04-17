@@ -44,8 +44,43 @@ class ConditionalSettingsFeature extends Feature {
 
 	/**
 	 * Set up the feature.
+	 *
+	 * Hooks into the feature settings option filters so stored values that are
+	 * no longer valid (e.g. `advanced` / `expert` when Post Search is
+	 * inactive) are normalized back to the default. This mirrors how real
+	 * features such as ElasticPress Labs' Search Algorithm feature sanitize
+	 * stored values whose options have disappeared, and exercises the value
+	 * normalization half of the post-save refresh contract.
 	 */
-	public function setup() {}
+	public function setup() {
+		add_filter( 'option_ep_feature_settings', [ $this, 'normalize_stored_value' ] );
+		add_filter( 'option_ep_feature_settings_draft', [ $this, 'normalize_stored_value' ] );
+	}
+
+	/**
+	 * Normalize the stored `test_version` to the default when it is not a
+	 * currently-valid option for the active state.
+	 *
+	 * @param mixed $settings The unfiltered option value.
+	 * @return mixed The normalized option value.
+	 */
+	public function normalize_stored_value( $settings ) {
+		if ( ! is_array( $settings ) || empty( $settings[ $this->slug ]['test_version'] ) ) {
+			return $settings;
+		}
+
+		$allowed = [ 'basic', 'standard' ];
+		$search  = Features::factory()->get_registered_feature( 'search' );
+		if ( $search && $search->is_active() ) {
+			$allowed = array_merge( $allowed, [ 'advanced', 'expert' ] );
+		}
+
+		if ( ! in_array( $settings[ $this->slug ]['test_version'], $allowed, true ) ) {
+			$settings[ $this->slug ]['test_version'] = $this->default_settings['test_version'];
+		}
+
+		return $settings;
+	}
 
 	/**
 	 * Requirements status.
