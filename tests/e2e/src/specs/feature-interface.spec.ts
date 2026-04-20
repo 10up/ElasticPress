@@ -229,14 +229,20 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 			await loggedInPage.waitForTimeout(500);
 			await loggedInPage.getByRole('checkbox', { name: 'Enable' }).setChecked(true);
 
-			// Save and wait for the save operation to complete
+			// Save and wait for the save operation to complete.
 			const saveButton = loggedInPage.getByRole('button', { name: 'Save changes' });
-			await saveButton.click();
-			await expect(
-				loggedInPage.locator('.components-snackbar').filter({
-					hasText: 'Feature settings saved',
-				}),
-			).toBeVisible({ timeout: 10000 });
+			const saveSnackbar = loggedInPage
+				.locator('.components-snackbar')
+				.filter({ hasText: 'Feature settings saved' });
+			const saveAndConfirm = async () => {
+				await saveButton.click();
+				await expect(saveSnackbar.last()).toBeVisible({ timeout: 10000 });
+				await saveSnackbar.evaluateAll((nodes) => {
+					nodes.forEach((node) => (node as HTMLElement).click());
+				});
+				await expect(saveSnackbar).toHaveCount(0, { timeout: 5000 });
+			};
+			await saveAndConfirm();
 
 			// Navigate back to the Test Conditional Settings (no page refresh)
 			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
@@ -253,26 +259,14 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 
 			// Select a conditional option that only exists while Post Search is active
 			await loggedInPage.getByLabel('Advanced (requires Post Search)').check();
-			await saveButton.click();
-			await expect(
-				loggedInPage.locator('.components-snackbar').filter({
-					hasText: 'Feature settings saved',
-				}),
-			).toBeVisible({ timeout: 10000 });
+			await saveAndConfirm();
 
 			// Now disable Post Search and verify the options disappear
 			await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
 			await expect(loggedInPage.locator('div[id*="search-view"]')).toBeVisible();
 			await loggedInPage.waitForTimeout(500);
 			await loggedInPage.getByRole('checkbox', { name: 'Enable' }).setChecked(false);
-
-			// Save and wait for the save operation to complete
-			await saveButton.click();
-			await expect(
-				loggedInPage.locator('.components-snackbar').filter({
-					hasText: 'Feature settings saved',
-				}),
-			).toBeVisible({ timeout: 10000 });
+			await saveAndConfirm();
 
 			// Navigate back to the Test Conditional Settings (no page refresh)
 			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();

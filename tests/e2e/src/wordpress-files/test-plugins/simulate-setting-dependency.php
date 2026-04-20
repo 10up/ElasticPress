@@ -69,9 +69,9 @@ class ConditionalSettingsFeature extends Feature {
 			return $settings;
 		}
 
-		$allowed = [ 'basic', 'standard' ];
-		$search  = Features::factory()->get_registered_feature( 'search' );
-		if ( $search && $search->is_active() ) {
+		$allowed       = [ 'basic', 'standard' ];
+		$search_active = ! empty( $settings['search']['active'] );
+		if ( $search_active ) {
 			$allowed = array_merge( $allowed, [ 'advanced', 'expert' ] );
 		}
 
