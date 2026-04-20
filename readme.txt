@@ -79,6 +79,40 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 == Changelog ==
 
+= 5.3.3 - 2026-XX-XX =
+
+__Added:__
+
+* Numbered pagination option for Instant Results. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* New elasticpress_general_ep_screens filter. Props [@felipeelia](https://github.com/felipeelia).
+* New ep_feature_requirements_status_* filters and a new "Temporarily disabled" feature status (in code). Props [@felipeelia](https://github.com/felipeelia).
+
+__Changed:__
+
+* Optimize mb_strlen calls during sync process. Props [@kasparsd](https://github.com/kasparsd).
+
+__Fixed:__
+
+* Keep the sync running when code outputs directly in the post content. Props [@burhandodhy](https://github.com/burhandodhy), [@tomjn](https://github.com/tomjn), and [@felipeelia](https://github.com/felipeelia).
+* Prevent saving Custom Results while posts are loading. Props [@burhandodhy](https://github.com/burhandodhy).
+* Update label for bulk request timeout in ElasticPress status report. Props [@burhandodhy](https://github.com/burhandodhy).
+* Undefined array key warnings in Weighting.php. Props [@burhandodhy](https://github.com/burhandodhy) and [@BWBama85](https://github.com/BWBama85).
+* Ensure the Sync creates the Instant Results templates for all the sites. Props [@burhandodhy](https://github.com/burhandodhy) and [@anjulahettige](https://github.com/anjulahettige).
+* Ensure that WordPress caches the meta and term queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@maciejmackowiak](https://github.com/maciejmackowiak).
+* An issue where posts were not returned correctly when the search term contained accented characters. Props [@burhandodhy](https://github.com/burhandodhy).
+* Prevent fatal error in Instant Results facets when `ep_facet_include_taxonomies` returns non-WP_Taxonomy values. Props [@laraib15](https://github.com/laraib15).
+* Instant Results displayed special characters as HTML encoded text. Props [@burhandodhy](https://github.com/burhandodhy) and [@wparslans](https://github.com/wparslans).
+* Error when trying to use queried object that doesn't exist. Props [@tomjn](https://github.com/tomjn) and [@ZacharyRener](https://github.com/ZacharyRener).
+* Only consider a feature active if not disabled by code. Props [@felipeelia](https://github.com/felipeelia).
+* Several typos. Props [@szepeviktor](https://github.com/szepeviktor) and [@felipeelia](https://github.com/felipeelia).
+
+__Developer:__
+
+* Ensure `ep_{$indexable->slug}_sync_kill` properly prevents object indexing during sync and post updates. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@matthijsch](https://github.com/matthijsch).
+* Gracefully handle incorrect return types from `ep_admin_notices` filter callbacks. Props [@qudwill](https://github.com/qudwill), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9).
+* Webpack configuration option for JavaScript and CSS source maps (editor debugging). Props [@fiftin](https://github.com/fiftin) and [@ZacharyRener](https://github.com/ZacharyRener).
+* Fix e2e tests. Props [@felipeelia](https://github.com/felipeelia).
+
 = 5.3.2.2 - 2026-03-26 =
 
 __Changed:__
