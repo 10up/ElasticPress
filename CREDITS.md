@@ -88,7 +88,6 @@ Thank you to all the people who have already contributed to this repository via 
 [Gassan Gousseinov (@gassan)](https://github.com/gassan),
 [Evan Mattson (@aaemnnosttv)](https://github.com/aaemnnosttv),
 [Helen Hou-Sandi (@helen)](https://github.com/helen),
-[Peter Sorensen (@psorensen)](https://github.com/psorensen),
 [columbian-chris (@columbian-chris)](https://github.com/columbian-chris),
 [John Spellman (@jspellman814)](https://github.com/jspellman814),
 [Mindaugas Budreika (@mch0lic)](https://github.com/mch0lic),
@@ -265,8 +264,25 @@ Thank you to all the people who have already contributed to this repository via 
 [Laraib Tahir (@laraib15)](https://github.com/laraib15),
 [@wparslans](https://github.com/wparslans),
 [Brent Wilson (@BWBama85)](https://github.com/BWBama85),
+[@qazaqstan2025](https://github.com/qazaqstan2025),
+[Allen Moore (@allenmoore)](https://github.com/allenmoore),
+[Christoph Bratschi (@cbratschi)](https://github.com/cbratschi),
+[Chris Van Patten (@chrisvanpatten)](https://github.com/chrisvanpatten),
+[Chris (@crebacz)](https://github.com/crebacz),
+[Denis Gukov (@fiftin)](https://github.com/fiftin),
+[Hugo Solar (@hugosolar)](https://github.com/hugosolar),
+[@jaisgit](https://github.com/jaisgit),
+[JG Media (@jgmedialtd)](https://github.com/jgmedialtd),
+[Kaspars Dambis (@kasparsd)](https://github.com/kasparsd),
+[Matthijs Hasenpflug (@matthijsch)](https://github.com/matthijsch),
+[Max (@Maxdw)](https://github.com/Maxdw),
+[Patrick Johanneson (@pjohanneson)](https://github.com/pjohanneson),
+[Vladimir (@qudwill)](https://github.com/qudwill),
+[Ray Lee (@ray-lee)](https://github.com/ray-lee),
+[Christian Janbjer (@slaxxarn)](https://github.com/slaxxarn),
+[@superdummy](https://github.com/superdummy),
 and
-[@qazaqstan2025](https://github.com/qazaqstan2025).
+[@tomdxw](https://github.com/tomdxw).
 
 ## Libraries
 
