@@ -40,6 +40,16 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 * Fix e2e tests. Props [@felipeelia](https://github.com/felipeelia) via [#4262](https://github.com/10up/ElasticPress/pull/4262).
 
+## [5.3.2.2] - 2026-03-26
+
+### Fixed
+* Deployment to WordPress.org. Props [@felipeelia](https://github.com/felipeelia) via [#4301](https://github.com/10up/ElasticPress/pull/4301).
+
+## [5.3.2.1] - 2026-03-26
+
+### Changed
+* Method of verifying ElasticPress.io environments. Props [@felipeelia](https://github.com/felipeelia) via [#4300](https://github.com/10up/ElasticPress/pull/4300).
+
 ## [5.3.2] - 2025-11-21
 
 ### Added
@@ -645,7 +655,7 @@ ElasticPress 4.5.0 release highlights:
 - Facets styles not enqueued more than once. Props [@felipeelia](https://github.com/felipeelia) and [@MediaMaquina](https://github.com/MediaMaquina) via [#3306](https://github.com/10up/ElasticPress/pull/3306).
 - Duplicate terms listed in Instant Results facets. Props [@felipeelia](https://github.com/felipeelia) via [#3335](https://github.com/10up/ElasticPress/pull/3335).
 - Not setting the post context when indexing a post. Props [@tomjn](https://github.com/tomjn) via [#3333](https://github.com/10up/ElasticPress/pull/3333).
-- Some utilitary methods in the Command class treated as WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3320](https://github.com/10up/ElasticPress/pull/3320).
+- Some utility methods in the Command class treated as WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3320](https://github.com/10up/ElasticPress/pull/3320).
 - Make the "Failed Queries" notice dismissible. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3348](https://github.com/10up/ElasticPress/pull/3348).
 - Undefined index `'elasticpress'` in the Status Report page. Props [@MARQAS](https://github.com/MARQAS) via [#3374](https://github.com/10up/ElasticPress/pull/3374).
 - Undefined array key `'displayCount'` error for facet. Props [@burhandodhy](https://github.com/burhandodhy) via [#3373](https://github.com/10up/ElasticPress/pull/3373).
@@ -2123,7 +2133,7 @@ This is a bug fix release with some filter additions.
 ### Added
 - Blog id to `ep_index_name` filter. Props [@kovshenin](https://github.com/kovshenin)
 - Support post caching in search
-- Recursive term indexing for heirarchal taxonomies. Props [@tuanmh](https://github.com/tuanmh)
+- Recursive term indexing for hierarchical taxonomies. Props [@tuanmh](https://github.com/tuanmh)
 - Enable indexing of attachments
 - Support fallback hosts in case main EP host is unavailable. Props [@chriswiegman](https://github.com/chriswiegman)
 - `ep_retrieve_the_post` filter to support relevancy score manipulation. Props [@matthewspencer](https://github.com/matthewspencer)
@@ -2222,7 +2232,7 @@ This is a bug fix release with some filter additions.
 - _boost from mapping. _boost is deprecated by Elasticsearch.
 
 ### Fixed
-- We don't want to add the like_text query unless we have a non empty search string. This mimcs the behavior of MySQL or WP which will return everything if s is empty.
+- We don't want to add the like_text query unless we have a non empty search string. This mimics the behavior of MySQL or WP which will return everything if s is empty.
 
 ## [1.1] - 2014-10-27
 ### Added
@@ -2335,7 +2345,9 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
-[5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.3
+[5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
+[5.3.2.2]: https://github.com/10up/ElasticPress/compare/5.3.2.1...5.3.2.2
+[5.3.2.1]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.2.1
 [5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
 [5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
 [5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0
