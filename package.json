@@ -108,6 +108,7 @@
     "wpDependencyExternals": true
   },
   "overrides": {
-    "@babel/runtime": "^7.27.6"
+    "@babel/runtime": "^7.27.6",
+    "webpack": "5.105.4"
   }
 }
