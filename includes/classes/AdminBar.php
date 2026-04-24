@@ -153,13 +153,12 @@ class AdminBar {
 		}
 
 		$results_output = implode( '<br>', $filtered_status_and_summary['summary'] );
-		$results_output = str_replace( '"', "'", $results_output );
 
 		$final_output = '<script>
 			document.addEventListener("DOMContentLoaded", function() {
-       			document.getElementById("ep-ab-indicator").classList.add("ep-status-indicator--' . esc_js( $filtered_status_and_summary['status'] ) . '");
-				document.querySelector("#wp-admin-bar-ep-basic-status-summary .ab-item").innerHTML = "' . wp_kses_post( $results_output ) . '";
-    		});
+				document.getElementById("ep-ab-indicator").classList.add("ep-status-indicator--' . esc_js( $filtered_status_and_summary['status'] ) . '");
+				document.querySelector("#wp-admin-bar-ep-basic-status-summary .ab-item").innerHTML = ' . wp_json_encode( wp_kses_post( $results_output ) ) . ';
+			});
 		</script>';
 
 		/**
