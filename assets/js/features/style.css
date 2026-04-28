@@ -10,6 +10,11 @@
 
 	& .components-notice__actions {
 		display: inline-flex;
+		margin-top: 0;
+
+		& .is-link {
+			margin-left: 12px;
+		}
 	}
 
 	& .components-checkbox-control:has([disabled]) {
@@ -21,7 +26,7 @@
 	}
 
 	& .components-base-control:not(:focus-within) {
-		
+
 		& .components-form-toggle__track,
 		& .components-form-toggle__thumb {
 			transition: none;
@@ -125,7 +130,7 @@
 }
 
 .ep-dashboard-tab {
-	
+
 	/* Base tab styling */
 	align-items: center;
 	background: transparent;

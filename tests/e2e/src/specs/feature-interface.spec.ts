@@ -4,6 +4,7 @@ import {
 	goToAdminPage,
 	wpCli,
 	maybeDisableFeature,
+	maybeEnableFeature,
 	setDefaultFeatureSettings,
 	deactivatePlugin,
 } from '../utils.js';
@@ -175,5 +176,118 @@ test.describe('Features Interface', { tag: '@group1' }, () => {
 		await expect(
 			loggedInPage.getByRole('checkbox', { name: 'Trigger Google Analytics' }),
 		).not.toBeDisabled();
+	});
+
+	test.describe('Settings Schema Updates on Save', () => {
+		test.afterEach(async ({ loggedInPage }) => {
+			await deactivatePlugin(loggedInPage, 'simulate-setting-dependency', 'wpCli');
+			await setDefaultFeatureSettings();
+		});
+
+		test.afterAll(async () => {
+			await wpCli('plugin deactivate simulate-setting-dependency', true);
+			await setDefaultFeatureSettings();
+		});
+
+		test('Feature settings schema updates without page refresh when dependency changes', async ({
+			loggedInPage,
+		}) => {
+			await activatePlugin(loggedInPage, 'simulate-setting-dependency', 'wpCli');
+			await maybeEnableFeature('test_conditional_settings');
+
+			// Start with Post Search disabled so conditional options are hidden
+			await maybeDisableFeature('search');
+
+			// Navigate to the settings page
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await expect(loggedInPage.locator('.ep-settings-page form')).toBeVisible();
+			await loggedInPage.waitForFunction(() => {
+				return !!(window as any).epDashboard && !!(window as any).epDashboard.features;
+			});
+
+			// Navigate to the Test Conditional Settings panel
+			await loggedInPage.getByRole('button', { name: 'Core Search' }).click();
+			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
+			await expect(
+				loggedInPage.locator('div[id*="test_conditional_settings-view"]'),
+			).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+
+			// Verify only the base options are visible (Post Search is not active)
+			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Advanced (requires Post Search)'),
+			).not.toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Expert (requires Post Search)'),
+			).not.toBeVisible();
+
+			// Navigate to Post Search and enable it
+			await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
+			await expect(loggedInPage.locator('div[id*="search-view"]')).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+			await loggedInPage.getByRole('checkbox', { name: 'Enable' }).setChecked(true);
+
+			// Save and wait for the save operation to complete.
+			const saveButton = loggedInPage.getByRole('button', { name: 'Save changes' });
+			const saveSnackbar = loggedInPage
+				.locator('.components-snackbar')
+				.filter({ hasText: 'Feature settings saved' });
+			const saveAndConfirm = async () => {
+				await saveButton.click();
+				await expect(saveSnackbar.last()).toBeVisible({ timeout: 10000 });
+				await saveSnackbar.evaluateAll((nodes) => {
+					nodes.forEach((node) => (node as HTMLElement).click());
+				});
+				await expect(saveSnackbar).toHaveCount(0, { timeout: 5000 });
+			};
+			await saveAndConfirm();
+
+			// Navigate back to the Test Conditional Settings (no page refresh)
+			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
+			await expect(
+				loggedInPage.locator('div[id*="test_conditional_settings-view"]'),
+			).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+
+			// Verify the conditional options now appear
+			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Advanced (requires Post Search)')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Expert (requires Post Search)')).toBeVisible();
+
+			// Select a conditional option that only exists while Post Search is active
+			await loggedInPage.getByLabel('Advanced (requires Post Search)').check();
+			await saveAndConfirm();
+
+			// Now disable Post Search and verify the options disappear
+			await loggedInPage.getByRole('button', { name: 'Post Search' }).click();
+			await expect(loggedInPage.locator('div[id*="search-view"]')).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+			await loggedInPage.getByRole('checkbox', { name: 'Enable' }).setChecked(false);
+			await saveAndConfirm();
+
+			// Navigate back to the Test Conditional Settings (no page refresh)
+			await loggedInPage.getByRole('button', { name: 'Test Conditional Settings' }).click();
+			await expect(
+				loggedInPage.locator('div[id*="test_conditional_settings-view"]'),
+			).toBeVisible();
+			await loggedInPage.waitForTimeout(500);
+
+			// Verify the conditional options are gone again (schema refresh)
+			await expect(loggedInPage.getByLabel('Basic')).toBeVisible();
+			await expect(loggedInPage.getByLabel('Standard')).toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Advanced (requires Post Search)'),
+			).not.toBeVisible();
+			await expect(
+				loggedInPage.getByLabel('Expert (requires Post Search)'),
+			).not.toBeVisible();
+
+			// Verify the previously-selected `advanced` value was normalized
+			await expect(loggedInPage.getByLabel('Basic')).toBeChecked();
+			await expect(loggedInPage.getByLabel('Standard')).not.toBeChecked();
+		});
 	});
 });
