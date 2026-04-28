@@ -222,6 +222,51 @@ class TestInstantResults extends BaseTestCase {
 	}
 
 	/**
+	 * Test that excluded post types are removed from the search template.
+	 *
+	 * @group instant-results
+	 * @since 5.4.0
+	 */
+	public function test_search_template_excludes_post_types() {
+		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+
+		$baseline = $feature->get_search_template();
+		$this->assertStringContainsString( '"page"', $baseline );
+
+		$post_types_filter = function () {
+			return [ 'page' ];
+		};
+		add_filter( 'ep_instant_results_excluded_post_types', $post_types_filter );
+
+		$template = $feature->get_search_template();
+
+		remove_filter( 'ep_instant_results_excluded_post_types', $post_types_filter );
+
+		$this->assertStringNotContainsString( '"page"', $template );
+	}
+
+	/**
+	 * Test the get_excluded_term_ids method.
+	 *
+	 * @group instant-results
+	 * @since 5.4.0
+	 */
+	public function test_get_excluded_term_ids() {
+		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
+
+		$term_ids_filter = function () {
+			return [ 1, 42 ];
+		};
+		add_filter( 'ep_instant_results_excluded_term_ids', $term_ids_filter );
+
+		$excluded = $feature->get_excluded_term_ids();
+
+		remove_filter( 'ep_instant_results_excluded_term_ids', $term_ids_filter );
+
+		$this->assertSame( [ 1, 42 ], $excluded );
+	}
+
+	/**
 	 * Ensure invalid taxonomy values returned from ep_facet_include_taxonomies
 	 * are skipped and logged via _doing_it_wrong().
 	 *
@@ -266,7 +311,7 @@ class TestInstantResults extends BaseTestCase {
 			$calls[0]['function']
 		);
 
-		$message = html_entity_decode( $calls[0]['message'] );
+		$message = html_entity_decode( $calls[0]['message'], ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401 );
 
 		$this->assertStringContainsString( 'not-a-real-taxonomy', $message );
 		$this->assertStringContainsString( 'Invalid taxonomy', $message );
