@@ -10,8 +10,11 @@
 
 	& .components-notice__actions {
 		display: inline-flex;
-		margin-left: 6px;
 		margin-top: 0;
+
+		& .is-link {
+			margin-left: 12px;
+		}
 	}
 
 	& .components-checkbox-control:has([disabled]) {
