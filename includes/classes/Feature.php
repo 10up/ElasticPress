@@ -193,7 +193,7 @@ abstract class Feature {
 		/**
 		 * Filter feature requirement status
 		 *
-		 * @hook ep_{indexable_slug}_index_kill
+		 * @hook ep_feature_requirements_status
 		 * @param  {FeatureRequirementStatus} $status Current feature requirement status
 		 * @param {Feature} $feature Current feature
 		 * @since  2.2
@@ -481,6 +481,15 @@ abstract class Feature {
 		 * @return {array} New $settings_schema value
 		 */
 		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
+	}
+
+	/**
+	 * Reset the cached settings schema so it is rebuilt on next access.
+	 *
+	 * @since 5.3.3
+	 */
+	public function reset_settings_schema() {
+		$this->settings_schema = [];
 	}
 
 	/**

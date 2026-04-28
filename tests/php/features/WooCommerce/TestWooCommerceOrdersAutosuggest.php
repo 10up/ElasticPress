@@ -36,7 +36,6 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
-		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
 
 		$this->woocommerce_feature = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
@@ -45,6 +44,11 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		}
 
 		ElasticPress\Features::factory()->setup_features();
+
+		ElasticPress\Elasticsearch::factory()->delete_all_indices();
+		ElasticPress\Indexables::factory()->get( 'post' )->put_mapping();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->sync_manager->reset_sync_queue();
 
 		$this->orders_autosuggest = $this->woocommerce_feature->orders_autosuggest;
 	}
@@ -437,5 +441,47 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	public function test_get_setting_help_message_feature_not_available() {
 		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
 		$this->assertStringContainsString( 'Due to the sensitive nature of orders', $new_settings_schema[0]['help'] );
+	}
+
+	/**
+	 * Test shop_order with password is synced without Protected Content feature enabled.
+	 *
+	 * @since 5.3.3
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_order_with_password_is_synced() {
+		add_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+
+		/**
+		 * Enable the orders autosuggest feature.
+		 */
+		$filter = function () {
+			return [
+				'woocommerce' => [
+					'orders' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_site_option_ep_feature_settings', $filter );
+		add_filter( 'pre_option_ep_feature_settings', $filter );
+
+		$this->orders_autosuggest->setup();
+
+		$order = new \WC_Order();
+		$order->set_order_key( '1234567890' ); // save in the post_password field
+		$order->save();
+
+		$order_id = $order->get_id();
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order_id );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$order = ElasticPress\Indexables::factory()->get( 'post' )->get( $order_id );
+		$this->assertNotEmpty( $order );
+
+		remove_filter( 'ep_woocommerce_orders_autosuggest_available', '__return_true' );
+		remove_filter( 'pre_option_ep_feature_settings', $filter );
+		remove_filter( 'pre_site_option_ep_feature_settings', $filter );
 	}
 }
