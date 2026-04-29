@@ -6,21 +6,28 @@ extend-exclude = [
     "dist/",
     "build/",
     "tests/",
+    "lang/",
 ]
 ignore-hidden = false
 
 [default]
 extend-ignore-re = [
     "@[A-Za-z0-9_-]+",
+    "Fabian Marz",
+    "Tung Du",
+    "github:[^\"\\s]+",
+    "'[a-z][a-zA-Z0-9_]*'",
+    "\"[a-z][a-zA-Z0-9_]*\"",
+]
+# Only flag typos in standalone words. Compound identifiers (snake_case,
+# kebab-case, camelCase, PascalCase mixed) often contain WordPress or
+# Elasticsearch terminology baked into public APIs that can't be renamed.
+extend-ignore-identifiers-re = [
+    ".*[_-].*",
+    ".*[a-z][A-Z].*",
 ]
 
 [default.extend-words]
-# Casing conventions for proper nouns
-"Wordpress" = "WordPress"
-"wordPress" = "WordPress"
-"ElasticSearch" = "Elasticsearch"
-"Github" = "GitHub"
-
 # Typos previously found in this codebase
 "utilitary" = "utility"
 "heirarchal" = "hierarchical"
@@ -33,3 +40,4 @@ extend-ignore-re = [
 
 [default.extend-identifiers]
 "Automattic" = "Automattic"
+"stati" = "stati"
