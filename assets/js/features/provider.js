@@ -38,7 +38,7 @@ export const FeatureSettingsProvider = ({
 	children,
 	defaultSettings,
 	epioLogoUrl,
-	features,
+	features: initialFeatures,
 	indexMeta,
 	syncedSettings,
 }) => {
@@ -46,6 +46,21 @@ export const FeatureSettingsProvider = ({
 	const [isSyncing, setIsSyncing] = useState(!!indexMeta);
 	const [settings, setSettings] = useState({ ...defaultSettings });
 	const [savedSettings, setSavedSettings] = useState({ ...syncedSettings });
+	const [features, setFeatures] = useState(initialFeatures);
+
+	/**
+	 * Refetch the authoritative state snapshot from the REST API.
+	 */
+	const refresh = useCallback(async () => {
+		const response = await apiFetch({
+			method: 'GET',
+			url: apiUrl,
+		});
+
+		setFeatures(response.features);
+		setSavedSettings(response.settings);
+		setSettings(response.settingsDraft ?? response.settings);
+	}, [apiUrl]);
 
 	/**
 	 * Get a feature's data by its slug.
@@ -158,7 +173,7 @@ export const FeatureSettingsProvider = ({
 		try {
 			setIsBusy(true);
 
-			const response = await apiFetch({
+			await apiFetch({
 				body: JSON.stringify(settings),
 				headers: {
 					'Content-Type': 'application/json',
@@ -167,7 +182,7 @@ export const FeatureSettingsProvider = ({
 				url: apiUrl,
 			});
 
-			setSavedSettings(response.data);
+			await refresh();
 		} finally {
 			setIsBusy(false);
 		}
@@ -184,6 +199,7 @@ export const FeatureSettingsProvider = ({
 		isSyncing,
 		setIsSyncing,
 		isSyncRequired,
+		refresh,
 		resetSettings,
 		saveSettings,
 		savedSettings,

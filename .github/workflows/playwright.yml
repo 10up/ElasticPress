@@ -19,6 +19,7 @@ on:
   pull_request:
     branches:
       - develop
+      - trunk # useful for hotfix releases
       - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
 
 jobs:
@@ -119,7 +120,9 @@ jobs:
       with:
         name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
         retention-days: 2
-        path: tests/e2e/playwright-report/
+        path: |
+          ${{ github.workspace }}/playwright-report/
+          ${{ github.workspace }}/tests/e2e/playwright-report/
 
     - name: Stop Elasticsearch
       if: matrix.esVersion != 'EP.io'
