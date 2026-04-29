@@ -484,6 +484,15 @@ abstract class Feature {
 	}
 
 	/**
+	 * Reset the cached settings schema so it is rebuilt on next access.
+	 *
+	 * @since 5.3.3
+	 */
+	public function reset_settings_schema() {
+		$this->settings_schema = [];
+	}
+
+	/**
 	 * Default implementation of `set_settings_schema` based on the `default_settings` attribute
 	 *
 	 * @since 5.0.0
