@@ -1,0 +1,35 @@
+[files]
+extend-exclude = [
+    ".git/",
+    "node_modules/",
+    "vendor/",
+    "dist/",
+    "build/",
+    "tests/",
+]
+ignore-hidden = false
+
+[default]
+extend-ignore-re = [
+    "@[A-Za-z0-9_-]+",
+]
+
+[default.extend-words]
+# Casing conventions for proper nouns
+"Wordpress" = "WordPress"
+"wordPress" = "WordPress"
+"ElasticSearch" = "Elasticsearch"
+"Github" = "GitHub"
+
+# Typos previously found in this codebase
+"utilitary" = "utility"
+"heirarchal" = "hierarchical"
+"mimcs" = "mimics"
+"santitize" = "sanitize"
+"warnngs" = "warnings"
+"versino" = "version"
+"degister" = "deregister"
+"quries" = "queries"
+
+[default.extend-identifiers]
+"Automattic" = "Automattic"
