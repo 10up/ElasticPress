@@ -4041,6 +4041,40 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
+	 * Test that filter_allowed_metas keeps manual mode when the Search
+	 * feature is disabled (its `weighting` property is unavailable).
+	 *
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function testPrepareMetaWithSearchDisabled() {
+		if ( $this->is_network_activate() ) {
+			$this->markTestSkipped();
+		}
+
+		$search             = ElasticPress\Features::factory()->get_registered_feature( 'search' );
+		$original_weighting = $search->weighting;
+		$search->weighting  = null;
+
+		$post_id = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key1'        => 'allowed value',
+					'not_allowed_key1' => 'disallowed value',
+				],
+			]
+		);
+
+		$post          = get_post( $post_id );
+		$prepared_meta = ElasticPress\Indexables::factory()->get( 'post' )->prepare_meta( $post );
+
+		$this->assertArrayHasKey( 'test_key1', $prepared_meta );
+		$this->assertArrayNotHasKey( 'not_allowed_key1', $prepared_meta );
+
+		$search->weighting = $original_weighting;
+	}
+
+	/**
 	 * Helper method for filtering private meta keys
 	 *
 	 * @param  array $meta_keys Meta keys
