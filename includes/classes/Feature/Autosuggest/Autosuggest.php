@@ -337,6 +337,7 @@ class Autosuggest extends Feature {
 			'query'               => $query['body'],
 			'placeholder'         => $query['placeholder'],
 			'endpointUrl'         => esc_url( untrailingslashit( $endpoint_url ) ),
+			'resultsLimit'        => $query['results_limit'],
 			'selector'            => empty( $settings['autosuggest_selector'] ) ? 'ep-autosuggest' : esc_html( $settings['autosuggest_selector'] ),
 			/**
 			 * Filter autosuggest default selectors.
@@ -488,6 +489,34 @@ class Autosuggest extends Feature {
 			]
 		);
 
+		$results_limit           = isset( $args['posts_per_page'] ) ? (int) $args['posts_per_page'] : (int) get_option( 'posts_per_page' );
+		$search_ordering_feature = $features->get_registered_feature( 'searchordering' );
+
+		if ( $results_limit > 0 && $search_ordering_feature && $search_ordering_feature->is_active() ) {
+			/**
+			 * Filter the number of Autosuggest candidates requested when Custom Search Results is active.
+			 *
+			 * Autosuggest displays the number of results configured by `ep_autosuggest_query_args`, but Custom
+			 * Search Results need a larger candidate set so posts ordered beyond that display limit can still be
+			 * moved into their configured positions.
+			 *
+			 * @since 5.4.0
+			 * @hook ep_autosuggest_custom_results_query_size
+			 * @param {int}   $query_size    Number of candidates to request.
+			 * @param {int}   $results_limit Number of results to display.
+			 * @param {array} $args          Autosuggest query args.
+			 * @return {int} New candidate query size.
+			 */
+			$query_size = (int) apply_filters(
+				'ep_autosuggest_custom_results_query_size',
+				max( $results_limit, 10 ),
+				$results_limit,
+				$args
+			);
+
+			$args['posts_per_page'] = max( $results_limit, $query_size );
+		}
+
 		new \WP_Query( $args );
 
 		remove_filter( 'posts_pre_query', [ $features->get_registered_feature( $this->slug ), 'return_empty_posts' ], 100 );
@@ -497,9 +526,10 @@ class Autosuggest extends Feature {
 		remove_filter( 'ep_weighting_configuration', [ $features->get_registered_feature( $this->slug ), 'apply_autosuggest_weighting' ] );
 
 		return [
-			'body'        => $this->autosuggest_query,
-			'placeholder' => $placeholder,
-			'query_vars'  => $args,
+			'body'          => $this->autosuggest_query,
+			'placeholder'   => $placeholder,
+			'query_vars'    => $args,
+			'results_limit' => $results_limit,
 		];
 	}
 
