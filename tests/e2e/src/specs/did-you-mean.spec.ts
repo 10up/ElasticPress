@@ -32,9 +32,7 @@ test.describe('Did You Mean Feature', { tag: '@group2' }, () => {
 	 * plugin flips that filter so we can exercise the inserter and the
 	 * placeholder rendering without spinning up a block theme.
 	 */
-	test('Can insert the Did You Mean block and see its placeholder', async ({
-		loggedInPage,
-	}) => {
+	test('Can insert the Did You Mean block and see its placeholder', async ({ loggedInPage }) => {
 		await goToAdminPage(loggedInPage, 'post-new.php');
 
 		await openBlockInserter(loggedInPage);
@@ -43,9 +41,7 @@ test.describe('Did You Mean Feature', { tag: '@group2' }, () => {
 		await closeBlockInserter(loggedInPage);
 
 		const editorFrame = await getEditorFrame(loggedInPage);
-		const block = editorFrame
-			.locator('.wp-block.wp-block-elasticpress-did-you-mean')
-			.first();
+		const block = editorFrame.locator('.wp-block.wp-block-elasticpress-did-you-mean').first();
 
 		await expect(block).toBeVisible();
 		await expect(block).toContainText('Did you mean Hello?');
