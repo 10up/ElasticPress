@@ -25,8 +25,6 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Optimize mb_strlen calls during sync process. Props [@kasparsd](https://github.com/kasparsd) via [#4304](https://github.com/10up/ElasticPress/pull/4304).
 * Saving feature settings now reflects feature dependencies without refreshing the page. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4275](https://github.com/10up/ElasticPress/pull/4275).
 
-### Deprecated
-### Removed
 ### Fixed
 * Keep the sync running when code outputs directly in the post content. Props [@burhandodhy](https://github.com/burhandodhy), [@tomjn](https://github.com/tomjn), and [@felipeelia](https://github.com/felipeelia) via [#4266](https://github.com/10up/ElasticPress/pull/4266).
 * Prevent saving Custom Results while posts are loading. Props [@burhandodhy](https://github.com/burhandodhy) via [#4260](https://github.com/10up/ElasticPress/pull/4260).
