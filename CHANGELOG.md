@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
-## [5.3.3] - 2026-XX-XX
+## [5.3.3] - 2026-05-07
 
 ### Added
 * Numbered pagination option for Instant Results. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4274](https://github.com/10up/ElasticPress/pull/4274).
