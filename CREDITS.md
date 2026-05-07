@@ -147,7 +147,7 @@ Thank you to all the people who have already contributed to this repository via 
 [Rinat K (@rinatkhaziev)](https://github.com/rinatkhaziev),
 [Rebecca Hum (@rebeccahum)](https://github.com/rebeccahum),
 [Karol (@karols0)](https://github.com/karols0),
-[Tom J Nowell (@'tomj'n)](https://github.com/tomjn),
+[Tom J Nowell (@tomjn)](https://github.com/tomjn),
 [(@juansanchezfernandes)](https://github.com/juansanchezfernandes),
 [Thorsten Frommen (@tfrommen)](https://github.com/tfrommen),
 [Yoli (@yolih)](https://github.com/yolih),
