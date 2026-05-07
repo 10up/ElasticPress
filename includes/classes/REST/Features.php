@@ -29,10 +29,17 @@ class Features {
 			'elasticpress/v1',
 			'features',
 			[
-				'args'                => $this->get_args(),
-				'callback'            => [ $this, 'update_settings' ],
-				'methods'             => 'PUT',
-				'permission_callback' => [ $this, 'check_permission' ],
+				[
+					'callback'            => [ $this, 'get_features' ],
+					'methods'             => 'GET',
+					'permission_callback' => [ $this, 'check_permission' ],
+				],
+				[
+					'args'                => $this->get_args(),
+					'callback'            => [ $this, 'update_settings' ],
+					'methods'             => 'PUT',
+					'permission_callback' => [ $this, 'check_permission' ],
+				],
 			]
 		);
 	}
@@ -221,8 +228,44 @@ class Features {
 		}
 
 		return [
-			'data'    => $current_settings,
 			'success' => true,
 		];
+	}
+
+	/**
+	 * Return the current features payload along with persisted settings.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	public function get_features() {
+		$store = FeaturesStore::factory();
+
+		$settings       = $store->get_feature_settings();
+		$settings_draft = $store->get_feature_settings_draft();
+
+		return [
+			'features'      => $this->get_features_payload(),
+			'settings'      => is_array( $settings ) ? $settings : [],
+			'settingsDraft' => is_array( $settings_draft ) ? $settings_draft : null,
+			'success'       => true,
+		];
+	}
+
+	/**
+	 * Build the serialized features payload.
+	 *
+	 * @since 5.3.0
+	 * @return array
+	 */
+	protected function get_features_payload() {
+		$features_objects = FeaturesStore::factory()->registered_features;
+
+		foreach ( $features_objects as $feature ) {
+			$feature->reset_settings_schema();
+		}
+
+		$features_data = array_map( fn( $feature ) => $feature->get_json(), $features_objects );
+		return array_values( $features_data );
 	}
 }

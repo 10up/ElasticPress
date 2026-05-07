@@ -15,6 +15,7 @@ const {
 	isWooCommerce,
 	locale,
 	matchType,
+	numberedPagination,
 	paramPrefix,
 	postTypeLabels,
 	taxonomyLabels,
@@ -23,6 +24,8 @@ const {
 	showSuggestions,
 	suggestionsBehavior,
 } = window.epInstantResults;
+
+const isNumberedPagination = String(numberedPagination || '0') === '1';
 
 /**
  * Sorting options configuration.
@@ -70,6 +73,7 @@ export {
 	currencyCode,
 	facets,
 	isWooCommerce,
+	isNumberedPagination,
 	locale,
 	matchType,
 	paramPrefix,

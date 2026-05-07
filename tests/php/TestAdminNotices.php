@@ -765,7 +765,7 @@ class TestAdminNotices extends BaseTestCase {
 	}
 
 	/**
-	 * Utilitary function to set `ep_post_mapping_version_determined`
+	 * Utility function to set `ep_post_mapping_version_determined`
 	 * as the wanted Mapping version.
 	 *
 	 * @return string

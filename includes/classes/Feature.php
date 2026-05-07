@@ -188,12 +188,12 @@ abstract class Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 0, null, $this );
 
 		/**
 		 * Filter feature requirement status
 		 *
-		 * @hook ep_{indexable_slug}_index_kill
+		 * @hook ep_feature_requirements_status
 		 * @param  {FeatureRequirementStatus} $status Current feature requirement status
 		 * @param {Feature} $feature Current feature
 		 * @since  2.2
@@ -243,7 +243,11 @@ abstract class Feature {
 		$active = false;
 
 		if ( ! empty( $feature_settings[ $this->slug ] ) && $feature_settings[ $this->slug ]['active'] ) {
-			$active = true;
+			$active = ! in_array(
+				$this->requirements_status()->get_code(),
+				[ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ],
+				true
+			);
 		}
 
 		/**
@@ -396,7 +400,17 @@ abstract class Feature {
 		 * @since 4.5.0
 		 * @return {bool} New $is_available value
 		 */
-		return apply_filters( 'ep_feature_is_available', $this->is_visible() && 2 !== $requirements_status->code, $this->slug, $this );
+		return apply_filters(
+			'ep_feature_is_available',
+			$this->is_visible()
+				&& ! in_array(
+					$requirements_status->get_code(),
+					[ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ],
+					true
+				),
+			$this->slug,
+			$this
+		);
 	}
 
 	/**
@@ -419,8 +433,8 @@ abstract class Feature {
 			'isAvailable'       => $this->is_available(),
 			'isPoweredByEpio'   => $this->is_powered_by_epio,
 			'isVisible'         => $this->is_visible(),
-			'reqStatusCode'     => $requirements_status->code,
-			'reqStatusMessages' => (array) $requirements_status->message,
+			'reqStatusCode'     => $requirements_status->get_code(),
+			'reqStatusMessages' => (array) $requirements_status->get_message(),
 			'settingsSchema'    => $this->get_settings_schema(),
 			'group'             => $this->group,
 			'requiredFeature'   => $this->get_required_feature(),
@@ -467,6 +481,15 @@ abstract class Feature {
 		 * @return {array} New $settings_schema value
 		 */
 		return apply_filters( 'ep_feature_settings_schema', $settings_schema, $this->slug, $this );
+	}
+
+	/**
+	 * Reset the cached settings schema so it is rebuilt on next access.
+	 *
+	 * @since 5.3.3
+	 */
+	public function reset_settings_schema() {
+		$this->settings_schema = [];
 	}
 
 	/**
@@ -542,5 +565,17 @@ abstract class Feature {
 	 */
 	public function get_feature_slug(): string {
 		return $this->slug;
+	}
+
+	/**
+	 * Pre-handle feature activation
+	 *
+	 * This method is called before features are setup and is intended to be used
+	 * to modify features requirements status.
+	 *
+	 * @since 5.3.3
+	 * @return void
+	 */
+	public function pre_handle_feature_activation() {
 	}
 }

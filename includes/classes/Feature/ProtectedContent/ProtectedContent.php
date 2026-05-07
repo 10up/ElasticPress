@@ -403,7 +403,7 @@ class ProtectedContent extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 1 );
+		$status = new FeatureRequirementsStatus( 1, null, $this );
 
 		if ( ! Utils\is_epio() ) {
 			$status->message = __( "You aren't using <a href='https://elasticpress.io'>ElasticPress.io</a> so we can't be sure your Elasticsearch instance is secure.", 'elasticpress' );
