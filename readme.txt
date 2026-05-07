@@ -90,6 +90,7 @@ __Added:__
 __Changed:__
 
 * Optimize mb_strlen calls during sync process. Props [@kasparsd](https://github.com/kasparsd).
+* Saving feature settings now reflects feature dependencies without refreshing the page. Props [@ZacharyRener](https://github.com/ZacharyRener).
 
 __Fixed:__
 
@@ -105,6 +106,12 @@ __Fixed:__
 * Error when trying to use queried object that doesn't exist. Props [@tomjn](https://github.com/tomjn) and [@ZacharyRener](https://github.com/ZacharyRener).
 * Only consider a feature active if not disabled by code. Props [@felipeelia](https://github.com/felipeelia).
 * Several typos. Props [@szepeviktor](https://github.com/szepeviktor) and [@felipeelia](https://github.com/felipeelia).
+* Query count in the basic status admin bar. Props [@Sidsector9](https://github.com/Sidsector9).
+* Settings notice layout on the settings page during sync in WordPress 7.0. Props [@burhandodhy](https://github.com/burhandodhy).
+
+__Security:__
+
+* Updated Node.js dependencies (including a webpack override) to address npm audit findings. Props [@felipeelia](https://github.com/felipeelia).
 
 __Developer:__
 

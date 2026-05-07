@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ### Changed
 * Optimize mb_strlen calls during sync process. Props [@kasparsd](https://github.com/kasparsd) via [#4304](https://github.com/10up/ElasticPress/pull/4304).
+* Saving feature settings now reflects feature dependencies without refreshing the page. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4275](https://github.com/10up/ElasticPress/pull/4275).
 
 ### Deprecated
 ### Removed
@@ -39,12 +40,16 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Error when trying to use queried object that doesn't exist. Props [@tomjn](https://github.com/tomjn) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4285](https://github.com/10up/ElasticPress/pull/4285).
 * Only consider a feature active if not disabled by code. Props [@felipeelia](https://github.com/felipeelia) via [#4272](https://github.com/10up/ElasticPress/pull/4272).
 * Several typos. Props [@szepeviktor](https://github.com/szepeviktor) and [@felipeelia](https://github.com/felipeelia) via [#4248](https://github.com/10up/ElasticPress/pull/4248).
+* Query count in the basic status admin bar. Props [@Sidsector9](https://github.com/Sidsector9) via [#4309](https://github.com/10up/ElasticPress/pull/4309).
+* Settings notice layout on the settings page during sync in WordPress 7.0. Props [@burhandodhy](https://github.com/burhandodhy) via [#4310](https://github.com/10up/ElasticPress/pull/4310).
 
 ### Security
+* Updated Node.js dependencies (including a webpack override) to address npm audit findings. Props [@felipeelia](https://github.com/felipeelia) via [#4307](https://github.com/10up/ElasticPress/pull/4307).
+
 ### Developer
 * Ensure `ep_{$indexable->slug}_sync_kill` properly prevents object indexing during sync and post updates. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@matthijsch](https://github.com/matthijsch) via [#4282](https://github.com/10up/ElasticPress/pull/4282).
 * Gracefully handle incorrect return types from `ep_admin_notices` filter callbacks. Props [@qudwill](https://github.com/qudwill), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9) via [#4281](https://github.com/10up/ElasticPress/pull/4281).
-* Webpack configuration option for JavaScript and CSS source maps (editor debugging). Props [@fiftin](https://github.com/fiftin) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4247](https://github.com/10up/ElasticPress/pull/4247) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4288](https://github.com/10up/ElasticPress/pull/4288).
+* Webpack configuration option for JavaScript and CSS source maps (editor debugging). Props [@fiftin](https://github.com/fiftin) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4247](https://github.com/10up/ElasticPress/pull/4247) and [#4288](https://github.com/10up/ElasticPress/pull/4288).
 * Fix e2e tests. Props [@felipeelia](https://github.com/felipeelia) via [#4262](https://github.com/10up/ElasticPress/pull/4262).
 
 ## [5.3.2.2] - 2026-03-26
