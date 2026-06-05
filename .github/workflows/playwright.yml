@@ -54,9 +54,6 @@ jobs:
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
 
-    - name: Set standard 10up cache directories
-      run: composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
-
     - name: Prepare composer cache
       uses: actions/cache@v4
       with:
@@ -74,7 +71,12 @@ jobs:
         coverage: none
 
     - name: composer install
-      run: composer install
+      env:
+        COMPOSER_HOME: ${{ runner.temp }}/composer-home
+      run: |
+        mkdir -p $COMPOSER_HOME
+        composer config cache-dir "${{ env.COMPOSER_CACHE }}"
+        composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
       uses: actions/setup-node@v4
