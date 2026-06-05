@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-<!--
 ### Added
+* Vector Embeddings, Semantic Search, and AI Search Summary features.
+
+<!--
 ### Changed
 ### Deprecated
 ### Removed

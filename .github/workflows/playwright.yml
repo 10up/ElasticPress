@@ -10,6 +10,13 @@ env:
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
   NODE_VERSION: "20"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+  VECTOR_EMBEDDINGS_API_KEY: ${{ secrets.VECTOR_EMBEDDINGS_API_KEY }}
+  VECTOR_EMBEDDINGS_API_URL: ${{ secrets.VECTOR_EMBEDDINGS_API_URL }}
+  VECTOR_EMBEDDINGS_MODEL: ${{ secrets.VECTOR_EMBEDDINGS_MODEL }}
+  AI_SEARCH_SUMMARY_API_URL: ${{ secrets.AI_SEARCH_SUMMARY_API_URL }}
+  AI_SEARCH_SUMMARY_MODEL: ${{ secrets.AI_SEARCH_SUMMARY_MODEL }}
+  CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+  CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
 
 on:
   push:
@@ -96,18 +103,18 @@ jobs:
     - name: Set up database
       run: |
         if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
-          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}' --cf-access-client-id='${{ secrets.CF_ACCESS_CLIENT_ID }}' --cf-access-client-secret='${{ secrets.CF_ACCESS_CLIENT_SECRET }}'
         else
-          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+          npm run e2e:setup -- --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --cf-access-client-id='${{ secrets.CF_ACCESS_CLIENT_ID }}' --cf-access-client-secret='${{ secrets.CF_ACCESS_CLIENT_SECRET }}'
         fi
       if: matrix.esVersion != 'EP.io'
 
     - name: Set up database (EP.io)
       run: |
         if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
-          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}' --cf-access-client-id='${{ secrets.CF_ACCESS_CLIENT_ID }}' --cf-access-client-secret='${{ secrets.CF_ACCESS_CLIENT_SECRET }}'
         else
-          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --cf-access-client-id='${{ secrets.CF_ACCESS_CLIENT_ID }}' --cf-access-client-secret='${{ secrets.CF_ACCESS_CLIENT_SECRET }}'
         fi
       if: matrix.esVersion == 'EP.io'
 

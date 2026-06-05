@@ -751,6 +751,8 @@ function get_asset_info( $slug, $attribute = null ) {
 		$asset = require EP_PATH . 'dist/js/' . $slug . '.asset.php';
 	} elseif ( file_exists( EP_PATH . 'dist/css/' . $slug . '.asset.php' ) ) {
 		$asset = require EP_PATH . 'dist/css/' . $slug . '.asset.php';
+	} elseif ( file_exists( EP_PATH . 'dist/blocks/' . $slug . '.asset.php' ) ) {
+		$asset = require EP_PATH . 'dist/blocks/' . $slug . '.asset.php';
 	} else {
 		return null;
 	}

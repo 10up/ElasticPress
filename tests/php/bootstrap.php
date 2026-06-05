@@ -180,6 +180,7 @@ require_once __DIR__ . '/includes/classes/factory/TermFactory.php';
 require_once __DIR__ . '/includes/classes/factory/CommentFactory.php';
 require_once __DIR__ . '/includes/classes/factory/ProductFactory.php';
 require_once __DIR__ . '/includes/classes/BaseTestCase.php';
+require_once __DIR__ . '/includes/classes/FeatureDisableAfterFailures.php';
 require_once __DIR__ . '/includes/classes/FeatureTest.php';
 require_once __DIR__ . '/includes/classes/FeatureTestB.php';
 require_once __DIR__ . '/includes/classes/FunctionsCallCounter.php';
