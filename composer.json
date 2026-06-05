@@ -38,8 +38,7 @@
     "phpcompatibility/phpcompatibility-wp": "*",
     "brianhenryie/strauss": "^0.21.0",
     "yoast/phpunit-polyfills": "^4.0",
-    "phpunit/phpunit": "^9.0.0",
-    "phpcompatibility/php-compatibility": "dev-develop as 9.99.99"
+    "phpunit/phpunit": "^9.0.0"
   },
   "scripts": {
     "lint": "phpcs . -s --runtime-set testVersion 7.4-",
