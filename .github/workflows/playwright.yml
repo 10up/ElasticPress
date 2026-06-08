@@ -73,6 +73,9 @@ jobs:
         tools: cs2pr
         coverage: none
 
+    - name: Configure Composer GitHub authentication
+      run: composer config -g github-oauth.github.com "${{ secrets.GITHUB_TOKEN }}"
+
     - name: composer install
       run: composer install
 
