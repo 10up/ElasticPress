@@ -203,6 +203,10 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
+		new Feature\SearchAlgorithm()
+	);
+
+	Features::factory()->register_feature(
 		new Feature\VectorEmbeddings\VectorEmbeddings()
 	);
 
