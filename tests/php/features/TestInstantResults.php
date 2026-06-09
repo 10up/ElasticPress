@@ -266,7 +266,7 @@ class TestInstantResults extends BaseTestCase {
 			$calls[0]['function']
 		);
 
-		$message = html_entity_decode( $calls[0]['message'], ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401 );
+		$message = html_entity_decode( $calls[0]['message'], ENT_QUOTES );
 
 		$this->assertStringContainsString( 'not-a-real-taxonomy', $message );
 		$this->assertStringContainsString( 'Invalid taxonomy', $message );
