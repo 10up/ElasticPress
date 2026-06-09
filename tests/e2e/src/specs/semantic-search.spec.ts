@@ -1,11 +1,5 @@
 import { test, expect } from '../fixtures.js';
-import {
-	goToAdminPage,
-	wpCli,
-	maybeEnableFeature,
-	maybeDisableFeature,
-	isEpIo,
-} from '../utils.js';
+import { goToAdminPage, wpCli, maybeEnableFeature, maybeDisableFeature, isEpIo } from '../utils.js';
 
 test.describe('Semantic Search Feature', { tag: '@group2' }, () => {
 	test.afterAll(async () => {

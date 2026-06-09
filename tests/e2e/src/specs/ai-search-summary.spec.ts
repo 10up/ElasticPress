@@ -7,11 +7,7 @@ import {
 	maybeDisableFeature,
 	setVectorEmbeddingsSettings,
 } from '../utils.js';
-import {
-	insertBlock,
-	getBlocksList,
-	openBlockInserter,
-} from '../block-editor.js';
+import { insertBlock, getBlocksList, openBlockInserter } from '../block-editor.js';
 
 test.describe('AI Search Summary Feature', { tag: '@group2' }, () => {
 	test.afterAll(async () => {
