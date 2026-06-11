@@ -101,6 +101,29 @@ class TestUtils extends BaseTestCase {
 	}
 
 	/**
+	 * Check that get_site returns an empty array for a non-existent site ID.
+	 *
+	 * @since 5.3.4
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function testGetSiteReturnsEmptyArrayForNonexistentSite() {
+		$result = ElasticPress\Utils\get_site( PHP_INT_MAX );
+		$this->assertSame( [], $result );
+	}
+
+	/**
+	 * Check that is_site_indexable returns false for a non-existent site ID.
+	 *
+	 * @since 5.3.4
+	 * @group utils
+	 * @group skip-on-single-site
+	 */
+	public function testIsSiteIndexableReturnsFalseForNonexistentSite() {
+		$this->assertFalse( ElasticPress\Utils\is_site_indexable( PHP_INT_MAX ) );
+	}
+
+	/**
 	 * Tests the sanitize_credentials utils function.
 	 *
 	 * @return void
