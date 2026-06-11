@@ -11,9 +11,14 @@ import { insertBlock, getBlocksList, openBlockInserter } from '../block-editor.j
 
 test.describe('AI Search Summary Feature', { tag: '@group2' }, () => {
 	test.afterAll(async () => {
+		// Restore the classic-widgets state deactivated by the widget insertion test.
+		await wpCli('plugin activate classic-widgets', true);
 		await maybeDisableFeature('ai_search_summary');
 		await maybeDisableFeature('semantic_search');
 		await maybeDisableFeature('vector_embeddings');
+		// This spec enables search_algorithm and selects kNN Cosine; disable it again so the
+		// leaked kNN algorithm does not alter scoring for downstream specs (e.g. custom-results).
+		await maybeDisableFeature('search_algorithm');
 		await wpCli('option delete ep_vector_embeddings_settings', true);
 		// Restore the sidebar search widget modified by the widget insertion test.
 		await wpCli('widget reset sidebar-1', true);
@@ -107,6 +112,8 @@ test.describe('AI Search Summary Feature', { tag: '@group2' }, () => {
 
 		expect(returnValue).not.toContain('Number of posts index errors');
 
+		// The block-based widgets screen is only available while classic-widgets is inactive.
+		await wpCli('plugin deactivate classic-widgets', true);
 		await goToAdminPage(loggedInPage, 'widgets.php');
 		await openBlockInserter(loggedInPage);
 		await expect(await getBlocksList(loggedInPage)).toContainText('AI Search Summary');

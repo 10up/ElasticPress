@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { Spacer, RadioControl } from '@wordpress/components';
+import { __experimentalSpacer as Spacer, RadioControl } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { __ } from '@wordpress/i18n';
 
 /**

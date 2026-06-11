@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { CheckboxControl, VStack } from '@wordpress/components';
+import { CheckboxControl, VStack } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 import { __ } from '@wordpress/i18n';
 
 /**

@@ -14,6 +14,9 @@ test.describe('Vector Embeddings Feature', { tag: '@group2' }, () => {
 		await maybeDisableFeature('ai_search_summary');
 		await maybeDisableFeature('semantic_search');
 		await maybeDisableFeature('vector_embeddings');
+		// The :112 test enables search_algorithm and selects kNN Cosine; disable it again so the
+		// leaked kNN algorithm does not alter scoring for downstream specs.
+		await maybeDisableFeature('search_algorithm');
 		// Reset the Elasticsearch index mapping to a non-vector state so subsequent tests
 		// are not affected by the vector field mapping created during this spec.
 		await wpCli('elasticpress sync --setup --yes', true);
@@ -111,6 +114,10 @@ test.describe('Vector Embeddings Feature', { tag: '@group2' }, () => {
 
 	test('can temporarily disable the feature after failures', async ({ loggedInPage }) => {
 		await maybeEnableFeature('vector_embeddings');
+		// kNN algorithms are only registered when semantic_search is also active (see
+		// SemanticSearch::pre_handle_feature_activation()), so the "kNN Cosine" option below
+		// will not render without it.
+		await maybeEnableFeature('semantic_search');
 		await maybeEnableFeature('search_algorithm');
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 		await setVectorEmbeddingsSettings(loggedInPage);

@@ -1,5 +1,5 @@
 // wrapper component that allows indentation and spacing.
-import { Spacer } from '@wordpress/components';
+import { __experimentalSpacer as Spacer } from '@wordpress/components'; // eslint-disable-line @wordpress/no-unsafe-wp-apis
 
 export default ({ children, indent = false }) => {
 	return (
