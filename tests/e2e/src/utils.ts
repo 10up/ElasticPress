@@ -250,11 +250,12 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
 	const editorFrame = page.locator('iframe[name="editor-canvas"]');
-	if (await editorFrame.isVisible()) {
+	try {
+		await editorFrame.waitFor({ state: 'visible', timeout: 500 });
 		return editorFrame.contentFrame();
+	} catch {
+		return page;
 	}
-
-	return page;
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
@@ -330,7 +331,12 @@ export async function setPostPassword(
 			);
 		}
 	} else {
-		await page.locator('.components-dropdown.editor-post-status').click({ force: true });
+		const statusDropdown = page.locator('.components-dropdown.editor-post-status');
+		if ((await statusDropdown.count()) > 0) {
+			await statusDropdown.click({ force: true });
+		} else {
+			await page.getByRole('button', { name: /Change status/ }).click({ force: true });
+		}
 
 		const passwordCheckbox = page.locator(
 			'.editor-change-status__password-fieldset input[type="checkbox"]',
@@ -410,11 +416,10 @@ export async function publishPost(
 			await changeMode(page);
 		}
 		await editorFrame
-			.locator('h1.editor-post-title__input, #post-title-0')
+			.locator('h1.editor-post-title__input, #post-title-0, [aria-label="Add title"]')
 			.fill(newPostData.title);
-		await editorFrame
-			.locator('.block-editor-default-block-appender__content')
-			.pressSequentially(newPostData.content);
+		await page.keyboard.press('Enter');
+		await page.keyboard.type(newPostData.content);
 	}
 
 	if (newPostData.password && newPostData.password !== '') {
@@ -683,10 +688,11 @@ export async function createAutosavePost(
 	await goToAdminPage(page, 'post-new.php');
 	const editorFrame = await getEditorFrame(page);
 
-	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
 	await editorFrame
-		.locator('.block-editor-default-block-appender__content')
-		.pressSequentially(newPostData.content);
+		.locator('h1.editor-post-title__input, #post-title-0, [aria-label="Add title"]')
+		.fill(newPostData.title);
+	await page.keyboard.press('Enter');
+	await page.keyboard.type(newPostData.content);
 
 	// Wait for autosave to complete
 	await page.waitForTimeout(5000);
