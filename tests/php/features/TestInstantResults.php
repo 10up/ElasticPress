@@ -92,7 +92,7 @@ class TestInstantResults extends BaseTestCase {
 		// Check if Instant Results is not available.
 		$status = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' )->requirements_status();
 		$this->assertSame( 2, $status->get_code() );
-		$this->assertSame( "To use this feature you need to be an <a href='https://elasticpress.io'>ElasticPress.io</a> customer or implement a <a href='https://github.com/10up/elasticpress-proxy'>custom proxy</a>.", $status->get_message()[0] );
+		$this->assertSame( 'To use this feature you need to be an <a href="https://elasticpress.io">ElasticPress.io</a> customer or implement a <a href="https://github.com/10up/elasticpress-proxy">custom proxy</a>.', $status->get_message()[0] );
 	}
 
 	/**
@@ -266,7 +266,7 @@ class TestInstantResults extends BaseTestCase {
 			$calls[0]['function']
 		);
 
-		$message = html_entity_decode( $calls[0]['message'] );
+		$message = html_entity_decode( $calls[0]['message'], ENT_QUOTES );
 
 		$this->assertStringContainsString( 'not-a-real-taxonomy', $message );
 		$this->assertStringContainsString( 'Invalid taxonomy', $message );
