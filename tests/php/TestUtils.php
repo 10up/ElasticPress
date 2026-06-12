@@ -108,7 +108,7 @@ class TestUtils extends BaseTestCase {
 	 * @group skip-on-single-site
 	 */
 	public function testGetSiteReturnsEmptyArrayForNonexistentSite() {
-		$result = ElasticPress\Utils\get_site( PHP_INT_MAX );
+		$result = ElasticPress\Utils\get_site( 999999 );
 		$this->assertSame( [], $result );
 	}
 
@@ -120,7 +120,7 @@ class TestUtils extends BaseTestCase {
 	 * @group skip-on-single-site
 	 */
 	public function testIsSiteIndexableReturnsFalseForNonexistentSite() {
-		$this->assertFalse( ElasticPress\Utils\is_site_indexable( PHP_INT_MAX ) );
+		$this->assertFalse( ElasticPress\Utils\is_site_indexable( 999999 ) );
 	}
 
 	/**
