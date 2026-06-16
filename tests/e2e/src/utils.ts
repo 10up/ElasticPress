@@ -250,12 +250,11 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
 	const editorFrame = page.locator('iframe[name="editor-canvas"]');
-	try {
-		await editorFrame.waitFor({ state: 'visible', timeout: 500 });
+	if (await editorFrame.isVisible()) {
 		return editorFrame.contentFrame();
-	} catch {
-		return page;
 	}
+
+	return page;
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
@@ -331,12 +330,7 @@ export async function setPostPassword(
 			);
 		}
 	} else {
-		const statusDropdown = page.locator('.components-dropdown.editor-post-status');
-		if ((await statusDropdown.count()) > 0) {
-			await statusDropdown.click({ force: true });
-		} else {
-			await page.getByRole('button', { name: /Change status/ }).click({ force: true });
-		}
+		await page.locator('.components-dropdown.editor-post-status').click({ force: true });
 
 		const passwordCheckbox = page.locator(
 			'.editor-change-status__password-fieldset input[type="checkbox"]',
@@ -416,10 +410,11 @@ export async function publishPost(
 			await changeMode(page);
 		}
 		await editorFrame
-			.locator('h1.editor-post-title__input, #post-title-0, [aria-label="Add title"]')
+			.locator('h1.editor-post-title__input, #post-title-0')
 			.fill(newPostData.title);
-		await page.keyboard.press('Enter');
-		await page.keyboard.type(newPostData.content);
+		await editorFrame
+			.locator('.block-editor-default-block-appender__content')
+			.pressSequentially(newPostData.content);
 	}
 
 	if (newPostData.password && newPostData.password !== '') {
@@ -688,11 +683,10 @@ export async function createAutosavePost(
 	await goToAdminPage(page, 'post-new.php');
 	const editorFrame = await getEditorFrame(page);
 
+	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
 	await editorFrame
-		.locator('h1.editor-post-title__input, #post-title-0, [aria-label="Add title"]')
-		.fill(newPostData.title);
-	await page.keyboard.press('Enter');
-	await page.keyboard.type(newPostData.content);
+		.locator('.block-editor-default-block-appender__content')
+		.pressSequentially(newPostData.content);
 
 	// Wait for autosave to complete
 	await page.waitForTimeout(5000);
