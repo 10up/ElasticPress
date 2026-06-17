@@ -117,6 +117,9 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			password: 'password',
 		});
 
+		// Real-time sync of newly-created posts is unreliable on the CI runners
+		// (WP 7.0), so explicitly re-index via the bulk path before searching.
+		await wpCli('elasticpress sync');
 		await refreshIndex('post');
 
 		// Admin can see post on front and search page

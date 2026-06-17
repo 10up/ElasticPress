@@ -32,6 +32,10 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 		for await (const postData of postsData) {
 			await publishPost(loggedInPage, postData);
 		}
+		// Real-time sync of newly-created posts is unreliable on the CI runners
+		// (WP 7.0), so explicitly re-index via the bulk path (the same path the
+		// beforeAll setup uses) before searching, then force a refresh.
+		await wpCli('elasticpress sync');
 		await refreshIndex('post');
 		await loggedInPage.goto('/?s=10up+loves+elasticpress');
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
@@ -58,6 +62,10 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
 		);
 
+		// Real-time sync of newly-created posts is unreliable on the CI runners
+		// (WP 7.0), so explicitly re-index via the bulk path (the same path the
+		// beforeAll setup uses) before searching, then force a refresh.
+		await wpCli('elasticpress sync');
 		await refreshIndex('post');
 		await loggedInPage.goto(`/?s=duplicated+post`);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
@@ -99,6 +107,10 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			content: 'findme findme findme',
 		});
 
+		// Real-time sync of newly-created posts is unreliable on the CI runners
+		// (WP 7.0), so explicitly re-index via the bulk path (the same path the
+		// beforeAll setup uses) before searching, then force a refresh.
+		await wpCli('elasticpress sync');
 		await refreshIndex('post');
 
 		await loggedInPage.goto('/?s=findme');
