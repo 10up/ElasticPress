@@ -1,7 +1,6 @@
 import { test, expect } from '../../fixtures.js';
 import {
 	wpCli,
-	wpCliEval,
 	publishPost,
 	goToAdminPage,
 	refreshIndex,
@@ -12,6 +11,11 @@ import {
 
 test.describe('Post Search Feature', { tag: '@group1' }, () => {
 	test.beforeAll(async () => {
+		// WooCommerce (latest) ends up active during the WP 7.0 run, and an active WC
+		// scopes the front-end `/?s=` query to post_type=product — hiding regular posts
+		// and making every core-search assertion fail. Ensure it's deactivated so these
+		// tests search all post types. (WP 6.2 isn't affected, hence min jobs passed.)
+		await wpCli('plugin deactivate woocommerce', true);
 		await wpCli('elasticpress sync --setup --yes');
 	});
 
@@ -33,10 +37,7 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 		for await (const postData of postsData) {
 			await publishPost(loggedInPage, postData);
 		}
-		// Real-time sync of newly-created posts is unreliable on the CI runners
-		// (WP 7.0), so explicitly re-index via the bulk path (the same path the
-		// beforeAll setup uses) before searching, then force a refresh.
-		await wpCli('elasticpress sync');
+		// Force an ES refresh so the just-created posts are searchable deterministically.
 		await refreshIndex('post');
 		await loggedInPage.goto('/?s=10up+loves+elasticpress');
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
@@ -63,50 +64,13 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
 		);
 
-		// Real-time sync of newly-created posts is unreliable on the CI runners
-		// (WP 7.0), so explicitly re-index via the bulk path (the same path the
-		// beforeAll setup uses) before searching, then force a refresh.
-		await wpCli('elasticpress sync');
+		// Force an ES refresh so the just-created posts are searchable deterministically.
 		await refreshIndex('post');
 
-		// ===== TEMP DIAGNOSTIC 2 (remove after CI run) =====
-		// Confirmed: cli & web share ONE index and the docs ARE indexed (count
-		// grows). Now check whether the indexed "Duplicated post" doc actually has
-		// searchable title/content, via a direct ES query — isolating "doc indexed
-		// empty" vs "WP frontend search layer not matching a good doc".
-		const diag = await wpCliEval(`
-			$index = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
-			$es = \\ElasticPress\\Elasticsearch::factory();
-			$opts = [ 'method' => 'POST', 'headers' => [ 'Content-Type' => 'application/json' ] ];
-			$match = $es->remote_request( $index . '/_search', $opts + [ 'body' => wp_json_encode( [
-				'size' => 3,
-				'_source' => [ 'post_title', 'post_content', 'post_status', 'post_type' ],
-				'query' => [ 'match' => [ 'post_title' => 'Duplicated post' ] ],
-			] ) ] );
-			$match_body = json_decode( wp_remote_retrieve_body( $match ), true );
-			$any = $es->remote_request( $index . '/_search', $opts + [ 'body' => wp_json_encode( [
-				'size' => 2,
-				'_source' => [ 'post_title', 'post_status', 'post_type' ],
-				'query' => [ 'match_all' => (object) [] ],
-			] ) ] );
-			$any_body = json_decode( wp_remote_retrieve_body( $any ), true );
-			echo wp_json_encode( [
-				'index' => $index,
-				'matchDuplicatedTotal' => $match_body['hits']['total'] ?? null,
-				'matchSources' => array_map( function ( $h ) { return $h['_source'] ?? null; }, $match_body['hits']['hits'] ?? [] ),
-				'anyDocSources' => array_map( function ( $h ) { return $h['_source'] ?? null; }, $any_body['hits']['hits'] ?? [] ),
-			] );
-		`);
-		// eslint-disable-next-line no-console
-		console.log('EP-DIAG2', diag?.toString());
-		// ===== END TEMP DIAGNOSTIC 2 =====
-
 		await loggedInPage.goto(`/?s=duplicated+post`);
-		// EP-DIAG2 also attached to this assertion message so it lands in the artifact.
-		await expect(
-			loggedInPage.locator('.site-content article:nth-of-type(1) h2'),
-			`EP-DIAG2 ${diag}`,
-		).toHaveText(postTitle);
+		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
+			postTitle,
+		);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(2) h2')).toHaveText(
 			postTitle,
 		);
@@ -143,10 +107,7 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			content: 'findme findme findme',
 		});
 
-		// Real-time sync of newly-created posts is unreliable on the CI runners
-		// (WP 7.0), so explicitly re-index via the bulk path (the same path the
-		// beforeAll setup uses) before searching, then force a refresh.
-		await wpCli('elasticpress sync');
+		// Force an ES refresh so the just-created posts are searchable deterministically.
 		await refreshIndex('post');
 
 		await loggedInPage.goto('/?s=findme');

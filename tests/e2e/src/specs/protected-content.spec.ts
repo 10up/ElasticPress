@@ -22,6 +22,13 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 		await wpCli('elasticpress sync --setup --yes');
 	};
 
+	test.beforeAll(async () => {
+		// An active WooCommerce (latest) scopes the front-end `/?s=` query to
+		// post_type=product on WP 7.0, hiding regular posts. Keep it deactivated so
+		// the password-protected-post search test queries all post types.
+		await wpCli('plugin deactivate woocommerce', true);
+	});
+
 	test('Can turn the feature on', async ({ loggedInPage }) => {
 		maybeDisableFeature('protected_content');
 		await loggedInPage.goto('/wp-admin/admin.php?page=elasticpress');
@@ -117,9 +124,7 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			password: 'password',
 		});
 
-		// Real-time sync of newly-created posts is unreliable on the CI runners
-		// (WP 7.0), so explicitly re-index via the bulk path before searching.
-		await wpCli('elasticpress sync');
+		// Force an ES refresh so the just-created post is searchable deterministically.
 		await refreshIndex('post');
 
 		// Admin can see post on front and search page
