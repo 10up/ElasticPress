@@ -69,34 +69,44 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 		await wpCli('elasticpress sync');
 		await refreshIndex('post');
 
-		// ===== TEMP DIAGNOSTIC (remove after CI run) =====
-		// Reveal the index landscape: which index the wp-cli context writes to,
-		// vs the docker CID the web context resolves, plus every post index's doc
-		// count. If the cli index != the web index, the unique-index-name mu-plugin
-		// is splitting writes (wp-cli container) from reads (web container).
+		// ===== TEMP DIAGNOSTIC 2 (remove after CI run) =====
+		// Confirmed: cli & web share ONE index and the docs ARE indexed (count
+		// grows). Now check whether the indexed "Duplicated post" doc actually has
+		// searchable title/content, via a direct ES query — isolating "doc indexed
+		// empty" vs "WP frontend search layer not matching a good doc".
 		const diag = await wpCliEval(`
-			$post_index = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
-			$cat = \\ElasticPress\\Elasticsearch::factory()->remote_request( '_cat/indices?format=json&h=index,docs.count' );
-			$indices = json_decode( wp_remote_retrieve_body( $cat ), true );
-			$post_indices = array_values( array_filter( (array) $indices, function ( $i ) {
-				return isset( $i['index'] ) && strpos( $i['index'], '-post-' ) !== false;
-			} ) );
-			$cli_cid = function_exists( 'get_docker_cid' ) ? get_docker_cid() : 'n/a';
-			echo wp_json_encode( [ 'cliIndex' => $post_index, 'cliCid' => $cli_cid, 'postIndices' => $post_indices ] );
+			$index = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
+			$es = \\ElasticPress\\Elasticsearch::factory();
+			$opts = [ 'method' => 'POST', 'headers' => [ 'Content-Type' => 'application/json' ] ];
+			$match = $es->remote_request( $index . '/_search', $opts + [ 'body' => wp_json_encode( [
+				'size' => 3,
+				'_source' => [ 'post_title', 'post_content', 'post_status', 'post_type' ],
+				'query' => [ 'match' => [ 'post_title' => 'Duplicated post' ] ],
+			] ) ] );
+			$match_body = json_decode( wp_remote_retrieve_body( $match ), true );
+			$any = $es->remote_request( $index . '/_search', $opts + [ 'body' => wp_json_encode( [
+				'size' => 2,
+				'_source' => [ 'post_title', 'post_status', 'post_type' ],
+				'query' => [ 'match_all' => (object) [] ],
+			] ) ] );
+			$any_body = json_decode( wp_remote_retrieve_body( $any ), true );
+			echo wp_json_encode( [
+				'index' => $index,
+				'matchDuplicatedTotal' => $match_body['hits']['total'] ?? null,
+				'matchSources' => array_map( function ( $h ) { return $h['_source'] ?? null; }, $match_body['hits']['hits'] ?? [] ),
+				'anyDocSources' => array_map( function ( $h ) { return $h['_source'] ?? null; }, $any_body['hits']['hits'] ?? [] ),
+			] );
 		`);
-		await goToAdminPage(loggedInPage, 'index.php');
-		const webCid = await loggedInPage
-			.locator('#docker-cid')
-			.textContent()
-			.catch(() => 'n/a');
 		// eslint-disable-next-line no-console
-		console.log('EP-DIAG cli=', diag?.toString(), ' webCid=', webCid);
-		// ===== END TEMP DIAGNOSTIC =====
+		console.log('EP-DIAG2', diag?.toString());
+		// ===== END TEMP DIAGNOSTIC 2 =====
 
 		await loggedInPage.goto(`/?s=duplicated+post`);
-		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
-			postTitle,
-		);
+		// EP-DIAG2 also attached to this assertion message so it lands in the artifact.
+		await expect(
+			loggedInPage.locator('.site-content article:nth-of-type(1) h2'),
+			`EP-DIAG2 ${diag}`,
+		).toHaveText(postTitle);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(2) h2')).toHaveText(
 			postTitle,
 		);
