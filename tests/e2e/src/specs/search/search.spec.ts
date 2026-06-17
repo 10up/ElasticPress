@@ -1,5 +1,11 @@
 import { test, expect } from '../../fixtures.js';
-import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '../../utils.js';
+import {
+	wpCli,
+	publishPost,
+	goToAdminPage,
+	refreshIndex,
+	setDefaultFeatureSettings,
+} from '../../utils.js';
 
 // Parity with Cypress: Post Search Feature
 
@@ -26,7 +32,7 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 		for await (const postData of postsData) {
 			await publishPost(loggedInPage, postData);
 		}
-		await loggedInPage.waitForTimeout(2000);
+		await refreshIndex('post');
 		await loggedInPage.goto('/?s=10up+loves+elasticpress');
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
 			'Higher',
@@ -52,7 +58,7 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
 		);
 
-		await loggedInPage.waitForTimeout(2000);
+		await refreshIndex('post');
 		await loggedInPage.goto(`/?s=duplicated+post`);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
 			postTitle,
@@ -92,6 +98,8 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			title: 'test highlight color',
 			content: 'findme findme findme',
 		});
+
+		await refreshIndex('post');
 
 		await loggedInPage.goto('/?s=findme');
 		await expect(loggedInPage.locator('.ep-highlight').first()).toBeVisible();

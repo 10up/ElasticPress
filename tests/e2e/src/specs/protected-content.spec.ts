@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures.js';
 import {
 	wpCli,
+	refreshIndex,
 	maybeEnableFeature,
 	publishPost,
 	createUser,
@@ -115,6 +116,8 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			title: 'Password Protected',
 			password: 'password',
 		});
+
+		await refreshIndex('post');
 
 		// Admin can see post on front and search page
 		await loggedInPage.goto('/');
