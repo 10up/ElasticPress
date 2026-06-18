@@ -1,7 +1,6 @@
 import { test, expect } from '../fixtures.js';
 import {
 	wpCli,
-	refreshIndex,
 	maybeEnableFeature,
 	publishPost,
 	createUser,
@@ -21,13 +20,6 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 
 		await wpCli('elasticpress sync --setup --yes');
 	};
-
-	test.beforeAll(async () => {
-		// An active WooCommerce (latest) scopes the front-end `/?s=` query to
-		// post_type=product on WP 7.0, hiding regular posts. Keep it deactivated so
-		// the password-protected-post search test queries all post types.
-		await wpCli('plugin deactivate woocommerce', true);
-	});
 
 	test('Can turn the feature on', async ({ loggedInPage }) => {
 		maybeDisableFeature('protected_content');
@@ -123,9 +115,6 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			title: 'Password Protected',
 			password: 'password',
 		});
-
-		// Force an ES refresh so the just-created post is searchable deterministically.
-		await refreshIndex('post');
 
 		// Admin can see post on front and search page
 		await loggedInPage.goto('/');

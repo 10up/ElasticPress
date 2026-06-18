@@ -1,21 +1,10 @@
 import { test, expect } from '../../fixtures.js';
-import {
-	wpCli,
-	publishPost,
-	goToAdminPage,
-	refreshIndex,
-	setDefaultFeatureSettings,
-} from '../../utils.js';
+import { wpCli, publishPost, goToAdminPage, setDefaultFeatureSettings } from '../../utils.js';
 
 // Parity with Cypress: Post Search Feature
 
 test.describe('Post Search Feature', { tag: '@group1' }, () => {
 	test.beforeAll(async () => {
-		// WooCommerce (latest) ends up active during the WP 7.0 run, and an active WC
-		// scopes the front-end `/?s=` query to post_type=product — hiding regular posts
-		// and making every core-search assertion fail. Ensure it's deactivated so these
-		// tests search all post types. (WP 6.2 isn't affected, hence min jobs passed.)
-		await wpCli('plugin deactivate woocommerce', true);
 		await wpCli('elasticpress sync --setup --yes');
 	});
 
@@ -37,8 +26,7 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 		for await (const postData of postsData) {
 			await publishPost(loggedInPage, postData);
 		}
-		// Force an ES refresh so the just-created posts are searchable deterministically.
-		await refreshIndex('post');
+		await loggedInPage.waitForTimeout(2000);
 		await loggedInPage.goto('/?s=10up+loves+elasticpress');
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
 			'Higher',
@@ -64,9 +52,7 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			`post create --post_title='${postTitle}' --post_content='Lorem ipsum veritas dolor' --post_author=1 --post_status='publish' --post_date='${formatDate(yesterday)}'`,
 		);
 
-		// Force an ES refresh so the just-created posts are searchable deterministically.
-		await refreshIndex('post');
-
+		await loggedInPage.waitForTimeout(2000);
 		await loggedInPage.goto(`/?s=duplicated+post`);
 		await expect(loggedInPage.locator('.site-content article:nth-of-type(1) h2')).toHaveText(
 			postTitle,
@@ -106,9 +92,6 @@ test.describe('Post Search Feature', { tag: '@group1' }, () => {
 			title: 'test highlight color',
 			content: 'findme findme findme',
 		});
-
-		// Force an ES refresh so the just-created posts are searchable deterministically.
-		await refreshIndex('post');
 
 		await loggedInPage.goto('/?s=findme');
 		await expect(loggedInPage.locator('.ep-highlight').first()).toBeVisible();

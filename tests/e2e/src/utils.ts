@@ -249,58 +249,11 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 }
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
-	const editorFrame = page.locator('iframe[name="editor-canvas"]');
-	const inlineTitle = page.locator(
-		'h1.editor-post-title__input, #post-title-0, [aria-label="Add title"]',
-	);
+	const visualEditor = page.locator('.edit-post-visual-editor');
+	await visualEditor.waitFor({ state: 'visible' });
 
-	// WP 7.0+ renders the post editor inside the `editor-canvas` iframe; WP 6.x
-	// renders it inline in the main document. Race both so we resolve as soon as
-	// either editor shell is ready instead of always stalling the full timeout on
-	// 6.x (where the iframe never appears — that stall was large enough to blow
-	// the per-test timeout once it was raised to 10s).
-	await Promise.race([
-		editorFrame.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
-		inlineTitle
-			.first()
-			.waitFor({ state: 'visible', timeout: 10000 })
-			.catch(() => {}),
-	]);
-
-	return (await editorFrame.count()) > 0 ? editorFrame.contentFrame() : page;
-}
-
-/**
- * Type a title and content into the block editor.
- *
- * Handles both the inline editor (WP 6.x) and the iframed editor (WP 7.0+).
- * Waits for the title field to be interactive and types it character by
- * character so the contenteditable title is not silently dropped while the
- * iframe editor hydrates — which on WP 7.0 produced empty, unindexable posts
- * (search returned nothing because the posts had no title/content).
- *
- * @param page Playwright page object
- * @param editorFrame The editor context returned by getEditorFrame
- * @param title Post title
- * @param content Post content
- */
-async function typeTitleAndContent(
-	page: Page,
-	editorFrame: Page | FrameLocator,
-	title: string,
-	content: string,
-) {
-	const titleField = editorFrame
-		.locator('h1.editor-post-title__input, #post-title-0, [aria-label="Add title"]')
-		.first();
-
-	await titleField.waitFor({ state: 'visible', timeout: 10000 });
-	await titleField.click();
-	await titleField.pressSequentially(title, { delay: 30 });
-
-	// Enter from the title creates and focuses a new paragraph block; type into it.
-	await page.keyboard.press('Enter');
-	await page.keyboard.type(content);
+	const isIframed = (await page.locator('.edit-post-visual-editor.is-iframed').count()) > 0;
+	return isIframed ? page.locator('iframe[name="editor-canvas"]').contentFrame() : page;
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
@@ -460,7 +413,12 @@ export async function publishPost(
 		if (isInCodeEditorMode) {
 			await changeMode(page);
 		}
-		await typeTitleAndContent(page, editorFrame, newPostData.title, newPostData.content);
+		await editorFrame
+			.locator('h1.editor-post-title__input, #post-title-0')
+			.fill(newPostData.title);
+		await editorFrame
+			.locator('.block-editor-default-block-appender__content')
+			.pressSequentially(newPostData.content);
 	}
 
 	if (newPostData.password && newPostData.password !== '') {
@@ -729,7 +687,10 @@ export async function createAutosavePost(
 	await goToAdminPage(page, 'post-new.php');
 	const editorFrame = await getEditorFrame(page);
 
-	await typeTitleAndContent(page, editorFrame, newPostData.title, newPostData.content);
+	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
+	await editorFrame
+		.locator('.block-editor-default-block-appender__content')
+		.pressSequentially(newPostData.content);
 
 	// Wait for autosave to complete
 	await page.waitForTimeout(5000);
