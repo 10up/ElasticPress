@@ -249,11 +249,18 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 }
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
-	const visualEditor = page.locator('.edit-post-visual-editor');
-	await visualEditor.waitFor({ state: 'visible' });
+	const iframedEditor = page.locator('iframe[name="editor-canvas"]');
+	const inlineEditor = page.locator('.edit-post-visual-editor');
 
-	const isIframed = (await page.locator('.edit-post-visual-editor.is-iframed').count()) > 0;
-	return isIframed ? page.locator('iframe[name="editor-canvas"]').contentFrame() : page;
+	await Promise.race([
+		iframedEditor.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
+		inlineEditor
+			.first()
+			.waitFor({ state: 'visible', timeout: 10000 })
+			.catch(() => {}),
+	]);
+
+	return (await iframedEditor.count()) > 0 ? iframedEditor.contentFrame() : page;
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
