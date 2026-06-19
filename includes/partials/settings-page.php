@@ -134,12 +134,12 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 									 */
 									if ( apply_filters( 'ep_admin_show_credentials', true ) ) :
 										?>
-										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( $credentials['token'] ); ?>" name="ep_credentials[token]" id="ep_token">
+										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="password" value="" autocomplete="new-password" placeholder="<?php echo esc_attr( $credentials['token'] ? '••••••••' : '' ); ?>" name="ep_credentials[token]" id="ep_token">
 									<?php endif ?>
 									<?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>
 										<p class="description"><?php esc_html_e( 'Your Subscription Token is set in wp-config.php', 'elasticpress' ); ?></p>
 									<?php else : ?>
-										<p class="description"><?php esc_html_e( 'Plug in your subscription token here.', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Your subscription token is stored securely and will not be displayed. Enter a new value to update it.', 'elasticpress' ); ?></p>
 									<?php endif; ?>
 								</td>
 							</tr>

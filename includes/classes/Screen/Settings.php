@@ -103,6 +103,12 @@ class Settings {
 				'token'    => '',
 			];
 
+			// Preserve the existing token if the field was left empty (it is always empty on load).
+			if ( empty( $credentials['token'] ) ) {
+				$prev_credentials     = Utils\get_epio_credentials();
+				$credentials['token'] = $prev_credentials['token'];
+			}
+
 			Utils\update_option( 'ep_credentials', $credentials );
 		}
 
