@@ -162,14 +162,14 @@ const Control = ({
 		}
 		if (titles.length === 2) {
 			return sprintf(
-				/* translators: %1$s: first feature name, %2$s: second feature name */
+				/* translators: %1$s: feature name(s), %2$s: last feature name */
 				__('%1$s and %2$s', 'elasticpress'),
 				titles[0],
 				titles[1],
 			);
 		}
 		return sprintf(
-			/* translators: %1$s: comma-separated list of feature names, %2$s: last feature name */
+			/* translators: %1$s: feature name(s), %2$s: last feature name */
 			__('%1$s and %2$s', 'elasticpress'),
 			titles.slice(0, -1).join(__(', ', 'elasticpress')),
 			titles[titles.length - 1],
