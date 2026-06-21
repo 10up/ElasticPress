@@ -127,8 +127,19 @@ class DidYouMean extends Feature {
 			return false;
 		}
 
+		// No need to suggest alternatives if the current query already returned results.
+		if ( $query->found_posts > 0 ) {
+			return false;
+		}
+
 		$term = $this->get_suggested_term( $query );
 		if ( empty( $term ) ) {
+			return false;
+		}
+
+		// No need to suggest the same term the user already typed.
+		$search_term = $query->query_vars['s'] ?? '';
+		if ( strtolower( $term ) === strtolower( $search_term ) ) {
 			return false;
 		}
 
@@ -293,6 +304,12 @@ class DidYouMean extends Feature {
 
 		$term = $this->get_suggested_term( $wp_query );
 		if ( empty( $term ) ) {
+			return;
+		}
+
+		// Do not redirect to the same term the user already searched for.
+		$search_term = $wp_query->query_vars['s'] ?? '';
+		if ( strtolower( $term ) === strtolower( $search_term ) ) {
 			return;
 		}
 
