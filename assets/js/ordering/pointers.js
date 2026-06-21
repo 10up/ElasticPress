@@ -67,6 +67,7 @@ export class Pointers extends Component {
 			searchText: '',
 			searchResults: {},
 			removedPointers: [],
+			excludedPosts: window.epOrdering.excludedPosts || [],
 		};
 	}
 
@@ -121,18 +122,23 @@ export class Pointers extends Component {
 
 	removePointer = (pointer) => {
 		let { pointers } = this.state;
-		const { removedPointers } = this.state;
+		const { removedPointers, excludedPosts } = this.state;
 
 		delete pointers[pointers.indexOf(pointer)];
 		pointers = pointers.filter((item) => item !== null);
-		removedPointers.push(pointer.ID);
 
-		this.setState({ pointers });
+		if (pointer.type === 'custom-result') {
+			excludedPosts.push(pointer.ID);
+		} else {
+			removedPointers.push(pointer.ID);
+		}
+
+		this.setState({ pointers, removedPointers, excludedPosts });
 	};
 
 	getMergedPosts = () => {
 		let { pointers } = this.state;
-		const { title, defaultResults } = this.state;
+		const { title, defaultResults, excludedPosts } = this.state;
 		let merged = defaultResults[title].slice();
 
 		pointers = pointers.sort((a, b) => {
@@ -140,8 +146,10 @@ export class Pointers extends Component {
 		});
 		const pointersIds = pluck(pointers, 'ID');
 
-		// Remove all custom pointers from the default results
-		merged = merged.filter((item) => pointersIds.indexOf(item.ID) === -1);
+		// Remove all custom pointers and excluded posts from the default results
+		merged = merged.filter(
+			(item) => pointersIds.indexOf(item.ID) === -1 && excludedPosts.indexOf(item.ID) === -1,
+		);
 
 		// Insert pointers into their proper location
 		pointers.forEach((pointer) => {
@@ -185,6 +193,7 @@ export class Pointers extends Component {
 	addPointer = (post) => {
 		const id = post.ID;
 		const { posts, pointers } = this.state;
+		let { excludedPosts } = this.state;
 
 		if (!posts[id]) {
 			posts[id] = post;
@@ -202,13 +211,16 @@ export class Pointers extends Component {
 			return;
 		}
 
+		// Remove from excluded posts if it is being re-added
+		excludedPosts = excludedPosts.filter((item) => item !== id);
+
 		pointers.push({
 			ID: id,
 			order: position,
 			type: 'custom-result',
 		});
 
-		this.setState({ pointers });
+		this.setState({ pointers, excludedPosts });
 	};
 
 	/**
@@ -312,6 +324,7 @@ export class Pointers extends Component {
 			title,
 			pointers,
 			removedPointers,
+			excludedPosts,
 			searchText,
 			searchResults: searchResultsFromState,
 		} = this.state;
@@ -349,7 +362,9 @@ export class Pointers extends Component {
 
 		const searchResults = searchResultsFromState[searchText]
 			? searchResultsFromState[searchText].filter(
-					(item) => renderedIds.indexOf(item.ID) === -1,
+					(item) =>
+						renderedIds.indexOf(item.ID) === -1 &&
+						excludedPosts.indexOf(item.ID) === -1,
 				)
 			: false;
 
@@ -357,6 +372,7 @@ export class Pointers extends Component {
 			<div>
 				<input type="hidden" name="search-ordering-nonce" value={window.epOrdering.nonce} />
 				<input type="hidden" name="ordered_posts" value={JSON.stringify(pointers)} />
+				<input type="hidden" name="excluded_posts" value={JSON.stringify(excludedPosts)} />
 				<DragDropContext onDragEnd={this.onDragComplete}>
 					<Droppable droppableId="droppable">
 						{(provided) => (
@@ -383,13 +399,16 @@ export class Pointers extends Component {
 
 									// Determine if this result is part of default search results or not
 									const itemType = item?.type || 'reordered';
-									const tooltipText =
-										itemType === 'reordered'
-											? __('Return to original position', 'elasticpress')
-											: __(
-													'Remove custom result from results list',
-													'elasticpress',
-												);
+									const isCustomResult = itemType === 'custom-result';
+									const tooltipText = isCustomResult
+										? __(
+												'Remove custom result from results list',
+												'elasticpress',
+											)
+										: __('Return to original position', 'elasticpress');
+									const iconClass = isCustomResult
+										? 'dashicons dashicons-trash delete-pointer'
+										: 'dashicons dashicons-undo delete-pointer';
 
 									return (
 										<Fragment key={item.ID}>
@@ -438,14 +457,13 @@ export class Pointers extends Component {
 														{item.order && itemType !== 'reordered' && (
 															<span className="pointer-type">CR</span>
 														)}
-														<strong className="title">{title}</strong>
 														<div className="pointer-actions">
 															{item.order && (
 																<span
 																	role="button"
 																	tabIndex="0"
 																	title={tooltipText}
-																	className="dashicons dashicons-undo delete-pointer"
+																	className={iconClass}
 																	onClick={(event) => {
 																		event.preventDefault();
 																		this.removePointer(item);
@@ -456,7 +474,15 @@ export class Pointers extends Component {
 																	}}
 																>
 																	<span className="screen-reader-text">
-																		Remove Post
+																		{isCustomResult
+																			? __(
+																					'Remove custom result',
+																					'elasticpress',
+																				)
+																			: __(
+																					'Return to original position',
+																					'elasticpress',
+																				)}
 																	</span>
 																</span>
 															)}

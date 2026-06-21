@@ -372,8 +372,9 @@ class SearchOrdering extends Feature {
 
 		if ( empty( $pointers ) ) {
 			return [
-				'pointers' => [],
-				'posts'    => [],
+				'pointers'       => [],
+				'posts'          => [],
+				'excluded_posts' => [],
 			];
 		}
 
@@ -397,9 +398,12 @@ class SearchOrdering extends Feature {
 			$filtered_pointers[] = $pointers[ array_search( $post->ID, $post_ids, true ) ];
 		}
 
+		$excluded_posts = get_post_meta( $post_id, 'excluded_posts', true );
+
 		return [
-			'pointers' => $filtered_pointers,
-			'posts'    => $final_posts,
+			'pointers'       => $filtered_pointers,
+			'posts'          => $final_posts,
+			'excluded_posts' => ! empty( $excluded_posts ) ? $excluded_posts : [],
 		];
 	}
 
@@ -480,7 +484,7 @@ class SearchOrdering extends Feature {
 
 		// Search term changed, so remove it from all of the posts it was assigned to
 		if ( ! empty( $old_search_term ) && $old_search_term !== $post->post_title ) {
-			$old_term = $this->create_or_return_custom_result_term( $old_search_term );
+			$old_term = $this->create_or_return_custom_result_term( $old_search_term, $post_id );
 
 			foreach ( array_flip( $previous_post_ids ) as $previous_post_id ) {
 				wp_remove_object_terms( $previous_post_id, $old_term->term_id, self::TAXONOMY_NAME );
@@ -505,7 +509,7 @@ class SearchOrdering extends Feature {
 			}
 		}
 
-		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title );
+		$custom_result_term = $this->create_or_return_custom_result_term( $post->post_title, $post_id );
 		if ( $custom_result_term ) {
 			foreach ( $final_order_data as $final_order_datum ) {
 
@@ -529,18 +533,29 @@ class SearchOrdering extends Feature {
 			}
 		}
 
+		$excluded_posts = isset( $_POST['excluded_posts'] ) ? wp_unslash( $_POST['excluded_posts'] ) : '[]'; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$excluded_posts = json_decode( $excluded_posts, true );
+		$excluded_posts = ! empty( $excluded_posts ) && is_array( $excluded_posts ) ? array_map( 'intval', $excluded_posts ) : [];
+
+		// If the search term changed, clear the excluded list
+		if ( ! empty( $old_search_term ) && $old_search_term !== $post->post_title ) {
+			$excluded_posts = [];
+		}
+
 		update_post_meta( $post_id, 'pointers', $final_order_data );
+		update_post_meta( $post_id, 'excluded_posts', $excluded_posts );
 		update_post_meta( $post_id, 'search_term', $post->post_title );
 	}
 
 	/**
 	 * Creates a term in the taxonomy for tracking ordered results or returns the existing term
 	 *
-	 * @param string $term_name Term name to fetch or create
+	 * @param string   $term_name  Term name to fetch or create
+	 * @param int|null $pointer_id Optional. Pointer post ID to associate with the term.
 	 *
 	 * @return false|\WP_Term
 	 */
-	public function create_or_return_custom_result_term( $term_name ) {
+	public function create_or_return_custom_result_term( $term_name, $pointer_id = null ) {
 		$term = get_term_by( 'name', $term_name, self::TAXONOMY_NAME );
 
 		if ( ! $term ) {
@@ -551,6 +566,10 @@ class SearchOrdering extends Feature {
 			}
 
 			$term = get_term( $term_ids['term_id'], self::TAXONOMY_NAME );
+		}
+
+		if ( $term && ! empty( $pointer_id ) ) {
+			update_term_meta( $term->term_id, 'ep_pointer_id', $pointer_id );
 		}
 
 		return $term;
@@ -651,14 +670,18 @@ class SearchOrdering extends Feature {
 	public function posts_results( $posts, $query ) {
 		if ( is_array( $posts ) && $query->is_search() ) {
 			$search_query = strtolower( $query->get( 's' ) );
-
-			$to_inject = array();
+			$to_inject    = array();
+			$pointer_id   = false;
 
 			foreach ( $posts as $key => &$post ) {
 				if ( isset( $post->terms ) && isset( $post->terms[ self::TAXONOMY_NAME ] ) ) {
 					foreach ( $post->terms[ self::TAXONOMY_NAME ] as $current_term ) {
 						if ( strtolower( $current_term['name'] ) === $search_query ) {
 							$to_inject[ $current_term['term_order'] ] = $post;
+
+							if ( empty( $pointer_id ) && ! empty( $current_term['term_id'] ) ) {
+								$pointer_id = get_term_meta( (int) $current_term['term_id'], 'ep_pointer_id', true );
+							}
 
 							unset( $posts[ $key ] );
 
@@ -682,9 +705,49 @@ class SearchOrdering extends Feature {
 
 			// reindex just in case we got out of order keys
 			$posts = array_values( $posts );
+
+			$posts = $this->filter_excluded_posts( $posts, $pointer_id );
 		}
 
 		return $posts;
+	}
+
+	/**
+	 * Filters out posts that have been explicitly excluded from a custom search result.
+	 *
+	 * @param array $posts       Current array of post results.
+	 * @param int   $pointer_id  ID of the custom search result pointer post.
+	 * @return array Final modified posts array.
+	 */
+	public function filter_excluded_posts( $posts, $pointer_id ) {
+		static $excluded_cache = array();
+
+		if ( ! isset( $excluded_cache[ $pointer_id ] ) ) {
+			$excluded_cache[ $pointer_id ] = array();
+
+			if ( ! empty( $pointer_id ) ) {
+				$excluded = get_post_meta( $pointer_id, 'excluded_posts', true );
+
+				if ( ! empty( $excluded ) && is_array( $excluded ) ) {
+					$excluded_cache[ $pointer_id ] = array_map( 'intval', $excluded );
+				}
+			}
+		}
+
+		$excluded_posts = $excluded_cache[ $pointer_id ];
+
+		if ( empty( $excluded_posts ) ) {
+			return $posts;
+		}
+
+		$posts = array_filter(
+			$posts,
+			function ( $post ) use ( $excluded_posts ) {
+				return ! in_array( (int) $post->ID, $excluded_posts, true );
+			}
+		);
+
+		return array_values( $posts );
 	}
 
 	/**
