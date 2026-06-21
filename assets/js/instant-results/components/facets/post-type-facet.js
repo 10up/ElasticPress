@@ -3,6 +3,7 @@
  */
 import { useCallback, useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
@@ -61,7 +62,20 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Reduce buckets to options.
 	 */
-	const options = useMemo(() => buckets.reduce(reduceOptions, []), [buckets, reduceOptions]);
+	const options = useMemo(() => {
+		const reducedOptions = buckets.reduce(reduceOptions, []);
+
+		/**
+		 * Filter the post type filter options.
+		 *
+		 * @filter ep.InstantResults.filter.postType.options
+		 * @since 5.3.0
+		 *
+		 * @param {object[]} options Post type filter options.
+		 * @returns {object[]} Filtered post type filter options.
+		 */
+		return applyFilters('ep.InstantResults.filter.postType.options', reducedOptions);
+	}, [buckets, reduceOptions]);
 
 	/**
 	 * Handle checkbox change event.

@@ -3,6 +3,7 @@
  */
 import { useMemo, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
@@ -41,7 +42,7 @@ export default () => {
 		search({ orderby, order });
 	};
 
-	return (
+	const sort = (
 		<label className="ep-search-sort" htmlFor="ep-sort">
 			<span className="ep-search-sort__label">{__('Sort by', 'elasticpress')}</span>{' '}
 			<select
@@ -58,4 +59,18 @@ export default () => {
 			</select>
 		</label>
 	);
+
+	/**
+	 * Filter the sort component.
+	 *
+	 * @filter ep.InstantResults.component.sort
+	 * @since 5.3.0
+	 *
+	 * @param {WPElement} sort Sort component.
+	 * @param {object} context Sort context.
+	 * @param {string} context.orderby Current orderby value.
+	 * @param {string} context.order Current order value.
+	 * @returns {WPElement} Sort component.
+	 */
+	return applyFilters('ep.InstantResults.component.sort', sort, { orderby, order });
 };
