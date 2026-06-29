@@ -44,13 +44,12 @@ class OrdersHPOSQuery {
 	 */
 	protected $wp_query_args = [];
 
-
 	/**
-	 * Constructor for the OrdersHPOS_Query class.
+	 * Constructor.
 	 *
-	 * @param OrdersTableQuery $hpos_query The WooCommerce OrdersTableQuery object.
+	 * @param \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $hpos_query The HPOS query object.
 	 */
-	public function __construct( OrdersTableQuery $hpos_query ) {
+	public function __construct( \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $hpos_query ) {
 		$this->hpos_query    = $hpos_query;
 		$this->query_args    = $hpos_query->get_query_args();
 		$this->wp_query_args = $this->translate_args();
@@ -128,7 +127,7 @@ class OrdersHPOSQuery {
 		 * Filter translated WP_Query args for HPOS queries.
 		 *
 		 * @hook ep_woocommerce_hpos_query_args
-		 * @since 5.3.0
+		 * @since 5.4.0
 		 * @param {array} $args        WP_Query compatible arguments.
 		 * @param {array} $query_args  Original HPOS query arguments.
 		 * @return {array} New args.
@@ -192,7 +191,6 @@ class OrdersHPOSQuery {
 	protected function get_orderby() {
 		$orderby = $this->hpos_query->get( 'orderby' );
 
-		// @todo: check if this is correct
 		$mapping = [
 			'ID'            => 'ID',
 			'id'            => 'ID',
@@ -230,13 +228,10 @@ class OrdersHPOSQuery {
 	/**
 	 * Gets search fields for the query.
 	 *
-	 * Translates HPOS search_filter parameter to ElasticPress search_fields.
-	 * This mirrors WooCommerce's OrdersTableSearchQuery::generate_where_for_search_filter() logic.
-	 *
 	 * @return array Search fields configuration.
 	 */
 	protected function get_search_fields(): array {
-		$search_filter = $this->hpos_query->get( 'search_filter' );
+		$search_filter = $this->hpos_query->get( 'search_filter' ) ?? 'all';
 
 		// Handle specific search filters.
 		$search_fields = $this->get_fields_for_search_filter( $search_filter );
@@ -257,13 +252,10 @@ class OrdersHPOSQuery {
 	/**
 	 * Gets search fields based on HPOS search filter.
 	 *
-	 * Mirrors WooCommerce's OrdersTableSearchQuery search filter logic.
-	 *
 	 * @param string $search_filter The search filter (order_id, transaction_id, customer_email, customers, products, all).
 	 * @return array Search fields for ElasticPress.
 	 */
 	protected function get_fields_for_search_filter( string $search_filter ): array {
-
 		switch ( $search_filter ) {
 			case 'order_id':
 				return [ 'ID' ];
@@ -279,30 +271,10 @@ class OrdersHPOSQuery {
 				];
 
 			case 'customers':
-				// Search in all customer/address meta fields. WooCommerce does search from _billing_address_index and _shipping_address_index fields.
 				return [
 					'meta' => [
-						'_billing_first_name',
-						'_billing_last_name',
-						'_billing_company',
-						'_billing_address_1',
-						'_billing_address_2',
-						'_billing_city',
-						'_billing_state',
-						'_billing_postcode',
-						'_billing_country',
-						'_billing_email',
-						'_billing_phone',
-						'_shipping_first_name',
-						'_shipping_last_name',
-						'_shipping_company',
-						'_shipping_address_1',
-						'_shipping_address_2',
-						'_shipping_city',
-						'_shipping_state',
-						'_shipping_postcode',
-						'_shipping_country',
-						'_shipping_phone',
+						'_billing_address_index',
+						'_shipping_address_index',
 					],
 				];
 
@@ -314,31 +286,13 @@ class OrdersHPOSQuery {
 
 			case 'all':
 			default:
-				// Search all fields - combine all filters.
-				$fields = [ 'post_title', 'post_content', 'post_excerpt' ];
+				$fields = [ 'ID' ];
 
 				// Include all searchable meta fields.
 				$fields['meta'] = [
 					'_order_key',
-					'_billing_company',
-					'_billing_address_1',
-					'_billing_address_2',
-					'_billing_city',
-					'_billing_postcode',
-					'_billing_country',
-					'_billing_state',
-					'_billing_email',
-					'_billing_phone',
-					'_shipping_address_1',
-					'_shipping_address_2',
-					'_shipping_city',
-					'_shipping_postcode',
-					'_shipping_country',
-					'_shipping_state',
-					'_billing_last_name',
-					'_billing_first_name',
-					'_shipping_first_name',
-					'_shipping_last_name',
+					'_billing_address_index',
+					'_shipping_address_index',
 					'_items',
 				];
 
@@ -351,7 +305,7 @@ class OrdersHPOSQuery {
 	 *
 	 * @return array Date query array.
 	 */
-	protected function build_date_query(): array {
+	protected function build_date_query() {
 		$date_query = [];
 
 		// Handle date shorthand parameters.
@@ -362,7 +316,7 @@ class OrdersHPOSQuery {
 		];
 
 		foreach ( $date_params as $hpos_key => $wp_column ) {
-			$value = $this->query_args[ $hpos_key ] ?? null;
+			$value = $this->hpos_query->get( $hpos_key );
 			if ( empty( $value ) ) {
 				continue;
 			}
@@ -458,23 +412,20 @@ class OrdersHPOSQuery {
 		}
 
 		$clauses = [];
-
-		// Build _customer_user clause for IDs.
 		if ( ! empty( $ids ) ) {
 			$clauses[] = [
 				'key'     => '_customer_user',
-				'value'   => count( $ids ) === 1 ? $ids[0] : $ids,
-				'compare' => count( $ids ) === 1 ? '=' : 'IN',
+				'value'   => $ids,
+				'compare' => '=',
 				'type'    => 'NUMERIC',
 			];
 		}
 
-		// Build _billing_email clause for emails.
 		if ( ! empty( $emails ) ) {
 			$clauses[] = [
 				'key'     => '_billing_email',
-				'value'   => count( $emails ) === 1 ? $emails[0] : $emails,
-				'compare' => count( $emails ) === 1 ? '=' : 'IN',
+				'value'   => $emails,
+				'compare' => '=',
 			];
 		}
 

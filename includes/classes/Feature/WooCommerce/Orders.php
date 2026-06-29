@@ -480,6 +480,11 @@ class Orders {
 			return;
 		}
 
+		// bail if HPOS is enabled
+		if ( $this->is_hpos_enabled() ) {
+			return;
+		}
+
 		$query->set( 'ep_integrate', true );
 
 		/**
@@ -494,7 +499,7 @@ class Orders {
 	/**
 	 * Whether WooCommerce HPOS is enabled or not
 	 *
-	 * @since 5.3.0
+	 * @since 5.4.0
 	 * @return boolean Whether WooCommerce HPOS is enabled or not
 	 */
 	public function is_hpos_enabled(): bool {

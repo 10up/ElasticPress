@@ -2,7 +2,7 @@
 /**
  * WooCommerce HPOS compatibility layer
  *
- * @since 5.3.0
+ * @since 5.4.0
  * @package elasticpress
  */
 
@@ -96,9 +96,8 @@ class OrdersHPOS {
 		$post_indexable = Indexables::factory()->get( 'post' );
 		$order          = wc_get_order( $post_id );
 
-		$post_args['post_type'] = $order->get_type();
-		// @todo: check if this is correct
-		$post_args['post_status']   = 'wc-' . $order->get_status( 'edit' );
+		$post_args['post_status']   = $this->sanitize_order_status( $order->get_status( 'edit' ) );
+		$post_args['post_type']     = $order->get_type();
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
 		$post_args['post_date']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
 		$post_args['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
@@ -115,10 +114,7 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Get meta data from an order as it would be stored in the post_meta table.
-	 *
-	 * This method is a copy of WC_Order_Data_Store_CPT::update_post_meta() with some simplifications and returning data as an array,
-	 * instead of actually storing it in the database.
+	 * Prepare meta data for an order or refund order.
 	 *
 	 * @param array   $order_meta Meta data
 	 * @param WP_Post $order_post Order object
@@ -133,7 +129,6 @@ class OrdersHPOS {
 
 		// Handle refund orders differently.
 		if ( 'shop_order_refund' === $order->get_type() ) {
-
 			return $this->prepare_refund_meta_data( $order );
 		}
 
@@ -230,13 +225,14 @@ class OrdersHPOS {
 			}
 		}
 
+		$meta_data['_billing_address_index']  = $order->get_meta( '_billing_address_index', true );
+		$meta_data['_shipping_address_index'] = $order->get_meta( '_shipping_address_index', true );
+
 		return $meta_data;
 	}
 
 	/**
-	 * Get meta data from a refund order as it would be stored in the post_meta table.
-	 *
-	 * This method handles refund-specific properties that differ from regular orders.
+	 * Prepare meta data for a refund order.
 	 *
 	 * @param \WC_Order_Refund $refund Refund order object
 	 * @return array
@@ -266,7 +262,7 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Intercept WooCommerce orders query
+	 * Intercept WooCommerce orders query.
 	 *
 	 * @param array|null       $order_data Order data or null.
 	 * @param OrdersTableQuery $query      The OrdersTableQuery object.
@@ -313,5 +309,18 @@ class OrdersHPOS {
 		$this->elasticsearch_order_ids = [];
 
 		return $orders;
+	}
+
+	/**
+	 * Sanitize order status. We need to add the 'wc-' prefix to the status if it doesn't have it.
+	 *
+	 * @param string $order_status Order status.
+	 * @return string Sanitized order status.
+	 */
+	protected function sanitize_order_status( $order_status ) {
+		if ( 'wc-' === substr( $order_status, 0, 3 ) ) {
+			return $order_status;
+		}
+		return sprintf( 'wc-%s', $order_status );
 	}
 }
