@@ -9,6 +9,7 @@
 namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Indexables;
+use Automattic\WooCommerce\Enums\OrderStatus;
 use Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -96,7 +97,7 @@ class OrdersHPOS {
 		$post_indexable = Indexables::factory()->get( 'post' );
 		$order          = wc_get_order( $post_id );
 
-		$post_args['post_status']   = $this->sanitize_order_status( $order->get_status( 'edit' ) );
+		$post_args['post_status']   = $this->get_order_status( $order );
 		$post_args['post_type']     = $order->get_type();
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
 		$post_args['post_date']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
@@ -374,15 +375,32 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Sanitize order status. We need to add the 'wc-' prefix to the status if it doesn't have it.
+	 * WC_Order::get_status() returns the order status without the wc- prefix. This function prepends the wc- prefix to match the post_status format used in the query. It mirrors the behavior of Abstract_WC_Order_Data_Store_CPT::get_post_status().
 	 *
-	 * @param string $order_status Order status.
-	 * @return string Sanitized order status.
+	 * @param \WC_Abstract_Order $order Order object.
+	 * @return string
 	 */
-	protected function sanitize_order_status( $order_status ) {
-		if ( 'wc-' === substr( $order_status, 0, 3 ) ) {
-			return $order_status;
+	protected function get_order_status( \WC_Abstract_Order $order ) {
+		$order_status = $order->get_status( 'edit' );
+
+		$post_status    = $order_status;
+		$valid_statuses = get_post_stati();
+
+		if (
+			! in_array(
+				$post_status,
+				array(
+					OrderStatus::AUTO_DRAFT,
+					OrderStatus::DRAFT,
+					OrderStatus::TRASH,
+				),
+				true
+			)
+			&& in_array( 'wc-' . $post_status, $valid_statuses, true )
+		) {
+			$post_status = 'wc-' . $post_status;
 		}
-		return sprintf( 'wc-%s', $order_status );
+
+		return $post_status;
 	}
 }

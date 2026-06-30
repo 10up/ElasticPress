@@ -564,8 +564,6 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		});
 
 		test('Can search orders from ElasticPress in WP Dashboard', async ({ loggedInPage }) => {
-			await wpCli('elasticpress sync --setup --yes');
-
 			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
 
 			const checkAllOrders = async () => {
@@ -640,8 +638,6 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		test('Can fetch orders from Elasticsearch when Date filter is applied', async ({
 			loggedInPage,
 		}) => {
-			await wpCli('elasticpress sync --setup --yes');
-
 			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
 
 			await loggedInPage.locator('#filter-by-date').selectOption({ index: 1 });
@@ -663,9 +659,18 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		test('Can fetch orders from Elasticsearch when Sales Channel filter is applied', async ({
 			loggedInPage,
 		}) => {
-			await wpCli('elasticpress sync --setup --yes');
-
 			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders&action=new');
+			await loggedInPage
+				.locator('.order_data_column_container  .order_data_column > h3 > .edit_address')
+				.first()
+				.click();
+			await loggedInPage.locator('#_billing_first_name').fill(userData.firstName);
+			await loggedInPage.locator('#_billing_last_name').fill(userData.lastName);
+			await loggedInPage.locator('#_billing_address_1').fill(userData.address);
+			await loggedInPage.locator('#_billing_city').fill(userData.city);
+			await loggedInPage.locator('#_billing_postcode').fill(userData.postCode);
+			await loggedInPage.locator('#_billing_phone').fill(userData.phoneNumber);
+			await loggedInPage.locator('#_billing_email').fill(userData.email);
 			await loggedInPage.locator('.order_actions.submitbox .save_order').click();
 
 			// Grab the id query string from the url
@@ -688,6 +693,129 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			for await (const order of allOrders) {
 				await expect(order).toContainText(id);
 			}
+		});
+
+		test('Can not display other users orders on the My Account Order page', async ({
+			loggedInPage,
+		}) => {
+			await activatePlugin(loggedInPage, 'enable-debug-bar');
+
+			// Enable payment gateway
+			await goToAdminPage(
+				loggedInPage,
+				'admin.php?page=wc-settings&tab=checkout&section=cod',
+			);
+			const checkboxLabel = (await isMinWcVersion())
+				? 'Enable cash on delivery'
+				: 'Enable cash on delivery payments';
+
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
+			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+			// Disable coming soon option
+			await wpCli('option update woocommerce_coming_soon off');
+
+			await logout(loggedInPage);
+
+			// Create new user
+			await createUser(loggedInPage, {
+				username: userData.username,
+				email: userData.email,
+				login: true,
+			});
+
+			// Add product to cart
+			await loggedInPage.goto('product/fantastic-silk-knife');
+			await loggedInPage.locator('.single_add_to_cart_button').click();
+
+			// Checkout and place order
+			await loggedInPage.goto('checkout');
+			await loggedInPage
+				.locator('#billing-first_name, #billing_first_name')
+				.fill(userData.firstName);
+			await loggedInPage
+				.locator('#billing-last_name, #billing_last_name')
+				.fill(userData.lastName);
+			await loggedInPage
+				.locator('#billing-address_1, #billing_address_1')
+				.fill(userData.address);
+			await loggedInPage.locator('#billing-city, #billing_city').fill(userData.city);
+			await loggedInPage
+				.locator('#billing-postcode, #billing_postcode')
+				.fill(userData.postCode);
+			await loggedInPage
+				.locator('#billing-phone, #billing_phone')
+				.fill(userData.phoneNumber, { force: true });
+			await loggedInPage.locator('#email, #billing_email').clear();
+			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
+
+			// Check WooCommerce version and place order accordingly
+			if (await isMinWcVersion()) {
+				await loggedInPage.locator('#place_order').click();
+			} else {
+				await loggedInPage.waitForTimeout(1000);
+				await loggedInPage
+					.locator('.wc-block-components-checkout-place-order-button')
+					.click();
+			}
+
+			// Ensure order is placed
+			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
+
+			// Give Elasticsearch time to process
+			await loggedInPage.waitForTimeout(2000);
+
+			// Ensure order is visible to user
+			await loggedInPage.goto('my-account/orders');
+			await expect(loggedInPage.locator('.woocommerce-orders-table tbody tr')).toHaveCount(1);
+
+			// Test orderby parameter
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText('shop_order');
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText("'orderby' => 'date'");
+
+			await logout(loggedInPage);
+
+			await createUser(loggedInPage, {
+				username: 'buyer',
+				email: 'buyer@example.com',
+				login: true,
+			});
+
+			// Ensure no order is shown for different user
+			await loggedInPage.goto('my-account/orders');
+			await expect(loggedInPage.locator('.woocommerce-orders-table tbody tr')).toHaveCount(0);
+
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText('shop_order');
+			await expect(
+				loggedInPage
+					.locator('.ep-query-debug')
+					.filter({
+						has: loggedInPage.locator('.ep-query-type', { hasText: 'post' }),
+					})
+					.first(),
+			).toContainText('HTTP 200');
 		});
 	});
 });

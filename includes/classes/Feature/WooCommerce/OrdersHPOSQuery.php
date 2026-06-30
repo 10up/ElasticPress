@@ -289,7 +289,7 @@ class OrdersHPOSQuery {
 				$fields = [];
 
 				$search = $this->hpos_query->get( 's' );
-				if ( ! empty( $search ) ) {
+				if ( ! empty( $search ) && ctype_digit( $search ) ) {
 					$fields[] = 'ID';
 				}
 
