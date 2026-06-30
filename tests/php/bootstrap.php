@@ -103,6 +103,9 @@ function setup_wc() {
 
 	\WC_Install::install();
 
+	// Disable HPOS.
+	$feature_controller->change_feature_enable( 'custom_order_tables', false );
+
 	$GLOBALS['wp_roles'] = new \WP_Roles();
 
 	echo 'Installing WooCommerce version ' . WC()->version . ' ...' . PHP_EOL; // phpcs:ignore

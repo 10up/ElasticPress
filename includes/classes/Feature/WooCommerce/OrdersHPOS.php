@@ -27,11 +27,11 @@ class OrdersHPOS {
 	protected $orders;
 
 	/**
-	 * Order IDs from the last Elasticsearch query.
+	 * Elasticsearch order IDs keyed by order query hash.
 	 *
-	 * @var array
+	 * @var array<string, int[]>
 	 */
-	protected $elasticsearch_order_ids = [];
+	protected $elasticsearch_order_results = [];
 
 	/**
 	 * Class constructor
@@ -53,7 +53,7 @@ class OrdersHPOS {
 		add_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
 		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
-		add_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ] );
+		add_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ], 10, 2 );
 	}
 
 	/**
@@ -116,8 +116,8 @@ class OrdersHPOS {
 	/**
 	 * Prepare meta data for an order or refund order.
 	 *
-	 * @param array   $order_meta Meta data
-	 * @param WP_Post $order_post Order object
+	 * @param array    $order_meta Meta data
+	 * @param \WP_Post $order_post Order object
 	 * @return array
 	 */
 	public function prepare_meta_data( $order_meta, $order_post ) {
@@ -269,46 +269,108 @@ class OrdersHPOS {
 	 * @return array|null Order data array or null to continue with default query.
 	 */
 	public function maybe_intercept_wc_orders_query( $order_data, OrdersTableQuery $query ) {
+		if ( ! $this->should_integrate_with_query( $query->get_query_args(), $query ) ) {
+			return null;
+		}
+
 		$orders_query = new OrdersHPOSQuery( $query );
 		$result       = $orders_query->query();
 
-		// Store order IDs from Elasticsearch.
+		// Store order IDs from Elasticsearch keyed by query hash.
 		if ( null !== $result && ! empty( $result[0] ) ) {
-			$this->elasticsearch_order_ids = $result[0];
+			$query_hash                                       = $this->get_order_query_hash( $query->get_query_args() );
+			$this->elasticsearch_order_results[ $query_hash ] = array_map( 'absint', $result[0] );
 		}
 
 		return $result;
 	}
 
 	/**
-	 * Add elasticsearch property to order objects similar how format_hits_as_posts has.
+	 * Determines whether or not ES should be integrating with the provided query.
 	 *
-	 * @param array $orders Array of WC_Order objects.
-	 * @return array Modified array of orders with elasticsearch_success property.
+	 * @param array                                                               $args  HPOS order query arguments.
+	 * @param \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $query OrdersTableQuery instance.
+	 * @return bool
 	 */
-	public function add_elasticsearch_success_to_orders( $orders ) {
-		if ( empty( $this->elasticsearch_order_ids ) ) {
+	protected function should_integrate_with_query( $args, $query ): bool {
+		if ( isset( $args['ep_integrate'] ) && ! filter_var( $args['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
+			return false;
+		}
+
+		/** This filter is documented in includes/classes/Indexable/Post/QueryIntegration.php */
+		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Add elasticsearch property to order objects.
+	 *
+	 * @param array|object $orders Array of WC_Order objects or paginated result object.
+	 * @param array        $args   Order query arguments.
+	 * @return array|object Modified orders with elasticsearch property.
+	 */
+	public function add_elasticsearch_success_to_orders( $orders, $args ) {
+		$query_hash = $this->get_order_query_hash( $this->normalize_order_query_args( $args ) );
+		if ( empty( $this->elasticsearch_order_results[ $query_hash ] ) ) {
 			return $orders;
 		}
 
-		foreach ( $orders as $order ) {
-			// Handle both WC_Order and WC_Order_Refund
+		$order_ids  = $this->elasticsearch_order_results[ $query_hash ];
+		$order_list = ( is_object( $orders ) && isset( $orders->orders ) ) ? $orders->orders : $orders;
+
+		foreach ( $order_list as $order ) {
 			if ( ! $order instanceof \WC_Abstract_Order ) {
 				continue;
 			}
 
-			$order_id = $order->get_id();
-
-			// Add elasticsearch property if this order came from ES
-			if ( in_array( $order_id, $this->elasticsearch_order_ids, true ) ) {
-				$order->elasticsearch = true;
+			if ( in_array( $order->get_id(), $order_ids, true ) ) {
+				$order->elasticsearch_success = true;
 			}
 		}
 
-		// Clear the order IDs after processing
-		$this->elasticsearch_order_ids = [];
+		unset( $this->elasticsearch_order_results[ $query_hash ] );
 
 		return $orders;
+	}
+
+	/**
+	 * Normalize order query arguments to match OrdersTableQuery.
+	 *
+	 * @param array $args Order query arguments.
+	 * @return array
+	 */
+	protected function normalize_order_query_args( array $args ): array {
+		unset( $args['suppress_filters'] );
+
+		/**
+		 * Filter the query args before executing the query.
+		 *
+		 * @param array $query_vars The query vars.
+		 * @return array
+		 * @since 10.4.0
+		 */
+		return apply_filters(
+			'woocommerce_orders_table_datastore_get_orders_query',
+			$args,
+			\WC_Data_Store::load( 'order' )
+		);
+	}
+
+	/**
+	 * Generate a stable hash for HPOS order query arguments.
+	 *
+	 * @param array $args Order query arguments.
+	 * @return string
+	 */
+	protected function get_order_query_hash( array $args ): string {
+		unset( $args['suppress_filters'], $args['no_found_rows'], $args['name'] );
+
+		ksort( $args );
+
+		return md5( wp_json_encode( $args ) );
 	}
 
 	/**

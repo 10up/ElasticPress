@@ -286,15 +286,44 @@ class OrdersHPOSQuery {
 
 			case 'all':
 			default:
-				$fields = [ 'ID' ];
+				$fields = [];
 
-				// Include all searchable meta fields.
-				$fields['meta'] = [
-					'_order_key',
-					'_billing_address_index',
-					'_shipping_address_index',
-					'_items',
-				];
+				$search = $this->hpos_query->get( 's' );
+				if ( ! empty( $search ) ) {
+					$fields[] = 'ID';
+				}
+
+				// Match the default shop order search fields used in admin.
+				$fields['meta'] = array_map(
+					'wc_clean',
+					/** This filter is documented in includes/classes/Feature/WooCommerce/Orders.php */
+					apply_filters(
+						'shop_order_search_fields',
+						[
+							'_order_key',
+							'_billing_company',
+							'_billing_address_1',
+							'_billing_address_2',
+							'_billing_city',
+							'_billing_postcode',
+							'_billing_country',
+							'_billing_state',
+							'_billing_email',
+							'_billing_phone',
+							'_shipping_address_1',
+							'_shipping_address_2',
+							'_shipping_city',
+							'_shipping_postcode',
+							'_shipping_country',
+							'_shipping_state',
+							'_billing_last_name',
+							'_billing_first_name',
+							'_shipping_first_name',
+							'_shipping_last_name',
+							'_items',
+						]
+					)
+				);
 
 				return $fields;
 		}

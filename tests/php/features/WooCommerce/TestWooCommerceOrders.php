@@ -443,7 +443,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 			]
 		);
 
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertEquals( $refund_order_id, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_parent_id() );
 		$this->assertEquals( 20, $orders[0]->get_amount() );
@@ -475,7 +475,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$orders = wc_get_orders( [] );
 
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertCount( 1, $orders );
 	}
@@ -512,14 +512,14 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 			]
 		);
 
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertEquals( $refund_order_id, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_parent_id() );
 		$this->assertCount( 1, $orders );
 
 		// Test if all the orders are returned.
 		$orders = wc_get_orders( [] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 	}
 
@@ -569,32 +569,32 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		// Return All the orders
 		$orders = wc_get_orders( [] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 5, $orders );
 
 		// Return only the orders with the status "completed"
 		$orders = wc_get_orders( [ 'status' => OrderStatus::COMPLETED ] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 
 		// Return only the orders with the status "pending"
 		$orders = wc_get_orders( [ 'status' => OrderStatus::PENDING ] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 
 		// Return only the orders with the status "on-hold"
 		$orders = wc_get_orders( [ 'status' => OrderStatus::ON_HOLD ] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 
 		// Return only the orders with the status "processing"
 		$orders = wc_get_orders( [ 'status' => OrderStatus::PROCESSING ] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 
 		// Return only the orders with the status "checkout-draft"
 		$orders = wc_get_orders( [ 'status' => OrderStatus::CHECKOUT_DRAFT ] );
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 	}
 
@@ -627,7 +627,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'limit' => 1,
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 	}
@@ -668,7 +668,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 			]
 		);
 
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
 
@@ -678,7 +678,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'limit' => 1,
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_3, $orders[0]->get_id() );
 	}
@@ -714,7 +714,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'orderby' => 'date',
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_1, $orders[1]->get_id() );
@@ -753,7 +753,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
@@ -790,7 +790,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'created_via' => 'web',
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 
@@ -799,7 +800,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'created_via' => 'api',
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
 
@@ -808,7 +810,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'created_via' => [ 'web', 'api' ],
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
@@ -839,7 +842,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'customer_email' => 'test@example.com',
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 	}
@@ -869,7 +872,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'customer_id' => 1,
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 	}
@@ -910,7 +913,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				),
 			)
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 
@@ -932,7 +935,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				),
 			)
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 
@@ -945,7 +948,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				),
 			)
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
@@ -982,7 +985,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 				'date_created' => '2026-01-01 12:00:00...2026-01-02 12:00:00',
 			]
 		);
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_1, $orders[1]->get_id() );
@@ -1018,11 +1021,11 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$orders = wc_get_orders(
 			[
-				'search' => 'john',
+				's' => 'john',
 			]
 		);
 
-		$this->assertTrue( $orders[0]->elasticsearch );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 	}
