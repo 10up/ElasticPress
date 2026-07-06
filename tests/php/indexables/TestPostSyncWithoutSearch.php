@@ -61,4 +61,27 @@ class TestPostSyncWithoutSearch extends BaseTestCase {
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
 		$this->assertTrue( ! empty( $post ) );
 	}
+
+	/**
+	 * Test that WP_Query does not use Elasticsearch for post queries when Post Search is disabled.
+	 *
+	 * Activating the post indexable wires up SyncManager and QueryIntegration, but
+	 * QueryIntegration only takes over a query when the `ep_elasticpress_enabled` filter
+	 * returns true. That filter is only added by Search::search_setup(), which does not run
+	 * when the Search feature is disabled. So enabling sync here should not turn on ES query
+	 * integration for posts.
+	 *
+	 * @since 5.4.0
+	 * @group post
+	 */
+	public function testPostQueryNotIntegratedWithSearchDisabled() {
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create( array( 'post_content' => 'findme' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( array( 's' => 'findme' ) );
+
+		$this->assertTrue( empty( $query->elasticsearch_success ) );
+	}
 }
