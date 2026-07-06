@@ -495,6 +495,35 @@ class TestDidYouMean extends BaseTestCase {
 	}
 
 	/**
+	 * Tests that `ep_suggestion_suppress_when_results_exist` filter can restore the suggestion when results exist.
+	 */
+	public function testGetSuggestionSuppressWhenResultsExistFilter() {
+		$query                        = new \WP_Query(
+			[
+				's' => 'shirt',
+			]
+		);
+		$query->found_posts           = 1;
+		$query->suggested_terms       = [
+			'options' => [
+				[
+					'text' => 'shift',
+				],
+			],
+		];
+		$query->query_vars['s']       = 'shirt';
+		$query->elasticsearch_success = true;
+
+		// Default behavior: suppressed because the query already has results.
+		$this->assertFalse( ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+
+		add_filter( 'ep_suggestion_suppress_when_results_exist', '__return_false' );
+
+		$expected = sprintf( '<span class="ep-spell-suggestion">Did you mean: <a href="%s">shift</a>?</span>', get_search_link( 'shift' ) );
+		$this->assertEquals( $expected, ElasticPress\Features::factory()->get_registered_feature( 'did-you-mean' )->get_suggestion( $query ) );
+	}
+
+	/**
 	 * Tests that get_suggestion returns false when the top suggestion matches the original term.
 	 */
 	public function testGetSuggestionNotShownWhenTopSuggestionMatchesOriginalTerm() {

@@ -127,8 +127,19 @@ class DidYouMean extends Feature {
 			return false;
 		}
 
+		/**
+		 * Filter whether to suppress the suggestion when the current query already returned results.
+		 *
+		 * @since 5.4.0
+		 * @hook ep_suggestion_suppress_when_results_exist
+		 * @param {bool}     $suppress Whether to suppress the suggestion. Default true.
+		 * @param {WP_Query} $query    The WP_Query object.
+		 * @return {bool} New value
+		 */
+		$suppress_when_results_exist = apply_filters( 'ep_suggestion_suppress_when_results_exist', true, $query );
+
 		// No need to suggest alternatives if the current query already returned results.
-		if ( $query->found_posts > 0 ) {
+		if ( $suppress_when_results_exist && $query->found_posts > 0 ) {
 			return false;
 		}
 
