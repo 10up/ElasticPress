@@ -67,7 +67,7 @@ export class Pointers extends Component {
 			searchText: '',
 			searchResults: {},
 			removedPointers: [],
-			excludedPosts: window.epOrdering.excludedPosts || [],
+			excludedPosts: window.epOrdering.excluded_posts || [],
 		};
 	}
 
@@ -456,6 +456,7 @@ export class Pointers extends Component {
 														{item.order && itemType !== 'reordered' && (
 															<span className="pointer-type">CR</span>
 														)}
+														<strong className="title">{title}</strong>
 														<div className="pointer-actions">
 															{item.order && (
 																<span
