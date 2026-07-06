@@ -109,6 +109,95 @@ class TestSettings extends BaseTestCase {
 	}
 
 	/**
+	 * Test that an empty token in POST preserves the stored token.
+	 *
+	 * The token field is always empty on page load, so a save without a new
+	 * value must not wipe the existing token.
+	 *
+	 * @group screen
+	 * @group settings-screen
+	 */
+	public function test_action_admin_init_empty_token_preserves_stored_token() {
+		global $_POST;
+
+		if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+			$this->markTestSkipped( 'EP_CREDENTIALS constant overrides the option.' );
+		}
+
+		// Make is_epio() true so get_epio_credentials() reads the option.
+		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+
+		$settings = new Settings();
+
+		Utils\update_option(
+			'ep_credentials',
+			[
+				'username' => 'u',
+				'token'    => 'secret',
+			]
+		);
+
+		$_POST = [
+			'ep_settings_nonce' => wp_create_nonce( 'elasticpress_settings' ),
+			'ep_language'       => 'site-default',
+			'ep_host'           => Utils\get_host(),
+			'ep_credentials'    => [
+				'username' => 'u',
+				'token'    => '',
+			],
+		];
+
+		$settings->action_admin_init();
+
+		$this->assertSame( 'secret', Utils\get_option( 'ep_credentials' )['token'] );
+
+		putenv( 'IS_EPIO_ENVIRONMENT' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+	}
+
+	/**
+	 * Test that a new token value is saved.
+	 *
+	 * @group screen
+	 * @group settings-screen
+	 */
+	public function test_action_admin_init_new_token_is_saved() {
+		global $_POST;
+
+		if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+			$this->markTestSkipped( 'EP_CREDENTIALS constant overrides the option.' );
+		}
+
+		// Make is_epio() true so get_epio_credentials() reads the option.
+		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+
+		$settings = new Settings();
+
+		Utils\update_option(
+			'ep_credentials',
+			[
+				'username' => 'u',
+				'token'    => 'old',
+			]
+		);
+
+		$_POST = [
+			'ep_settings_nonce' => wp_create_nonce( 'elasticpress_settings' ),
+			'ep_language'       => 'site-default',
+			'ep_host'           => Utils\get_host(),
+			'ep_credentials'    => [
+				'username' => 'u',
+				'token'    => 'new-token',
+			],
+		];
+
+		$settings->action_admin_init();
+
+		$this->assertSame( 'new-token', Utils\get_option( 'ep_credentials' )['token'] );
+
+		putenv( 'IS_EPIO_ENVIRONMENT' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+	}
+
+	/**
 	 * Test the `add_validation_notice` method
 	 *
 	 * @group screen

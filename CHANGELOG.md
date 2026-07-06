@@ -4,13 +4,15 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+### Security
+* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
+
 <!--
 ### Added
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
-### Security
 ### Developer
 -->
 

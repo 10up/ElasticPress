@@ -97,16 +97,12 @@ class Settings {
 			Utils\update_option( 'ep_host', $host );
 		}
 
-		if ( isset( $post['ep_credentials'] ) ) {
-			$credentials = ( isset( $post['ep_credentials'] ) ) ? Utils\sanitize_credentials( $post['ep_credentials'] ) : [
-				'username' => '',
-				'token'    => '',
-			];
+		if ( isset( $post['ep_credentials'] ) && ( ! defined( 'EP_CREDENTIALS' ) || ! EP_CREDENTIALS ) ) {
+			$credentials = Utils\sanitize_credentials( $post['ep_credentials'] );
 
 			// Preserve the existing token if the field was left empty (it is always empty on load).
 			if ( empty( $credentials['token'] ) ) {
-				$prev_credentials     = Utils\get_epio_credentials();
-				$credentials['token'] = $prev_credentials['token'];
+				$credentials['token'] = $this->prev_ep_credentials['token'];
 			}
 
 			Utils\update_option( 'ep_credentials', $credentials );
