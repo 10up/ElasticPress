@@ -193,7 +193,7 @@ export class Pointers extends Component {
 	addPointer = (post) => {
 		const id = post.ID;
 		const { posts, pointers } = this.state;
-		let { excludedPosts } = this.state;
+		let { excludedPosts, removedPointers } = this.state;
 
 		if (!posts[id]) {
 			posts[id] = post;
@@ -211,8 +211,9 @@ export class Pointers extends Component {
 			return;
 		}
 
-		// Remove from excluded posts if it is being re-added
+		// Remove from excluded/removed lists if being re-added
 		excludedPosts = excludedPosts.filter((item) => item !== id);
+		removedPointers = removedPointers.filter((item) => item !== id);
 
 		pointers.push({
 			ID: id,
@@ -220,7 +221,7 @@ export class Pointers extends Component {
 			type: 'custom-result',
 		});
 
-		this.setState({ pointers, excludedPosts });
+		this.setState({ pointers, excludedPosts, removedPointers });
 	};
 
 	/**
@@ -362,9 +363,7 @@ export class Pointers extends Component {
 
 		const searchResults = searchResultsFromState[searchText]
 			? searchResultsFromState[searchText].filter(
-					(item) =>
-						renderedIds.indexOf(item.ID) === -1 &&
-						excludedPosts.indexOf(item.ID) === -1,
+					(item) => renderedIds.indexOf(item.ID) === -1,
 				)
 			: false;
 
