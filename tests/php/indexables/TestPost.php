@@ -10592,4 +10592,28 @@ class TestPost extends BaseTestCase {
 		$queries_after = $wpdb->num_queries;
 		$this->assertGreaterThan( $queries_before, $queries_after );
 	}
+
+	/**
+	 * Test max_num_pages when posts_per_page is -1.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_max_num_pages_with_posts_per_page_negative_one() {
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'posts_per_page' => -1,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( 2, $query->found_posts );
+		$this->assertSame( 0, $query->max_num_pages );
+	}
 }
