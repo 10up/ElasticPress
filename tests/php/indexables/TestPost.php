@@ -10608,7 +10608,7 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query(
 			[
 				'ep_integrate'   => true,
-				'posts_per_page' => -1,
+				'posts_per_page' => -1, // phpcs:ignore WordPress.WP.PostsPerPageNoUnlimited.posts_per_page_posts_per_page
 			]
 		);
 
