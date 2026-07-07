@@ -33,40 +33,6 @@ export async function openBlockSettingsSidebar(page: Page) {
 }
 
 /**
- * Dismiss the first-run "Welcome" guide modal if it is present.
- *
- * On WordPress 7.0 the block editors (widgets, post) show a "Welcome" guide the first time they
- * load. Its modal overlay (`.components-modal__screen-overlay`) intercepts pointer events, so
- * controls underneath cannot be clicked until the guide is closed. The guide's Close control is a
- * bare `button[aria-label="Close"]` directly inside the overlay (not inside a header/container).
- * @param page Playwright page object
- */
-export async function dismissWelcomeGuide(page: Page) {
-	const overlay = page.locator('.components-modal__screen-overlay');
-	if (
-		!(await overlay
-			.first()
-			.isVisible()
-			.catch(() => false))
-	) {
-		return;
-	}
-
-	const closeButton = overlay.locator('button[aria-label="Close"]').first();
-	if (await closeButton.isVisible().catch(() => false)) {
-		await closeButton.click().catch(() => {});
-	} else {
-		// Fallback: the guide modal also closes on Escape.
-		await page.keyboard.press('Escape');
-	}
-
-	await overlay
-		.first()
-		.waitFor({ state: 'hidden', timeout: 5000 })
-		.catch(() => {});
-}
-
-/**
  * Open the block inserter
  * @param page Playwright page object
  */
@@ -82,18 +48,11 @@ export async function openBlockInserter(page: Page) {
 		return;
 	}
 
-	const toggle = page.locator(
-		'.edit-widgets-header-toolbar__inserter-toggle, .edit-post-header-toolbar__inserter-toggle,.editor-document-tools__inserter-toggle',
-	);
-
-	// On a first WP 7.0 editor load the "Welcome" guide modal can intercept this click. Try the
-	// click first (no cost when there is no guide); if it is blocked, dismiss the guide and retry.
-	try {
-		await toggle.click({ timeout: 8000 });
-	} catch {
-		await dismissWelcomeGuide(page);
-		await toggle.click();
-	}
+	await page
+		.locator(
+			'.edit-widgets-header-toolbar__inserter-toggle, .edit-post-header-toolbar__inserter-toggle,.editor-document-tools__inserter-toggle',
+		)
+		.click();
 }
 
 /**
@@ -284,11 +243,6 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 
 			await dimensionsPanel.click();
 		} else {
-			// WordPress 7.0 renamed the spacing control's toggle from "Set custom size" to
-			// "Set custom value"; match either so this works across supported versions.
-			const customSizeButton =
-				'button[aria-label="Set custom size"], button[aria-label="Set custom value"]';
-
 			const verticalInputsWrapper = dimensionsPanel
 				.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
 				.first();
