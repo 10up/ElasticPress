@@ -262,29 +262,18 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 }
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
-	const editorFrame = page.locator('iframe[name="editor-canvas"]');
+	const iframedEditor = page.locator('iframe[name="editor-canvas"]');
+	const inlineEditor = page.locator('.edit-post-visual-editor');
 
-	// The block editor may be rendered in one of two layouts depending on the WordPress version:
-	// - WP >= 6.6 (incl. 7.0): the editor canvas lives inside `iframe[name="editor-canvas"]`.
-	// - WP 6.2: the editor is not iframed and the title lives in the top document.
-	// The iframe is not necessarily visible the instant the page reaches `domcontentloaded`, so a
-	// bare `isVisible()` check races the editor mount: on slower hardware (CI) it returns false,
-	// we fall back to the top document, and every locator inside the iframe then times out. Wait
-	// for whichever layout becomes ready first before deciding which frame to return.
 	await Promise.race([
-		editorFrame.waitFor({ state: 'visible', timeout: 30000 }).catch(() => {}),
-		page
-			.locator('h1.editor-post-title__input, #post-title-0')
+		iframedEditor.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
+		inlineEditor
 			.first()
-			.waitFor({ state: 'visible', timeout: 30000 })
+			.waitFor({ state: 'visible', timeout: 10000 })
 			.catch(() => {}),
 	]);
 
-	if (await editorFrame.isVisible()) {
-		return editorFrame.contentFrame();
-	}
-
-	return page;
+	return (await iframedEditor.count()) > 0 ? iframedEditor.contentFrame() : page;
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
@@ -360,7 +349,12 @@ export async function setPostPassword(
 			);
 		}
 	} else {
-		await page.locator('.components-dropdown.editor-post-status').click({ force: true });
+		const statusDropdown = page.locator('.components-dropdown.editor-post-status');
+		if ((await statusDropdown.count()) > 0) {
+			await statusDropdown.click({ force: true });
+		} else {
+			await page.getByRole('button', { name: /Change status/ }).click({ force: true });
+		}
 
 		const passwordCheckbox = page.locator(
 			'.editor-change-status__password-fieldset input[type="checkbox"]',

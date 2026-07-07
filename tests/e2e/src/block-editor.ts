@@ -293,14 +293,24 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 				.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
 				.first();
 
-			await verticalInputsWrapper.locator(customSizeButton).first().click();
+			await verticalInputsWrapper
+				.locator(
+					'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
+				)
+				.first()
+				.click();
 			await verticalInputsWrapper.locator('input[type="number"]').fill('10');
 
 			const horizontalInputsWrapper = dimensionsPanel
 				.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
 				.nth(1);
 
-			await horizontalInputsWrapper.locator(customSizeButton).first().click();
+			await horizontalInputsWrapper
+				.locator(
+					'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
+				)
+				.first()
+				.click();
 			await horizontalInputsWrapper.locator('input[type="number"]').fill('15');
 
 			await page
