@@ -215,9 +215,9 @@ function register_indexable_posts() {
 	);
 
 	/**
-	 * Ensure ElasticPress wins the slugs it owns when another plugin ships the same features.
+	 * Ensure ElasticPress takes precedence over add-ons that ship the same features.
 	 */
-	FeatureOverrides::factory();
+	FeaturePrecedence::factory();
 
 	/**
 	 * Register search algorithms

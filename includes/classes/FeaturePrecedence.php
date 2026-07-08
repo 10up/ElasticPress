@@ -1,8 +1,8 @@
 <?php
 /**
- * Ensures ElasticPress wins the slugs it owns when another plugin ships the same features.
+ * Ensures ElasticPress takes precedence over add-ons that ship the same features.
  *
- * @since   5.3.3
+ * @since   5.4.0
  * @package elasticpress
  */
 
@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Ensures ElasticPress wins the slugs it owns when another plugin ships the same features.
+ * Ensures ElasticPress takes precedence over add-ons that ship the same features.
  */
-class FeatureOverrides {
+class FeaturePrecedence {
 
 	/**
 	 * Slugs ElasticPress owns, mapped to the class to re-register if overwritten.
@@ -47,9 +47,29 @@ class FeatureOverrides {
 	const EP_LABS_HOOK = 'ElasticPressLabs\Core\maybe_load_features';
 
 	/**
-	 * Register hooks.
+	 * Register hooks and resolve the feature maps.
 	 */
 	public function setup() {
+		/**
+		 * Filter the features ElasticPress reclaims from add-ons that register the same slug.
+		 *
+		 * @hook ep_protected_features
+		 * @param {array} $protected_features Map of feature slug => fully-qualified feature class
+		 * @since 5.4.0
+		 * @return {array} New map of feature slug => class
+		 */
+		$this->protected_features = apply_filters( 'ep_protected_features', $this->protected_features );
+
+		/**
+		 * Filter the add-on features superseded by a differently-named ElasticPress feature.
+		 *
+		 * @hook ep_superseded_features
+		 * @param {array} $superseded_features Map of absorbed slug => ElasticPress slug that supersedes it
+		 * @since 5.4.0
+		 * @return {array} New map of absorbed slug => ElasticPress slug
+		 */
+		$this->superseded_features = apply_filters( 'ep_superseded_features', $this->superseded_features );
+
 		add_action( 'plugins_loaded', [ $this, 'reclaim_protected_features' ], $this->get_reclaim_priority() );
 
 		add_filter( 'ep_feature_active', [ $this, 'suppress_superseded_active' ], 10, 3 );
@@ -122,19 +142,26 @@ class FeatureOverrides {
 	protected function get_reclaim_priority(): int {
 		global $wp_filter;
 
-		$fallback = 20;
+		$priority = 20;
 
-		if ( empty( $wp_filter['plugins_loaded'] ) ) {
-			return $fallback;
-		}
-
-		foreach ( $wp_filter['plugins_loaded']->callbacks as $priority => $callbacks ) {
-			if ( in_array( self::EP_LABS_HOOK, array_column( $callbacks, 'function' ), true ) ) {
-				return (int) $priority + 1;
+		if ( ! empty( $wp_filter['plugins_loaded'] ) ) {
+			foreach ( $wp_filter['plugins_loaded']->callbacks as $hook_priority => $callbacks ) {
+				if ( in_array( self::EP_LABS_HOOK, array_column( $callbacks, 'function' ), true ) ) {
+					$priority = (int) $hook_priority + 1;
+					break;
+				}
 			}
 		}
 
-		return $fallback;
+		/**
+		 * Filter the `plugins_loaded` priority at which ElasticPress reclaims its features.
+		 *
+		 * @hook ep_feature_reclaim_priority
+		 * @param {int} $priority Priority the reclaim runs at
+		 * @since 5.4.0
+		 * @return {int} New priority
+		 */
+		return (int) apply_filters( 'ep_feature_reclaim_priority', $priority );
 	}
 
 	/**
