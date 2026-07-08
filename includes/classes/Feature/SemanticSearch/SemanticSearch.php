@@ -51,7 +51,45 @@ class SemanticSearch extends Feature {
 
 		$this->requires_feature = 'vector_embeddings';
 
+		/*
+		 * The default algorithm (Hybrid) is not available on Elasticsearch < 8,
+		 * so an unavailable value can end up stored when the defaults are merged
+		 * in on save. Hooked here rather than in setup() so it also applies
+		 * while the feature is inactive: the settings dashboard round-trips
+		 * stored values on save, and the REST schema rejects algorithms that
+		 * are not available.
+		 */
+		add_filter( 'ep_sanitize_feature_settings', [ $this, 'fix_search_algorithm_version' ] );
+
 		parent::__construct();
+	}
+
+	/**
+	 * Fix the search algorithm version if it is not available.
+	 *
+	 * Replaces a `search_algorithm_version` being saved with the default when
+	 * it is not one of the algorithms available on the current Elasticsearch
+	 * version.
+	 *
+	 * @since 5.4.0
+	 * @param array $settings The settings to be saved.
+	 * @return array The sanitized settings.
+	 */
+	public function fix_search_algorithm_version( $settings ) {
+		if ( empty( $settings[ $this->slug ]['search_algorithm_version'] ) ) {
+			return $settings;
+		}
+
+		// Without a known Elasticsearch version the available algorithms can't be determined.
+		if ( ! \ElasticPress\Elasticsearch::factory()->get_elasticsearch_version() ) {
+			return $settings;
+		}
+
+		if ( ! in_array( $settings[ $this->slug ]['search_algorithm_version'], $this->get_algorithm_slugs(), true ) ) {
+			$settings[ $this->slug ]['search_algorithm_version'] = $this->get_default_algorithm();
+		}
+
+		return $settings;
 	}
 
 	/**
