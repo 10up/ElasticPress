@@ -106,7 +106,7 @@ class SemanticSearch extends Feature {
 			return;
 		}
 
-		$this->maybe_set_algorithms();
+		$this->register_algorithms();
 
 		add_filter( 'ep_feature_requirements_status_message', [ $this, 'filter_search_algorithm_requirements_status_message' ], 10, 2 );
 		add_filter( 'ep_feature_requirements_status_message', [ $this, 'filter_temp_disabled_features_status_message' ], 10, 2 );
@@ -120,7 +120,7 @@ class SemanticSearch extends Feature {
 	 */
 	public function setup() {
 		// In older versions of ElasticPress, the algorithms were not set in the pre_handle_feature_activation method.
-		$this->maybe_set_algorithms();
+		$this->register_algorithms();
 
 		add_filter( 'ep_post_search_algorithm', [ $this, 'get_search_algorithm_version' ] );
 
@@ -136,6 +136,10 @@ class SemanticSearch extends Feature {
 
 	/**
 	 * Maybe set the algorithms
+	 *
+	 * This only instantiates the algorithm objects for the feature. Registering
+	 * them globally is left to `register_algorithms()`, which must only happen
+	 * while the feature is active.
 	 *
 	 * @return void
 	 */
@@ -154,6 +158,16 @@ class SemanticSearch extends Feature {
 			$this->algorithms[] = new SearchAlgorithm\Hybrid();
 			$this->algorithms[] = new SearchAlgorithm\Knn();
 		}
+	}
+
+	/**
+	 * Register the feature's algorithms with the global registry.
+	 *
+	 * @since 5.4.0
+	 * @return void
+	 */
+	protected function register_algorithms() {
+		$this->maybe_set_algorithms();
 
 		foreach ( $this->algorithms as $algorithm ) {
 			\ElasticPress\SearchAlgorithms::factory()->register( $algorithm );
