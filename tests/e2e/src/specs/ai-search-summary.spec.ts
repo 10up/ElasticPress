@@ -16,9 +16,6 @@ test.describe('AI Search Summary Feature', { tag: '@group2' }, () => {
 		await maybeDisableFeature('ai_search_summary');
 		await maybeDisableFeature('semantic_search');
 		await maybeDisableFeature('vector_embeddings');
-		// This spec enables search_algorithm and selects kNN Cosine; disable it again so the
-		// leaked kNN algorithm does not alter scoring for downstream specs (e.g. custom-results).
-		await maybeDisableFeature('search_algorithm');
 		await wpCli('option delete ep_vector_embeddings_settings', true);
 		// Restore the sidebar search widget modified by the widget insertion test.
 		await wpCli('widget reset sidebar-1', true);
@@ -48,15 +45,14 @@ test.describe('AI Search Summary Feature', { tag: '@group2' }, () => {
 	test('Can enable and configure the feature', async ({ loggedInPage }) => {
 		await maybeEnableFeature('vector_embeddings');
 		await maybeEnableFeature('semantic_search');
-		await maybeEnableFeature('search_algorithm');
 		await maybeDisableFeature('ai_search_summary');
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 
 		await setVectorEmbeddingsSettings(loggedInPage);
 
 		// We need a kNN search algorithm to match the search down below.
-		await loggedInPage.getByRole('button', { name: 'Other', exact: true }).click();
-		await loggedInPage.getByRole('button', { name: 'Search Algorithm Version' }).click();
+		await loggedInPage.getByRole('button', { name: 'AI', exact: true }).click();
+		await loggedInPage.getByRole('button', { name: 'Semantic Search' }).click();
 		await loggedInPage.getByLabel('kNN Cosine').check();
 
 		await loggedInPage.getByRole('button', { name: 'AI', exact: true }).click();

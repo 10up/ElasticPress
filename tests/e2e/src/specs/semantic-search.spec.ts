@@ -29,13 +29,6 @@ test.describe('Semantic Search Feature', { tag: '@group2' }, () => {
 		await maybeDisableFeature('semantic_search');
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 
-		await loggedInPage.getByRole('button', { name: 'Other', exact: true }).click();
-		await loggedInPage.getByRole('button', { name: 'Search Algorithm Version' }).click();
-
-		await expect(loggedInPage.locator('#search_algorithm-view').getByRole('radio')).toHaveCount(
-			3,
-		);
-
 		// Wait for API request
 		const apiRequestPromise = loggedInPage.waitForResponse(
 			'/wp-json/elasticpress/v1/features*',
@@ -55,18 +48,26 @@ test.describe('Semantic Search Feature', { tag: '@group2' }, () => {
 
 		await loggedInPage.reload();
 
-		await loggedInPage.getByRole('button', { name: 'Other', exact: true }).click();
-		await loggedInPage.getByRole('button', { name: 'Search Algorithm Version' }).click();
+		await loggedInPage.getByRole('button', { name: 'AI', exact: true }).click();
+		await loggedInPage.getByRole('button', { name: 'Semantic Search' }).click();
 
+		// The search algorithm options now live under the Semantic Search feature.
 		if (process.env.ES_VERSION === '7.10.1') {
-			await expect(loggedInPage.getByLabel('kNN')).toHaveCount(1);
+			await expect(loggedInPage.locator('#semantic_search-view').getByRole('radio')).toHaveCount(
+				1,
+			);
 			await expect(loggedInPage.getByLabel('kNN Cosine')).toBeVisible();
 			await expect(loggedInPage.getByLabel('kNN', { exact: true })).not.toBeVisible();
 			await expect(loggedInPage.getByLabel('Hybrid (kNN + Regular ES)')).not.toBeVisible();
 		} else {
-			await expect(loggedInPage.getByLabel('kNN')).toHaveCount(3);
+			await expect(loggedInPage.locator('#semantic_search-view').getByRole('radio')).toHaveCount(
+				3,
+			);
 			await expect(loggedInPage.getByLabel('kNN Cosine')).toBeVisible();
 			await expect(loggedInPage.getByLabel('Hybrid (kNN + Regular ES)')).toBeVisible();
+
+			// Hybrid is the default selection when the feature is first enabled.
+			await expect(loggedInPage.getByLabel('Hybrid (kNN + Regular ES)')).toBeChecked();
 		}
 	});
 
@@ -100,14 +101,14 @@ test.describe('Semantic Search Feature', { tag: '@group2' }, () => {
 			).toBeEnabled();
 		}
 
-		// Select a semantic search algorithm
+		// Enabling Semantic Search selects a kNN algorithm, which is incompatible
+		// with Autosuggest and Instant Results.
 		await maybeEnableFeature('vector_embeddings');
 		await maybeEnableFeature('semantic_search');
-		await maybeEnableFeature('search_algorithm');
 
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
-		await loggedInPage.getByRole('button', { name: 'Other' }).click();
-		await loggedInPage.getByRole('button', { name: 'Search Algorithm Version' }).click();
+		await loggedInPage.getByRole('button', { name: 'AI', exact: true }).click();
+		await loggedInPage.getByRole('button', { name: 'Semantic Search' }).click();
 		await loggedInPage.getByLabel('kNN Cosine').check();
 		await saveFeatures();
 
@@ -132,12 +133,8 @@ test.describe('Semantic Search Feature', { tag: '@group2' }, () => {
 			loggedInPage.locator('#instant-results-view').getByText('This feature is temporarily'),
 		).toBeVisible();
 
-		// If another algorithm is selected, Autosuggest and Instant Results should be enabled again
-		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
-		await loggedInPage.getByRole('button', { name: 'Other' }).click();
-		await loggedInPage.getByRole('button', { name: 'Search Algorithm Version' }).click();
-		await loggedInPage.getByLabel('Version 4.0').check();
-		await saveFeatures();
+		// If Semantic Search is disabled, Autosuggest and Instant Results should be enabled again
+		await maybeDisableFeature('semantic_search');
 
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
 		await loggedInPage.getByRole('button', { name: 'Live Search' }).click();

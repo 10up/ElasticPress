@@ -32,7 +32,8 @@ class SemanticSearch extends Feature {
 	 * @var array $default_settings.
 	 */
 	public $default_settings = [
-		'search_min_score' => 0.7,
+		'search_algorithm_version' => 'hybrid_knn',
+		'search_min_score'         => 0.7,
 	];
 
 	/**
@@ -86,7 +87,7 @@ class SemanticSearch extends Feature {
 	public function set_i18n_strings(): void {
 		$this->title = esc_html__( 'Semantic Search', 'elasticpress' );
 
-		$this->summary = __( 'Enable kNN Search. To use a kNN search algorithm, enable the Search Algorithm Version feature and select one of the kNN variations.', 'elasticpress' );
+		$this->summary = __( 'Enable kNN (k-Nearest Neighbors) search and choose which vector search algorithm to use. Requires the Vector Embeddings feature to be enabled.', 'elasticpress' );
 	}
 
 	/**
@@ -120,6 +121,8 @@ class SemanticSearch extends Feature {
 	public function setup() {
 		// In older versions of ElasticPress, the algorithms were not set in the pre_handle_feature_activation method.
 		$this->maybe_set_algorithms();
+
+		add_filter( 'ep_post_search_algorithm', [ $this, 'get_search_algorithm_version' ] );
 
 		$vector_embeddings = \ElasticPress\Features::factory()->get_registered_feature( 'vector_embeddings' );
 		$is_epio           = 'epio' === $vector_embeddings->get_setting( 'ep_embeddings_generator' );
@@ -161,7 +164,24 @@ class SemanticSearch extends Feature {
 	 * Set the `settings_schema` attribute
 	 */
 	public function set_settings_schema() {
+		$this->maybe_set_algorithms();
+
+		$algorithm_options = [];
+		foreach ( $this->algorithms as $algorithm ) {
+			$algorithm_options[] = [
+				'label' => $algorithm->get_name() . '<br><small>' . $algorithm->get_description() . '</small>',
+				'value' => $algorithm->get_slug(),
+			];
+		}
+
 		$this->settings_schema = [
+			[
+				'default' => $this->get_default_algorithm(),
+				'key'     => 'search_algorithm_version',
+				'label'   => __( 'Search algorithm', 'elasticpress' ),
+				'options' => $algorithm_options,
+				'type'    => 'radio',
+			],
 			[
 				'key'     => 'search_min_score',
 				'label'   => __( 'Minimum score', 'elasticpress' ),
@@ -170,6 +190,64 @@ class SemanticSearch extends Feature {
 				'default' => $this->default_settings['search_min_score'],
 			],
 		];
+	}
+
+	/**
+	 * Get the slugs of the search algorithms supported by the feature.
+	 *
+	 * @since 5.4.0
+	 * @return string[] Array of algorithm slugs.
+	 */
+	protected function get_algorithm_slugs() {
+		$this->maybe_set_algorithms();
+
+		return array_map(
+			function ( $algorithm ) {
+				return $algorithm->get_slug();
+			},
+			$this->algorithms
+		);
+	}
+
+	/**
+	 * Get the default search algorithm slug.
+	 *
+	 * Falls back to the first available algorithm when the preferred default
+	 * (Hybrid) is not supported by the current Elasticsearch version.
+	 *
+	 * @since 5.4.0
+	 * @return string The default algorithm slug.
+	 */
+	protected function get_default_algorithm() {
+		$available = $this->get_algorithm_slugs();
+		$preferred = $this->default_settings['search_algorithm_version'];
+
+		if ( in_array( $preferred, $available, true ) ) {
+			return $preferred;
+		}
+
+		return ! empty( $available ) ? reset( $available ) : $preferred;
+	}
+
+	/**
+	 * Get the currently selected search algorithm slug.
+	 *
+	 * Hooked to `ep_post_search_algorithm` while the feature is active. If the
+	 * stored selection is not a currently available algorithm, the default is
+	 * used instead.
+	 *
+	 * @since 5.4.0
+	 * @param string $search_algorithm The fallback search algorithm slug.
+	 * @return string The search algorithm slug.
+	 */
+	public function get_search_algorithm_version( $search_algorithm ) {
+		$version = $this->get_setting( 'search_algorithm_version' );
+
+		if ( ! in_array( $version, $this->get_algorithm_slugs(), true ) ) {
+			$version = $this->get_default_algorithm();
+		}
+
+		return $version;
 	}
 
 	/**
@@ -223,7 +301,10 @@ class SemanticSearch extends Feature {
 	}
 
 	/**
-	 * Filter Search Algorithms feature requirements status message
+	 * Filter the Semantic Search feature requirements status message
+	 *
+	 * Warns that the selected kNN algorithm is incompatible with Autosuggest
+	 * and Instant Results when either of those features is active.
 	 *
 	 * @since 5.4.0
 	 * @param string|array              $message The message to display
@@ -232,7 +313,7 @@ class SemanticSearch extends Feature {
 	 */
 	public function filter_search_algorithm_requirements_status_message( $message, $status ) {
 		$feature = $status->get_feature();
-		if ( ! $feature || 'search_algorithm' !== $feature->slug ) {
+		if ( ! $feature || 'semantic_search' !== $feature->slug ) {
 			return $message;
 		}
 
@@ -307,22 +388,10 @@ class SemanticSearch extends Feature {
 			return false;
 		}
 
-		$search_algorithm = \ElasticPress\Features::factory()->get_registered_feature( 'search_algorithm' );
-		if ( ! $search_algorithm || ! $search_algorithm->is_active() ) {
+		if ( ! $this->is_active() ) {
 			return false;
 		}
 
-		$search_algorithm_version   = $search_algorithm->get_search_algorithm_version( '' );
-		$semantic_search_algorithms = array_map(
-			function ( $algorithm ) {
-				return $algorithm->get_slug();
-			},
-			$this->algorithms
-		);
-		if ( ! in_array( $search_algorithm_version, $semantic_search_algorithms, true ) ) {
-			return false;
-		}
-
-		return true;
+		return in_array( $this->get_search_algorithm_version( '' ), $this->get_algorithm_slugs(), true );
 	}
 }

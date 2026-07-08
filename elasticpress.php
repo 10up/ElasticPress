@@ -203,10 +203,6 @@ function register_indexable_posts() {
 	);
 
 	Features::factory()->register_feature(
-		new Feature\SearchAlgorithm()
-	);
-
-	Features::factory()->register_feature(
 		new Feature\VectorEmbeddings\VectorEmbeddings()
 	);
 
@@ -217,6 +213,11 @@ function register_indexable_posts() {
 	Features::factory()->register_feature(
 		new Feature\AISearchSummary()
 	);
+
+	/**
+	 * Ensure ElasticPress wins the slugs it owns when another plugin ships the same features.
+	 */
+	FeatureOverrides::factory();
 
 	/**
 	 * Register search algorithms

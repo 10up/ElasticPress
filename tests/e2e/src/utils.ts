@@ -63,10 +63,6 @@ export const defaultFeatures = {
 	ai_search_summary: {
 		active: false,
 	},
-	search_algorithm: {
-		active: false,
-		search_algorithm_version: '4.0',
-	},
 };
 
 /**
