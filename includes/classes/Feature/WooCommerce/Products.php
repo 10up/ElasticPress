@@ -118,6 +118,15 @@ class Products {
 		$max_price = ! empty( $_GET['max_price'] ) ? sanitize_text_field( wp_unslash( $_GET['max_price'] ) ) : null;
 		// phpcs:enable WordPress.Security.NonceVerification
 
+		// Align bounds with the excluding-tax price Elasticsearch indexes when the
+		// shop shows including-tax prices, matching WooCommerce core.
+		if ( null !== $min_price ) {
+			$min_price = $this->get_price_filter_tax_adjustment( (float) $min_price );
+		}
+		if ( null !== $max_price ) {
+			$max_price = $this->get_price_filter_tax_adjustment( (float) $max_price );
+		}
+
 		if ( $query->is_search() ) {
 			/**
 			 * This logic is iffy but the WC price filter widget is not intended for use with search anyway
@@ -152,6 +161,44 @@ class Products {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Subtract inclusive tax from a price filter value so it matches the
+	 * excluding-tax price Elasticsearch stores.
+	 *
+	 * Mirrors WooCommerce core (WC_Query::price_filter_post_clauses). Only kicks
+	 * in when prices are entered without tax but the shop shows including-tax
+	 * prices, the case where the Filter by Price widget sends including-tax bounds.
+	 *
+	 * @param float $price Raw bound from min_price or max_price.
+	 * @return float
+	 */
+	protected function get_price_filter_tax_adjustment( $price ) {
+		if ( ! function_exists( 'wc_tax_enabled' ) || ! wc_tax_enabled() ) {
+			return $price;
+		}
+
+		if ( 'incl' !== get_option( 'woocommerce_tax_display_shop' ) ) {
+			return $price;
+		}
+
+		if ( function_exists( 'wc_prices_include_tax' ) && wc_prices_include_tax() ) {
+			return $price;
+		}
+
+		if ( ! method_exists( 'WC_Tax', 'get_rates' ) ) {
+			return $price;
+		}
+
+		$tax_class = apply_filters( 'woocommerce_price_filter_widget_tax_class', '' ); // Standard tax class.
+		$tax_rates = \WC_Tax::get_rates( $tax_class );
+
+		if ( empty( $tax_rates ) ) {
+			return $price;
+		}
+
+		return $price - \WC_Tax::get_tax_total( \WC_Tax::calc_inclusive_tax( $price, $tax_rates ) );
 	}
 
 	/**
