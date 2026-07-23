@@ -676,7 +676,7 @@ class Products {
 		/**
 		 * Check for taxonomies
 		 */
-		$supported_taxonomies = $this->get_supported_taxonomies();
+		$supported_taxonomies = array_diff( $this->get_supported_taxonomies(), [ 'product_visibility' ] );
 		$tax_query            = $query->get( 'tax_query', [] );
 		$taxonomies_queried   = array_merge(
 			array_column( $tax_query, 'taxonomy' ),
