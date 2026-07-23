@@ -212,9 +212,10 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$localized_data = $this->get_feature()->get_pointer_data_for_localize();
 
-		$this->assertEquals( 2, count( $localized_data ) );
+		$this->assertEquals( 3, count( $localized_data ) );
 		$this->assertArrayHasKey( 'pointers', $localized_data );
 		$this->assertArrayHasKey( 'posts', $localized_data );
+		$this->assertArrayHasKey( 'excluded_posts', $localized_data );
 		$this->assertEquals( $post_id_1, $localized_data['pointers'][0]['ID'] );
 		$this->assertEquals( $post_id_2, $localized_data['pointers'][1]['ID'] );
 		$this->assertInstanceOf( '\WP_Post', $localized_data['posts'][ $post_id_1 ] );
@@ -741,5 +742,144 @@ class TestSearchOrdering extends BaseTestCase {
 
 		$this->assertContains( 'findme', wp_list_pluck( get_the_terms( $post_id_1, 'ep_custom_result' ), 'name' ) );
 		$this->assertContains( 'findme', wp_list_pluck( get_the_terms( $post_id_2, 'ep_custom_result' ), 'name' ) );
+	}
+
+	/**
+	 * Test that excluded posts are persisted during save.
+	 */
+	public function testSavePostWithExcludedPosts() {
+		$post_id_1  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
+		$pointer_id = wp_insert_post(
+			[
+				'post_title'  => 'findme',
+				'post_status' => 'publish',
+				'post_type'   => 'ep-pointer',
+			]
+		);
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts'         => wp_json_encode(
+				[
+					[
+						'ID'    => $post_id_1,
+						'order' => 1,
+					],
+				]
+			),
+			'excluded_posts'        => wp_json_encode( [ $post_id_2 ] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		$excluded = get_post_meta( $pointer_id, 'excluded_posts', true );
+		$this->assertEquals( [ $post_id_2 ], $excluded );
+	}
+
+	/**
+	 * Test that excluded posts are filtered out of posts_results.
+	 */
+	public function testPostsResultsFiltersExcludedPosts() {
+		ElasticPress\Features::factory()->activate_feature( 'search' );
+		ElasticPress\Features::factory()->setup_features();
+		ElasticPress\Features::factory()->get_registered_feature( 'search' )->search_setup();
+
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
+		$post_id_3 = $this->ep_factory->post->create( [ 'post_content' => 'findme test 3' ] );
+
+		$pointer_id = wp_insert_post(
+			[
+				'post_title'  => 'findme',
+				'post_status' => 'publish',
+				'post_type'   => 'ep-pointer',
+			]
+		);
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts'         => wp_json_encode(
+				[
+					[
+						'ID'    => $post_id_2,
+						'order' => 1,
+					],
+				]
+			),
+			'excluded_posts'        => wp_json_encode( [ $post_id_1 ] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $post_id_2, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( [ 's' => 'findme' ] );
+
+		$new_posts = $this->get_feature()->posts_results( $query->posts, $query );
+		$post_ids  = wp_list_pluck( $new_posts, 'ID' );
+
+		$this->assertEquals( 2, count( $new_posts ) );
+		$this->assertContains( $post_id_2, $post_ids );
+		$this->assertContains( $post_id_3, $post_ids );
+		$this->assertNotContains( $post_id_1, $post_ids );
+		$this->assertEquals( $post_id_2, $new_posts[0]->ID );
+	}
+
+	/**
+	 * Test that excluded posts are cleared when the search term changes.
+	 */
+	public function testExcludedPostsClearedOnSearchTermChange() {
+		$post_id_1  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 1' ] );
+		$post_id_2  = $this->ep_factory->post->create( [ 'post_content' => 'findme test 2' ] );
+		$pointer_id = wp_insert_post(
+			[
+				'post_title'  => 'findme',
+				'post_status' => 'publish',
+				'post_type'   => 'ep-pointer',
+			]
+		);
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts'         => wp_json_encode(
+				[
+					[
+						'ID'    => $post_id_1,
+						'order' => 1,
+					],
+				]
+			),
+			'excluded_posts'        => wp_json_encode( [ $post_id_2 ] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+		$this->assertEquals( [ $post_id_2 ], get_post_meta( $pointer_id, 'excluded_posts', true ) );
+
+		$_POST = [];
+
+		wp_update_post(
+			[
+				'ID'         => $pointer_id,
+				'post_title' => '10up',
+			]
+		);
+
+		$_POST = [
+			'search-ordering-nonce' => wp_create_nonce( 'save-search-ordering' ),
+			'ordered_posts'         => wp_json_encode(
+				[
+					[
+						'ID'    => $post_id_1,
+						'order' => 1,
+					],
+				]
+			),
+			'excluded_posts'        => wp_json_encode( [ $post_id_2 ] ),
+		];
+
+		$this->get_feature()->save_post( $pointer_id, get_post( $pointer_id ) );
+		$this->assertEquals( [], get_post_meta( $pointer_id, 'excluded_posts', true ) );
 	}
 }
