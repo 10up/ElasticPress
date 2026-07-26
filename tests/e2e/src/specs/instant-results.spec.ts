@@ -117,6 +117,11 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		}
 	});
 
+	test.afterAll(async () => {
+		await wpCli('elasticpress deactivate-feature woocommerce', true);
+		await wpCli('plugin deactivate woocommerce', true);
+	});
+
 	test.beforeEach(async ({ loggedInPage }) => {
 		await deactivatePlugin(
 			loggedInPage,
