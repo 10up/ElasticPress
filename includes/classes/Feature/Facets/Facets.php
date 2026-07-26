@@ -270,8 +270,9 @@ class Facets extends Feature {
 			return true;
 		}
 
-		if ( ! empty( $query->get( 'ep_is_facetable' ) ) ) {
-			return true;
+		$ep_is_facetable = $query->get( 'ep_is_facetable', null );
+		if ( null !== $ep_is_facetable ) {
+			return (bool) $ep_is_facetable;
 		}
 
 		if ( is_admin() || is_feed() ) {
