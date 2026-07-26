@@ -19,3 +19,5 @@ elasticpress.zip
 /tests/e2e/playwright-report/
 /tests/e2e/blob-report/
 /tests/e2e/playwright/.cache/
+
+Makefile
