@@ -5,8 +5,10 @@ extend-exclude = [
     "vendor/",
     "dist/",
     "build/",
-    "tests/",
     "lang/",
+    "tests/e2e/src/wordpress-files/test-docs/content-example.xml",
+    "tests/e2e/src/fixtures/txt-file.txt",
+    "tests/e2e/src/fixtures/csv-file.csv",
 ]
 ignore-hidden = false
 
@@ -17,6 +19,7 @@ extend-ignore-re = [
     "Tung Du",
     "Van Patten",
     "github:[^\"\\s]+",
+    "not so good match - beautful",
 ]
 
 [default.extend-words]
