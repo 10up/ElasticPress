@@ -15,6 +15,7 @@ extend-ignore-re = [
     "@[A-Za-z0-9_-]+",
     "Fabian Marz",
     "Tung Du",
+    "Van Patten",
     "github:[^\"\\s]+",
     "'[a-z][a-zA-Z0-9_]*'",
     "\"[a-z][a-zA-Z0-9_]*\"",
