@@ -173,6 +173,7 @@ const Pagination = ({ offset, onNext, onPage = {}, onPrevious, perPage, total })
 										}
 									}}
 									aria-current={isCurrent ? 'page' : undefined}
+									/* translators: %d: Page number. */
 									aria-label={sprintf(__('Page %d', 'elasticpress'), page.value)}
 								>
 									{page.value}
