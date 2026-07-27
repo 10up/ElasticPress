@@ -38,6 +38,7 @@ extend-ignore-identifiers-re = [
 "versino" = "version"
 "degister" = "deregister"
 "quries" = "queries"
+"supposably" = "supposably"
 
 [default.extend-identifiers]
 "Automattic" = "Automattic"
