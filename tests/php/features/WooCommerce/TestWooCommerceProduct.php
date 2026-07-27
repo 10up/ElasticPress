@@ -179,6 +179,59 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * A plain site search whose only product signal is a `product_visibility`
+	 * tax query must NOT be treated as a product query.
+	 *
+	 * As of WooCommerce 10.8.0, `WC_Query::pre_get_posts()` injects a
+	 * `product_visibility` "exclude-from-search" tax query into the main search
+	 * query (to hide products flagged as hidden). If EP treated that as a product
+	 * query it would force `post_type=product` and drop posts/pages from the site
+	 * search results. Genuine product taxonomy queries must still integrate.
+	 *
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testProductVisibilityTaxDoesNotForceProductIntegrationOnSearch() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$search_with_visibility             = new \WP_Query();
+		$search_with_visibility->query_vars = [
+			's'         => 'findme',
+			'tax_query' => [
+				[
+					'taxonomy' => 'product_visibility',
+					'field'    => 'term_taxonomy_id',
+					'terms'    => [ 6 ],
+					'operator' => 'NOT IN',
+				],
+			],
+		];
+
+		$this->assertFalse(
+			$this->products->should_integrate_with_query( $search_with_visibility ),
+			'`product_visibility` alone must not trigger product integration on a site search.'
+		);
+
+		$search_with_product_cat             = new \WP_Query();
+		$search_with_product_cat->query_vars = [
+			's'         => 'findme',
+			'tax_query' => [
+				[
+					'taxonomy' => 'product_cat',
+					'field'    => 'slug',
+					'terms'    => [ 'cat' ],
+				],
+			],
+		];
+
+		$this->assertTrue(
+			$this->products->should_integrate_with_query( $search_with_product_cat ),
+			'A product taxonomy (product_cat) query must still integrate.'
+		);
+	}
+
+	/**
 	 * Test all the product attributes are synced.
 	 *
 	 * @group woocommerce
@@ -486,7 +539,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		add_filter(
 			'ep_post_formatted_args',
-			function ( $formatted_args, ) {
+			function ( $formatted_args ) {
 				$this->assertEquals( 'findme', $formatted_args['query']['function_score']['query']['bool']['should'][0]['multi_match']['query'] );
 				$this->assertEquals(
 					$args['search_fields'],
