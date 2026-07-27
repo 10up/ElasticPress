@@ -17,15 +17,6 @@ extend-ignore-re = [
     "Tung Du",
     "Van Patten",
     "github:[^\"\\s]+",
-    "'[a-z][a-zA-Z0-9_]*'",
-    "\"[a-z][a-zA-Z0-9_]*\"",
-]
-# Only flag typos in standalone words. Compound identifiers (snake_case,
-# kebab-case, camelCase, PascalCase mixed) often contain WordPress or
-# Elasticsearch terminology baked into public APIs that can't be renamed.
-extend-ignore-identifiers-re = [
-    ".*[_-].*",
-    ".*[a-z][A-Z].*",
 ]
 
 [default.extend-words]
@@ -39,7 +30,8 @@ extend-ignore-identifiers-re = [
 "degister" = "deregister"
 "quries" = "queries"
 "supposably" = "supposably"
+"stati" = "stati"
 
 [default.extend-identifiers]
 "Automattic" = "Automattic"
-"stati" = "stati"
+"avaiableServices" = "avaiableServices"
