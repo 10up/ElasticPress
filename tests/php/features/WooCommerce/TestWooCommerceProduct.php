@@ -718,6 +718,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 			'woocommerce_tax_display_shop',
 			'woocommerce_prices_include_tax',
 			'woocommerce_default_country',
+			'woocommerce_tax_based_on',
 		);
 		$old_options = array();
 		foreach ( $option_keys as $option_key ) {
@@ -729,6 +730,13 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 		update_option( 'woocommerce_tax_display_shop', 'incl' );
 		update_option( 'woocommerce_prices_include_tax', 'no' );
 		update_option( 'woocommerce_default_country', 'GB' );
+
+		// Force tax lookup against the shop base, not the customer's address.
+		// Without this, a leftover session or a `woocommerce_tax_based_on`
+		// setting from a prior test can make WC_Customer::get_taxable_address()
+		// return a non-GB tuple, which returns [] from WC_Tax::get_rates('')
+		// and skips the tax adjustment.
+		update_option( 'woocommerce_tax_based_on', 'base' );
 
 		// Seed a 20% tax rate for the base location so WC_Tax::get_rates finds it.
 		$wpdb->insert(
