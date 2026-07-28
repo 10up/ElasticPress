@@ -615,7 +615,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 				$expected_result = array(
 					'range' => array(
-						'meta._price.long' => array(
+						'meta._price.double' => array(
 							'gte'   => 1,
 							'lte'   => 999,
 							'boost' => 2,
@@ -752,14 +752,18 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 			$this->ep_factory->product->create(
 				[
 					'name'          => 'Cap 1',
-					'regular_price' => 100,
+					'regular_price' => 100.99,
 				]
 			);
 
 			ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-			// Widget bound is the including-tax price (120), stored price is 100.
-			parse_str( 'min_price=120&max_price=120', $_GET );
+			// Decimal price (100.99) exposes the rounding bug fixed by switching
+			// from meta._price.long (intval-truncated) to meta._price.double.
+			// WC math for 100.99 @ 20% tax: inclusivetax = 20.198, so the
+			// incl-tax price WC displays is 121.188 — sending that bound
+			// adjusts back to 100.99 and matches the indexed double value.
+			parse_str( 'min_price=121.188&max_price=121.188', $_GET );
 
 			$args  = array(
 				'post_type' => 'product',
@@ -776,9 +780,9 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 					$expected_result = array(
 						'range' => array(
-							'meta._price.long' => array(
-								'gte'   => 100.0,
-								'lte'   => 100.0,
+							'meta._price.double' => array(
+								'gte'   => 100.99,
+								'lte'   => 100.99,
 								'boost' => 2,
 							),
 						),

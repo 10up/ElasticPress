@@ -135,29 +135,29 @@ class Products {
 			unset( $args['query']['bool']['should'] );
 
 			if ( ! empty( $min_price ) ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['gte'] = $min_price;
+				$args['query']['bool']['must'][0]['range']['meta._price.double']['gte'] = $min_price;
 			}
 
 			if ( ! empty( $max_price ) ) {
-				$args['query']['bool']['must'][0]['range']['meta._price.long']['lte'] = $max_price;
+				$args['query']['bool']['must'][0]['range']['meta._price.double']['lte'] = $max_price;
 			}
 
-			$args['query']['bool']['must'][0]['range']['meta._price.long']['boost'] = 2.0;
-			$args['query']['bool']['must'][1]['bool']                               = $old_query;
+			$args['query']['bool']['must'][0]['range']['meta._price.double']['boost'] = 2.0;
+			$args['query']['bool']['must'][1]['bool']                                 = $old_query;
 		} else {
 			unset( $args['query']['match_all'] );
 
-			$args['query']['range']['meta._price.long']['gte'] = ! empty( $min_price ) ? $min_price : 0;
+			$args['query']['range']['meta._price.double']['gte'] = ! empty( $min_price ) ? $min_price : 0;
 
 			if ( ! empty( $min_price ) ) {
-				$args['query']['range']['meta._price.long']['gte'] = $min_price;
+				$args['query']['range']['meta._price.double']['gte'] = $min_price;
 			}
 
 			if ( ! empty( $max_price ) ) {
-				$args['query']['range']['meta._price.long']['lte'] = $max_price;
+				$args['query']['range']['meta._price.double']['lte'] = $max_price;
 			}
 
-			$args['query']['range']['meta._price.long']['boost'] = 2.0;
+			$args['query']['range']['meta._price.double']['boost'] = 2.0;
 		}
 
 		return $args;
