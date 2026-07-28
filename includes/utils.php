@@ -204,6 +204,10 @@ function is_site_indexable( $blog_id = null ) {
 
 	$site = get_site( $blog_id );
 
+	if ( empty( $site ) ) {
+		return false;
+	}
+
 	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
 
 	return 'no' !== $is_indexable && ! $site['deleted'] && ! $site['archived'] && ! $site['spam'];
@@ -302,6 +306,10 @@ function get_host() {
  */
 function get_site( $site_id ) {
 	$site = \get_site( $site_id );
+
+	if ( ! $site instanceof \WP_Site ) {
+		return [];
+	}
 
 	return [
 		'blog_id'  => $site->blog_id,
