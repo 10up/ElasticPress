@@ -476,7 +476,7 @@ class TestPost extends BaseTestCase {
 		$this->assertNotNull( $query->posts[0]->terms );
 		$post = $query->posts[0];
 
-		$terms = $post->terms;
+		$terms = json_decode( $post->terms, true );
 		$this->assertTrue( isset( $terms[ $tax_name ] ) );
 		$this->assertTrue( count( $terms[ $tax_name ] ) === 1 );
 		$indexed_terms  = $terms[ $tax_name ];
@@ -1686,7 +1686,8 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
-		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) );
+		$meta = json_decode( $query->posts[0]->meta, true );
+		$this->assertEquals( 1, count( $meta['test_key'] ) );
 	}
 
 	/**
