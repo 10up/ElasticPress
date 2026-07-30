@@ -4,7 +4,7 @@
 import apiFetch from '@wordpress/api-fetch';
 import { ToggleControl } from '@wordpress/components';
 import domReady from '@wordpress/dom-ready';
-import { render, useState, WPElement } from '@wordpress/element';
+import { createRoot, render, useState, WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -71,13 +71,20 @@ const init = () => {
 	const toggles = document.getElementsByClassName('index-toggle');
 
 	for (const toggle of toggles) {
-		render(
+		const element = (
 			<ElasticPressToggleControl
 				blogId={toggle.dataset.blogId}
 				isDefaultChecked={toggle.checked}
-			/>,
-			toggle.parentElement,
+			/>
 		);
+
+		if (typeof createRoot === 'function') {
+			const root = createRoot(toggle.parentElement);
+
+			root.render(element);
+		} else {
+			render(element, toggle.parentElement);
+		}
 	}
 };
 
