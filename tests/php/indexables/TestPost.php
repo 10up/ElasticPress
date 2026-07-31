@@ -10617,4 +10617,40 @@ class TestPost extends BaseTestCase {
 		$this->assertSame( 2, $query->found_posts );
 		$this->assertSame( 0, $query->max_num_pages );
 	}
+
+	/**
+	 * Test that post term and meta are stored as JSON.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_post_term_and_meta_are_stored_as_json() {
+		$category_id = $this->ep_factory->category->create();
+		$post_id     = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 'test_value',
+				],
+				'tax_input'  => [
+					'category' => [ $category_id ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => [ $post_id ],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$post = get_post( $query->posts[0], OBJECT, 'edit' );
+
+		$this->assertJson( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
+		$this->assertJson( wp_specialchars_decode( $post->meta, ENT_QUOTES ), true );
+	}
 }
