@@ -135,6 +135,14 @@ class OrdersHPOSQuery {
 				: $field_meta_clauses;
 		}
 
+		// Handle field_query.
+		$field_query = $this->build_field_query_meta_query();
+		if ( ! empty( $field_query ) ) {
+			$args['meta_query'] = isset( $args['meta_query'] )
+				? array_merge( $args['meta_query'], [ $field_query ] )
+				: [ $field_query ];
+		}
+
 		/**
 		 * Filter translated WP_Query args for HPOS queries.
 		 *
@@ -524,7 +532,137 @@ class OrdersHPOSQuery {
 	 * @return array List of meta query clauses.
 	 */
 	protected function build_top_level_field_meta_clauses(): array {
-		$field_to_meta_key = [
+		$clauses = [];
+
+		foreach ( $this->get_order_field_to_meta_key_map() as $field => $meta_key ) {
+			if ( ! array_key_exists( $field, $this->query_args ) ) {
+				continue;
+			}
+
+			$value = $this->query_args[ $field ];
+			if ( '' === $value || null === $value || [] === $value ) {
+				continue;
+			}
+
+			$clauses[] = [
+				'key'     => $meta_key,
+				'value'   => $value,
+				'compare' => is_array( $value ) ? 'IN' : '=',
+			];
+		}
+
+		return $clauses;
+	}
+
+	/**
+	 * Translates HPOS field_query to a meta_query tree.
+	 *
+	 * @return array Meta query array.
+	 */
+	protected function build_field_query_meta_query(): array {
+		$field_query = $this->query_args['field_query'] ?? null;
+		if ( empty( $field_query ) || ! is_array( $field_query ) ) {
+			return [];
+		}
+
+		return $this->translate_field_query( $field_query );
+	}
+
+	/**
+	 * Recursively translates a field_query tree to meta_query.
+	 *
+	 * @param array $field_query Field query.
+	 * @return array Meta query.
+	 */
+	protected function translate_field_query( array $field_query ): array {
+		$translated = [];
+
+		foreach ( $field_query as $key => $clause ) {
+			if ( 'relation' === $key ) {
+				$translated['relation'] = $clause;
+				continue;
+			}
+
+			if ( ! is_array( $clause ) ) {
+				continue;
+			}
+
+			if ( ! isset( $clause['field'] ) ) {
+				$nested = $this->translate_field_query( $clause );
+				if ( ! empty( $nested ) ) {
+					$translated[] = $nested;
+				}
+				continue;
+			}
+
+			$meta_clause = $this->field_clause_to_meta_clause( $clause );
+			if ( ! empty( $meta_clause ) ) {
+				$translated[] = $meta_clause;
+			}
+		}
+
+		return $translated;
+	}
+
+	/**
+	 * Converts a single field_query clause to a meta_query clause.
+	 *
+	 * @param array $clause Field query clause.
+	 * @return array Meta query clause.
+	 */
+	protected function field_clause_to_meta_clause( array $clause ): array {
+		$field = $clause['field'] ?? '';
+		if ( '' === $field ) {
+			return [];
+		}
+
+		$meta_key = $this->map_order_field_to_meta_key( $field );
+		if ( ! $meta_key ) {
+			return [];
+		}
+
+		$meta_clause = [
+			'key' => $meta_key,
+		];
+
+		if ( array_key_exists( 'value', $clause ) ) {
+			$meta_clause['value'] = $clause['value'];
+		}
+
+		if ( ! empty( $clause['compare'] ) ) {
+			$meta_clause['compare'] = $clause['compare'];
+		}
+
+		if ( ! empty( $clause['type'] ) ) {
+			$meta_clause['type'] = $clause['type'];
+		}
+
+		return $meta_clause;
+	}
+
+	/**
+	 * Maps an order field name to its post meta key.
+	 *
+	 * @param string $field Order field name.
+	 * @return string|null Meta key or null if unmapped.
+	 */
+	protected function map_order_field_to_meta_key( string $field ): ?string {
+		$map = $this->get_order_field_to_meta_key_map();
+
+		if ( isset( $map[ $field ] ) ) {
+			return $map[ $field ];
+		}
+
+		return '_' . $field;
+	}
+
+	/**
+	 * Returns the order field to meta key map.
+	 *
+	 * @return array
+	 */
+	protected function get_order_field_to_meta_key_map(): array {
+		return [
 			'order_key'            => '_order_key',
 			'billing_first_name'   => '_billing_first_name',
 			'billing_last_name'    => '_billing_last_name',
@@ -550,26 +688,14 @@ class OrdersHPOSQuery {
 			'payment_method'       => '_payment_method',
 			'payment_method_title' => '_payment_method_title',
 			'transaction_id'       => '_transaction_id',
+			'total'                => '_order_total',
+			'order_total'          => '_order_total',
+			'shipping_total'       => '_order_shipping',
+			'order_shipping'       => '_order_shipping',
+			'discount_total'       => '_cart_discount',
+			'cart_discount'        => '_cart_discount',
+			'customer_id'          => '_customer_user',
+			'customer_user'        => '_customer_user',
 		];
-
-		$clauses = [];
-		foreach ( $field_to_meta_key as $field => $meta_key ) {
-			if ( ! array_key_exists( $field, $this->query_args ) ) {
-				continue;
-			}
-
-			$value = $this->query_args[ $field ];
-			if ( empty( $value ) ) {
-				continue;
-			}
-
-			$clauses[] = [
-				'key'     => $meta_key,
-				'value'   => $value,
-				'compare' => is_array( $value ) ? 'IN' : '=',
-			];
-		}
-
-		return $clauses;
 	}
 }

@@ -1131,4 +1131,212 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $matching_id, $orders[0]->get_id() );
 	}
+
+	/**
+	 * Test HPOS field_query for billing_first_name and order_key.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_field_query_billing_first_name_and_order_key() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$matching = new \WC_Order();
+		$matching->set_billing_first_name( 'Lauren' );
+		$matching->set_order_key( 'my_order_key' );
+		$matching->save();
+		$matching_id = $matching->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $matching_id, true );
+
+		$other = new \WC_Order();
+		$other->set_billing_first_name( 'John' );
+		$other->set_order_key( 'my_order_key' );
+		$other->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $other->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'field_query' => [
+					[
+						'field' => 'billing_first_name',
+						'value' => 'Lauren',
+					],
+					[
+						'field' => 'order_key',
+						'value' => 'my_order_key',
+					],
+				],
+			]
+		);
+
+		$this->assertNotEmpty( $orders );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $matching_id, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS field_query with OR on total or shipping_total less than 5.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_field_query_total_or_shipping_total_less_than() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$low_total = new \WC_Order();
+		$low_total->set_total( 3.50 );
+		$low_total->set_shipping_total( 10.00 );
+		$low_total->save();
+		$low_total_id = $low_total->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $low_total_id, true );
+
+		$low_shipping = new \WC_Order();
+		$low_shipping->set_total( 20.00 );
+		$low_shipping->set_shipping_total( 2.00 );
+		$low_shipping->save();
+		$low_shipping_id = $low_shipping->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $low_shipping_id, true );
+
+		$high_both = new \WC_Order();
+		$high_both->set_total( 20.00 );
+		$high_both->set_shipping_total( 10.00 );
+		$high_both->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $high_both->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'field_query' => [
+					'relation' => 'OR',
+					[
+						'field'   => 'total',
+						'value'   => '5.0',
+						'compare' => '<',
+					],
+					[
+						'field'   => 'shipping_total',
+						'value'   => '5.0',
+						'compare' => '<',
+					],
+				],
+			]
+		);
+
+		$this->assertNotEmpty( $orders );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 2, $orders );
+
+		$ids = array_map(
+			function ( $order ) {
+				return $order->get_id();
+			},
+			$orders
+		);
+		$this->assertContains( $low_total_id, $ids );
+		$this->assertContains( $low_shipping_id, $ids );
+	}
+
+	/**
+	 * Test HPOS nested field_query with LIKE and numeric comparisons.
+	 *
+	 * @see https://developer.woocommerce.com/docs/features/orders/high-performance-order-storage/wc-order-query-improvements/
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_field_query_billing_name_like_with_total_and_discount() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$matching = new \WC_Order();
+		$matching->set_billing_first_name( 'Lauren' );
+		$matching->set_total( 8.00 );
+		$matching->set_discount_total( 5.00 );
+		$matching->save();
+		$matching_id = $matching->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $matching_id, true );
+
+		$laura = new \WC_Order();
+		$laura->set_billing_first_name( 'Laura' );
+		$laura->set_total( 9.50 );
+		$laura->set_discount_total( 6.00 );
+		$laura->save();
+		$laura_id = $laura->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $laura_id, true );
+
+		$high_total = new \WC_Order();
+		$high_total->set_billing_first_name( 'Lauren' );
+		$high_total->set_total( 15.00 );
+		$high_total->set_discount_total( 5.00 );
+		$high_total->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $high_total->get_id(), true );
+
+		$low_discount = new \WC_Order();
+		$low_discount->set_billing_first_name( 'Lauren' );
+		$low_discount->set_total( 8.00 );
+		$low_discount->set_discount_total( 2.00 );
+		$low_discount->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $low_discount->get_id(), true );
+
+		$other_name = new \WC_Order();
+		$other_name->set_billing_first_name( 'John' );
+		$other_name->set_total( 8.00 );
+		$other_name->set_discount_total( 5.00 );
+		$other_name->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $other_name->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'field_query' => [
+					[
+						'field'   => 'billing_first_name',
+						'value'   => 'laur',
+						'compare' => 'LIKE',
+					],
+					[
+						'relation' => 'AND',
+						[
+							'field'   => 'total',
+							'value'   => '10.0',
+							'compare' => '<',
+							'type'    => 'NUMERIC',
+						],
+						[
+							'field'   => 'discount_total',
+							'value'   => '5.0',
+							'compare' => '>=',
+							'type'    => 'NUMERIC',
+						],
+					],
+				],
+			]
+		);
+
+		$this->assertNotEmpty( $orders );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 2, $orders );
+
+		$ids = array_map(
+			function ( $order ) {
+				return $order->get_id();
+			},
+			$orders
+		);
+		$this->assertContains( $matching_id, $ids );
+		$this->assertContains( $laura_id, $ids );
+	}
 }

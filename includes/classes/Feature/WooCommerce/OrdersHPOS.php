@@ -229,6 +229,10 @@ class OrdersHPOS {
 		$meta_data['_billing_address_index']  = [ $order->get_meta( '_billing_address_index', true ) ];
 		$meta_data['_shipping_address_index'] = [ $order->get_meta( '_shipping_address_index', true ) ];
 
+		$meta_data['_order_total']    = [ $order->get_total( 'edit' ) ];
+		$meta_data['_order_shipping'] = [ $order->get_shipping_total( 'edit' ) ];
+		$meta_data['_cart_discount']  = [ $order->get_discount_total( 'edit' ) ];
+
 		// Custom / extension order metadata.
 		foreach ( $order->get_meta_data() as $meta ) {
 			if ( isset( $meta_data[ $meta->key ] ) ) {
