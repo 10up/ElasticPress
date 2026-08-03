@@ -9,6 +9,7 @@
 namespace ElasticPress;
 
 use ElasticPress\Utils;
+use ElasticPress\FeatureRequirementsStatus;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -266,16 +267,22 @@ class Features {
 	 */
 	public function handle_feature_activation() {
 		/**
+		 * Give a chance to features to modify each other's requirements status before the activation is handled.
+		 */
+		foreach ( $this->registered_features as $feature ) {
+			$feature->pre_handle_feature_activation();
+		}
+
+		/**
 		 * Save our current requirement statuses for later
 		 */
-
 		$old_requirement_statuses = Utils\get_option( 'ep_feature_requirement_statuses', false );
 
 		$new_requirement_statuses = [];
 
 		foreach ( $this->registered_features as $slug => $feature ) {
 			$status                            = $feature->requirements_status();
-			$new_requirement_statuses[ $slug ] = (int) $status->code;
+			$new_requirement_statuses[ $slug ] = (int) $status->get_code();
 		}
 
 		$is_wp_cli = defined( 'WP_CLI' ) && \WP_CLI;
@@ -294,7 +301,7 @@ class Features {
 			$registered_features = $this->registered_features;
 
 			foreach ( $registered_features as $slug => $feature ) {
-				if ( 0 === $feature->requirements_status()->code ) {
+				if ( FeatureRequirementsStatus::AUTO_ENABLED === $feature->requirements_status()->get_code() ) {
 					$this->activate_feature( $slug );
 				}
 			}
@@ -327,7 +334,7 @@ class Features {
 
 			// This is a new feature
 			if ( ! isset( $old_requirement_statuses[ $slug ] ) ) {
-				if ( 0 === $code ) {
+				if ( FeatureRequirementsStatus::AUTO_ENABLED === $code ) {
 					if ( $feature->requires_install_reindex ) {
 						$activate_feature_target = 'draft';
 						Utils\update_option( 'ep_feature_auto_activated_sync', sanitize_text_field( $slug ) );
@@ -335,9 +342,16 @@ class Features {
 
 					$this->activate_feature( $slug, $activate_feature_target );
 				}
-			} elseif ( $old_requirement_statuses[ $slug ] !== $code && ( 0 === $code || 2 === $code ) ) {
-				// This feature has a 0 "ok" code when it did not before
-				$active = ( 0 === $code );
+			} elseif (
+				$old_requirement_statuses[ $slug ] !== $code
+					&& in_array(
+						$code,
+						[ FeatureRequirementsStatus::AUTO_ENABLED, FeatureRequirementsStatus::FORCE_DISABLED ],
+						true
+					)
+				) {
+				// This feature has an "ok" code when it did not before
+				$active = ( FeatureRequirementsStatus::AUTO_ENABLED === $code );
 
 				if ( ! $feature->is_active() && $active ) {
 					// Need to activate and maybe set a sync notice
@@ -381,12 +395,13 @@ class Features {
 				}
 			}
 
-			/**
-			 * 2 is the code for "not usable".
-			 *
-			 * @see FeatureRequirementsStatus
-			 */
-			$should_setup = $feature->is_active() && $are_required_features_active && 2 !== $feature->requirements_status()->code;
+			$should_setup = $feature->is_active()
+				&& $are_required_features_active
+				&& ! in_array(
+					$feature->requirements_status()->get_code(),
+					[ FeatureRequirementsStatus::FORCE_DISABLED, FeatureRequirementsStatus::TEMPORARILY_DISABLED ],
+					true
+				);
 
 			/**
 			 * Filter whether the feature should be setup.

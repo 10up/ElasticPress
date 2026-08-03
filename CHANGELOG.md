@@ -14,6 +14,52 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 -->
 
+## [5.3.3] - 2026-05-07
+
+### Added
+* Numbered pagination option for Instant Results. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4274](https://github.com/10up/ElasticPress/pull/4274).
+* New elasticpress_general_ep_screens filter. Props [@felipeelia](https://github.com/felipeelia) via [#4256](https://github.com/10up/ElasticPress/pull/4256).
+* New ep_feature_requirements_status_* filters and a new "Temporarily disabled" feature status (in code). Props [@felipeelia](https://github.com/felipeelia) via [#4265](https://github.com/10up/ElasticPress/pull/4265).
+
+### Changed
+* Optimize mb_strlen calls during sync process. Props [@kasparsd](https://github.com/kasparsd) via [#4304](https://github.com/10up/ElasticPress/pull/4304).
+* Saving feature settings now reflects feature dependencies without refreshing the page. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4275](https://github.com/10up/ElasticPress/pull/4275).
+
+### Fixed
+* Keep the sync running when code outputs directly in the post content. Props [@burhandodhy](https://github.com/burhandodhy), [@tomjn](https://github.com/tomjn), and [@felipeelia](https://github.com/felipeelia) via [#4266](https://github.com/10up/ElasticPress/pull/4266).
+* Prevent saving Custom Results while posts are loading. Props [@burhandodhy](https://github.com/burhandodhy) via [#4260](https://github.com/10up/ElasticPress/pull/4260).
+* Update label for bulk request timeout in ElasticPress status report. Props [@burhandodhy](https://github.com/burhandodhy) via [#4259](https://github.com/10up/ElasticPress/pull/4259).
+* Undefined array key warnings in Weighting.php. Props [@burhandodhy](https://github.com/burhandodhy) and [@BWBama85](https://github.com/BWBama85) via [#4270](https://github.com/10up/ElasticPress/pull/4270).
+* Ensure the Sync creates the Instant Results templates for all the sites. Props [@burhandodhy](https://github.com/burhandodhy) and [@anjulahettige](https://github.com/anjulahettige) via [#4258](https://github.com/10up/ElasticPress/pull/4258).
+* Ensure that WordPress caches the meta and term queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@maciejmackowiak](https://github.com/maciejmackowiak) via [#4268](https://github.com/10up/ElasticPress/pull/4268).
+* An issue where posts were not returned correctly when the search term contained accented characters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4263](https://github.com/10up/ElasticPress/pull/4263).
+* Prevent fatal error in Instant Results facets when `ep_facet_include_taxonomies` returns non-WP_Taxonomy values. Props [@laraib15](https://github.com/laraib15) via [#4255](https://github.com/10up/ElasticPress/pull/4255).
+* Instant Results displayed special characters as HTML encoded text. Props [@burhandodhy](https://github.com/burhandodhy) and [@wparslans](https://github.com/wparslans) via [#4276](https://github.com/10up/ElasticPress/pull/4276).
+* Error when trying to use queried object that doesn't exist. Props [@tomjn](https://github.com/tomjn) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4285](https://github.com/10up/ElasticPress/pull/4285).
+* Only consider a feature active if not disabled by code. Props [@felipeelia](https://github.com/felipeelia) via [#4272](https://github.com/10up/ElasticPress/pull/4272).
+* Several typos. Props [@szepeviktor](https://github.com/szepeviktor) and [@felipeelia](https://github.com/felipeelia) via [#4248](https://github.com/10up/ElasticPress/pull/4248).
+* Query count in the basic status admin bar. Props [@Sidsector9](https://github.com/Sidsector9) via [#4309](https://github.com/10up/ElasticPress/pull/4309).
+* Settings notice layout on the settings page during sync in WordPress 7.0. Props [@burhandodhy](https://github.com/burhandodhy) via [#4310](https://github.com/10up/ElasticPress/pull/4310).
+
+### Security
+* Updated Node.js dependencies (including a webpack override) to address npm audit findings. Props [@felipeelia](https://github.com/felipeelia) via [#4307](https://github.com/10up/ElasticPress/pull/4307).
+
+### Developer
+* Ensure `ep_{$indexable->slug}_sync_kill` properly prevents object indexing during sync and post updates. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@matthijsch](https://github.com/matthijsch) via [#4282](https://github.com/10up/ElasticPress/pull/4282).
+* Gracefully handle incorrect return types from `ep_admin_notices` filter callbacks. Props [@qudwill](https://github.com/qudwill), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9) via [#4281](https://github.com/10up/ElasticPress/pull/4281).
+* Webpack configuration option for JavaScript and CSS source maps (editor debugging). Props [@fiftin](https://github.com/fiftin) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4247](https://github.com/10up/ElasticPress/pull/4247) and [#4288](https://github.com/10up/ElasticPress/pull/4288).
+* Fix e2e tests. Props [@felipeelia](https://github.com/felipeelia) via [#4262](https://github.com/10up/ElasticPress/pull/4262).
+
+## [5.3.2.2] - 2026-03-26
+
+### Fixed
+* Deployment to WordPress.org. Props [@felipeelia](https://github.com/felipeelia) via [#4301](https://github.com/10up/ElasticPress/pull/4301).
+
+## [5.3.2.1] - 2026-03-26
+
+### Changed
+* Method of verifying ElasticPress.io environments. Props [@felipeelia](https://github.com/felipeelia) via [#4300](https://github.com/10up/ElasticPress/pull/4300).
+
 ## [5.3.2] - 2025-11-21
 
 ### Added
@@ -33,7 +79,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 Highlights of this version:
 
 * Improved compatibility with Elementor
-* Better UX/UI in the Features Screen: Grouped features and conditional display of fields 
+* Better UX/UI in the Features Screen: Grouped features and conditional display of fields
 * New indicator in the WordPress Admin Bar: See if your content is powered by Elasticsearch and how many queries were fired and failed in the current page.
 
 ### Added
@@ -619,7 +665,7 @@ ElasticPress 4.5.0 release highlights:
 - Facets styles not enqueued more than once. Props [@felipeelia](https://github.com/felipeelia) and [@MediaMaquina](https://github.com/MediaMaquina) via [#3306](https://github.com/10up/ElasticPress/pull/3306).
 - Duplicate terms listed in Instant Results facets. Props [@felipeelia](https://github.com/felipeelia) via [#3335](https://github.com/10up/ElasticPress/pull/3335).
 - Not setting the post context when indexing a post. Props [@tomjn](https://github.com/tomjn) via [#3333](https://github.com/10up/ElasticPress/pull/3333).
-- Some utilitary methods in the Command class treated as WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3320](https://github.com/10up/ElasticPress/pull/3320).
+- Some utility methods in the Command class treated as WP-CLI Commands. Props [@burhandodhy](https://github.com/burhandodhy) and [@felipeelia](https://github.com/felipeelia) via [#3320](https://github.com/10up/ElasticPress/pull/3320).
 - Make the "Failed Queries" notice dismissible. Props [@oscarssanchez](https://github.com/oscarssanchez) and [@felipeelia](https://github.com/felipeelia) via [#3348](https://github.com/10up/ElasticPress/pull/3348).
 - Undefined index `'elasticpress'` in the Status Report page. Props [@MARQAS](https://github.com/MARQAS) via [#3374](https://github.com/10up/ElasticPress/pull/3374).
 - Undefined array key `'displayCount'` error for facet. Props [@burhandodhy](https://github.com/burhandodhy) via [#3373](https://github.com/10up/ElasticPress/pull/3373).
@@ -2097,7 +2143,7 @@ This is a bug fix release with some filter additions.
 ### Added
 - Blog id to `ep_index_name` filter. Props [@kovshenin](https://github.com/kovshenin)
 - Support post caching in search
-- Recursive term indexing for heirarchal taxonomies. Props [@tuanmh](https://github.com/tuanmh)
+- Recursive term indexing for hierarchical taxonomies. Props [@tuanmh](https://github.com/tuanmh)
 - Enable indexing of attachments
 - Support fallback hosts in case main EP host is unavailable. Props [@chriswiegman](https://github.com/chriswiegman)
 - `ep_retrieve_the_post` filter to support relevancy score manipulation. Props [@matthewspencer](https://github.com/matthewspencer)
@@ -2196,7 +2242,7 @@ This is a bug fix release with some filter additions.
 - _boost from mapping. _boost is deprecated by Elasticsearch.
 
 ### Fixed
-- We don't want to add the like_text query unless we have a non empty search string. This mimcs the behavior of MySQL or WP which will return everything if s is empty.
+- We don't want to add the like_text query unless we have a non empty search string. This mimics the behavior of MySQL or WP which will return everything if s is empty.
 
 ## [1.1] - 2014-10-27
 ### Added
@@ -2309,6 +2355,9 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
+[5.3.2.2]: https://github.com/10up/ElasticPress/compare/5.3.2.1...5.3.2.2
+[5.3.2.1]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.2.1
 [5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2
 [5.3.1]: https://github.com/10up/ElasticPress/compare/5.3.0...5.3.1
 [5.3.0]: https://github.com/10up/ElasticPress/compare/5.2.0...5.3.0

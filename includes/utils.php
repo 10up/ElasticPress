@@ -185,7 +185,9 @@ function get_index_prefix() {
  * @return bool
  */
 function is_epio() {
-	return filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
+	$has_url     = filter_var( preg_match( '#elasticpress\.io#i', get_host() ), FILTER_VALIDATE_BOOLEAN );
+	$has_env_var = '1' === getenv( 'IS_EPIO_ENVIRONMENT' );
+	return $has_url || $has_env_var;
 }
 
 /**
@@ -201,6 +203,10 @@ function is_site_indexable( $blog_id = null ) {
 	}
 
 	$site = get_site( $blog_id );
+
+	if ( empty( $site ) ) {
+		return false;
+	}
 
 	$is_indexable = get_site_meta( $site['blog_id'], 'ep_indexable', true );
 
@@ -300,6 +306,10 @@ function get_host() {
  */
 function get_site( $site_id ) {
 	$site = \get_site( $site_id );
+
+	if ( ! $site instanceof \WP_Site ) {
+		return [];
+	}
 
 	return [
 		'blog_id'  => $site->blog_id,
@@ -929,4 +939,41 @@ function delete_transient( $transient ) {
 function is_top_level_admin_context() {
 	$is_network = defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK;
 	return $is_network ? is_network_admin() : is_admin();
+}
+
+/**
+ * Safely resolve the post type(s) for a taxonomy query.
+ *
+ * Guards against null queried objects, missing taxonomy properties,
+ * deregistered taxonomies, and non-post-type object types that would
+ * otherwise cause unexpected behavior when chaining
+ * get_queried_object()->taxonomy through get_taxonomy().
+ *
+ * @since 5.3.3
+ *
+ * @param \WP_Query|null $query Optional. WP_Query instance. Defaults to the global query.
+ * @return array Registered post type names on success, empty array otherwise.
+ */
+function get_post_types_for_tax_query( ?\WP_Query $query = null ): array {
+	global $wp_query;
+
+	if ( null === $query ) {
+		$query = $wp_query;
+	}
+
+	if ( ! $query instanceof \WP_Query || ! $query->is_tax() ) {
+		return [];
+	}
+
+	$queried_object = $query->get_queried_object();
+	if ( ! $queried_object || ! isset( $queried_object->taxonomy ) ) {
+		return [];
+	}
+
+	$taxonomy_object = get_taxonomy( $queried_object->taxonomy );
+	if ( ! $taxonomy_object || ! is_array( $taxonomy_object->object_type ) ) {
+		return [];
+	}
+
+	return array_values( array_filter( $taxonomy_object->object_type, 'post_type_exists' ) );
 }

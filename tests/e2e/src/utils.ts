@@ -249,12 +249,18 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 }
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
-	const editorFrame = page.locator('iframe[name="editor-canvas"]');
-	if (await editorFrame.isVisible()) {
-		return editorFrame.contentFrame();
-	}
+	const iframedEditor = page.locator('iframe[name="editor-canvas"]');
+	const inlineEditor = page.locator('.edit-post-visual-editor');
 
-	return page;
+	await Promise.race([
+		iframedEditor.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
+		inlineEditor
+			.first()
+			.waitFor({ state: 'visible', timeout: 10000 })
+			.catch(() => {}),
+	]);
+
+	return (await iframedEditor.count()) > 0 ? iframedEditor.contentFrame() : page;
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
@@ -330,7 +336,12 @@ export async function setPostPassword(
 			);
 		}
 	} else {
-		await page.locator('.components-dropdown.editor-post-status').click({ force: true });
+		const statusDropdown = page.locator('.components-dropdown.editor-post-status');
+		if ((await statusDropdown.count()) > 0) {
+			await statusDropdown.click({ force: true });
+		} else {
+			await page.getByRole('button', { name: /Change status/ }).click({ force: true });
+		}
 
 		const passwordCheckbox = page.locator(
 			'.editor-change-status__password-fieldset input[type="checkbox"]',
@@ -340,7 +351,7 @@ export async function setPostPassword(
 			(passwordCheckboxIsChecked && password === '') ||
 			(!passwordCheckboxIsChecked && password !== '')
 		) {
-			await passwordCheckbox.setChecked(password !== '');
+			await passwordCheckbox.setChecked(password !== '', { force: true });
 		}
 
 		if (password !== '') {
@@ -403,11 +414,11 @@ export async function publishPost(
 		await page.locator('.editor-post-text-editor').fill(newPostData.content);
 
 		// Return to visual editor
-		changeMode(page);
+		await changeMode(page);
 	} else {
 		// Return to visual editor
 		if (isInCodeEditorMode) {
-			changeMode(page);
+			await changeMode(page);
 		}
 		await editorFrame
 			.locator('h1.editor-post-title__input, #post-title-0')
@@ -430,9 +441,11 @@ export async function publishPost(
 		await page.waitForSelector('.components-snackbar');
 
 		if (viewPost) {
-			await page
-				.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")')
-				.click();
+			const postHref =
+				(await page
+					.locator('.post-publish-panel__postpublish-buttons a:has-text("View Post")')
+					.getAttribute('href')) ?? '';
+			await page.goto(postHref);
 		}
 	}
 
@@ -642,11 +655,12 @@ export async function setDefaultFeatureSettings() {
 			$host            = str_replace( 'host.docker.internal', 'localhost', $host );
 			$index_name      = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_index_name();
 			$as_endpoint_url = $host . $index_name . '/_search';
-			
+
 			$features['autosuggest']['endpoint_url'] = $as_endpoint_url;
 		}
 
 		update_option( 'ep_feature_settings', $features );
+		update_option( 'ep_feature_settings_draft', $features );
 
 		$index_names = \\ElasticPress\\Elasticsearch::factory()->get_index_names( 'active' );
 		echo wp_json_encode(

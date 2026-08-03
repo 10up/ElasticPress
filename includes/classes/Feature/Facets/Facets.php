@@ -270,8 +270,9 @@ class Facets extends Feature {
 			return true;
 		}
 
-		if ( ! empty( $query->get( 'ep_is_facetable' ) ) ) {
-			return true;
+		$ep_is_facetable = $query->get( 'ep_is_facetable', null );
+		if ( null !== $ep_is_facetable ) {
+			return (bool) $ep_is_facetable;
 		}
 
 		if ( is_admin() || is_feed() ) {
@@ -694,7 +695,7 @@ class Facets extends Feature {
 	}
 
 	/**
-	 * Utilitary function to retrieve the match type selected by the user.
+	 * Utility function to retrieve the match type selected by the user.
 	 *
 	 * @since 4.4.0
 	 * @return string

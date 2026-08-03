@@ -4,6 +4,20 @@
 	grid-template-columns: 1fr 1fr 1fr;
 	margin-top: auto;
 	text-align: center;
+
+	&.is-numbered {
+		display: block;
+
+		& .ep-search-pagination__list {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			justify-content: center;
+			list-style: none;
+			margin: 8px 0 0;
+			padding: 0;
+		}
+	}
 }
 
 .rtl .ep-search-pagination {

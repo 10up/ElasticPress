@@ -63,7 +63,7 @@ class AcfRepeater extends Feature {
 	 * @return FeatureRequirementsStatus
 	 */
 	public function requirements_status() {
-		$status = new FeatureRequirementsStatus( 0 );
+		$status = new FeatureRequirementsStatus( 0, null, $this );
 
 		foreach ( $this->acf_functions as $function ) {
 			if ( ! function_exists( $function ) ) {

@@ -224,12 +224,12 @@ class TestProtectedContent extends BaseTestCase {
 	}
 
 	/**
-	 * Check if passwords on posts are synced when feature not active
+	 * Check if password protected post is not synced when feature is disabled
 	 *
 	 * @since 4.0.0
 	 * @group protected-content
 	 */
-	public function testNoSyncPasswordedPost() {
+	public function test_password_protected_post_is_not_synced_when_feature_is_disabled() {
 		add_filter( 'ep_post_sync_args', array( $this, 'filter_post_sync_args' ), 10, 1 );
 
 		$post_id = $this->ep_factory->post->create( array( 'post_password' => 'test' ) );
@@ -241,8 +241,7 @@ class TestProtectedContent extends BaseTestCase {
 
 		// Check if password was synced
 		$post = ElasticPress\Indexables::factory()->get( 'post' )->get( $post_id );
-
-		$this->assertArrayNotHasKey( 'post_password', $post );
+		$this->assertEmpty( $post );
 	}
 
 	/**
@@ -549,8 +548,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 2, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $private_post_1_id, $query->posts[1]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $private_post_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		$query = new \WP_Query(
 			[
@@ -561,9 +562,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
-		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $public_page_1_id, $private_post_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		wp_set_current_user( $author_2_id );
 
@@ -576,9 +578,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 3, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
-		$this->assertEquals( $private_page_1_id, $query->posts[2]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $public_page_1_id, $private_page_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 
 		// Admin can see all posts.
 		wp_set_current_user( $admin_id );
@@ -592,10 +595,10 @@ class TestProtectedContent extends BaseTestCase {
 		);
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 4, $query->found_posts );
-		$this->assertEquals( $public_post_1_id, $query->posts[0]->ID );
-		$this->assertEquals( $public_page_1_id, $query->posts[1]->ID );
-		$this->assertEquals( $private_post_1_id, $query->posts[2]->ID );
-		$this->assertEquals( $private_page_1_id, $query->posts[3]->ID );
+		$this->assertEqualsCanonicalizing(
+			[ $public_post_1_id, $public_page_1_id, $private_post_1_id, $private_page_1_id ],
+			wp_list_pluck( $query->posts, 'ID' )
+		);
 	}
 
 	/**

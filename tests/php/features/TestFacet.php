@@ -608,7 +608,33 @@ class TestFacet extends BaseTestCase {
 	}
 
 	/**
-	 * Utilitary function for the testGetSelected test.
+	 * Test is_facetable returns false when ep_is_facetable is explicitly false.
+	 *
+	 * @since 5.3.4
+	 * @group facets
+	 */
+	public function test_is_facetable_respects_explicit_false() {
+		global $wp_the_query, $wp_query;
+
+		$facet_feature = Features::factory()->get_registered_feature( 'facets' );
+
+		$query = new \WP_Query(
+			[
+				's'               => 'test',
+				'ep_integrate'    => true,
+				'ep_is_facetable' => false,
+			]
+		);
+
+		// mock the query as main query.
+		$wp_the_query = $query;
+		$wp_query     = $query;
+
+		$this->assertFalse( $facet_feature->is_facetable( $query ) );
+	}
+
+	/**
+	 * Utility function for the testGetSelected test.
 	 *
 	 * Private as it is super specific and not likely to be extended.
 	 *

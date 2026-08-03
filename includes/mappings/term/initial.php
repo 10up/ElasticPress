@@ -19,13 +19,13 @@ return [
 				'default'          => [
 					'tokenizer' => 'standard',
 					/* This filter is documented in includes/mappings/post/7-0.php */
-					'filter'    => apply_filters( 'ep_default_analyzer_filters', [ 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
+					'filter'    => apply_filters( 'ep_default_analyzer_filters', [ 'standard', 'ewp_word_delimiter', 'lowercase', 'ep_stop', 'ewp_snowball', 'ep_asciifolding' ] ),
 					'language'  => apply_filters( 'ep_analyzer_language', 'english', 'analyzer_default' ),
 				],
 				'default_search'   => [
 					'tokenizer'   => 'standard',
 					/* This filter is documented in includes/mappings/post/7-0.php */
-					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball' ] ),
+					'filter'      => apply_filters( 'ep_default_search_analyzer_filters', [ 'lowercase', 'ep_stop', 'ewp_snowball', 'ep_asciifolding' ] ),
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'char_filter' => apply_filters( 'ep_default_search_analyzer_char_filters', [ 'html_strip' ] ),
 					/* This filter is documented above */
@@ -68,6 +68,10 @@ return [
 					'ignore_case' => true,
 					/* This filter is documented in includes/mappings/post/7-0.php */
 					'stopwords'   => apply_filters( 'ep_analyzer_language', 'english', 'filter_ep_stop' ),
+				],
+				'ep_asciifolding'    => [
+					'type'              => 'asciifolding',
+					'preserve_original' => true,
 				],
 			],
 			'normalizer' => [

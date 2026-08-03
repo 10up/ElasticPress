@@ -429,6 +429,8 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 	 * @since 4.5.1
 	 */
 	public function testElasticPressIoReport() {
+		add_filter( 'ep_instant_results_available', '__return_true' );
+
 		\ElasticPress\Features::factory()->activate_feature( 'autosuggest' );
 		\ElasticPress\Features::factory()->activate_feature( 'instant-results' );
 
@@ -481,17 +483,17 @@ class TestStatusReport extends WP_Ajax_UnitTestCase {
 			array(
 				'title'  => 'Timeouts',
 				'fields' => array(
-					'request_timeout'        => array(
-						'label' => 'Default Requests Timeout (default: 5)',
-						'value' => 5,
-					),
 					'index_document_timeout' => array(
-						'label' => 'Index Document Request Timeout (default: 15)',
+						'label' => 'Single Document Sync Requests Timeout (default: 15)',
 						'value' => 15,
 					),
 					'bulk_request_timeout'   => array(
-						'label' => 'Default Requests Timeout (default: 30)',
+						'label' => 'Multiple Document Sync Requests Timeout (default: 30)',
 						'value' => 30,
+					),
+					'request_timeout'        => array(
+						'label' => 'Other HTTP Requests Timeout (default: 5)',
+						'value' => 5,
 					),
 				),
 			),

@@ -12,11 +12,12 @@ namespace ElasticPress;
 
 use WP_CLI_Command;
 use WP_CLI;
-use ElasticPress\Features;
-use ElasticPress\Utils;
-use ElasticPress\Elasticsearch;
-use ElasticPress\Indexables;
 use ElasticPress\Command\Utility;
+use ElasticPress\Elasticsearch;
+use ElasticPress\FeatureRequirementsStatus;
+use ElasticPress\Features;
+use ElasticPress\Indexables;
+use ElasticPress\Utils;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	// @codeCoverageIgnoreStart
@@ -105,12 +106,12 @@ class Command extends WP_CLI_Command {
 
 		$status = $feature->requirements_status();
 
-		if ( 2 === $status->code ) {
+		if ( FeatureRequirementsStatus::FORCE_DISABLED === $status->get_code() ) {
 			/* translators: Error message */
-			WP_CLI::error( sprintf( esc_html__( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
-		} elseif ( 1 === $status->code ) {
+			WP_CLI::error( sprintf( esc_html__( 'Feature requirements are not met: %s', 'elasticpress' ), implode( "\n\n", (array) $status->get_message() ) ) );
+		} elseif ( FeatureRequirementsStatus::MANUALLY_ENABLED === $status->get_code() && ! empty( $status->get_message() ) ) {
 			/* translators: Warning message */
-			WP_CLI::warning( sprintf( esc_html__( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->message ) ) );
+			WP_CLI::warning( sprintf( esc_html__( 'Feature is usable but there are warnings: %s', 'elasticpress' ), implode( "\n\n", (array) $status->get_message() ) ) );
 		}
 
 		Features::factory()->activate_feature( $feature->slug );
@@ -1286,7 +1287,7 @@ class Command extends WP_CLI_Command {
 	}
 
 	/**
-	 * Utilitary function to render Stats for a given index.
+	 * Utility function to render Stats for a given index.
 	 *
 	 * @since 3.5.6
 	 * @param string $current_index The index name.
@@ -1517,24 +1518,44 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Saves the Instant Results search template to EPIO.
 	 *
+	 * ## OPTIONS
+	 *
+	 * [--network-wide]
+	 * : Save the template for all sites in the network if plugin is network activated. Otherwise, save the template for the current site only.
+	 *
 	 * @since 4.5.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 * @subcommand put-search-template
 	 */
-	public function put_search_template() {
+	public function put_search_template( $args, $assoc_args ) {
+		$network_wide    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network-wide', false );
 		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
-		$instant_results->epio_save_search_template();
+
+		$instant_results->epio_save_site_search_template( $network_wide );
+
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 
 	/**
 	 * Deletes the Instant Results search template.
 	 *
+	 * ## OPTIONS
+	 *
+	 * [--network-wide]
+	 * : Delete the template for all sites in the network if plugin is network activated. Otherwise, delete the template for the current site only.
+	 *
 	 * @since 4.5.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
 	 * @subcommand delete-search-template
 	 */
-	public function delete_search_template() {
+	public function delete_search_template( $args, $assoc_args ) {
+		$network_wide    = \WP_CLI\Utils\get_flag_value( $assoc_args, 'network-wide', false );
 		$instant_results = Features::factory()->get_registered_feature( 'instant-results' );
-		$instant_results->epio_delete_search_template();
+
+		$instant_results->epio_delete_site_search_template( $network_wide );
+
 		WP_CLI::success( esc_html__( 'Done.', 'elasticpress' ) );
 	}
 

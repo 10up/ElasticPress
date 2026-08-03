@@ -41,10 +41,13 @@
         "wp-content/plugins/show-comments-and-terms.php": "./tests/e2e/src/wordpress-files/test-plugins/show-comments-and-terms.php",
         "wp-content/plugins/sync-error.php": "./tests/e2e/src/wordpress-files/test-plugins/sync-error.php",
         "wp-content/plugins/sync-error-specific-post.php": "./tests/e2e/src/wordpress-files/test-plugins/sync-error-specific-post.php",
+        "wp-content/plugins/temporarily-disable-autosuggest.php": "./tests/e2e/src/wordpress-files/test-plugins/temporarily-disable-autosuggest.php",
         "wp-content/plugins/unsupported-server-software.php": "./tests/e2e/src/wordpress-files/test-plugins/unsupported-server-software.php",
         "wp-content/plugins/unsupported-elasticsearch-version.php": "./tests/e2e/src/wordpress-files/test-plugins/unsupported-elasticsearch-version.php",
         "wp-content/plugins/multiple-required-features.php": "./tests/e2e/src/wordpress-files/test-plugins/multiple-required-features.php",
-        "wp-content/uploads/content-example.xml": "./tests/e2e/src/wordpress-files/test-docs/content-example.xml"
+        "wp-content/uploads/content-example.xml": "./tests/e2e/src/wordpress-files/test-docs/content-example.xml",
+        "wp-content/plugins/echo-shortcode.php": "./tests/e2e/src/wordpress-files/test-plugins/echo-shortcode.php",
+		"wp-content/plugins/simulate-setting-dependency.php": "./tests/e2e/src/wordpress-files/test-plugins/simulate-setting-dependency.php"
       }
     }
   }

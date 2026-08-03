@@ -3701,12 +3701,12 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test cache_results is off by default
+	 * Test cache_results is on by default
 	 *
 	 * @since 1.5
 	 * @group post
 	 */
-	public function testCacheResultsDefaultOff() {
+	public function testCacheResultsDefaultOn() {
 		$this->ep_factory->post->create();
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -3718,7 +3718,7 @@ class TestPost extends BaseTestCase {
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
-		$this->assertFalse( $query->query_vars['cache_results'] );
+		$this->assertTrue( $query->query_vars['cache_results'] );
 	}
 
 	/**
@@ -3784,7 +3784,8 @@ class TestPost extends BaseTestCase {
 		wp_cache_flush();
 
 		$args = array(
-			'ep_integrate' => true,
+			'ep_integrate'  => true,
+			'cache_results' => false,
 		);
 
 		$query = new \WP_Query( $args );
@@ -8991,7 +8992,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Test exclude from search filter doesn't apply for admin quries.
+	 * Test exclude from search filter doesn't apply for admin queries.
 	 *
 	 * @since 4.4.0
 	 */
@@ -9264,7 +9265,7 @@ class TestPost extends BaseTestCase {
 	}
 
 	/**
-	 * Utilitary function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
+	 * Utility function to setup data needed by some tests related to the `get_distinct_meta_field_keys_db_per_post_type` method
 	 *
 	 * @return void
 	 */
@@ -9733,6 +9734,75 @@ class TestPost extends BaseTestCase {
 		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
 		$index_settings = $settings[ $index_name ]['settings'];
 		$this->assertSame( '_arabic_', $index_settings['index.analysis.filter.ep_stop.stopwords'] );
+	}
+
+	/**
+	 * Test the `ep_asciifolding` filter
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_mapping_ep_asciifolding_filter() {
+		$indexable      = ElasticPress\Indexables::factory()->get( 'post' );
+		$index_name     = $indexable->get_index_name();
+		$settings       = ElasticPress\Elasticsearch::factory()->get_index_settings( $index_name );
+		$index_settings = $settings[ $index_name ]['settings'];
+
+		$es_version = ElasticPress\Elasticsearch::factory()->get_elasticsearch_version();
+		if ( version_compare( $es_version, '7.0', '<' ) ) {
+			// ES5 format: flattened keys like 'index.analysis.analyzer.default.filter.0', '.1', etc.
+			$default_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_filter_keys );
+
+			$default_search_filter_keys = array_filter(
+				$index_settings,
+				fn( $value, $key ) => str_contains( $key, 'index.analysis.analyzer.default_search.filter.' ),
+				ARRAY_FILTER_USE_BOTH
+			);
+			$this->assertContains( 'ep_asciifolding', $default_search_filter_keys );
+
+		} else {
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default.filter'] );
+			$this->assertContains( 'ep_asciifolding', $index_settings['index.analysis.analyzer.default_search.filter'] );
+		}
+	}
+
+	/**
+	 * Test the post returns correct with accented characters
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_search_handles_accented_characters_correctly() {
+		$post_id_1 = $this->ep_factory->post->create( [ 'post_title' => 'Coöperàtîôn' ] );
+		$post_id_2 = $this->ep_factory->post->create( [ 'post_title' => 'Fiancéé' ] );
+
+		// disable fuzziness
+		add_filter( 'ep_fuzziness', '__return_zero' );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				's' => 'coöperàtîôn',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id_1, $query->posts[0]->ID );
+
+		$query = new \WP_Query(
+			[
+				's' => 'fiancee',
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->found_posts );
+		$this->assertEquals( $post_id_2, $query->posts[0]->ID );
 	}
 
 	/**
@@ -10385,5 +10455,165 @@ class TestPost extends BaseTestCase {
 			throw new \Exception( 'Something went wrong.' );
 		}
 		return $args;
+	}
+
+	/**
+	 * Test that post meta and term caches are primed after ES query.
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_postmeta_and_term_caches_are_primed_after_ESQuery() {
+		global $wpdb;
+
+		$post_ids = $this->ep_factory->post->create_many(
+			2,
+			[
+				'meta_input' => [
+					'test_meta_key' => 'test_value',
+				],
+				'tax_input'  => [
+					'category' => [ $this->ep_factory->category->create() ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_cache_flush();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => $post_ids,
+			]
+		);
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertCount( 2, $query->posts );
+
+		// After the query, post meta should be cached and no additional queries should be made.
+		$queries_before = $wpdb->num_queries;
+
+		foreach ( $post_ids as $post_id ) {
+			get_post_meta( $post_id, 'test_meta_key', true );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertSame( $queries_before, $queries_after );
+
+		foreach ( $post_ids as $post_id ) {
+			get_the_terms( $post_id, 'category' );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertSame( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test that update_post_meta_cache query arg respects post meta cache.
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_update_post_meta_cache_query_arg_respects_post_meta_cache() {
+		global $wpdb;
+
+		$post_ids = $this->ep_factory->post->create_many(
+			2,
+			[
+				'meta_input' => [
+					'test_meta_key' => 'test_value',
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_cache_flush();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'           => true,
+				'post__in'               => $post_ids,
+				'update_post_meta_cache' => false,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertCount( 2, $query->posts );
+
+		$queries_before = $wpdb->num_queries;
+		foreach ( $post_ids as $post_id ) {
+			get_post_meta( $post_id, 'test_meta_key', true );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertGreaterThan( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test that update_post_term_cache query arg respects term cache.
+	 *
+	 * @since 5.3.3
+	 * @group post
+	 */
+	public function test_update_post_term_cache_query_arg_respects_term_cache() {
+		global $wpdb;
+		$post_ids = $this->ep_factory->post->create_many(
+			2,
+			[
+				'tax_input' => [
+					'category' => [ $this->ep_factory->category->create() ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		wp_cache_flush();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'           => true,
+				'post__in'               => $post_ids,
+				'update_post_term_cache' => false,
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertCount( 2, $query->posts );
+
+		$queries_before = $wpdb->num_queries;
+
+		foreach ( $post_ids as $post_id ) {
+			get_the_terms( $post_id, 'category' );
+		}
+
+		$queries_after = $wpdb->num_queries;
+		$this->assertGreaterThan( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test max_num_pages when posts_per_page is -1.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_max_num_pages_with_posts_per_page_negative_one() {
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'posts_per_page' => -1, // phpcs:ignore WordPress.WP.PostsPerPageNoUnlimited.posts_per_page_posts_per_page
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( 2, $query->found_posts );
+		$this->assertSame( 0, $query->max_num_pages );
 	}
 }
