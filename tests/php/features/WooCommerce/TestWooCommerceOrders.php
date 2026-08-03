@@ -339,43 +339,6 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Test the `hpos_compatibility_notice` method
-	 *
-	 * @group woocommerce
-	 * @group woocommerce-orders
-	 */
-	public function test_hpos_compatibility_notice() {
-		$notices = [
-			'test' => [],
-		];
-		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
-
-		\set_current_screen( 'woocommerce_page_wc-orders' );
-		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
-
-		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
-		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
-
-		$this->enable_hpos();
-
-		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
-		$this->assertCount( 2, $new_notices );
-		$this->assertArrayHasKey( 'wc_orders_incompatible', $new_notices );
-
-		/**
-		 * Test if the notice is hidden when the user already dismissed it
-		 */
-		$change_hide_option = function () {
-			return 1;
-		};
-		add_filter( 'pre_option_ep_hide_wc_orders_incompatible_notice', $change_hide_option );
-		add_filter( 'pre_site_option_ep_hide_wc_orders_incompatible_notice', $change_hide_option );
-		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
-		$this->assertCount( 1, $new_notices );
-		$this->assertArrayNotHasKey( 'wc_orders_incompatible', $new_notices );
-	}
-
-	/**
 	 * Test the `is_hpos_enabled` method
 	 *
 	 * @since 5.3.0
@@ -391,7 +354,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
-	 * Utilitary function to enable WooCommerce HPOS
+	 * Utility function to enable WooCommerce HPOS
 	 *
 	 * @since 5.3.0
 	 */
@@ -760,6 +723,54 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test HPOS orderby as an array of field => direction pairs.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_order_by_array() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		$shop_order_3 = new \WC_Order();
+		$shop_order_3->set_date_created( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_3->save();
+		$shop_order_id_3 = $shop_order_3->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_3, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'orderby' => [
+					'date_created' => 'ASC',
+					'id'           => 'DESC',
+				],
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 3, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_1, $orders[1]->get_id() );
+		$this->assertEquals( $shop_order_id_3, $orders[2]->get_id() );
+	}
+
+	/**
 	 * Test HPOS created via query.
 	 *
 	 * @return void
@@ -1040,6 +1051,122 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test HPOS search query with transaction ID.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_search_query_with_transaction_id() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_billing_first_name( 'John' );
+		$shop_order_1->set_billing_last_name( 'Doe' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_billing_first_name( 'Example' );
+		$shop_order_2->set_billing_last_name( 'Customer' );
+		$shop_order_2->set_transaction_id( '1234567890' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				's'             => 1234567890,
+				'search_filter' => 'transaction_id',
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS search query with order customer email.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_search_query_with_order_customer_email() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_billing_email( 'test1@example.com' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_billing_email( 'dev@elasticpress.io' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				's'             => 'test1@example.com',
+				'search_filter' => 'customer_email',
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS search query with order customers.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_search_query_with_order_customers() {
+		$this->enable_hpos();
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_billing_email( 'test1@example.com' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_billing_email( 'dev@elasticpress.io' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				's'             => 'test1@example.com',
+				'search_filter' => 'customers',
+			]
+		);
+
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
 	 * Test HPOS meta_query for color EXISTS and size LIKE.
 	 *
 	 * @return void
@@ -1266,12 +1393,12 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$order_1_id = $order_1->get_id();
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $order_1_id, true );
 
-		$oder_2 = new \WC_Order();
-		$oder_2->set_billing_first_name( 'Lauren' );
-		$oder_2->set_total( 15.00 );
-		$oder_2->set_discount_total( 5.00 );
-		$oder_2->save();
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $oder_2->get_id(), true );
+		$order_2 = new \WC_Order();
+		$order_2->set_billing_first_name( 'Lauren' );
+		$order_2->set_total( 15.00 );
+		$order_2->set_discount_total( 5.00 );
+		$order_2->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order_2->get_id(), true );
 
 		$order_3 = new \WC_Order();
 		$order_3->set_billing_first_name( 'Lauren' );

@@ -329,6 +329,8 @@ class OrdersHPOSQuery {
 							'_shipping_first_name',
 							'_shipping_last_name',
 							'_items',
+							'_billing_address_index',
+							'_shipping_address_index',
 						]
 					)
 				);
