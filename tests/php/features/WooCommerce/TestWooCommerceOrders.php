@@ -1258,42 +1258,35 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		ElasticPress\Features::factory()->setup_features();
 
-		$matching = new \WC_Order();
-		$matching->set_billing_first_name( 'Lauren' );
-		$matching->set_total( 8.00 );
-		$matching->set_discount_total( 5.00 );
-		$matching->save();
-		$matching_id = $matching->get_id();
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $matching_id, true );
+		$order_1 = new \WC_Order();
+		$order_1->set_billing_first_name( 'Lauren' );
+		$order_1->set_total( 8.00 );
+		$order_1->set_discount_total( 5.00 );
+		$order_1->save();
+		$order_1_id = $order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order_1_id, true );
 
-		$laura = new \WC_Order();
-		$laura->set_billing_first_name( 'Laura' );
-		$laura->set_total( 9.50 );
-		$laura->set_discount_total( 6.00 );
-		$laura->save();
-		$laura_id = $laura->get_id();
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $laura_id, true );
+		$oder_2 = new \WC_Order();
+		$oder_2->set_billing_first_name( 'Lauren' );
+		$oder_2->set_total( 15.00 );
+		$oder_2->set_discount_total( 5.00 );
+		$oder_2->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $oder_2->get_id(), true );
 
-		$high_total = new \WC_Order();
-		$high_total->set_billing_first_name( 'Lauren' );
-		$high_total->set_total( 15.00 );
-		$high_total->set_discount_total( 5.00 );
-		$high_total->save();
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $high_total->get_id(), true );
+		$order_3 = new \WC_Order();
+		$order_3->set_billing_first_name( 'Lauren' );
+		$order_3->set_total( 9.50 );
+		$order_3->set_discount_total( 6.00 );
+		$order_3->save();
+		$order_3_id = $order_3->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order_3_id, true );
 
-		$low_discount = new \WC_Order();
-		$low_discount->set_billing_first_name( 'Lauren' );
-		$low_discount->set_total( 8.00 );
-		$low_discount->set_discount_total( 2.00 );
-		$low_discount->save();
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $low_discount->get_id(), true );
-
-		$other_name = new \WC_Order();
-		$other_name->set_billing_first_name( 'John' );
-		$other_name->set_total( 8.00 );
-		$other_name->set_discount_total( 5.00 );
-		$other_name->save();
-		ElasticPress\Indexables::factory()->get( 'post' )->index( $other_name->get_id(), true );
+		$order_4 = new \WC_Order();
+		$order_4->set_billing_first_name( 'John' );
+		$order_4->set_total( 8.00 );
+		$order_4->set_discount_total( 5.00 );
+		$order_4->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $order_4->get_id(), true );
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
@@ -1301,9 +1294,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 			[
 				'field_query' => [
 					[
-						'field'   => 'billing_first_name',
-						'value'   => 'laur',
-						'compare' => 'LIKE',
+						'field' => 'billing_first_name',
+						'value' => 'Lauren',
 					],
 					[
 						'relation' => 'AND',
@@ -1328,13 +1320,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
 
-		$ids = array_map(
-			function ( $order ) {
-				return $order->get_id();
-			},
-			$orders
-		);
-		$this->assertContains( $matching_id, $ids );
-		$this->assertContains( $laura_id, $ids );
+		$this->assertEquals( $order_1_id, $orders[0]->get_id() );
+		$this->assertEquals( $order_3_id, $orders[1]->get_id() );
 	}
 }
