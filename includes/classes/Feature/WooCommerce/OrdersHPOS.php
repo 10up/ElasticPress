@@ -45,8 +45,6 @@ class OrdersHPOS {
 
 	/**
 	 * Setup order HPOS related hooks
-	 *
-	 * @return void
 	 */
 	public function setup(): void {
 		add_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
@@ -59,8 +57,6 @@ class OrdersHPOS {
 
 	/**
 	 * Unsetup order HPOS related hooks
-	 *
-	 * @return void
 	 */
 	public function tear_down(): void {
 		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
@@ -161,7 +157,7 @@ class OrdersHPOS {
 			switch ( $prop ) {
 				case 'date_paid':
 				case 'date_completed':
-					$value = ! is_null( $value ) ? $value->getTimestamp() : '';
+					$value = is_null( $value ) ? '' : $value->getTimestamp();
 					break;
 				case 'download_permissions_granted':
 				case 'recorded_sales':
@@ -182,15 +178,15 @@ class OrdersHPOS {
 			}
 
 			// We want to persist internal data store keys as 'yes' or 'no' if they are boolean to maintain compatibility.
-			if ( is_bool( $value ) && in_array( $prop, array_values( $data_store->get_internal_data_store_key_getters() ), true ) ) {
+			if ( is_bool( $value ) && in_array( $prop, $data_store->get_internal_data_store_key_getters(), true ) ) {
 				$value = wc_bool_to_string( $value );
 			}
 
 			$meta_data[ $meta_key ] = [ $value ];
 		}
 
-		$address_props = array(
-			'billing'  => array(
+		$address_props = [
+			'billing'  => [
 				'_billing_first_name' => 'billing_first_name',
 				'_billing_last_name'  => 'billing_last_name',
 				'_billing_company'    => 'billing_company',
@@ -202,8 +198,8 @@ class OrdersHPOS {
 				'_billing_country'    => 'billing_country',
 				'_billing_email'      => 'billing_email',
 				'_billing_phone'      => 'billing_phone',
-			),
-			'shipping' => array(
+			],
+			'shipping' => [
 				'_shipping_first_name' => 'shipping_first_name',
 				'_shipping_last_name'  => 'shipping_last_name',
 				'_shipping_company'    => 'shipping_company',
@@ -214,8 +210,8 @@ class OrdersHPOS {
 				'_shipping_postcode'   => 'shipping_postcode',
 				'_shipping_country'    => 'shipping_country',
 				'_shipping_phone'      => 'shipping_phone',
-			),
-		);
+			],
+		];
 
 		foreach ( $address_props as $props ) {
 			foreach ( $props as $meta_key => $prop ) {
@@ -303,7 +299,6 @@ class OrdersHPOS {
 	 *
 	 * @param array                                                               $args  HPOS order query arguments.
 	 * @param \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $query OrdersTableQuery instance.
-	 * @return bool
 	 */
 	protected function should_integrate_with_query( $args, $query ): bool {
 		if ( isset( $args['ep_integrate'] ) && ! filter_var( $args['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
@@ -311,11 +306,7 @@ class OrdersHPOS {
 		}
 
 		/** This filter is documented in includes/classes/Indexable/Post/QueryIntegration.php */
-		if ( apply_filters( 'ep_skip_query_integration', false, $query ) ) {
-			return false;
-		}
-
-		return true;
+		return ! apply_filters( 'ep_skip_query_integration', false, $query );
 	}
 
 	/**
@@ -353,7 +344,6 @@ class OrdersHPOS {
 	 * Normalize order query arguments to match OrdersTableQuery.
 	 *
 	 * @param array $args Order query arguments.
-	 * @return array
 	 */
 	protected function normalize_order_query_args( array $args ): array {
 		unset( $args['suppress_filters'] );
@@ -376,7 +366,6 @@ class OrdersHPOS {
 	 * Generate a stable hash for HPOS order query arguments.
 	 *
 	 * @param array $args Order query arguments.
-	 * @return string
 	 */
 	protected function get_order_query_hash( array $args ): string {
 		unset( $args['suppress_filters'], $args['no_found_rows'], $args['name'] );
@@ -401,11 +390,11 @@ class OrdersHPOS {
 		if (
 			! in_array(
 				$post_status,
-				array(
+				[
 					OrderStatus::AUTO_DRAFT,
 					OrderStatus::DRAFT,
 					OrderStatus::TRASH,
-				),
+				],
 				true
 			)
 			&& in_array( 'wc-' . $post_status, $valid_statuses, true )

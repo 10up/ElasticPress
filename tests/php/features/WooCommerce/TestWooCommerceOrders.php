@@ -1249,9 +1249,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS nested field_query with LIKE and numeric comparisons.
 	 *
-	 * @see https://developer.woocommerce.com/docs/features/orders/high-performance-order-storage/wc-order-query-improvements/
-	 * @group woocommerce
-	 * @group woocommerce-orders
+	 * @return void
 	 */
 	public function test_hpos_field_query_billing_name_like_with_total_and_discount() {
 		$this->enable_hpos();

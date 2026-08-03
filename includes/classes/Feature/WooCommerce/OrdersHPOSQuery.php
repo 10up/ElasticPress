@@ -649,17 +649,11 @@ class OrdersHPOSQuery {
 	protected function map_order_field_to_meta_key( string $field ): ?string {
 		$map = $this->get_order_field_to_meta_key_map();
 
-		if ( isset( $map[ $field ] ) ) {
-			return $map[ $field ];
-		}
-
-		return '_' . $field;
+		return $map[ $field ] ?? '_' . $field;
 	}
 
 	/**
 	 * Returns the order field to meta key map.
-	 *
-	 * @return array
 	 */
 	protected function get_order_field_to_meta_key_map(): array {
 		return [
