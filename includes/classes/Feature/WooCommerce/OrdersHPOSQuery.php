@@ -119,6 +119,22 @@ class OrdersHPOSQuery {
 			: [ $created_via_clause ];
 		}
 
+		// Handle HPOS meta_query (custom order metadata).
+		$hpos_meta_query = $this->query_args['meta_query'] ?? null;
+		if ( ! empty( $hpos_meta_query ) && is_array( $hpos_meta_query ) ) {
+			$args['meta_query'] = isset( $args['meta_query'] )
+				? array_merge( $args['meta_query'], [ $hpos_meta_query ] )
+				: [ $hpos_meta_query ];
+		}
+
+		// Handle top-level order field filters (e.g. billing_first_name, order_key).
+		$field_meta_clauses = $this->build_top_level_field_meta_clauses();
+		if ( ! empty( $field_meta_clauses ) ) {
+			$args['meta_query'] = isset( $args['meta_query'] )
+				? array_merge( $args['meta_query'], $field_meta_clauses )
+				: $field_meta_clauses;
+		}
+
 		/**
 		 * Filter translated WP_Query args for HPOS queries.
 		 *
@@ -500,5 +516,60 @@ class OrdersHPOSQuery {
 			'value'   => sanitize_text_field( $created_via ),
 			'compare' => '=',
 		];
+	}
+
+	/**
+	 * Builds meta_query clauses from top-level order field query vars.
+	 *
+	 * @return array List of meta query clauses.
+	 */
+	protected function build_top_level_field_meta_clauses(): array {
+		$field_to_meta_key = [
+			'order_key'            => '_order_key',
+			'billing_first_name'   => '_billing_first_name',
+			'billing_last_name'    => '_billing_last_name',
+			'billing_company'      => '_billing_company',
+			'billing_address_1'    => '_billing_address_1',
+			'billing_address_2'    => '_billing_address_2',
+			'billing_city'         => '_billing_city',
+			'billing_state'        => '_billing_state',
+			'billing_postcode'     => '_billing_postcode',
+			'billing_country'      => '_billing_country',
+			'billing_email'        => '_billing_email',
+			'billing_phone'        => '_billing_phone',
+			'shipping_first_name'  => '_shipping_first_name',
+			'shipping_last_name'   => '_shipping_last_name',
+			'shipping_company'     => '_shipping_company',
+			'shipping_address_1'   => '_shipping_address_1',
+			'shipping_address_2'   => '_shipping_address_2',
+			'shipping_city'        => '_shipping_city',
+			'shipping_state'       => '_shipping_state',
+			'shipping_postcode'    => '_shipping_postcode',
+			'shipping_country'     => '_shipping_country',
+			'shipping_phone'       => '_shipping_phone',
+			'payment_method'       => '_payment_method',
+			'payment_method_title' => '_payment_method_title',
+			'transaction_id'       => '_transaction_id',
+		];
+
+		$clauses = [];
+		foreach ( $field_to_meta_key as $field => $meta_key ) {
+			if ( ! array_key_exists( $field, $this->query_args ) ) {
+				continue;
+			}
+
+			$value = $this->query_args[ $field ];
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			$clauses[] = [
+				'key'     => $meta_key,
+				'value'   => $value,
+				'compare' => is_array( $value ) ? 'IN' : '=',
+			];
+		}
+
+		return $clauses;
 	}
 }

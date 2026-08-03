@@ -226,8 +226,16 @@ class OrdersHPOS {
 			}
 		}
 
-		$meta_data['_billing_address_index']  = $order->get_meta( '_billing_address_index', true );
-		$meta_data['_shipping_address_index'] = $order->get_meta( '_shipping_address_index', true );
+		$meta_data['_billing_address_index']  = [ $order->get_meta( '_billing_address_index', true ) ];
+		$meta_data['_shipping_address_index'] = [ $order->get_meta( '_shipping_address_index', true ) ];
+
+		// Custom / extension order metadata.
+		foreach ( $order->get_meta_data() as $meta ) {
+			if ( isset( $meta_data[ $meta->key ] ) ) {
+				continue;
+			}
+			$meta_data[ $meta->key ] = [ $meta->value ];
+		}
 
 		return $meta_data;
 	}

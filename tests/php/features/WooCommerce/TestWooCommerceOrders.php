@@ -1038,4 +1038,97 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertCount( 1, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 	}
+
+	/**
+	 * Test HPOS meta_query for color EXISTS and size LIKE.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_meta_query_color_and_size_like() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$matching = new \WC_Order();
+		$matching->update_meta_data( 'color', 'blue' );
+		$matching->update_meta_data( 'size', 'extra-small' );
+		$matching->save();
+		$matching_id = $matching->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $matching_id, true );
+
+		$color_only = new \WC_Order();
+		$color_only->update_meta_data( 'color', 'red' );
+		$color_only->update_meta_data( 'size', 'large' );
+		$color_only->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $color_only->get_id(), true );
+
+		$size_only = new \WC_Order();
+		$size_only->update_meta_data( 'size', 'small' );
+		$size_only->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $size_only->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'meta_query' => [
+					[
+						'key' => 'color',
+					],
+					[
+						'key'     => 'size',
+						'value'   => 'small',
+						'compare' => 'LIKE',
+					],
+				],
+			]
+		);
+
+		$this->assertNotEmpty( $orders );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $matching_id, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS top-level billing_first_name and order_key filters.
+	 *
+	 * @return void
+	 */
+	public function test_hpos_billing_first_name_and_order_key() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$matching = new \WC_Order();
+		$matching->set_billing_first_name( 'Lauren' );
+		$matching->set_order_key( 'my_order_key' );
+		$matching->save();
+		$matching_id = $matching->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $matching_id, true );
+
+		$other = new \WC_Order();
+		$other->set_billing_first_name( 'Lauren' );
+		$other->set_order_key( 'other_key' );
+		$other->save();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $other->get_id(), true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'billing_first_name' => 'Lauren',
+				'order_key'          => 'my_order_key',
+			]
+		);
+
+		$this->assertNotEmpty( $orders );
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $matching_id, $orders[0]->get_id() );
+	}
 }
