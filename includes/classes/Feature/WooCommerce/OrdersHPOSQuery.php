@@ -104,23 +104,19 @@ class OrdersHPOSQuery {
 		}
 
 		// Handle customer filtering.
-		if ( $this->hpos_query->arg_isset( 'customer' ) ) {
-			$customer_meta_query = $this->generate_customer_query();
-			if ( ! empty( $customer_meta_query ) ) {
-				$args['meta_query'] = isset( $args['meta_query'] )
-					? array_merge( $args['meta_query'], [ $customer_meta_query ] )
-					: [ $customer_meta_query ];
-			}
+		$customer_meta_query = $this->generate_customer_query();
+		if ( ! empty( $customer_meta_query ) ) {
+			$args['meta_query'] = isset( $args['meta_query'] )
+				? array_merge( $args['meta_query'], [ $customer_meta_query ] )
+				: [ $customer_meta_query ];
 		}
 
 		// Handle created_via filtering.
-		if ( $this->hpos_query->arg_isset( 'created_via' ) ) {
-			$created_via_clause = $this->build_created_via_query();
-			if ( ! empty( $created_via_clause ) ) {
-				$args['meta_query'] = isset( $args['meta_query'] )
-					? array_merge( $args['meta_query'], [ $created_via_clause ] )
-					: [ $created_via_clause ];
-			}
+		$created_via_clause = $this->build_created_via_query();
+		if ( ! empty( $created_via_clause ) ) {
+			$args['meta_query'] = isset( $args['meta_query'] )
+			? array_merge( $args['meta_query'], [ $created_via_clause ] )
+			: [ $created_via_clause ];
 		}
 
 		/**
@@ -485,7 +481,6 @@ class OrdersHPOSQuery {
 	 */
 	protected function build_created_via_query(): array {
 		$created_via = $this->hpos_query->get( 'created_via' );
-
 		if ( empty( $created_via ) ) {
 			return [];
 		}

@@ -815,6 +815,15 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
+
+		// Test with empty created_via
+		$orders = wc_get_orders(
+			[
+				'created_via' => '',
+			]
+		);
+		$this->assertTrue( $orders[0]->elasticsearch_success );
+		$this->assertCount( 2, $orders );
 	}
 
 	/**
