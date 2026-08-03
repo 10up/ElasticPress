@@ -26,7 +26,7 @@ class Orders {
 	protected $woocommerce;
 
 	/**
-	 * Receive the OrdersHPOS object instance
+	 * OrdersHPOS object instance
 	 *
 	 * @var OrdersHPOS
 	 */
@@ -442,7 +442,7 @@ class Orders {
 			return;
 		}
 
-		// bail if HPOS is enabled
+		// bail if HPOS is enabled.
 		if ( $this->is_hpos_enabled() ) {
 			return;
 		}

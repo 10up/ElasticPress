@@ -564,6 +564,33 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		});
 
 		test('Can search orders from ElasticPress in WP Dashboard', async ({ loggedInPage }) => {
+			// Disable Orders Autosuggest.
+			if (isEpIo()) {
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				await loggedInPage
+					.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+					.click();
+				await loggedInPage
+					.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+					.click();
+
+				const showSuggestionsCheck = loggedInPage
+					.locator('label:has-text("Show suggestions")')
+					.locator('..')
+					.locator('input');
+
+				if (await showSuggestionsCheck.isChecked()) {
+					const apiRequestPromise = loggedInPage.waitForResponse(
+						'/wp-json/elasticpress/v1/features*',
+					);
+
+					await showSuggestionsCheck.uncheck();
+					loggedInPage.on('dialog', (dialog) => dialog.accept());
+					await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
+					await apiRequestPromise;
+				}
+			}
+
 			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
 
 			const checkAllOrders = async () => {

@@ -15,9 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * OrdersHPOS Query class
- *
- * Handles the translation of HPOS queries to WP_Query objects.
+ * OrdersHPOS Query class.
  *
  * @since 5.4.0
  */

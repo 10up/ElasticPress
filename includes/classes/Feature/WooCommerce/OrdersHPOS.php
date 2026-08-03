@@ -1,6 +1,6 @@
 <?php
 /**
- * WooCommerce HPOS compatibility layer
+ * WooCommerce HPOS compatibility layer.
  *
  * @since 5.4.0
  * @package elasticpress
@@ -77,7 +77,7 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Add order data to ES document args
+	 * Add order data to ES document args.
 	 *
 	 * @param array $post_args Post arguments
 	 * @param int   $post_id   Post ID
@@ -229,7 +229,6 @@ class OrdersHPOS {
 		$meta_data['_order_shipping'] = [ $order->get_shipping_total( 'edit' ) ];
 		$meta_data['_cart_discount']  = [ $order->get_discount_total( 'edit' ) ];
 
-		// Custom / extension order metadata.
 		foreach ( $order->get_meta_data() as $meta ) {
 			if ( isset( $meta_data[ $meta->key ] ) ) {
 				continue;
@@ -281,6 +280,8 @@ class OrdersHPOS {
 		if ( ! $this->should_integrate_with_query( $query->get_query_args(), $query ) ) {
 			return null;
 		}
+
+		error_log( 'Running HPOS query' );
 
 		$orders_query = new OrdersHPOSQuery( $query );
 		$result       = $orders_query->query();
