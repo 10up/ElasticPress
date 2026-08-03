@@ -676,6 +676,9 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			// Grab the id query string from the url
 			const url = new URL(loggedInPage.url());
 			const id = url.searchParams.get('id');
+			if (!id) {
+				throw new Error('Order ID missing from URL after saving order');
+			}
 
 			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
 
