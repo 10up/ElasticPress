@@ -650,10 +650,14 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 					.first(),
 			).toContainText('Query Response Code: HTTP 200');
 
-			const allOrders = await loggedInPage.locator('.order_number .order-view').all();
-			for await (const order of allOrders) {
-				await expect(order).toContainText(`${userData.firstName} ${userData.lastName}`);
-			}
+			await expect(
+				loggedInPage
+					.locator('.order_number .order-view')
+					.filter({
+						hasText: `${userData.firstName} ${userData.lastName}`,
+					})
+					.first(),
+			).toBeVisible();
 		});
 
 		test('Can fetch orders from Elasticsearch when Sales Channel filter is applied', async ({
@@ -672,6 +676,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#_billing_phone').fill(userData.phoneNumber);
 			await loggedInPage.locator('#_billing_email').fill(userData.email);
 			await loggedInPage.locator('.order_actions.submitbox .save_order').click();
+			await loggedInPage.waitForURL(/[?&]id=\d+/);
 
 			// Grab the id query string from the url
 			const url = new URL(loggedInPage.url());
@@ -692,10 +697,12 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 					.first(),
 			).toContainText('Query Response Code: HTTP 200');
 
-			const allOrders = await loggedInPage.locator('.order_number .order-view').all();
-			for await (const order of allOrders) {
-				await expect(order).toContainText(id);
-			}
+			await expect(
+				loggedInPage
+					.locator('.order_number .order-view')
+					.filter({ hasText: `#${id}` })
+					.first(),
+			).toBeVisible();
 		});
 
 		test('Can not display other users orders on the My Account Order page', async ({

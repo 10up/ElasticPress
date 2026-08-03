@@ -161,13 +161,7 @@ class OrdersHPOSQuery {
 	 * @return string|array Post type(s).
 	 */
 	protected function get_post_type() {
-		$type = $this->hpos_query->get( 'type' );
-
-		if ( empty( $type ) || 'any' === $type ) {
-			return [ 'shop_order', 'shop_order_refund' ];
-		}
-
-		return $type;
+		return $this->hpos_query->get( 'type' );
 	}
 
 	/**
@@ -176,13 +170,7 @@ class OrdersHPOSQuery {
 	 * @return string|array Post status(es).
 	 */
 	protected function get_post_status() {
-		$status = $this->hpos_query->get( 'status' );
-
-		if ( empty( $status ) || 'any' === $status ) {
-			$status = array_keys( wc_get_order_statuses() );
-		}
-
-		return $status;
+		return $this->hpos_query->get( 'status' );
 	}
 
 	/**
