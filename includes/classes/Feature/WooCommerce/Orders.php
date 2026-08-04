@@ -380,7 +380,7 @@ class Orders {
 		}
 
 		$notices['wc_orders_incompatible'] = [
-			'html'    => esc_html__( 'WooCommerce HPOS is compatible with ElasticPress on WooCommerce 9.8.0 and greater.', 'elasticpress' ),
+			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled on WooCommerce versions below 9.8.0. HPOS is compatible with ElasticPress on WooCommerce 9.8.0 and greater.", 'elasticpress' ),
 			'type'    => 'warning',
 			'dismiss' => true,
 			'scope'   => 'site',
@@ -481,7 +481,7 @@ class Orders {
 		}
 
 		// Bail if HPOS is enabled and we are not generating the Orders Autosuggest search template.
-		if ( $this->is_hpos_enabled() && ! $query->get( 'ep_order_search_template' ) ) {
+		if ( $this->is_hpos_enabled() && $this->is_hpos_compatible() && ! $query->get( 'ep_order_search_template' ) ) {
 			return;
 		}
 
@@ -519,11 +519,15 @@ class Orders {
 	 * @return bool
 	 */
 	public function is_hpos_compatible(): bool {
-		if ( ! $this->is_hpos_enabled() ) {
-			return true;
-		}
-
-		return version_compare( \WC_VERSION, '9.8.0', '>=' );
+		/**
+		 * Filter the minimum WooCommerce version required for HPOS integration.
+		 *
+		 * @hook ep_woocommerce_hpos_min_version
+		 * @since 5.4.0
+		 * @param {string} $min_version Minimum WooCommerce version
+		 * @return {string} Minimum WooCommerce version
+		 */
+		return version_compare( \WC_VERSION, apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ), '>=' );
 	}
 
 	/**

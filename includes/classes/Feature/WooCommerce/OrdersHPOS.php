@@ -1,6 +1,6 @@
 <?php
 /**
- * WooCommerce HPOS compatibility layer.
+ * WooCommerce Orders HPOS integration.
  *
  * @since 5.4.0
  * @package elasticpress
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * WooCommerce HPOS
+ * WooCommerce Orders HPOS.
  */
 class OrdersHPOS {
 	/**
@@ -44,7 +44,7 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Setup order HPOS related hooks
+	 * Setup order HPOS related hooks.
 	 */
 	public function setup(): void {
 		add_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
@@ -56,7 +56,7 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Unsetup order HPOS related hooks
+	 * Unsetup order HPOS related hooks.
 	 */
 	public function tear_down(): void {
 		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
@@ -68,7 +68,7 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Add orders to the sync queue
+	 * Add orders to the sync queue.
 	 *
 	 * @param int $order_id Order ID.
 	 */
@@ -80,7 +80,7 @@ class OrdersHPOS {
 	 * Add order data to ES document args.
 	 *
 	 * @param array $post_args Post arguments
-	 * @param int   $post_id   Post ID
+	 * @param int   $post_id   Post ID.
 	 * @return array
 	 */
 	public function set_order_data( $post_args, $post_id ) {
@@ -102,7 +102,6 @@ class OrdersHPOS {
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
 		$post_args['post_date']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
 		$post_args['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
-		$post_args['edit_date']     = true;
 		$post_args['post_excerpt']  = method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note() : '';
 
 		$post_order = new \WP_Post( (object) $post_args );
@@ -326,7 +325,7 @@ class OrdersHPOS {
 		}
 
 		$order_ids  = $this->elasticsearch_order_results[ $query_hash ];
-		$order_list = ( is_object( $orders ) && isset( $orders->orders ) ) ? $orders->orders : $orders;
+		$order_list = ( is_object( $orders ) && ! empty( $orders->orders ) ) ? $orders->orders : $orders;
 
 		foreach ( $order_list as $order ) {
 			if ( ! $order instanceof \WC_Abstract_Order ) {

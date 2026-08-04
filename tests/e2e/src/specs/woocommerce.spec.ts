@@ -32,13 +32,8 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		phoneNumber: '1234567890',
 	};
 
-	const isMinWcVersion = async () => {
-		const wcVersion = await wpCli('plugin get woocommerce --field=version');
-		return wcVersion.toString().trim() === '6.4.0';
-	};
-
 	const isWcVersionAtLeast = async (minVersion: string) => {
-		const wcVersion = (await wpCli('plugin get woocommerce --field=version')).toString().trim();
+		const wcVersion = (await wpCli('plugin get woocommerce --field=version')).toString();
 		return (
 			wcVersion.localeCompare(minVersion, undefined, {
 				numeric: true,
@@ -179,9 +174,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				loggedInPage,
 				'admin.php?page=wc-settings&tab=checkout&section=cod',
 			);
-			const checkboxLabel = (await isMinWcVersion())
-				? 'Enable cash on delivery'
-				: 'Enable cash on delivery payments';
+			const checkboxLabel = 'Enable cash on delivery payments';
 
 			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
 			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
@@ -224,15 +217,10 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
-			// Check WooCommerce version and place order accordingly
-			if (await isMinWcVersion()) {
-				await loggedInPage.locator('#place_order').click();
-			} else {
-				await loggedInPage.waitForTimeout(1000);
-				await loggedInPage
-					.locator('.wc-block-components-checkout-place-order-button')
-					.click();
-			}
+			await loggedInPage.waitForTimeout(1000);
+			await loggedInPage
+				.locator('.wc-block-components-checkout-place-order-button')
+				.click();
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
@@ -763,9 +751,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				loggedInPage,
 				'admin.php?page=wc-settings&tab=checkout&section=cod',
 			);
-			const checkboxLabel = (await isMinWcVersion())
-				? 'Enable cash on delivery'
-				: 'Enable cash on delivery payments';
+			const checkboxLabel = 'Enable cash on delivery payments';
 
 			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
 			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
@@ -809,14 +795,10 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
 			// Check WooCommerce version and place order accordingly
-			if (await isMinWcVersion()) {
-				await loggedInPage.locator('#place_order').click();
-			} else {
-				await loggedInPage.waitForTimeout(1000);
-				await loggedInPage
-					.locator('.wc-block-components-checkout-place-order-button')
-					.click();
-			}
+			await loggedInPage.waitForTimeout(1000);
+			await loggedInPage
+				.locator('.wc-block-components-checkout-place-order-button')
+				.click();
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);

@@ -524,9 +524,6 @@ class OrdersAutosuggest {
 	/**
 	 * Whether the current setup is compatible with WooCommerce's HPOS or not
 	 *
-	 * Compatible when HPOS is disabled, or when HPOS is enabled on WooCommerce
-	 * 9.8.0 or greater.
-	 *
 	 * @since 5.1.0
 	 * @return boolean
 	 */

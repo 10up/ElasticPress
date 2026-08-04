@@ -1,6 +1,6 @@
 <?php
 /**
- * Translation layer of a HPOS query to a regular WP_Query object
+ * WooCommerce Orders HPOS Query Integration.
  *
  * @since 5.4.0
  * @package elasticpress
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * OrdersHPOS Query class.
+ * OrdersHPOS Query Integration class.
  *
  * @since 5.4.0
  */
@@ -117,7 +117,7 @@ class OrdersHPOSQuery {
 			: [ $created_via_clause ];
 		}
 
-		// Handle HPOS meta_query (custom order metadata).
+		// Handle HPOS meta_query.
 		$hpos_meta_query = $this->query_args['meta_query'] ?? null;
 		if ( ! empty( $hpos_meta_query ) && is_array( $hpos_meta_query ) ) {
 			$args['meta_query'] = isset( $args['meta_query'] )
@@ -172,9 +172,9 @@ class OrdersHPOSQuery {
 	}
 
 	/**
-	 * Gets the limit (posts per page) for the query.
+	 * Gets the limit for the query.
 	 *
-	 * @return int Posts per page.
+	 * @return int Limit number.
 	 */
 	protected function get_limit(): int {
 		return $this->hpos_query->get( 'limit' );
