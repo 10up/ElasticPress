@@ -53,8 +53,9 @@ class Orders {
 		add_action( 'parse_query', [ $this, 'maybe_hook_woocommerce_search_fields' ], 1 );
 		add_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		add_action( 'pre_get_posts', [ $this, 'translate_args' ], 11, 1 );
+		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
 
-		if ( $this->is_hpos_enabled() ) {
+		if ( $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
 			$this->orders_hpos->setup();
 		}
 	}
@@ -73,7 +74,7 @@ class Orders {
 		remove_action( 'parse_query', [ $this, 'search_order' ], 11 );
 		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
 
-		if ( $this->is_hpos_enabled() ) {
+		if ( $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
 			$this->orders_hpos->tear_down();
 		}
 	}
@@ -352,6 +353,43 @@ class Orders {
 	}
 
 	/**
+	 * Display a notice if WooCommerce Orders HPOS is not compatible with ElasticPress
+	 *
+	 * Shown when HPOS is enabled on WooCommerce versions below the minimum supported version.
+	 *
+	 * @param array $notices Current EP notices
+	 * @return array
+	 */
+	public function hpos_compatibility_notice( array $notices ): array {
+		$current_screen = \get_current_screen();
+		if ( empty( $current_screen->id ) || 'woocommerce_page_wc-orders' !== $current_screen->id ) {
+			return $notices;
+		}
+
+		if ( \ElasticPress\Utils\get_option( 'ep_hide_wc_orders_incompatible_notice' ) ) {
+			return $notices;
+		}
+
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		if ( ! $protected_content->is_active() ) {
+			return $notices;
+		}
+
+		if ( $this->is_hpos_compatible() ) {
+			return $notices;
+		}
+
+		$notices['wc_orders_incompatible'] = [
+			'html'    => esc_html__( 'WooCommerce HPOS is compatible with ElasticPress on WooCommerce 9.8.0 and greater.', 'elasticpress' ),
+			'type'    => 'warning',
+			'dismiss' => true,
+			'scope'   => 'site',
+		];
+
+		return $notices;
+	}
+
+	/**
 	 * If the query has a search term, add the order fields that need to be searched.
 	 *
 	 * @param \WP_Query $query The WP_Query
@@ -472,6 +510,20 @@ class Orders {
 		}
 
 		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
+	/**
+	 * Whether HPOS integration is compatible with current WooCommerce version.
+	 *
+	 * @since 5.4.0
+	 * @return bool
+	 */
+	public function is_hpos_compatible(): bool {
+		if ( ! $this->is_hpos_enabled() ) {
+			return true;
+		}
+
+		return version_compare( \WC_VERSION, '9.8.0', '>=' );
 	}
 
 	/**

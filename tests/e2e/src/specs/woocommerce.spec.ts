@@ -37,6 +37,16 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		return wcVersion.toString().trim() === '6.4.0';
 	};
 
+	const isWcVersionAtLeast = async (minVersion: string) => {
+		const wcVersion = (await wpCli('plugin get woocommerce --field=version')).toString().trim();
+		return (
+			wcVersion.localeCompare(minVersion, undefined, {
+				numeric: true,
+				sensitivity: 'base',
+			}) >= 0
+		);
+	};
+
 	const checkMainEsQuery = async (loggedInPage: Page) => {
 		await expect(
 			loggedInPage.locator('.ep-query-debug').filter({
@@ -543,6 +553,11 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 
 	test.describe('Orders HPOS', () => {
 		test.beforeAll(async () => {
+			test.skip(
+				!(await isWcVersionAtLeast('9.8.0')),
+				'HPOS integration requires WooCommerce 9.8.0 or greater',
+			);
+
 			await wpCli('plugin activate woocommerce');
 
 			await wpCli('wc hpos compatibility-mode enable');

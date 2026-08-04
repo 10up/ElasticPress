@@ -357,6 +357,34 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	}
 
 	/**
+	 * Test the `is_hpos_compatible` method
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_hpos_compatible() {
+		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
+
+		// Turn HPOS on
+		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$change_custom_orders_table = function () {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
+
+		// Force an unsupported WooCommerce version requirement.
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '99.0.0';
+			}
+		);
+
+		$this->assertFalse( $this->orders_autosuggest->is_hpos_compatible() );
+	}
+
+	/**
 	 * Test the `add_settings_schema` method
 	 *
 	 * @since 5.1.0
@@ -383,6 +411,34 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 
 		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
 		$this->assertStringContainsString( 'You are directly connected to', $new_settings_schema[0]['help'] );
+	}
+
+	/**
+	 * Test the `get_setting_help_message` method when incompatible with HPOS
+	 *
+	 * @since 5.1.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_get_setting_help_message_feature_hpos_incompatible() {
+		// Turn HPOS on
+		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		$change_custom_orders_table = function () {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
+
+		// Force an unsupported WooCommerce version requirement.
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '99.0.0';
+			}
+		);
+
+		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
+		$this->assertStringContainsString( 'autosuggest for orders with HPOS requires WooCommerce', $new_settings_schema[0]['help'] );
+		$this->assertStringContainsString( '9.8.0', $new_settings_schema[0]['help'] );
 	}
 
 	/**

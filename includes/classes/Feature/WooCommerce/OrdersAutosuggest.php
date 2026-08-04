@@ -508,7 +508,7 @@ class OrdersAutosuggest {
 		 * @hook ep_woocommerce_orders_autosuggest_available
 		 * @param {boolean} $available Whether the feature is available.
 		 */
-		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
+		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() && $this->is_hpos_compatible() );
 	}
 
 	/**
@@ -524,25 +524,14 @@ class OrdersAutosuggest {
 	/**
 	 * Whether the current setup is compatible with WooCommerce's HPOS or not
 	 *
+	 * Compatible when HPOS is disabled, or when HPOS is enabled on WooCommerce
+	 * 9.8.0 or greater.
+	 *
 	 * @since 5.1.0
 	 * @return boolean
 	 */
 	public function is_hpos_compatible() {
-		if (
-			! class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
-			|| ! method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) {
-			return true;
-		}
-
-		if ( ! \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
-			return true;
-		}
-
-		if ( wc_get_container()->get( \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::class )->data_sync_is_enabled() ) {
-			return true;
-		}
-
-		return false;
+		return $this->woocommerce->orders->is_hpos_compatible();
 	}
 
 	/**
@@ -607,6 +596,10 @@ class OrdersAutosuggest {
 				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
 				'</a>'
 			);
+		}
+
+		if ( ! $this->is_hpos_compatible() ) {
+			return esc_html__( 'Currently, autosuggest for orders with HPOS requires WooCommerce 9.8.0 or greater.', 'elasticpress' );
 		}
 
 		/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */
