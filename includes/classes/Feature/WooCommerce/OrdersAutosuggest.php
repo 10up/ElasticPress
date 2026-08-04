@@ -250,16 +250,6 @@ class OrdersAutosuggest {
 				'post_type'                => 'shop_order',
 				's'                        => '{{ep_placeholder}}',
 				'ep_intercept_request'     => true,
-				// Set explicitly so template fields work even if Orders::translate_args does not run.
-				'search_fields'            => [
-					'meta.order_number.value',
-					'term_suggest',
-					'meta' => [
-						'_billing_email',
-						'_billing_last_name',
-						'_billing_first_name',
-					],
-				],
 			)
 		);
 
