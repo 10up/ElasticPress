@@ -93,6 +93,10 @@ class OrdersHPOS {
 		$post_indexable = Indexables::factory()->get( 'post' );
 		$order          = wc_get_order( $post_id );
 
+		if ( ! $order ) {
+			return $post_args;
+		}
+
 		$post_args['post_status']   = $this->get_order_status( $order );
 		$post_args['post_type']     = $order->get_type();
 		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
@@ -280,8 +284,6 @@ class OrdersHPOS {
 		if ( ! $this->should_integrate_with_query( $query->get_query_args(), $query ) ) {
 			return null;
 		}
-
-		error_log( 'Running HPOS query' );
 
 		$orders_query = new OrdersHPOSQuery( $query );
 		$result       = $orders_query->query();

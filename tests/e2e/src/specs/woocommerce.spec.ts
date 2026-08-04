@@ -585,8 +585,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 					);
 
 					await showSuggestionsCheck.uncheck();
-					loggedInPage.on('dialog', (dialog) => dialog.accept());
-					await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
+					await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
 					await apiRequestPromise;
 				}
 			}

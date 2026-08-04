@@ -508,7 +508,7 @@ class OrdersAutosuggest {
 		 * @hook ep_woocommerce_orders_autosuggest_available
 		 * @param {boolean} $available Whether the feature is available.
 		 */
-		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() && $this->is_hpos_compatible() );
+		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() );
 	}
 
 	/**
@@ -607,10 +607,6 @@ class OrdersAutosuggest {
 				'<a href="' . esc_url( $epio_autosuggest_kb_link ) . '" target="_blank">',
 				'</a>'
 			);
-		}
-
-		if ( ! $this->is_hpos_compatible() ) {
-			return esc_html__( 'Currently, autosuggest for orders is only available if WooCommerce order data storage is set in legacy or compatibility mode.', 'elasticpress' );
 		}
 
 		/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */

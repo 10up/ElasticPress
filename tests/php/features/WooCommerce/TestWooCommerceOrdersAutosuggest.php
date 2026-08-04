@@ -357,33 +357,6 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `is_hpos_compatible` method
-	 *
-	 * @since 5.1.0
-	 * @group woocommerce
-	 * @group woocommerce-orders-autosuggest
-	 */
-	public function test_is_hpos_compatible() {
-		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
-
-		// Turn HPOS on
-		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_custom_orders_table = function () {
-			return 'yes';
-		};
-		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
-
-		// Disable legacy mode
-		$legacy_mode        = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
-		$change_legacy_mode = function () {
-			return 'no';
-		};
-		add_filter( 'pre_option_' . $legacy_mode, $change_legacy_mode );
-
-		$this->assertFalse( $this->orders_autosuggest->is_hpos_compatible() );
-	}
-
-	/**
 	 * Test the `add_settings_schema` method
 	 *
 	 * @since 5.1.0
