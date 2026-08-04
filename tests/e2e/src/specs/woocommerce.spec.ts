@@ -544,17 +544,17 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Orders HPOS', () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
+
+			await wpCli('wc hpos sync', true);
+			await wpCli('wc hpos enable', true);
+
 			await maybeEnableFeature('woocommerce');
 			await maybeEnableFeature('protected_content');
+			await wpCli('elasticpress sync --setup --yes');
 		});
 
 		test('Can fetch orders from Elasticsearch', async ({ loggedInPage }) => {
-			await wpCli('wc hpos sync');
-			await wpCli('wc hpos enable');
-
-			await wpCli('elasticpress sync --setup --yes');
-
-			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 			await expect(
 				loggedInPage
 					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
@@ -591,7 +591,8 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				}
 			}
 
-			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(loggedInPage.locator('#orders-search-input-search-input')).toBeVisible();
 
 			const checkAllOrders = async () => {
 				const allOrders = await loggedInPage.locator('.order_number .order-view').all();
@@ -665,7 +666,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		test('Can fetch orders from Elasticsearch when Date filter is applied', async ({
 			loggedInPage,
 		}) => {
-			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 
 			await loggedInPage.locator('#filter-by-date').selectOption({ index: 1 });
 			await loggedInPage.locator('#filter-by-date').press('Enter');
@@ -712,7 +713,10 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				throw new Error('Order ID missing from URL after saving order');
 			}
 
-			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			// Allow the new order to be indexed.
+			await loggedInPage.waitForTimeout(2000);
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 
 			await loggedInPage.locator('#filter-by-created-via').selectOption('admin');
 			await loggedInPage.locator('#filter-by-created-via').press('Enter');
