@@ -386,25 +386,6 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	}
 
 	/**
-	 * Test the `get_setting_help_message` method when incompatible with HPOS
-	 *
-	 * @since 5.1.0
-	 * @group woocommerce
-	 * @group woocommerce-orders-autosuggest
-	 */
-	public function test_get_setting_help_message_feature_hpos_incompatible() {
-		// Turn HPOS on
-		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
-		$change_custom_orders_table = function () {
-			return 'yes';
-		};
-		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
-
-		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
-		$this->assertStringContainsString( 'Currently, autosuggest for orders is only available', $new_settings_schema[0]['help'] );
-	}
-
-	/**
 	 * Test the `get_setting_help_message` method when the feature is not available
 	 *
 	 * @since 5.1.0

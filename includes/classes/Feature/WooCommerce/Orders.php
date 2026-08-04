@@ -442,8 +442,8 @@ class Orders {
 			return;
 		}
 
-		// bail if HPOS is enabled.
-		if ( $this->is_hpos_enabled() ) {
+		// Bail if HPOS is enabled and we are not generating the Orders Autosuggest search template.
+		if ( $this->is_hpos_enabled() && ! $query->get( 'ep_order_search_template' ) ) {
 			return;
 		}
 

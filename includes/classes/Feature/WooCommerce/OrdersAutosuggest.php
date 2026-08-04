@@ -81,7 +81,7 @@ class OrdersAutosuggest {
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		add_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
+		add_filter( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		add_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ], 10, 2 );
 		add_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ], 10, 3 );
@@ -102,7 +102,7 @@ class OrdersAutosuggest {
 		remove_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
 		remove_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ] );
 		remove_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
-		remove_action( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
+		remove_filter( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
 		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
 		remove_filter( 'posts_where', [ $this, 'maybe_set_posts_where' ] );
 		remove_filter( 'ep_pre_kill_sync_for_password_protected', [ $this, 'sync_password_protected_orders' ] );
@@ -250,6 +250,16 @@ class OrdersAutosuggest {
 				'post_type'                => 'shop_order',
 				's'                        => '{{ep_placeholder}}',
 				'ep_intercept_request'     => true,
+				// Set explicitly so template fields work even if Orders::translate_args does not run.
+				'search_fields'            => [
+					'meta.order_number.value',
+					'term_suggest',
+					'meta' => [
+						'_billing_email',
+						'_billing_last_name',
+						'_billing_first_name',
+					],
+				],
 			)
 		);
 

@@ -545,8 +545,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
 
-			await wpCli('wc hpos sync', true);
-			await wpCli('wc hpos enable', true);
+			await wpCli('wc hpos enable --with-sync --ignore-plugin-compatibility', false);
 
 			await maybeEnableFeature('woocommerce');
 			await maybeEnableFeature('protected_content');
