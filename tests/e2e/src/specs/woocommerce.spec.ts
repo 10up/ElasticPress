@@ -545,7 +545,11 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
 
-			await wpCli('wc hpos enable --with-sync --ignore-plugin-compatibility', false);
+			await wpCli('wc hpos compatibility-mode enable');
+			await wpCli('wc hpos sync');
+			await wpCli('wc hpos enable --ignore-plugin-compatibility');
+			const status = (await wpCli('wc hpos status')).toString();
+			expect(status).toMatch(/HPOS.*enabled|Authoritative.*orders/i);
 
 			await maybeEnableFeature('woocommerce');
 			await maybeEnableFeature('protected_content');
