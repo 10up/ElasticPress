@@ -33,7 +33,7 @@ jobs:
         esVersion: ['7.10.1', '8.12.2', '9.1.5', 'EP.io']
         core:
           - {name: 'WP latest', version: '', wcVersion: ''}
-          - {name: 'WP minimum', version: '6.2', wcVersion: '9.0.0}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '9.0.0'}
 
     steps:
     - name: Checkout
