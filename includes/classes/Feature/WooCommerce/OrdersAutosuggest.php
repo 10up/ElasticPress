@@ -528,6 +528,10 @@ class OrdersAutosuggest {
 	 * @return boolean
 	 */
 	public function is_hpos_compatible() {
+		if ( ! $this->woocommerce->orders->is_hpos_enabled() ) {
+			return true;
+		}
+
 		return $this->woocommerce->orders->is_hpos_compatible();
 	}
 

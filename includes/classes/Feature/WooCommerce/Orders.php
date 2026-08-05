@@ -375,12 +375,12 @@ class Orders {
 			return $notices;
 		}
 
-		if ( $this->is_hpos_compatible() ) {
+		if ( ! $this->is_hpos_enabled() || $this->is_hpos_compatible() ) {
 			return $notices;
 		}
 
 		$notices['wc_orders_incompatible'] = [
-			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list if WooCommerce's High-performance order storage is enabled on WooCommerce versions below 9.8.0. HPOS is compatible with ElasticPress on WooCommerce 9.8.0 and greater.", 'elasticpress' ),
+			'html'    => esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list while WooCommerce's High-performance order storage is enabled. HPOS integration requires WooCommerce 9.8.0 or greater.", 'elasticpress' ),
 			'type'    => 'warning',
 			'dismiss' => true,
 			'scope'   => 'site',

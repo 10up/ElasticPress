@@ -916,24 +916,24 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		test('Will show a navigable list of suggested results when searching orders', async ({
 			loggedInPage,
 		}) => {
-			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 
 			// The combobox will not render if not using ElasticPress.io
 			if (!isEpIo()) {
 				await expect(
-					loggedInPage.locator('#posts-filter .ep-combobox__input'),
+					loggedInPage.locator('#wc-orders-filter .ep-combobox__input'),
 				).not.toBeVisible();
 				return;
 			}
 
 			// Prepare aliases
 			const apiRequestPromise = loggedInPage.waitForResponse('**/api/v1/search/orders/*');
-			const input = loggedInPage.locator('#posts-filter .ep-combobox__input');
+			const input = loggedInPage.locator('#wc-orders-filter .ep-combobox__input');
 			const description = loggedInPage.locator(
-				'#posts-filter .ep-combobox > .screen-reader-text',
+				'#wc-orders-filter .ep-combobox > .screen-reader-text',
 			);
-			const listbox = loggedInPage.locator('#posts-filter .ep-combobox__list');
-			const submit = loggedInPage.locator('#posts-filter .search-box .button');
+			const listbox = loggedInPage.locator('#wc-orders-filter .ep-combobox__list');
+			const submit = loggedInPage.locator('#wc-orders-filter .search-box .button');
 
 			// Search for "Antwon". 3 suggestions should appear
 			await input.fill('Antwon');
@@ -1003,7 +1003,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
 
 			// Test clicking suggestions
-			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 			await input.fill('Antwon');
 			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
 			await listbox.locator('> *').nth(1).click();

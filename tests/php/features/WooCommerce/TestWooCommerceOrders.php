@@ -356,20 +356,21 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
 
-		$this->enable_hpos();
-
 		// Force an unsupported WooCommerce version requirement.
-		add_filter(
-			'ep_woocommerce_hpos_min_version',
-			function () {
-				return '99.0.0';
-			}
-		);
+		$change_min_version = function () {
+			return '99.0.0';
+		};
+		add_filter( 'ep_woocommerce_hpos_min_version', $change_min_version );
+
+		// While orders are stored as posts there is nothing to warn about.
+		$this->assertCount( 1, $this->orders->hpos_compatibility_notice( $notices ) );
+
+		$this->enable_hpos();
 
 		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
 		$this->assertCount( 2, $new_notices );
 		$this->assertArrayHasKey( 'wc_orders_incompatible', $new_notices );
-		$this->assertStringContainsString( '9.8.0 and greater', $new_notices['wc_orders_incompatible']['html'] );
+		$this->assertStringContainsString( 'requires WooCommerce 9.8.0 or greater', $new_notices['wc_orders_incompatible']['html'] );
 
 		/**
 		 * Test if the notice is hidden when the user already dismissed it

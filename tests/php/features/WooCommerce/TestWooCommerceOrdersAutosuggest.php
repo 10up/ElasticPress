@@ -366,6 +366,15 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	public function test_is_hpos_compatible() {
 		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
 
+		// Force an unsupported WooCommerce version requirement.
+		$change_min_version = function () {
+			return '99.0.0';
+		};
+		add_filter( 'ep_woocommerce_hpos_min_version', $change_min_version );
+
+		// Orders stored as posts are supported on any WooCommerce version.
+		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
+
 		// Turn HPOS on
 		$custom_orders_table        = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
 		$change_custom_orders_table = function () {
@@ -373,15 +382,18 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 		};
 		add_filter( 'pre_option_' . $custom_orders_table, $change_custom_orders_table );
 
-		// Force an unsupported WooCommerce version requirement.
+		$this->assertFalse( $this->orders_autosuggest->is_hpos_compatible() );
+
+		// HPOS is supported on WooCommerce versions that allow query integration.
+		remove_filter( 'ep_woocommerce_hpos_min_version', $change_min_version );
 		add_filter(
 			'ep_woocommerce_hpos_min_version',
 			function () {
-				return '99.0.0';
+				return '0.0.1';
 			}
 		);
 
-		$this->assertFalse( $this->orders_autosuggest->is_hpos_compatible() );
+		$this->assertTrue( $this->orders_autosuggest->is_hpos_compatible() );
 	}
 
 	/**
