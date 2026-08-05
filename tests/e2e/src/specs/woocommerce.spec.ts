@@ -1000,14 +1000,14 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await input.press('ArrowDown');
 			await input.press('ArrowDown');
 			await input.press('Enter');
-			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
+			await expect(loggedInPage).toHaveURL(/page=wc-orders&action=edit&id=\d+/);
 
 			// Test clicking suggestions
 			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
 			await input.fill('Antwon');
 			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
 			await listbox.locator('> *').nth(1).click();
-			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
+			await expect(loggedInPage).toHaveURL(/page=wc-orders&action=edit&id=\d+/);
 		});
 	});
 });
