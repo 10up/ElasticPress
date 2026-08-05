@@ -54,10 +54,10 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$this->ep_factory->post->create(
-			array(
+			[
 				'post_content' => 'findme',
 				'post_type'    => 'shop_order',
-			)
+			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
@@ -67,10 +67,10 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$pagenow = 'edit.php';
 
 		parse_str( 's=findme', $_GET );
-		$args = array(
+		$args = [
 			's'         => 'findme',
 			'post_type' => 'shop_order',
-		);
+		];
 
 		$query = new \WP_Query( $args );
 
@@ -93,16 +93,16 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$this->ep_factory->post->create();
 		$this->ep_factory->post->create(
-			array(
+			[
 				'post_type' => 'shop_order',
-			)
+			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args  = array(
+		$args  = [
 			'post_type' => 'shop_order',
-		);
+		];
 		$query = new \WP_Query( $args );
 
 		$this->assertNull( $query->elasticsearch_success );
@@ -124,16 +124,16 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$this->ep_factory->post->create();
 		$this->ep_factory->post->create(
-			array(
+			[
 				'post_type' => 'shop_order',
-			)
+			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args  = array(
+		$args  = [
 			'post_type' => 'shop_order',
-		);
+		];
 		$query = new \WP_Query( $args );
 
 		$this->assertTrue( $query->elasticsearch_success );
@@ -154,17 +154,17 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$this->ep_factory->post->create();
 		$this->ep_factory->post->create(
-			array(
+			[
 				'post_type' => 'shop_order',
-			)
+			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args  = array(
+		$args  = [
 			'post_type'    => 'shop_order',
 			'ep_integrate' => false,
-		);
+		];
 		$query = new \WP_Query( $args );
 
 		$this->assertNull( $query->elasticsearch_success );
@@ -182,17 +182,17 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		ElasticPress\Features::factory()->setup_features();
 
 		$shop_order_id = $this->ep_factory->post->create(
-			array(
+			[
 				'post_type' => 'shop_order',
-			)
+			]
 		);
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
+		$args = [
 			's'         => (string) $shop_order_id,
 			'post_type' => 'shop_order',
-		);
+		];
 
 		$query = new \WP_Query( $args );
 
@@ -229,11 +229,11 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		ElasticPress\Elasticsearch::factory()->refresh_indices();
 
-		$args = array(
+		$args = [
 			's'           => (string) $shop_order_id_1,
 			'post_type'   => 'shop_order',
 			'post_status' => 'any',
-		);
+		];
 
 		$query = new \WP_Query( $args );
 
@@ -388,7 +388,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test the `is_hpos_enabled` method
 	 *
-	 * @since 5.3.0
+	 * @since 5.4.0
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
@@ -403,7 +403,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Utility function to enable WooCommerce HPOS
 	 *
-	 * @since 5.3.0
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	protected function enable_hpos() {
 		$option_name = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
@@ -418,6 +420,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test if Order and Order Refunds index correctly
 	 *
+	 * @since 5.4.0
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
@@ -466,6 +469,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test simple HPOS search
 	 *
+	 * @since 5.4.0
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
@@ -493,6 +497,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS search with post type filter.
 	 *
+	 * @since 5.4.0
 	 * @group woocommerce
 	 * @group woocommerce-orders
 	 */
@@ -536,7 +541,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS query filter by status.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_filter_by_status() {
 		$this->enable_hpos();
@@ -611,7 +618,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS limit.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_order_limit() {
 		$this->enable_hpos();
@@ -645,7 +654,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS paged.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_paged() {
 		$this->enable_hpos();
@@ -696,7 +707,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS order by date. By default, the orders are ordered by date in Descending order.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_order_by_date() {
 		$this->enable_hpos();
@@ -733,7 +746,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS order by date in Ascending order.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_order_by_date_asc() {
 		$this->enable_hpos();
@@ -772,7 +787,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS orderby as an array of field => direction pairs.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_order_by_array() {
 		$this->enable_hpos();
@@ -820,7 +837,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS created via query.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_created_via_query() {
 		$this->enable_hpos();
@@ -887,7 +906,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS customer email query.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_customer_email_query() {
 		$this->enable_hpos();
@@ -917,7 +938,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS customer ID query.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_customer_id_query() {
 		$this->enable_hpos();
@@ -947,7 +970,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS customer query.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_customer_query() {
 		$this->enable_hpos();
@@ -974,11 +999,11 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		// Search by customer ID and email
 		$orders = wc_get_orders(
-			array(
-				'customer' => array(
-					array( 1, 'test1@example.com' ),
-				),
-			)
+			[
+				'customer' => [
+					[ 1, 'test1@example.com' ],
+				],
+			]
 		);
 		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
@@ -986,21 +1011,21 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		// Search by invalid combination.
 		$orders = wc_get_orders(
-			array(
-				'customer' => array(
-					array( 1, 'test2@example.com' ),
-				),
-			)
+			[
+				'customer' => [
+					[ 1, 'test2@example.com' ],
+				],
+			]
 		);
 		$this->assertCount( 0, $orders );
 
 		// Search by only customer ID.
 		$orders = wc_get_orders(
-			array(
-				'customer' => array(
-					array( 1 ),
-				),
-			)
+			[
+				'customer' => [
+					[ 1 ],
+				],
+			]
 		);
 		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 1, $orders );
@@ -1008,12 +1033,14 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		// Search by only emails and OR relation.
 		$orders = wc_get_orders(
-			array(
-				'customer' => array(
-					array( null, 'test1@example.com' ),
-					array( null, 'test2@example.com' ),
-				),
-			)
+			[
+				'customer' => [
+					[ null, 'test1@example.com' ],
+					[ null, 'test2@example.com' ],
+				],
+				'orderby'  => 'ID',
+				'order'    => 'ASC',
+			]
 		);
 		$this->assertTrue( $orders[0]->elasticsearch_success );
 		$this->assertCount( 2, $orders );
@@ -1024,7 +1051,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS date query.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_date_query() {
 		$this->enable_hpos();
@@ -1061,7 +1090,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS search query.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_search_query() {
 		$this->enable_hpos();
@@ -1100,7 +1131,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS search query with transaction ID.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_search_query_with_transaction_id() {
 		$this->enable_hpos();
@@ -1141,7 +1174,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS search query with order customer email.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_search_query_with_order_customer_email() {
 		$this->enable_hpos();
@@ -1179,7 +1214,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS search query with order customers.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_search_query_with_order_customers() {
 		$this->enable_hpos();
@@ -1216,7 +1253,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS meta_query for color EXISTS and size LIKE.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_meta_query_color_and_size_like() {
 		$this->enable_hpos();
@@ -1269,7 +1308,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS top-level billing_first_name and order_key filters.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_billing_first_name_and_order_key() {
 		$this->enable_hpos();
@@ -1309,7 +1350,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS field_query for billing_first_name and order_key.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_field_query_billing_first_name_and_order_key() {
 		$this->enable_hpos();
@@ -1357,7 +1400,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS field_query with OR on total or shipping_total less than 5.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_field_query_total_or_shipping_total_less_than() {
 		$this->enable_hpos();
@@ -1423,7 +1468,9 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	/**
 	 * Test HPOS nested field_query with LIKE and numeric comparisons.
 	 *
-	 * @return void
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
 	 */
 	public function test_hpos_field_query_billing_name_like_with_total_and_discount() {
 		$this->enable_hpos();
