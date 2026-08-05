@@ -218,9 +218,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
 			await loggedInPage.waitForTimeout(1000);
-			await loggedInPage
-				.locator('.wc-block-components-checkout-place-order-button')
-				.click();
+			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
@@ -539,7 +537,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		});
 	});
 
-	test.describe('Orders HPOS', () => {
+	test.describe('Orders (HPOS)', () => {
 		test.beforeAll(async () => {
 			test.skip(
 				!(await isWcVersionAtLeast('9.8.0')),
@@ -796,9 +794,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 
 			// Check WooCommerce version and place order accordingly
 			await loggedInPage.waitForTimeout(1000);
-			await loggedInPage
-				.locator('.wc-block-components-checkout-place-order-button')
-				.click();
+			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);
@@ -856,6 +852,162 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 					})
 					.first(),
 			).toContainText('HTTP 200');
+		});
+	});
+
+	test.describe('Orders Autosuggest (HPOS)', () => {
+		test.beforeAll(async () => {
+			test.skip(
+				!(await isWcVersionAtLeast('9.8.0')),
+				'HPOS integration requires WooCommerce 9.8.0 or greater',
+			);
+
+			await wpCli('plugin activate woocommerce');
+
+			await wpCli('wc hpos compatibility-mode enable');
+			await wpCli('wc hpos sync');
+			await wpCli('wc hpos enable --ignore-plugin-compatibility');
+			const status = (await wpCli('wc hpos status')).toString();
+			expect(status).toMatch(/HPOS.*enabled|Authoritative.*orders/i);
+
+			await maybeEnableFeature('woocommerce');
+			await maybeEnableFeature('protected_content');
+			await wpCli('elasticpress sync --setup --yes');
+		});
+
+		test('Will require a sync when enabling Orders Autosuggest', async ({ loggedInPage }) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+
+			// Enable the feature
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const showSuggestionsCheck = loggedInPage
+				.locator('label:has-text("Show suggestions")')
+				.locator('..')
+				.locator('input');
+
+			if (!isEpIo()) {
+				await expect(showSuggestionsCheck).toBeDisabled();
+				return;
+			}
+
+			const apiRequestPromise = loggedInPage.waitForResponse(
+				'/wp-json/elasticpress/v1/features*',
+			);
+
+			await showSuggestionsCheck.check();
+			loggedInPage.on('dialog', (dialog) => dialog.accept());
+			await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
+
+			await apiRequestPromise;
+
+			// Syncing should complete
+			await loggedInPage.getByRole('button', { name: 'Log' }).click();
+			const syncMessages = loggedInPage.locator('.ep-sync-messages');
+			await expect(syncMessages).toContainText('Mapping sent');
+			await expect(syncMessages).toContainText('Sync complete');
+		});
+
+		test('Will show a navigable list of suggested results when searching orders', async ({
+			loggedInPage,
+		}) => {
+			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+
+			// The combobox will not render if not using ElasticPress.io
+			if (!isEpIo()) {
+				await expect(
+					loggedInPage.locator('#posts-filter .ep-combobox__input'),
+				).not.toBeVisible();
+				return;
+			}
+
+			// Prepare aliases
+			const apiRequestPromise = loggedInPage.waitForResponse('**/api/v1/search/orders/*');
+			const input = loggedInPage.locator('#posts-filter .ep-combobox__input');
+			const description = loggedInPage.locator(
+				'#posts-filter .ep-combobox > .screen-reader-text',
+			);
+			const listbox = loggedInPage.locator('#posts-filter .ep-combobox__list');
+			const submit = loggedInPage.locator('#posts-filter .search-box .button');
+
+			// Search for "Antwon". 3 suggestions should appear
+			await input.fill('Antwon');
+			await apiRequestPromise;
+			await expect(input).toHaveAttribute('aria-expanded', 'true');
+			await expect(description).toContainText('4 suggestions available');
+			await expect(listbox).toBeVisible();
+			await expect(listbox.locator('> *')).toHaveCount(4);
+
+			// Test arrow key navigation
+			await input.press('ArrowDown');
+			await expect(listbox.locator('> *').first()).toHaveAttribute('aria-selected', 'true');
+
+			await input.press('ArrowDown');
+			await input.press('ArrowDown');
+			await input.press('ArrowDown');
+			await expect(listbox.locator('> *').nth(3)).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').first()).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			await input.press('ArrowDown');
+			await expect(listbox.locator('> *').first()).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').nth(3)).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			await input.press('ArrowUp');
+			await expect(listbox.locator('> *').nth(3)).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').first()).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			await input.press('ArrowUp');
+			await expect(listbox.locator('> *').nth(2)).toHaveAttribute('aria-selected', 'true');
+			await expect(listbox.locator('> *').nth(3)).not.toHaveAttribute(
+				'aria-selected',
+				'true',
+			);
+
+			// Test escape key
+			await input.press('Escape');
+			await expect(listbox).not.toBeVisible();
+			await input.press('ArrowDown');
+			await expect(listbox).toBeVisible();
+			await expect(listbox.locator('> *').first()).toHaveAttribute('aria-selected', 'true');
+
+			// Test focus management
+			await submit.focus();
+			await expect(listbox).not.toBeVisible();
+			await input.focus();
+			await expect(listbox).toBeVisible();
+
+			// Test partial name searches
+			await input.press('Backspace');
+			await input.press('Backspace');
+			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
+			await expect(listbox.locator('> *')).toHaveCount(4);
+
+			// Test enter key navigation
+			await input.press('ArrowDown');
+			await input.press('ArrowDown');
+			await input.press('Enter');
+			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
+
+			// Test clicking suggestions
+			await goToAdminPage(loggedInPage, 'edit.php?post_type=shop_order');
+			await input.fill('Antwon');
+			await loggedInPage.waitForResponse('**/api/v1/search/orders/*');
+			await listbox.locator('> *').nth(1).click();
+			await expect(loggedInPage).toHaveURL(/.*post\.php\?post=/);
 		});
 	});
 });
