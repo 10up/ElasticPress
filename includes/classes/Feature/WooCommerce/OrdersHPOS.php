@@ -35,6 +35,13 @@ class OrdersHPOS {
 	protected $elasticsearch_order_results = [];
 
 	/**
+	 * Order IDs fetched via Elasticsearch during the current request.
+	 *
+	 * @var array<int, bool>
+	 */
+	protected $elasticsearch_success_order_ids = [];
+
+	/**
 	 * Class constructor
 	 *
 	 * @param Orders $orders Orders object instance.
@@ -312,11 +319,11 @@ class OrdersHPOS {
 	}
 
 	/**
-	 * Add elasticsearch property to order objects.
+	 * Flag orders that were fetched via Elasticsearch.
 	 *
 	 * @param array|object $orders Array of WC_Order objects or paginated result object.
 	 * @param array        $args   Order query arguments.
-	 * @return array|object Modified orders with elasticsearch property.
+	 * @return array|object Unmodified orders.
 	 */
 	public function add_elasticsearch_success_to_orders( $orders, $args ) {
 		$query_hash = $this->get_order_query_hash( $this->normalize_order_query_args( $args ) );
@@ -333,13 +340,46 @@ class OrdersHPOS {
 			}
 
 			if ( in_array( $order->get_id(), $order_ids, true ) ) {
-				$order->elasticsearch_success = true;
+				$this->mark_order_elasticsearch_success( $order );
 			}
 		}
 
 		unset( $this->elasticsearch_order_results[ $query_hash ] );
 
 		return $orders;
+	}
+
+	/**
+	 * Mark an order as fetched via Elasticsearch.
+	 *
+	 * @param \WC_Abstract_Order $order Order object.
+	 * @return void
+	 */
+	public function mark_order_elasticsearch_success( \WC_Abstract_Order $order ): void {
+		$order_id = $order->get_id();
+
+		if ( $order_id ) {
+			$this->elasticsearch_success_order_ids[ $order_id ] = true;
+		}
+	}
+
+	/**
+	 * Check whether an order was fetched via Elasticsearch.
+	 *
+	 * @param \WC_Abstract_Order $order Order object.
+	 * @return bool
+	 */
+	public function order_has_elasticsearch_success( \WC_Abstract_Order $order ): bool {
+		return ! empty( $this->elasticsearch_success_order_ids[ $order->get_id() ] );
+	}
+
+	/**
+	 * Clear tracked Elasticsearch order IDs.
+	 *
+	 * @return void
+	 */
+	public function clear_elasticsearch_success_order_ids(): void {
+		$this->elasticsearch_success_order_ids = [];
 	}
 
 	/**

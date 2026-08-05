@@ -531,6 +531,27 @@ class Orders {
 	}
 
 	/**
+	 * Check whether an HPOS order was fetched via Elasticsearch.
+	 *
+	 * @since 5.4.0
+	 * @param \WC_Abstract_Order $order Order object.
+	 * @return bool
+	 */
+	public function order_has_elasticsearch_success( \WC_Abstract_Order $order ): bool {
+		return $this->orders_hpos->order_has_elasticsearch_success( $order );
+	}
+
+	/**
+	 * Clear tracked HPOS Elasticsearch order IDs.
+	 *
+	 * @since 5.4.0
+	 * @return void
+	 */
+	public function clear_elasticsearch_success_order_ids(): void {
+		$this->orders_hpos->clear_elasticsearch_success_order_ids();
+	}
+
+	/**
 	 * Handle calls to OrdersAutosuggest methods
 	 *
 	 * @param string $method_name The method name
