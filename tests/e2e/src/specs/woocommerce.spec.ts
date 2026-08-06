@@ -174,7 +174,9 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				loggedInPage,
 				'admin.php?page=wc-settings&tab=checkout&section=cod',
 			);
-			const checkboxLabel = 'Enable cash on delivery payments';
+			const checkboxLabel = (await isWcVersionAtLeast('9.8.0'))
+				? 'Enable cash on delivery payments'
+				: 'Enable cash on delivery';
 
 			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
 			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
