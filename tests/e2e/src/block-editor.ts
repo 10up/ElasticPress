@@ -147,7 +147,7 @@ export async function supportsBlockTypography(page: Page, element: Locator, isEd
 		await fontSizeButton.dispatchEvent('click');
 		await fontSizeButton.press('Escape');
 
-		if (process.env.WP_VERSION === '6.2') {
+		if (process.env.WP_VERSION === '6.4') {
 			await page
 				.locator('.block-editor-block-inspector button[aria-label="Typography options"]')
 				.click();
@@ -218,7 +218,7 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 		await paddingButton.dispatchEvent('click');
 		await paddingButton.press('Escape');
 
-		if (process.env.WP_VERSION === '6.2') {
+		if (process.env.WP_VERSION === '6.4') {
 			await page.locator('.components-button[aria-label="Unlink sides"]').click();
 
 			const inputs = [
