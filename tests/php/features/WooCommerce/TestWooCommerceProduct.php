@@ -703,6 +703,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 	 * tax. The Filter by Price widget sends including-tax bounds, which must be
 	 * reduced to the excluding-tax value before the Elasticsearch range query.
 	 *
+	 * @since 5.3.4
 	 * @group woocommerce
 	 * @group woocommerce-products
 	 */

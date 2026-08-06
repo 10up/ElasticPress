@@ -171,6 +171,7 @@ class Products {
 	 * in when prices are entered without tax but the shop shows including-tax
 	 * prices, the case where the Filter by Price widget sends including-tax bounds.
 	 *
+	 * @since 5.3.4
 	 * @param float $price Raw bound from min_price or max_price.
 	 * @return float
 	 */
