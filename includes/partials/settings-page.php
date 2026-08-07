@@ -135,6 +135,12 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 									if ( apply_filters( 'ep_admin_show_credentials', true ) ) :
 										?>
 										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="password" value="" autocomplete="off" placeholder="<?php echo esc_attr( $credentials['token'] ? '••••••••' : '' ); ?>" name="ep_credentials[token]" id="ep_token">
+										<p>
+											<label for="ep_remove_token">
+												<input type="checkbox" name="ep_remove_token" id="ep_remove_token" value="1">
+												<?php esc_html_e( 'Remove the saved subscription token', 'elasticpress' ); ?>
+											</label>
+										</p>
 									<?php endif ?>
 									<?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>
 										<p class="description"><?php esc_html_e( 'Your Subscription Token is set in wp-config.php', 'elasticpress' ); ?></p>

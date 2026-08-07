@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
+### Added
+* "Remove the saved subscription token" checkbox on the Settings page so subscribers can clear the stored token without editing `wp_options`. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
+
 ### Security
 * Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
 
 <!--
-### Added
 ### Changed
 ### Deprecated
 ### Removed

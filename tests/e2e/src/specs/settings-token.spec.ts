@@ -81,4 +81,18 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 		expect(stored?.toString()).toContain(newToken);
 		expect(stored?.toString()).not.toContain(FAKE_TOKEN);
 	});
+
+	test('Checking the remove token checkbox clears the stored value', async ({ loggedInPage }) => {
+		test.skip(isEpIo(), 'Uses locally seeded credentials.');
+
+		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-settings');
+
+		await loggedInPage.check('#ep_remove_token');
+		await loggedInPage.click('#submit');
+		await loggedInPage.waitForLoadState('networkidle');
+
+		const stored = await wpCli('option get ep_credentials --format=json');
+		expect(stored?.toString()).not.toContain(FAKE_TOKEN);
+		expect(stored?.toString()).toContain('"token":""');
+	});
 });

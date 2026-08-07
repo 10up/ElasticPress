@@ -98,11 +98,21 @@ class Settings {
 		}
 
 		if ( isset( $post['ep_credentials'] ) && ( ! defined( 'EP_CREDENTIALS' ) || ! EP_CREDENTIALS ) ) {
-			$credentials = Utils\sanitize_credentials( $post['ep_credentials'] );
+			if ( ! empty( $post['ep_remove_token'] ) ) {
+				$username    = isset( $post['ep_credentials']['username'] )
+					? sanitize_text_field( $post['ep_credentials']['username'] )
+					: ( $this->prev_ep_credentials['username'] ?? '' );
+				$credentials = [
+					'username' => $username,
+					'token'    => '',
+				];
+			} else {
+				$credentials = Utils\sanitize_credentials( $post['ep_credentials'] );
 
-			// Preserve the existing token if the field was left empty (it is always empty on load).
-			if ( empty( $credentials['token'] ) ) {
-				$credentials['token'] = $this->prev_ep_credentials['token'];
+				// Preserve the existing token if the field was left empty (it is always empty on load).
+				if ( empty( $credentials['token'] ) ) {
+					$credentials['token'] = $this->prev_ep_credentials['token'];
+				}
 			}
 
 			Utils\update_option( 'ep_credentials', $credentials );
