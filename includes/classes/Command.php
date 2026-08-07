@@ -1115,6 +1115,142 @@ class Command extends WP_CLI_Command {
 		$this->pretty_json_encode( $last_sync, $pretty );
 	}
 
+	/**
+	 * Replay entries from the failed writes journal.
+	 *
+	 * When Elasticsearch is briefly unreachable, EP records failed
+	 * index/delete operations in a journal. This command retries them
+	 * one batch at a time, deleting each entry on success.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--limit=<n>]
+	 * : Max number of entries to replay this run. Default: 50.
+	 *
+	 * [--dry-run]
+	 * : List entries that would be replayed without sending requests.
+	 *
+	 * [--skip-health-check]
+	 * : Skip the Elasticsearch reachability probe.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp elasticpress replay-queue
+	 *     $ wp elasticpress replay-queue --limit=200
+	 *     $ wp elasticpress replay-queue --dry-run
+	 *
+	 * @subcommand replay-queue
+	 * @since      5.4.0
+	 * @param array $args Positional CLI args.
+	 * @param array $assoc_args Associative CLI args.
+	 */
+	public function replay_queue( $args, $assoc_args ) {
+		$limit       = (int) \WP_CLI\Utils\get_flag_value( $assoc_args, 'limit', 50 );
+		$dry_run     = (bool) \WP_CLI\Utils\get_flag_value( $assoc_args, 'dry-run', false );
+		$skip_health = (bool) \WP_CLI\Utils\get_flag_value( $assoc_args, 'skip-health-check', false );
+
+		$journal = FailedWrites::factory();
+
+		$total = $journal->count_pending();
+
+		if ( ! $total ) {
+			WP_CLI::success( esc_html__( 'No failed writes to replay.', 'elasticpress' ) );
+			return;
+		}
+
+		$rows = $journal->get_pending( $limit );
+
+		/* translators: %d: count */
+		WP_CLI::log( sprintf( esc_html__( 'Found %1$d pending entries; replaying up to %2$d.', 'elasticpress' ), (int) $total, count( $rows ) ) );
+
+		if ( $dry_run ) {
+			foreach ( $rows as $row ) {
+				/* translators: 1: slug, 2: action, 3: object id */
+				WP_CLI::line( sprintf( esc_html__( 'Would replay: %1$s %2$s %3$d', 'elasticpress' ), $row->indexable_slug, $row->action, (int) $row->object_id ) );
+			}
+			return;
+		}
+
+		if ( ! $skip_health && ! Elasticsearch::factory()->get_elasticsearch_version( true ) ) {
+			WP_CLI::error( esc_html__( 'Elasticsearch is unreachable. Aborting to avoid stacking failures. Re-run with --skip-health-check to override.', 'elasticpress' ) );
+		}
+
+		$progress = \WP_CLI\Utils\make_progress_bar( esc_html__( 'Replaying failed writes', 'elasticpress' ), count( $rows ) );
+
+		$replayed = 0;
+		$failed   = 0;
+
+		foreach ( $rows as $row ) {
+			$progress->tick();
+
+			$result = $this->replay_single_entry( $row );
+
+			if ( true === $result ) {
+				$journal->delete_entries( [ $row->id ] );
+				++$replayed;
+			} else {
+				++$failed;
+				if ( is_string( $result ) && $result ) {
+					$journal->update_entry( $row->id, [ 'error_message' => $result ] );
+				}
+			}
+		}
+
+		$progress->finish();
+
+		/* translators: 1: replayed count, 2: still-failing count */
+		WP_CLI::log( sprintf( esc_html__( 'Replayed: %1$d. Still failing: %2$d.', 'elasticpress' ), $replayed, $failed ) );
+
+		if ( $failed ) {
+			WP_CLI::warning( sprintf( /* translators: %d: failed count */ esc_html__( '%d entries could not be replayed and remain in the journal.', 'elasticpress' ), $failed ) );
+		} else {
+			WP_CLI::success( esc_html__( 'All replayed entries succeeded.', 'elasticpress' ) );
+		}
+	}
+
+	/**
+	 * Replay a single journal entry.
+	 *
+	 * @param object $row Journal row.
+	 * @since 5.4.0
+	 * @return bool|string True on success; false or error message on failure.
+	 */
+	protected function replay_single_entry( $row ) {
+		$indexable = Indexables::factory()->get( $row->indexable_slug );
+
+		if ( ! $indexable ) {
+			return sprintf( 'unknown indexable slug: %s', $row->indexable_slug );
+		}
+
+		$switched = false;
+		if ( is_multisite() && ! empty( $row->blog_id ) && (int) get_current_blog_id() !== (int) $row->blog_id ) {
+			switch_to_blog( (int) $row->blog_id );
+			$switched = true;
+		}
+
+		try {
+			if ( 'delete' === $row->action ) {
+				$return = $indexable->delete( (int) $row->object_id, true );
+			} else {
+				$return = $indexable->index( (int) $row->object_id, true );
+			}
+		} finally {
+			if ( $switched ) {
+				restore_current_blog();
+			}
+		}
+
+		if ( ! empty( $return ) && ! is_wp_error( $return ) ) {
+			return true;
+		}
+
+		if ( is_wp_error( $return ) ) {
+			return $return->get_error_message();
+		}
+
+		return false;
+	}
+
 
 	/**
 	 * maybe change Elastic host on the fly

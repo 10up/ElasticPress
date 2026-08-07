@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'EP_URL', plugin_dir_url( __FILE__ ) );
 define( 'EP_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EP_FILE', plugin_basename( __FILE__ ) );
-define( 'EP_VERSION', '5.3.3' );
+define( 'EP_VERSION', '5.4.0' );
 
 define( 'EP_PHP_VERSION_MIN', '7.4' );
 
@@ -266,6 +266,11 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
  * Setup upgrades
  */
 Upgrades::factory();
+
+/**
+ * Setup failed writes journal.
+ */
+FailedWrites::factory();
 
 /**
  * Handle upgrades. Certain version require a re-sync on upgrade.
