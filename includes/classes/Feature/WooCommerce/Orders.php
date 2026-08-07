@@ -403,7 +403,7 @@ class Orders {
 			return $notices;
 		}
 
-		$notices['wc_orders_incompatible1'] = [
+		$notices['wc_orders_incompatible'] = [
 			'html'    => sprintf(
 				/* translators: %s: Minimum WooCommerce version required for HPOS integration. */
 				esc_html__( "Although the WooCommerce and Protected Content features are enabled, ElasticPress will not integrate with the WooCommerce Orders list while WooCommerce's High-performance order storage is enabled. HPOS integration requires WooCommerce %s or greater.", 'elasticpress' ),

@@ -160,9 +160,7 @@ export async function supportsBlockTypography(page: Page, element: Locator, isEd
 			.click();
 
 		await page.locator('.block-editor-line-height-control input').fill('2');
-		await page
-			.locator('.block-editor-block-inspector button[aria-label="Settings"]')
-			.click();
+		await page.locator('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
 
 	await expect(element).toHaveCSS('font-size', '16px');
@@ -196,9 +194,7 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 			.first();
 
 		await verticalInputsWrapper
-			.locator(
-				'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
-			)
+			.locator('button[aria-label="Set custom value"], button[aria-label="Set custom size"]')
 			.first()
 			.click();
 		await verticalInputsWrapper.locator('input[type="number"]').fill('10');
@@ -208,16 +204,12 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 			.nth(1);
 
 		await horizontalInputsWrapper
-			.locator(
-				'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
-			)
+			.locator('button[aria-label="Set custom value"], button[aria-label="Set custom size"]')
 			.first()
 			.click();
 		await horizontalInputsWrapper.locator('input[type="number"]').fill('15');
 
-		await page
-			.locator('.block-editor-block-inspector button[aria-label="Settings"]')
-			.click();
+		await page.locator('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
 
 	await expect(element).toHaveCSS('padding', '10px 15px');

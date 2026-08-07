@@ -219,8 +219,20 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
-			await loggedInPage.waitForTimeout(1000);
+			/**
+			 * Blurring the last field lets the Checkout block push the customer
+			 * data and re-render before we submit. Without this the blur happens
+			 * on mousedown, the button is re-rendered before mouseup, and the
+			 * browser never fires a click event.
+			 */
+			await loggedInPage.locator('#email, #billing_email').blur();
+			await loggedInPage.waitForLoadState('networkidle');
+
+			const placeOrderResponse = loggedInPage.waitForResponse((response) =>
+				response.url().includes('/wp-json/wc/store/v1/checkout'),
+			);
 			await loggedInPage.locator('.wc-block-components-checkout-place-order-button').click();
+			await placeOrderResponse;
 
 			// Ensure order is placed
 			await expect(loggedInPage).toHaveURL(/.*\/checkout\/order-received/);

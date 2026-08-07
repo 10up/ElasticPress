@@ -399,7 +399,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 			'test' => [],
 		];
 
-		\set_current_screen( 'woocommerce_page_wc-orders' );
+		set_current_screen( 'woocommerce_page_wc-orders' );
 		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
 		$this->enable_hpos();
 
@@ -412,7 +412,11 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$disable_hpos_query_integration = function () {
 			return [
-				'woocommerce' => [
+				'protected_content' => [
+					'active' => true,
+				],
+				'woocommerce'       => [
+					'active'       => true,
 					'disable_hpos' => '1',
 				],
 			];
@@ -421,9 +425,10 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
 
 		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+
 		$this->assertArrayHasKey( 'wc_orders_hpos_query_integration_disabled', $new_notices );
 		$this->assertStringContainsString(
-			'orders on this screen are not being retrieved from Elasticsearch',
+			'orders are not being retrieved from Elasticsearch',
 			$new_notices['wc_orders_hpos_query_integration_disabled']['html']
 		);
 
@@ -557,7 +562,11 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$disable_hpos_query_integration = function () {
 			return [
-				'woocommerce' => [
+				'protected_content' => [
+					'active' => true,
+				],
+				'woocommerce'       => [
+					'active'       => true,
 					'disable_hpos' => '1',
 				],
 			];
@@ -589,12 +598,16 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	 * @group woocommerce-orders
 	 */
 	public function test_hpos_compatibility_notice_hidden_when_query_integration_disabled() {
+
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
 		$notices = [
 			'test' => [],
 		];
 
-		\set_current_screen( 'woocommerce_page_wc-orders' );
-		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		set_current_screen( 'woocommerce_page_wc-orders' );
 
 		add_filter(
 			'ep_woocommerce_hpos_min_version',
@@ -609,7 +622,11 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$disable_hpos_query_integration = function () {
 			return [
-				'woocommerce' => [
+				'protected_content' => [
+					'active' => true,
+				],
+				'woocommerce'       => [
+					'active'       => true,
 					'disable_hpos' => '1',
 				],
 			];
@@ -905,8 +922,10 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$orders = wc_get_orders(
 			[
-				'paged' => 2,
-				'limit' => 1,
+				'paged'   => 2,
+				'limit'   => 1,
+				'orderby' => 'date',
+				'order'   => 'ASC',
 			]
 		);
 
