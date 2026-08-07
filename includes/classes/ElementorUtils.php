@@ -102,7 +102,12 @@ class ElementorUtils {
 			if ( ! $template_content ) {
 				continue;
 			}
-			$template_content = json_decode( $template_content, true );
+			if ( is_string( $template_content ) ) {
+				$template_content = json_decode( $template_content, true );
+			}
+			if ( ! is_array( $template_content ) ) {
+				continue;
+			}
 			$all_widgets      = array_merge(
 				$all_widgets,
 				$this->recursively_get_inner_widgets( $template_content )
