@@ -281,8 +281,14 @@ Thank you to all the people who have already contributed to this repository via 
 [Ray Lee (@ray-lee)](https://github.com/ray-lee),
 [Christian Janbjer (@slaxxarn)](https://github.com/slaxxarn),
 [@superdummy](https://github.com/superdummy),
+[@tomdxw](https://github.com/tomdxw),
+[Faisal Ahammad (@faisalahammad)](https://github.com/faisalahammad),
+[Muhit Ashraf (@muhitasraf)](https://github.com/muhitasraf),
+[Christopher Ross (@thisismyurl)](https://github.com/thisismyurl),
+[@dmitrijCraq](https://github.com/dmitrijCraq),
+[@marc-kohde](https://github.com/marc-kohde),
 and
-[@tomdxw](https://github.com/tomdxw).
+[Stefan (@stefanmm)](https://github.com/stefanmm).
 
 ## Libraries
 
