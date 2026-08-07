@@ -615,7 +615,7 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 				$expected_result = array(
 					'range' => array(
-						'meta._price.long' => array(
+						'meta._price.double' => array(
 							'gte'   => 1,
 							'lte'   => 999,
 							'boost' => 2,
@@ -693,6 +693,135 @@ class TestWooCommerceProduct extends WooCommerceBaseTestCase {
 
 		$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
 		$this->assertEquals( 2, count( $query ) );
+	}
+
+	/**
+	 * Test the price filter subtracts inclusive tax from bounds so they match
+	 * the excluding-tax price indexed by Elasticsearch.
+	 *
+	 * Reproduces issue #4332: prices entered without tax, shop displays including
+	 * tax. The Filter by Price widget sends including-tax bounds, which must be
+	 * reduced to the excluding-tax value before the Elasticsearch range query.
+	 *
+	 * @since 5.3.4
+	 * @group woocommerce
+	 * @group woocommerce-products
+	 */
+	public function testPriceFilterWithTax() {
+		global $wpdb, $wp_the_query, $wp_query;
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		// Capture existing values so we can restore them even if assertions fail.
+		$option_keys = array(
+			'woocommerce_calc_taxes',
+			'woocommerce_tax_display_shop',
+			'woocommerce_prices_include_tax',
+			'woocommerce_default_country',
+			'woocommerce_tax_based_on',
+		);
+		$old_options = array();
+		foreach ( $option_keys as $option_key ) {
+			$old_options[ $option_key ] = get_option( $option_key );
+		}
+
+		// Prices entered without tax, shop displays including tax.
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		update_option( 'woocommerce_tax_display_shop', 'incl' );
+		update_option( 'woocommerce_prices_include_tax', 'no' );
+		update_option( 'woocommerce_default_country', 'GB' );
+
+		// Force tax lookup against the shop base, not the customer's address.
+		// Without this, a leftover session or a `woocommerce_tax_based_on`
+		// setting from a prior test can make WC_Customer::get_taxable_address()
+		// return a non-GB tuple, which returns [] from WC_Tax::get_rates('')
+		// and skips the tax adjustment.
+		update_option( 'woocommerce_tax_based_on', 'base' );
+
+		// Seed a 20% tax rate for the base location so WC_Tax::get_rates finds it.
+		$wpdb->insert(
+			$wpdb->prefix . 'woocommerce_tax_rates',
+			array(
+				'tax_rate_country'  => 'GB',
+				'tax_rate_state'    => '',
+				'tax_rate'          => '20',
+				'tax_rate_name'     => 'VAT',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+		$tax_rate_id = $wpdb->insert_id;
+		\WC_Cache_Helper::invalidate_cache_group( 'taxes' );
+
+		try {
+			$this->ep_factory->product->create(
+				[
+					'name'          => 'Cap 1',
+					'regular_price' => 100.99,
+				]
+			);
+
+			ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+			// Decimal price (100.99) exposes the rounding bug fixed by switching
+			// from meta._price.long (intval-truncated) to meta._price.double.
+			// WC math for 100.99 @ 20% tax: inclusivetax = 20.198, so the
+			// incl-tax price WC displays is 121.188 — sending that bound
+			// adjusts back to 100.99 and matches the indexed double value.
+			parse_str( 'min_price=121.188&max_price=121.188', $_GET );
+
+			$args  = array(
+				'post_type' => 'product',
+			);
+			$query = new \WP_Query( $args );
+
+			// mock the query as main query and is_search
+			$wp_the_query        = $query;
+			$wp_query->is_search = true;
+
+			add_filter(
+				'ep_post_formatted_args',
+				function ( $formatted_args ) {
+
+					$expected_result = array(
+						'range' => array(
+							'meta._price.double' => array(
+								'gte'   => 100.99,
+								'lte'   => 100.99,
+								'boost' => 2,
+							),
+						),
+					);
+
+					$this->assertEquals( $expected_result, $formatted_args['query'] );
+					return $formatted_args;
+				},
+				15
+			);
+
+			$query = $query->query( $args );
+
+			$this->assertTrue( $wp_the_query->elasticsearch_success, 'Elasticsearch query failed' );
+			$this->assertEquals( 1, count( $query ) );
+		} finally {
+			// Restore options and remove the seeded tax rate regardless of outcome.
+			$wpdb->delete( $wpdb->prefix . 'woocommerce_tax_rates', array( 'tax_rate_id' => $tax_rate_id ) );
+			\WC_Cache_Helper::invalidate_cache_group( 'taxes' );
+
+			foreach ( $old_options as $option_key => $option_value ) {
+				if ( false === $option_value ) {
+					delete_option( $option_key );
+				} else {
+					update_option( $option_key, $option_value );
+				}
+			}
+
+			unset( $_GET['min_price'], $_GET['max_price'] );
+		}
 	}
 
 	/**
