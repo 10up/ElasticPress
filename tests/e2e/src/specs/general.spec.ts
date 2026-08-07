@@ -130,7 +130,7 @@ test.describe('WordPress can perform standard ElasticPress actions', { tag: '@gr
 		const syncTable = loggedInPage.locator(
 			'#health-check-accordion-block-ep-last-sync .health-check-table',
 		);
-		const selector = process.env.WP_VERSION === '6.2' ? 'td' : 'th';
+		const selector = process.env.WP_VERSION === '6.4' ? 'td' : 'th';
 		const cells = [
 			'Method',
 			'Full Sync',

@@ -94,12 +94,12 @@ test.describe('Related Posts Feature', { tag: '@group2' }, () => {
 		const requestPromise = loggedInPage.waitForResponse('**/wp-json/wp/v2/posts/*');
 
 		// Update post and visit front end
-		const buttonLabel = process.env.WP_VERSION === '6.2' ? 'Update' : 'Save';
+		const buttonLabel = process.env.WP_VERSION === '6.4' ? 'Update' : 'Save';
 		await loggedInPage.getByRole('button', { name: buttonLabel, exact: true }).click();
 		await requestPromise;
 
 		let viewPostLink;
-		if (process.env.WP_VERSION === '6.2') {
+		if (process.env.WP_VERSION === '6.4') {
 			await loggedInPage.reload();
 			viewPostLink = loggedInPage.locator('#wp-admin-bar-view a');
 		} else {

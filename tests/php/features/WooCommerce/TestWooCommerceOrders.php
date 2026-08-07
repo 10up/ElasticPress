@@ -372,7 +372,7 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
 		$this->assertCount( 2, $new_notices );
 		$this->assertArrayHasKey( 'wc_orders_incompatible', $new_notices );
-		$this->assertStringContainsString( 'requires WooCommerce 9.8.0 or greater', $new_notices['wc_orders_incompatible']['html'] );
+		$this->assertStringContainsString( 'requires WooCommerce 99.0.0 or greater', $new_notices['wc_orders_incompatible']['html'] );
 
 		/**
 		 * Test if the notice is hidden when the user already dismissed it
@@ -388,6 +388,62 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test the notice displayed when HPOS query integration is disabled.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_integration_disabled_notice() {
+		$notices = [
+			'test' => [],
+		];
+
+		\set_current_screen( 'woocommerce_page_wc-orders' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		$this->enable_hpos();
+
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '0.0.0';
+			}
+		);
+
+		$disable_hpos_query_integration = function () {
+			return [
+				'woocommerce' => [
+					'disable_hpos' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_option_ep_feature_settings', $disable_hpos_query_integration );
+		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
+
+		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+		$this->assertArrayHasKey( 'wc_orders_hpos_query_integration_disabled', $new_notices );
+		$this->assertStringContainsString(
+			'orders on this screen are not being retrieved from Elasticsearch',
+			$new_notices['wc_orders_hpos_query_integration_disabled']['html']
+		);
+
+		$change_hide_option = function () {
+			return 1;
+		};
+		add_filter(
+			'pre_option_ep_hide_wc_orders_hpos_query_integration_disabled_notice',
+			$change_hide_option
+		);
+		add_filter(
+			'pre_site_option_ep_hide_wc_orders_hpos_query_integration_disabled_notice',
+			$change_hide_option
+		);
+
+		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+		$this->assertArrayNotHasKey( 'wc_orders_hpos_query_integration_disabled', $new_notices );
+	}
+
+	/**
 	 * Test the `is_hpos_enabled` method
 	 *
 	 * @since 5.4.0
@@ -400,6 +456,169 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->enable_hpos();
 
 		$this->assertTrue( $this->orders->is_hpos_enabled() );
+	}
+
+	/**
+	 * Test the `is_hpos_query_integration_disabled` method.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_is_hpos_query_integration_disabled() {
+		$this->assertFalse( $this->orders->is_hpos_query_integration_disabled() );
+
+		$disable_hpos_query_integration = function () {
+			return [
+				'woocommerce' => [
+					'disable_hpos' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_option_ep_feature_settings', $disable_hpos_query_integration );
+		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
+
+		$this->assertTrue( $this->orders->is_hpos_query_integration_disabled() );
+	}
+
+	/**
+	 * Test the HPOS settings schema.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_add_hpos_settings_schema() {
+		$settings_schema = $this->orders->add_settings_schema( [] );
+
+		$this->assertSame( 'disable_hpos', $settings_schema[0]['key'] );
+		$this->assertSame( '0', $settings_schema[0]['default'] );
+		$this->assertTrue( $settings_schema[0]['disabled'] );
+		$this->assertFalse( $settings_schema[0]['requires_sync'] );
+
+		$this->enable_hpos();
+
+		$settings_schema = $this->orders->add_settings_schema( [] );
+		$this->assertFalse( $settings_schema[0]['disabled'] );
+	}
+
+	/**
+	 * Test HPOS settings appear after the orders autosuggest setting.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_settings_schema_comes_after_orders_autosuggest() {
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$woocommerce = ElasticPress\Features::factory()->get_registered_feature( 'woocommerce' );
+		$woocommerce->reset_settings_schema();
+		$settings_schema = $woocommerce->get_settings_schema();
+
+		$settings_keys = array_values(
+			array_filter(
+				array_column( $settings_schema, 'key' ),
+				function ( $key ) {
+					return in_array( $key, [ 'orders', 'disable_hpos' ], true );
+				}
+			)
+		);
+
+		$this->assertSame( [ 'orders', 'disable_hpos' ], $settings_keys );
+	}
+
+	/**
+	 * Test HPOS query integration can be disabled while sync hooks remain active.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_integration_can_be_disabled() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertEquals( $shop_order_id, $orders[0]->get_id() );
+
+		$this->orders->clear_elasticsearch_success_order_ids();
+
+		$disable_hpos_query_integration = function () {
+			return [
+				'woocommerce' => [
+					'disable_hpos' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_option_ep_feature_settings', $disable_hpos_query_integration );
+		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
+
+		$orders_hpos_property = new \ReflectionProperty( $this->orders, 'orders_hpos' );
+		$orders_hpos_property->setAccessible( true );
+		$orders_hpos = $orders_hpos_property->getValue( $this->orders );
+
+		$this->assertSame(
+			10,
+			has_filter( 'woocommerce_hpos_pre_query', [ $orders_hpos, 'maybe_intercept_wc_orders_query' ] )
+		);
+		$this->assertSame( 10, has_action( 'woocommerce_new_order', [ $orders_hpos, 'sync_order' ] ) );
+
+		$orders = wc_get_orders( [] );
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertEquals( $shop_order_id, $orders[0]->get_id() );
+		$this->assertCount( 1, $orders );
+	}
+
+	/**
+	 * Test HPOS compatibility notice is hidden when query integration is disabled.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_compatibility_notice_hidden_when_query_integration_disabled() {
+		$notices = [
+			'test' => [],
+		];
+
+		\set_current_screen( 'woocommerce_page_wc-orders' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '99.0.0';
+			}
+		);
+		$this->enable_hpos();
+
+		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+		$this->assertArrayHasKey( 'wc_orders_incompatible', $new_notices );
+
+		$disable_hpos_query_integration = function () {
+			return [
+				'woocommerce' => [
+					'disable_hpos' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_option_ep_feature_settings', $disable_hpos_query_integration );
+		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
+
+		$new_notices = $this->orders->hpos_compatibility_notice( $notices );
+		$this->assertArrayNotHasKey( 'wc_orders_incompatible', $new_notices );
 	}
 
 	/**

@@ -500,6 +500,9 @@ class OrdersAutosuggest {
 	 * @return boolean
 	 */
 	public function is_available(): bool {
+		$hpos_query_integration_enabled = ! $this->woocommerce->orders->is_hpos_enabled()
+			|| ! $this->woocommerce->orders->is_hpos_query_integration_disabled();
+
 		/**
 		 * Whether the autosuggest feature is available for non
 		 * ElasticPress.io customers.
@@ -508,7 +511,10 @@ class OrdersAutosuggest {
 		 * @hook ep_woocommerce_orders_autosuggest_available
 		 * @param {boolean} $available Whether the feature is available.
 		 */
-		return apply_filters( 'ep_woocommerce_orders_autosuggest_available', Utils\is_epio() && $this->is_hpos_compatible() );
+		return apply_filters(
+			'ep_woocommerce_orders_autosuggest_available',
+			Utils\is_epio() && $this->is_hpos_compatible() && $hpos_query_integration_enabled
+		);
 	}
 
 	/**

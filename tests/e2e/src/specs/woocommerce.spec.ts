@@ -569,6 +569,116 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			).toContainText('Query Response Code: HTTP 200');
 		});
 
+		test('Can show and dismiss HPOS query integration disabled notice', async ({
+			loggedInPage,
+		}) => {
+			await wpCli(
+				'option delete ep_hide_wc_orders_hpos_query_integration_disabled_notice',
+				true,
+			);
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableHposCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Disable query integration with WooCommerce Orders using HPOS',
+			});
+			const enableApiRequestPromise = loggedInPage.waitForResponse(
+				'/wp-json/elasticpress/v1/features*',
+			);
+			await disableHposCheckbox.setChecked(true);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await enableApiRequestPromise;
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			const notice = loggedInPage.locator(
+				'div[data-ep-notice="wc_orders_hpos_query_integration_disabled"]',
+			);
+			await expect(notice).toBeVisible();
+			await expect(notice).toContainText('not being retrieved from Elasticsearch');
+
+			const dismissResponse = loggedInPage.waitForResponse((response) => {
+				const request = response.request();
+				return (
+					request.url().includes('admin-ajax.php') &&
+					request.method() === 'POST' &&
+					(request.postData() || '').includes('ep_notice_dismiss')
+				);
+			});
+			await notice.locator('.notice-dismiss').click();
+			await dismissResponse;
+			await expect(notice).not.toBeVisible();
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(
+				loggedInPage.locator(
+					'div[data-ep-notice="wc_orders_hpos_query_integration_disabled"]',
+				),
+			).not.toBeVisible();
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableApiRequestPromise = loggedInPage.waitForResponse(
+				'/wp-json/elasticpress/v1/features*',
+			);
+			await loggedInPage
+				.getByRole('checkbox', {
+					name: 'Disable query integration with WooCommerce Orders using HPOS',
+				})
+				.setChecked(false);
+			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await disableApiRequestPromise;
+
+			await wpCli(
+				'option delete ep_hide_wc_orders_hpos_query_integration_disabled_notice',
+				true,
+			);
+		});
+
+		test('Can fetch orders from Elasticsearch when HPOS query integration is enabled', async ({
+			loggedInPage,
+		}) => {
+			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await loggedInPage
+				.locator('.ep-dashboard-outer-tabs .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+			await loggedInPage
+				.locator('.group-content .ep-dashboard-tab:has-text("WooCommerce")')
+				.click();
+
+			const disableHposCheckbox = loggedInPage.getByRole('checkbox', {
+				name: 'Disable query integration with WooCommerce Orders using HPOS',
+			});
+
+			if (await disableHposCheckbox.isChecked()) {
+				const apiRequestPromise = loggedInPage.waitForResponse(
+					'/wp-json/elasticpress/v1/features*',
+				);
+				await disableHposCheckbox.setChecked(false);
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+				await apiRequestPromise;
+			}
+
+			await goToAdminPage(loggedInPage, 'admin.php?page=wc-orders');
+			await expect(
+				loggedInPage
+					.locator('#debug-menu-target-EP_Debug_Bar_ElasticPress .ep-query-debug')
+					.filter({ hasText: '_search' })
+					.first(),
+			).toContainText('Query Response Code: HTTP 200');
+		});
+
 		test('Can search orders from ElasticPress in WP Dashboard', async ({ loggedInPage }) => {
 			// Disable Orders Autosuggest.
 			if (isEpIo()) {

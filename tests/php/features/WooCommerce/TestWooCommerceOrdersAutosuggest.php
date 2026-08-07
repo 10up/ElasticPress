@@ -320,6 +320,46 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 	}
 
 	/**
+	 * Test orders autosuggest is unavailable when HPOS query integration is disabled.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders-autosuggest
+	 */
+	public function test_is_available_when_hpos_query_integration_disabled() {
+		$this->force_epio();
+
+		$custom_orders_table = \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION;
+		add_filter(
+			'pre_option_' . $custom_orders_table,
+			function () {
+				return 'yes';
+			}
+		);
+
+		add_filter(
+			'ep_woocommerce_hpos_min_version',
+			function () {
+				return '0.0.1';
+			}
+		);
+
+		$this->assertTrue( $this->orders_autosuggest->is_available() );
+
+		$disable_hpos_query_integration = function () {
+			return [
+				'woocommerce' => [
+					'disable_hpos' => '1',
+				],
+			];
+		};
+		add_filter( 'pre_option_ep_feature_settings', $disable_hpos_query_integration );
+		add_filter( 'pre_site_option_ep_feature_settings', $disable_hpos_query_integration );
+
+		$this->assertFalse( $this->orders_autosuggest->is_available() );
+	}
+
+	/**
 	 * Test the `is_enabled` method
 	 *
 	 * @since 5.1.0

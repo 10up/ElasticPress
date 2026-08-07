@@ -310,6 +310,11 @@ class OrdersHPOS {
 	 * @param \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery $query OrdersTableQuery instance.
 	 */
 	protected function should_integrate_with_query( $args, $query ): bool {
+		// bail early if the query integration is disabled.
+		if ( $this->orders->is_hpos_query_integration_disabled() ) {
+			return false;
+		}
+
 		if ( isset( $args['ep_integrate'] ) && ! filter_var( $args['ep_integrate'], FILTER_VALIDATE_BOOLEAN ) ) {
 			return false;
 		}
