@@ -125,7 +125,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 	test.beforeEach(async ({ loggedInPage }) => {
 		await deactivatePlugin(
 			loggedInPage,
-			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema',
+			'custom-instant-results-template open-instant-results-with-buttons filter-instant-results-per-page filter-instant-results-args-schema filter-instant-results-label filter-instant-results-post-type-options filter-instant-results-price-range filter-instant-results-components filter-instant-results-response filter-instant-results-config filter-instant-results-category-terms',
 			'wpCli',
 		);
 	});
@@ -602,6 +602,149 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 					'filter-instant-results-category-terms',
 					'wpCli',
 				);
+			});
+
+			test('Can filter facet labels', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+				await activatePlugin(loggedInPage, 'filter-instant-results-label', 'wpCli');
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, 'post type');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=new');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'new');
+				await responsePromise;
+
+				const postTypeFacet = loggedInPage.locator('.ep-search-panel').filter({
+					has: loggedInPage
+						.locator('.ep-search-panel__button')
+						.filter({ hasText: 'Filtered Type Label' }),
+				});
+				await expect(postTypeFacet).toBeVisible();
+			});
+
+			test('Can filter post type options', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+				await activatePlugin(
+					loggedInPage,
+					'filter-instant-results-post-type-options',
+					'wpCli',
+				);
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, 'post type');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=new');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'new');
+				await responsePromise;
+
+				const postTypeFacet = loggedInPage.locator('.ep-search-panel').filter({
+					has: loggedInPage
+						.locator('.ep-search-panel__button')
+						.filter({ hasText: 'Type' }),
+				});
+				await expect(postTypeFacet).toContainText('(filtered)');
+			});
+
+			test('Can filter price range options', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+				await maybeEnableFeature('woocommerce');
+				await activatePlugin(loggedInPage, 'filter-instant-results-price-range', 'wpCli');
+				await wpCli('wp elasticpress sync');
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, 'price');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
+				const responsePromise = instantResultRequestPromise(
+					loggedInPage,
+					'search=ergonomic',
+				);
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'ergonomic');
+				await responsePromise;
+
+				const priceValues = await loggedInPage
+					.locator('.ep-search-price-facet__values')
+					.textContent();
+				expect(priceValues).toContain('$0');
+				expect(priceValues).toContain('$999');
+			});
+
+			test('Can filter components (did-you-mean and sort)', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+				await maybeEnableFeature('did-you-mean');
+				await activatePlugin(loggedInPage, 'filter-instant-results-components', 'wpCli');
+
+				await wpCli('wp elasticpress sync --setup --yes');
+
+				const responsePromise = instantResultRequestPromise(
+					loggedInPage,
+					'search=wordpless',
+				);
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'wordpless');
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
+				await responsePromise;
+
+				await expect(loggedInPage.locator('.my-custom-did-you-mean')).toBeVisible();
+				await expect(loggedInPage.locator('.my-custom-sort')).toBeVisible();
+			});
+
+			test('Can filter the search response', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+				await activatePlugin(loggedInPage, 'filter-instant-results-response', 'wpCli');
+
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=new');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'new');
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
+				await responsePromise;
+
+				await expect(loggedInPage.locator('.ep-search-result')).not.toBeVisible();
+				await expect(loggedInPage.locator('.ep-search-results__title')).toContainText('0');
+			});
+
+			test('Can filter the front-end config', async ({ loggedInPage }) => {
+				await maybeEnableFeature('instant-results');
+				await activatePlugin(loggedInPage, 'filter-instant-results-config', 'wpCli');
+
+				await loggedInPage.goto('/');
+
+				const config = await loggedInPage.evaluate(() => {
+					return (window as any).epInstantResults;
+				});
+
+				expect(config.highlightTag).toBe('mark');
+				expect(config.epTestFilteredConfig).toBe(true);
 			});
 		});
 

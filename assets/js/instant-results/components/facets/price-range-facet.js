@@ -3,6 +3,7 @@
  */
 import { useLayoutEffect, useState, WPElement } from '@wordpress/element';
 import { _x, sprintf } from '@wordpress/i18n';
+import { applyFilters } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
@@ -38,8 +39,23 @@ export default ({ defaultIsOpen, label }) => {
 	/**
 	 * Minimum and maximum possible values.
 	 */
-	const max = Math.ceil(maxAgg);
-	const min = Math.floor(minAgg);
+	let max = Math.ceil(maxAgg);
+	let min = Math.floor(minAgg);
+
+	/**
+	 * Filter the price range values.
+	 *
+	 * @filter ep.InstantResults.filter.priceRange.options
+	 * @since 5.3.0
+	 *
+	 * @param {object} range Price range values.
+	 * @param {number} range.min Minimum price.
+	 * @param {number} range.max Maximum price.
+	 * @returns {object} Filtered price range values.
+	 */
+	const range = applyFilters('ep.InstantResults.filter.priceRange.options', { min, max });
+
+	({ min, max } = range);
 
 	/**
 	 * Current minimum and maximum values.

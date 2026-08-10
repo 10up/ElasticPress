@@ -3,6 +3,7 @@
  */
 import { __, sprintf } from '@wordpress/i18n';
 import { WPElement, createInterpolateElement } from '@wordpress/element';
+import { applyFilters } from '@wordpress/hooks';
 
 import { showSuggestions, suggestionsBehavior } from '../../config';
 
@@ -22,7 +23,7 @@ export default (props) => {
 	// Get other terms by excluding the first term from suggestedTerms
 	const otherTerms = suggestedTerms.slice(1);
 
-	return (
+	const didYouMean = (
 		<>
 			{showSuggestions && suggestedTerms && suggestedTerms?.[0]?.text && (
 				<div className="ep-search-suggestion">
@@ -67,4 +68,16 @@ export default (props) => {
 				)}
 		</>
 	);
+
+	/**
+	 * Filter the did you mean component.
+	 *
+	 * @filter ep.InstantResults.component.didYouMean
+	 * @since 5.3.0
+	 *
+	 * @param {WPElement} didYouMean Did you mean component.
+	 * @param {object} props Props.
+	 * @returns {WPElement} Did you mean component.
+	 */
+	return applyFilters('ep.InstantResults.component.didYouMean', didYouMean, props);
 };
