@@ -922,11 +922,11 @@ class OrdersHPOSQuery {
 			}
 
 			$value = $this->query_args[ $field ];
-			if ( empty( $value ) ) {
+			if ( null === $value || [] === $value ) {
 				continue;
 			}
 
-			if ( empty( $value ) && ! in_array( $field, $allow_empty, true ) ) {
+			if ( '' === $value && ! in_array( $field, $allow_empty, true ) ) {
 				continue;
 			}
 

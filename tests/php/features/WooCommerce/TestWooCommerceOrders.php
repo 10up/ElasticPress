@@ -935,8 +935,10 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$orders = wc_get_orders(
 			[
-				'paged' => 3,
-				'limit' => 1,
+				'paged'   => 3,
+				'limit'   => 1,
+				'orderby' => 'date',
+				'order'   => 'ASC',
 			]
 		);
 		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
