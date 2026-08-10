@@ -1075,6 +1075,71 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test HPOS order by parent and type.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_order_by_parent_and_type() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		$refund_1 = new \WC_Order_Refund();
+		$refund_1->set_parent_id( $shop_order_id_2 );
+		$refund_1->save();
+		$refund_id_1 = $refund_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund_id_1, true );
+
+		$refund_2 = new \WC_Order_Refund();
+		$refund_2->set_parent_id( $shop_order_id_1 );
+		$refund_2->save();
+		$refund_id_2 = $refund_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'type'    => 'shop_order_refund',
+				'orderby' => 'parent',
+				'order'   => 'ASC',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $refund_id_2, $orders[0]->get_id() );
+		$this->assertEquals( $refund_id_1, $orders[1]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'type'    => [ 'shop_order', 'shop_order_refund' ],
+				'orderby' => 'type',
+				'order'   => 'ASC',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 4, $orders );
+		$this->assertEquals( 'shop_order', $orders[0]->get_type() );
+		$this->assertEquals( 'shop_order_refund', $orders[3]->get_type() );
+	}
+
+	/**
 	 * Test HPOS created via query.
 	 *
 	 * @since 5.4.0
@@ -1308,12 +1373,14 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 
 		$shop_order_1 = new \WC_Order();
 		$shop_order_1->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_1->set_date_modified( new \WC_DateTime( '2026-01-03 12:00:00' ) );
 		$shop_order_1->save();
 		$shop_order_id_1 = $shop_order_1->get_id();
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
 
 		$shop_order_2 = new \WC_Order();
 		$shop_order_2->set_date_created( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_2->set_date_modified( new \WC_DateTime( '2026-01-04 12:00:00' ) );
 		$shop_order_2->save();
 		$shop_order_id_2 = $shop_order_2->get_id();
 		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
@@ -1329,6 +1396,561 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$this->assertCount( 2, $orders );
 		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
 		$this->assertEquals( $shop_order_id_1, $orders[1]->get_id() );
+
+		$orders = wc_get_orders( [ 'date_created' => '>2026-01-01 23:59:59' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'date_modified' => '<=2026-01-03' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS order ID inclusion and exclusion queries.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_order_id_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		$shop_order_3 = new \WC_Order();
+		$shop_order_3->save();
+		$shop_order_id_3 = $shop_order_3->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_3, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [ 'id' => [ $shop_order_id_2 ] ] );
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'exclude' => [ $shop_order_id_1, $shop_order_id_3 ],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS parent inclusion and exclusion queries.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_parent_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+
+		$refund_1 = new \WC_Order_Refund();
+		$refund_1->set_parent_id( $shop_order_id_1 );
+		$refund_1->save();
+		$refund_id_1 = $refund_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund_id_1, true );
+
+		$refund_2 = new \WC_Order_Refund();
+		$refund_2->set_parent_id( $shop_order_id_2 );
+		$refund_2->save();
+		$refund_id_2 = $refund_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $refund_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'type'   => 'shop_order_refund',
+				'parent' => $shop_order_id_1,
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $refund_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'type'           => 'shop_order_refund',
+				'parent_exclude' => [ $shop_order_id_1 ],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $refund_id_2, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS order offset.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_order_offset() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$order_ids = [];
+		foreach ( [ '2026-01-01', '2026-01-02', '2026-01-03' ] as $date_created ) {
+			$order = new \WC_Order();
+			$order->set_date_created( new \WC_DateTime( $date_created ) );
+			$order->save();
+			$order_ids[] = $order->get_id();
+			ElasticPress\Indexables::factory()->get( 'post' )->index( $order->get_id(), true );
+		}
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'limit'   => 1,
+				'offset'  => 1,
+				'orderby' => 'date',
+				'order'   => 'ASC',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $order_ids[1], $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS paid and completed date queries.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_paid_and_completed_date_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_paid( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_1->set_date_completed( new \WC_DateTime( '2026-01-03 12:00:00' ) );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_paid( new \WC_DateTime( '2026-02-02 12:00:00' ) );
+		$shop_order_2->set_date_completed( new \WC_DateTime( '2026-02-03 12:00:00' ) );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'date_paid' => '2026-01-01...2026-01-31',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'date_completed' => '2026-02-01...2026-02-28',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'date_paid' => '2026-01-02',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'date_completed' => '>2026-01-31',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS advanced date query.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_advanced_date_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_date_created( new \WC_DateTime( '2026-01-01 12:00:00' ) );
+		$shop_order_1->set_date_paid( new \WC_DateTime( '2026-01-02 12:00:00' ) );
+		$shop_order_1->set_date_completed( new \WC_DateTime( '2026-01-03 12:00:00' ) );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_date_created( new \WC_DateTime( '2026-02-01 12:00:00' ) );
+		$shop_order_2->set_date_paid( new \WC_DateTime( '2026-02-02 12:00:00' ) );
+		$shop_order_2->set_date_completed( new \WC_DateTime( '2026-02-03 12:00:00' ) );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'column'    => 'date_created',
+						'after'     => '2026-01-01 00:00:00',
+						'before'    => '2026-01-31 23:59:59',
+						'inclusive' => true,
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'after'     => '2026-01-01 00:00:00',
+						'before'    => '2026-01-31 23:59:59',
+						'inclusive' => true,
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'column'    => 'date_paid',
+						'after'     => '2026-02-01',
+						'before'    => '2026-02-28',
+						'inclusive' => true,
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'date_query' => [
+					[
+						'column'    => 'date_completed',
+						'after'     => '2026-01-03',
+						'before'    => '2026-01-03',
+						'inclusive' => true,
+					],
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS currency, version, and prices_include_tax queries.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_currency_version_and_prices_include_tax_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_currency( 'USD' );
+		$shop_order_1->set_prices_include_tax( true );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_currency( 'EUR' );
+		$shop_order_2->set_prices_include_tax( false );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+
+		// WooCommerce overwrites version on save, so force distinct versions in the index.
+		$force_versions = function ( $meta, $post ) use ( $shop_order_id_1, $shop_order_id_2 ) {
+			if ( (int) $post->ID === (int) $shop_order_id_1 ) {
+				$meta['_order_version'] = [ '9.8.0' ];
+			}
+			if ( (int) $post->ID === (int) $shop_order_id_2 ) {
+				$meta['_order_version'] = [ '10.0.0' ];
+			}
+			return $meta;
+		};
+		add_filter( 'ep_prepared_post_meta', $force_versions, 20, 2 );
+
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+		remove_filter( 'ep_prepared_post_meta', $force_versions, 20 );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [ 'currency' => 'USD' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'version' => '10.0.0' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'prices_include_tax' => 'yes' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS customer note, IP address, and user agent queries.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_customer_note_ip_and_user_agent_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_customer_note( 'Leave at door' );
+		$shop_order_1->set_customer_ip_address( '203.0.113.10' );
+		$shop_order_1->set_customer_user_agent( 'Mozilla/5.0 EP-Test' );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_customer_note( '' );
+		$shop_order_2->set_customer_ip_address( '198.51.100.20' );
+		$shop_order_2->set_customer_user_agent( 'curl/8.0' );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [ 'customer_note' => 'Leave at door' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'customer_ip_address' => '198.51.100.20' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'customer_user_agent' => 'Mozilla/5.0 EP-Test' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'customer_note' => '' ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS tax amount queries.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_tax_amount_queries() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_discount_tax( 1.25 );
+		$shop_order_1->set_shipping_tax( 2.50 );
+		$shop_order_1->set_cart_tax( 3.75 );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_discount_tax( 5.00 );
+		$shop_order_2->set_shipping_tax( 6.00 );
+		$shop_order_2->set_cart_tax( 7.00 );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders( [ 'discount_tax' => 1.25 ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'shipping_tax' => 6.00 ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders( [ 'cart_tax' => 3.75 ] );
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+	}
+
+	/**
+	 * Test HPOS total queries with comparison operators.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_total_operator_query() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order_1 = new \WC_Order();
+		$shop_order_1->set_total( 25.00 );
+		$shop_order_1->save();
+		$shop_order_id_1 = $shop_order_1->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_1, true );
+
+		$shop_order_2 = new \WC_Order();
+		$shop_order_2->set_total( 75.00 );
+		$shop_order_2->save();
+		$shop_order_id_2 = $shop_order_2->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id_2, true );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$orders = wc_get_orders(
+			[
+				'total' => [
+					'value'    => 50,
+					'operator' => '>',
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_2, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'total' => [
+					'value'    => [ 20, 30 ],
+					'operator' => 'BETWEEN',
+				],
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+
+		$orders = wc_get_orders(
+			[
+				'orderby' => 'total',
+				'order'   => 'ASC',
+			]
+		);
+
+		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+		$this->assertCount( 2, $orders );
+		$this->assertEquals( $shop_order_id_1, $orders[0]->get_id() );
+		$this->assertEquals( $shop_order_id_2, $orders[1]->get_id() );
 	}
 
 	/**

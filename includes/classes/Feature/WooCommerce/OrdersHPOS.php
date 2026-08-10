@@ -255,9 +255,16 @@ class OrdersHPOS {
 		$meta_data['_billing_address_index']  = [ $order->get_meta( '_billing_address_index', true ) ];
 		$meta_data['_shipping_address_index'] = [ $order->get_meta( '_shipping_address_index', true ) ];
 
-		$meta_data['_order_total']    = [ $order->get_total( 'edit' ) ];
-		$meta_data['_order_shipping'] = [ $order->get_shipping_total( 'edit' ) ];
-		$meta_data['_cart_discount']  = [ $order->get_discount_total( 'edit' ) ];
+		$meta_data['_order_total']        = [ $order->get_total( 'edit' ) ];
+		$meta_data['_order_shipping']     = [ $order->get_shipping_total( 'edit' ) ];
+		$meta_data['_cart_discount']      = [ $order->get_discount_total( 'edit' ) ];
+		$meta_data['_cart_discount_tax']  = [ $order->get_discount_tax( 'edit' ) ];
+		$meta_data['_order_shipping_tax'] = [ $order->get_shipping_tax( 'edit' ) ];
+		$meta_data['_order_tax']          = [ $order->get_cart_tax( 'edit' ) ];
+		$meta_data['_order_currency']     = [ $order->get_currency( 'edit' ) ];
+		$meta_data['_order_version']      = [ $order->get_version( 'edit' ) ];
+		$meta_data['_prices_include_tax'] = [ wc_bool_to_string( $order->get_prices_include_tax( 'edit' ) ) ];
+		$meta_data['_customer_note']      = [ method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note( 'edit' ) : '' ];
 
 		foreach ( $order->get_meta_data() as $meta ) {
 			if ( isset( $meta_data[ $meta->key ] ) ) {
@@ -339,7 +346,14 @@ class OrdersHPOS {
 			return false;
 		}
 
-		/** This filter is documented in includes/classes/Indexable/Post/QueryIntegration.php */
+		/**
+		 * Filter to skip OrdersTableQuery integration
+		 *
+		 * @hook ep_skip_query_integration
+		 * @param  {bool} $skip True to skip
+		 * @param  {\Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery} $query OrdersTableQuery to evaluate
+		 * @return  {bool} New skip value
+		 */
 		return ! apply_filters( 'ep_skip_query_integration', false, $query );
 	}
 
