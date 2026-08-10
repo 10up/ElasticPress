@@ -54,6 +54,15 @@ export const defaultFeatures = {
 	acf_repeater: {
 		active: true,
 	},
+	vector_embeddings: {
+		active: false,
+	},
+	semantic_search: {
+		active: false,
+	},
+	ai_search_summary: {
+		active: false,
+	},
 };
 
 /**
@@ -705,6 +714,21 @@ export async function createAutosavePost(
 	// Deactivate the shorten-autosave plugin
 	await deactivatePlugin(page, 'shorten-autosave', 'wpCli');
 }
+
+export const setVectorEmbeddingsSettings = async (loggedInPage: Page) => {
+	await loggedInPage.getByRole('button', { name: 'AI', exact: true }).click();
+	await loggedInPage.getByRole('button', { name: 'Vector Embeddings' }).click();
+	await loggedInPage.getByRole('checkbox', { name: 'Enable' }).check();
+	await loggedInPage
+		.getByLabel('OpenAI API Key')
+		.fill(process.env.VECTOR_EMBEDDINGS_API_KEY || '');
+	await loggedInPage
+		.getByLabel('OpenAI Embeddings API Url')
+		.fill(process.env.VECTOR_EMBEDDINGS_API_URL || '');
+	await loggedInPage
+		.getByLabel('The name of the embedding model to use')
+		.fill(process.env.VECTOR_EMBEDDINGS_MODEL || '');
+};
 
 export async function setCustomPostTypes() {
 	const output = await wpCliEval(

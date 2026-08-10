@@ -9,6 +9,8 @@ EP_CREDENTIALS=""
 EP_INDEX_PREFIX=""
 WP_VERSION=""
 WC_VERSION=""
+CF_ACCESS_CLIENT_ID=""
+CF_ACCESS_CLIENT_SECRET=""
 
 for opt in "$@"; do
 	case $opt in
@@ -29,6 +31,12 @@ for opt in "$@"; do
       ;;
     -wc=*|--wc-version=*)
       WC_VERSION="${opt#*=}"
+      ;;
+    --cf-access-client-id=*)
+      CF_ACCESS_CLIENT_ID="${opt#*=}"
+      ;;
+    --cf-access-client-secret=*)
+      CF_ACCESS_CLIENT_SECRET="${opt#*=}"
       ;;
     -h|--help|*)
       DISPLAY_HELP=1
@@ -93,6 +101,14 @@ fi
 
 if [ ! -z $EP_INDEX_PREFIX ]; then
 	./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_INDEX_PREFIX ${EP_INDEX_PREFIX}"
+fi
+
+if [ ! -z $CF_ACCESS_CLIENT_ID ]; then
+	./bin/wp-env-cli tests-wordpress "wp --allow-root config set CF_ACCESS_CLIENT_ID ${CF_ACCESS_CLIENT_ID}"
+fi
+
+if [ ! -z $CF_ACCESS_CLIENT_SECRET ]; then
+	./bin/wp-env-cli tests-wordpress "wp --allow-root config set CF_ACCESS_CLIENT_SECRET ${CF_ACCESS_CLIENT_SECRET}"
 fi
 
 if [ ! -z $ACF_PRO_LICENSE_KEY ]; then

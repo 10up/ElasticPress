@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "elasticpress/ai-search-summary",
+	"title": "AI Search Summary",
+	"category": "elasticpress",
+	"icon": "superhero-alt",
+	"description": "AI Search Summary block description.",
+	"textdomain": "elasticpress",
+	"attributes": {
+		"title": {
+			"default": "Title",
+			"type": "string"
+		},
+		"note": {
+			"default": "AI generated results",
+			"type": "string"
+		}
+	},
+	"supports": {
+		"align": true,
+		"color": {
+			"background": true,
+			"link": true,
+			"text": true
+		},
+		"html": false,
+		"position": {
+			"sticky": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		}
+	},
+	"editorScript": "ep-ai-search-summary-block-script",
+	"script": "ep-ai-search-summary-block-frontend-script"
+}

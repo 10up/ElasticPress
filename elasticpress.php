@@ -202,6 +202,23 @@ function register_indexable_posts() {
 		new Feature\Terms\Terms()
 	);
 
+	Features::factory()->register_feature(
+		new Feature\VectorEmbeddings\VectorEmbeddings()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\SemanticSearch\SemanticSearch()
+	);
+
+	Features::factory()->register_feature(
+		new Feature\AISearchSummary()
+	);
+
+	/**
+	 * Ensure ElasticPress takes precedence over add-ons that ship the same features.
+	 */
+	FeaturePrecedence::factory();
+
 	/**
 	 * Register search algorithms
 	 */

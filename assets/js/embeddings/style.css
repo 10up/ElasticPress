@@ -1,0 +1,36 @@
+/* add visual indicator to active tab */
+.ep-vector-embedding-settings__tabs__tab--active {
+	background: #f0f0f0;
+	font-weight: 500;
+}
+
+/* * the container for the entire tabs component */
+.ep-vector-embedding-settings__tabs {
+
+	@media screen and (max-width: 782px) {
+		flex-direction: column;
+	}
+	display: flex;
+}
+
+.ep-vector-embedding-settings__tabs .components-tab-panel__tabs button {
+	border-left: 5px solid transparent;
+}
+
+.ep-vector-embedding-settings__tabs > *:first-child {
+	padding-right: 30px;
+	width: 50%;
+}
+
+.ep-vector-embedding-settings__tabs > * {
+
+	@media screen and (max-width: 782px) {
+		width: 100%;
+	}
+	width: 800px;
+}
+
+.ep-vector-embedding-settings__post-types-list .components-notice {
+
+	margin-bottom: 20px;
+}

@@ -3,11 +3,18 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 const isDev = process.env.NODE_ENV === 'development';
 
+const blockEntries = ['ai-search-summary-block-script', 'ai-search-summary-block-frontend-script'];
+
 module.exports = {
 	...defaultConfig,
 	output: {
 		...defaultConfig.output,
-		filename: 'js/[name].js',
+		filename: (pathData) => {
+			if (blockEntries.includes(pathData.chunk.name)) {
+				return 'blocks/[name].js';
+			}
+			return 'js/[name].js';
+		},
 	},
 
 	devtool: isDev ? 'source-map' : false,

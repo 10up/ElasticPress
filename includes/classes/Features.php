@@ -61,6 +61,9 @@ class Features {
 			'woocommerce'         => [
 				'label' => esc_html__( 'WooCommerce', 'elasticpress' ),
 			],
+			'ai'                  => [
+				'label' => esc_html__( 'AI', 'elasticpress' ),
+			],
 			'third-party-plugins' => [
 				'label' => esc_html__( 'Third Party Plugins', 'elasticpress' ),
 			],

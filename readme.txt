@@ -31,6 +31,12 @@ __Filters__: Add controls to your website to filter content by one or more taxon
 
 __Comments__: Indexes your comments and provides a widget with type-ahead search functionality. It works with WooCommerce product reviews out-of-the-box.
 
+__Vector Embeddings__: Store vector embeddings alongside your indexed content — a numerical representation of post content that captures semantic meaning. Enables AI-powered features like Semantic Search and AI Search Summary. Supports OpenAI or ElasticPress.io as the embedding generator.
+
+__Semantic Search__: Enable kNN (k-Nearest Neighbor) search algorithms — kNN, kNN Cosine, and Hybrid — that match content by meaning rather than keywords. Requires the Vector Embeddings feature to be active.
+
+__AI Search Summary__: Display an AI-generated plain-language summary of search results using the AI Search Summary block. The block queries an OpenAI-compatible endpoint and streams a contextual answer to users. Requires the Vector Embeddings feature to be active.
+
 == Frequently Asked Questions ==
 
 = How does ElasticPress work? =
