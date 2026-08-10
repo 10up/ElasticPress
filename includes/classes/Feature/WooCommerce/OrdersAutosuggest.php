@@ -79,7 +79,7 @@ class OrdersAutosuggest {
 		add_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
 		add_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
 		add_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		add_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ], 10 );
+		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'filter_term_suggest' ], 15 );
 		add_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		add_filter( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ], 10, 2 );
 		add_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
@@ -100,7 +100,7 @@ class OrdersAutosuggest {
 		remove_filter( 'ep_indexable_post_status', [ $this, 'post_statuses' ] );
 		remove_filter( 'ep_indexable_post_types', [ $this, 'post_types' ] );
 		remove_action( 'rest_api_init', [ $this, 'rest_api_init' ] );
-		remove_filter( 'ep_post_sync_args', [ $this, 'filter_term_suggest' ] );
+		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'filter_term_suggest' ], 15 );
 		remove_filter( 'ep_post_mapping', [ $this, 'mapping' ] );
 		remove_filter( 'ep_woocommerce_shop_order_search_fields', [ $this, 'set_search_fields' ] );
 		remove_filter( 'ep_index_posts_args', [ $this, 'maybe_query_password_protected_posts' ] );
@@ -606,7 +606,12 @@ class OrdersAutosuggest {
 		}
 
 		if ( ! $this->is_hpos_compatible() ) {
-			return esc_html__( 'Currently, autosuggest for orders with HPOS requires WooCommerce 9.8.0 or greater.', 'elasticpress' );
+			return sprintf(
+				/* translators: %s: Minimum WooCommerce version required for HPOS integration. */
+				esc_html__( 'Currently, autosuggest for orders with HPOS requires WooCommerce %s or greater.', 'elasticpress' ),
+				/** This filter is documented in includes/classes/Feature/WooCommerce/Orders.php */
+				esc_html( apply_filters( 'ep_woocommerce_hpos_min_version', '9.8.0' ) )
+			);
 		}
 
 		/* translators: 1: <a> tag (ElasticPress.io); 2. </a>; 3: <a> tag (KB article); 4. </a>; */

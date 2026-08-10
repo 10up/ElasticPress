@@ -56,7 +56,9 @@ class Orders {
 		add_filter( 'ep_admin_notices', [ $this, 'hpos_compatibility_notice' ] );
 		add_filter( 'ep_woocommerce_settings_schema', [ $this, 'add_settings_schema' ], 20 );
 
-		if ( $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		// Only setup HPOS if Protected Content is active and HPOS is enabled and compatible.
+		if ( $protected_content->is_active() && $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
 			$this->orders_hpos->setup();
 		}
 	}
@@ -76,7 +78,8 @@ class Orders {
 		remove_action( 'pre_get_posts', [ $this, 'translate_args' ], 11 );
 		remove_filter( 'ep_woocommerce_settings_schema', [ $this, 'add_settings_schema' ], 20 );
 
-		if ( $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
+		$protected_content = \ElasticPress\Features::factory()->get_registered_feature( 'protected_content' );
+		if ( $protected_content->is_active() && $this->is_hpos_enabled() && $this->is_hpos_compatible() ) {
 			$this->orders_hpos->tear_down();
 		}
 	}

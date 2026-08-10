@@ -57,6 +57,9 @@ class OrdersHPOS {
 		add_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		add_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
+		add_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
+		add_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
+		add_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
 		add_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ], 10, 2 );
 		add_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ], 10, 2 );
 		add_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ], 10, 2 );
@@ -69,6 +72,9 @@ class OrdersHPOS {
 		remove_action( 'woocommerce_new_order', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_refund_created', [ $this, 'sync_order' ] );
 		remove_action( 'woocommerce_update_order', [ $this, 'sync_order' ] );
+		remove_action( 'woocommerce_trash_order', [ $this, 'sync_order' ] );
+		remove_action( 'woocommerce_untrash_order', [ $this, 'sync_order' ] );
+		remove_action( 'woocommerce_delete_order', [ $this, 'delete_order' ] );
 		remove_filter( 'ep_post_sync_args_post_prepare_meta', [ $this, 'set_order_data' ] );
 		remove_filter( 'woocommerce_hpos_pre_query', [ $this, 'maybe_intercept_wc_orders_query' ] );
 		remove_filter( 'woocommerce_order_query', [ $this, 'add_elasticsearch_success_to_orders' ] );
@@ -81,6 +87,18 @@ class OrdersHPOS {
 	 */
 	public function sync_order( $order_id ): void {
 		Indexables::factory()->get( 'post' )->sync_manager->add_to_queue( $order_id );
+	}
+
+	/**
+	 * Delete an order from the post index.
+	 *
+	 * @param int $order_id Order ID.
+	 */
+	public function delete_order( $order_id ): void {
+		$post_indexable = Indexables::factory()->get( 'post' );
+
+		$post_indexable->delete( $order_id, false );
+		$post_indexable->sync_manager->remove_from_queue( $order_id );
 	}
 
 	/**
@@ -104,12 +122,14 @@ class OrdersHPOS {
 			return $post_args;
 		}
 
-		$post_args['post_status']   = $this->get_order_status( $order );
-		$post_args['post_type']     = $order->get_type();
-		$post_args['post_parent']   = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
-		$post_args['post_date']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
-		$post_args['post_date_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
-		$post_args['post_excerpt']  = method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note() : '';
+		$post_args['post_status']       = $this->get_order_status( $order );
+		$post_args['post_type']         = $order->get_type();
+		$post_args['post_parent']       = $order->get_changes()['parent_id'] ?? $order->get_data()['parent_id'] ?? 0;
+		$post_args['post_date']         = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getOffsetTimestamp() );
+		$post_args['post_date_gmt']     = gmdate( 'Y-m-d H:i:s', $order->get_date_created( 'edit' )->getTimestamp() );
+		$post_args['post_modified']     = gmdate( 'Y-m-d H:i:s', $order->get_date_modified( 'edit' )->getOffsetTimestamp() );
+		$post_args['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $order->get_date_modified( 'edit' )->getTimestamp() );
+		$post_args['post_excerpt']      = method_exists( $order, 'get_customer_note' ) ? $order->get_customer_note() : '';
 
 		$post_order = new \WP_Post( (object) $post_args );
 

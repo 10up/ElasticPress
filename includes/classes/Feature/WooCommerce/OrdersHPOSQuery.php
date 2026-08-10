@@ -64,8 +64,12 @@ class OrdersHPOSQuery {
 			return null;
 		}
 
+		// If the order exists in Elasticsearch but not in the database, the Order List table page will throw an error. This workaround ensures that the Order List table page works correctly.
+		$class_names = \WC_Order_Factory::get_class_names_for_order_ids( $wp_query->posts );
+		$order_ids   = array_values( array_intersect( $wp_query->posts, array_keys( array_filter( $class_names ) ) ) );
+
 		return [
-			$wp_query->posts,
+			$order_ids,
 			(int) $wp_query->found_posts,
 			(int) $wp_query->max_num_pages,
 		];

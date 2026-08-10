@@ -490,7 +490,7 @@ class TestWooCommerceOrdersAutosuggest extends BaseTestCase {
 
 		$new_settings_schema = $this->orders_autosuggest->add_settings_schema( [] );
 		$this->assertStringContainsString( 'autosuggest for orders with HPOS requires WooCommerce', $new_settings_schema[0]['help'] );
-		$this->assertStringContainsString( '9.8.0', $new_settings_schema[0]['help'] );
+		$this->assertStringContainsString( '99.0.0', $new_settings_schema[0]['help'] );
 	}
 
 	/**

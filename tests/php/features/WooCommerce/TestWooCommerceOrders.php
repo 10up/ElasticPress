@@ -1125,6 +1125,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$orders = wc_get_orders(
 			[
 				'created_via' => [ 'web', 'api' ],
+				'orderby'     => 'date_created',
+				'order'       => 'ASC',
 			]
 		);
 
@@ -1137,6 +1139,8 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 		$orders = wc_get_orders(
 			[
 				'created_via' => '',
+				'orderby'     => 'date_created',
+				'order'       => 'ASC',
 			]
 		);
 		$this->assertTrue( $this->orders->order_has_elasticsearch_success( $orders[0] ) );

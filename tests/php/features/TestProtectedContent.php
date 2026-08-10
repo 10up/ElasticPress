@@ -663,6 +663,7 @@ class TestProtectedContent extends BaseTestCase {
 				'post_status'  => 'inherit,private',
 				'ep_integrate' => true,
 				'orderby'      => 'date',
+				'order'        => 'ASC',
 			]
 		);
 
@@ -676,6 +677,7 @@ class TestProtectedContent extends BaseTestCase {
 				'post_status'  => [ 'inherit', 'private' ],
 				'ep_integrate' => true,
 				'orderby'      => 'date',
+				'order'        => 'ASC',
 			]
 		);
 		$this->assertTrue( $query->elasticsearch_success );
