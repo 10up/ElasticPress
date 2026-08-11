@@ -318,7 +318,9 @@ class QueryIntegration {
 			}
 
 			/**
-			 * Queries scoped to other sites need the posts cache disabled. That cache is blog-specific, so priming it with posts from another site would make later calls to get_post() return foreign content for an ID that also exists here.
+			 * Disable the post cache for cross-site results. The `posts` cache group is
+			 * per-blog and keyed by ID only, so caching another site's post can poison
+			 * later get_post() calls for the same ID on the current site.
 			 */
 			if ( 'all' === $scope || ! empty( $site__in ) || ! empty( $site__not_in ) ) {
 				$query->set( 'cache_results', false );
