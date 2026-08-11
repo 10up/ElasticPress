@@ -98,7 +98,7 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Disables cache_results, adds header.
+	 * Adds header.
 	 *
 	 * @param WP_Query $query WP_Query instance
 	 * @since 0.9
@@ -211,8 +211,6 @@ class QueryIntegration {
 	 * @return string
 	 */
 	public function get_es_posts( $posts, $query ) {
-		global $wpdb;
-
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -317,6 +315,13 @@ class QueryIntegration {
 				// @codeCoverageIgnoreStart
 				$scope = 'current';
 				// @codeCoverageIgnoreEnd
+			}
+
+			/**
+			 * Queries scoped to other sites need the posts cache disabled. That cache is blog-specific, so priming it with posts from another site would make later calls to get_post() return foreign content for an ID that also exists here.
+			 */
+			if ( 'all' === $scope || ! empty( $site__in ) || ! empty( $site__not_in ) ) {
+				$query->set( 'cache_results', false );
 			}
 
 			$index = null;
