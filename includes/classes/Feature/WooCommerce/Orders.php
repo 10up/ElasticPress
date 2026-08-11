@@ -358,7 +358,7 @@ class Orders {
 	}
 
 	/**
-	 * Display a notice when HPOS order queries are not integrated with ElasticPres.
+	 * Display a notice when HPOS order queries are not integrated with ElasticPress.
 	 *
 	 * Shown when HPOS is unsupported, and when query integration has been activated
 	 * in the settings.

@@ -815,7 +815,7 @@ class OrdersHPOSQuery {
 	 * @return array Meta query clause.
 	 */
 	protected function build_customer_meta_clause( $values, string $relation = 'OR' ): array {
-		$values = is_array( $values ) ? $values : [ $values ];
+		$values = (array) $values;
 
 		$ids    = [];
 		$emails = [];
@@ -840,7 +840,7 @@ class OrdersHPOSQuery {
 			$clauses[] = [
 				'key'     => '_customer_user',
 				'value'   => $ids,
-				'compare' => '=',
+				'compare' => 'IN',
 				'type'    => 'NUMERIC',
 			];
 		}
@@ -849,7 +849,7 @@ class OrdersHPOSQuery {
 			$clauses[] = [
 				'key'     => '_billing_email',
 				'value'   => $emails,
-				'compare' => '=',
+				'compare' => 'IN',
 			];
 		}
 
