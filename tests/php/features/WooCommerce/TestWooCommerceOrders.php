@@ -591,6 +591,41 @@ class TestWooCommerceOrders extends WooCommerceBaseTestCase {
 	}
 
 	/**
+	 * Test HPOS query integration is skipped while posts-table data sync is enabled.
+	 *
+	 * @since 5.4.0
+	 * @group woocommerce
+	 * @group woocommerce-orders
+	 */
+	public function test_hpos_query_integration_skips_when_data_sync_enabled() {
+		$this->enable_hpos();
+
+		ElasticPress\Features::factory()->activate_feature( 'woocommerce' );
+		ElasticPress\Features::factory()->activate_feature( 'protected_content' );
+		ElasticPress\Features::factory()->setup_features();
+
+		$shop_order = new \WC_Order();
+		$shop_order->save();
+		$shop_order_id = $shop_order->get_id();
+		ElasticPress\Indexables::factory()->get( 'post' )->index( $shop_order_id, true );
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$data_sync_option = \Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer::ORDERS_DATA_SYNC_ENABLED_OPTION;
+		$enable_data_sync = function () {
+			return 'yes';
+		};
+		add_filter( 'pre_option_' . $data_sync_option, $enable_data_sync );
+
+		$orders = wc_get_orders( [ 'id' => $shop_order_id ] );
+
+		remove_filter( 'pre_option_' . $data_sync_option, $enable_data_sync );
+
+		$this->assertCount( 1, $orders );
+		$this->assertEquals( $shop_order_id, $orders[0]->get_id() );
+		$this->assertFalse( $this->orders->order_has_elasticsearch_success( $orders[0] ) );
+	}
+
+	/**
 	 * Test HPOS compatibility notice is hidden when query integration is disabled.
 	 *
 	 * @since 5.4.0

@@ -10,6 +10,7 @@ namespace ElasticPress\Feature\WooCommerce;
 
 use ElasticPress\Indexables;
 use Automattic\WooCommerce\Enums\OrderStatus;
+use Automattic\WooCommerce\Internal\DataStores\Orders\DataSynchronizer;
 use Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableQuery;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -339,6 +340,11 @@ class OrdersHPOS {
 	protected function should_integrate_with_query( $args, $query ): bool {
 		// bail early if the query integration is disabled.
 		if ( $this->orders->is_hpos_query_integration_disabled() ) {
+			return false;
+		}
+
+		$data_synchronizer = wc_get_container()->get( DataSynchronizer::class );
+		if ( $data_synchronizer->data_sync_is_enabled() ) {
 			return false;
 		}
 
