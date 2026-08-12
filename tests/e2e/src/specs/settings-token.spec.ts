@@ -12,10 +12,22 @@ const EPIO_HOST = 'https://elasticpress.io';
  * preserves the previously stored token.
  */
 test.describe('Settings page Subscription Token field', { tag: '@group1' }, () => {
+	// The EP_HOST constant (set in wp-config by the CI/e2e setup script) wins
+	// over the ep_host option in get_host(), so the token row would stay
+	// hidden on the non-EPIO tab. Removing the constant here lets the seeded
+	// option control is_epio() and renders the credentials row for these tests.
+	let originalEpHost = '';
+
 	test.beforeAll(async () => {
 		if (isEpIo()) {
 			return;
 		}
+
+		originalEpHost = (await wpCli('config get EP_HOST', true))?.toString().trim() ?? '';
+
+		// Drop the constant so the seeded ep_host option below is used, which
+		// makes is_epio() true via the host pattern and shows the EPIO tab.
+		await wpCli('config delete EP_HOST');
 
 		// Seed a known token and force is_epio() to true via the host pattern
 		// so the credentials row renders on the ElasticPress.io tab.
@@ -33,6 +45,12 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 		// Clean up the seeded options so other specs are not affected.
 		await wpCli('option delete ep_host');
 		await wpCli('option delete ep_credentials');
+
+		// Restore the EP_HOST constant removed in beforeAll so subsequent
+		// specs in the single-worker run see the original host.
+		if (originalEpHost) {
+			await wpCli(`config set EP_HOST ${originalEpHost}`);
+		}
 	});
 
 	test('Token value is not exposed in the page', async ({ loggedInPage }) => {
@@ -54,7 +72,11 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 	test('Saving without changing the token preserves the stored value', async ({
 		loggedInPage,
 	}) => {
-		test.skip(isEpIo(), 'Uses locally seeded credentials.');
+		// Saving calls get_elasticsearch_info( true ) against the EP_HOST. On the
+		// non-EPIO matrix the seeded EPIO host is unreachable, so the handler
+		// runs reset_settings() and wipes the credentials. This behavior can only
+		// be exercised against a real connected EPIO account.
+		test.skip(!isEpIo(), 'Requires a live EPIO connection.');
 
 		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-settings');
 
@@ -67,7 +89,8 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 	});
 
 	test('Saving a new token value updates the stored value', async ({ loggedInPage }) => {
-		test.skip(isEpIo(), 'Uses locally seeded credentials.');
+		// See note above: saving requires a reachable EPIO host.
+		test.skip(!isEpIo(), 'Requires a live EPIO connection.');
 
 		const newToken = 'rotated-token';
 
