@@ -593,9 +593,9 @@ class InstantResults extends Feature {
 	 * Get post type slugs to exclude from the Instant Results post type filter.
 	 *
 	 * @since 5.3.4
-	 * @return array Array of post type slugs to exclude.
+	 * @return string[] Post type slugs to exclude.
 	 */
-	public function get_excluded_post_types() {
+	public function get_excluded_post_types(): array {
 		/**
 		 * Filter post type slugs to exclude from Instant Results.
 		 *
@@ -611,7 +611,12 @@ class InstantResults extends Feature {
 		 * @param {string[]} $excluded Post type slugs to exclude (e.g., ['page']).
 		 * @return {string[]} Filtered exclusions.
 		 */
-		return apply_filters( 'ep_instant_results_excluded_post_types', [] );
+		$post_types = apply_filters( 'ep_instant_results_excluded_post_types', [] );
+		$post_types = array_filter( (array) $post_types, 'is_scalar' );
+		$post_types = array_map( 'strval', $post_types );
+		$post_types = array_filter( $post_types );
+
+		return array_values( $post_types );
 	}
 
 	/**
@@ -620,7 +625,7 @@ class InstantResults extends Feature {
 	 * @since 5.3.4
 	 * @return int[] Term IDs to exclude.
 	 */
-	public function get_excluded_term_ids() {
+	public function get_excluded_term_ids(): array {
 		/**
 		 * Filter term IDs to exclude from all Instant Results taxonomy filters.
 		 *
@@ -633,7 +638,12 @@ class InstantResults extends Feature {
 		 * @param {int[]} $excluded Term IDs to exclude (e.g., [1, 120]).
 		 * @return {int[]} Filtered exclusions.
 		 */
-		return apply_filters( 'ep_instant_results_excluded_term_ids', [] );
+		$term_ids = apply_filters( 'ep_instant_results_excluded_term_ids', [] );
+		$term_ids = array_filter( (array) $term_ids, 'is_scalar' );
+		$term_ids = array_map( 'intval', $term_ids );
+		$term_ids = array_filter( $term_ids );
+
+		return array_values( $term_ids );
 	}
 
 	/**
