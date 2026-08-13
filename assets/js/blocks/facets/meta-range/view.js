@@ -63,7 +63,7 @@ const App = ({ max, min }) => {
 	 *
 	 * @param {Array} value Value range.
 	 * @param {number} value.0 Minimum value.
-	 * @param {number} value.1 Mximum value.
+	 * @param {number} value.1 Maximum value.
 	 * @returns {void}
 	 */
 	const onChange = ([from, to]) => {
