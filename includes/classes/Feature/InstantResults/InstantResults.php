@@ -592,7 +592,7 @@ class InstantResults extends Feature {
 	/**
 	 * Get post type slugs to exclude from the Instant Results post type filter.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.4
 	 * @return array Array of post type slugs to exclude.
 	 */
 	public function get_excluded_post_types() {
@@ -607,7 +607,7 @@ class InstantResults extends Feature {
 		 * Results or Weighting settings to regenerate the template.
 		 *
 		 * @hook ep_instant_results_excluded_post_types
-		 * @since 5.4.0
+		 * @since 5.3.4
 		 * @param {string[]} $excluded Post type slugs to exclude (e.g., ['page']).
 		 * @return {string[]} Filtered exclusions.
 		 */
@@ -617,7 +617,7 @@ class InstantResults extends Feature {
 	/**
 	 * Get term IDs to exclude from all Instant Results taxonomy filters.
 	 *
-	 * @since 5.4.0
+	 * @since 5.3.4
 	 * @return int[] Term IDs to exclude.
 	 */
 	public function get_excluded_term_ids() {
@@ -629,7 +629,7 @@ class InstantResults extends Feature {
 		 * terms still appear in search results.
 		 *
 		 * @hook ep_instant_results_excluded_term_ids
-		 * @since 5.4.0
+		 * @since 5.3.4
 		 * @param {int[]} $excluded Term IDs to exclude (e.g., [1, 120]).
 		 * @return {int[]} Filtered exclusions.
 		 */

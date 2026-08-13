@@ -225,7 +225,7 @@ class TestInstantResults extends BaseTestCase {
 	 * Test that excluded post types are removed from the search template.
 	 *
 	 * @group instant-results
-	 * @since 5.4.0
+	 * @since 5.3.4
 	 */
 	public function test_search_template_excludes_post_types() {
 		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
@@ -249,7 +249,7 @@ class TestInstantResults extends BaseTestCase {
 	 * Test the get_excluded_term_ids method.
 	 *
 	 * @group instant-results
-	 * @since 5.4.0
+	 * @since 5.3.4
 	 */
 	public function test_get_excluded_term_ids() {
 		$feature = \ElasticPress\Features::factory()->get_registered_feature( 'instant-results' );
