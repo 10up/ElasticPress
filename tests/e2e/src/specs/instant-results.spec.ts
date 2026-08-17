@@ -603,6 +603,91 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 					'wpCli',
 				);
 			});
+
+			test('Is possible to exclude post types via ep_instant_results_excluded_post_types', async ({
+				loggedInPage,
+			}) => {
+				/**
+				 * Activate test plugin and regenerate the search template so the
+				 * excluded post type is dropped from the template.
+				 */
+				await maybeEnableFeature('instant-results');
+				await setCustomPostTypes();
+				await activatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-post-types',
+					'wpCli',
+				);
+				await wpCli('elasticpress put-search-template', true);
+
+				/**
+				 * Perform a search.
+				 */
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=post');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'post');
+				await responsePromise;
+
+				/**
+				 * The excluded post type should not appear in the Post Type facet.
+				 */
+				await expect(loggedInPage.locator('#ep-search-post-type-page')).toHaveCount(0);
+
+				await deactivatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-post-types',
+					'wpCli',
+				);
+				await wpCli('elasticpress put-search-template', true);
+			});
+
+			test('Is possible to exclude term IDs via ep_instant_results_excluded_term_ids', async ({
+				loggedInPage,
+			}) => {
+				/**
+				 * Activate test plugin.
+				 */
+				await maybeEnableFeature('instant-results');
+				await setCustomPostTypes();
+				await activatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-term-ids',
+					'wpCli',
+				);
+
+				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				const apiResponsePromise = loggedInPage.waitForResponse(
+					'**/wp-json/elasticpress/v1/features*',
+				);
+
+				await loggedInPage.getByRole('button', { name: 'Live Search' }).click();
+				await loggedInPage.getByRole('button', { name: 'Instant Results' }).click();
+				await addInstantResultFilter(loggedInPage, '(category)');
+				await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+
+				await apiResponsePromise;
+
+				/**
+				 * Perform a search.
+				 */
+				const responsePromise = instantResultRequestPromise(loggedInPage, 'search=block');
+				await loggedInPage.goto('/');
+				await searchFor(loggedInPage, 'block');
+				await responsePromise;
+
+				/**
+				 * The excluded term should not appear in the category facet.
+				 */
+				await expect(
+					loggedInPage.locator('[id^="ep-search-tax-category-"]', { hasText: 'Markup' }),
+				).toHaveCount(0);
+
+				await deactivatePlugin(
+					loggedInPage,
+					'filter-instant-results-excluded-term-ids',
+					'wpCli',
+				);
+			});
 		});
 
 		test('Is possible to filter the arguments schema', async ({ loggedInPage }) => {
