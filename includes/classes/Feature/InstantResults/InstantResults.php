@@ -602,9 +602,9 @@ class InstantResults extends Feature {
 		 * Excluded post types are hidden from the Post Type facet and
 		 * removed from the search template so their content does not
 		 * appear in results. The search template is generated and
-		 * uploaded to Elasticsearch when Instant Results settings are
-		 * saved, so after changing this filter, re-save the Instant
-		 * Results or Weighting settings to regenerate the template.
+		 * saved when Instant Results settings are saved,
+		 * so after changing this filter, re-save the Instant Results
+		 * or Weighting settings to regenerate the template.
 		 *
 		 * @hook ep_instant_results_excluded_post_types
 		 * @since 5.3.4
