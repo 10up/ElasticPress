@@ -482,7 +482,9 @@ class QueryIntegration {
 
 			foreach ( $post_return_args as $key ) {
 				if ( 'post_author' === $key ) {
-					$post->$key = $post_array[ $key ]['id'];
+					if ( isset( $post_array[ $key ]['id'] ) ) {
+						$post->$key = $post_array[ $key ]['id'];
+					}
 				} elseif ( isset( $post_array[ $key ] ) ) {
 					if ( in_array( $key, [ 'terms', 'meta', 'post_meta' ], true ) && is_array( $post_array[ $key ] ) ) {
 						$post->$key = wp_json_encode( $post_array[ $key ] );
