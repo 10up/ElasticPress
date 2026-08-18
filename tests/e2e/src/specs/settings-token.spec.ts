@@ -76,9 +76,11 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 		await loggedInPage.waitForLoadState('networkidle');
 
 		await expect(
-			loggedInPage.getByText(
-				'It was not possible to connect to your Elasticsearch server. Please check your settings and try again.',
-			),
+			loggedInPage
+				.locator('.notice-error')
+				.getByText(
+					'It was not possible to connect to your ElasticPress.io account. Your settings were reverted.',
+				),
 		).toBeVisible();
 	});
 
