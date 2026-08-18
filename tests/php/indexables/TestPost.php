@@ -476,7 +476,7 @@ class TestPost extends BaseTestCase {
 		$this->assertNotNull( $query->posts[0]->terms );
 		$post = $query->posts[0];
 
-		$terms = $post->terms;
+		$terms = json_decode( $post->terms, true );
 		$this->assertTrue( isset( $terms[ $tax_name ] ) );
 		$this->assertTrue( count( $terms[ $tax_name ] ) === 1 );
 		$indexed_terms  = $terms[ $tax_name ];
@@ -1686,7 +1686,138 @@ class TestPost extends BaseTestCase {
 		$this->assertTrue( $query->elasticsearch_success );
 		$this->assertEquals( 1, $query->post_count );
 
-		$this->assertEquals( 1, count( $query->posts[0]->meta['test_key'] ) );
+		$meta = json_decode( $query->posts[0]->meta, true );
+		$this->assertEquals( 1, count( $meta['test_key'] ) );
+	}
+
+	/**
+	 * Test that a narrowed `_source` does not emit PHP warnings.
+	 *
+	 * A query can narrow `_source` via `ep_formatted_args` while leaving `fields`
+	 * at its default, which routes hits to `format_hits_as_posts()`. Every property
+	 * that method copies must tolerate being absent from the document. Any warning
+	 * raised while building the post objects fails this test, as the suite converts
+	 * warnings and notices to exceptions.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function testFormatHitsAsPostsWithNarrowedSource() {
+		$post_id = $this->ep_factory->post->create( array( 'post_content' => 'findme narrowed source' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$filter_executed = false;
+
+		$narrow_source = function ( $formatted_args ) use ( &$filter_executed ) {
+			$filter_executed = true;
+
+			$formatted_args['_source'] = array( 'post_id' );
+
+			return $formatted_args;
+		};
+
+		add_filter( 'ep_formatted_args', $narrow_source );
+		$query = new \WP_Query( array( 'ep_integrate' => true ) );
+		remove_filter( 'ep_formatted_args', $narrow_source );
+
+		$this->assertTrue( $filter_executed );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $post_id, $query->posts[0]->ID );
+		$this->assertSame( '0', $query->posts[0]->post_author );
+	}
+
+	/**
+	 * Data provider for the testFormatHitsAsPostsWithPostAuthorShape method.
+	 *
+	 * `post_author` is indexed as an object and read through a nested `['id']`
+	 * subscript, so shapes other than the complete one have to be tolerated too.
+	 * A scalar string is fatal when the subscript is unguarded.
+	 *
+	 * Shapes carrying no usable id leave the property unset, exactly as the other
+	 * properties in the same loop do, so `WP_Post` supplies its own default of '0'.
+	 *
+	 * @since 5.3.4
+	 * @return array
+	 */
+	public function postAuthorShapeProvider() {
+		return [
+			[
+				[
+					'login' => 'author_login',
+					'id'    => 5,
+				],
+				5,
+			],
+			[ [ 'id' => 0 ], 0 ],
+			[ [ 'id' => '' ], '' ],
+			[ [ 'id' => null ], '0' ],
+			[ [ 'login' => 'author_login' ], '0' ],
+			[ 1, '0' ],
+			[ '', '0' ],
+		];
+	}
+
+	/**
+	 * Test that post_author is read without error whatever shape it arrives in.
+	 *
+	 * @param mixed $post_author Value to place in the document.
+	 * @param mixed $expected    Expected value on the returned post.
+	 * @since 5.3.4
+	 * @dataProvider postAuthorShapeProvider
+	 * @group post
+	 */
+	public function testFormatHitsAsPostsWithPostAuthorShape( $post_author, $expected ) {
+		$this->ep_factory->post->create( array( 'post_content' => 'findme author shape' ) );
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$filter_executed = false;
+
+		$set_author = function ( $document ) use ( $post_author, &$filter_executed ) {
+			$filter_executed = true;
+
+			$document['post_author'] = $post_author;
+
+			return $document;
+		};
+
+		add_filter( 'ep_retrieve_the_post', $set_author );
+		$query = new \WP_Query( array( 'ep_integrate' => true ) );
+		remove_filter( 'ep_retrieve_the_post', $set_author );
+
+		$this->assertTrue( $filter_executed );
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( $expected, $query->posts[0]->post_author );
+	}
+
+	/**
+	 * Test that post_author is still populated when it is present in the document.
+	 *
+	 * Companion to testFormatHitsAsPostsWithNarrowedSource: guarding the read must
+	 * not stop the property being set for ordinary queries.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function testFormatHitsAsPostsSetsPostAuthor() {
+		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+
+		$this->ep_factory->post->create(
+			array(
+				'post_content' => 'findme with author',
+				'post_author'  => $user_id,
+			)
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query( array( 'ep_integrate' => true ) );
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertEquals( 1, $query->post_count );
+		$this->assertEquals( $user_id, $query->posts[0]->post_author );
 	}
 
 	/**
@@ -10591,5 +10722,65 @@ class TestPost extends BaseTestCase {
 
 		$queries_after = $wpdb->num_queries;
 		$this->assertGreaterThan( $queries_before, $queries_after );
+	}
+
+	/**
+	 * Test max_num_pages when posts_per_page is -1.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_max_num_pages_with_posts_per_page_negative_one() {
+		$this->ep_factory->post->create();
+		$this->ep_factory->post->create();
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate'   => true,
+				'posts_per_page' => -1, // phpcs:ignore WordPress.WP.PostsPerPageNoUnlimited.posts_per_page_posts_per_page
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+		$this->assertSame( 2, $query->found_posts );
+		$this->assertSame( 0, $query->max_num_pages );
+	}
+
+	/**
+	 * Test that post term and meta are stored as JSON.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_post_term_and_meta_are_stored_as_json() {
+		$category_id = $this->ep_factory->category->create();
+		$post_id     = $this->ep_factory->post->create(
+			[
+				'meta_input' => [
+					'test_key' => 'test_value',
+				],
+				'tax_input'  => [
+					'category' => [ $category_id ],
+				],
+			]
+		);
+
+		ElasticPress\Elasticsearch::factory()->refresh_indices();
+
+		$query = new \WP_Query(
+			[
+				'ep_integrate' => true,
+				'post__in'     => [ $post_id ],
+			]
+		);
+
+		$this->assertTrue( $query->elasticsearch_success );
+
+		$post = get_post( $query->posts[0], OBJECT, 'edit' );
+
+		$this->assertJson( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
+		$this->assertJson( wp_specialchars_decode( $post->meta, ENT_QUOTES ), true );
 	}
 }

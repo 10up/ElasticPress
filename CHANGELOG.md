@@ -4,15 +4,55 @@ All notable changes to this project will be documented in this file, per [the Ke
 
 ## [Unreleased]
 
-<!--
 ### Added
+* "Remove the saved subscription token" checkbox on the Settings page so subscribers can clear the stored token without editing `wp_options`. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
+
+### Security
+* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
+
+<!--
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
-### Security
 ### Developer
 -->
+
+## [5.3.3] - 2026-05-07
+
+### Added
+* Numbered pagination option for Instant Results. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4274](https://github.com/10up/ElasticPress/pull/4274).
+* New elasticpress_general_ep_screens filter. Props [@felipeelia](https://github.com/felipeelia) via [#4256](https://github.com/10up/ElasticPress/pull/4256).
+* New ep_feature_requirements_status_* filters and a new "Temporarily disabled" feature status (in code). Props [@felipeelia](https://github.com/felipeelia) via [#4265](https://github.com/10up/ElasticPress/pull/4265).
+
+### Changed
+* Optimize mb_strlen calls during sync process. Props [@kasparsd](https://github.com/kasparsd) via [#4304](https://github.com/10up/ElasticPress/pull/4304).
+* Saving feature settings now reflects feature dependencies without refreshing the page. Props [@ZacharyRener](https://github.com/ZacharyRener) via [#4275](https://github.com/10up/ElasticPress/pull/4275).
+
+### Fixed
+* Keep the sync running when code outputs directly in the post content. Props [@burhandodhy](https://github.com/burhandodhy), [@tomjn](https://github.com/tomjn), and [@felipeelia](https://github.com/felipeelia) via [#4266](https://github.com/10up/ElasticPress/pull/4266).
+* Prevent saving Custom Results while posts are loading. Props [@burhandodhy](https://github.com/burhandodhy) via [#4260](https://github.com/10up/ElasticPress/pull/4260).
+* Update label for bulk request timeout in ElasticPress status report. Props [@burhandodhy](https://github.com/burhandodhy) via [#4259](https://github.com/10up/ElasticPress/pull/4259).
+* Undefined array key warnings in Weighting.php. Props [@burhandodhy](https://github.com/burhandodhy) and [@BWBama85](https://github.com/BWBama85) via [#4270](https://github.com/10up/ElasticPress/pull/4270).
+* Ensure the Sync creates the Instant Results templates for all the sites. Props [@burhandodhy](https://github.com/burhandodhy) and [@anjulahettige](https://github.com/anjulahettige) via [#4258](https://github.com/10up/ElasticPress/pull/4258).
+* Ensure that WordPress caches the meta and term queries. Props [@burhandodhy](https://github.com/burhandodhy) and [@maciejmackowiak](https://github.com/maciejmackowiak) via [#4268](https://github.com/10up/ElasticPress/pull/4268).
+* An issue where posts were not returned correctly when the search term contained accented characters. Props [@burhandodhy](https://github.com/burhandodhy) via [#4263](https://github.com/10up/ElasticPress/pull/4263).
+* Prevent fatal error in Instant Results facets when `ep_facet_include_taxonomies` returns non-WP_Taxonomy values. Props [@laraib15](https://github.com/laraib15) via [#4255](https://github.com/10up/ElasticPress/pull/4255).
+* Instant Results displayed special characters as HTML encoded text. Props [@burhandodhy](https://github.com/burhandodhy) and [@wparslans](https://github.com/wparslans) via [#4276](https://github.com/10up/ElasticPress/pull/4276).
+* Error when trying to use queried object that doesn't exist. Props [@tomjn](https://github.com/tomjn) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4285](https://github.com/10up/ElasticPress/pull/4285).
+* Only consider a feature active if not disabled by code. Props [@felipeelia](https://github.com/felipeelia) via [#4272](https://github.com/10up/ElasticPress/pull/4272).
+* Several typos. Props [@szepeviktor](https://github.com/szepeviktor) and [@felipeelia](https://github.com/felipeelia) via [#4248](https://github.com/10up/ElasticPress/pull/4248).
+* Query count in the basic status admin bar. Props [@Sidsector9](https://github.com/Sidsector9) via [#4309](https://github.com/10up/ElasticPress/pull/4309).
+* Settings notice layout on the settings page during sync in WordPress 7.0. Props [@burhandodhy](https://github.com/burhandodhy) via [#4310](https://github.com/10up/ElasticPress/pull/4310).
+
+### Security
+* Updated Node.js dependencies (including a webpack override) to address npm audit findings. Props [@felipeelia](https://github.com/felipeelia) via [#4307](https://github.com/10up/ElasticPress/pull/4307).
+
+### Developer
+* Ensure `ep_{$indexable->slug}_sync_kill` properly prevents object indexing during sync and post updates. Props [@burhandodhy](https://github.com/burhandodhy), [@felipeelia](https://github.com/felipeelia), and [@matthijsch](https://github.com/matthijsch) via [#4282](https://github.com/10up/ElasticPress/pull/4282).
+* Gracefully handle incorrect return types from `ep_admin_notices` filter callbacks. Props [@qudwill](https://github.com/qudwill), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9) via [#4281](https://github.com/10up/ElasticPress/pull/4281).
+* Webpack configuration option for JavaScript and CSS source maps (editor debugging). Props [@fiftin](https://github.com/fiftin) and [@ZacharyRener](https://github.com/ZacharyRener) via [#4247](https://github.com/10up/ElasticPress/pull/4247) and [#4288](https://github.com/10up/ElasticPress/pull/4288).
+* Fix e2e tests. Props [@felipeelia](https://github.com/felipeelia) via [#4262](https://github.com/10up/ElasticPress/pull/4262).
 
 ## [5.3.2.2] - 2026-03-26
 
@@ -2319,6 +2359,7 @@ This is a bug fix release with some filter additions.
 - Initial plugin release
 
 [Unreleased]: https://github.com/10up/ElasticPress/compare/trunk...develop
+[5.3.3]: https://github.com/10up/ElasticPress/compare/5.3.2.2...5.3.3
 [5.3.2.2]: https://github.com/10up/ElasticPress/compare/5.3.2.1...5.3.2.2
 [5.3.2.1]: https://github.com/10up/ElasticPress/compare/5.3.2...5.3.2.1
 [5.3.2]: https://github.com/10up/ElasticPress/compare/5.3.1...5.3.2

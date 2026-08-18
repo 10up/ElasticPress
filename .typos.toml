@@ -1,0 +1,40 @@
+[files]
+extend-exclude = [
+    ".git/",
+    "node_modules/",
+    "vendor/",
+    "dist/",
+    "build/",
+    "lang/",
+    "tests/e2e/src/wordpress-files/test-docs/content-example.xml",
+    "tests/e2e/src/fixtures/txt-file.txt",
+    "tests/e2e/src/fixtures/csv-file.csv",
+]
+ignore-hidden = false
+
+[default]
+extend-ignore-re = [
+    "@[A-Za-z0-9_-]+",
+    "Fabian Marz",
+    "Tung Du",
+    "Van Patten",
+    "github:[^\"\\s]+",
+    "not so good match - beautful",
+]
+
+[default.extend-words]
+# Typos previously found in this codebase
+"utilitary" = "utility"
+"heirarchal" = "hierarchical"
+"mimcs" = "mimics"
+"santitize" = "sanitize"
+"warnngs" = "warnings"
+"versino" = "version"
+"degister" = "deregister"
+"quries" = "queries"
+"supposably" = "supposably"
+"stati" = "stati"
+
+[default.extend-identifiers]
+"Automattic" = "Automattic"
+"avaiableServices" = "avaiableServices"

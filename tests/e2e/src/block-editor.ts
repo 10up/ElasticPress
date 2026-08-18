@@ -248,7 +248,9 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 				.first();
 
 			await verticalInputsWrapper
-				.locator('button[aria-label="Set custom size"]')
+				.locator(
+					'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
+				)
 				.first()
 				.click();
 			await verticalInputsWrapper.locator('input[type="number"]').fill('10');
@@ -258,7 +260,9 @@ export async function supportsBlockDimensions(page: Page, element: Locator, isEd
 				.nth(1);
 
 			await horizontalInputsWrapper
-				.locator('button[aria-label="Set custom size"]')
+				.locator(
+					'button[aria-label="Set custom value"], button[aria-label="Set custom size"]',
+				)
 				.first()
 				.click();
 			await horizontalInputsWrapper.locator('input[type="number"]').fill('15');

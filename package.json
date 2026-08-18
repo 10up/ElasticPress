@@ -1,6 +1,6 @@
 {
   "name": "elasticpress",
-  "version": "5.3.2-2",
+  "version": "5.3.3",
   "license": "GPL-2.0-or-later",
   "description": "A fast and flexible search and query engine for WordPress.",
   "private": true,
@@ -10,14 +10,15 @@
     "@wordpress/icons": "^10.13.0",
     "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
-    "react-router-dom": "^7.9.4",
+    "react-router-dom": "^7.18.2",
     "react-slider": "^2.0.6",
-    "uuid": "^11.0.5"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@wordpress/env": "^10.4.0",
     "10up-toolkit": "^6.4.0",
     "classnames": "^2.5.1",
+    "eslint-import-resolver-typescript": "^3.6.1",
     "husky": "^9.0.0",
     "jsdoc": "^4.0.4",
     "lint-staged": "^15.4.3",

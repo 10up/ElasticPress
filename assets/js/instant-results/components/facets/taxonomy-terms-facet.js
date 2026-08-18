@@ -10,7 +10,7 @@ import { applyFilters } from '@wordpress/hooks';
  * Internal dependencies.
  */
 import { useApiSearch } from '../../../api-search';
-import { facets, postTypeLabels } from '../../config';
+import { excludedTermIds, facets, postTypeLabels } from '../../config';
 import CheckboxList from '../common/checkbox-list';
 import Panel from '../common/panel';
 import { ActiveConstraint } from '../tools/active-constraints';
@@ -63,6 +63,10 @@ export default ({ defaultIsOpen, label, postTypes, name }) => {
 	const reduceOptions = useCallback(
 		(options, { doc_count, key }) => {
 			const { name: label, parent, term_id, term_order } = JSON.parse(key);
+
+			if (excludedTermIds?.includes(term_id)) {
+				return options;
+			}
 
 			options.push({
 				checked: selectedTerms.includes(term_id),

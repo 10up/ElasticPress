@@ -33,6 +33,8 @@
         "wp-content/plugins/fake-log-messages.php": "./tests/e2e/src/wordpress-files/test-plugins/fake-log-messages.php",
         "wp-content/plugins/fake-new-activation.php": "./tests/e2e/src/wordpress-files/test-plugins/fake-new-activation.php",
         "wp-content/plugins/filter-instant-results-category-terms.php": "./tests/e2e/src/wordpress-files/test-plugins/filter-instant-results-category-terms.php",
+        "wp-content/plugins/filter-instant-results-excluded-post-types.php": "./tests/e2e/src/wordpress-files/test-plugins/filter-instant-results-excluded-post-types.php",
+        "wp-content/plugins/filter-instant-results-excluded-term-ids.php": "./tests/e2e/src/wordpress-files/test-plugins/filter-instant-results-excluded-term-ids.php",
         "wp-content/plugins/filter-instant-results-per-page.php": "./tests/e2e/src/wordpress-files/test-plugins/filter-instant-results-per-page.php",
         "wp-content/plugins/filter-instant-results-args-schema.php": "./tests/e2e/src/wordpress-files/test-plugins/filter-instant-results-args-schema.php",
         "wp-content/plugins/filter-autosuggest-navigate-callback.php": "./tests/e2e/src/wordpress-files/test-plugins/filter-autosuggest-navigate-callback.php",
