@@ -2,12 +2,12 @@
  * WordPress dependencies.
  */
 import { createPortal, createRef, WPElement } from '@wordpress/element';
-import { closeSmall, Icon } from '@wordpress/icons';
 import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies.
  */
+import { closeSmall, Icon } from '../../../utils/icons';
 import SmallButton from '../common/small-button';
 
 /**

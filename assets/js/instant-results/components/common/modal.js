@@ -7,8 +7,12 @@ import { FocusTrap } from 'focus-trap-react';
  * WordPress dependencies.
  */
 import { useCallback, useEffect, useRef, WPElement } from '@wordpress/element';
-import { closeSmall, Icon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Internal dependencies.
+ */
+import { closeSmall, Icon } from '../../../utils/icons';
 
 /**
  * Modal components.

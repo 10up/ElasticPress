@@ -2,8 +2,12 @@
  * WordPress dependencies.
  */
 import { WPElement } from '@wordpress/element';
-import { chevronDown, chevronUp, Icon } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+
+/**
+ * Internal dependencies.
+ */
+import { chevronDown, chevronUp, Icon } from '../../../utils/icons';
 
 /**
  * Open sidebar component.

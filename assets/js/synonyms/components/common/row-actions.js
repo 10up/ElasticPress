@@ -4,11 +4,11 @@
 import { Button, Flex, FlexItem, Icon, Tooltip } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { pencil, trash } from '@wordpress/icons';
 
 /**
  * Internal dependencies.
  */
+import { pencil, trash } from '../../../utils/icons';
 import error from '../icons/error';
 
 /**
