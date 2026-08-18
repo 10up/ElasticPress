@@ -15,6 +15,7 @@
 
 		& > ul {
 			list-style: none;
+			/* stylelint-disable-next-line declaration-no-important */
 			margin: 0 !important;
 
 			& > li {

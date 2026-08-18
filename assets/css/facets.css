@@ -8,6 +8,7 @@
 	}
 }
 
+/* stylelint-disable-next-line selector-class-pattern -- WordPress widget_{id_base} class. */
 .widget_ep-facet,
 .wp-block-elasticpress-facet,
 .wp-widget-elasticpress-facet,
