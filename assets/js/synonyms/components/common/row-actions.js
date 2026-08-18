@@ -4,7 +4,7 @@
 import { Button, Flex, FlexItem, Icon, Tooltip } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { edit, trash } from '@wordpress/icons';
+import { pencil, trash } from '@wordpress/icons';
 
 /**
  * Internal dependencies.
@@ -37,7 +37,7 @@ export default ({ disabled, errorMessage, isSelected, onSelect, onDelete }) => {
 			<FlexItem>
 				<Button
 					disabled={disabled}
-					icon={edit}
+					icon={pencil}
 					isPressed={isSelected}
 					label={__('Edit', 'elasticpress')}
 					onClick={onSelect}

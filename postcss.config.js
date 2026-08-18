@@ -8,9 +8,6 @@ module.exports = ( { file, options, env } ) => { /* eslint-disable-line */
 			'postcss-nesting': {},
 			'postcss-preset-env': {
 				stage: 0,
-				autoprefixer: {
-					grid: true,
-				},
 			},
 		},
 	};

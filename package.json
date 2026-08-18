@@ -7,7 +7,7 @@
   "dependencies": {
     "@10up/component-tooltip": "^2.0.0",
     "@hello-pangea/dnd": "^18.0.1",
-    "@wordpress/icons": "^10.13.0",
+    "@wordpress/icons": "^15.4.0",
     "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
     "react-router-dom": "^7.18.2",
@@ -15,8 +15,8 @@
     "uuid": "^14.0.1"
   },
   "devDependencies": {
-    "@wordpress/env": "^10.4.0",
-    "10up-toolkit": "^6.4.0",
+    "@wordpress/env": "^11.13.0",
+    "10up-toolkit": "^7.0.0-next.1",
     "classnames": "^2.5.1",
     "eslint-import-resolver-typescript": "^3.6.1",
     "husky": "^9.0.0",
@@ -107,9 +107,5 @@
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },
     "wpDependencyExternals": true
-  },
-  "overrides": {
-    "@babel/runtime": "^7.27.6",
-    "webpack": "5.105.4"
   }
 }
