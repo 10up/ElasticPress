@@ -12,6 +12,7 @@
 /.babelrc export-ignore
 /.browserslistrc export-ignore
 /.editorconfig export-ignore
+/.env.example export-ignore
 /.eslintignore export-ignore
 /.eslintrc.js export-ignore
 /.gitattributes export-ignore
@@ -30,6 +31,7 @@
 /gulpfile.babel.js export-ignore
 /hookdoc-conf.json export-ignore
 /LICENSE.md export-ignore
+/Makefile export-ignore
 /phpcs.xml export-ignore
 /phpunit.xml.dist export-ignore
 /postcss.config.js export-ignore

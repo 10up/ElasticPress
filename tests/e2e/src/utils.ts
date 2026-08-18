@@ -102,7 +102,7 @@ export async function wpCli(command: string, ignoreFailures = false) {
 
 	try {
 		const command = `${getPluginRootDir()}/bin/wp-env-cli`;
-		const args = ['tests-wordpress', `wp --allow-root ${escapedCommand}`];
+		const args = ['wordpress', `wp --allow-root ${escapedCommand}`];
 		const res = execFileSync(command, args);
 		return res;
 	} catch (err: any) {

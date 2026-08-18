@@ -10,12 +10,15 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Security
 * Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
 
+### Developer
+* Use a single wp-env environment for e2e tests.
+* Add a versioned `Makefile` with targets for starting, setting up, and destroying the test environments used in CI, reading credentials and versions from a gitignored `.env` file.
+
 <!--
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
-### Developer
 -->
 
 ## [5.3.3] - 2026-05-07

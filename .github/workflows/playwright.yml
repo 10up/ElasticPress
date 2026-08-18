@@ -83,7 +83,7 @@ jobs:
     - name: Set up WP environment with Elasticsearch (EP.io)
       run: |
         npm run env start
-        npm run env:install-tests-cli
+        npm run env:install-cli
       if: matrix.esVersion == 'EP.io'
 
     - name: Check ES response
@@ -105,9 +105,9 @@ jobs:
     - name: Set up database (EP.io)
       run: |
         if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
-          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_CREDENTIALS }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }} --acf-pro-license='${{ secrets.ACF_PRO_LICENSE_KEY }}'
         else
-          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_SHIELD }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
+          npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_CREDENTIALS }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
         fi
       if: matrix.esVersion == 'EP.io'
 
@@ -132,14 +132,14 @@ jobs:
       if: ${{ !cancelled() && matrix.esVersion == 'EP.io' }}
       run: |
         PLUGIN_NAME=$(basename "$PWD")
-        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
-        ./bin/wp-env-cli tests-wordpress "wp --allow-root elasticpress-tests delete-all-indices"
+        ./bin/wp-env-cli wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
+        ./bin/wp-env-cli wordpress "wp --allow-root elasticpress-tests delete-all-indices"
 
     - name: Test plugin uninstall
       if: always()
       run: |
         PLUGIN_NAME=$(basename "$PWD")
-        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
-        ! ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
-        ./bin/wp-env-cli tests-wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
-        ./bin/wp-env-cli tests-wordpress "wp --allow-root plugin uninstall ep-delete"
+        ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME} --network"
+        ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
+        ./bin/wp-env-cli wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
+        ./bin/wp-env-cli wordpress "wp --allow-root plugin uninstall ep-delete"

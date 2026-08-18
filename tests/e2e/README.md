@@ -16,7 +16,7 @@ This package contains the tests used on ElasticPress as well as some utility fun
 * Start the local environment (WP env and Elasticsearch containers): `npm run env:start`
 * Install all node packages: `npm i`
 * Build assets: `npm run build`
-* Initial database setup: `npm run e2e:setup`
+* Initial database setup: `npm run e2e:setup`, or one of the `make` targets below
 * Open Playwright: `npm run playwright:ui`. If you are using VS Code or Cursor, you can also use the [Playwright Test for VSCode](https://open-vsx.org/extension/ms-playwright/playwright) extension.
 
 ### Soft Reset
@@ -30,13 +30,41 @@ This package contains the tests used on ElasticPress as well as some utility fun
 * Restart WP env and redo initial setup: `npm run env:start && npm run e2e:setup`
 * Open Playwright: `npm run playwright:ui`
 
+### Make targets
+
+The `Makefile` in the plugin root wraps the setups the e2e workflow runs. Run `make` to list them.
+
+Credentials and machine-specific paths are read from a `.env` file in the plugin root, which is gitignored. Copy `.env.example` to `.env` and fill in what you have:
+
+* An ACF Pro license is optional. Without it every target still runs, but the tests tagged `@paidPlugins` are skipped.
+* ElasticPress.io credentials are only needed by the `setup-e2e-tests-epio*` targets, which fail with an explanatory message when they are missing.
+
+Each environment is started, set up, then destroyed:
+
+```
+make start-e2e                 # wp-env plus Elasticsearch
+make setup-e2e-tests           # latest WordPress and WooCommerce
+make setup-e2e-tests-min       # minimum supported WordPress and WooCommerce
+make destroy-e2e               # tear everything down
+```
+
+ElasticPress.io runs against no local Elasticsearch, so it has its own start target:
+
+```
+make start-e2e-epio
+make setup-e2e-tests-epio      # or setup-e2e-tests-epio-min
+make destroy-e2e
+```
+
+The e2e workflow runs each of these against several Elasticsearch versions. Set `ES_VERSION` in `.env` to reproduce a specific one.
+
 ## Troubleshooting
 
 ### WSL
 
 #### `Error: Could not connect to Elasticsearch`
 
-Run `./bin/wp-env-cli tests-wordpress "wp --allow-root config set EP_HOST http://host.docker.internal:8890/"`
+Run `./bin/wp-env-cli wordpress "wp --allow-root config set EP_HOST http://host.docker.internal:8890/"`
 
 #### `Error while loading shared libraries: ...`
 

@@ -36,8 +36,9 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 	test.beforeAll(async () => {
 		await wpCli('elasticpress sync --setup --yes');
 		const command = `${getPluginRootDir()}/bin/wp-env-cli`;
-		const args = ['tests-wordpress', `sudo chmod -R 777 /var/www/html/wp-content/uploads`];
-		execFileSync(command, args);
+		const uploadsDir = '/var/www/html/wp-content/uploads';
+		execFileSync(command, ['wordpress', `sudo mkdir -p ${uploadsDir}`]);
+		execFileSync(command, ['wordpress', `sudo chmod -R 777 ${uploadsDir}`]);
 	});
 
 	test.beforeEach(async () => {
