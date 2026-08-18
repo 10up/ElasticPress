@@ -63,6 +63,15 @@
     "node": ">=20",
     "npm": ">=9"
   },
+  "overrides": {
+    "adm-zip": "^0.6.0",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^9.0.7"
+    },
+    "sockjs": {
+      "uuid": "^11.1.1"
+    }
+  },
   "10up-toolkit": {
     "entry": {
       "admin-script": "./assets/js/admin.js",
