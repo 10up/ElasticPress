@@ -27,7 +27,7 @@ EPIO_ARGS = --ep-host='$(EPIO_HOST)' --ep-credentials='$(EPIO_CREDENTIALS)' --ep
 ACF_ARGS = $(if $(ACF_PRO_LICENSE_KEY),--acf-pro-license='$(ACF_PRO_LICENSE_KEY)')
 
 .DEFAULT_GOAL := help
-.PHONY: help start-e2e start-e2e-epio setup-unit-tests setup-e2e-tests setup-e2e-tests-min setup-e2e-tests-epio setup-e2e-tests-epio-min destroy-e2e require-epio
+.PHONY: help start-e2e start-e2e-epio setup-unit-tests setup-e2e-tests setup-e2e-tests-min setup-e2e-tests-epio setup-e2e-tests-epio-min destroy-e2e clean-db-cache require-epio
 
 help:
 	@echo "ElasticPress test environments"
@@ -42,6 +42,7 @@ help:
 	@echo "  setup-e2e-tests-epio-min  Same, on the minimum supported WordPress and WooCommerce"
 	@echo
 	@echo "  setup-unit-tests          Install the PHPUnit test suite"
+	@echo "  clean-db-cache            Delete the cached databases, forcing a full setup"
 	@echo
 	@echo "Start the environment before running a setup target."
 	@echo "Versions and credentials are read from .env, see .env.example."
@@ -72,6 +73,9 @@ setup-e2e-tests-epio-min:
 destroy-e2e:
 	npm run env destroy -- --force
 	npm run es:stop
+
+clean-db-cache:
+	rm -rf ./bin/.cache
 
 require-epio:
 	@if [ -z "$(EPIO_HOST)" ] || [ -z "$(EPIO_CREDENTIALS)" ] || [ -z "$(EPIO_INDEX_PREFIX)" ]; then \

@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file, per [the Ke
 ### Developer
 * Use a single wp-env environment for e2e tests.
 * Add a versioned `Makefile` with targets for starting, setting up, and destroying the test environments used in CI, reading credentials and versions from a gitignored `.env` file.
+* Cache the e2e database as a SQL file, reused locally and via the Actions cache, so repeated setups skip the content import.
 
 <!--
 ### Changed

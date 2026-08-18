@@ -58,6 +58,14 @@ make destroy-e2e
 
 The e2e workflow runs each of these against several Elasticsearch versions. Set `ES_VERSION` in `.env` to reproduce a specific one.
 
+### Database cache
+
+The first setup for a given WordPress and WooCommerce combination exports the finished database to `bin/.cache`, and later runs import that file instead of repeating the content import and search-replace. The steps that are not database changes still run every time: plugin and core downloads, the `wp-config.php` constants, and the Elasticsearch sync.
+
+Cache files are keyed by the WordPress version, the WooCommerce version, whether ACF Pro is installed, and a hash of `bin/setup-e2e-env.sh` plus the imported content. Editing either file produces a new cache file, so there is nothing to remember to invalidate.
+
+To rebuild the database from scratch, either pass `--no-db-cache` to `npm run e2e:setup`, or run `make clean-db-cache`.
+
 ## Troubleshooting
 
 ### WSL

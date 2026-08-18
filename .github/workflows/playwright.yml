@@ -93,6 +93,17 @@ jobs:
     - name: Build asset
       run: npm run build
 
+    # Keyed on everything that shapes the database, so a change to the setup
+    # script or the imported content produces a new cache rather than reusing a
+    # stale one. The Elasticsearch version is deliberately absent: the backend is
+    # configured through wp-config.php constants and the sync runs either way.
+    - name: Restore database cache
+      id: db-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: bin/.cache
+        key: e2e-db-${{ matrix.core.version || 'latest' }}-${{ matrix.core.wcVersion || 'latest' }}-${{ matrix.testGroup == '@paidPlugins' && 'acf' || 'noacf' }}-${{ hashFiles('bin/setup-e2e-env.sh', 'tests/e2e/src/wordpress-files/test-docs/content-example.xml') }}
+
     - name: Set up database
       run: |
         if [ "${{ matrix.testGroup }}" == "@paidPlugins" ]; then
@@ -110,6 +121,17 @@ jobs:
           npm run e2e:setup -- --ep-host=${{ secrets.EPIO_HOST }} --ep-credentials='${{ secrets.EPIO_CREDENTIALS }}' --ep-index-prefix=${{ secrets.EPIO_INDEX_PREFIX }} --wp-version=${{ matrix.core.version }} --wc-version=${{ matrix.core.wcVersion }}
         fi
       if: matrix.esVersion == 'EP.io'
+
+    # Only reached when both setup steps above succeeded, so a half-built
+    # database never becomes the cache every later run starts from. Several jobs
+    # share a key, and the loser of that race only warns.
+    - name: Save database cache
+      uses: actions/cache/save@v4
+      if: steps.db-cache.outputs.cache-hit != 'true'
+      continue-on-error: true
+      with:
+        path: bin/.cache
+        key: ${{ steps.db-cache.outputs.cache-primary-key }}
 
     - name: Run Playwright tests
       run: npm run playwright:test -- --grep ${{ matrix.testGroup }}
