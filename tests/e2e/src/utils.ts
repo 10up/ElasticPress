@@ -672,7 +672,20 @@ export async function setDefaultFeatureSettings() {
 		);
 		`,
 	);
-	return JSON.parse(wpCliResponse);
+	const raw = wpCliResponse?.toString() ?? '';
+	// Slice from the payload key, not the first `{`. PHP deprecation text can
+	// contain `${var}` and would otherwise produce invalid JSON.
+	const jsonStart = raw.indexOf('{"indexNames"');
+	if (jsonStart === -1) {
+		throw new Error(`setDefaultFeatureSettings: no JSON in WP-CLI output:\n${raw}`);
+	}
+	try {
+		return JSON.parse(raw.slice(jsonStart));
+	} catch (error) {
+		throw new Error(
+			`setDefaultFeatureSettings: failed to parse WP-CLI output:\n${raw.slice(0, 500)}`,
+		);
+	}
 }
 
 /**

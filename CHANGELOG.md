@@ -11,9 +11,11 @@ All notable changes to this project will be documented in this file, per [the Ke
 * Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad) via [#4324](https://github.com/10up/ElasticPress/pull/4324).
 
 ### Developer
-* Use a single wp-env environment for e2e tests.
-* Add a versioned `Makefile` with targets for starting, setting up, and destroying the test environments used in CI, reading credentials and versions from a gitignored `.env` file.
-* Cache the e2e database as a SQL file, reused locally and via the Actions cache, so repeated setups skip the content import.
+* Update `10up-toolkit` to 7.0.0-next.1, `@wordpress/env` to 11, and Node to 24. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
+* Overhaul the e2e environment: a single wp-env install, Makefile targets and a gitignored `.env`, a cached database, one Playwright worker, and expanded docs. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
+
+### Fixed
+* Load React admin screens and Instant Results on WordPress 6.2 by registering the `react-jsx-runtime` script handle that 10up-toolkit requires and WordPress only ships from 6.6. Props [@felipeelia](https://github.com/felipeelia) via [#4356](https://github.com/10up/ElasticPress/pull/4356).
 
 <!--
 ### Changed
