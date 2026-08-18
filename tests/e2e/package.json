@@ -1,6 +1,6 @@
 {
 	"name": "elasticpress-playwright-utils",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "Shared Playwright testing utilities for ElasticPress projects.",
 	"license": "GPL-2.0-only",
 	"repository": {
