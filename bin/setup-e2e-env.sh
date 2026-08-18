@@ -55,6 +55,11 @@ fi
 
 if [ -z $WC_VERSION ]; then
 	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --activate"
+	# Latest WooCommerce enables HPOS by default. ElasticPress does not
+	# integrate the HPOS orders list, so e2e tests that use
+	# edit.php?post_type=shop_order and #post-search-input need the posts
+	# datastore. Ignore failure on older WooCommerce that lacks this command.
+	./bin/wp-env-cli tests-wordpress "wp --allow-root wc hpos disable" || true
 else
 	./bin/wp-env-cli tests-wordpress "wp --allow-root plugin install woocommerce --activate --version=${WC_VERSION}"
 fi
