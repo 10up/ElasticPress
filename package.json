@@ -7,7 +7,7 @@
   "dependencies": {
     "@10up/component-tooltip": "^2.0.0",
     "@hello-pangea/dnd": "^18.0.1",
-    "@wordpress/icons": "^15.4.0",
+    "@wordpress/icons": "^10.13.0",
     "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
     "react-router-dom": "^7.18.2",
@@ -70,6 +70,9 @@
     },
     "sockjs": {
       "uuid": "^11.1.1"
+    },
+    "@wordpress/icons": {
+      "@babel/runtime": "^7.26.10"
     }
   },
   "10up-toolkit": {

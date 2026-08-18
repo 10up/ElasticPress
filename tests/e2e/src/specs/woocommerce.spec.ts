@@ -142,6 +142,9 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Dashboard', () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
+			// Latest WooCommerce may enable HPOS on this later activation.
+			// ElasticPress does not integrate the HPOS orders list.
+			await wpCli('wc hpos disable', true);
 			await maybeEnableFeature('protected_content');
 			await maybeEnableFeature('woocommerce');
 		});
@@ -401,6 +404,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Orders Autosuggest', () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
+			await wpCli('wc hpos disable', true);
 			await maybeEnableFeature('woocommerce');
 			await maybeDisableFeature('protected_content');
 		});

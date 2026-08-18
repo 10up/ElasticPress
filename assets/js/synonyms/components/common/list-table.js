@@ -8,7 +8,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies.
  */
-import { trash } from '../../../utils/icons';
+import { trash } from '@wordpress/icons';
 
 /**
  * List table component.

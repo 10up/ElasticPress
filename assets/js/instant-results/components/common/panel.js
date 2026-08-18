@@ -2,11 +2,7 @@
  * WordPress dependencies.
  */
 import { useState, WPElement } from '@wordpress/element';
-
-/**
- * Internal dependencies.
- */
-import { chevronDown, chevronUp, Icon } from '../../../utils/icons';
+import { chevronDown, chevronUp, Icon } from '@wordpress/icons';
 
 /**
  * Facet wrapper component.

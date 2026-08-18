@@ -4,11 +4,7 @@
 import { Button, CheckboxControl, RangeControl, Tooltip } from '@wordpress/components';
 import { WPElement } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-
-/**
- * Internal dependencies.
- */
-import { trash } from '../../utils/icons';
+import { trash } from '@wordpress/icons';
 
 /**
  * Field settings component.
