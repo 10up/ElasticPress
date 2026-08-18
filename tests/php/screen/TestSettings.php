@@ -104,7 +104,11 @@ class TestSettings extends BaseTestCase {
 		$settings->action_admin_init();
 
 		$this->assertSame( $prev_host, Utils\get_host() );
-		$this->assertSame( 10, has_action( 'admin_notices', [ $settings, 'add_validation_notice' ] ) );
+
+		$notice_hook = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK )
+			? 'network_admin_notices'
+			: 'admin_notices';
+		$this->assertSame( 10, has_action( $notice_hook, [ $settings, 'add_validation_notice' ] ) );
 		$this->assertNotContains( 'ep_host', $_POST );
 	}
 
