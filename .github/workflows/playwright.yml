@@ -61,6 +61,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    # These caches are also restored (never saved) by playwright-privileged.yml.
     - name: Prepare npm cache
       uses: actions/cache@v4
       with:
@@ -146,7 +147,9 @@ jobs:
 
     # Only reached when both setup steps above succeeded, so a half-built
     # database never becomes the cache every later run starts from. Several jobs
-    # share a key, and the loser of that race only warns.
+    # share a key, and the loser of that race only warns. Privileged e2e restores
+    # this cache but never saves it (workflow_dispatch can write the default
+    # branch cache).
     - name: Save database cache
       uses: actions/cache/save@v4
       if: steps.db-cache.outputs.cache-hit != 'true'

@@ -10,7 +10,12 @@
 # bin/setup-e2e-env.sh, and tests/e2e. The label is removed on every new
 # push so a later commit cannot reuse an earlier approval.
 #
-# Keep the e2e job steps in sync with playwright.yml.
+# Caches are restore-only. pull_request_target cannot write the default-branch
+# cache; workflow_dispatch still can, so this job never saves after checking
+# out pull request code. playwright.yml on push / same-repo pull_request
+# populates the npm, composer, and bin/.cache entries.
+#
+# Keep the remaining e2e job steps in sync with playwright.yml.
 
 name: E2e Tests (privileged)
 
@@ -144,21 +149,27 @@ jobs:
             esVersion: '9.1.5'
 
     steps:
+    # Checkout v7 blocks fork PR heads in pull_request_target unless this
+    # opt-in is set. The checked-out code is executed on purpose after a
+    # maintainer applies safe-to-test or dispatches this workflow.
+    # codeql[actions/untrusted-checkout/critical]
+    # codeql[actions/untrusted-checkout/high]
     - name: Checkout pull request
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         ref: ${{ needs.resolve-pr.outputs.ref }}
         persist-credentials: false
+        allow-unsafe-pr-checkout: true
 
-    - name: Prepare npm cache
-      uses: actions/cache@v4
+    - name: Restore npm cache
+      uses: actions/cache/restore@v4
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
-    - name: Prepare composer cache
-      uses: actions/cache@v4
+    - name: Restore composer cache
+      uses: actions/cache/restore@v4
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -233,17 +244,9 @@ jobs:
         fi
       if: matrix.esVersion == 'EP.io'
 
-    # Only reached when both setup steps above succeeded, so a half-built
-    # database never becomes the cache every later run starts from. Several jobs
-    # share a key, and the loser of that race only warns.
-    # pull_request_target can restore caches but cannot save them.
-    - name: Save database cache
-      uses: actions/cache/save@v4
-      if: steps.db-cache.outputs.cache-hit != 'true'
-      continue-on-error: true
-      with:
-        path: bin/.cache
-        key: ${{ steps.db-cache.outputs.cache-primary-key }}
+    # Do not save caches from this workflow. workflow_dispatch still has
+    # read-write access to the default-branch cache; playwright.yml is the
+    # trusted writer for bin/.cache.
 
     - name: Run Playwright tests
       run: npm run playwright:test -- --grep ${{ matrix.testGroup }}
