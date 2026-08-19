@@ -743,6 +743,10 @@ export async function setCustomPostTypes() {
 			print_r( $output );
 		}
 
+		// Activation hooks do not run when the plugin is already active, so
+		// flush so /blog/genre/action/ resolves after a previous spec activated it.
+		WP_CLI::runcommand( 'rewrite flush', [ 'return' => true ] );
+
 		$page_id = wp_insert_post(
 			[
 				'post_title'  => 'A new page',
@@ -772,4 +776,6 @@ export async function setCustomPostTypes() {
 		// eslint-disable-next-line no-console
 		console.log(output.toString());
 	}
+
+	await refreshIndex('post');
 }

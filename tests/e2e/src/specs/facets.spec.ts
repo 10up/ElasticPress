@@ -315,9 +315,6 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 	test('Does not change post types being displayed', async ({ loggedInPage }) => {
 		await setCustomPostTypes();
 
-		// Give Elasticsearch some time to process the post
-		await loggedInPage.waitForTimeout(2000);
-
 		// Blog page
 		await loggedInPage.goto('/');
 		await expect(

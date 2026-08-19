@@ -111,8 +111,27 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+    # Browsers live in ~/.cache/ms-playwright and are version-locked to Playwright.
+    # OS packages from --with-deps are not cacheable (they live in system paths).
+    # This cache is shared across matrix cells on later runs, not within the same
+    # run: concurrent jobs all start before any sibling can save. A dedicated
+    # install job would serialize ~1 min onto every run, including cache hits.
+    # The suite only uses Chromium (see tests/e2e/src/playwright.config.ts).
+    - name: Get Playwright version
+      id: playwright
+      run: echo "version=$(node -e "console.log(require('playwright-core/package.json').version)")" >> "$GITHUB_OUTPUT"
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
+    - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps chromium
+    - name: Install Playwright OS dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start

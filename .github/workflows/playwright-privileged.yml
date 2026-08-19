@@ -13,7 +13,7 @@
 # Caches are restore-only. pull_request_target cannot write the default-branch
 # cache; workflow_dispatch still can, so this job never saves after checking
 # out pull request code. playwright.yml on push / same-repo pull_request
-# populates the npm, composer, and bin/.cache entries.
+# populates the npm, composer, Playwright browser, and bin/.cache entries.
 #
 # Keep the remaining e2e job steps in sync with playwright.yml.
 
@@ -189,8 +189,24 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+    # Restore-only: playwright.yml is the trusted writer. Exact key only — a
+    # restore-keys fallback would reuse browsers from a different Playwright
+    # version. Chromium-only matches tests/e2e/src/playwright.config.ts.
+    - name: Get Playwright version
+      id: playwright
+      run: echo "version=$(node -e "console.log(require('playwright-core/package.json').version)")" >> "$GITHUB_OUTPUT"
+    - name: Restore Playwright browsers
+      id: playwright-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
+    - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps chromium
+    - name: Install Playwright OS dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start

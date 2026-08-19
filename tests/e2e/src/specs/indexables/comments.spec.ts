@@ -26,8 +26,12 @@ import {
 test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	const getCommentsCount = async () => {
 		const statsResult = await wpCli('wp elasticpress stats');
-		const counts = [...statsResult.toString().matchAll(/Documents:\s+(\d+)/g)];
-		return parseInt(counts?.[1]?.[1] || 0, 10);
+		const text = statsResult.toString();
+		const commentDocs = text.match(/-comment-[\s\S]*?Documents:\s+(\d+)/);
+		if (commentDocs) {
+			return parseInt(commentDocs[1], 10);
+		}
+		return 0;
 	};
 
 	test.beforeAll(async () => {
@@ -402,11 +406,10 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 
 		await maybeEnableFeature('comments');
 
+		const postTitle = `Anonymous Comment Sync ${Date.now()}`;
 		await publishPost(loggedInPage, {
-			title: 'Test Comment',
+			title: postTitle,
 		});
-
-		await goToAdminPage(loggedInPage, 'options-discussion.php');
 
 		// Disable settings
 		await wpCliEval(`
@@ -418,22 +421,23 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await logout(loggedInPage);
 
 		// Publish comment as a logged out user
-		await loggedInPage.goto('/?s=Test Comment');
+		await loggedInPage.goto(`/?s=${encodeURIComponent(postTitle)}`);
 		const postUrl = await loggedInPage
 			.locator('#main .entry-title a')
-			.getByText('Test Comment')
+			.getByText(postTitle)
 			.first()
 			.getAttribute('href');
 		await loggedInPage.goto(postUrl || '/');
 		await loggedInPage.locator('#comment').fill(`This is a anonymous comment ${Date.now()}`);
 		await loggedInPage.locator('#submit').click();
+		await loggedInPage.waitForLoadState('networkidle');
 
 		await refreshIndex('comment');
 		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
 
-		// Trash the comment
+		// Row-action links sit outside the viewport until hover.
 		await login(loggedInPage);
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=approved');
-		await loggedInPage.locator('.column-comment .trash a').first().click({ force: true });
+		await loggedInPage.locator('.column-comment .trash a').first().dispatchEvent('click');
 	});
 });
