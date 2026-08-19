@@ -51,9 +51,9 @@ jobs:
       run: |
         core='[{"name":"WP latest","version":"","wcVersion":"","php":"8.2"},{"name":"WP minimum","version":"6.2","wcVersion":"6.4.0","php":"8.0"}]'
         if [ "$IS_FORK" = "true" ]; then
-          matrix="{\"testGroup\":[\"@group1\",\"@group2\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\"],\"core\":${core}}"
+          matrix="{\"testGroup\":[\"@groups\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\"],\"core\":${core}}"
         else
-          matrix="{\"testGroup\":[\"@group1\",\"@group2\",\"@paidPlugins\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\",\"EP.io\"],\"core\":${core}}"
+          matrix="{\"testGroup\":[\"@groups\",\"@paidPlugins\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\",\"EP.io\"],\"core\":${core}}"
         fi
         {
           echo 'matrix<<EOF'
@@ -65,7 +65,7 @@ jobs:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     needs: e2e_matrix
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       WP_ENV_PHP_VERSION: ${{ matrix.core.php }}
     strategy:
@@ -173,25 +173,36 @@ jobs:
         path: bin/.cache
         key: ${{ steps.db-cache.outputs.cache-primary-key }}
 
-    - name: Run Playwright tests
-      run: npm run playwright:test -- --grep ${{ matrix.testGroup }}
+    # @groups is a matrix label, not a Playwright tag. group1 then group2 share
+    # the environment; each invocation re-runs global setup. continue-on-error is
+    # unnecessary: later steps use always() so cleanup still runs on failure.
+    - name: Run @group1
+      id: group1
+      if: matrix.testGroup != '@paidPlugins'
+      env:
+        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report-group1
+      run: npm run playwright:test -- --grep @group1 --output ${{ github.workspace }}/test-results-group1
 
-    - name: Make artifacts available
-      uses: actions/upload-artifact@v6
-      if: failure()
-      with:
-        name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
-        retention-days: 2
-        path: |
-          ${{ github.workspace }}/playwright-report/
-          ${{ github.workspace }}/tests/e2e/playwright-report/
+    - name: Run @group2
+      id: group2
+      if: ${{ always() && !cancelled() && matrix.testGroup != '@paidPlugins' }}
+      env:
+        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report-group2
+      run: npm run playwright:test -- --grep @group2 --output ${{ github.workspace }}/test-results-group2
+
+    - name: Run @paidPlugins
+      id: paid
+      if: matrix.testGroup == '@paidPlugins'
+      env:
+        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report-paidPlugins
+      run: npm run playwright:test -- --grep @paidPlugins --output ${{ github.workspace }}/test-results-paidPlugins
 
     - name: Stop Elasticsearch
-      if: matrix.esVersion != 'EP.io'
+      if: ${{ always() && matrix.esVersion != 'EP.io' }}
       run: cd bin/es-docker/ && docker compose down
 
     - name: Delete Elasticsearch indices
-      if: ${{ !cancelled() && matrix.esVersion == 'EP.io' }}
+      if: ${{ always() && matrix.esVersion == 'EP.io' }}
       run: |
         PLUGIN_NAME=$(basename "$PWD")
         ./bin/wp-env-cli wordpress "wp --allow-root plugin activate ${PLUGIN_NAME} --network"
@@ -205,3 +216,18 @@ jobs:
         ! ./bin/wp-env-cli wordpress "wp --allow-root plugin deactivate ${PLUGIN_NAME}"
         ./bin/wp-env-cli wordpress "cp -r wp-content/plugins/${PLUGIN_NAME} wp-content/plugins/ep-delete"
         ./bin/wp-env-cli wordpress "wp --allow-root plugin uninstall ep-delete"
+
+    - name: Make artifacts available
+      uses: actions/upload-artifact@v6
+      if: ${{ failure() || cancelled() }}
+      with:
+        name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
+        retention-days: 2
+        if-no-files-found: ignore
+        path: |
+          playwright-report-group1/
+          playwright-report-group2/
+          playwright-report-paidPlugins/
+          test-results-group1/
+          test-results-group2/
+          test-results-paidPlugins/
