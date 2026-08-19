@@ -8,8 +8,12 @@ env:
   CI: true
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  COMPOSER_CACHE_DIR: "${{ github.workspace }}/.composer-cache"
   NODE_VERSION: "24"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+  npm_config_cache: "${{ github.workspace }}/node_modules_cache"
+  # Tests use the runner's Google Chrome (playwright.config.ts channel).
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 on:
   push:
@@ -76,6 +80,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Set standard 10up cache directories
+      run: |
+        sudo npm config set cache "${{ env.NODE_CACHE }}" --global
+
     # These caches are also restored (never saved) by playwright-privileged.yml.
     - name: Prepare npm cache
       uses: actions/cache@v4
@@ -100,6 +108,9 @@ jobs:
         tools: cs2pr
         coverage: none
 
+    - name: Set composer cache directory
+      run: composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
     - name: composer install
       run: composer install
 
@@ -110,28 +121,6 @@ jobs:
 
     - name: Install dependencies
       run: npm ci --include=dev
-
-    # Browsers live in ~/.cache/ms-playwright and are version-locked to Playwright.
-    # OS packages from --with-deps are not cacheable (they live in system paths).
-    # This cache is shared across matrix cells on later runs, not within the same
-    # run: concurrent jobs all start before any sibling can save. A dedicated
-    # install job would serialize ~1 min onto every run, including cache hits.
-    # The suite only uses Chromium (see tests/e2e/src/playwright.config.ts).
-    - name: Get Playwright version
-      id: playwright
-      run: echo "version=$(node -e "console.log(require('playwright-core/package.json').version)")" >> "$GITHUB_OUTPUT"
-    - name: Cache Playwright browsers
-      id: playwright-cache
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
-    - name: Install Playwright browsers
-      if: steps.playwright-cache.outputs.cache-hit != 'true'
-      run: npx playwright install --with-deps chromium
-    - name: Install Playwright OS dependencies
-      if: steps.playwright-cache.outputs.cache-hit == 'true'
-      run: npx playwright install-deps chromium
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start

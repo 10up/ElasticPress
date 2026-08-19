@@ -50,6 +50,10 @@ export default defineConfig({
 
 		// Record video only when retrying a test for the first time.
 		video: 'retain-on-failure',
+
+		// GitHub-hosted Ubuntu already has Google Chrome. Using it in CI
+		// skips Playwright's Chromium download and apt install-deps.
+		...(process.env.CI ? { channel: 'chrome' as const } : {}),
 	},
 
 	/* Configure projects for major browsers */

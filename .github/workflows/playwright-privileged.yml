@@ -15,7 +15,7 @@
 # Caches are restore-only. workflow_dispatch can write the default-branch
 # cache, so this job never saves after checking out pull request code.
 # playwright.yml on push / same-repo pull_request populates the npm,
-# composer, Playwright browser, and bin/.cache entries.
+# composer, and bin/.cache entries.
 #
 # Keep the remaining e2e job steps in sync with playwright.yml.
 
@@ -30,8 +30,12 @@ env:
   CI: true
   COMPOSER_VERSION: "2"
   COMPOSER_CACHE: "${{ github.workspace }}/.composer-cache"
+  COMPOSER_CACHE_DIR: "${{ github.workspace }}/.composer-cache"
   NODE_VERSION: "24"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
+  npm_config_cache: "${{ github.workspace }}/node_modules_cache"
+  # Tests use the runner's Google Chrome (playwright.config.ts channel).
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 on:
   workflow_dispatch:
@@ -118,6 +122,10 @@ jobs:
         ref: ${{ needs.resolve-pr.outputs.ref }}
         persist-credentials: false
 
+    - name: Set standard 10up cache directories
+      run: |
+        sudo npm config set cache "${{ env.NODE_CACHE }}" --global
+
     - name: Restore npm cache
       uses: actions/cache/restore@v4
       with:
@@ -141,6 +149,9 @@ jobs:
         tools: cs2pr
         coverage: none
 
+    - name: Set composer cache directory
+      run: composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
+
     - name: composer install
       run: composer install
 
@@ -151,25 +162,6 @@ jobs:
 
     - name: Install dependencies
       run: npm ci --include=dev
-
-    # Restore-only: playwright.yml is the trusted writer. Exact key only — a
-    # restore-keys fallback would reuse browsers from a different Playwright
-    # version. Chromium-only matches tests/e2e/src/playwright.config.ts.
-    - name: Get Playwright version
-      id: playwright
-      run: echo "version=$(node -e "console.log(require('playwright-core/package.json').version)")" >> "$GITHUB_OUTPUT"
-    - name: Restore Playwright browsers
-      id: playwright-cache
-      uses: actions/cache/restore@v4
-      with:
-        path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright.outputs.version }}
-    - name: Install Playwright browsers
-      if: steps.playwright-cache.outputs.cache-hit != 'true'
-      run: npx playwright install --with-deps chromium
-    - name: Install Playwright OS dependencies
-      if: steps.playwright-cache.outputs.cache-hit == 'true'
-      run: npx playwright install-deps chromium
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
