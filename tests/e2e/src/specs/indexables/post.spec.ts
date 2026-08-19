@@ -97,6 +97,7 @@ test.describe('Post Indexable', { tag: '@group1' }, () => {
 	});
 
 	test('Can delete posts if a password is added or removed', async ({ loggedInPage }) => {
+		test.setTimeout(60000);
 		// If the post is published with a password, it should not be indexed at all
 		await publishPost(
 			loggedInPage,

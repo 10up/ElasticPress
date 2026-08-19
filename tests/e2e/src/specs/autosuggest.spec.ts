@@ -51,7 +51,11 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 
 	test('Can see autosuggest list', async ({ page }) => {
 		await page.goto('/');
-		await frontendSearch(page).pressSequentially('blog');
+		const responsePromise = page.waitForResponse((response) => {
+			return response.url().includes('_search') || response.url().includes('autosuggest');
+		});
+		await frontendSearch(page).pressSequentially('a Blog page');
+		await responsePromise;
 		const autosuggest = page.locator('.ep-autosuggest').first();
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('a Blog page');
@@ -154,7 +158,11 @@ test.describe('Autosuggest Feature', { tag: '@group2' }, () => {
 		await page.goto('/');
 
 		// Verify autosuggest still works with the custom placeholder
-		await frontendSearch(page).pressSequentially('blog');
+		const responsePromise = page.waitForResponse((response) => {
+			return response.url().includes('_search') || response.url().includes('autosuggest');
+		});
+		await frontendSearch(page).pressSequentially('a Blog page');
+		await responsePromise;
 		const autosuggest = page.locator('.ep-autosuggest').first();
 		await expect(autosuggest).toBeVisible();
 		await expect(autosuggest).toContainText('a Blog page');

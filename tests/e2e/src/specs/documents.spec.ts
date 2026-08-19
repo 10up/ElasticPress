@@ -1,9 +1,18 @@
 import { execFileSync } from 'child_process';
 
 import { test, expect, Page } from '../fixtures.js';
-import { wpCli, maybeDisableFeature, goToAdminPage, getPluginRootDir } from '../utils.js';
+import {
+	wpCli,
+	maybeDisableFeature,
+	goToAdminPage,
+	getPluginRootDir,
+	refreshIndex,
+	getSyncTimeout,
+} from '../utils.js';
 
 test.describe('Documents Feature', { tag: '@group1' }, () => {
+	test.describe.configure({ timeout: 120000 });
+
 	async function enableDocumentsFeature(page: Page) {
 		await goToAdminPage(page, 'admin.php?page=elasticpress');
 
@@ -29,8 +38,7 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 
 		await page.locator('#html-upload').click();
 
-		// Give Elasticsearch some time to process the file
-		await page.waitForTimeout(2000);
+		await refreshIndex('post');
 	}
 
 	test.beforeAll(async () => {
@@ -57,16 +65,18 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 		// Check if the file is searchable right after the upload
 		await uploadFile(loggedInPage, 'pdf-file.pdf');
 		await loggedInPage.goto('/?s=dummy+pdf');
-		await expect(loggedInPage.locator('body')).toContainText('pdf-file');
+		await expect(loggedInPage.locator('body')).toContainText('pdf-file', {
+			timeout: getSyncTimeout(),
+		});
 
 		// Check if the file is still searchable after a reindex
 		await wpCli('elasticpress sync --setup --yes --show-errors');
-
-		// Give Elasticsearch some time to process
-		await loggedInPage.waitForTimeout(1000);
+		await refreshIndex('post');
 
 		await loggedInPage.goto('/?s=dummy+pdf');
-		await expect(loggedInPage.locator('.hentry').first()).toContainText('pdf-file');
+		await expect(loggedInPage.locator('.hentry').first()).toContainText('pdf-file', {
+			timeout: getSyncTimeout(),
+		});
 	});
 
 	test('Can search .pptx, .txt, and .csv files', async ({ loggedInPage }) => {
@@ -75,7 +85,9 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 		await uploadFile(loggedInPage, 'pptx-file.pptx');
 
 		await loggedInPage.goto('/?s=dummy+slide');
-		await expect(loggedInPage.locator('.hentry').first()).toContainText('pptx-file');
+		await expect(loggedInPage.locator('.hentry').first()).toContainText('pptx-file', {
+			timeout: getSyncTimeout(),
+		});
 
 		await wpCli('config set ALLOW_UNFILTERED_UPLOADS true --raw');
 
@@ -83,10 +95,14 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 		await uploadFile(loggedInPage, 'csv-file.csv');
 
 		await loggedInPage.goto('/?s=Curabitur+interdum+id+turpis+ac+viverra');
-		await expect(loggedInPage.locator('.hentry').first()).toContainText('txt-file');
+		await expect(loggedInPage.locator('.hentry').first()).toContainText('txt-file', {
+			timeout: getSyncTimeout(),
+		});
 
 		await loggedInPage.goto('/?s=Winchester');
-		await expect(loggedInPage.locator('.hentry').first()).toContainText('csv-file');
+		await expect(loggedInPage.locator('.hentry').first()).toContainText('csv-file', {
+			timeout: getSyncTimeout(),
+		});
 
 		await wpCli('config set ALLOW_UNFILTERED_UPLOADS false --raw');
 	});

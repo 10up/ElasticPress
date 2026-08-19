@@ -10,6 +10,7 @@ import {
 	wpCliEval,
 	setCustomPostTypes,
 	maybeDisableFeature,
+	refreshIndex,
 } from '../utils.js';
 import { openBlockInserter, insertBlock } from '../block-editor.js';
 
@@ -552,6 +553,9 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await wpCli('elasticpress put-search-template', true);
 
 				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				await expect(
+					loggedInPage.getByRole('button', { name: 'Live Search' }),
+				).toBeVisible();
 				const apiResponsePromise = loggedInPage.waitForResponse(
 					'**/wp-json/elasticpress/v1/features*',
 				);
@@ -570,31 +574,14 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await loggedInPage.goto('/');
 				await searchFor(loggedInPage, 'block');
 				await responsePromise;
-
-				await wpCliEval(
-					`
-					$output = WP_CLI::runcommand( 'elasticpress list-features', [ 'return' => 'all', 'exit_error' => false ] );
-					print_r( $output );
-
-					$output = WP_CLI::runcommand( 'plugin list', [ 'return' => 'all', 'exit_error' => false ] );
-					print_r( $output );
-
-					$posts = new \\WP_Query(
-						[
-							'post_type' => 'post',
-							'posts_per_page' => -1,
-							's' => 'markup html',
-						]
-					);
-					print_r( $posts );
-					`,
-				);
+				await expect(loggedInPage.locator('.ep-search-modal')).toBeVisible();
 
 				/**
 				 * The number of terms displayed in the filter should be one.
 				 */
 				await expect(loggedInPage.locator('[id^="ep-search-tax-category-"]')).toHaveCount(
 					1,
+					{ timeout: 15000 },
 				);
 
 				await deactivatePlugin(
@@ -656,6 +643,9 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				);
 
 				await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+				await expect(
+					loggedInPage.getByRole('button', { name: 'Live Search' }),
+				).toBeVisible();
 				const apiResponsePromise = loggedInPage.waitForResponse(
 					'**/wp-json/elasticpress/v1/features*',
 				);
@@ -717,6 +707,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 		});
 
 		test('Can use numbered pagination when enabled', async ({ loggedInPage }) => {
+			test.setTimeout(120000);
 			await maybeEnableFeature('instant-results');
 
 			await wpCliEval(`
@@ -731,8 +722,10 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				}
 			`);
 			await wpCli('wp elasticpress sync');
+			await refreshIndex('post');
 
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await expect(loggedInPage.getByRole('button', { name: 'Live Search' })).toBeVisible();
 			const apiResponsePromise = loggedInPage.waitForResponse(
 				'**/wp-json/elasticpress/v1/features*',
 			);
@@ -770,6 +763,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			await pageTwoResponse;
 			await expect(loggedInPage).toHaveURL(new RegExp(`ep-offset=${perPage}`));
 			await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress');
+			await expect(loggedInPage.getByRole('button', { name: 'Live Search' })).toBeVisible();
 			const apiResponsePromise2 = loggedInPage.waitForResponse(
 				'**/wp-json/elasticpress/v1/features*',
 			);

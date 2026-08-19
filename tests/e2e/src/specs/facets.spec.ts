@@ -9,6 +9,7 @@ import {
 	createClassicWidget,
 	wpCli,
 	setCustomPostTypes,
+	refreshIndex,
 } from '../utils.js';
 import {
 	openBlockInserter,
@@ -376,6 +377,7 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 					);
 				}
 			`);
+			await refreshIndex('post');
 		});
 
 		test('Can insert, configure, and use the Filter by Metadata block', async ({
@@ -422,9 +424,9 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				.locator('.block-editor-block-inspector .components-form-toggle__input')
 				.click();
 			await facetResponse;
-			await expect(await firstBlock.locator('.term', { hasText: /\(\d+\)$/ }).count()).toBe(
-				20,
-			);
+			await expect
+				.poll(async () => firstBlock.locator('.term', { hasText: /\(\d+\)$/ }).count())
+				.toBe(20);
 
 			// Insert a second block
 			await openBlockInserter(loggedInPage);
@@ -633,6 +635,7 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 					);
 				}
 			`);
+			await refreshIndex('post');
 		});
 
 		test('Can insert, configure, and use the Filter by Metadata Range block', async ({
@@ -644,7 +647,11 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			await expect(await getBlocksList(loggedInPage)).toContainText(
 				'Filter by Metadata Range - Beta',
 			);
+			const metaKeysResponse = loggedInPage.waitForResponse(
+				'**/wp-json/elasticpress/v1/meta-keys*',
+			);
 			await insertBlock(loggedInPage, 'Filter by Metadata Range - Beta');
+			await metaKeysResponse;
 			const block = loggedInPage
 				.locator('.wp-block.wp-block-elasticpress-facet-meta-range')
 				.last();
@@ -654,9 +661,11 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			await expect(block.locator('select')).toBeVisible();
 
 			// After selecting a field a preview should display
-			await loggedInPage.waitForResponse('/wp-json/elasticpress/v1/meta-keys*');
+			const metaRangeResponse = loggedInPage.waitForResponse(
+				'**/wp-json/elasticpress/v1/meta-range*',
+			);
 			await block.locator('select').selectOption('numeric_meta_field');
-			await loggedInPage.waitForResponse('/wp-json/elasticpress/v1/meta-range*');
+			await metaRangeResponse;
 			await expect(block.locator('.ep-range-facet')).toBeVisible();
 			await expect(block.locator('.ep-range-facet__values')).toContainText('1 — 20');
 
@@ -719,7 +728,9 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			const blockFrontend = loggedInPage.locator('.wp-block-elasticpress-facet').first();
 			await expect(blockFrontend.locator('.ep-range-facet')).toBeVisible();
 			await expect(await blockFrontend.locator('.ep-range-slider__thumb').count()).toBe(2);
-			await expect(blockFrontend).toContainText('$1/day — $20/day');
+			await expect(blockFrontend.locator('.ep-range-facet__values')).toHaveText(
+				'$1/day — $20/day',
+			);
 			await expect(blockFrontend.locator('.ep-range-facet__action a')).not.toBeVisible();
 
 			// Verify that the block supports changing styles

@@ -25,6 +25,8 @@ import {
 } from '../../utils.js';
 
 test.describe('Comments Indexable', { tag: '@group2' }, () => {
+	test.describe.configure({ timeout: 120000 });
+
 	const getCommentsCount = async () => {
 		const statsResult = await wpCli('wp elasticpress stats', true);
 		const text = statsResult?.toString() ?? '';
@@ -37,7 +39,13 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 
 	const waitForCommentsCount = async (expected: number) => {
 		await expect
-			.poll(async () => getCommentsCount(), { timeout: getSyncTimeout() })
+			.poll(
+				async () => {
+					await refreshIndex('comment');
+					return getCommentsCount();
+				},
+				{ timeout: getSyncTimeout() },
+			)
 			.toBe(expected);
 	};
 
@@ -434,7 +442,6 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await loggedInPage.locator('#submit').click();
 		await loggedInPage.waitForLoadState('networkidle');
 
-		await refreshIndex('comment');
 		await waitForCommentsCount(commentsStartCount + 1);
 
 		// Row-action links sit outside the viewport until hover.

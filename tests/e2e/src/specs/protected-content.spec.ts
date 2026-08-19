@@ -8,6 +8,7 @@ import {
 	createAutosavePost,
 	logout,
 	maybeDisableFeature,
+	refreshIndex,
 } from '../utils.js';
 
 test.describe('Protected Content Feature', { tag: '@group1' }, () => {
@@ -20,7 +21,8 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			await wpCli(`post delete ${ids} --force`);
 		}
 
-		await wpCli('elasticpress sync --setup --yes');
+		await wpCli('elasticpress sync --setup --yes', true);
+		await refreshIndex('post');
 	};
 
 	test('Can turn the feature on', async ({ loggedInPage }) => {
@@ -63,6 +65,7 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			title: 'Test ElasticPress Draft',
 			status: 'draft',
 		});
+		await refreshIndex('post');
 
 		await goToAdminPage(loggedInPage, '/edit.php?post_status=draft&post_type=post');
 		const results = JSON.parse(
@@ -102,6 +105,7 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 			title: 'Autosave Test',
 			content: 'Test content',
 		});
+		await refreshIndex('post');
 
 		await goToAdminPage(loggedInPage, 'edit.php?post_status=draft&post_type=post');
 		const results = JSON.parse(
