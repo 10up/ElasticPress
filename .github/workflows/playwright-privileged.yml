@@ -116,11 +116,18 @@ jobs:
   e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     needs: resolve-pr
+    # github.event.label.name == is a CodeQL ControlCheck (LabelIfCheck). Without
+    # it on this job, actions/untrusted-checkout/critical fires even though
+    # resolve-pr already gates on the same label. # codeql[...] comments do not
+    # satisfy GitHub code scanning.
     if: >
       needs.resolve-pr.result == 'success' &&
       (
         github.event_name == 'workflow_dispatch' ||
-        needs.resolve-pr.outputs.is_fork == 'true'
+        (
+          github.event.label.name == 'safe-to-test' &&
+          needs.resolve-pr.outputs.is_fork == 'true'
+        )
       )
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -145,9 +152,8 @@ jobs:
     steps:
     # Checkout v7 blocks fork PR heads in pull_request_target unless this
     # opt-in is set. The checked-out code is executed on purpose after a
-    # maintainer applies safe-to-test or dispatches this workflow.
-    # codeql[actions/untrusted-checkout/critical]
-    # codeql[actions/untrusted-checkout/high]
+    # maintainer applies safe-to-test or dispatches this workflow. The job
+    # `if` above is the CodeQL-recognized gate for that label.
     - name: Checkout pull request
       uses: actions/checkout@v7
       with:
