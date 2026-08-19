@@ -122,6 +122,11 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
+    # Video (retain-on-failure) needs Playwright's ffmpeg even when Chrome
+    # comes from the runner. This is a small binary download, not apt.
+    - name: Install Playwright ffmpeg
+      run: npx playwright install ffmpeg
+
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
       if: matrix.esVersion != 'EP.io'
