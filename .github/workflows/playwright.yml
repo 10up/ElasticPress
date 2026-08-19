@@ -35,27 +35,42 @@ jobs:
         echo "::notice::EP.io and @paidPlugins jobs are skipped on fork PRs because they need repository secrets."
         echo "After reviewing the diff, a maintainer can add the safe-to-test label or run 'E2e Tests (privileged)' via workflow_dispatch."
 
-  # Fork PRs do not receive repository secrets. Skip the cells that need
-  # ElasticPress.io or an ACF Pro license; a maintainer can run those via
-  # playwright-privileged.yml after reviewing the diff.
+  # Job-level `if` cannot use `matrix` (evaluated before expansion). Build the
+  # cell list here instead: fork PRs omit EP.io and @paidPlugins because those
+  # cells need repository secrets (playwright-privileged.yml after review).
+  e2e_matrix:
+    name: Build e2e matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+    - name: Select matrix cells
+      id: set
+      env:
+        IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+      run: |
+        core='[{"name":"WP latest","version":"","wcVersion":"","php":"8.2"},{"name":"WP minimum","version":"6.2","wcVersion":"6.4.0","php":"8.0"}]'
+        if [ "$IS_FORK" = "true" ]; then
+          matrix="{\"testGroup\":[\"@group1\",\"@group2\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\"],\"core\":${core}}"
+        else
+          matrix="{\"testGroup\":[\"@group1\",\"@group2\",\"@paidPlugins\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\",\"EP.io\"],\"core\":${core}}"
+        fi
+        {
+          echo 'matrix<<EOF'
+          echo "${matrix}"
+          echo 'EOF'
+        } >> "$GITHUB_OUTPUT"
+
   e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository ||
-      (matrix.esVersion != 'EP.io' && matrix.testGroup != '@paidPlugins')
+    needs: e2e_matrix
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
       WP_ENV_PHP_VERSION: ${{ matrix.core.php }}
     strategy:
       fail-fast: false
-      matrix:
-        testGroup: ['@group1', '@group2', '@paidPlugins']
-        esVersion: ['7.10.1', '8.12.2', '9.1.5', 'EP.io']
-        core:
-          - {name: 'WP latest', version: '', wcVersion: '', php: '8.2'}
-          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0', php: '8.0'}
+      matrix: ${{ fromJSON(needs.e2e_matrix.outputs.matrix) }}
 
     steps:
     - name: Checkout
