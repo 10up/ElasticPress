@@ -37,6 +37,15 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 	}
 
 	test.describe('wp elasticpress sync', () => {
+		// --nobulk is one HTTP request per document. On ElasticPress.io that
+		// exceeds Playwright's 30s default and leaves a sync lock behind.
+		test.describe.configure({ timeout: 180000 });
+
+		test.beforeEach(async () => {
+			await wpCli('elasticpress stop-sync', true);
+			await wpCli('elasticpress clear-sync', true);
+		});
+
 		test('Can index all the posts of the current blog', async ({ loggedInPage }) => {
 			const result = await wpCli('wp elasticpress sync');
 			expect(result.toString()).toContain('Indexing posts');

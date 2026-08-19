@@ -313,43 +313,28 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 	});
 
 	test('Does not change post types being displayed', async ({ loggedInPage }) => {
+		const articleTitle = (text: string) =>
+			loggedInPage.locator('.site-content article h2', { hasText: text });
+
 		await setCustomPostTypes();
 
 		// Blog page
 		await loggedInPage.goto('/');
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new page")'),
-		).not.toBeVisible();
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new post")'),
-		).toBeVisible();
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new movie")'),
-		).not.toBeVisible();
+		await expect(articleTitle('A new page')).toHaveCount(0);
+		await expect(articleTitle('A new post').first()).toBeVisible();
+		await expect(articleTitle('A new movie')).toHaveCount(0);
 
 		// Specific taxonomy archive
 		await loggedInPage.goto('/blog/genre/action/');
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new page")'),
-		).not.toBeVisible();
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new post")'),
-		).not.toBeVisible();
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new movie")'),
-		).toBeVisible();
+		await expect(articleTitle('A new page')).toHaveCount(0);
+		await expect(articleTitle('A new post')).toHaveCount(0);
+		await expect(articleTitle('A new movie').first()).toBeVisible();
 
 		// Search
 		await loggedInPage.goto('/?s=new');
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new page")'),
-		).toBeVisible();
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new post")'),
-		).toBeVisible();
-		await expect(
-			loggedInPage.locator('.site-content article h2:has-text("A new movie")'),
-		).toBeVisible();
+		await expect(articleTitle('A new page').first()).toBeVisible();
+		await expect(articleTitle('A new post').first()).toBeVisible();
+		await expect(articleTitle('A new movie').first()).toBeVisible();
 	});
 
 	test.describe('Filter by Metadata block', () => {

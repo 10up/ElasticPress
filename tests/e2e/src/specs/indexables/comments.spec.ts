@@ -21,17 +21,24 @@ import {
 	wpCliEval,
 	getEditorFrame,
 	maybeOpenSettingsTab,
+	getSyncTimeout,
 } from '../../utils.js';
 
 test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	const getCommentsCount = async () => {
-		const statsResult = await wpCli('wp elasticpress stats');
-		const text = statsResult.toString();
+		const statsResult = await wpCli('wp elasticpress stats', true);
+		const text = statsResult?.toString() ?? '';
 		const commentDocs = text.match(/-comment-[\s\S]*?Documents:\s+(\d+)/);
 		if (commentDocs) {
 			return parseInt(commentDocs[1], 10);
 		}
 		return 0;
+	};
+
+	const waitForCommentsCount = async (expected: number) => {
+		await expect
+			.poll(async () => getCommentsCount(), { timeout: getSyncTimeout() })
+			.toBe(expected);
 	};
 
 	test.beforeAll(async () => {
@@ -305,12 +312,11 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		loggedInPage,
 	}) => {
 		await maybeEnableFeature('comments');
-
-		// Enable comments
 		await wpCli('option update require_name_email 0');
 
+		const postTitle = `Test Comment ${Date.now()}`;
 		await publishPost(loggedInPage, {
-			title: 'Test Comment',
+			title: postTitle,
 		});
 
 		// Publish comment as a logged out user
@@ -324,7 +330,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await anonymousPage.goto('/');
 		await anonymousPage
 			.locator('#main .entry-title a')
-			.getByText('Test Comment')
+			.getByText(postTitle)
 			.first()
 			.click();
 		await anonymousPage.locator('#comment').fill('This is a anonymous comment');
@@ -345,14 +351,14 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		expect(response1.status()).toBe(200);
 
 		await refreshIndex('comment');
-		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
+		await waitForCommentsCount(commentsStartCount + 1);
 
 		// Trash the comment
 		await goToAdminPage(loggedInPage, 'edit-comments.php?comment_status=approved');
 		await loggedInPage.locator('.column-comment .trash a').first().dispatchEvent('click');
 
 		await refreshIndex('comment');
-		expect(await getCommentsCount()).toBe(commentsStartCount);
+		await waitForCommentsCount(commentsStartCount);
 	});
 
 	test('Can sync woocommerce reviews', async ({ loggedInPage }) => {
@@ -379,7 +385,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 
 		// Check if the new comment was indexed
 		await refreshIndex('comment');
-		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
+		await waitForCommentsCount(commentsStartCount + 1);
 
 		// Trash the review
 		const wcVersionResult = await wpCli('plugin get woocommerce --field=version');
@@ -433,7 +439,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await loggedInPage.waitForLoadState('networkidle');
 
 		await refreshIndex('comment');
-		expect(await getCommentsCount()).toBe(commentsStartCount + 1);
+		await waitForCommentsCount(commentsStartCount + 1);
 
 		// Row-action links sit outside the viewport until hover.
 		await login(loggedInPage);

@@ -121,7 +121,15 @@ export async function wpCli(command: string, ignoreFailures = false) {
 		if (err.killed || err.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') {
 			throw err;
 		}
-		return ignoreFailures ? err.stdout?.toString() || '' : null;
+		const output = err.stdout?.toString() || '';
+		if (ignoreFailures) {
+			return output;
+		}
+		throw new Error(
+			`wpCli "${escapedCommand}" failed (code ${err.code}): ${
+				output || err.stderr?.toString() || err.message
+			}`,
+		);
 	}
 }
 
@@ -577,7 +585,9 @@ export async function createClassicWidget(
  */
 export async function emptyWidgets() {
 	await wpCli('widget reset --all');
-	const inactiveWidgets = await wpCli('widget list wp_inactive_widgets --format=ids');
+	const inactiveWidgets = (await wpCli('widget list wp_inactive_widgets --format=ids', true))
+		?.toString()
+		.trim();
 	if (inactiveWidgets) {
 		await wpCli(`widget delete ${inactiveWidgets}`);
 	}
@@ -737,15 +747,36 @@ export async function createAutosavePost(
 export async function setCustomPostTypes() {
 	const output = await wpCliEval(
 		`
-		$output = WP_CLI::runcommand( "plugin activate cpt-and-custom-tax", [ 'return' => 'all', 'exit_error' => false ] );
-		if ( $output->return_code !== 0 ) {
+		$plugin_file = 'cpt-and-custom-tax.php';
+		$activated     = activate_plugin( $plugin_file );
+		if ( is_wp_error( $activated ) && ! is_plugin_active( $plugin_file ) ) {
 			print_r( "\nError activating cpt-and-custom-tax\n" );
-			print_r( $output );
+			print_r( $activated );
 		}
 
-		// Activation hooks do not run when the plugin is already active, so
-		// flush so /blog/genre/action/ resolves after a previous spec activated it.
-		WP_CLI::runcommand( 'rewrite flush', [ 'return' => true ] );
+		// init has already run in this WP-CLI request, so register now.
+		if ( ! taxonomy_exists( 'genre' ) ) {
+			include_once WP_PLUGIN_DIR . '/' . $plugin_file;
+			\\ElasticPress\\Tests\\E2e\\create_post_type();
+			\\ElasticPress\\Tests\\E2e\\create_taxonomy();
+		}
+		flush_rewrite_rules();
+
+		foreach ( [ 'post', 'page', 'movie' ] as $type ) {
+			$existing = get_posts(
+				[
+					'post_type'      => $type,
+					'post_status'    => 'any',
+					'posts_per_page' => -1,
+					'ep_integrate'   => false,
+				]
+			);
+			foreach ( $existing as $post ) {
+				if ( in_array( $post->post_title, [ 'A new page', 'A new post', 'A new movie' ], true ) ) {
+					wp_delete_post( $post->ID, true );
+				}
+			}
+		}
 
 		$page_id = wp_insert_post(
 			[
