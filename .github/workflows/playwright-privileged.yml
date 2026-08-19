@@ -1,4 +1,18 @@
-name: E2e Tests
+# Privileged e2e: EP.io and @paidPlugins for pull requests that cannot
+# receive repository secrets (forks).
+#
+# This workflow has access to secrets and checks out pull request code, then
+# runs npm ci, the setup script, and Playwright. That is only safe after a
+# maintainer has reviewed the commit being tested. Do not add unattended
+# triggers (opened, synchronize, pull_request).
+#
+# Before applying safe-to-test or dispatching, review package.json scripts,
+# bin/setup-e2e-env.sh, and tests/e2e. The label is removed on every new
+# push so a later commit cannot reuse an earlier approval.
+#
+# Keep the e2e job steps in sync with playwright.yml.
+
+name: E2e Tests (privileged)
 
 permissions:
   contents: read
@@ -12,38 +26,97 @@ env:
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
-  push:
+  pull_request_target:
+    types: [labeled, synchronize]
     branches:
       - develop
       - trunk
-  pull_request:
-    branches:
-      - develop
-      - trunk # useful for hotfix releases
-      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+      - '[0-9].[0-9x]*'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to test
+        required: true
+        type: number
+
+concurrency:
+  group: privileged-e2e-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  cancel-in-progress: true
 
 jobs:
-  fork_notice:
-    name: Fork PR — EP.io and ACF skipped
+  revoke-safe-to-test:
+    name: Remove safe-to-test on new commits
     if: >
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name != github.repository
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'synchronize' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'safe-to-test')
     runs-on: ubuntu-latest
     steps:
-    - name: Explain skipped coverage
-      run: |
-        echo "::notice::EP.io and @paidPlugins jobs are skipped on fork PRs because they need repository secrets."
-        echo "After reviewing the diff, a maintainer can add the safe-to-test label or run 'E2e Tests (privileged)' via workflow_dispatch."
+    - name: Remove safe-to-test label
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh pr edit "${{ github.event.pull_request.number }}" --remove-label "safe-to-test" || true
 
-  # Fork PRs do not receive repository secrets. Skip the cells that need
-  # ElasticPress.io or an ACF Pro license; a maintainer can run those via
-  # playwright-privileged.yml after reviewing the diff.
+  resolve-pr:
+    name: Resolve pull request
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.action == 'labeled' &&
+        github.event.label.name == 'safe-to-test'
+      )
+    runs-on: ubuntu-latest
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
+      ref: ${{ steps.pr.outputs.ref }}
+      sha: ${{ steps.pr.outputs.sha }}
+      is_fork: ${{ steps.pr.outputs.is_fork }}
+    steps:
+    - name: Resolve pull request
+      id: pr
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.inputs.pr_number || github.event.pull_request.number }}
+      run: |
+        if [ -z "$PR_NUMBER" ]; then
+          echo "Missing pull request number"
+          exit 1
+        fi
+
+        STATE="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .state)"
+        if [ "$STATE" != "open" ]; then
+          echo "Pull request #${PR_NUMBER} is not open"
+          exit 1
+        fi
+
+        SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+        IS_FORK="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.repo.fork)"
+
+        echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+        echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
+        echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+        echo "is_fork=${IS_FORK}" >> "$GITHUB_OUTPUT"
+
+    - name: Link this run on the pull request
+      if: github.event_name == 'workflow_dispatch'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        SHA: ${{ steps.pr.outputs.sha }}
+      run: |
+        gh pr comment "$PR_NUMBER" --body "Privileged e2e (EP.io and @paidPlugins) started for \`${SHA}\`: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository ||
-      (matrix.esVersion != 'EP.io' && matrix.testGroup != '@paidPlugins')
+    needs: resolve-pr
+    if: >
+      needs.resolve-pr.result == 'success' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        needs.resolve-pr.outputs.is_fork == 'true'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -56,10 +129,26 @@ jobs:
         core:
           - {name: 'WP latest', version: '', wcVersion: '', php: '8.2'}
           - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0', php: '8.0'}
+        exclude:
+          - testGroup: '@group1'
+            esVersion: '7.10.1'
+          - testGroup: '@group1'
+            esVersion: '8.12.2'
+          - testGroup: '@group1'
+            esVersion: '9.1.5'
+          - testGroup: '@group2'
+            esVersion: '7.10.1'
+          - testGroup: '@group2'
+            esVersion: '8.12.2'
+          - testGroup: '@group2'
+            esVersion: '9.1.5'
 
     steps:
-    - name: Checkout
+    - name: Checkout pull request
       uses: actions/checkout@v4
+      with:
+        ref: ${{ needs.resolve-pr.outputs.ref }}
+        persist-credentials: false
 
     - name: Prepare npm cache
       uses: actions/cache@v4
@@ -147,6 +236,7 @@ jobs:
     # Only reached when both setup steps above succeeded, so a half-built
     # database never becomes the cache every later run starts from. Several jobs
     # share a key, and the loser of that race only warns.
+    # pull_request_target can restore caches but cannot save them.
     - name: Save database cache
       uses: actions/cache/save@v4
       if: steps.db-cache.outputs.cache-hit != 'true'

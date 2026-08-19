@@ -185,6 +185,19 @@ To force a condition WordPress or ElasticPress will not produce on demand, add a
 
 CI sets `CI=true`, which enables two retries. Locally there are no retries, so a flaky test fails immediately.
 
+### Fork pull requests
+
+GitHub does not pass repository secrets to `pull_request` workflows from forks. The EP.io backend and the `@paidPlugins` group need those secrets (`EPIO_HOST`, `EPIO_CREDENTIALS`, `EPIO_INDEX_PREFIX`, `ACF_PRO_LICENSE_KEY`), so those 12 jobs are skipped on fork PRs. Same-repository PRs and pushes to `develop` / `trunk` still run the full matrix.
+
+To get EP.io and ACF coverage before merge, a maintainer reviews the diff (especially `package.json` scripts, `bin/setup-e2e-env.sh`, and `tests/e2e`) and then either:
+
+* Adds the `safe-to-test` label, which starts `.github/workflows/playwright-privileged.yml` against that commit
+* Runs **E2e Tests (privileged)** from the Actions tab and passes the pull request number
+
+The label is removed on every new push, so a later commit cannot reuse an earlier approval. Create the `safe-to-test` label in the repository if it does not already exist.
+
+Do not make the EP.io or `@paidPlugins` job names required status checks if fork PRs should remain mergeable: skipped required checks count as success. Treat the privileged run as a review step, not a branch-protection gate.
+
 ## Troubleshooting
 
 ### Running tests with ElasticPress.io

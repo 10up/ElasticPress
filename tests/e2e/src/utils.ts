@@ -1,6 +1,7 @@
 /// <reference types="node" />
 
-import { execFileSync } from 'child_process';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -97,15 +98,29 @@ export async function goToAdminPage(page: Page, path: string) {
 	}
 }
 
+const execFileAsync = promisify(execFile);
+
+// Default maxBuffer is 1MB. WP 6.2 + WooCommerce 6.4 on PHP 8.2 emits enough
+// deprecations during `wp elasticpress sync` to exceed that, kill wp-env-cli,
+// and leave `docker compose exec` running so the test never finishes.
+const WP_CLI_OPTIONS = {
+	encoding: 'utf8' as const,
+	maxBuffer: 50 * 1024 * 1024,
+	timeout: 180000,
+};
+
 export async function wpCli(command: string, ignoreFailures = false) {
 	const escapedCommand = command.replace(/^wp /, '');
+	const cli = `${getPluginRootDir()}/bin/wp-env-cli`;
+	const args = ['wordpress', `wp --allow-root ${escapedCommand}`];
 
 	try {
-		const command = `${getPluginRootDir()}/bin/wp-env-cli`;
-		const args = ['wordpress', `wp --allow-root ${escapedCommand}`];
-		const res = execFileSync(command, args);
-		return res;
+		const { stdout } = await execFileAsync(cli, args, WP_CLI_OPTIONS);
+		return stdout;
 	} catch (err: any) {
+		if (err.killed || err.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') {
+			throw err;
+		}
 		return ignoreFailures ? err.stdout?.toString() || '' : null;
 	}
 }
