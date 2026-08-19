@@ -1,23 +1,26 @@
 # Privileged e2e: EP.io and @paidPlugins for pull requests that cannot
 # receive repository secrets (forks).
 #
+# Dispatch only. pull_request_target in the same file as an untrusted
+# checkout makes CodeQL's actions/untrusted-checkout/critical fire, and
+# GitHub code scanning ignores in-source # codeql[...] suppressions. The
+# safe-to-test label lives in playwright-privileged-gate.yml, which never
+# checks out PR code and instead dispatches this workflow.
+#
 # This workflow has access to secrets and checks out pull request code, then
 # runs npm ci, the setup script, and Playwright. That is only safe after a
-# maintainer has reviewed the commit being tested. Do not add unattended
-# triggers (opened, synchronize, pull_request).
+# maintainer has reviewed the commit being tested. Before dispatching,
+# review package.json scripts, bin/setup-e2e-env.sh, and tests/e2e.
 #
-# Before applying safe-to-test or dispatching, review package.json scripts,
-# bin/setup-e2e-env.sh, and tests/e2e. The label is removed on every new
-# push so a later commit cannot reuse an earlier approval.
-#
-# Caches are restore-only. pull_request_target cannot write the default-branch
-# cache; workflow_dispatch still can, so this job never saves after checking
-# out pull request code. playwright.yml on push / same-repo pull_request
-# populates the npm, composer, Playwright browser, and bin/.cache entries.
+# Caches are restore-only. workflow_dispatch can write the default-branch
+# cache, so this job never saves after checking out pull request code.
+# playwright.yml on push / same-repo pull_request populates the npm,
+# composer, Playwright browser, and bin/.cache entries.
 #
 # Keep the remaining e2e job steps in sync with playwright.yml.
 
 name: E2e Tests (privileged)
+run-name: Privileged e2e for PR ${{ inputs.pr_number }}
 
 permissions:
   contents: read
@@ -31,12 +34,6 @@ env:
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
 
 on:
-  pull_request_target:
-    types: [labeled, synchronize]
-    branches:
-      - develop
-      - trunk
-      - '[0-9].[0-9x]*'
   workflow_dispatch:
     inputs:
       pr_number:
@@ -45,45 +42,23 @@ on:
         type: number
 
 concurrency:
-  group: privileged-e2e-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
+  group: privileged-e2e-${{ github.event.inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
-  revoke-safe-to-test:
-    name: Remove safe-to-test on new commits
-    if: >
-      github.event_name == 'pull_request_target' &&
-      github.event.action == 'synchronize' &&
-      github.event.pull_request.head.repo.full_name != github.repository &&
-      contains(github.event.pull_request.labels.*.name, 'safe-to-test')
-    runs-on: ubuntu-latest
-    steps:
-    - name: Remove safe-to-test label
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: gh pr edit "${{ github.event.pull_request.number }}" --remove-label "safe-to-test" || true
-
   resolve-pr:
     name: Resolve pull request
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'pull_request_target' &&
-        github.event.action == 'labeled' &&
-        github.event.label.name == 'safe-to-test'
-      )
     runs-on: ubuntu-latest
     outputs:
       number: ${{ steps.pr.outputs.number }}
       ref: ${{ steps.pr.outputs.ref }}
       sha: ${{ steps.pr.outputs.sha }}
-      is_fork: ${{ steps.pr.outputs.is_fork }}
     steps:
     - name: Resolve pull request
       id: pr
       env:
         GH_TOKEN: ${{ github.token }}
-        PR_NUMBER: ${{ github.event.inputs.pr_number || github.event.pull_request.number }}
+        PR_NUMBER: ${{ github.event.inputs.pr_number }}
       run: |
         if [ -z "$PR_NUMBER" ]; then
           echo "Missing pull request number"
@@ -97,15 +72,12 @@ jobs:
         fi
 
         SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
-        IS_FORK="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.repo.fork)"
 
         echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
         echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
         echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
-        echo "is_fork=${IS_FORK}" >> "$GITHUB_OUTPUT"
 
     - name: Link this run on the pull request
-      if: github.event_name == 'workflow_dispatch'
       env:
         GH_TOKEN: ${{ github.token }}
         PR_NUMBER: ${{ steps.pr.outputs.number }}
@@ -116,19 +88,6 @@ jobs:
   e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
     needs: resolve-pr
-    # github.event.label.name == is a CodeQL ControlCheck (LabelIfCheck). Without
-    # it on this job, actions/untrusted-checkout/critical fires even though
-    # resolve-pr already gates on the same label. # codeql[...] comments do not
-    # satisfy GitHub code scanning.
-    if: >
-      needs.resolve-pr.result == 'success' &&
-      (
-        github.event_name == 'workflow_dispatch' ||
-        (
-          github.event.label.name == 'safe-to-test' &&
-          needs.resolve-pr.outputs.is_fork == 'true'
-        )
-      )
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -150,16 +109,14 @@ jobs:
             esVersion: '9.1.5'
 
     steps:
-    # Checkout v7 blocks fork PR heads in pull_request_target unless this
-    # opt-in is set. The checked-out code is executed on purpose after a
-    # maintainer applies safe-to-test or dispatches this workflow. The job
-    # `if` above is the CodeQL-recognized gate for that label.
+    # persist-credentials is false so the checked-out PR cannot push with
+    # GITHUB_TOKEN. workflow_dispatch is not a CodeQL checkoutTriggers()
+    # event, so this file must not also listen for pull_request_target.
     - name: Checkout pull request
       uses: actions/checkout@v7
       with:
         ref: ${{ needs.resolve-pr.outputs.ref }}
         persist-credentials: false
-        allow-unsafe-pr-checkout: true
 
     - name: Restore npm cache
       uses: actions/cache/restore@v4
@@ -260,9 +217,8 @@ jobs:
         fi
       if: matrix.esVersion == 'EP.io'
 
-    # Do not save caches from this workflow. workflow_dispatch still has
-    # read-write access to the default-branch cache; playwright.yml is the
-    # trusted writer for bin/.cache.
+    # Do not save caches from this workflow. workflow_dispatch can write
+    # the default-branch cache; playwright.yml is the trusted writer.
 
     # @groups is a matrix label, not a Playwright tag. group1 then group2 share
     # the environment; each invocation re-runs global setup. Later steps use

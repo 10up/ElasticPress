@@ -328,11 +328,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await expect(anonymousPage.locator('#wpadminbar')).not.toBeVisible();
 
 		await anonymousPage.goto('/');
-		await anonymousPage
-			.locator('#main .entry-title a')
-			.getByText(postTitle)
-			.first()
-			.click();
+		await anonymousPage.locator('#main .entry-title a').getByText(postTitle).first().click();
 		await anonymousPage.locator('#comment').fill('This is a anonymous comment');
 		await anonymousPage.locator('#submit').click();
 		await anonymousPage.waitForLoadState('networkidle');

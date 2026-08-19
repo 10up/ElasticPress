@@ -191,7 +191,7 @@ GitHub does not pass repository secrets to `pull_request` workflows from forks. 
 
 To get EP.io and ACF coverage before merge, a maintainer reviews the diff (especially `package.json` scripts, `bin/setup-e2e-env.sh`, and `tests/e2e`) and then either:
 
-* Adds the `safe-to-test` label, which starts `.github/workflows/playwright-privileged.yml` against that commit
+* Adds the `safe-to-test` label, which starts `.github/workflows/playwright-privileged-gate.yml`. That gate dispatches `.github/workflows/playwright-privileged.yml` against the labeled commit. The privileged workflow is `workflow_dispatch` only so it can check out the PR without `pull_request_target`.
 * Runs **E2e Tests (privileged)** from the Actions tab and passes the pull request number
 
 The label is removed on every new push, so a later commit cannot reuse an earlier approval. Create the `safe-to-test` label in the repository if it does not already exist.

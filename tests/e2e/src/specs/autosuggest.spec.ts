@@ -14,6 +14,9 @@ import {
 /**
  * Homepage search. Twenty Twenty-One can render both a header `.search-field`
  * and a sidebar Search block, so an unqualified searchbox role is ambiguous.
+ *
+ * @param page Playwright page object
+ * @returns Locator for the first searchbox on the page
  */
 const frontendSearch = (page: Page) => page.getByRole('searchbox').first();
 
