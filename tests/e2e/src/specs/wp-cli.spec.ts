@@ -211,7 +211,7 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 		expect(woocommerceResult.toString()).toContain('Feature requirements are not met');
 
 		// Deactivate protected content feature to avoid conflicts with other tests
-		await wpCli('wp elasticpress deactivate-feature protected_content');
+		await wpCli('wp elasticpress deactivate-feature protected_content', true);
 		const protectedContentResult = await wpCli(
 			'wp elasticpress activate-feature protected_content',
 			true,

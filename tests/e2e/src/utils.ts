@@ -116,12 +116,12 @@ export async function wpCli(command: string, ignoreFailures = false) {
 
 	try {
 		const { stdout } = await execFileAsync(cli, args, WP_CLI_OPTIONS);
-		return stdout;
+		return stdout.toString().trim();
 	} catch (err: any) {
 		if (err.killed || err.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') {
 			throw err;
 		}
-		const output = err.stdout?.toString() || '';
+		const output = err.stdout?.toString().trim() || '';
 		if (ignoreFailures) {
 			return output;
 		}

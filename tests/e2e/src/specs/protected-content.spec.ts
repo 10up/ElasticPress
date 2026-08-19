@@ -12,8 +12,10 @@ import {
 
 test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 	const deleteOldDraftsAndSync = async () => {
-		const wpCliResponse = await wpCli('post list --post_status=draft --format=ids');
-		const ids = wpCliResponse.toString();
+		const ids = (await wpCli('post list --post_status=draft --format=ids'))
+			.toString()
+			.trim()
+			.replace(/\s+/g, ' ');
 		if (ids) {
 			await wpCli(`post delete ${ids} --force`);
 		}
