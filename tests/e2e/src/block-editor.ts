@@ -108,17 +108,28 @@ export async function insertBlock(page: Page, blockName: string) {
 export async function supportsBlockColors(page: Page, element: Locator, isEdit = false) {
 	if (isEdit) {
 		await page.locator('.block-editor-block-inspector button[aria-label="Styles"]').click();
-		await page
-			.locator('.block-editor-block-inspector button')
-			.filter({ hasText: 'Background' })
-			.click();
 
-		await page
-			.locator(
-				`.block-editor-color-gradient-control button[aria-label="Black"],
+		if (process.env.WP_VERSION === '6.2') {
+			await page
+				.locator('.block-editor-block-inspector button')
+				.filter({ hasText: 'Background' })
+				.click();
+			await page
+				.locator(
+					`.block-editor-color-gradient-control button[aria-label="Black"],
 			.block-editor-color-gradient-control__panel button[aria-label="Color: Black"]`,
-			)
-			.click();
+				)
+				.click();
+		} else {
+			// WP 7.0 moved color.background out of the Color panel and the
+			// Background panel is image-only, so there is no inspector control.
+			await page.evaluate(`
+				const clientId = wp.data.select('core/block-editor').getSelectedBlockClientId();
+				wp.data.dispatch('core/block-editor').updateBlockAttributes(clientId, {
+					backgroundColor: 'black',
+				});
+			`);
+		}
 
 		await page.locator('.block-editor-block-inspector button[aria-label="Settings"]').click();
 	}
@@ -136,28 +147,29 @@ export async function supportsBlockColors(page: Page, element: Locator, isEdit =
 export async function supportsBlockTypography(page: Page, element: Locator, isEdit = false) {
 	if (isEdit) {
 		await page.locator('.block-editor-block-inspector button[aria-label="Styles"]').click();
-		await page
-			.locator('.block-editor-block-inspector button[aria-label="Typography options"]')
-			.click();
-
-		const fontSizeButton = page
-			.locator('[aria-label="Typography options"] button, .popover-slot button')
-			.filter({ hasText: /Font size|Size/ });
-		await fontSizeButton.dispatchEvent('click');
-		await fontSizeButton.dispatchEvent('click');
-		await fontSizeButton.press('Escape');
 
 		if (process.env.WP_VERSION === '6.2') {
 			await page
 				.locator('.block-editor-block-inspector button[aria-label="Typography options"]')
 				.click();
+
 			const fontSizeButton = page
+				.locator('[aria-label="Typography options"] button, .popover-slot button')
+				.filter({ hasText: /Font size|Size/ });
+			await fontSizeButton.dispatchEvent('click');
+			await fontSizeButton.dispatchEvent('click');
+			await fontSizeButton.press('Escape');
+
+			await page
+				.locator('.block-editor-block-inspector button[aria-label="Typography options"]')
+				.click();
+			const wp62FontSizeButton = page
 				.locator(
 					'[role="menu"][aria-label="Typography options"] button, .popover-slot button',
 				)
 				.filter({ hasText: 'Font size' });
-			await fontSizeButton.click();
-			await fontSizeButton.press('Escape');
+			await wp62FontSizeButton.click();
+			await wp62FontSizeButton.press('Escape');
 			await page.getByRole('button', { name: 'Set custom size' }).click();
 			await page
 				.locator('.components-font-size-picker__controls input[type="number"]')
@@ -173,19 +185,57 @@ export async function supportsBlockTypography(page: Page, element: Locator, isEd
 			await lineHeightButton.press('Escape');
 			await page.locator('.components-input-control__input[placeholder="1.5"]').fill('2');
 		} else {
-			await page
+			const enableTypographyControl = async (controlName: string | RegExp) => {
+				await page
+					.locator(
+						'.block-editor-block-inspector button[aria-label="Typography options"]',
+					)
+					.click();
+				const menuItem = page.getByRole('menuitemcheckbox', { name: controlName });
+				if (
+					(await menuItem.isVisible()) &&
+					(await menuItem.getAttribute('aria-checked')) !== 'true'
+				) {
+					await menuItem.click();
+				}
+				await page.keyboard.press('Escape');
+			};
+
+			await enableTypographyControl(/^(Font size|Size)$/);
+			await enableTypographyControl('Line height');
+
+			const fontSizeCombobox = page
 				.locator('.block-editor-block-inspector fieldset.components-font-size-picker')
-				.locator('button[role="combobox"], button[aria-label="Font size"]')
-				.click();
+				.locator('button[role="combobox"], button[aria-label="Font size"]');
 
-			await page
-				.locator(
-					'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
-				)
-				.filter({ hasText: 'Extra small' })
-				.click();
+			if (await fontSizeCombobox.isVisible()) {
+				await fontSizeCombobox.click();
+				await page
+					.locator(
+						'.block-editor-block-inspector li[role="option"], .block-editor-block-inspector div[role="option"]',
+					)
+					.filter({ hasText: 'Extra small' })
+					.click();
+				await page.locator('.block-editor-line-height-control input').fill('2');
+			} else {
+				await page.evaluate(`
+					const { select, dispatch } = wp.data;
+					const clientId = select('core/block-editor').getSelectedBlockClientId();
+					const attrs = select('core/block-editor').getBlockAttributes(clientId) || {};
+					const style = attrs.style || {};
+					dispatch('core/block-editor').updateBlockAttributes(clientId, {
+						style: {
+							...style,
+							typography: {
+								...(style.typography || {}),
+								fontSize: '16px',
+								lineHeight: '2',
+							},
+						},
+					});
+				`);
+			}
 
-			await page.locator('.block-editor-line-height-control input').fill('2');
 			await page
 				.locator('.block-editor-block-inspector button[aria-label="Settings"]')
 				.click();
@@ -206,17 +256,27 @@ export async function supportsBlockTypography(page: Page, element: Locator, isEd
 export async function supportsBlockDimensions(page: Page, element: Locator, isEdit = false) {
 	if (isEdit) {
 		await page.locator('.block-editor-block-inspector button[aria-label="Styles"]').click();
-		await page
-			.locator('.block-editor-block-inspector button[aria-label="Dimensions options"]')
-			.click();
 
 		const dimensionsPanel = page.locator('.dimensions-block-support-panel');
+		const paddingAlreadyVisible = await dimensionsPanel
+			.locator('.component-spacing-sizes-control, .spacing-sizes-control__wrapper')
+			.first()
+			.isVisible();
 
-		const paddingButton = page
-			.locator('[aria-label="Dimensions options"] button, .popover-slot button')
-			.filter({ hasText: 'Padding' });
-		await paddingButton.dispatchEvent('click');
-		await paddingButton.press('Escape');
+		// WP 7.0 shows padding by default. Clicking it in the options menu
+		// would hide the control the rest of this helper fills.
+		if (process.env.WP_VERSION === '6.2' || !paddingAlreadyVisible) {
+			await page
+				.locator('.block-editor-block-inspector button[aria-label="Dimensions options"]')
+				.click();
+			const paddingButton = page
+				.locator(
+					'.popover-slot [role="menuitemcheckbox"], [aria-label="Dimensions options"] button, .popover-slot button',
+				)
+				.filter({ hasText: 'Padding' });
+			await paddingButton.dispatchEvent('click');
+			await paddingButton.press('Escape');
+		}
 
 		if (process.env.WP_VERSION === '6.2') {
 			await page.locator('.components-button[aria-label="Unlink sides"]').click();
