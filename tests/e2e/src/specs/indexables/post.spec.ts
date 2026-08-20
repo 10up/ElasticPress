@@ -10,6 +10,7 @@ import {
 
 test.describe('Post Indexable', { tag: '@group1' }, () => {
 	test('Can conditionally update posts when a term is edited', async ({ loggedInPage }) => {
+		test.setTimeout(60000);
 		/**
 		 * At this point, using the default content:
 		 * - the `Classic` term has 36 posts
@@ -19,6 +20,18 @@ test.describe('Post Indexable', { tag: '@group1' }, () => {
 
 		const classicTermId = await wpCli('wp term get category classic --by=slug --field=id');
 		const blockTermId = await wpCli('wp term get category block --by=slug --field=id');
+
+		// WP 7 renders the submit control as a <button>; WP 6.2 uses
+		// input[type=submit]. Scope it to the form so we do not hit another
+		// "Update" elsewhere in admin chrome.
+		const updateTerm = async (name: string) => {
+			await loggedInPage.locator('#edittag #name').fill(name);
+			await loggedInPage
+				.locator('#edittag')
+				.getByRole('button', { name: 'Update', exact: true })
+				.click();
+			await loggedInPage.waitForLoadState('domcontentloaded');
+		};
 
 		// Make sure post categories are searchable
 		await goToAdminPage(loggedInPage, '/admin.php?page=elasticpress-weighting');
@@ -58,22 +71,20 @@ test.describe('Post Indexable', { tag: '@group1' }, () => {
 		await expect(
 			loggedInPage.locator('div[data-ep-notice="edited_single_term"]'),
 		).toBeVisible();
-		await loggedInPage.locator('#name').fill('totallydifferenttermname');
-		await loggedInPage.locator('input.button-primary').click();
+		await updateTerm('totallydifferenttermname');
 
 		// Change the `Block` term, should index
 		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${blockTermId}`);
 		await expect(
 			loggedInPage.locator('div[data-ep-notice="edited_single_term"]'),
 		).not.toBeVisible();
-		await loggedInPage.locator('#name').fill('b10ck');
-		await loggedInPage.locator('input.button-primary').click();
+		await updateTerm('b10ck');
 
 		// Make sure the changes are processed by ES
 		await refreshIndex('post');
 
 		await loggedInPage.goto('/?s=totallydifferenttermname');
-		await expect(loggedInPage.locator('.hentry')).not.toBeVisible();
+		await expect(loggedInPage.locator('.hentry')).toHaveCount(0);
 
 		await loggedInPage.goto('/?s=b10ck');
 		const count = await loggedInPage.locator('.hentry').count();
@@ -86,12 +97,10 @@ test.describe('Post Indexable', { tag: '@group1' }, () => {
 
 		// Restore
 		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${classicTermId}`);
-		await loggedInPage.locator('#name').fill('Classic');
-		await loggedInPage.locator('input.button-primary').click();
+		await updateTerm('Classic');
 
 		await goToAdminPage(loggedInPage, `/term.php?taxonomy=category&tag_ID=${blockTermId}`);
-		await loggedInPage.locator('#name').fill('Block');
-		await loggedInPage.locator('input.button-primary').click();
+		await updateTerm('Block');
 
 		await setPerIndexCycle();
 	});

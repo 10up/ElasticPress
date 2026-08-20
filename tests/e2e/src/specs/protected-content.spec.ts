@@ -8,6 +8,7 @@ import {
 	createAutosavePost,
 	logout,
 	maybeDisableFeature,
+	openSyncLog,
 	refreshIndex,
 } from '../utils.js';
 
@@ -35,7 +36,7 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
-		await loggedInPage.getByRole('button', { name: 'Log' }).click();
+		await openSyncLog(loggedInPage);
 
 		// Wait for sync messages
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');

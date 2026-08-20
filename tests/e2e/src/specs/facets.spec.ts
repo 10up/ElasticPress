@@ -10,18 +10,22 @@ import {
 	wpCli,
 	setCustomPostTypes,
 	refreshIndex,
+	getEditorFrame,
 } from '../utils.js';
 import {
 	openBlockInserter,
+	closeBlockInserter,
 	getBlocksList,
 	insertBlock,
 	openBlockSettingsSidebar,
 	supportsBlockColors,
 	supportsBlockTypography,
 	supportsBlockDimensions,
+	blockInner,
 } from '../block-editor.js';
 
 test.describe('Facets Feature', { tag: '@group2' }, () => {
+	test.describe.configure({ timeout: 120000 });
 	const setSlider = async (page: Page, block: Locator, min: number, max: number) => {
 		const firstSliderThumb = block.locator('.ep-range-slider__thumb').first();
 		const currentMin = parseInt(
@@ -50,6 +54,11 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 		await Promise.all(promisesMax);
 	};
 
+	const getEditorBlock = async (page: Page, selector: string) => {
+		const frame = await getEditorFrame(page);
+		return frame.locator(selector);
+	};
+
 	test.beforeAll(async () => {
 		// Ensure the feature is active, perform a sync, and remove test posts
 		await wpCliEval(`
@@ -66,7 +75,67 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				wp_delete_post( $post, true );
 			}
 			activate_plugin( 'add-meta-fields.php' );
+
+			// The seed posts below are re-created on every run, so drop the
+			// previous batch to keep the post count stable across runs.
+			$facet_seeds = get_posts(
+				[
+					'post_type'   => 'any',
+					'meta_key'    => '_facet_seed_tests',
+					'meta_value'  => 1,
+					'numberposts' => 999,
+				]
+			);
+			foreach ( $facet_seeds as $facet_seed ) {
+				wp_delete_post( $facet_seed->ID, true );
+			}
+
+			if ( ! term_exists( 'Classic', 'category' ) ) {
+				wp_create_category( 'Classic' );
+			}
+			if ( ! term_exists( 'template', 'post_tag' ) ) {
+				wp_insert_term( 'template', 'post_tag' );
+			}
+			$classic = get_term_by( 'name', 'Classic', 'category' );
+			$parent = term_exists( 'Parent Category', 'category' );
+			if ( ! $parent ) {
+				$parent = wp_insert_term( 'Parent Category', 'category' );
+			}
+			$parent_id = (int) ( is_array( $parent ) ? $parent['term_id'] : $parent );
+			for ( $i = 1; $i <= 5; $i++ ) {
+				$child_name = sprintf( 'Child Category %02d', $i );
+				$child      = term_exists( $child_name, 'category' );
+				if ( ! $child ) {
+					$child = wp_insert_term( $child_name, 'category', [ 'parent' => $parent_id ] );
+				}
+				$child_id = (int) ( is_array( $child ) ? $child['term_id'] : $child );
+				wp_insert_post(
+					[
+						'post_title'    => "Parent category seed {$i}",
+						'post_content'  => 'Searchable Classic template content',
+						'post_status'   => 'publish',
+						'post_category' => [ $classic->term_id, $parent_id, $child_id ],
+						'tags_input'    => [ 'template' ],
+						'meta_input'    => [ '_facet_seed_tests' => 1 ],
+					]
+				);
+			}
+			for ( $i = 1; $i <= 16; $i++ ) {
+				$cat_id = wp_create_category( "Facet Cat {$i}" );
+				wp_insert_term( "facet-tag-{$i}", 'post_tag' );
+				wp_insert_post(
+					[
+						'post_title'    => "Facet seed {$i}",
+						'post_content'  => 'Searchable Classic template content',
+						'post_status'   => 'publish',
+						'post_category' => [ $classic->term_id, $cat_id ],
+						'tags_input'    => [ "facet-tag-{$i}", 'template' ],
+						'meta_input'    => [ '_facet_seed_tests' => 1 ],
+					]
+				);
+			}
 		`);
+		await refreshIndex('post');
 
 		await updateWeighting();
 	});
@@ -86,9 +155,14 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 		await expect(await getBlocksList(loggedInPage)).toContainText('Filter by Taxonomy');
 		await insertBlock(loggedInPage, 'Filter by Taxonomy');
 		await insertBlock(loggedInPage, 'Filter by Taxonomy');
+		await closeBlockInserter(loggedInPage);
 
-		const firstBlock = loggedInPage.locator('.wp-block.wp-block-elasticpress-facet').first();
-		const secondBlock = loggedInPage.locator('.wp-block.wp-block-elasticpress-facet').last();
+		const facetBlocks = await getEditorBlock(
+			loggedInPage,
+			'.wp-block.wp-block-elasticpress-facet',
+		);
+		const firstBlock = facetBlocks.first();
+		const secondBlock = facetBlocks.last();
 
 		// Verify that the blocks are inserted into the editor, and contain the expected content
 		await expect(firstBlock.locator('select')).toContainText('Select taxonomy');
@@ -124,14 +198,19 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 		await facetResponse;
 
 		// Verify the blocks have the expected output in the editor based on the block's settings
-		await expect(firstBlock.locator('input')).toHaveAttribute(
+		await expect(await blockInner(firstBlock, 'input')).toHaveAttribute(
 			'placeholder',
 			'Search Categories',
 		);
-		await expect(secondBlock.locator('input')).toHaveAttribute('placeholder', 'Search Tags');
+		await expect(await blockInner(secondBlock, 'input')).toHaveAttribute(
+			'placeholder',
+			'Search Tags',
+		);
 
 		// Verify the display count setting on the editor
-		await expect(secondBlock.locator('.term', { hasText: /\(\d+\)$/ })).not.toBeVisible();
+		await expect(
+			(await blockInner(secondBlock, '.term')).filter({ hasText: /\(\d+\)$/ }),
+		).not.toBeVisible();
 		facetResponse = loggedInPage.waitForResponse(
 			'/wp-json/wp/v2/block-renderer/elasticpress/facet*',
 		);
@@ -139,7 +218,9 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			.locator('.block-editor-block-inspector .components-form-toggle__input')
 			.click();
 		await facetResponse;
-		await expect(secondBlock.locator('.term', { hasText: /\(\d+\)$/ }).last()).toBeVisible();
+		await expect(
+			(await blockInner(secondBlock, '.term')).filter({ hasText: /\(\d+\)$/ }).last(),
+		).toBeVisible();
 
 		// Test that the block supports changing styles
 		await supportsBlockColors(loggedInPage, secondBlock, true);
@@ -252,7 +333,7 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 	}) => {
 		// Add the legacy widget
 		await activatePlugin(loggedInPage, 'classic-widgets', 'wpCli');
-		await createClassicWidget(loggedInPage, 'ep-facet', [
+		await createClassicWidget('ep-facet', [
 			{
 				name: 'title',
 				value: 'My facet',
@@ -285,7 +366,8 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 		await goToAdminPage(loggedInPage, 'widgets.php');
 
 		// Check that the widget is inserted in to the editor as a Legacy Widget block
-		const legacyWidget = loggedInPage
+		const editorFrame = await getEditorFrame(loggedInPage);
+		const legacyWidget = editorFrame
 			.locator('.wp-block-legacy-widget:has-text("ElasticPress - Filter by Taxonomy")')
 			.first();
 		await legacyWidget.click();
@@ -299,18 +381,22 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			.click();
 
 		// Check that the widget has been transformed into the correct blocks
-		await expect(loggedInPage.locator('.wp-block-heading:has-text("My facet")')).toBeVisible();
-		const block = loggedInPage.locator('.wp-block-elasticpress-facet').first();
+		await expect(editorFrame.locator('.wp-block-heading:has-text("My facet")')).toBeVisible();
+		const block = editorFrame.locator('.wp-block-elasticpress-facet').first();
 		await expect(block).toBeVisible();
 
 		// Check that the block's settings match the widget's
 		await block.click();
-		await expect(loggedInPage.getByRole('combobox', { name: 'Filter By' })).toHaveValue(
-			'post_tag',
-		);
-		await expect(loggedInPage.getByRole('combobox', { name: 'Order By' })).toHaveValue(
-			'name/asc',
-		);
+		await expect(
+			loggedInPage.locator('.block-editor-block-inspector').getByRole('combobox', {
+				name: 'Filter By',
+			}),
+		).toHaveValue('post_tag');
+		await expect(
+			loggedInPage.locator('.block-editor-block-inspector').getByRole('combobox', {
+				name: 'Order By',
+			}),
+		).toHaveValue('name/asc');
 	});
 
 	test('Does not change post types being displayed', async ({ loggedInPage }) => {
@@ -388,9 +474,10 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			await openBlockInserter(loggedInPage);
 			await expect(await getBlocksList(loggedInPage)).toContainText('Filter by Metadata');
 			await insertBlock(loggedInPage, 'Filter by Metadata');
-			const firstBlock = loggedInPage
-				.locator('.wp-block.wp-block-elasticpress-facet-meta')
-				.last();
+			await closeBlockInserter(loggedInPage);
+			const firstBlock = (
+				await getEditorBlock(loggedInPage, '.wp-block.wp-block-elasticpress-facet-meta')
+			).last();
 
 			// Configure the block
 			await firstBlock.click();
@@ -399,24 +486,27 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				.locator('.block-editor-block-inspector input[type="text"]')
 				.fill('Search Meta 1');
 
+			const filterBy = loggedInPage
+				.locator('.block-editor-block-inspector')
+				.getByRole('combobox', { name: 'Filter By' });
+			await expect(filterBy).toBeEnabled();
 			let facetResponse;
 			facetResponse = loggedInPage.waitForResponse(
 				'/wp-json/wp/v2/block-renderer/elasticpress/facet-meta*',
 			);
-			await loggedInPage
-				.getByRole('combobox', { name: 'Filter By' })
-				.first()
-				.selectOption('meta_field_1');
+			await filterBy.selectOption('meta_field_1');
 			await facetResponse;
 
 			// Verify that the blocks are inserted into the editor, and contain the expected content
-			await expect(firstBlock.locator('input')).toHaveAttribute(
+			await expect(await blockInner(firstBlock, 'input')).toHaveAttribute(
 				'placeholder',
 				'Search Meta 1',
 			);
 
 			// Verify the display count setting on the editor
-			await expect(firstBlock.locator('.term', { hasText: /\(\d+\)$/ })).not.toBeVisible();
+			await expect(
+				(await blockInner(firstBlock, '.term')).filter({ hasText: /\(\d+\)$/ }),
+			).not.toBeVisible();
 			facetResponse = loggedInPage.waitForResponse(
 				'/wp-json/wp/v2/block-renderer/elasticpress/facet-meta*',
 			);
@@ -425,16 +515,19 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				.click();
 			await facetResponse;
 			await expect
-				.poll(async () => firstBlock.locator('.term', { hasText: /\(\d+\)$/ }).count())
+				.poll(async () =>
+					(await blockInner(firstBlock, '.term')).filter({ hasText: /\(\d+\)$/ }).count(),
+				)
 				.toBe(20);
 
 			// Insert a second block
 			await openBlockInserter(loggedInPage);
 			await expect(await getBlocksList(loggedInPage)).toContainText('Filter by Metadata');
 			await insertBlock(loggedInPage, 'Filter by Metadata');
-			const secondBlock = loggedInPage
-				.locator('.wp-block.wp-block-elasticpress-facet-meta')
-				.last();
+			await closeBlockInserter(loggedInPage);
+			const secondBlock = (
+				await getEditorBlock(loggedInPage, '.wp-block.wp-block-elasticpress-facet-meta')
+			).last();
 
 			// Configure the block
 			await secondBlock.click();
@@ -443,20 +536,20 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				.locator('.block-editor-block-inspector input[type="text"]')
 				.fill('Search Meta 2');
 			await loggedInPage
+				.locator('.block-editor-block-inspector')
 				.getByRole('combobox', { name: 'Filter By' })
-				.first()
 				.selectOption('meta_field_2');
 			facetResponse = loggedInPage.waitForResponse(
 				'/wp-json/wp/v2/block-renderer/elasticpress/facet-meta*',
 			);
 			await loggedInPage
+				.locator('.block-editor-block-inspector')
 				.getByRole('combobox', { name: 'Order By' })
-				.first()
 				.selectOption('name/asc');
 			await facetResponse;
 
 			// Verify the block has the expected output in the editor based on the block's settings
-			await expect(secondBlock.locator('input')).toHaveAttribute(
+			await expect(await blockInner(secondBlock, 'input')).toHaveAttribute(
 				'placeholder',
 				'Search Meta 2',
 			);
@@ -652,9 +745,13 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			);
 			await insertBlock(loggedInPage, 'Filter by Metadata Range - Beta');
 			await metaKeysResponse;
-			const block = loggedInPage
-				.locator('.wp-block.wp-block-elasticpress-facet-meta-range')
-				.last();
+			await closeBlockInserter(loggedInPage);
+			const block = (
+				await getEditorBlock(
+					loggedInPage,
+					'.wp-block.wp-block-elasticpress-facet-meta-range',
+				)
+			).last();
 
 			// The block should prompt to select a field
 			await expect(block).toContainText('Filter by Metadata Range');
@@ -709,7 +806,11 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			await openBlockInserter(loggedInPage);
 			await expect(await getBlocksList(loggedInPage)).toContainText('Filter by Metadata');
 			await insertBlock(loggedInPage, 'Filter by Metadata');
-			await loggedInPage.locator('.wp-block-elasticpress-facet-meta').last().click();
+			await closeBlockInserter(loggedInPage);
+			const metaBlock = (
+				await getEditorBlock(loggedInPage, '.wp-block-elasticpress-facet-meta')
+			).last();
+			await metaBlock.click();
 			await openBlockSettingsSidebar(loggedInPage);
 			await loggedInPage
 				.locator('.block-editor-block-inspector select')
@@ -805,9 +906,13 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			await openBlockInserter(loggedInPage);
 			await expect(await getBlocksList(loggedInPage)).toContainText('Filter by Post Type');
 			await insertBlock(loggedInPage, 'Filter by Post Type');
-			const block = loggedInPage
-				.locator('.wp-block.wp-block-elasticpress-facet-post-type')
-				.last();
+			await closeBlockInserter(loggedInPage);
+			const block = (
+				await getEditorBlock(
+					loggedInPage,
+					'.wp-block.wp-block-elasticpress-facet-post-type',
+				)
+			).last();
 
 			// Configure the block
 			await block.click();
@@ -820,7 +925,9 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			let facetResponse = loggedInPage.waitForResponse(
 				'/wp-json/wp/v2/block-renderer/elasticpress/facet-post-type*',
 			);
-			await expect(block.locator('.term', { hasText: /\(\d+\)$/ })).not.toBeVisible();
+			await expect(
+				(await blockInner(block, '.term')).filter({ hasText: /\(\d+\)$/ }),
+			).not.toBeVisible();
 			await loggedInPage
 				.locator('.block-editor-block-inspector .components-form-toggle__input')
 				.click();
@@ -829,7 +936,7 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				'/wp-json/wp/v2/block-renderer/elasticpress/facet-post-type*',
 			);
 			await expect(
-				await block.locator('.term', { hasText: /\(\d+\)$/ }).count(),
+				await (await blockInner(block, '.term')).filter({ hasText: /\(\d+\)$/ }).count(),
 			).toBeGreaterThan(0);
 			await loggedInPage
 				.locator('.block-editor-block-inspector .components-select-control__input')
@@ -883,10 +990,15 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			await openBlockInserter(loggedInPage);
 			await expect(await getBlocksList(loggedInPage)).toContainText('Filter by Post Date');
 			await insertBlock(loggedInPage, 'Filter by Post Date');
-			const block = loggedInPage.locator('.wp-block.wp-block-elasticpress-facet-date').last();
+			await closeBlockInserter(loggedInPage);
+			const block = (
+				await getEditorBlock(loggedInPage, '.wp-block.wp-block-elasticpress-facet-date')
+			).last();
 
 			// Verify that there are 4 options
-			await expect(block.locator('.ep-facet-date-form .ep-facet-date-option')).toHaveCount(4);
+			await expect(
+				await blockInner(block, '.ep-facet-date-form .ep-facet-date-option'),
+			).toHaveCount(4);
 
 			await block.click();
 			await openBlockSettingsSidebar(loggedInPage);
@@ -955,7 +1067,9 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 				.uncheck();
 			await facetResponse;
 
-			await expect(block.locator('.ep-facet-date-form .ep-facet-date-option')).toHaveCount(3);
+			await expect(
+				await blockInner(block, '.ep-facet-date-form .ep-facet-date-option'),
+			).toHaveCount(3);
 
 			// Save widgets and visit the front page
 			const sidebarResponse2 = loggedInPage.waitForResponse('/wp-json/wp/v2/widgets*');

@@ -22,6 +22,7 @@ import {
 	getEditorFrame,
 	maybeOpenSettingsTab,
 	getSyncTimeout,
+	openSyncLog,
 } from '../../utils.js';
 
 test.describe('Comments Indexable', { tag: '@group2' }, () => {
@@ -56,6 +57,24 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 			update_option( 'comment_previously_approved', '1' );
 			WP_CLI::runcommand( 'plugin activate show-comments-and-terms', [ 'return' => true ] );
 			\\ElasticPress\\Features::factory()->update_feature( 'comments', [ 'active' => true ], true );
+
+			// Posts below are titled with a timestamp, so a new one is created on
+			// every run. Remove earlier batches, along with their comments, to
+			// keep the document counts these tests assert on stable. Matching has
+			// to be anchored to the title: a search would also match the fixture
+			// posts these tests rely on.
+			global $wpdb;
+			foreach ( [ 'Test Comment ', 'Anonymous Comment Sync ' ] as $stale_prefix ) {
+				$stale_posts = $wpdb->get_col(
+					$wpdb->prepare(
+						"SELECT ID FROM {$wpdb->posts} WHERE post_title LIKE %s",
+						$wpdb->esc_like( $stale_prefix ) . '%'
+					)
+				);
+				foreach ( $stale_posts as $stale_post ) {
+					wp_delete_post( $stale_post, true );
+				}
+			}
 		`);
 	});
 
@@ -77,6 +96,34 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 				.fill(title);
 		};
 
+		const inspector = loggedInPage.locator('.block-editor-block-inspector');
+
+		/**
+		 * Restrict the block that was just inserted to the given post types.
+		 *
+		 * @param {string[]} postTypeLabels Plural labels of the post types to search.
+		 */
+		const searchPostTypes = async (postTypeLabels: string[]) => {
+			await maybeOpenSettingsTab(loggedInPage, 'Block');
+
+			// A newly inserted block searches every post type. Waiting for that
+			// state confirms the inspector has caught up with the insertion,
+			// rather than still describing the previous block.
+			await expect(
+				inspector.getByRole('checkbox', { name: 'Search all comments', exact: true }),
+			).toBeChecked();
+
+			for await (const postTypeLabel of postTypeLabels) {
+				const postTypeCheckbox = inspector.getByRole('checkbox', {
+					name: `Search comments on ${postTypeLabel}`,
+					exact: true,
+				});
+
+				await postTypeCheckbox.click();
+				await expect(postTypeCheckbox).toBeChecked();
+			}
+		};
+
 		await goToAdminPage(loggedInPage, 'widgets.php');
 
 		// Get the editor frame
@@ -88,19 +135,15 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 
 		await insertBlock(loggedInPage, 'Search Comments');
 		await setTitle('Search comments on posts');
-		await maybeOpenSettingsTab(loggedInPage, 'Block');
-		await loggedInPage.locator('.components-checkbox-control__input').nth(1).click();
+		await searchPostTypes(['Posts']);
 
 		await insertBlock(loggedInPage, 'Search Comments');
 		await setTitle('Search comments on pages');
-		await maybeOpenSettingsTab(loggedInPage, 'Block');
-		await loggedInPage.locator('.components-checkbox-control__input').nth(2).click();
+		await searchPostTypes(['Pages']);
 
 		await insertBlock(loggedInPage, 'Search Comments');
 		await setTitle('Search comments on pages and posts');
-		await maybeOpenSettingsTab(loggedInPage, 'Block');
-		await loggedInPage.locator('.components-checkbox-control__input').nth(1).click();
-		await loggedInPage.locator('.components-checkbox-control__input').nth(2).click();
+		await searchPostTypes(['Posts', 'Pages']);
 
 		// Test block style support
 		const block = editorFrame.locator('.wp-block-elasticpress-comments').last();
@@ -207,7 +250,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		 * Add the legacy widget.
 		 */
 		await activatePlugin(loggedInPage, 'classic-widgets', 'wpCli');
-		await createClassicWidget(loggedInPage, 'ep-comments', [
+		await createClassicWidget('ep-comments', [
 			{
 				name: 'title',
 				type: 'text',
@@ -304,7 +347,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
-		await loggedInPage.locator('.components-button').getByText('Log').click();
+		await openSyncLog(loggedInPage);
 
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
 		await expect(syncMessages).toContainText('Mapping sent', { timeout: 60000 });
@@ -372,6 +415,12 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await maybeEnableFeature('comments');
 		await maybeEnableFeature('woocommerce');
 
+		// Recent WooCommerce versions install with coming soon mode enabled, which
+		// puts a notice bar over the bottom of store pages. The review is
+		// submitted with a forced click, so that bar silently receives it
+		// instead of the button.
+		await wpCli('option update woocommerce_coming_soon no');
+
 		// Enable product reviews
 		await loggedInPage.goto('/product/awesome-aluminum-shoes/');
 		await loggedInPage.locator('#wp-admin-bar-edit a').click();
@@ -421,6 +470,11 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 			title: postTitle,
 		});
 
+		const viewPostLink = loggedInPage.locator(
+			'a[aria-label="View Post"], .post-publish-panel__postpublish-buttons a:has-text("View Post"), #wp-admin-bar-view a',
+		);
+		const postUrl = (await viewPostLink.first().getAttribute('href')) || '/';
+
 		// Disable settings
 		await wpCliEval(`
 			update_option( 'require_name_email', '0' );
@@ -431,13 +485,7 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 		await logout(loggedInPage);
 
 		// Publish comment as a logged out user
-		await loggedInPage.goto(`/?s=${encodeURIComponent(postTitle)}`);
-		const postUrl = await loggedInPage
-			.locator('#main .entry-title a')
-			.getByText(postTitle)
-			.first()
-			.getAttribute('href');
-		await loggedInPage.goto(postUrl || '/');
+		await loggedInPage.goto(postUrl);
 		await loggedInPage.locator('#comment').fill(`This is a anonymous comment ${Date.now()}`);
 		await loggedInPage.locator('#submit').click();
 		await loggedInPage.waitForLoadState('networkidle');

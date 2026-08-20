@@ -1,35 +1,72 @@
 import { expect, Page, Locator } from '@playwright/test';
 
 /**
+ * Locate a child of a block, including WP 7 ServerSideRender iframes.
+ *
+ * Gutenberg may wrap the preview in an iframe, so a direct descendant
+ * locator misses the rendered markup.
+ *
+ * @param block Block locator
+ * @param selector Child selector
+ * @returns Locator for the child
+ */
+export async function blockInner(block: Locator, selector: string): Promise<Locator> {
+	const iframe = block.locator('iframe').first();
+	const iframeAttached = await iframe
+		.waitFor({ state: 'attached', timeout: 3000 })
+		.then(() => true)
+		.catch(() => false);
+
+	if (iframeAttached) {
+		const inner = iframe.contentFrame().locator(selector);
+		try {
+			await inner.first().waitFor({ state: 'attached', timeout: 8000 });
+			return inner;
+		} catch {
+			// Iframe is present but the selector lives on the block wrapper
+			// (empty-state controls, client-rendered previews).
+		}
+	}
+
+	return block.locator(selector);
+}
+
+/**
  * Open the block settings sidebar
  * @param page Playwright page object
  */
 export async function openBlockSettingsSidebar(page: Page) {
 	const body = await page.locator('body');
 	const isWidgetsPage = await body.evaluate((el) => el.classList.contains('widgets-php'));
-
-	if (isWidgetsPage) {
-		await page.locator('.edit-widgets-header__actions button[aria-label="Settings"]').click();
-		await page
-			.locator('.edit-widgets-sidebar__panel-tab,.edit-widgets-sidebar__panel-tabs button')
-			.filter({ hasText: 'Block' })
-			.click();
-	} else {
-		await page
-			.locator(
+	const settingsButton = isWidgetsPage
+		? page.locator('.edit-widgets-header__actions button[aria-label="Settings"]')
+		: page.locator(
 				`.edit-post-header__settings button[aria-label="Settings"],
-			.editor-header__settings button[aria-label="Settings"]`,
-			)
-			.click();
-		await page
-			.locator(
-				`.edit-post-sidebar__panel-tab,
-			.edit-post-sidebar__panel-tabs button,
-			.editor-sidebar__panel-tabs button:has-text('Block')`,
-			)
-			.filter({ hasText: 'Block' })
-			.click();
+				.editor-header__settings button[aria-label="Settings"]`,
+			);
+
+	// The widgets sidebar can already be open on the "Widget Areas" tab.
+	// Clicking Settings in that state closes it instead of showing the inspector.
+	const isPressed = (await settingsButton.getAttribute('aria-pressed')) === 'true';
+	if (!isPressed) {
+		await settingsButton.click();
 	}
+
+	const sidebar = isWidgetsPage
+		? page.locator('.edit-widgets-sidebar')
+		: page.locator('.interface-complementary-area, .editor-sidebar, .edit-post-sidebar');
+
+	await sidebar
+		.getByRole('tab', { name: 'Block' })
+		.or(
+			sidebar
+				.locator(
+					'.edit-widgets-sidebar__panel-tab, .edit-post-sidebar__panel-tab, .editor-sidebar__panel-tabs button',
+				)
+				.filter({ hasText: /^Block$/ }),
+		)
+		.click();
+	await expect(page.locator('.block-editor-block-inspector')).toBeVisible({ timeout: 10000 });
 }
 
 /**
@@ -60,6 +97,17 @@ export async function openBlockInserter(page: Page) {
  * @param page Playwright page object
  */
 export async function closeBlockInserter(page: Page) {
+	const isInserterOpen = await page
+		.locator(
+			'.block-editor-inserter__panel-content, .edit-widgets-layout__inserter-panel-content',
+		)
+		.first()
+		.isVisible();
+
+	if (!isInserterOpen) {
+		return;
+	}
+
 	const body = await page.locator('body');
 	const isWidgetsPage = await body.evaluate((el) => el.classList.contains('widgets-php'));
 

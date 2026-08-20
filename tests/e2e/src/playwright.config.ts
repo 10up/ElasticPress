@@ -42,13 +42,13 @@ export default defineConfig({
 		/* Base URL to use in actions like `await page.goto('/')`. */
 		baseURL: 'http://localhost:8889',
 
-		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-		trace: 'on-first-retry',
+		/* Collect a trace on failure, including the first attempt. */
+		trace: 'retain-on-failure',
 
 		// Capture screenshot after each test failure.
 		screenshot: 'only-on-failure',
 
-		// Record video only when retrying a test for the first time.
+		// Record video on failure.
 		video: 'retain-on-failure',
 
 		// GitHub-hosted Ubuntu already has Google Chrome. Using it in CI

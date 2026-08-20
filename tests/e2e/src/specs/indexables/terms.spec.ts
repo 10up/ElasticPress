@@ -5,6 +5,7 @@ import {
 	maybeEnableFeature,
 	maybeDisableFeature,
 	createTerm,
+	openSyncLog,
 	wpCliEval,
 } from '../../utils.js';
 
@@ -46,7 +47,7 @@ test.describe('Terms Feature', { tag: '@group2' }, () => {
 		loggedInPage.on('dialog', (dialog) => dialog.accept());
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
-		await loggedInPage.getByRole('button', { name: 'Log' }).click();
+		await openSyncLog(loggedInPage);
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
 		await expect(syncMessages).toContainText('Mapping sent');
 		await expect(syncMessages).toContainText('Sync complete');

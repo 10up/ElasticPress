@@ -101,7 +101,7 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 			if (match1?.groups && match2?.groups) {
 				const total = parseInt(match1.groups.total, 10);
 				const indexed = parseInt(match2.groups.indexed, 10);
-				expect(10).toBe(total - indexed);
+				expect(total - indexed).toBe(10);
 			}
 
 			expect(output).toContain('Number of posts indexed');

@@ -30,13 +30,11 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 	async function uploadFile(page: Page, fileName: string) {
 		await goToAdminPage(page, 'media-new.php?browser-uploader');
 
-		// Create a file input and upload the file
-		const fileChooserPromise = page.waitForEvent('filechooser');
-		await page.locator('#async-upload').click();
-		const fileChooser = await fileChooserPromise;
-		await fileChooser.setFiles(`${getPluginRootDir()}/tests/e2e/src/fixtures/${fileName}`);
-
+		await page
+			.locator('#async-upload')
+			.setInputFiles(`${getPluginRootDir()}/tests/e2e/src/fixtures/${fileName}`);
 		await page.locator('#html-upload').click();
+		await page.waitForLoadState('domcontentloaded');
 
 		await refreshIndex('post');
 	}
@@ -90,6 +88,8 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 		});
 
 		await wpCli('config set ALLOW_UNFILTERED_UPLOADS true --raw');
+		// wp-config.php is opcached; a new admin request picks up the constant.
+		await goToAdminPage(loggedInPage, 'index.php');
 
 		await uploadFile(loggedInPage, 'txt-file.txt');
 		await uploadFile(loggedInPage, 'csv-file.csv');

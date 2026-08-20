@@ -126,7 +126,7 @@ test.describe('Related Posts Feature', { tag: '@group2' }, () => {
 	}) => {
 		// Add legacy widget
 		await activatePlugin(loggedInPage, 'classic-widgets', 'wpCli');
-		await createClassicWidget(loggedInPage, 'ep-related-posts', [
+		await createClassicWidget('ep-related-posts', [
 			{
 				name: 'title',
 				type: 'text',

@@ -10,6 +10,7 @@ import {
 	wpCliEval,
 	setCustomPostTypes,
 	maybeDisableFeature,
+	openSyncLog,
 	refreshIndex,
 } from '../utils.js';
 import { openBlockInserter, insertBlock } from '../block-editor.js';
@@ -190,7 +191,7 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 
 			// Wait for sync messages
-			await loggedInPage.getByRole('button', { name: 'Log' }).click();
+			await openSyncLog(loggedInPage);
 			const syncMessages = loggedInPage.locator('.ep-sync-messages');
 			await expect(syncMessages).toContainText('Mapping sent');
 			await expect(syncMessages).toContainText('Sync complete');

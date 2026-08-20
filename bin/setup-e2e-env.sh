@@ -80,12 +80,94 @@ DB_CACHE_DIR="./bin/.cache"
 DB_CACHE_FILE="${DB_CACHE_DIR}/db-${WP_VERSION:-latest}-${WC_VERSION:-latest}-${CACHE_ACF}-${CACHE_HASH}.sql"
 DB_CACHE_FILE_IN_CONTAINER="/var/www/html/wp-content/plugins/${PLUGIN_NAME}/${DB_CACHE_FILE#./}"
 
+# wp-env-cli prints whatever the container wrote, so a PHP notice or a WP-CLI
+# error can precede the value. Only a line that is entirely digits is a count,
+# and an unparseable result has to read as empty rather than as a number.
+wp_count() {
+	./bin/wp-env-cli wordpress "wp --allow-root $1" 2>/dev/null | tr -d '\r' | grep -xE '[0-9]+' | tail -1
+}
+
+# `wp-env reset` empties the database but leaves the multisite constants behind
+# in wp-config.php. WordPress then declares itself a network with no network
+# tables, so no command can bootstrap. This has to run before anything else
+# touches the install, or the plugin and theme steps below fail too. Dropping
+# the constants turns it back into the single site multisite-convert can convert.
+reset_stale_multisite_config() {
+	if ./bin/wp-env-cli wordpress "wp --allow-root site list --format=count" > /dev/null 2>&1; then
+		return 0
+	fi
+
+	if ! ./bin/wp-env-cli wordpress "wp --allow-root config has MULTISITE" > /dev/null 2>&1; then
+		return 0
+	fi
+
+	echo "The multisite constants are set but the network is missing. Clearing them."
+
+	# WP_ALLOW_MULTISITE is cleared too because multisite-convert writes its own
+	# copy. Leaving the old one in place defines it twice, and PHP then prints a
+	# warning on every request, which corrupts both page output and the WP-CLI
+	# responses this script parses.
+	for constant in MULTISITE SUBDOMAIN_INSTALL DOMAIN_CURRENT_SITE PATH_CURRENT_SITE SITE_ID_CURRENT_SITE BLOG_ID_CURRENT_SITE WP_ALLOW_MULTISITE; do
+		while ./bin/wp-env-cli wordpress "wp --allow-root config has ${constant}" > /dev/null 2>&1; do
+			./bin/wp-env-cli wordpress "wp --allow-root config delete ${constant}" > /dev/null 2>&1 || break
+		done
+	done
+}
+
+# wp-config.php has to describe the database it points at. multisite-convert
+# declines to touch an install whose network tables already exist ("The network
+# already exists"), so it cannot write the constants describing a network it did
+# not create -- an imported cache, or a database left over from a previous run.
+# Only the constants are written here; the network itself is already there.
+ensure_multisite_config() {
+	if ./bin/wp-env-cli wordpress "wp --allow-root site list --format=count" > /dev/null 2>&1; then
+		return 0
+	fi
+
+	echo "Restoring the multisite constants to match the database."
+	./bin/wp-env-cli wordpress "wp --allow-root config set MULTISITE true --raw"
+	./bin/wp-env-cli wordpress "wp --allow-root config set SUBDOMAIN_INSTALL false --raw"
+	./bin/wp-env-cli wordpress "wp --allow-root config set DOMAIN_CURRENT_SITE localhost:8889"
+	./bin/wp-env-cli wordpress "wp --allow-root config set PATH_CURRENT_SITE /"
+	./bin/wp-env-cli wordpress "wp --allow-root config set SITE_ID_CURRENT_SITE 1 --raw"
+	./bin/wp-env-cli wordpress "wp --allow-root config set BLOG_ID_CURRENT_SITE 1 --raw"
+}
+
+# The exported file is only worth keeping if it captures a database the suite
+# can actually run against: the imported content, the second site the multisite
+# tests index, and an active plugin.
+verify_database() {
+	local sites
+	local posts
+
+	sites=$(wp_count "site list --format=count")
+	if [ "$sites" != "2" ]; then
+		echo "Expected 2 sites in the network, found '${sites:-none}'."
+		return 1
+	fi
+
+	posts=$(wp_count "post list --post_type=post --post_status=publish --format=count")
+	if [ -z "$posts" ] || [ "$posts" -lt 10 ]; then
+		echo "Expected the imported posts, found '${posts:-none}'."
+		return 1
+	fi
+
+	if ! ./bin/wp-env-cli wordpress "wp --allow-root plugin is-active ${PLUGIN_NAME}" > /dev/null 2>&1; then
+		echo "${PLUGIN_NAME} is not active."
+		return 1
+	fi
+}
+
 # Every database change belongs in here, so that a cache hit can skip the lot.
 # Anything touching the filesystem or wp-config.php has to run either way.
 setup_database() {
-	SITES_COUNT=$(./bin/wp-env-cli wordpress "wp --allow-root site list --format=count")
-	echo "SITES_COUNT: $SITES_COUNT"
-	if [ $SITES_COUNT -eq 1 ]; then
+	SITES_COUNT=$(wp_count "site list --format=count")
+	echo "SITES_COUNT: ${SITES_COUNT:-unreadable}"
+	if [ -z "$SITES_COUNT" ]; then
+		echo "Could not read the site list, so the network is not usable."
+		return 1
+	fi
+	if [ "$SITES_COUNT" -eq 1 ]; then
 		./bin/wp-env-cli wordpress "wp --allow-root site create --slug=second-site --title='Second Site'"
 		./bin/wp-env-cli wordpress "wp --allow-root search-replace localhost/ localhost:8889/ --all-tables"
 	fi
@@ -107,6 +189,8 @@ setup_database() {
 	./bin/wp-env-cli wordpress "wp --allow-root user meta update admin edit_post_per_page 5"
 	./bin/wp-env-cli wordpress "wp --allow-root user update admin --user_pass=password"
 }
+
+reset_stale_multisite_config
 
 if [ -z $WC_VERSION ]; then
 	./bin/wp-env-cli wordpress "wp --allow-root plugin install woocommerce --activate"
@@ -174,6 +258,9 @@ if [ ! -z $ACF_PRO_LICENSE_KEY ]; then
 fi
 
 ./bin/wp-env-cli wordpress "wp --allow-root core multisite-convert"
+# Covers the case multisite-convert declines: a database that already holds a
+# network, whose constants are missing from wp-config.php.
+ensure_multisite_config
 
 # WordPress does not write .htaccess on multisite, so the subdirectory rewrite rules are copied in.
 ./bin/wp-env-cli wordpress "cp /var/www/html/wp-content/plugins/${PLUGIN_NAME}/tests/e2e/src/wordpress-files/.htaccess /var/www/html/.htaccess"
@@ -184,8 +271,24 @@ fi
 if [ $USE_DB_CACHE -eq 1 ] && [ -f "$DB_CACHE_FILE" ]; then
 	echo "Importing the database from ${DB_CACHE_FILE}"
 	./bin/wp-env-cli cli "wp --allow-root db import ${DB_CACHE_FILE_IN_CONTAINER}"
+	ensure_multisite_config
+
+	if ! verify_database; then
+		echo "The cached database is not usable. Delete ${DB_CACHE_FILE} and run again."
+		exit 1
+	fi
 else
-	setup_database
+	if ! setup_database; then
+		echo "Setting up the database failed."
+		exit 1
+	fi
+
+	# A partial setup used to be exported anyway, and every later run imported
+	# that broken state as though it were a valid cache.
+	if ! verify_database; then
+		echo "The database is not in the expected state. Not caching it."
+		exit 1
+	fi
 
 	# Written to a temporary name first, so an interrupted export cannot leave a
 	# truncated file behind that later runs would treat as a usable cache.

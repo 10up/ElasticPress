@@ -5,7 +5,7 @@ import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-import { FrameLocator, Page, Locator } from '@playwright/test';
+import { FrameLocator, Page, Locator, expect } from '@playwright/test';
 import { writeFileSync, unlinkSync } from 'fs';
 import * as path from 'path';
 
@@ -76,13 +76,18 @@ export async function login(page: Page, username = 'admin', password = 'password
  * @param page Playwright page object
  */
 export async function logout(page: Page) {
-	await page.goto('/wp-admin');
-	const adminBar = await page.locator('#wpadminbar');
-	if (await adminBar.isVisible()) {
-		await page.hover('#wp-admin-bar-my-account');
-		await page.click('#wp-admin-bar-logout > a');
+	const logoutLink = page.locator('#wp-admin-bar-logout a');
+	const href = await logoutLink.getAttribute('href').catch(() => null);
+	if (href) {
+		await page.goto(href);
+	} else {
+		await page.goto('/wp-login.php?action=logout');
+		const confirm = page.getByRole('link', { name: /log out/i });
+		if (await confirm.isVisible().catch(() => false)) {
+			await confirm.click();
+		}
 	}
-	await page.goto('/wp-admin');
+	await page.goto('/wp-login.php');
 }
 
 /**
@@ -272,18 +277,34 @@ export async function clearThenType(page: Page, selector: string, text: string) 
 }
 
 export async function getEditorFrame(page: Page): Promise<Page | FrameLocator> {
-	const iframedEditor = page.locator('iframe[name="editor-canvas"]');
-	const inlineEditor = page.locator('.edit-post-visual-editor');
+	// WP 6.2 has no editor canvas iframe. Waiting for one burns 10s per
+	// publishPost() call and trips the default test timeout.
+	if (process.env.WP_VERSION?.startsWith('6.2')) {
+		return page;
+	}
 
-	await Promise.race([
-		iframedEditor.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {}),
-		inlineEditor
-			.first()
-			.waitFor({ state: 'visible', timeout: 10000 })
-			.catch(() => {}),
-	]);
+	const iframedEditor = page.locator(
+		'iframe[name="editor-canvas"], iframe.editor-canvas__iframe',
+	);
 
-	return (await iframedEditor.count()) > 0 ? iframedEditor.contentFrame() : page;
+	// The visual editor wrapper is visible while the canvas iframe is still
+	// attaching. Prefer the iframe so title/content locators are not searched
+	// on the parent page (WP 6.4+ / 7).
+	try {
+		await iframedEditor.first().waitFor({ state: 'attached', timeout: 10000 });
+		return iframedEditor.first().contentFrame();
+	} catch {
+		return page;
+	}
+}
+
+/**
+ * Open the Sync Log accordion.
+ *
+ * @param page Playwright page object
+ */
+export async function openSyncLog(page: Page) {
+	await page.getByRole('button', { name: 'Log' }).click();
 }
 
 export async function maybeOpenEditorSettings(page: Page) {
@@ -374,7 +395,14 @@ export async function setPostPassword(
 			(passwordCheckboxIsChecked && password === '') ||
 			(!passwordCheckboxIsChecked && password !== '')
 		) {
-			await passwordCheckbox.setChecked(password !== '', { force: true });
+			// WP 7 hides the input; clicking it with force does not toggle React state.
+			const checkboxId = await passwordCheckbox.getAttribute('id');
+			if (checkboxId) {
+				await page.locator(`label[for="${checkboxId}"]`).click();
+			} else {
+				await passwordCheckbox.evaluate((el: HTMLInputElement) => el.click());
+			}
+			await expect(passwordCheckbox).toBeChecked({ checked: password !== '' });
 		}
 
 		if (password !== '') {
@@ -444,7 +472,8 @@ export async function publishPost(
 			await changeMode(page);
 		}
 		await editorFrame
-			.locator('h1.editor-post-title__input, #post-title-0')
+			.locator('h1.editor-post-title__input, .editor-post-title__input, #post-title-0')
+			.first()
 			.fill(newPostData.title);
 		await editorFrame
 			.locator('.block-editor-default-block-appender__content')
@@ -540,44 +569,42 @@ export async function maybeDisableFeature(featureName: string) {
 
 /**
  * Create a classic widget
- * @param page Playwright page object
  * @param widgetId Widget ID
  * @param settings Widget settings
  */
 export async function createClassicWidget(
-	page: Page,
 	widgetId: string,
 	settings: Array<{ name: string; type: string; value: string }>,
 ) {
-	await goToAdminPage(page, 'widgets.php');
+	// A trailing `][` marks a multi-value form field, e.g. `post_type[]`. WP-CLI
+	// flags are always scalar, so those are written to the instance separately.
+	const isMultiple = ({ name }: { name: string }) => name.endsWith('][');
+	const scalars = settings.filter((setting) => !isMultiple(setting));
+	const multiples = settings.filter(isMultiple);
 
-	// Add widget to first widget area
-	await page.click(`#widget-list [id$="${widgetId}-__i__"] h3`);
-	await page.click(`#widget-list [id$="${widgetId}-__i__"] .widgets-chooser-add`);
+	const extras = scalars.map(({ name, value }) => `--${name}='${value}'`).join(' ');
+	await wpCli(`widget add ${widgetId} sidebar-1 ${extras}`);
 
-	// Set widget settings and save
-	const widget = page.locator(`#widgets-right .widget[id*="${widgetId}"]`).last();
-
-	for await (const { name, type, value } of settings) {
-		const control = widget.locator(`[name*="[${name}]"]`);
-
-		switch (type) {
-			case 'select':
-				await control.selectOption(value);
-				break;
-			case 'checkbox':
-			case 'radio':
-				await control.and(page.locator(`[value="${value}"]`)).check();
-				break;
-			default:
-				await control.fill(value);
-				break;
-		}
+	if (!multiples.length) {
+		return;
 	}
 
-	const saveWidgetResponse = page.waitForResponse('**/wp-admin/admin-ajax.php*');
-	await widget.locator('input[type="submit"]').click();
-	await saveWidgetResponse;
+	const assignments = multiples
+		.map(({ name, value }) => {
+			const key = name.slice(0, -2);
+			return `$instance['${key}'][] = '${value}';`;
+		})
+		.join('\n\t\t');
+
+	await wpCliEval(`
+		$widgets  = get_option( 'widget_${widgetId}', [] );
+		$numbers  = array_filter( array_keys( $widgets ), 'is_numeric' );
+		$number   = end( $numbers );
+		$instance = $widgets[ $number ];
+		${assignments}
+		$widgets[ $number ] = $instance;
+		update_option( 'widget_${widgetId}', $widgets );
+	`);
 }
 
 /**
@@ -732,7 +759,10 @@ export async function createAutosavePost(
 	await goToAdminPage(page, 'post-new.php');
 	const editorFrame = await getEditorFrame(page);
 
-	await editorFrame.locator('h1.editor-post-title__input, #post-title-0').fill(newPostData.title);
+	await editorFrame
+		.locator('h1.editor-post-title__input, .editor-post-title__input, #post-title-0')
+		.first()
+		.fill(newPostData.title);
 	await editorFrame
 		.locator('.block-editor-default-block-appender__content')
 		.pressSequentially(newPostData.content);
