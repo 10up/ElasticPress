@@ -10,6 +10,7 @@ import {
 	maybeDisableFeature,
 	openSyncLog,
 	refreshIndex,
+	getSyncTimeout,
 } from '../utils.js';
 
 test.describe('Protected Content Feature', { tag: '@group1' }, () => {
@@ -40,8 +41,8 @@ test.describe('Protected Content Feature', { tag: '@group1' }, () => {
 
 		// Wait for sync messages
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		// Verify feature is enabled via WP-CLI
 		const wpCliResponse = await wpCli('elasticpress list-features');

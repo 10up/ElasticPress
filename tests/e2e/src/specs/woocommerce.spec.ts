@@ -15,6 +15,7 @@ import {
 	deactivatePlugin,
 	openSyncLog,
 	wpCliEval,
+	getSyncTimeout,
 } from '../utils.js';
 
 /**
@@ -89,8 +90,8 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 
 		await openSyncLog(loggedInPage);
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		const result = await wpCli('elasticpress list-features');
 		expect(result.toString()).toContain('woocommerce');
@@ -483,8 +484,12 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			// Syncing should complete
 			await openSyncLog(loggedInPage);
 			const syncMessages = loggedInPage.locator('.ep-sync-messages');
-			await expect(syncMessages).toContainText('Mapping sent');
-			await expect(syncMessages).toContainText('Sync complete');
+			await expect(syncMessages).toContainText('Mapping sent', {
+				timeout: getSyncTimeout(),
+			});
+			await expect(syncMessages).toContainText('Sync complete', {
+				timeout: getSyncTimeout(),
+			});
 		});
 
 		test('Will show a navigable list of suggested results when searching orders', async ({

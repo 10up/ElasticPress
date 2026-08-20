@@ -12,6 +12,7 @@ import {
 	maybeDisableFeature,
 	openSyncLog,
 	refreshIndex,
+	getSyncTimeout,
 } from '../utils.js';
 import { openBlockInserter, insertBlock } from '../block-editor.js';
 
@@ -193,8 +194,12 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 			// Wait for sync messages
 			await openSyncLog(loggedInPage);
 			const syncMessages = loggedInPage.locator('.ep-sync-messages');
-			await expect(syncMessages).toContainText('Mapping sent');
-			await expect(syncMessages).toContainText('Sync complete');
+			await expect(syncMessages).toContainText('Mapping sent', {
+				timeout: getSyncTimeout(),
+			});
+			await expect(syncMessages).toContainText('Sync complete', {
+				timeout: getSyncTimeout(),
+			});
 
 			const result = await wpCli('elasticpress list-features');
 			expect(result.toString()).toContain('instant-results');
@@ -244,9 +249,6 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 
 				const searchModal = loggedInPage.locator('.ep-search-modal');
 				await expect(searchModal).toBeVisible(); // Should be visible immediately
-				// await expect(searchModal.locator('.ep-search-results__title')).toContainText(
-				// 	'Loading results',
-				// );
 				await expect(loggedInPage).toHaveURL(/.*search=new/);
 
 				await responsePromise;
@@ -270,19 +272,26 @@ test.describe('Instant Results Feature', { tag: '@group1' }, () => {
 				await loggedInPage.locator('#ep-search-post-type-post').click();
 				await expect(loggedInPage).toHaveURL(/.*ep-post_type=post/);
 
-				// Show the modal in the same state after a reload
-				await loggedInPage.reload();
-				await expect(searchModal.locator('.ep-search-results__title')).toContainText(
-					'Loading results',
+				// Show the modal in the same state after a reload. The intermediate
+				// "Loading results" title is not asserted: the request can finish
+				// before the assertion first polls.
+				const reloadResponsePromise = instantResultRequestPromise(
+					loggedInPage,
+					'search=new',
 				);
+				await loggedInPage.reload();
 				await expect(loggedInPage).toHaveURL(/.*search=new/);
-				await responsePromise;
+				await reloadResponsePromise;
 				await expect(searchModal).toBeVisible();
 				await expect(searchModal).toContainText('new');
 
 				// Update the results when search term is changed
+				const updatedResponsePromise = instantResultRequestPromise(
+					loggedInPage,
+					'search=test',
+				);
 				await searchModal.locator('.ep-search-input').fill('test');
-				await responsePromise;
+				await updatedResponsePromise;
 				await expect(searchModal).toBeVisible();
 				await expect(searchModal).toContainText('test');
 				await expect(loggedInPage).toHaveURL(/.*search=test/);

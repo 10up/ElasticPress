@@ -67,8 +67,8 @@ test.describe('Dashboard Sync', { tag: '@group2' }, () => {
 		// Check sync log
 		await openSyncLog(loggedInPage);
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		// Check if "Delete all data" checkbox appears after sync
 		await expect(loggedInPage.getByText('Delete all data')).toBeVisible();

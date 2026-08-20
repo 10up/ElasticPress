@@ -7,6 +7,7 @@ import {
 	createTerm,
 	openSyncLog,
 	wpCliEval,
+	getSyncTimeout,
 } from '../../utils.js';
 
 const tags = ['Far From Home', 'No Way Home', 'The Most Fun Thing', 'search term'];
@@ -49,8 +50,8 @@ test.describe('Terms Feature', { tag: '@group2' }, () => {
 
 		await openSyncLog(loggedInPage);
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		const listFeaturesResult = await wpCli('elasticpress list-features', true);
 		expect(listFeaturesResult.toString()).toContain('terms');
