@@ -23,14 +23,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set standard 10up cache directories
       run: |
         sudo npm config set cache "${{ env.NODE_CACHE }}" --global
 
     - name: Prepare npm cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
@@ -38,7 +38,7 @@ jobs:
           npm-${{ env.NODE_VERSION }}-
 
     - name: "install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -57,14 +57,14 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set standard 10up cache directories
       run: |
         composer config -g cache-dir "${{ env.COMPOSER_CACHE }}"
 
     - name: Prepare composer cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}

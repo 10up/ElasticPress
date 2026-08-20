@@ -82,7 +82,7 @@ DB_CACHE_FILE_IN_CONTAINER="/var/www/html/wp-content/plugins/${PLUGIN_NAME}/${DB
 
 # wp-env-cli prints whatever the container wrote, so a PHP notice or a WP-CLI
 # error can precede the value. Only a line that is entirely digits is a count,
-# and an unparseable result has to read as empty rather than as a number.
+# and an unparsable result has to read as empty rather than as a number.
 wp_count() {
 	./bin/wp-env-cli wordpress "wp --allow-root $1" 2>/dev/null | tr -d '\r' | grep -xE '[0-9]+' | tail -1
 }

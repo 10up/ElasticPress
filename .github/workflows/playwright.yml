@@ -78,7 +78,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Set standard 10up cache directories
       run: |
@@ -86,14 +86,14 @@ jobs:
 
     # These caches are also restored (never saved) by playwright-privileged.yml.
     - name: Prepare npm cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
     - name: Prepare composer cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -115,7 +115,7 @@ jobs:
       run: composer install
 
     - name: "Install node v${{ env.NODE_VERSION }}"
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -150,7 +150,7 @@ jobs:
     # configured through wp-config.php constants and the sync runs either way.
     - name: Restore database cache
       id: db-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6
       with:
         path: bin/.cache
         key: e2e-db-${{ matrix.core.version || 'latest' }}-${{ matrix.core.wcVersion || 'latest' }}-${{ matrix.core.php }}-${{ matrix.testGroup == '@paidPlugins' && 'acf' || 'noacf' }}-${{ hashFiles('bin/setup-e2e-env.sh', 'tests/e2e/src/wordpress-files/test-docs/content-example.xml') }}
@@ -179,7 +179,7 @@ jobs:
     # this cache but never saves it (workflow_dispatch can write the default
     # branch cache).
     - name: Save database cache
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6
       if: steps.db-cache.outputs.cache-hit != 'true'
       continue-on-error: true
       with:
@@ -231,7 +231,7 @@ jobs:
         ./bin/wp-env-cli wordpress "wp --allow-root plugin uninstall ep-delete"
 
     - name: Make artifacts available
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       if: ${{ failure() || cancelled() }}
       with:
         name: playwright-report-${{ matrix.esVersion }}-${{ matrix.core.name }}-${{ matrix.testGroup }}
