@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures.js';
-import { goToAdminPage, publishPost, wpCliEval } from '../utils.js';
+import { goToAdminPage, publishPost, refreshIndex, wpCliEval } from '../utils.js';
 
 test.describe('Custom Results', { tag: '@group2' }, () => {
 	const testPost = 'test-post';
@@ -64,27 +64,23 @@ test.describe('Custom Results', { tag: '@group2' }, () => {
 		expect(initialPostTitles).not.toEqual(postTitles); // Make sure the order has changed
 		searchResult.push(...postTitles);
 
-		// Get the updated order after drag and drop
-		const newPostTitles = await loggedInPage
-			.locator('.pointers .pointer .title')
-			.allTextContents();
-		searchResult.splice(0, searchResult.length, ...newPostTitles);
-
 		// Publish the pointer
 		await loggedInPage.click('#publish');
 		await loggedInPage.waitForLoadState('networkidle');
 
+		// Publishing assigns the custom result term to every post in the list and
+		// queues each one for a re-sync, so the new order only reaches the search
+		// results once Elasticsearch has refreshed.
+		await refreshIndex('post');
+
 		// Verify the search results match the new order
 		await loggedInPage.goto(`/?s=${searchTerm}`);
 
-		const searchResultTitlesPromise = await loggedInPage
-			.locator('article .entry-title')
-			.allTextContents();
-		const searchResultTitles = await searchResultTitlesPromise.slice(0, searchResult.length);
+		const searchResultTitles = (
+			await loggedInPage.locator('article .entry-title').allTextContents()
+		).slice(0, searchResult.length);
 
-		for (let index = 0; index < searchResult.length; index++) {
-			expect(searchResultTitles[index]).toBe(searchResult[index]);
-		}
+		expect(searchResultTitles).toEqual(searchResult);
 	});
 
 	test('Can include the new post in search result and verify the result on search', async ({
@@ -134,19 +130,17 @@ test.describe('Custom Results', { tag: '@group2' }, () => {
 		await loggedInPage.click('#publish');
 		await loggedInPage.waitForLoadState('networkidle');
 
-		// Give Elasticsearch some time to update the posts in custom results
-		await loggedInPage.waitForTimeout(1000);
+		// The added post is re-synced when the pointer is published, so it only
+		// reaches the search results once Elasticsearch has refreshed.
+		await refreshIndex('post');
 
 		// Verify the search results match the expected order
 		await loggedInPage.goto(`/?s=${searchTerm}`);
 
-		const searchResultTitlesPromise = await loggedInPage
-			.locator(`article .entry-title`)
-			.allTextContents();
-		const searchResultTitles = searchResultTitlesPromise.slice(0, searchResult.length);
+		const searchResultTitles = (
+			await loggedInPage.locator('article .entry-title').allTextContents()
+		).slice(0, searchResult.length);
 
-		for (let index = 0; index < searchResult.length; index++) {
-			expect(searchResultTitles[index]).toBe(searchResult[index]);
-		}
+		expect(searchResultTitles).toEqual(searchResult);
 	});
 });

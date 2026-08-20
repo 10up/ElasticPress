@@ -249,11 +249,12 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
 
-			const codMethod = loggedInPage.locator(
-				'#payment_method_cod, label:has-text("Cash on delivery")',
-			);
-			if ((await codMethod.count()) > 0) {
-				await codMethod.first().click();
+			// WooCommerce hides the radio and checks it for us when cash on
+			// delivery is the only gateway available, so it can only be selected
+			// when a second gateway makes it visible.
+			const codMethod = loggedInPage.locator('#payment_method_cod');
+			if ((await codMethod.count()) > 0 && !(await codMethod.isChecked())) {
+				await codMethod.check();
 			}
 
 			// Check WooCommerce version and place order accordingly

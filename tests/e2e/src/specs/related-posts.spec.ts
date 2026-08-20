@@ -10,6 +10,7 @@ import {
 	wpCliEval,
 	maybeOpenSettingsTab,
 	getEditorFrame,
+	refreshIndex,
 } from '../utils.js';
 import {
 	openBlockInserter,
@@ -55,6 +56,11 @@ test.describe('Related Posts Feature', { tag: '@group2' }, () => {
 			title: 'Test related posts block #5',
 			content: 'Inceptos tristique class ac eleifend leo.',
 		});
+
+		// The block asks Elasticsearch for posts similar to this one, so the posts
+		// created above have to be searchable before it renders. Without this the
+		// block returns whatever else happens to match, or nothing at all.
+		await refreshIndex('post');
 
 		// Get the editor frame
 		const editorFrame = await getEditorFrame(loggedInPage);
@@ -160,6 +166,11 @@ test.describe('Related Posts Feature', { tag: '@group2' }, () => {
 			},
 			true,
 		);
+
+		// The widget renders with the page, so the posts created above have to be
+		// searchable before this one is loaded again.
+		await refreshIndex('post');
+		await loggedInPage.reload();
 
 		// Verify widget on front end
 		const widget = loggedInPage.locator('[id^="ep-related-posts"]').first();

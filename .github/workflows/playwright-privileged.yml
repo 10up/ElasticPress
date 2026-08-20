@@ -34,7 +34,8 @@ env:
   NODE_VERSION: "24"
   NODE_CACHE: "${{ github.workspace }}/node_modules_cache"
   npm_config_cache: "${{ github.workspace }}/node_modules_cache"
-  # Tests use the runner's Google Chrome (playwright.config.ts channel).
+  # npm ci would otherwise fetch Chromium, Firefox and WebKit. Only the
+  # explicit install below runs, and only Chromium is downloaded.
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 on:
@@ -99,17 +100,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        testGroup: ['@groups', '@paidPlugins']
+        testGroup: ['@group1', '@group2', '@paidPlugins']
         esVersion: ['7.10.1', '8.12.2', '9.1.5', 'EP.io']
         core:
           - {name: 'WP latest', version: '', wcVersion: '', php: '8.2'}
           - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0', php: '8.0'}
+        # The local Elasticsearch versions are already covered by playwright.yml,
+        # so only EP.io runs the tagged groups here.
         exclude:
-          - testGroup: '@groups'
+          - testGroup: '@group1'
             esVersion: '7.10.1'
-          - testGroup: '@groups'
+          - testGroup: '@group1'
             esVersion: '8.12.2'
-          - testGroup: '@groups'
+          - testGroup: '@group1'
+            esVersion: '9.1.5'
+          - testGroup: '@group2'
+            esVersion: '7.10.1'
+          - testGroup: '@group2'
+            esVersion: '8.12.2'
+          - testGroup: '@group2'
             esVersion: '9.1.5'
 
     steps:
@@ -163,10 +172,12 @@ jobs:
     - name: Install dependencies
       run: npm ci --include=dev
 
-    # Video (retain-on-failure) needs Playwright's ffmpeg even when Chrome
-    # comes from the runner. This is a small binary download, not apt.
-    - name: Install Playwright ffmpeg
-      run: npx playwright install ffmpeg
+    # Playwright's own Chromium, not the runner's Google Chrome: the runner
+    # ships whatever Chrome is current, and versions past the one this
+    # Playwright release pins hang the click actionability check. ffmpeg is
+    # for video (retain-on-failure).
+    - name: Install Playwright browser
+      run: npx playwright install --with-deps chromium ffmpeg
 
     - name: Set up WP environment with Elasticsearch
       run: ES_VERSION=${{ matrix.esVersion }} npm run env:start
@@ -217,29 +228,12 @@ jobs:
     # Do not save caches from this workflow. workflow_dispatch can write
     # the default-branch cache; playwright.yml is the trusted writer.
 
-    # @groups is a matrix label, not a Playwright tag. group1 then group2 share
-    # the environment; each invocation re-runs global setup. Later steps use
-    # always() so cleanup still runs on failure.
-    - name: Run @group1
-      id: group1
-      if: matrix.testGroup != '@paidPlugins'
+    # One group per job. Running two groups in the same job put the slower
+    # backends over the 60 minute limit, which cancelled the second group.
+    - name: Run Playwright tests
       env:
-        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report-group1
-      run: npm run playwright:test -- --grep @group1 --output ${{ github.workspace }}/test-results-group1
-
-    - name: Run @group2
-      id: group2
-      if: ${{ always() && !cancelled() && matrix.testGroup != '@paidPlugins' }}
-      env:
-        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report-group2
-      run: npm run playwright:test -- --grep @group2 --output ${{ github.workspace }}/test-results-group2
-
-    - name: Run @paidPlugins
-      id: paid
-      if: matrix.testGroup == '@paidPlugins'
-      env:
-        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report-paidPlugins
-      run: npm run playwright:test -- --grep @paidPlugins --output ${{ github.workspace }}/test-results-paidPlugins
+        PLAYWRIGHT_HTML_OUTPUT_DIR: ${{ github.workspace }}/playwright-report
+      run: npm run playwright:test -- --grep ${{ matrix.testGroup }} --output ${{ github.workspace }}/test-results
 
     - name: Stop Elasticsearch
       if: ${{ always() && matrix.esVersion != 'EP.io' }}
@@ -269,9 +263,5 @@ jobs:
         retention-days: 2
         if-no-files-found: ignore
         path: |
-          playwright-report-group1/
-          playwright-report-group2/
-          playwright-report-paidPlugins/
-          test-results-group1/
-          test-results-group2/
-          test-results-paidPlugins/
+          playwright-report/
+          test-results/

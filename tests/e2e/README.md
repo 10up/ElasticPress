@@ -181,13 +181,13 @@ To force a condition WordPress or ElasticPress will not produce on demand, add a
 
 ## How CI runs this
 
-`.github/workflows/playwright.yml` runs a matrix of 2 suites (`@groups` = `@group1` then `@group2` in one job, plus `@paidPlugins`), 4 Elasticsearch backends (7.10.1, 8.12.2, 9.1.5 and EP.io) and 2 core versions (latest and the 6.2 / WooCommerce 6.4.0 minimum), for 16 jobs. Each job builds its own environment, restores the database cache, runs its suite, and afterwards verifies the plugin uninstalls cleanly. Cleanup (stop Elasticsearch, delete EP.io indices, uninstall) runs even when tests fail.
+`.github/workflows/playwright.yml` runs a matrix of 3 suites (`@group1`, `@group2` and `@paidPlugins`), 4 Elasticsearch backends (7.10.1, 8.12.2, 9.1.5 and EP.io) and 2 core versions (latest and the 6.2 / WooCommerce 6.4.0 minimum), for 24 jobs. Each suite gets its own job: two groups in one job exceeded the 60 minute limit on the slower backends. Each job builds its own environment, restores the database cache, runs its suite, and afterwards verifies the plugin uninstalls cleanly. Cleanup (stop Elasticsearch, delete EP.io indices, uninstall) runs even when tests fail.
 
 CI sets `CI=true`, which enables two retries. Locally there are no retries, so a flaky test fails immediately.
 
 ### Fork pull requests
 
-GitHub does not pass repository secrets to `pull_request` workflows from forks. The EP.io backend and the `@paidPlugins` group need those secrets (`EPIO_HOST`, `EPIO_CREDENTIALS`, `EPIO_INDEX_PREFIX`, `ACF_PRO_LICENSE_KEY`), so those 10 jobs are skipped on fork PRs. Same-repository PRs and pushes to `develop` / `trunk` still run the full matrix.
+GitHub does not pass repository secrets to `pull_request` workflows from forks. The EP.io backend and the `@paidPlugins` group need those secrets (`EPIO_HOST`, `EPIO_CREDENTIALS`, `EPIO_INDEX_PREFIX`, `ACF_PRO_LICENSE_KEY`), so those 12 jobs are skipped on fork PRs. Same-repository PRs and pushes to `develop` / `trunk` still run the full matrix.
 
 To get EP.io and ACF coverage before merge, a maintainer reviews the diff (especially `package.json` scripts, `bin/setup-e2e-env.sh`, and `tests/e2e`) and then either:
 
