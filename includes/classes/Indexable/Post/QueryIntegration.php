@@ -98,7 +98,7 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Disables cache_results, adds header.
+	 * Adds header.
 	 *
 	 * @param WP_Query $query WP_Query instance
 	 * @since 0.9
@@ -211,8 +211,6 @@ class QueryIntegration {
 	 * @return string
 	 */
 	public function get_es_posts( $posts, $query ) {
-		global $wpdb;
-
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -317,6 +315,15 @@ class QueryIntegration {
 				// @codeCoverageIgnoreStart
 				$scope = 'current';
 				// @codeCoverageIgnoreEnd
+			}
+
+			/**
+			 * Disable the post cache for cross-site results. The `posts` cache group is
+			 * per-blog and keyed by ID only, so caching another site's post can poison
+			 * later get_post() calls for the same ID on the current site.
+			 */
+			if ( 'all' === $scope || ! empty( $site__in ) || ! empty( $site__not_in ) ) {
+				$query->set( 'cache_results', false );
 			}
 
 			$index = null;
@@ -475,7 +482,9 @@ class QueryIntegration {
 
 			foreach ( $post_return_args as $key ) {
 				if ( 'post_author' === $key ) {
-					$post->$key = $post_array[ $key ]['id'];
+					if ( isset( $post_array[ $key ]['id'] ) ) {
+						$post->$key = $post_array[ $key ]['id'];
+					}
 				} elseif ( isset( $post_array[ $key ] ) ) {
 					if ( in_array( $key, [ 'terms', 'meta', 'post_meta' ], true ) && is_array( $post_array[ $key ] ) ) {
 						$post->$key = wp_json_encode( $post_array[ $key ] );

@@ -37,6 +37,15 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 	}
 
 	test.describe('wp elasticpress sync', () => {
+		// --nobulk is one HTTP request per document. On ElasticPress.io that
+		// exceeds Playwright's 30s default and leaves a sync lock behind.
+		test.describe.configure({ timeout: 180000 });
+
+		test.beforeEach(async () => {
+			await wpCli('elasticpress stop-sync', true);
+			await wpCli('elasticpress clear-sync', true);
+		});
+
 		test('Can index all the posts of the current blog', async ({ loggedInPage }) => {
 			const result = await wpCli('wp elasticpress sync');
 			expect(result.toString()).toContain('Indexing posts');
@@ -92,7 +101,7 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 			if (match1?.groups && match2?.groups) {
 				const total = parseInt(match1.groups.total, 10);
 				const indexed = parseInt(match2.groups.indexed, 10);
-				expect(10).toBe(total - indexed);
+				expect(total - indexed).toBe(10);
 			}
 
 			expect(output).toContain('Number of posts indexed');
@@ -202,7 +211,7 @@ test.describe('WP-CLI Commands', { tag: '@group2' }, () => {
 		expect(woocommerceResult.toString()).toContain('Feature requirements are not met');
 
 		// Deactivate protected content feature to avoid conflicts with other tests
-		await wpCli('wp elasticpress deactivate-feature protected_content');
+		await wpCli('wp elasticpress deactivate-feature protected_content', true);
 		const protectedContentResult = await wpCli(
 			'wp elasticpress activate-feature protected_content',
 			true,
