@@ -10783,4 +10783,18 @@ class TestPost extends BaseTestCase {
 		$this->assertJson( wp_specialchars_decode( $post->terms, ENT_QUOTES ), true );
 		$this->assertJson( wp_specialchars_decode( $post->meta, ENT_QUOTES ), true );
 	}
+
+	/**
+	 * Test that cache_results is set to false when using a persistent object cache.
+	 *
+	 * @since 5.3.4
+	 * @group post
+	 */
+	public function test_cache_results_set_to_false_when_using_persistent_object_cache() {
+		// Set the persistent object cache to true.
+		wp_using_ext_object_cache( true );
+
+		$query = new \WP_Query( [ 'ep_integrate' => true ] );
+		$this->assertFalse( $query->get( 'cache_results' ) );
+	}
 }
