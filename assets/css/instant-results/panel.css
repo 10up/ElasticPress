@@ -14,12 +14,14 @@
 }
 
 .ep-search-panel__button {
+	/* stylelint-disable-next-line declaration-no-important */
 	padding: 1em !important;
+	/* stylelint-disable-next-line declaration-no-important */
 	width: 100% !important;
 }
 
 .ep-search-panel__content {
-	padding: 0 1em 1em 1em;
+	padding: 0 1em 1em;
 
 	&[aria-hidden="true"] {
 		display: none;

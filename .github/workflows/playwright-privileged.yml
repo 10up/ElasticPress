@@ -1,4 +1,26 @@
-name: E2e Tests
+# Privileged e2e: EP.io and @paidPlugins for pull requests that cannot
+# receive repository secrets (forks).
+#
+# Dispatch only. pull_request_target in the same file as an untrusted
+# checkout makes CodeQL's actions/untrusted-checkout/critical fire, and
+# GitHub code scanning ignores in-source # codeql[...] suppressions. The
+# safe-to-test label lives in playwright-privileged-gate.yml, which never
+# checks out PR code and instead dispatches this workflow.
+#
+# This workflow has access to secrets and checks out pull request code, then
+# runs npm ci, the setup script, and Playwright. That is only safe after a
+# maintainer has reviewed the commit being tested. Before dispatching,
+# review package.json scripts, bin/setup-e2e-env.sh, and tests/e2e.
+#
+# Caches are restore-only. workflow_dispatch can write the default-branch
+# cache, so this job never saves after checking out pull request code.
+# playwright.yml on push / same-repo pull_request populates the npm,
+# composer, and bin/.cache entries.
+#
+# Keep the remaining e2e job steps in sync with playwright.yml.
+
+name: E2e Tests (privileged)
+run-name: Privileged e2e for PR ${{ inputs.pr_number }}
 
 permissions:
   contents: read
@@ -17,84 +39,111 @@ env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 on:
-  push:
-    branches:
-      - develop
-      - trunk
-  pull_request:
-    branches:
-      - develop
-      - trunk # useful for hotfix releases
-      - '[0-9].[0-9x]*' # Version branches: 4.x.x, 4.1.x, 5.x
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to test
+        required: true
+        type: number
+
+concurrency:
+  group: privileged-e2e-${{ github.event.inputs.pr_number }}
+  cancel-in-progress: true
 
 jobs:
-  fork_notice:
-    name: Fork PR — EP.io and ACF skipped
-    if: >
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: ubuntu-latest
-    steps:
-    - name: Explain skipped coverage
-      run: |
-        echo "::notice::EP.io and @paidPlugins jobs are skipped on fork PRs because they need repository secrets."
-        echo "After reviewing the diff, a maintainer can add the safe-to-test label or run 'E2e Tests (privileged)' via workflow_dispatch."
-
-  # Job-level `if` cannot use `matrix` (evaluated before expansion). Build the
-  # cell list here instead: fork PRs omit EP.io and @paidPlugins because those
-  # cells need repository secrets (playwright-privileged.yml after review).
-  e2e_matrix:
-    name: Build e2e matrix
+  resolve-pr:
+    name: Resolve pull request
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set.outputs.matrix }}
+      number: ${{ steps.pr.outputs.number }}
+      ref: ${{ steps.pr.outputs.ref }}
+      sha: ${{ steps.pr.outputs.sha }}
     steps:
-    - name: Select matrix cells
-      id: set
+    - name: Resolve pull request
+      id: pr
       env:
-        IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.inputs.pr_number }}
       run: |
-        core='[{"name":"WP latest","version":"","wcVersion":"","php":"8.2"},{"name":"WP minimum","version":"6.2","wcVersion":"6.4.0","php":"8.0"}]'
-        if [ "$IS_FORK" = "true" ]; then
-          matrix="{\"testGroup\":[\"@group1\",\"@group2\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\"],\"core\":${core}}"
-        else
-          matrix="{\"testGroup\":[\"@group1\",\"@group2\",\"@paidPlugins\"],\"esVersion\":[\"7.10.1\",\"8.12.2\",\"9.1.5\",\"EP.io\"],\"core\":${core}}"
+        if [ -z "$PR_NUMBER" ]; then
+          echo "Missing pull request number"
+          exit 1
         fi
-        {
-          echo 'matrix<<EOF'
-          echo "${matrix}"
-          echo 'EOF'
-        } >> "$GITHUB_OUTPUT"
+
+        STATE="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .state)"
+        if [ "$STATE" != "open" ]; then
+          echo "Pull request #${PR_NUMBER} is not open"
+          exit 1
+        fi
+
+        SHA="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+
+        echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+        echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
+        echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+
+    - name: Link this run on the pull request
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ steps.pr.outputs.number }}
+        SHA: ${{ steps.pr.outputs.sha }}
+      run: |
+        gh pr comment "$PR_NUMBER" --body "Privileged e2e (EP.io and @paidPlugins) started for \`${SHA}\`: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   e2e_local:
     name: ES ${{ matrix.esVersion }} - ${{ matrix.core.name }} (${{ matrix.testGroup }})
-    needs: e2e_matrix
+    needs: resolve-pr
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
       WP_ENV_PHP_VERSION: ${{ matrix.core.php }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.e2e_matrix.outputs.matrix) }}
+      matrix:
+        testGroup: ['@group1', '@group2', '@paidPlugins']
+        esVersion: ['7.10.1', '8.12.2', '9.1.5', 'EP.io']
+        core:
+          - {name: 'WP latest', version: '', wcVersion: '', php: '8.2'}
+          - {name: 'WP minimum', version: '6.2', wcVersion: '6.4.0', php: '8.0'}
+        # The local Elasticsearch versions are already covered by playwright.yml,
+        # so only EP.io runs the tagged groups here.
+        exclude:
+          - testGroup: '@group1'
+            esVersion: '7.10.1'
+          - testGroup: '@group1'
+            esVersion: '8.12.2'
+          - testGroup: '@group1'
+            esVersion: '9.1.5'
+          - testGroup: '@group2'
+            esVersion: '7.10.1'
+          - testGroup: '@group2'
+            esVersion: '8.12.2'
+          - testGroup: '@group2'
+            esVersion: '9.1.5'
 
     steps:
-    - name: Checkout
+    # persist-credentials is false so the checked-out PR cannot push with
+    # GITHUB_TOKEN. workflow_dispatch is not a CodeQL checkoutTriggers()
+    # event, so this file must not also listen for pull_request_target.
+    - name: Checkout pull request
       uses: actions/checkout@v7
+      with:
+        ref: ${{ needs.resolve-pr.outputs.ref }}
+        persist-credentials: false
 
     - name: Set standard 10up cache directories
       run: |
         sudo npm config set cache "${{ env.NODE_CACHE }}" --global
 
-    # These caches are also restored (never saved) by playwright-privileged.yml.
-    - name: Prepare npm cache
-      uses: actions/cache@v6
+    - name: Restore npm cache
+      uses: actions/cache/restore@v6
       with:
         path: ${{ env.NODE_CACHE }}
         key: npm-${{ env.NODE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           npm-${{ env.NODE_VERSION }}-
-    - name: Prepare composer cache
-      uses: actions/cache@v6
+    - name: Restore composer cache
+      uses: actions/cache/restore@v6
       with:
         path: ${{ env.COMPOSER_CACHE }}
         key: composer-${{ env.COMPOSER_VERSION }}-${{ hashFiles('**/composer.lock') }}
@@ -176,18 +225,8 @@ jobs:
         fi
       if: matrix.esVersion == 'EP.io'
 
-    # Only reached when both setup steps above succeeded, so a half-built
-    # database never becomes the cache every later run starts from. Several jobs
-    # share a key, and the loser of that race only warns. Privileged e2e restores
-    # this cache but never saves it (workflow_dispatch can write the default
-    # branch cache).
-    - name: Save database cache
-      uses: actions/cache/save@v6
-      if: steps.db-cache.outputs.cache-hit != 'true'
-      continue-on-error: true
-      with:
-        path: bin/.cache
-        key: ${{ steps.db-cache.outputs.cache-primary-key }}
+    # Do not save caches from this workflow. workflow_dispatch can write
+    # the default-branch cache; playwright.yml is the trusted writer.
 
     # One group per job. Running two groups in the same job put the slower
     # backends over the 60 minute limit, which cancelled the second group.

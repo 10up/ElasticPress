@@ -66,10 +66,12 @@
 		& .pointer-actions {
 			float: right;
 
+			/* stylelint-disable-next-line max-nesting-depth */
 			& .handle {
 				cursor: move;
 			}
 
+			/* stylelint-disable-next-line max-nesting-depth */
 			& .delete-pointer {
 				margin-right: 10px;
 			}
@@ -132,6 +134,7 @@
 		& .pointer-result {
 			padding: 10px 2em;
 
+			/* stylelint-disable-next-line max-nesting-depth */
 			& .dashicons {
 				float: right;
 			}
@@ -142,6 +145,7 @@
 		}
 	}
 
+	/* stylelint-disable-next-line no-descending-specificity */
 	& .delete-pointer,
 	& .add-pointer {
 		cursor: pointer;

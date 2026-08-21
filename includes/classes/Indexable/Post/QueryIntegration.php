@@ -98,7 +98,7 @@ class QueryIntegration {
 	}
 
 	/**
-	 * Disables cache_results, adds header.
+	 * Adds header.
 	 *
 	 * @param WP_Query $query WP_Query instance
 	 * @since 0.9
@@ -211,8 +211,6 @@ class QueryIntegration {
 	 * @return string
 	 */
 	public function get_es_posts( $posts, $query ) {
-		global $wpdb;
-
 		/**
 		 * Filter to skip WP Query integration
 		 *
@@ -319,6 +317,14 @@ class QueryIntegration {
 				// @codeCoverageIgnoreEnd
 			}
 
+			/**
+			 * Disable the post cache when using a persistent object cache or querying
+			 * across sites, where identical post IDs can cause cache collisions.
+			 */
+			if ( wp_using_ext_object_cache() || 'all' === $scope || ! empty( $site__in ) || ! empty( $site__not_in ) ) {
+				$query->set( 'cache_results', false );
+			}
+
 			$index = null;
 
 			if ( 'all' === $scope ) {
@@ -362,7 +368,7 @@ class QueryIntegration {
 			$found_documents              = is_array( $ep_query['found_documents'] ) ? $ep_query['found_documents']['value'] : $ep_query['found_documents']; // 7.0+ have this as an array rather than int
 			$query->found_posts           = $found_documents;
 			$query->num_posts             = $query->found_posts;
-			$query->max_num_pages         = ceil( $found_documents / $query->get( 'posts_per_page' ) );
+			$query->max_num_pages         = -1 === $query->get( 'posts_per_page' ) ? 0 : ceil( $found_documents / $query->get( 'posts_per_page' ) );
 			$query->suggested_terms       = $this->maybe_sanitize_suggestion( $ep_query );
 			$query->elasticsearch_success = true;
 
@@ -475,9 +481,15 @@ class QueryIntegration {
 
 			foreach ( $post_return_args as $key ) {
 				if ( 'post_author' === $key ) {
-					$post->$key = $post_array[ $key ]['id'];
+					if ( isset( $post_array[ $key ]['id'] ) ) {
+						$post->$key = $post_array[ $key ]['id'];
+					}
 				} elseif ( isset( $post_array[ $key ] ) ) {
-					$post->$key = $post_array[ $key ];
+					if ( in_array( $key, [ 'terms', 'meta', 'post_meta' ], true ) && is_array( $post_array[ $key ] ) ) {
+						$post->$key = wp_json_encode( $post_array[ $key ] );
+					} else {
+						$post->$key = $post_array[ $key ];
+					}
 				}
 			}
 

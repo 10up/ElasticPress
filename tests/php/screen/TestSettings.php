@@ -104,8 +104,155 @@ class TestSettings extends BaseTestCase {
 		$settings->action_admin_init();
 
 		$this->assertSame( $prev_host, Utils\get_host() );
-		$this->assertSame( 10, has_action( 'admin_notices', [ $settings, 'add_validation_notice' ] ) );
+
+		$notice_hook = ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK )
+			? 'network_admin_notices'
+			: 'admin_notices';
+		$this->assertSame( 10, has_action( $notice_hook, [ $settings, 'add_validation_notice' ] ) );
 		$this->assertNotContains( 'ep_host', $_POST );
+	}
+
+	/**
+	 * Test that an empty token in POST preserves the stored token.
+	 *
+	 * The token field is always empty on page load, so a save without a new
+	 * value must not wipe the existing token.
+	 *
+	 * @group screen
+	 * @group settings-screen
+	 */
+	public function test_action_admin_init_empty_token_preserves_stored_token() {
+		global $_POST;
+
+		if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+			$this->markTestSkipped( 'EP_CREDENTIALS constant overrides the option.' );
+		}
+
+		$previous_epio_environment = getenv( 'IS_EPIO_ENVIRONMENT' );
+		// Make is_epio() true so get_epio_credentials() reads the option.
+		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+
+		try {
+			$settings = new Settings();
+
+			Utils\update_option(
+				'ep_credentials',
+				[
+					'username' => 'u',
+					'token'    => 'secret',
+				]
+			);
+
+			$_POST = [
+				'ep_settings_nonce' => wp_create_nonce( 'elasticpress_settings' ),
+				'ep_language'       => 'site-default',
+				'ep_host'           => Utils\get_host(),
+				'ep_credentials'    => [
+					'username' => 'u',
+					'token'    => '',
+				],
+			];
+
+			$settings->action_admin_init();
+
+			$this->assertSame( 'secret', Utils\get_option( 'ep_credentials' )['token'] );
+		} finally {
+			putenv( false === $previous_epio_environment ? 'IS_EPIO_ENVIRONMENT' : "IS_EPIO_ENVIRONMENT={$previous_epio_environment}" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+		}
+	}
+
+	/**
+	 * Test that a new token value is saved.
+	 *
+	 * @group screen
+	 * @group settings-screen
+	 */
+	public function test_action_admin_init_new_token_is_saved() {
+		global $_POST;
+
+		if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+			$this->markTestSkipped( 'EP_CREDENTIALS constant overrides the option.' );
+		}
+
+		$previous_epio_environment = getenv( 'IS_EPIO_ENVIRONMENT' );
+		// Make is_epio() true so get_epio_credentials() reads the option.
+		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+
+		try {
+			$settings = new Settings();
+
+			Utils\update_option(
+				'ep_credentials',
+				[
+					'username' => 'u',
+					'token'    => 'old',
+				]
+			);
+
+			$_POST = [
+				'ep_settings_nonce' => wp_create_nonce( 'elasticpress_settings' ),
+				'ep_language'       => 'site-default',
+				'ep_host'           => Utils\get_host(),
+				'ep_credentials'    => [
+					'username' => 'u',
+					'token'    => 'new-token',
+				],
+			];
+
+			$settings->action_admin_init();
+
+			$this->assertSame( 'new-token', Utils\get_option( 'ep_credentials' )['token'] );
+		} finally {
+			putenv( false === $previous_epio_environment ? 'IS_EPIO_ENVIRONMENT' : "IS_EPIO_ENVIRONMENT={$previous_epio_environment}" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+		}
+	}
+
+	/**
+	 * Test that checking the "remove token" checkbox clears the stored token.
+	 *
+	 * @group screen
+	 * @group settings-screen
+	 */
+	public function test_action_admin_init_remove_token_checkbox_clears_stored_token() {
+		global $_POST;
+
+		if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) {
+			$this->markTestSkipped( 'EP_CREDENTIALS constant overrides the option.' );
+		}
+
+		$previous_epio_environment = getenv( 'IS_EPIO_ENVIRONMENT' );
+		// Make is_epio() true so get_epio_credentials() reads the option.
+		putenv( 'IS_EPIO_ENVIRONMENT=1' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+
+		try {
+			$settings = new Settings();
+
+			Utils\update_option(
+				'ep_credentials',
+				[
+					'username' => 'u',
+					'token'    => 'secret',
+				]
+			);
+
+			$_POST = [
+				'ep_settings_nonce' => wp_create_nonce( 'elasticpress_settings' ),
+				'ep_language'       => 'site-default',
+				'ep_host'           => Utils\get_host(),
+				'ep_credentials'    => [
+					'username' => 'u',
+					'token'    => '',
+				],
+				'ep_remove_token'   => '1',
+			];
+
+			$settings->action_admin_init();
+
+			$this->assertSame( '', Utils\get_option( 'ep_credentials' )['token'] );
+			$this->assertSame( 'u', Utils\get_option( 'ep_credentials' )['username'] );
+		} finally {
+			putenv( false === $previous_epio_environment ? 'IS_EPIO_ENVIRONMENT' : "IS_EPIO_ENVIRONMENT={$previous_epio_environment}" ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_putenv
+		}
 	}
 
 	/**
