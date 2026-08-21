@@ -81,9 +81,18 @@ For sure! Feel free to submit ideas or feedback in general to our [GitHub repo](
 
 = 5.3.4 - 2026-XX-XX =
 
+__Added:__
+
+* `ep_instant_results_excluded_post_types` filter to exclude post types from Instant Results facets and search results. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog).
+* `ep_instant_results_excluded_term_ids` filter to exclude taxonomy terms from Instant Results facets. Props [@Sidsector9](https://github.com/Sidsector9) and [@feliciaoctocog](https://github.com/feliciaoctocog).
+
+__Changed:__
+
+* Hide the Subscription Token value in the Settings page. Props [@faisalahammad](https://github.com/faisalahammad).
+
 __Fixed:__
 
-* Correct WooCommerce Filter by Price results when the shop displays prices including tax. Props [@faisalahammad](https://github.com/faisalahammad) and [@stefanmm](https://github.com/stefanmm).
+* Correct WooCommerce Filter by Price results when the shop displays prices including tax. Props [@faisalahammad](https://github.com/faisalahammad), [@stefanmm](https://github.com/stefanmm), and [@burhandodhy](https://github.com/burhandodhy).
 * Prevent TypeError in Elementor template parsing when `_elementor_data` is an array. Props [@muhitasraf](https://github.com/muhitasraf).
 * Prevent ElasticPress from corrupting cached `WP_Post` objects by encoding meta and taxonomy values as JSON. Props [@burhandodhy](https://github.com/burhandodhy) and [@marc-kohde](https://github.com/marc-kohde).
 * Resolve translation warnings when generating the POT file. Props [@faisalahammad](https://github.com/faisalahammad).
@@ -91,9 +100,13 @@ __Fixed:__
 * Prevent `max_num_pages` from becoming negative when `posts_per_page` is -1. Props [@burhandodhy](https://github.com/burhandodhy) and [@dmitrijCraq](https://github.com/dmitrijCraq).
 * Guard `Utils\get_site()` and `is_site_indexable()` against non-existent site IDs. Props [@thisismyurl](https://github.com/thisismyurl).
 * Prevent WooCommerce `product_visibility` tax queries from forcing product-only site search results. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Disable `cache_results` for cross-site queries (`site__in`, `site__not_in`, or `ep_search_scope` set to `all`) and when a persistent object cache is in use. The posts cache is per-blog and keyed by post ID only, so a later `get_post()` for a local ID could return another site's content. Props [@burhandodhy](https://github.com/burhandodhy) and [@dannyreaktiv](https://github.com/dannyreaktiv).
+* Guard the `post_author` read in `format_hits_as_posts()`, preventing PHP warnings and a fatal error when the field is missing or malformed in an Elasticsearch hit. Props [@freibergergarcia](https://github.com/freibergergarcia).
+* Load React admin screens and Instant Results on WordPress 6.2 by registering the `react-jsx-runtime` script handle that 10up-toolkit requires and WordPress only ships from 6.6. Props [@felipeelia](https://github.com/felipeelia).
 
 __Security:__
 
+* Bumped `react-router` from 7.14.1 to 7.18.2. Props [@dependabot](https://github.com/dependabot).
 * Bumped `uuid` from 11.0.5 to 14.0.0. Props [@dependabot](https://github.com/dependabot).
 * Bumped `@babel/plugin-transform-modules-systemjs` from 7.25.9 to 7.29.4. Props [@dependabot](https://github.com/dependabot).
 * Bumped `fast-uri` from 3.0.3 to 3.1.5. Props [@dependabot](https://github.com/dependabot).
@@ -114,6 +127,8 @@ __Developer:__
 * Spell-checking with `crate-ci/typos` in CI. Props [@szepeviktor](https://github.com/szepeviktor), [@felipeelia](https://github.com/felipeelia), and [@Sidsector9](https://github.com/Sidsector9).
 * Add compatibility fixes for React 19. Props [@ZacharyRener](https://github.com/ZacharyRener) and [@Sidsector9](https://github.com/Sidsector9).
 * Fix tests and tooling for WordPress 7.0 and updated GitHub token formats. Props [@ZacharyRener](https://github.com/ZacharyRener).
+* Update `10up-toolkit` to 7.0.0-next.1, `@wordpress/env` to 11, and Node to 24. Props [@felipeelia](https://github.com/felipeelia).
+* Overhaul the e2e environment: a single wp-env install, Makefile targets and a gitignored `.env`, a cached database, one Playwright worker, and expanded docs. Props [@felipeelia](https://github.com/felipeelia).
 
 = 5.3.3 - 2026-05-07 =
 

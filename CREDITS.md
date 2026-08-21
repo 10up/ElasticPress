@@ -287,8 +287,11 @@ Thank you to all the people who have already contributed to this repository via 
 [Christopher Ross (@thisismyurl)](https://github.com/thisismyurl),
 [@dmitrijCraq](https://github.com/dmitrijCraq),
 [@marc-kohde](https://github.com/marc-kohde),
+[Stefan (@stefanmm)](https://github.com/stefanmm),
+[@feliciaoctocog](https://github.com/feliciaoctocog),
+[Danny C (@dannyreaktiv)](https://github.com/dannyreaktiv),
 and
-[Stefan (@stefanmm)](https://github.com/stefanmm).
+[Bruno Freiberger Garcia (@freibergergarcia)](https://github.com/freibergergarcia).
 
 ## Libraries
 
