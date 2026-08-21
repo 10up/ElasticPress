@@ -13,6 +13,9 @@ import {
 	refreshIndex,
 	isEpIo,
 	deactivatePlugin,
+	openSyncLog,
+	wpCliEval,
+	getSyncTimeout,
 } from '../utils.js';
 
 /**
@@ -85,10 +88,10 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		await loggedInPage.getByRole('button', { name: 'Save and sync now' }).click();
 		await apiRequestPromise;
 
-		await loggedInPage.getByRole('button', { name: 'Log' }).click();
+		await openSyncLog(loggedInPage);
 		const syncMessages = loggedInPage.locator('.ep-sync-messages');
-		await expect(syncMessages).toContainText('Mapping sent');
-		await expect(syncMessages).toContainText('Sync complete');
+		await expect(syncMessages).toContainText('Mapping sent', { timeout: getSyncTimeout() });
+		await expect(syncMessages).toContainText('Sync complete', { timeout: getSyncTimeout() });
 
 		const result = await wpCli('elasticpress list-features');
 		expect(result.toString()).toContain('woocommerce');
@@ -98,6 +101,8 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 		loggedInPage,
 	}) => {
 		await maybeEnableFeature('woocommerce');
+		await activatePlugin(loggedInPage, 'enable-debug-bar', 'wpCli');
+		await wpCli('option update woocommerce_coming_soon off', true);
 
 		await loggedInPage.goto('/shop/?filter_size=small');
 		await checkMainEsQuery(loggedInPage);
@@ -142,8 +147,39 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Dashboard', () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
+			// Latest WooCommerce may enable HPOS on this later activation.
+			// ElasticPress does not integrate the HPOS orders list.
+			await wpCli('wc hpos disable', true);
 			await maybeEnableFeature('protected_content');
 			await maybeEnableFeature('woocommerce');
+
+			// The tests below place an order as this user and assert on the
+			// exact order count, so drop the user and any orders left behind
+			// by a previous run.
+			await wpCliEval(`
+				// Orders are authored by the admin and lose their customer link
+				// once the account is deleted, so the billing email entered at
+				// checkout is what identifies them.
+				$stale_orders = get_posts(
+					[
+						'post_type'   => 'shop_order',
+						'post_status' => 'any',
+						'numberposts' => 999,
+						'fields'      => 'ids',
+						'meta_key'    => '_billing_email',
+						'meta_value'  => '${userData.email}',
+					]
+				);
+				foreach ( $stale_orders as $stale_order ) {
+					wp_delete_post( $stale_order, true );
+				}
+
+				$stale_user = get_user_by( 'login', '${userData.username}' );
+				if ( $stale_user ) {
+					require_once ABSPATH . 'wp-admin/includes/user.php';
+					wp_delete_user( $stale_user->ID );
+				}
+			`);
 		});
 
 		test('Can fetch orders and products from Elasticsearch', async ({ loggedInPage }) => {
@@ -165,17 +201,17 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await activatePlugin(loggedInPage, 'enable-debug-bar');
 
 			// Enable payment gateway
-			await goToAdminPage(
-				loggedInPage,
-				'admin.php?page=wc-settings&tab=checkout&section=cod',
-			);
-			const checkboxLabel = (await isMinWcVersion())
-				? 'Enable cash on delivery'
-				: 'Enable cash on delivery payments';
-
-			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
-			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
-			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			await wpCliEval(`
+				$settings = get_option( 'woocommerce_cod_settings', [] );
+				if ( ! is_array( $settings ) ) {
+					$settings = [];
+				}
+				$settings['enabled'] = 'yes';
+				update_option( 'woocommerce_cod_settings', $settings );
+				if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
+					WC()->payment_gateways()->init();
+				}
+			`);
 
 			// Disable coming soon option
 			await wpCli('option update woocommerce_coming_soon off');
@@ -213,6 +249,14 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				.fill(userData.phoneNumber, { force: true });
 			await loggedInPage.locator('#email, #billing_email').clear();
 			await loggedInPage.locator('#email, #billing_email').fill(userData.email);
+
+			// WooCommerce hides the radio and checks it for us when cash on
+			// delivery is the only gateway available, so it can only be selected
+			// when a second gateway makes it visible.
+			const codMethod = loggedInPage.locator('#payment_method_cod');
+			if ((await codMethod.count()) > 0 && !(await codMethod.isChecked())) {
+				await codMethod.check();
+			}
 
 			// Check WooCommerce version and place order accordingly
 			if (await isMinWcVersion()) {
@@ -401,6 +445,7 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 	test.describe('Orders Autosuggest', () => {
 		test.beforeAll(async () => {
 			await wpCli('plugin activate woocommerce');
+			await wpCli('wc hpos disable', true);
 			await maybeEnableFeature('woocommerce');
 			await maybeDisableFeature('protected_content');
 		});
@@ -437,10 +482,14 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await apiRequestPromise;
 
 			// Syncing should complete
-			await loggedInPage.getByRole('button', { name: 'Log' }).click();
+			await openSyncLog(loggedInPage);
 			const syncMessages = loggedInPage.locator('.ep-sync-messages');
-			await expect(syncMessages).toContainText('Mapping sent');
-			await expect(syncMessages).toContainText('Sync complete');
+			await expect(syncMessages).toContainText('Mapping sent', {
+				timeout: getSyncTimeout(),
+			});
+			await expect(syncMessages).toContainText('Sync complete', {
+				timeout: getSyncTimeout(),
+			});
 		});
 
 		test('Will show a navigable list of suggested results when searching orders', async ({

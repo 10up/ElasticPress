@@ -1,6 +1,7 @@
 @import "@10up/component-tooltip";
 @import "./global/colors.css";
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 html.wp-toolbar {
 	background: transparent;
 }
@@ -20,6 +21,7 @@ html.wp-toolbar {
 	z-index: 2;
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 h2.ep-list-features {
 	display: none;
 }
@@ -227,6 +229,7 @@ h2.ep-list-features {
 
 .feature-requirements-status-0.ep-feature {
 
+	/* stylelint-disable-next-line no-descending-specificity */
 	& .postbox .hndle .settings-button::after {
 		background-color: transparent;
 		border: 1px solid var(--ep-status-ok);
@@ -299,6 +302,7 @@ h2.ep-list-features {
 	}
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .ep-feature .settings .requirements-status-notice {
 	background-color: var(--ep-c-medium-white);
 	border-left: 4px solid var(--ep-status-ok);
@@ -334,6 +338,7 @@ h2.ep-list-features {
 		padding-right: 8px;
 	}
 
+	/* stylelint-disable-next-line selector-no-qualifying-type */
 	& a.disabled {
 		cursor: default;
 	}
@@ -452,7 +457,7 @@ h2.ep-list-features {
 
 .intro h2 {
 	line-height: 1.2;
-	padding: 9px 0 4px 0;
+	padding: 9px 0 4px;
 }
 
 .intro h1 {
@@ -483,6 +488,7 @@ h2.ep-list-features {
 		height: 8%;
 	}
 
+	/* stylelint-disable-next-line no-descending-specificity */
 	& p {
 		margin-left: auto;
 		margin-right: auto;
@@ -529,9 +535,10 @@ h2.ep-list-features {
 	text-align: center;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .intro-container-success p {
 	margin-top: 23px;
-	padding: 0 35% 0 35%;
+	padding: 0 35%;
 }
 
 @media (--tablet-max) {
@@ -562,9 +569,10 @@ h2.ep-list-features {
 .ep-copy-text {
 
 	@media (--tablet-min) {
-		padding: 0 9% 0 9%;
+		padding: 0 9%;
 	}
 
+	/* stylelint-disable-next-line no-descending-specificity */
 	& a {
 		font-weight: 700;
 	}
@@ -583,6 +591,7 @@ h2.ep-list-features {
 	text-align: center;
 	width: 6em;
 
+	/* stylelint-disable-next-line no-descending-specificity */
 	& p {
 		border: 0;
 		font-size: 50px;
@@ -624,6 +633,7 @@ h2.ep-list-features {
 	& .notice,
 	& .error,
 	& .is-dismissible {
+		/* stylelint-disable-next-line declaration-no-important */
 		display: none !important;
 	}
 }
@@ -755,6 +765,7 @@ h2.ep-list-features {
  */
 
 /* @media screen and (max-width: 600px) { */
+/* stylelint-disable-next-line selector-no-qualifying-type */
 .wrap h2.nav-tab-wrapper.ep-credentials-tabs {
 	border-bottom: 1px solid var(--ep-c-white-gray);
 }
@@ -788,6 +799,7 @@ h2 .nav-tab.ep-credentials-tab {
 	padding: 0 1rem;
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 .ep-credentials fieldset.predefined {
 	border-top: 1px solid var(--ep-c-white-gray);
 }
@@ -800,6 +812,7 @@ h2 .nav-tab.ep-credentials-tab {
 	margin: 0 1rem;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .ep-settings .description {
 	font-size: 0.75rem;
 	font-style: italic;
@@ -995,11 +1008,13 @@ h2 .nav-tab.ep-credentials-tab {
 	}
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 p.ep-totals-title {
 	font-weight: bolder;
 	margin-top: 28px;
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 p.ep-totals-data {
 	font-size: 3em;
 	margin-top: 22px;

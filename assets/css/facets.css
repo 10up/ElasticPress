@@ -8,6 +8,7 @@
 	}
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 .widget_ep-facet,
 .wp-block-elasticpress-facet,
 .wp-widget-elasticpress-facet,
@@ -79,6 +80,7 @@
 	}
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .ep-checkbox {
 	align-items: center;
 	background-color: var(--ep-c-medium-white);
@@ -169,6 +171,7 @@
 				background-color: transparent;
 				border: 5px solid var(--ep-c-medium-gray);
 
+				/* stylelint-disable-next-line max-nesting-depth */
 				&::after {
 					opacity: 0;
 				}

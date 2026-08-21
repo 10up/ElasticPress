@@ -26,6 +26,8 @@ For more on how 10up writes and manages code, check out our [10up Engineering Be
 
 The `develop` branch is the development branch which means it contains the next version to be released. `trunk` contains the corresponding stable development version. Always work on the `develop` branch and open up PRs against `develop`.
 
+Pull requests from forks do not receive GitHub Actions secrets. The Playwright workflow still runs the local Elasticsearch jobs (`@group1` and `@group2` on ES 7, 8, and 9). ElasticPress.io and `@paidPlugins` (ACF Pro) are skipped. After reviewing the diff, a maintainer can add the `safe-to-test` label or run **E2e Tests (privileged)** from the Actions tab to cover those jobs. See [tests/e2e/README.md](tests/e2e/README.md#fork-pull-requests).
+
 ## Release instructions
 
 Open a [new blank issue](https://github.com/10up/ElasticPress/issues/new) with `[Release] X.Y.Z`, then copy and paste the following items, replacing version numbers and links to the milestone.
