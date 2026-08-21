@@ -1,0 +1,68 @@
+# Gate for privileged e2e. pull_request_target is safe here because this
+# file never checks out pull request code and never reads repository
+# secrets. It only removes the review label, cancels a stale run, or
+# dispatches playwright-privileged.yml (workflow_dispatch).
+#
+# Do not add a checkout of the PR head to this file.
+
+name: Privileged e2e gate
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize]
+    branches:
+      - develop
+      - trunk
+      - '[0-9].[0-9x]*'
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: privileged-e2e-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  revoke-safe-to-test:
+    name: Remove safe-to-test on new commits
+    if: >
+      github.event.action == 'synchronize' &&
+      github.event.pull_request.head.repo.full_name != github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'safe-to-test')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Remove safe-to-test label
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh pr edit "${{ github.event.pull_request.number }}" --remove-label "safe-to-test" || true
+    - name: Cancel in-progress privileged e2e
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        ids="$(
+          gh run list --workflow=playwright-privileged.yml --status in_progress --limit 50 \
+            --json databaseId,displayTitle \
+            --jq ".[] | select(.displayTitle | test(\"PR ${PR_NUMBER}([^0-9]|$)\")) | .databaseId"
+        )"
+        if [ -n "$ids" ]; then
+          printf '%s\n' "$ids" | xargs -r -n1 gh run cancel
+        fi
+
+  dispatch-privileged-e2e:
+    name: Start privileged e2e
+    if: >
+      github.event.action == 'labeled' &&
+      github.event.label.name == 'safe-to-test' &&
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+    - name: Dispatch E2e Tests (privileged)
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh workflow run playwright-privileged.yml \
+          --ref "${{ github.event.pull_request.base.ref }}" \
+          -f pr_number="${{ github.event.pull_request.number }}"

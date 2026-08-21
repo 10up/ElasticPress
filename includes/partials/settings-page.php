@@ -134,12 +134,20 @@ $bulk_setting = Utils\get_option( 'ep_bulk_setting', 350 );
 									 */
 									if ( apply_filters( 'ep_admin_show_credentials', true ) ) :
 										?>
-										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="text" value="<?php echo esc_attr( $credentials['token'] ); ?>" name="ep_credentials[token]" id="ep_token">
+										<input <?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>disabled<?php endif; ?> type="password" value="" autocomplete="off" placeholder="<?php echo esc_attr( $credentials['token'] ? '••••••••' : '' ); ?>" name="ep_credentials[token]" id="ep_token">
+										<?php if ( ! defined( 'EP_CREDENTIALS' ) || ! EP_CREDENTIALS ) : ?>
+											<p>
+												<label for="ep_remove_token">
+													<input type="checkbox" name="ep_remove_token" id="ep_remove_token" value="1">
+													<?php esc_html_e( 'Remove the saved subscription token', 'elasticpress' ); ?>
+												</label>
+											</p>
+										<?php endif; ?>
 									<?php endif ?>
 									<?php if ( defined( 'EP_CREDENTIALS' ) && EP_CREDENTIALS ) : ?>
-										<p class="description"><?php esc_html_e( 'Your Subscription Token is set in wp-config.php', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Your subscription token is defined in wp-config.php and is hidden for security.', 'elasticpress' ); ?></p>
 									<?php else : ?>
-										<p class="description"><?php esc_html_e( 'Plug in your subscription token here.', 'elasticpress' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Your subscription token is saved and is hidden for security. Enter a new value to update it.', 'elasticpress' ); ?></p>
 									<?php endif; ?>
 								</td>
 							</tr>

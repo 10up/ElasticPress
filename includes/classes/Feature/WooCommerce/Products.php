@@ -199,7 +199,7 @@ class Products {
 			return $price;
 		}
 
-		return $price - \WC_Tax::get_tax_total( \WC_Tax::calc_inclusive_tax( $price, $tax_rates ) );
+		return wc_format_decimal( $price - \WC_Tax::get_tax_total( \WC_Tax::calc_inclusive_tax( $price, $tax_rates ) ) );
 	}
 
 	/**
