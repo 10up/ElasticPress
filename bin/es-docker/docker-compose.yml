@@ -7,8 +7,14 @@ services:
         ES_VERSION: ${ES_VERSION-8.16.1}
     ports:
       - 8890:9200
-    mem_limit: 1024M
-    mem_reservation: 1024M
+    # ES 9 needs ~890M with an empty cluster: the 450m heap is fully resident
+    # (AlwaysPreTouch), and metaspace, code cache and ~140 thread stacks sit on
+    # top. At 1024M the container ran at 98% and was OOM-killed by spikes such
+    # as Tika document parsing or the field-limit test's mapping explosion.
+    mem_limit: 2048M
+    # A killed container stays down, so every later test in the run fails with
+    # "Could not connect to Elasticsearch" rather than the actual problem.
+    restart: on-failure:3
     volumes:
       - './elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:cached'
     environment:

@@ -1,5 +1,6 @@
 .ep-search-input {
 	font-size: 1.25em;
+	/* stylelint-disable-next-line declaration-no-important */
 	margin: 0 !important;
 	width: 100%;
 }

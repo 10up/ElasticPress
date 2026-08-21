@@ -10,6 +10,7 @@
 	}
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 fieldset.ep-sync-advanced-control {
 	margin-bottom: 16px;
 }

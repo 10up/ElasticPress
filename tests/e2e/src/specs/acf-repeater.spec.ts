@@ -24,29 +24,36 @@ test.describe('ACF Repeater Field Compatibility Feature', { tag: '@paidPlugins' 
 		// Check ElasticPress controls in the ACF group edit screen
 		await goToAdminPage(loggedInPage, 'edit.php?post_type=acf-field-group');
 		await loggedInPage.locator('a[aria-label="Edit “Repeater Test”"]').dispatchEvent('click');
+		await loggedInPage.waitForURL(/post\.php\?.*action=edit/);
 
-		// Check that we have the expected repeater fields
-		await loggedInPage.locator('.edit-field').first().click();
-		await expect(
-			loggedInPage.locator('.acf-field-setting-ep_acf_repeater_index_field').first(),
-		).toBeVisible();
+		const firstRepeater = loggedInPage
+			.locator('.acf-field-object-repeater')
+			.filter({ hasText: 'Repeater Test 1' })
+			.first();
+		await firstRepeater.waitFor();
+		// ACF 6.8 opens settings from Edit, not the field title. WP latest
+		// keeps the row's box moving, so Playwright never sees it as stable.
+		await firstRepeater.getByRole('link', { name: 'Edit', exact: true }).evaluate((el) => {
+			(el as HTMLAnchorElement).click();
+		});
+		const firstRepeaterSetting = loggedInPage
+			.locator('.acf-field-setting-ep_acf_repeater_index_field')
+			.first();
+		await expect(firstRepeaterSetting).toBeVisible();
 		await expect(loggedInPage.locator('.acf-field-object-repeater')).toHaveCount(3);
 		await expect(
 			loggedInPage.locator('.acf-field-setting-ep_acf_repeater_index_field'),
 		).toHaveCount(2); // We have 3 repeaters, but nested repeats do not get a toggle
 
 		// Enable the first repeater field for indexing
-		const firstRepeaterToggle = loggedInPage
-			.locator('.acf-field-setting-ep_acf_repeater_index_field')
-			.first()
-			.locator('input[type="checkbox"]');
-
-		const isChecked = await firstRepeaterToggle.isChecked();
-		if (!isChecked) {
-			await firstRepeaterToggle.check({ force: true });
+		const firstRepeaterToggle = firstRepeaterSetting.locator('input[type="checkbox"]');
+		if (!(await firstRepeaterToggle.isChecked())) {
+			await firstRepeaterSetting.locator('.acf-switch').evaluate((el) => {
+				(el as HTMLElement).click();
+			});
 		}
 
-		await loggedInPage.locator('button.acf-publish').click();
+		await loggedInPage.locator('button.acf-publish').click({ force: true });
 
 		// Save the example post, so the repeater field is indexed
 		await goToAdminPage(loggedInPage, 'edit.php?s=Post+with+ACF+Repeater+Field');

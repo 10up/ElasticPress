@@ -8,10 +8,10 @@ import { registerBlockType } from '@wordpress/blocks';
  */
 import icon from './icon';
 import Edit from './Edit';
-import { name } from './block.json';
+import block from './block.json';
 import transforms from './transforms';
 
-registerBlockType(name, {
+registerBlockType(block.name, {
 	icon,
 	edit: (props) => <Edit {...props} />,
 	save: () => {},

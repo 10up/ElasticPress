@@ -10,14 +10,15 @@
     "@wordpress/icons": "^10.13.0",
     "chart.js": "^4.4.7",
     "focus-trap-react": "^11.0.3",
-    "react-router-dom": "^7.9.4",
+    "react-router-dom": "^7.18.2",
     "react-slider": "^2.0.6",
-    "uuid": "^11.0.5"
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
-    "@wordpress/env": "^10.4.0",
-    "10up-toolkit": "^6.4.0",
+    "@wordpress/env": "^11.13.0",
+    "10up-toolkit": "^7.0.0-next.1",
     "classnames": "^2.5.1",
+    "eslint-import-resolver-typescript": "^3.6.1",
     "husky": "^9.0.0",
     "jsdoc": "^4.0.4",
     "lint-staged": "^15.4.3",
@@ -42,10 +43,10 @@
     "build:zip": "./bin/build-zip.sh",
     "lint-style": "10up-toolkit lint-style",
     "env": "wp-env",
-    "env:install-tests-cli": "./bin/install-wp-cli.sh tests-wordpress",
-    "env:start": "wp-env start && npm run env:install-tests-cli && npm run es:start",
+    "env:install-cli": "./bin/install-wp-cli.sh wordpress",
+    "env:start": "wp-env start && npm run env:install-cli && npm run es:start",
     "env:stop": "wp-env stop && npm run es:stop",
-    "env:reset": "wp-env clean all && npm run env:start && npm run e2e:setup",
+    "env:reset": "wp-env reset all && npm run env:start && npm run e2e:setup",
     "es:start": "cd bin/es-docker/ && docker compose build --build-arg ES_VERSION=${ES_VERSION-8.16.1} && docker compose up -d",
     "es:stop": "cd bin/es-docker/ && docker compose down",
     "e2e:setup": "./bin/setup-e2e-env.sh",
@@ -61,6 +62,18 @@
   "engines": {
     "node": ">=20",
     "npm": ">=9"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^9.0.7"
+    },
+    "sockjs": {
+      "uuid": "^11.1.1"
+    },
+    "@wordpress/icons": {
+      "@babel/runtime": "^7.26.10"
+    }
   },
   "10up-toolkit": {
     "entry": {
@@ -106,9 +119,5 @@
       "woocommerce-order-search-styles": "./assets/css/woocommerce/admin/orders.css"
     },
     "wpDependencyExternals": true
-  },
-  "overrides": {
-    "@babel/runtime": "^7.27.6",
-    "webpack": "5.105.4"
   }
 }
