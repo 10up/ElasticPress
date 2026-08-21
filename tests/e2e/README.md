@@ -90,6 +90,8 @@ The first setup for a given WordPress and WooCommerce combination exports the fi
 
 Cache files are keyed by the WordPress version, the WooCommerce version, whether ACF Pro is installed, and a hash of `bin/setup-e2e-env.sh` plus the imported content. Editing either file produces a new key, so there is nothing to invalidate by hand.
 
+The setup drops the stored container id once the database is in place. That id lives in the database (see `unique-index-name.php` below), so a dump carries the id of the environment that produced it. Left in place, every environment importing the same cache would address the same indices, and CI jobs sharing one ElasticPress.io account would delete and rebuild each other's data mid-run.
+
 To rebuild from scratch, pass `--no-db-cache` to `npm run e2e:setup`, or run `make clean-db-cache`.
 
 ### Soft and hard resets

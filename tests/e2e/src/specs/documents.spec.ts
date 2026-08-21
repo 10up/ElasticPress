@@ -3,6 +3,7 @@ import { execFileSync } from 'child_process';
 import { test, expect, Page } from '../fixtures.js';
 import {
 	wpCli,
+	wpCliEval,
 	maybeDisableFeature,
 	goToAdminPage,
 	getPluginRootDir,
@@ -112,9 +113,14 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 			timeout: getSyncTimeout(),
 		});
 
-		await wpCli('config set ALLOW_UNFILTERED_UPLOADS true --raw');
-		// wp-config.php is opcached; a new admin request picks up the constant.
-		await goToAdminPage(loggedInPage, 'index.php');
+		// Multisite only accepts the file types listed for the network, and txt and
+		// csv are not among them. ALLOW_UNFILTERED_UPLOADS lifts that restriction,
+		// but it lives in wp-config.php, which PHP serves from opcache, so the
+		// upload can still be rejected. This option applies to the next request.
+		const allowedTypes = (await wpCliEval(`echo get_site_option( 'upload_filetypes', '' );`))
+			.toString()
+			.trim();
+		await wpCliEval(`update_site_option( 'upload_filetypes', '${allowedTypes} txt csv' );`);
 
 		await uploadFile(loggedInPage, 'txt-file.txt');
 		await uploadFile(loggedInPage, 'csv-file.csv');
@@ -129,6 +135,6 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 			timeout: getSyncTimeout(),
 		});
 
-		await wpCli('config set ALLOW_UNFILTERED_UPLOADS false --raw');
+		await wpCliEval(`update_site_option( 'upload_filetypes', '${allowedTypes}' );`);
 	});
 });

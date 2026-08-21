@@ -133,6 +133,18 @@ ensure_multisite_config() {
 	./bin/wp-env-cli wordpress "wp --allow-root config set BLOG_ID_CURRENT_SITE 1 --raw"
 }
 
+# The e2e mu-plugin stores the id of the container that first asked for it and
+# appends it to every index name, which is what keeps environments from sharing
+# indices. A dump therefore carries the id of the environment that produced it,
+# so every environment importing the cache would address the same indices --
+# and CI jobs sharing an ElasticPress.io account would delete and rebuild each
+# other's data mid-run. Dropping the stored id lets these containers claim their
+# own on the next call.
+reset_docker_cid() {
+	./bin/wp-env-cli wordpress "wp --allow-root network meta delete 1 ep_tests_docker_cid" > /dev/null 2>&1
+	./bin/wp-env-cli wordpress "wp --allow-root option delete ep_tests_docker_cid" > /dev/null 2>&1
+}
+
 # The exported file is only worth keeping if it captures a database the suite
 # can actually run against: the imported content, the second site the multisite
 # tests index, and an active plugin.
@@ -301,6 +313,9 @@ else
 		rm -f "${DB_CACHE_FILE}.tmp"
 	fi
 fi
+
+# Has to happen before the sync below, which is what creates the indices.
+reset_docker_cid
 
 # Runs after the database is in place either way, as the index is never cached.
 ./bin/wp-env-cli wordpress "wp --allow-root elasticpress sync --setup --yes --show-errors"
