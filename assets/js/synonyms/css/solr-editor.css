@@ -2,7 +2,9 @@
 	margin-top: 16px;
 
 	& textarea {
+		/* stylelint-disable-next-line declaration-no-important */
 		font-family: Menlo, Consolas, monaco, monospace !important;
+		/* stylelint-disable-next-line declaration-no-important */
 		font-size: 13px !important;
 		line-height: 1.5;
 		overflow-wrap: break-word;

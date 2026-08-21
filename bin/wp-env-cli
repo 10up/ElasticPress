@@ -1,14 +1,32 @@
 #!/usr/bin/env node
 
+const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 const { loadConfig } = require('@wordpress/env/lib/config');
+
+/**
+ * Return the host user as `uid:gid`, matching how wp-env execs into containers.
+ *
+ * Windows reports -1 for both, so fall back to 1000 like wp-env does.
+ *
+ * @return {string} The host user in `uid:gid` format.
+ */
+function getHostUser() {
+	const { uid, gid } = os.userInfo();
+
+	return `${uid === -1 ? 1000 : uid}:${gid === -1 ? 1000 : gid}`;
+}
 
 function spawnCommandDirectly({ container, command, dockerComposeConfigPath }) {
 	const composeCommand = [
 		'-f',
 		dockerComposeConfigPath,
 		'exec -T',
+		// Without this, commands run as root and any file they create is owned by
+		// root on the host, which makes `wp-env destroy` fail with EACCES.
+		'--user',
+		getHostUser(),
 		container,
 		...command.split(' '), // The command will fail if passed as a complete string.
 	];

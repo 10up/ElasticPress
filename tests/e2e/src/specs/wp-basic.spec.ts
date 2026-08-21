@@ -3,7 +3,7 @@ import { goToAdminPage, wpCli } from '../utils.js';
 
 test.describe('WordPress basic actions', { tag: '@group2' }, () => {
 	test.beforeAll('EP Sync', async () => {
-		wpCli('elasticpress sync --setup --yes');
+		await wpCli('elasticpress sync --setup --yes');
 	});
 
 	test('has <title> tag', async ({ page }) => {

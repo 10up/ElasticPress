@@ -1,5 +1,15 @@
+import { Locator } from '@playwright/test';
 import { test, expect, Page } from '../../fixtures.js';
-import { wpCliEval, goToAdminPage, activatePlugin, deactivatePlugin } from '../../utils.js';
+import {
+	wpCliEval,
+	goToAdminPage,
+	activatePlugin,
+	deactivatePlugin,
+	refreshIndex,
+	maybeEnableFeature,
+	maybeDisableFeature,
+	wpCli,
+} from '../../utils.js';
 
 test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }, () => {
 	/**
@@ -16,10 +26,22 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		).toBeVisible();
 	}
 
+	async function fillToken(field: Locator, token: string) {
+		await field.click();
+		await field.pressSequentially(token);
+		await field.press('Enter');
+	}
+
 	/**
 	 * Delete synonyms recreate test posts before running tests.
 	 */
 	test.beforeAll(async () => {
+		await maybeEnableFeature('search');
+		// Autosuggest adds post_title.suggest and term_suggest to the search
+		// fields. Those use `standard` as their search analyzer, which carries no
+		// synonym filter, so the original term keeps matching replacement rules.
+		await maybeDisableFeature('autosuggest');
+		await wpCli('plugin deactivate disable-fuzziness', true);
 		await wpCliEval(`
 			$ep_synonyms_tests = get_posts([
 				'post_type'   => 'any',
@@ -34,12 +56,17 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 			foreach ( $posts as $post ) {
 				wp_insert_post([
 					'post_title'   => $post,
-					'post_content' => '',
+					'post_content' => $post,
 					'post_status'  => 'publish',
 					'meta_input'   => [ '_synonyms_tests' => 1 ],
 				]);
 			}
 		`);
+		await refreshIndex('post');
+	});
+
+	test.afterAll(async () => {
+		await maybeEnableFeature('autosuggest');
 	});
 
 	/**
@@ -69,11 +96,11 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Confirm that only results with our search term are returned.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Extension' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Extension' }),
 		).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Module' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Module' })).not.toBeVisible();
 
 		/**
 		 * Enter a synonym.
@@ -109,9 +136,9 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should reflect the synonym rules.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Extension' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Module' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Extension' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Module' })).not.toBeVisible();
 
 		/**
 		 * It should be possible to edit synonym rules.
@@ -135,11 +162,11 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should reflect the new synonyms.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Extension' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Extension' }),
 		).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Module' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Module' })).toBeVisible();
 
 		/**
 		 * In the advanced editor, synonyms should be represented as expected.
@@ -166,11 +193,11 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should reflect the deleted synonyms.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Extension' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Extension' }),
 		).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Module' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Module' })).not.toBeVisible();
 	});
 
 	test('Is possible to create, edit, and delete hyponym rules', async ({ loggedInPage }) => {
@@ -178,12 +205,12 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Confirm that only results with our search term are returned.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 
 		/**
@@ -220,28 +247,28 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should reflect the hyponym rules.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=elasticpress');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=redirect');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).toBeVisible();
 
 		/**
@@ -264,28 +291,28 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should reflect the new hyponyms.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).toBeVisible();
 		await loggedInPage.goto('/?s=elasticpress');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=redirect');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).toBeVisible();
 
 		/**
@@ -315,28 +342,28 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should not longer reflect the deleted rule.
 		 */
 		await loggedInPage.goto('/?s=plugin');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=elasticpress');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).not.toBeVisible();
 		await loggedInPage.goto('/?s=redirect');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Plugin' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Plugin' })).not.toBeVisible();
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'ElasticPress', exact: true }),
 		).not.toBeVisible();
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Safe Redirect Manager' }),
+			loggedInPage.locator('.entry-title', { hasText: 'Safe Redirect Manager' }),
 		).toBeVisible();
 	});
 
@@ -347,9 +374,9 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Confirm that our replacements are not returned yet.
 		 */
 		await loggedInPage.goto('/?s=bandeirole');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Bandeirole' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Flag' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Banner' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Bandeirole' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Flag' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Banner' })).not.toBeVisible();
 
 		/**
 		 * Enter a term.
@@ -359,7 +386,7 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		const panel = loggedInPage.locator('.ep-synonyms-edit-panel');
 		await expect(panel.locator('h2', { hasText: 'Add Replacements' })).toBeVisible();
 		await expect(panel.getByRole('button', { name: 'Add replacements' })).toBeVisible();
-		await panel.locator('input[type="text"]').nth(0).fill('bandeirole,');
+		await fillToken(panel.getByRole('combobox', { name: 'Terms' }), 'bandeirole');
 
 		/**
 		 * Add button should be disabled when there's no replacements.
@@ -369,15 +396,18 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		/**
 		 * Enter a replacement and submit.
 		 */
-		await panel.locator('input[type="text"]').nth(1).fill('flag,');
+		await fillToken(panel.getByRole('combobox', { name: 'Replacements' }), 'flag');
 		await panel.getByRole('button', { name: 'Add replacements' }).click();
 
 		/**
 		 * The replacements should appear in the list.
 		 */
-		await expect(
-			loggedInPage.locator('.ep-synonyms-list-table tr', { hasText: 'bandeirole' }),
-		).toBeVisible();
+		const replacementRow = loggedInPage.locator('.ep-synonyms-list-table tr', {
+			hasText: 'bandeirole',
+		});
+		await expect(replacementRow).toBeVisible();
+		await expect(replacementRow.locator('td').nth(1)).toHaveText('bandeirole');
+		await expect(replacementRow.locator('td').nth(2)).toHaveText('flag');
 
 		await saveSynonyms(loggedInPage);
 
@@ -386,10 +416,14 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 */
 		await loggedInPage.goto('/?s=bandeirole');
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Bandeirole' }),
+			loggedInPage.locator('article .entry-title', { hasText: 'Bandeirole' }),
 		).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Flag' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Banner' })).not.toBeVisible();
+		await expect(
+			loggedInPage.locator('article .entry-title', { hasText: 'Flag' }),
+		).toBeVisible();
+		await expect(
+			loggedInPage.locator('article .entry-title', { hasText: 'Banner' }),
+		).not.toBeVisible();
 
 		/**
 		 * It should be possible to edit replacement rules.
@@ -399,7 +433,7 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		const row = loggedInPage.locator('.ep-synonyms-list-table tr', { hasText: 'bandeirole' });
 		await row.getByRole('button', { name: 'Edit' }).click();
 		await panel.getByText('Edit Replacements').isVisible();
-		await panel.locator('input').nth(1).fill('banner,');
+		await fillToken(panel.getByRole('combobox', { name: 'Replacements' }), 'banner');
 		await panel.getByRole('button', { name: 'Save changes' }).click();
 		await expect(
 			loggedInPage.locator('.ep-synonyms-list-table tr', { hasText: 'flag, banner' }),
@@ -412,10 +446,14 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 */
 		await loggedInPage.goto('/?s=bandeirole');
 		await expect(
-			loggedInPage.locator('article h2', { hasText: 'Bandeirole' }),
+			loggedInPage.locator('article .entry-title', { hasText: 'Bandeirole' }),
 		).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Flag' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Banner' })).toBeVisible();
+		await expect(
+			loggedInPage.locator('article .entry-title', { hasText: 'Flag' }),
+		).toBeVisible();
+		await expect(
+			loggedInPage.locator('article .entry-title', { hasText: 'Banner' }),
+		).toBeVisible();
 
 		/**
 		 * In the advanced editor, replacements should be represented as
@@ -442,9 +480,9 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 * Results should not longer reflect the deleted rule.
 		 */
 		await loggedInPage.goto('/?s=bandeirole');
-		await expect(loggedInPage.locator('article h2', { hasText: 'Bandeirole' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Flag' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Banner' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Bandeirole' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Flag' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Banner' })).not.toBeVisible();
 
 		await deactivatePlugin(loggedInPage, 'disable-fuzziness', 'wpCli');
 	});
@@ -455,9 +493,15 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 */
 		await loggedInPage.goto('/?s=red');
 		await expect(loggedInPage.getByRole('heading', { name: 'Red', exact: true })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Carmine' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Cordovan' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Crimson' })).not.toBeVisible();
+		await expect(
+			loggedInPage.locator('.entry-title', { hasText: 'Carmine' }),
+		).not.toBeVisible();
+		await expect(
+			loggedInPage.locator('.entry-title', { hasText: 'Cordovan' }),
+		).not.toBeVisible();
+		await expect(
+			loggedInPage.locator('.entry-title', { hasText: 'Crimson' }),
+		).not.toBeVisible();
 
 		/**
 		 * Add a hyponym rule to the text editor.
@@ -473,16 +517,20 @@ test.describe('Post Search Feature - Synonyms Functionality', { tag: '@group2' }
 		 */
 		await loggedInPage.goto('/?s=red');
 		await expect(loggedInPage.getByRole('heading', { name: 'Red', exact: true })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Carmine' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Cordovan' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Crimson' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Carmine' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Cordovan' })).toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Crimson' })).toBeVisible();
 		await loggedInPage.goto('/?s=carmine');
 		await expect(
 			loggedInPage.getByRole('heading', { name: 'Red', exact: true }),
 		).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Carmine' })).toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Cordovan' })).not.toBeVisible();
-		await expect(loggedInPage.locator('article h2', { hasText: 'Crimson' })).not.toBeVisible();
+		await expect(loggedInPage.locator('.entry-title', { hasText: 'Carmine' })).toBeVisible();
+		await expect(
+			loggedInPage.locator('.entry-title', { hasText: 'Cordovan' }),
+		).not.toBeVisible();
+		await expect(
+			loggedInPage.locator('.entry-title', { hasText: 'Crimson' }),
+		).not.toBeVisible();
 
 		/**
 		 * The settings page should remember that we used the text editor.

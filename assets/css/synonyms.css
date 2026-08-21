@@ -4,6 +4,7 @@
 	--ep-synonyms-color-error: #b52727;
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 html.wp-toolbar {
 	background: transparent;
 }
@@ -28,6 +29,7 @@ html.wp-toolbar {
 	& .postbox {
 		width: 100%;
 
+		/* stylelint-disable-next-line no-descending-specificity */
 		& > .hndle {
 			display: flex;
 		}
@@ -63,6 +65,7 @@ html.wp-toolbar {
 		}
 	}
 
+	/* stylelint-disable-next-line selector-no-qualifying-type */
 	& input[type="text"].components-form-token-field__input {
 		margin-bottom: 2px;
 		margin-top: 2px;
@@ -77,6 +80,7 @@ html.wp-toolbar {
 	}
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 input[type="text"].ep-synonyms__input {
 	border: 1px solid var(--ep-synonyms-input-border-color);
 	margin-bottom: 0.5em;
@@ -97,6 +101,7 @@ input[type="text"].ep-synonyms__input {
 	flex: 1;
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 button.synonym__remove {
 	background-color: transparent;
 	border: none;
@@ -110,6 +115,7 @@ button.synonym__remove {
 		min-height: 40px;
 	}
 
+	/* stylelint-disable-next-line selector-no-qualifying-type */
 	& .dashicons-dismiss {
 		margin: -2px 2px 0 0;
 	}
@@ -131,6 +137,7 @@ button.synonym__remove {
 	margin: 0 0 0.625em 0.5em;
 }
 
+/* stylelint-disable-next-line selector-no-qualifying-type */
 .synonym-btn-group button.button {
 	margin-right: 0.625em;
 }

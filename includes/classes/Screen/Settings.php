@@ -124,7 +124,11 @@ class Settings {
 
 		$es_info = \ElasticPress\Elasticsearch::factory()->get_elasticsearch_info( true );
 		if ( empty( $es_info['version'] ) ) {
-			add_action( 'admin_notices', [ $this, 'add_validation_notice' ] );
+			if ( defined( 'EP_IS_NETWORK' ) && EP_IS_NETWORK ) {
+				add_action( 'network_admin_notices', [ $this, 'add_validation_notice' ] );
+			} else {
+				add_action( 'admin_notices', [ $this, 'add_validation_notice' ] );
+			}
 
 			unset( $_POST['ep_host'] ); // Needed to prevent going to the next installation step
 			$this->reset_settings();

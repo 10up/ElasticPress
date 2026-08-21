@@ -39,6 +39,7 @@
 			display: flex;
 			justify-content: end;
 
+			/* stylelint-disable-next-line max-nesting-depth */
 			& .components-range-control__wrapper {
 				display: none;
 			}
