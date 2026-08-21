@@ -2,6 +2,10 @@ import { test, expect } from '../fixtures.js';
 import { goToAdminPage, publishPost, refreshIndex, wpCliEval } from '../utils.js';
 
 test.describe('Custom Results', { tag: '@group2' }, () => {
+	// Each test publishes posts through the editor, which is slower than the
+	// default per-test budget allows for on a loaded runner.
+	test.describe.configure({ timeout: 120000 });
+
 	const testPost = 'test-post';
 
 	test.beforeEach(async () => {

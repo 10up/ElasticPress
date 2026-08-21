@@ -27,14 +27,39 @@ test.describe('Documents Feature', { tag: '@group1' }, () => {
 		await responsePromise;
 	}
 
+	async function countAttachments() {
+		return Number(
+			await wpCli('post list --post_type=attachment --post_status=inherit --format=count'),
+		);
+	}
+
 	async function uploadFile(page: Page, fileName: string) {
+		const attachmentsBefore = await countAttachments();
+
 		await goToAdminPage(page, 'media-new.php?browser-uploader');
 
 		await page
 			.locator('#async-upload')
 			.setInputFiles(`${getPluginRootDir()}/tests/e2e/src/fixtures/${fileName}`);
-		await page.locator('#html-upload').click();
+
+		// Submitting the form navigates, so the upload request has to be awaited
+		// here: any navigation that follows would cancel it, leaving the file
+		// unattached and the searches below without results.
+		await Promise.all([
+			page.waitForResponse(
+				(response) =>
+					response.request().isNavigationRequest() &&
+					response.request().method() === 'POST',
+			),
+			page.locator('#html-upload').click(),
+		]);
 		await page.waitForLoadState('domcontentloaded');
+
+		// WordPress rejects some file types silently, which would otherwise only
+		// show up as an empty search result further down.
+		await expect
+			.poll(countAttachments, { timeout: getSyncTimeout() })
+			.toBeGreaterThan(attachmentsBefore);
 
 		await refreshIndex('post');
 	}

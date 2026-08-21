@@ -50,6 +50,19 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 			.toBe(expected);
 	};
 
+	/**
+	 * A sync run while the comments feature was inactive leaves the comment index
+	 * missing. Hosted Elasticsearch does not create indices on write, so comments
+	 * added afterwards would never be indexed. Rebuilding it also makes the
+	 * document count a reliable baseline.
+	 */
+	const rebuildCommentIndex = async () => {
+		await wpCli('elasticpress sync --setup --yes --indexables=comment');
+		// The counts below come from index stats, which only report the comments
+		// just indexed once the index has been refreshed.
+		await refreshIndex('comment');
+	};
+
 	test.beforeAll(async () => {
 		await wpCliEval(`
 			update_option( 'require_name_email', '1' );
@@ -409,11 +422,12 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	});
 
 	test('Can sync woocommerce reviews', async ({ loggedInPage }) => {
-		const commentsStartCount = await getCommentsCount();
-
 		await activatePlugin(loggedInPage, 'woocommerce', 'wpCli');
 		await maybeEnableFeature('comments');
 		await maybeEnableFeature('woocommerce');
+
+		await rebuildCommentIndex();
+		const commentsStartCount = await getCommentsCount();
 
 		// Recent WooCommerce versions install with coming soon mode enabled, which
 		// puts a notice bar over the bottom of store pages. The review is
@@ -461,9 +475,10 @@ test.describe('Comments Indexable', { tag: '@group2' }, () => {
 	});
 
 	test('Can sync anonymous comments when settings are disabled', async ({ loggedInPage }) => {
-		const commentsStartCount = await getCommentsCount();
-
 		await maybeEnableFeature('comments');
+
+		await rebuildCommentIndex();
+		const commentsStartCount = await getCommentsCount();
 
 		const postTitle = `Anonymous Comment Sync ${Date.now()}`;
 		await publishPost(loggedInPage, {

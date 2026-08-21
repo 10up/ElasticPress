@@ -11,6 +11,7 @@ import {
 	setCustomPostTypes,
 	refreshIndex,
 	getEditorFrame,
+	getSyncTimeout,
 } from '../utils.js';
 import {
 	openBlockInserter,
@@ -52,6 +53,32 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 			promisesMax.push(page.keyboard.press(maxDirection));
 		}
 		await Promise.all(promisesMax);
+	};
+
+	/**
+	 * The metadata facet blocks populate their key dropdown from the meta fields
+	 * present in the index mapping, so seeded posts have to be indexed before a
+	 * test opens the editor. Waiting here points at a seed that never reached the
+	 * index, rather than at an empty dropdown much further down.
+	 * @param metaKey Meta key the seeded posts are expected to expose
+	 */
+	const waitForIndexedMetaKey = async (metaKey: string) => {
+		await expect
+			.poll(
+				async () => {
+					await refreshIndex('post');
+					return wpCliEval(`
+						try {
+							$keys = \\ElasticPress\\Indexables::factory()->get( 'post' )->get_distinct_meta_field_keys();
+						} catch ( \\Throwable $e ) {
+							$keys = [];
+						}
+						echo in_array( '${metaKey}', $keys, true ) ? 'key-found' : 'key-missing';
+					`);
+				},
+				{ timeout: getSyncTimeout() },
+			)
+			.toContain('key-found');
 	};
 
 	const getEditorBlock = async (page: Page, selector: string) => {
@@ -463,7 +490,7 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 					);
 				}
 			`);
-			await refreshIndex('post');
+			await waitForIndexedMetaKey('meta_field_1');
 		});
 
 		test('Can insert, configure, and use the Filter by Metadata block', async ({
@@ -728,7 +755,7 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 					);
 				}
 			`);
-			await refreshIndex('post');
+			await waitForIndexedMetaKey('numeric_meta_field');
 		});
 
 		test('Can insert, configure, and use the Filter by Metadata Range block', async ({
@@ -966,20 +993,25 @@ test.describe('Facets Feature', { tag: '@group2' }, () => {
 
 			await firstBlockFrontend.locator('.term:has-text("Post")').click();
 
+			// Selecting that term should lead to the correct URL, mark the correct item as checked, and all articles being displayed should have the selected category
+			// The facet link reloads the page, and that request waits on Elasticsearch.
+			await expect(loggedInPage).toHaveURL(/ep_post_type_filter=post/, {
+				timeout: getSyncTimeout(),
+			});
+			await expect(
+				firstBlockFrontend.locator('.term:has-text("Post") .ep-checkbox'),
+			).toContainClass('checked');
+
 			// Verify that the block supports changing styles
 			await supportsBlockColors(loggedInPage, firstBlockFrontend);
 			await supportsBlockTypography(loggedInPage, firstBlockFrontend);
 			await supportsBlockDimensions(loggedInPage, firstBlockFrontend);
 
-			// Selecting that term should lead to the correct URL, mark the correct item as checked, and all articles being displayed should have the selected category
-			await expect(loggedInPage).toHaveURL(/ep_post_type_filter=post/);
-			await expect(
-				firstBlockFrontend.locator('.term:has-text("Post") .ep-checkbox'),
-			).toContainClass('checked');
-
 			// Clicking selected facet should remove it while keeping any other facets active
 			await firstBlockFrontend.locator('.term:has-text("Post")').click();
-			await expect(loggedInPage).not.toHaveURL(/ep_post_type_filter=post/);
+			await expect(loggedInPage).not.toHaveURL(/ep_post_type_filter=post/, {
+				timeout: getSyncTimeout(),
+			});
 		});
 	});
 
