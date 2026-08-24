@@ -219,7 +219,7 @@ const Control = ({
 							return (
 								<FormTokenField
 									__experimentalExpandOnFocus
-									__experimentalShowHowTo={false}
+									help=""
 									label={label}
 									onChange={onChangeFormTokenField}
 									disabled={isDisabled}
