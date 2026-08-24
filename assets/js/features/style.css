@@ -1,6 +1,8 @@
 #ep-dashboard {
 
 	& .components-notice {
+		align-items: center;
+		display: flex;
 		margin: 16px 0;
 	}
 
