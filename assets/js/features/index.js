@@ -52,7 +52,7 @@ const App = () => (
 							// eslint-disable-next-line jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label
 							<a
 								target="_blank"
-								href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/"
+								href="https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/"
 								rel="noreferrer"
 							/>
 						),

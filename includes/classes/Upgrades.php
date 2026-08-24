@@ -320,7 +320,7 @@ class Upgrades {
 				sprintf(
 					/* translators: 1: <a> tag (Support article); 2. </a>; 3: <a> tag (link to Features screen); 4. </a>; */
 					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, click %3$shere%4$s to activate the feature and start your sync.', 'elasticpress' ),
-					'<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">',
+					'<a href="https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">',
 					'</a>',
 					'<a href="' . $features_url . '">',
 					'</a>'
@@ -331,9 +331,9 @@ class Upgrades {
 				sprintf(
 					/* translators: 1: <a> tag (Support article about Instant Results); 2. </a>; 3: <a> tag (Support article about self hosted Elasticsearch setups); 4. </a>; */
 					__( '%1$sInstant Results%2$s is now available in ElasticPress, but requires a re-sync before activation. If you would like to use Instant Results, since you are not using ElasticPress.io, you will also need to %3$sinstall and configure a PHP proxy%4$s.', 'elasticpress' ),
-					'<a href="https://www.elasticpress.io/documentation/article/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">',
+					'<a href="https://www.elasticpress.io/resources/articles/configuring-elasticpress-via-the-plugin-dashboard/#instant-results">',
 					'</a>',
-					'<a href="https://www.elasticpress.io/documentation/article/considerations-for-self-hosted-elasticsearch-setups/">',
+					'<a href="https://www.elasticpress.io/resources/articles/considerations-for-self-hosted-elasticsearch-setups/">',
 					'</a>'
 				)
 			);
