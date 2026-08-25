@@ -221,7 +221,20 @@ abstract class Indexable {
 		 */
 		do_action( 'ep_delete_' . $this->slug, $object_id, $this->slug );
 
-		return Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
+		$return = Elasticsearch::factory()->delete_document( $this->get_index_name(), $this->slug, $object_id, $blocking );
+
+		/**
+		 * Fires after an object deletion request
+		 *
+		 * @hook ep_after_delete_{indexable_slug}
+		 * @param {int}    $object_id Object id.
+		 * @param {bool}   $return    True on success, false on failure.
+		 * @param {string} $indexable_slug The slug of the indexable type that was deleted.
+		 * @since 5.4.0
+		 */
+		do_action( 'ep_after_delete_' . $this->slug, $object_id, $return, $this->slug );
+
+		return $return;
 	}
 
 	/**

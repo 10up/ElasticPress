@@ -59,6 +59,15 @@ class EP_Uninstaller {
 	];
 
 	/**
+	 * List of custom tables (without prefix) to drop when uninstalling the plugin.
+	 *
+	 * @var array
+	 */
+	protected $tables = [
+		'ep_failed_writes',
+	];
+
+	/**
 	 * List of transient keys that need to be deleted when uninstalling the plugin.
 	 *
 	 * @var array
@@ -109,6 +118,7 @@ class EP_Uninstaller {
 		// Uninstall ElasticPress.
 		$this->clean_options_and_transients();
 		$this->clean_site_meta();
+		$this->clean_tables();
 		$this->remove_elasticpress_capability();
 	}
 
@@ -215,6 +225,21 @@ class EP_Uninstaller {
 		$sites = Utils\get_sites();
 		foreach ( $sites as $site ) {
 			delete_site_meta( $site['blog_id'], 'ep_indexable' );
+		}
+	}
+
+	/**
+	 * Drop the plugin's custom tables.
+	 *
+	 * @since 5.4.0
+	 */
+	protected function clean_tables() {
+		global $wpdb;
+
+		foreach ( $this->tables as $table ) {
+			$full = $wpdb->prefix . $table;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "DROP TABLE IF EXISTS {$full}" );
 		}
 	}
 

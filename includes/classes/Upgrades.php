@@ -51,6 +51,7 @@ class Upgrades {
 			'4.5.0' => [ 'upgrade_4_5_0', 'init' ],
 			'4.7.0' => [ 'upgrade_4_7_0', 'init' ],
 			'5.0.0' => [ 'upgrade_5_0_0', 'init' ],
+			'5.4.0' => [ 'upgrade_5_4_0', 'init' ],
 		];
 
 		array_walk( $routines, [ $this, 'run_upgrade_routine' ] );
@@ -342,6 +343,19 @@ class Upgrades {
 		$notices['upgrade_sync']['html'] .= '<br><br>' . $appended_message;
 
 		return $notices;
+	}
+
+	/**
+	 * Upgrade routine of v5.4.0.
+	 *
+	 * Create the failed writes journal table on upgrade and on a fresh install.
+	 */
+	public function upgrade_5_4_0() {
+		if ( ! function_exists( 'dbDelta' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		}
+
+		dbDelta( FailedWrites::get_table_schema() );
 	}
 
 	/**
