@@ -263,14 +263,15 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 				await codMethod.check();
 			}
 
-			// Check WooCommerce version and place order accordingly
-			if (await isMinWcVersion()) {
-				await loggedInPage.locator('#place_order').click();
-			} else {
+			// WooCommerce 8.3 made the checkout block the default for new
+			// installs; older versions still render the shortcode checkout.
+			if (await isWcVersionAtLeast('8.3.0')) {
 				await loggedInPage.waitForTimeout(1000);
 				await loggedInPage
 					.locator('.wc-block-components-checkout-place-order-button')
 					.click();
+			} else {
+				await loggedInPage.locator('#place_order').click();
 			}
 
 			// Ensure order is placed
