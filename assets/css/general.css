@@ -39,6 +39,7 @@
 }
 
 #wp-admin-bar-ep-basic-status .ab-item {
+	/* stylelint-disable-next-line declaration-no-important */
 	height: auto !important;
 }
 
