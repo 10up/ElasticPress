@@ -914,15 +914,18 @@ test.describe('WooCommerce Feature', { tag: '@group2' }, () => {
 			await activatePlugin(loggedInPage, 'enable-debug-bar');
 
 			// Enable payment gateway
-			await goToAdminPage(
-				loggedInPage,
-				'admin.php?page=wc-settings&tab=checkout&section=cod',
-			);
-			const checkboxLabel = 'Enable cash on delivery payments';
-
-			await loggedInPage.getByLabel(checkboxLabel).setChecked(false);
-			await loggedInPage.getByLabel(checkboxLabel).setChecked(true);
-			await loggedInPage.getByRole('button', { name: 'Save changes' }).click();
+			// Enable payment gateway
+			await wpCliEval(`
+				$settings = get_option( 'woocommerce_cod_settings', [] );
+				if ( ! is_array( $settings ) ) {
+					$settings = [];
+				}
+				$settings['enabled'] = 'yes';
+				update_option( 'woocommerce_cod_settings', $settings );
+				if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
+					WC()->payment_gateways()->init();
+				}
+			`);
 
 			// Disable coming soon option
 			await wpCli('option update woocommerce_coming_soon off');
