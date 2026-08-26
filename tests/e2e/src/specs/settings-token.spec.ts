@@ -75,32 +75,17 @@ test.describe('Settings page Subscription Token field', { tag: '@group1' }, () =
 		await loggedInPage.click('#submit');
 		await loggedInPage.waitForLoadState('networkidle');
 
+		const notice = loggedInPage.locator('.notice-error');
+
 		await expect(
-			loggedInPage
-				.locator('.notice-error')
-				.getByText(
-					'It was not possible to connect to your ElasticPress.io account. Your settings were reverted.',
-				),
+			notice.getByText(
+				'It was not possible to connect to your ElasticPress.io account. Your settings were reverted.',
+			),
 		).toBeVisible();
-	});
-
-	test('Can empty the saved settings after clearing the host and token', async ({
-		loggedInPage,
-	}) => {
-		test.skip(!isEpIo(), 'Requires ElasticPress.io credentials in wp-config.php.');
-
-		await goToAdminPage(loggedInPage, 'admin.php?page=elasticpress-settings');
-
-		await loggedInPage.fill('#ep_host', '');
-		await loggedInPage.fill('#ep_username', '');
-		await loggedInPage.fill('#ep_token', '');
-		await loggedInPage.check('#ep_remove_token');
-		await loggedInPage.click('#submit');
-		await loggedInPage.waitForLoadState('networkidle');
-
-		await expect(loggedInPage.locator('#ep_host')).toHaveValue('');
-		await expect(loggedInPage.locator('#ep_username')).toHaveValue('');
-		await expect(loggedInPage.locator('#ep_token')).toHaveValue('');
-		await expect(loggedInPage.locator('#ep_token')).toHaveAttribute('placeholder', '');
+		await expect(
+			notice.getByText(
+				"If you are trying to deactivate your site's communication with ElasticPress.io, temporarily disable the ElasticPress plugin instead.",
+			),
+		).toBeVisible();
 	});
 });
